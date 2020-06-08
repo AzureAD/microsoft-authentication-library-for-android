@@ -40,6 +40,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
+// Interactive Auth with select_account (no consent record)
 public class TestCase99267 extends BrokerLessMsalTest {
 
     @Test

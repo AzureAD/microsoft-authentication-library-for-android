@@ -40,6 +40,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
+// Interactive auth with force_login for managed account(with consent record)
 public class TestCase99652 extends BrokerLessMsalTest {
 
     @Test

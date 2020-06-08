@@ -43,6 +43,7 @@ import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
 
+// [MSAL] SovCloud: Silent Auth w/o cache w/o MFA w/ Prompt Auto  w/ Broker
 public class TestCase796048 extends AbstractAcquireTokenNetworkTest {
 
     @Test

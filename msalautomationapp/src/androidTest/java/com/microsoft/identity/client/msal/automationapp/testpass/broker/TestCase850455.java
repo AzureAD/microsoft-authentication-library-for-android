@@ -43,6 +43,7 @@ import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
 
+// [MSAL] Broker Auth for non-joined account - login
 public class TestCase850455 extends AbstractAcquireTokenNetworkTest {
 
     @Test

@@ -42,6 +42,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
+// Broker Auth for non-joined account - select_account
 public class TestCase497069 extends AbstractAcquireTokenNetworkTest {
 
     @Test

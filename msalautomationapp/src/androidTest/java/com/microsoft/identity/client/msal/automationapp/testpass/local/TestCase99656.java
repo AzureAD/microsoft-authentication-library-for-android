@@ -41,6 +41,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
+// Interactive auth with force_login and step-up MFA
 public class TestCase99656 extends BrokerLessMsalTest {
 
     @Test

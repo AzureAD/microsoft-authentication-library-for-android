@@ -41,6 +41,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
+// Silent Auth with force_refresh
 public class TestCase99563 extends BrokerLessMsalTest {
 
     @Test

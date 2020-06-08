@@ -41,6 +41,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
+// Interactive token acquisition with instance_aware=false and USGov authority
 public class TestCase938384 extends AbstractAcquireTokenNetworkTest {
 
     @Test

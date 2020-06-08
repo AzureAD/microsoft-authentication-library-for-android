@@ -41,6 +41,8 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
+// Interactive token acquisition with instance_aware=true, login hint present, and cloud account,
+// and WW organizations authority
 public class TestCase938367 extends AbstractAcquireTokenNetworkTest {
 
     @Test
