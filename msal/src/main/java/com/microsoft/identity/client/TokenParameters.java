@@ -30,6 +30,7 @@ import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Base class for AcquireTokenParameters and AcquireTokenSilentParameters
@@ -42,6 +43,7 @@ public abstract class TokenParameters {
     private ClaimsRequest mClaimsRequest;
     private AccountRecord mAccountRecord;
     private AuthenticationScheme mAuthenticationScheme;
+    private String mCorrelationId;
 
     protected TokenParameters(@NonNull final TokenParameters.Builder builder) {
         mAccount = builder.mAccount;
@@ -49,6 +51,7 @@ public abstract class TokenParameters {
         mClaimsRequest = builder.mClaimsRequest;
         mScopes = builder.mScopes;
         mAuthenticationScheme = builder.mAuthenticationScheme;
+        mCorrelationId = builder.mCorrelationId;
     }
 
     /**
@@ -137,6 +140,10 @@ public abstract class TokenParameters {
         return mAccountRecord;
     }
 
+    public String getCorrelationId() {
+        return mCorrelationId;
+    }
+
     /**
      * TokenParameters builder
      *
@@ -149,6 +156,7 @@ public abstract class TokenParameters {
         private String mAuthority;
         private ClaimsRequest mClaimsRequest;
         private AuthenticationScheme mAuthenticationScheme;
+        private String mCorrelationId;
 
         public B withAuthenticationScheme(@NonNull final AuthenticationScheme scheme) {
             mAuthenticationScheme = scheme;
@@ -198,6 +206,11 @@ public abstract class TokenParameters {
                 }};
             }
 
+            return self();
+        }
+
+        public B withCorrelationId(final UUID correlationId) {
+            mCorrelationId = correlationId.toString();
             return self();
         }
 
