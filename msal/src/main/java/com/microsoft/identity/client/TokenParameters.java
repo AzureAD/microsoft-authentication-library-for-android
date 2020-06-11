@@ -140,6 +140,12 @@ public abstract class TokenParameters {
         return mAccountRecord;
     }
 
+    /**
+     * Gets the correlation id passed to Token Parameters. If specified, MSAL will use this
+     * correlation id for the request instead of generating a new one.
+     *
+     * @return a String representing the correlation id passed to TokenParameters
+     */
     public String getCorrelationId() {
         return mCorrelationId;
     }
@@ -209,7 +215,7 @@ public abstract class TokenParameters {
             return self();
         }
 
-        public B withCorrelationId(final UUID correlationId) {
+        public B withCorrelationId(@NonNull final UUID correlationId) {
             mCorrelationId = correlationId.toString();
             return self();
         }

@@ -128,7 +128,7 @@ public final class AuthenticationResult implements IAuthenticationResult {
         final String methodName = "sanitizeCorrelationId";
 
         if (TextUtils.isEmpty(correlationId)) {
-            Logger.warn(TAG + methodName, "Correlation was empty, returning null.");
+            Logger.warn(TAG + methodName, "Correlation id was empty, returning null.");
             return null;
         }
 
