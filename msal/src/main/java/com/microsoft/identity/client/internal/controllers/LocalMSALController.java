@@ -98,7 +98,7 @@ public class LocalMSALController extends BaseController {
         parameters.validate();
 
         // Add default scopes
-        final Set<String> mergedScopes = addDefaultScopes(parameters);
+        final Set<String> mergedScopes = addDefaultAndOidcScopes(parameters);
 
         final InteractiveTokenCommandParameters parametersWithScopes = parameters
                 .toBuilder()
@@ -265,7 +265,7 @@ public class LocalMSALController extends BaseController {
         final Set<String> requestScopes = parameters.getScopes();
 
         // Add default scopes
-        final Set<String> mergedScopes = addDefaultScopes(parameters);
+        final Set<String> mergedScopes = addDefaultAndOidcScopes(parameters);
 
         final SilentTokenCommandParameters parametersWithScopes = parameters
                 .toBuilder()
@@ -285,7 +285,7 @@ public class LocalMSALController extends BaseController {
 
         final List<ICacheRecord> cacheRecords = tokenCache.loadWithAggregatedAccountData(
                 parametersWithScopes.getClientId(),
-                TextUtils.join(" ", requestScopes), // do not include OIDC or default scopes when getting AT from cache
+                TextUtils.join(" ", requestScopes),// use only the requested scopes when retrieving access token.
                 targetAccount,
                 authScheme
         );
