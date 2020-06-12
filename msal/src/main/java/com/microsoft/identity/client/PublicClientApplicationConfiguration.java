@@ -481,8 +481,8 @@ public class PublicClientApplicationConfiguration {
 
     private boolean isBrokerRedirectUri() {
         final String BROKER_REDIRECT_URI_REGEX = "msauth://" + mAppContext.getPackageName() + "/.*";
-        final Pattern pairRegex = Pattern.compile(BROKER_REDIRECT_URI_REGEX);
-        final Matcher matcher = pairRegex.matcher(mRedirectUri);
+        final Pattern pairRegex = Pattern.compile(BROKER_REDIRECT_URI_REGEX.toLowerCase());
+        final Matcher matcher = pairRegex.matcher(mRedirectUri.toLowerCase());
         return matcher.matches();
     }
 
