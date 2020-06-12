@@ -2,6 +2,13 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 Version 1.5.1
 ------------
+- Broker Content Provider Changes
+- FOCI support for Local MSAL
+- Roboelectric version update
+- Fixed a bug related tenant ID(#1057)
+
+Version 1.5.1
+------------
 - Fix to add the throwIfNetworkNotAvailable API back to common library for ADAL back compat.
 - Picks up common@2.0.8
 
