@@ -124,6 +124,7 @@ public final class AuthenticationResult implements IAuthenticationResult {
         return mCorrelationId;
     }
 
+    @Nullable
     private UUID sanitizeCorrelationId(@Nullable final String correlationId) {
         final String methodName = "sanitizeCorrelationId";
 
