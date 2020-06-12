@@ -262,6 +262,8 @@ public class LocalMSALController extends BaseController {
         //Validate MSAL Parameters
         parameters.validate();
 
+        final Set<String> requestScopes = parameters.getScopes();
+
         // Add default scopes
         final Set<String> mergedScopes = addDefaultScopes(parameters);
 
@@ -283,7 +285,7 @@ public class LocalMSALController extends BaseController {
 
         final List<ICacheRecord> cacheRecords = tokenCache.loadWithAggregatedAccountData(
                 parametersWithScopes.getClientId(),
-                TextUtils.join(" ", parametersWithScopes.getScopes()),
+                TextUtils.join(" ", requestScopes), // do not include OIDC or default scopes when getting AT from cache
                 targetAccount,
                 authScheme
         );

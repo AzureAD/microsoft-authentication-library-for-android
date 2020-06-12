@@ -138,7 +138,11 @@ public class CommandParametersAdapter {
                 .isWebViewZoomControlsEnabled(configuration.isWebViewZoomControlsEnabled())
                 .isWebViewZoomEnabled(configuration.isWebViewZoomEnabled())
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
-                .build();
+                .oidcScopes(
+                        configuration.getOidcScopes() != null
+                                ? new HashSet<>(configuration.getOidcScopes())
+                                : null
+                ).build();
 
         return commandParameters;
     }
@@ -186,7 +190,11 @@ public class CommandParametersAdapter {
                 .authenticationScheme(authenticationScheme)
                 .scopes(new HashSet<>(parameters.getScopes()))
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
-                .build();
+                .oidcScopes(
+                        configuration.getOidcScopes() != null
+                                ? new HashSet<>(configuration.getOidcScopes())
+                                : null
+                ).build();
 
         return commandParameters;
     }

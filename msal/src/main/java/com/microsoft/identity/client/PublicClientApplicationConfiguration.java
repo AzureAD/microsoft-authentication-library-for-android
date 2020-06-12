@@ -67,6 +67,7 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.HTTP;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.LOGGING;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.MULTIPLE_CLOUDS_SUPPORTED;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.OIDC_SCOPES;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.POWER_OPT_CHECK_FOR_NETWORK_REQUEST_ENABLED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REDIRECT_URI;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REQUIRED_BROKER_PROTOCOL_VERSION;
@@ -96,6 +97,7 @@ public class PublicClientApplicationConfiguration {
         static final String WEB_VIEW_ZOOM_CONTROLS_ENABLED = "web_view_zoom_controls_enabled";
         static final String WEB_VIEW_ZOOM_ENABLED = "web_view_zoom_enabled";
         static final String POWER_OPT_CHECK_FOR_NETWORK_REQUEST_ENABLED = "power_opt_check_for_network_req_enabled";
+        static final String OIDC_SCOPES = "oidc_scopes";
 
     }
 
@@ -149,6 +151,9 @@ public class PublicClientApplicationConfiguration {
 
     @SerializedName(POWER_OPT_CHECK_FOR_NETWORK_REQUEST_ENABLED)
     private Boolean powerOptCheckEnabled;
+
+    @SerializedName(OIDC_SCOPES)
+    private List<String> oidcScopes;
 
     transient private OAuth2TokenCache mOAuth2TokenCache;
 
@@ -363,6 +368,14 @@ public class PublicClientApplicationConfiguration {
         this.powerOptCheckEnabled = powerOptCheckEnabled;
     }
 
+    /**
+     * Gets the List of OIDC scopes for the PublicClientApplication.
+     * @return List of OIDC scopes
+     */
+    public List<String> getOidcScopes(){
+        return oidcScopes;
+    }
+
     public Authority getDefaultAuthority() {
         if (mAuthorities != null) {
             if (mAuthorities.size() > 1) {
@@ -434,6 +447,7 @@ public class PublicClientApplicationConfiguration {
         this.webViewZoomControlsEnabled = config.webViewZoomControlsEnabled == null || config.webViewZoomControlsEnabled;
         this.webViewZoomEnabled = config.webViewZoomEnabled == null || config.webViewZoomEnabled;
         this.powerOptCheckEnabled = config.powerOptCheckEnabled == null || config.powerOptCheckEnabled;
+        this.oidcScopes = config.oidcScopes;
     }
 
     void validateConfiguration() {
