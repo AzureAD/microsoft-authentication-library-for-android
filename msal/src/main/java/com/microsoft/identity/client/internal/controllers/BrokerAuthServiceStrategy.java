@@ -211,10 +211,6 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
                                 parameters,
                                 negotiatedBrokerProtocolVersion
                         );
-                        requestBundle.putString(
-                                AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY,
-                                negotiatedBrokerProtocolVersion
-                        );
                         return mResultAdapter.getAcquireTokenResultFromResultBundle(
                                 service.acquireTokenSilently(requestBundle)
                         );
@@ -235,9 +231,8 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
                 new AuthServiceOperation<List<ICacheRecord>>() {
                     @Override
                     public List<ICacheRecord> perform(IMicrosoftAuthService service) throws RemoteException, BaseException {
-                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForGetAccounts(parameters);
-                        requestBundle.putString(
-                                AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY,
+                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForGetAccounts(
+                                parameters,
                                 negotiatedBrokerProtocolVersion
                         );
                         return mResultAdapter.getAccountsFromResultBundle(
@@ -261,9 +256,8 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
                 new AuthServiceOperation<Void>() {
                     @Override
                     public Void perform(IMicrosoftAuthService service) throws RemoteException, BaseException {
-                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForRemoveAccount(parameters);
-                        requestBundle.putString(
-                                AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY,
+                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForRemoveAccount(
+                                parameters,
                                 negotiatedBrokerProtocolVersion
                         );
                         mResultAdapter.verifyRemoveAccountResultFromBundle(
@@ -306,9 +300,8 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
                 new AuthServiceOperation<List<ICacheRecord>>() {
                     @Override
                     public List<ICacheRecord> perform(IMicrosoftAuthService service) throws RemoteException, BaseException {
-                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForGetAccounts(parameters);
-                        requestBundle.putString(
-                                AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY,
+                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForGetAccounts(
+                                parameters,
                                 negotiatedBrokerProtocolVersion
                         );
                         return mResultAdapter.getAccountsFromResultBundle(
@@ -330,9 +323,8 @@ public class BrokerAuthServiceStrategy extends BrokerBaseStrategy {
                 new AuthServiceOperation<Void>() {
                     @Override
                     public Void perform(IMicrosoftAuthService service) throws RemoteException, BaseException {
-                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForRemoveAccountFromSharedDevice(parameters);
-                        requestBundle.putString(
-                                AuthenticationConstants.Broker.NEGOTIATED_BP_VERSION_KEY,
+                        final Bundle requestBundle = mRequestAdapter.getRequestBundleForRemoveAccountFromSharedDevice(
+                                parameters,
                                 negotiatedBrokerProtocolVersion
                         );
                         mResultAdapter.verifyRemoveAccountResultFromBundle(
