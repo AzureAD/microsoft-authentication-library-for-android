@@ -4,7 +4,7 @@ Version 1.5.1
 ------------
 - Broker Content Provider Changes
 - FOCI support for Local MSAL
-- Roboelectric version update
+- Robolectric version update
 - Fixed a bug related tenant ID(#1057)
 
 Version 1.5.1
