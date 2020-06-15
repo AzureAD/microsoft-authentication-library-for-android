@@ -1,0 +1,1 @@
+-keep @org.junit.runner.RunWith public class *

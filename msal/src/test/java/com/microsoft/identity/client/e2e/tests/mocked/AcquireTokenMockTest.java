@@ -24,10 +24,13 @@ package com.microsoft.identity.client.e2e.tests.mocked;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
+import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.IAccount;
+import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.RoboTestCacheHelper;
+import com.microsoft.identity.client.SilentAuthenticationCallback;
 import com.microsoft.identity.client.e2e.shadows.ShadowHttpRequest;
 import com.microsoft.identity.client.e2e.shadows.ShadowMockAuthority;
 import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
@@ -38,13 +41,16 @@ import com.microsoft.identity.client.e2e.shadows.ShadowStrategyResultUnsuccessfu
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.ErrorCodes;
+import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResponse;
+import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.internal.testutils.TestConstants;
 import com.microsoft.identity.internal.testutils.TestUtils;
 import com.microsoft.identity.internal.testutils.mocks.MockTokenResponse;
 
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,6 +58,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.util.Arrays;
+import java.util.UUID;
 
 import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
 import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushSchedulerWithDelay;
@@ -329,6 +336,136 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .forceRefresh(false)
                 .fromAuthority(getAuthority())
                 .forAccount(account)
+                .build();
+
+        mApplication.acquireTokenSilentAsync(silentParameters);
+        flushScheduler();
+    }
+
+    @Test
+    public void testAcquireTokenInteractiveResultContainsSomeCorrelationId() {
+        final String username = "fake@test.com";
+
+        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                .startAuthorizationFromActivity(mActivity)
+                .withLoginHint(username)
+                .withScopes(Arrays.asList(mScopes))
+                .fromAuthority(getAuthority())
+                .withCallback(new AuthenticationCallback() {
+                    @Override
+                    public void onCancel() {
+                        Assert.fail("Unexpected cancel");
+                    }
+
+                    @Override
+                    public void onSuccess(IAuthenticationResult authenticationResult) {
+                        Assert.assertFalse(StringUtil.isEmpty(authenticationResult.getAccessToken()));
+                        Assert.assertNotNull(authenticationResult.getCorrelationId());
+                        final String correlationId = authenticationResult.getCorrelationId().toString();
+                        Assert.assertFalse(StringUtil.isEmpty(correlationId));
+                    }
+
+                    @Override
+                    public void onError(MsalException exception) {
+                        Assert.fail(exception.getMessage());
+                    }
+                })
+                .build();
+
+        mApplication.acquireToken(parameters);
+        flushScheduler();
+    }
+
+    @Test
+    public void testAcquireTokenSilentResultContainsSomeCorrelationId() {
+        final IAccount account = loadAccountForTest(mApplication);
+
+        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                .withScopes(Arrays.asList(mScopes))
+                .forceRefresh(true)
+                .forAccount(account)
+                .fromAuthority(getAuthority())
+                .withCallback(new SilentAuthenticationCallback() {
+                    @Override
+                    public void onSuccess(IAuthenticationResult authenticationResult) {
+                        Assert.assertFalse(StringUtil.isEmpty(authenticationResult.getAccessToken()));
+                        Assert.assertNotNull(authenticationResult.getCorrelationId());
+                        final String correlationId = authenticationResult.getCorrelationId().toString();
+                        Assert.assertFalse(StringUtil.isEmpty(correlationId));
+                    }
+
+                    @Override
+                    public void onError(MsalException exception) {
+                        Assert.fail(exception.getMessage());
+                    }
+                })
+                .build();
+
+        mApplication.acquireTokenSilentAsync(silentParameters);
+        flushScheduler();
+    }
+
+    @Test
+    public void testAcquireTokenInteractiveResultContainsProvidedCorrelationId() {
+        final String username = "fake@test.com";
+
+        final UUID correlationId = UUID.randomUUID();
+
+        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                .startAuthorizationFromActivity(mActivity)
+                .withLoginHint(username)
+                .withScopes(Arrays.asList(mScopes))
+                .fromAuthority(getAuthority())
+                .withCorrelationId(correlationId)
+                .withCallback(new AuthenticationCallback() {
+                    @Override
+                    public void onCancel() {
+                        Assert.fail("Unexpected cancel");
+                    }
+
+                    @Override
+                    public void onSuccess(IAuthenticationResult authenticationResult) {
+                        Assert.assertFalse(StringUtil.isEmpty(authenticationResult.getAccessToken()));
+                        Assert.assertNotNull(authenticationResult.getCorrelationId());
+                        Assert.assertEquals(correlationId, authenticationResult.getCorrelationId());
+                    }
+
+                    @Override
+                    public void onError(MsalException exception) {
+                        Assert.fail(exception.getMessage());
+                    }
+                })
+                .build();
+
+        mApplication.acquireToken(parameters);
+        flushScheduler();
+    }
+
+    @Test
+    public void testAcquireTokenSilentResultContainsProvidedCorrelationId() {
+        final IAccount account = loadAccountForTest(mApplication);
+
+        final UUID correlationId = UUID.randomUUID();
+
+        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                .withScopes(Arrays.asList(mScopes))
+                .forceRefresh(true)
+                .forAccount(account)
+                .fromAuthority(getAuthority())
+                .withCorrelationId(correlationId)
+                .withCallback(new SilentAuthenticationCallback() {
+                    @Override
+                    public void onSuccess(IAuthenticationResult authenticationResult) {
+                        Assert.assertFalse(StringUtil.isEmpty(authenticationResult.getAccessToken()));
+                        Assert.assertNotNull(authenticationResult.getCorrelationId());
+                        Assert.assertEquals(correlationId, authenticationResult.getCorrelationId());
+                    }
+
+                    @Override
+                    public void onError(MsalException exception) {
+                        Assert.fail(exception.getMessage());
+                    }
+                })
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
