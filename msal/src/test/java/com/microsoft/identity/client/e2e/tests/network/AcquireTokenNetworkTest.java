@@ -52,7 +52,7 @@ import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushSchedul
 @Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowMsalUtils.class})
 public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest implements IAcquireTokenNetworkTest {
 
-    String mUsername;
+    private String mUsername;
 
     @Before
     public void setup() {
