@@ -1,4 +1,26 @@
-package com.microsoft.identity.client.e2e.tests.network;
+// Copyright (c) Microsoft Corporation.
+// All rights reserved.
+//
+// This code is licensed under the MIT License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files(the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions :
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+package com.microsoft.identity.client.e2e.tests.mocked;
 
 import android.text.TextUtils;
 
@@ -14,78 +36,94 @@ import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
+import com.microsoft.identity.client.e2e.shadows.ShadowAuthorityForMockHttpResponse;
+import com.microsoft.identity.client.e2e.shadows.ShadowHttpRequestForMockedTest;
+import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
+import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
+import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
+import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
+import com.microsoft.identity.internal.testutils.MockHttpResponse;
 import com.microsoft.identity.internal.testutils.TestConstants;
 import com.microsoft.identity.internal.testutils.TestUtils;
-import com.microsoft.identity.internal.testutils.labutils.LabConstants;
-import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.internal.testutils.mocks.MockServerResponse;
 import com.microsoft.identity.internal.testutils.mocks.MockTokenCreator;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import edu.emory.mathcs.backport.java.util.Arrays;
 
 import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
+import static com.microsoft.identity.internal.testutils.mocks.MockTokenCreator.MOCK_PREFERRED_USERNAME_VALUE;
 import static org.junit.Assert.fail;
 
-public class SingleAccountAcquireTokenNetworkTest extends AcquireTokenNetworkAbstractTest {
+@RunWith(RobolectricTestRunner.class)
+@Config(shadows = {
+        ShadowStorageHelper.class,
+        ShadowAuthorityForMockHttpResponse.class,
+        ShadowHttpRequestForMockedTest.class,
+        ShadowMsalUtils.class,
+        ShadowOpenIdProviderConfigurationClient.class
+})
+public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
 
-    private SingleAccountPublicClientApplication singleAccountPCA;
+    private SingleAccountPublicClientApplication mSingleAccountPCA;
+    private String mUsername = MOCK_PREFERRED_USERNAME_VALUE;
 
     @Before
     public void setup() {
         super.setup();
         TestUtils.clearCache(SingleAccountPublicClientApplication.SINGLE_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES);
-        singleAccountPCA = (SingleAccountPublicClientApplication) mApplication;
+        mSingleAccountPCA = (SingleAccountPublicClientApplication) mApplication;
+        MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenSuccessResponse());
     }
 
     @Test
     public void testSignInOnlyAllowedOnce() {
-        singleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
+        mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
         RoboTestUtils.flushScheduler();
 
-        singleAccountPCA.signIn(mActivity, mUsername, mScopes, getInvalidParameterExpectedCallback());
-        RoboTestUtils.flushSchedulerWithDelay(1000);
+        mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, getInvalidParameterExpectedCallback());
     }
 
     @Test
     public void testSignInWithPromptOnlyAllowedOnce() {
-        singleAccountPCA.signIn(mActivity, mUsername, mScopes, Prompt.LOGIN, getSuccessExpectedCallback());
+        mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, Prompt.LOGIN, getSuccessExpectedCallback());
         RoboTestUtils.flushScheduler();
 
-        singleAccountPCA.signIn(mActivity, mUsername, mScopes, Prompt.LOGIN, getInvalidParameterExpectedCallback());
-        RoboTestUtils.flushSchedulerWithDelay(1000);
+        mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, Prompt.LOGIN, getInvalidParameterExpectedCallback());
     }
 
     @Test
     public void testSignInAgainAllowsSignInAgain() {
-        singleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
+        mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
         RoboTestUtils.flushScheduler();
 
-        singleAccountPCA.signInAgain(mActivity, mScopes, Prompt.LOGIN, getSuccessExpectedCallback());
+        mSingleAccountPCA.signInAgain(mActivity, mScopes, Prompt.LOGIN, getSuccessExpectedCallback());
         RoboTestUtils.flushScheduler();
     }
 
     @Test
     public void testCannotSignInAgainIfNeverSignedInBefore() {
-        singleAccountPCA.signInAgain(mActivity, mScopes, Prompt.LOGIN, getNoCurrentAccountExpectedCallback());
-        RoboTestUtils.flushSchedulerWithDelay(1000);
+        mSingleAccountPCA.signInAgain(mActivity, mScopes, Prompt.LOGIN, getNoCurrentAccountExpectedCallback());
     }
 
     @Test
     public void testCanSignOutIfAlreadySignedIn() {
-        singleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
+        mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
         RoboTestUtils.flushScheduler();
 
-        singleAccountPCA.signOut(new ISingleAccountPublicClientApplication.SignOutCallback() {
+        mSingleAccountPCA.signOut(new ISingleAccountPublicClientApplication.SignOutCallback() {
             @Override
             public void onSignOut() {
                 Assert.assertTrue("Successfully signed out", true);
@@ -102,7 +140,7 @@ public class SingleAccountAcquireTokenNetworkTest extends AcquireTokenNetworkAbs
 
     @Test
     public void testCannotSignOutIfNotSignedIn() {
-        singleAccountPCA.signOut(new ISingleAccountPublicClientApplication.SignOutCallback() {
+        mSingleAccountPCA.signOut(new ISingleAccountPublicClientApplication.SignOutCallback() {
             @Override
             public void onSignOut() {
                 fail("Unexpected sign out");
@@ -114,42 +152,29 @@ public class SingleAccountAcquireTokenNetworkTest extends AcquireTokenNetworkAbs
                 Assert.assertEquals(exception.getErrorCode(), MsalClientException.NO_CURRENT_ACCOUNT);
             }
         });
-
-        RoboTestUtils.flushSchedulerWithDelay(1000);
     }
 
     @Test
     public void testCanAcquireTokenIfAlreadySignIn() {
-        singleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
+        mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
         RoboTestUtils.flushScheduler();
 
-        singleAccountPCA.acquireToken(mActivity, mScopes, getSuccessExpectedCallback());
+        mSingleAccountPCA.acquireToken(mActivity, mScopes, getSuccessExpectedCallback());
         RoboTestUtils.flushScheduler();
     }
 
     @Test
     public void testCannotAcquireTokenIfNotSignedIn() {
-        singleAccountPCA.acquireToken(mActivity, mScopes, getNoCurrentAccountExpectedCallback());
-        RoboTestUtils.flushSchedulerWithDelay(1000);
+        mSingleAccountPCA.acquireToken(mActivity, mScopes, getNoCurrentAccountExpectedCallback());
     }
 
-    @Test
-    @Ignore // failing - we need to throw an exception if there is no current account
     public void testCannotAcquireTokenWithParametersIfNotSignedIn() {
-        final AcquireTokenParameters acquireTokenParameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(mUsername)
-                .withScopes(Arrays.asList(mScopes))
-                .withCallback(getNoCurrentAccountExpectedCallback())
-                .build();
-
-        singleAccountPCA.acquireToken(acquireTokenParameters);
-        RoboTestUtils.flushSchedulerWithDelay(1000);
+        //todo implement this test. Blocked by MSAL Issue #1032
     }
 
     @Test
     public void testCannotAcquireTokenWithParametersIfNoLoginHintNoAccountProvided() {
-        singleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
+        mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
         RoboTestUtils.flushScheduler();
 
         final AcquireTokenParameters acquireTokenParameters = new AcquireTokenParameters.Builder()
@@ -158,13 +183,12 @@ public class SingleAccountAcquireTokenNetworkTest extends AcquireTokenNetworkAbs
                 .withCallback(getAccountMismatchExpectedCallback())
                 .build();
 
-        singleAccountPCA.acquireToken(acquireTokenParameters);
-        RoboTestUtils.flushSchedulerWithDelay(1000);
+        mSingleAccountPCA.acquireToken(acquireTokenParameters);
     }
 
     @Test
     public void testCannotAcquireTokenWithParametersIfLoginHintDoesNotMatch() {
-        singleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
+        mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
         RoboTestUtils.flushScheduler();
 
         final AcquireTokenParameters acquireTokenParameters = new AcquireTokenParameters.Builder()
@@ -174,13 +198,12 @@ public class SingleAccountAcquireTokenNetworkTest extends AcquireTokenNetworkAbs
                 .withCallback(getAccountMismatchExpectedCallback())
                 .build();
 
-        singleAccountPCA.acquireToken(acquireTokenParameters);
-        RoboTestUtils.flushSchedulerWithDelay(1000);
+        mSingleAccountPCA.acquireToken(acquireTokenParameters);
     }
 
     @Test
     public void testCannotAcquireTokenWithParametersIfAccountDoesNotMatch() {
-        singleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
+        mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
         RoboTestUtils.flushScheduler();
 
         final IAccount fakeOtherAccount = getFakeOtherAccount();
@@ -192,13 +215,12 @@ public class SingleAccountAcquireTokenNetworkTest extends AcquireTokenNetworkAbs
                 .withCallback(getAccountMismatchExpectedCallback())
                 .build();
 
-        singleAccountPCA.acquireToken(acquireTokenParameters);
-        RoboTestUtils.flushSchedulerWithDelay(1000);
+        mSingleAccountPCA.acquireToken(acquireTokenParameters);
     }
 
     @Test
     public void testCanAcquireTokenWithParametersIfLoginHintMatches() {
-        singleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
+        mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
         RoboTestUtils.flushScheduler();
 
         final AcquireTokenParameters acquireTokenParameters = new AcquireTokenParameters.Builder()
@@ -208,13 +230,13 @@ public class SingleAccountAcquireTokenNetworkTest extends AcquireTokenNetworkAbs
                 .withCallback(getSuccessExpectedCallback())
                 .build();
 
-        singleAccountPCA.acquireToken(acquireTokenParameters);
-        RoboTestUtils.flushSchedulerWithDelay(1000);
+        mSingleAccountPCA.acquireToken(acquireTokenParameters);
+        RoboTestUtils.flushScheduler();
     }
 
     @Test
     public void testCanAcquireTokenWithParametersIfAccountMatches() {
-        singleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
+        mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
         RoboTestUtils.flushScheduler();
 
         final AcquireTokenParameters acquireTokenParameters = new AcquireTokenParameters.Builder()
@@ -224,22 +246,21 @@ public class SingleAccountAcquireTokenNetworkTest extends AcquireTokenNetworkAbs
                 .withCallback(getSuccessExpectedCallback())
                 .build();
 
-        singleAccountPCA.acquireToken(acquireTokenParameters);
-        RoboTestUtils.flushSchedulerWithDelay(1000);
+        mSingleAccountPCA.acquireToken(acquireTokenParameters);
+        RoboTestUtils.flushScheduler();
     }
 
     @Test
     public void testCannotAcquireTokenSilentlyIfNotSignedIn() {
-        singleAccountPCA.acquireTokenSilentAsync(mScopes, getAuthority(), getNoCurrentAccountExpectedCallback());
-        RoboTestUtils.flushSchedulerWithDelay(1000);
+        mSingleAccountPCA.acquireTokenSilentAsync(mScopes, getAuthority(), getNoCurrentAccountExpectedCallback());
     }
 
     @Test
     public void testCanAcquireTokenSilentlyIfAlreadySignedIn() {
-        singleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
+        mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
         RoboTestUtils.flushScheduler();
 
-        singleAccountPCA.acquireTokenSilentAsync(mScopes, getAuthority(), getSuccessExpectedCallback());
+        mSingleAccountPCA.acquireTokenSilentAsync(mScopes, getAuthority(), getSuccessExpectedCallback());
         RoboTestUtils.flushScheduler();
     }
 
@@ -252,13 +273,12 @@ public class SingleAccountAcquireTokenNetworkTest extends AcquireTokenNetworkAbs
                 .withCallback(getNoCurrentAccountExpectedCallback())
                 .build();
 
-        singleAccountPCA.acquireTokenSilentAsync(silentParameters);
-        RoboTestUtils.flushSchedulerWithDelay(1000);
+        mSingleAccountPCA.acquireTokenSilentAsync(silentParameters);
     }
 
     @Test
     public void testCanAcquireTokenSilentlyWithParametersIfAlreadySignedIn() {
-        singleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
+        mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
         RoboTestUtils.flushScheduler();
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
@@ -268,13 +288,13 @@ public class SingleAccountAcquireTokenNetworkTest extends AcquireTokenNetworkAbs
                 .withCallback(getSuccessExpectedCallback())
                 .build();
 
-        singleAccountPCA.acquireTokenSilentAsync(silentParameters);
+        mSingleAccountPCA.acquireTokenSilentAsync(silentParameters);
         RoboTestUtils.flushScheduler();
     }
 
     @Test
     public void testCannotAcquireTokenSilentlyWithParametersIfAccountDoesNotMatch() {
-        singleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
+        mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
         RoboTestUtils.flushScheduler();
 
         final IAccount fakeOtherAccount = getFakeOtherAccount();
@@ -286,32 +306,37 @@ public class SingleAccountAcquireTokenNetworkTest extends AcquireTokenNetworkAbs
                 .withCallback(getAccountMismatchExpectedCallback())
                 .build();
 
-        singleAccountPCA.acquireTokenSilentAsync(silentParameters);
-        RoboTestUtils.flushSchedulerWithDelay(1000);
+        mSingleAccountPCA.acquireTokenSilentAsync(silentParameters);
     }
 
     @Test
     public void testCanGetCurrentAccountIfAlreadySignedIn() {
-        singleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
+        mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
         RoboTestUtils.flushScheduler();
 
-        singleAccountPCA.getCurrentAccountAsync(new ISingleAccountPublicClientApplication.CurrentAccountCallback() {
+        mSingleAccountPCA.getCurrentAccountAsync(new ISingleAccountPublicClientApplication.CurrentAccountCallback() {
             @Override
             public void onAccountLoaded(@Nullable IAccount activeAccount) {
-
+                assert activeAccount != null;
+                Assert.assertEquals(activeAccount.getId(), AcquireTokenTestHelper.getAccount().getId());
             }
 
             @Override
             public void onAccountChanged(@Nullable IAccount priorAccount, @Nullable IAccount currentAccount) {
-
+                Assert.fail();
             }
 
             @Override
             public void onError(@NonNull MsalException exception) {
-
+                Assert.fail(exception.getMessage());
             }
         });
 
+        RoboTestUtils.flushScheduler();
+    }
+
+    public void testCannotGetCurrentAccountIfNotSignedIn() {
+        // todo need to improve the behaviour around this before a test should be written
     }
 
     private AuthenticationCallback getSuccessExpectedCallback() {
@@ -335,46 +360,18 @@ public class SingleAccountAcquireTokenNetworkTest extends AcquireTokenNetworkAbs
     }
 
     private AuthenticationCallback getNoCurrentAccountExpectedCallback() {
-        return new AuthenticationCallback() {
-            @Override
-            public void onCancel() {
-                fail("Unexpected cancel");
-            }
-
-            @Override
-            public void onSuccess(IAuthenticationResult authenticationResult) {
-                fail("Unexpected success");
-            }
-
-            @Override
-            public void onError(MsalException exception) {
-                Assert.assertTrue(exception instanceof MsalClientException);
-                Assert.assertEquals(exception.getErrorCode(), MsalClientException.NO_CURRENT_ACCOUNT);
-            }
-        };
+        return getClientExceptionFailureCallback(MsalClientException.NO_CURRENT_ACCOUNT);
     }
 
     private AuthenticationCallback getInvalidParameterExpectedCallback() {
-        return new AuthenticationCallback() {
-            @Override
-            public void onCancel() {
-                fail("Unexpected cancel");
-            }
-
-            @Override
-            public void onSuccess(IAuthenticationResult authenticationResult) {
-                fail("Unexpected success");
-            }
-
-            @Override
-            public void onError(MsalException exception) {
-                Assert.assertTrue(exception instanceof MsalClientException);
-                Assert.assertEquals(exception.getErrorCode(), MsalClientException.INVALID_PARAMETER);
-            }
-        };
+        return getClientExceptionFailureCallback(MsalClientException.INVALID_PARAMETER);
     }
 
     private AuthenticationCallback getAccountMismatchExpectedCallback() {
+        return getClientExceptionFailureCallback(MsalClientException.CURRENT_ACCOUNT_MISMATCH);
+    }
+
+    private AuthenticationCallback getClientExceptionFailureCallback(final String expectedErrorCode) {
         return new AuthenticationCallback() {
             @Override
             public void onCancel() {
@@ -389,7 +386,7 @@ public class SingleAccountAcquireTokenNetworkTest extends AcquireTokenNetworkAbs
             @Override
             public void onError(MsalException exception) {
                 Assert.assertTrue(exception instanceof MsalClientException);
-                Assert.assertEquals(exception.getErrorCode(), MsalClientException.CURRENT_ACCOUNT_MISMATCH);
+                Assert.assertEquals(expectedErrorCode, exception.getErrorCode());
             }
         };
     }
@@ -403,13 +400,6 @@ public class SingleAccountAcquireTokenNetworkTest extends AcquireTokenNetworkAbs
             fail(e.getMessage());
         }
         return new Account(mockClientInfo, mockIdToken);
-    }
-
-    @Override
-    public LabUserQuery getLabUserQuery() {
-        final LabUserQuery query = new LabUserQuery();
-        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CLOUD;
-        return query;
     }
 
     @Override
