@@ -256,7 +256,7 @@ public class BrokerMsalController extends BaseController {
     // The order matters.
     private List<BrokerBaseStrategy> getStrategies() {
         final List<BrokerBaseStrategy> strategies = new ArrayList<>();
-        final StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder(100);
         sb.append("Broker Strategies added : ");
 
         if(isBrokerContentProviderAvailable()){
