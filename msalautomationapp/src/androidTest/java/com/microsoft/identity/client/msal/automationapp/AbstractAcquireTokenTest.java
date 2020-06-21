@@ -112,6 +112,34 @@ public abstract class AbstractAcquireTokenTest extends AbstractPublicClientAppli
     }
 
     /**
+     * A callback that can be used to perform assertions on completion of an interactive request
+     * (success case) test.
+     *
+     * @param latch the latch associated to this request
+     * @return an {@link AuthenticationCallback} object
+     */
+    protected AuthenticationCallback cancelInteractiveCallback(final CountDownLatch latch) {
+        return new AuthenticationCallback() {
+            @Override
+            public void onSuccess(IAuthenticationResult authenticationResult) {
+                Assert.fail("Unexpected Success!");
+                latch.countDown();
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                Assert.fail(exception.getMessage());
+                latch.countDown();
+            }
+
+            @Override
+            public void onCancel() {
+                latch.countDown();
+            }
+        };
+    }
+
+    /**
      * A callback that can be used to perform assertions on completion of an silent request
      * (success case) test.
      *

@@ -1,61 +1,41 @@
-//  Copyright (c) Microsoft Corporation.
-//  All rights reserved.
-//
-//  This code is licensed under the MIT License.
-//
-//  Permission is hereby granted, free of charge, to any person obtaining a copy
-//  of this software and associated documentation files(the "Software"), to deal
-//  in the Software without restriction, including without limitation the rights
-//  to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
-//  copies of the Software, and to permit persons to whom the Software is
-//  furnished to do so, subject to the following conditions :
-//
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-//  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
-import com.microsoft.identity.client.AcquireTokenSilentParameters;
-import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.AbstractAcquireTokenNetworkTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.ui.automation.broker.BrokerAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
+import com.microsoft.identity.client.ui.automation.broker.IMdmAgent;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.interaction.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
+import com.microsoft.identity.client.ui.automation.interaction.UiResponse;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
-// [MSAL] Broker Auth for non-joined account - login
-public class TestCase850455 extends AbstractAcquireTokenNetworkTest {
+public class TestCase833526 extends AbstractAcquireTokenNetworkTest {
 
     @Test
-    public void test_850455() throws InterruptedException {
+    public void test_833526() throws InterruptedException {
+        final String username = mLoginHint;
+        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+
         final CountDownLatch latch = new CountDownLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(mLoginHint)
-                .withResource(mScopes[0])
-                .withCallback(successfulInteractiveCallback(latch))
+                .withLoginHint(username)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(cancelInteractiveCallback(latch))
                 .withPrompt(Prompt.SELECT_ACCOUNT)
                 .build();
 
@@ -66,9 +46,6 @@ public class TestCase850455 extends AbstractAcquireTokenNetworkTest {
                 new OnInteractionRequired() {
                     @Override
                     public void handleUserInteraction() {
-                        final String username = mLoginHint;
-                        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
-
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.SELECT_ACCOUNT)
                                 .loginHintProvided(true)
@@ -77,6 +54,9 @@ public class TestCase850455 extends AbstractAcquireTokenNetworkTest {
                                 .speedBumpExpected(false)
                                 .broker(getBroker())
                                 .expectingNonZeroAccountsInBroker(false)
+                                .enrollPageExpected(true)
+                                // cancel enroll here to short circuit as enroll will be started manually from CP anyway
+                                .enrollPageResponse(UiResponse.DECLINE)
                                 .build();
 
                         new AadPromptHandler(promptHandlerParameters)
@@ -88,30 +68,57 @@ public class TestCase850455 extends AbstractAcquireTokenNetworkTest {
         interactiveRequest.execute();
         latch.await();
 
-        // SILENT REQUEST
+        // enroll device with CP
 
-        final IAccount account = getAccount();
+        final IMdmAgent mdmAgent = (IMdmAgent) mBroker;
+        mdmAgent.enrollDevice(username, password);
 
-        final CountDownLatch silentLatch = new CountDownLatch(1);
+        // SECOND REQUEST WITHOUT LOGIN HINT
 
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .forAccount(account)
-                .fromAuthority(account.getAuthority())
-                .forceRefresh(true)
-                .withResource(mScopes[0])
-                .withCallback(successfulSilentCallback(silentLatch))
+        final CountDownLatch latchTryAcquireAgain = new CountDownLatch(1);
+
+        final AcquireTokenParameters parametersTryAcquireAgain = new AcquireTokenParameters.Builder()
+                .withLoginHint(username)
+                .startAuthorizationFromActivity(mActivity)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(successfulInteractiveCallback(latchTryAcquireAgain))
+                .withPrompt(Prompt.SELECT_ACCOUNT)
                 .build();
 
-        mApplication.acquireTokenSilentAsync(silentParameters);
-        silentLatch.await();
 
+        final InteractiveRequest interactiveRequestTryAgain = new InteractiveRequest(
+                mApplication,
+                parametersTryAcquireAgain,
+                new OnInteractionRequired() {
+                    @Override
+                    public void handleUserInteraction() {
+                        final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
+                                .prompt(PromptParameter.SELECT_ACCOUNT)
+                                .loginHintProvided(true)
+                                .sessionExpected(true)
+                                .consentPageExpected(false)
+                                .speedBumpExpected(false)
+                                .broker(getBroker())
+                                .expectingNonZeroAccountsInBroker(true)
+                                .enrollPageExpected(false)
+                                .build();
+
+                        new AadPromptHandler(promptHandlerParameters)
+                                .handlePrompt(username, password);
+                    }
+                }
+        );
+
+        interactiveRequestTryAgain.execute();
+        latchTryAcquireAgain.await();
     }
 
 
     @Override
     public LabUserQuery getLabUserQuery() {
         final LabUserQuery query = new LabUserQuery();
-        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_GERMANY_CLOUD;
+        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CLOUD;
+        query.protectionPolicy = LabConstants.ProtectionPolicy.MDM_CA;
         return query;
     }
 
@@ -122,22 +129,21 @@ public class TestCase850455 extends AbstractAcquireTokenNetworkTest {
 
     @Override
     public String[] getScopes() {
-        return new String[]{"00000002-0000-0000-c000-000000000000"};
+        return new String[]{"User.read"};
     }
 
     @Override
     public String getAuthority() {
-        return "https://login.microsoftonline.de/common";
+        return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
     }
 
     @Override
     public ITestBroker getBroker() {
-        return new BrokerAuthenticator();
+        return new BrokerCompanyPortal();
     }
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_instance_aware_common;
+        return R.raw.msal_config_default;
     }
-
 }
