@@ -28,6 +28,7 @@ import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
+import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
@@ -46,7 +47,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 @RunWith(Parameterized.class)
-public class BasicB2CTest extends AbstractB2CTest {
+public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
 
     final static B2CProvider[] b2CProviders = new B2CProvider[]{
             new B2CProvider.Local(),
@@ -58,7 +59,7 @@ public class BasicB2CTest extends AbstractB2CTest {
     final static List<Object[]> testData = new ArrayList<>();
 
     static {
-        for (B2CProvider b2CProvider : b2CProviders) {
+        for (final B2CProvider b2CProvider : b2CProviders) {
             testData.add(new Object[]{
                     b2CProvider.getProviderName(),
                     b2CProvider
@@ -74,7 +75,7 @@ public class BasicB2CTest extends AbstractB2CTest {
 
     private final B2CProvider mB2cProvider;
 
-    public BasicB2CTest(@NonNull final String providerName, @NonNull final B2CProvider b2CProvider) {
+    public B2CIdLabSisoPolicyTest(@NonNull final String providerName, @NonNull final B2CProvider b2CProvider) {
         mB2cProvider = b2CProvider;
     }
 
@@ -129,19 +130,41 @@ public class BasicB2CTest extends AbstractB2CTest {
 
         // ------ do silent request ------
 
-        final IAccount account = getAccount();
+        IAccount account = getAccount();
 
         final CountDownLatch silentLatch = new CountDownLatch(1);
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(account)
                 .fromAuthority(getAuthority())
-                .forceRefresh(true)
+                .forceRefresh(false)
                 .withScopes(Arrays.asList(mScopes))
                 .withCallback(successfulSilentCallback(silentLatch))
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
         silentLatch.await();
+
+        // ------ do force refresh silent request ------
+
+        account = getAccount();
+
+        final CountDownLatch silentForceLatch = new CountDownLatch(1);
+
+        final AcquireTokenSilentParameters silentForceParameters = new AcquireTokenSilentParameters.Builder()
+                .forAccount(account)
+                .fromAuthority(getAuthority())
+                .forceRefresh(true)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(successfulSilentCallback(silentForceLatch))
+                .build();
+
+        mApplication.acquireTokenSilentAsync(silentForceParameters);
+        silentForceLatch.await();
+    }
+
+    @Override
+    public int getConfigFileResourceId() {
+        return R.raw.msal_config_b2c_siso;
     }
 }

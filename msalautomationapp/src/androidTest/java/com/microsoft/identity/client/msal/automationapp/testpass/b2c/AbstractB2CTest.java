@@ -57,9 +57,4 @@ public abstract class AbstractB2CTest extends AbstractAcquireTokenNetworkTest im
     public ITestBroker getBroker() {
         return null;
     }
-
-    @Override
-    public int getConfigFileResourceId() {
-        return R.raw.msal_config_b2c;
-    }
 }
