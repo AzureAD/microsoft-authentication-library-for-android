@@ -104,4 +104,5 @@ dependencies {
     androidTestImplementation(project(":uiautomationutilities"))
     androidTestImplementation "androidx.test:runner:$rootProject.ext.androidxTestRunnerVersion"
     androidTestUtil "androidx.test:orchestrator:$rootProject.ext.androidxTestOrchestratorVersion"
+    androidTestImplementation('com.microsoft.appcenter:espresso-test-extension:1.4')
 }

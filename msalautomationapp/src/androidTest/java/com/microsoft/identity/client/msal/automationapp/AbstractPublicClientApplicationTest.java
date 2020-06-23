@@ -28,6 +28,8 @@ import android.content.Context;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.rule.ActivityTestRule;
 
+import com.microsoft.appcenter.espresso.Factory;
+import com.microsoft.appcenter.espresso.ReportHelper;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
@@ -38,6 +40,9 @@ import org.junit.Rule;
 import static org.junit.Assert.fail;
 
 public abstract class AbstractPublicClientApplicationTest implements IPublicClientApplicationTest {
+
+    @Rule
+    public ReportHelper reportHelper = Factory.getReportHelper();
 
     @Rule
     public ActivityTestRule<MainActivity> mActivityRule =
