@@ -1,5 +1,11 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
+Version 1.5.3
+-----------
+- Changes to delete RT on bad_token suberror.
+- Picks up common@2.0.11
+
+
 Version 1.5.2
 ------------
 - Broker Content Provider Changes

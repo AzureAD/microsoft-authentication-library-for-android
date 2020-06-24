@@ -40,6 +40,7 @@ import com.microsoft.identity.internal.testutils.mocks.MockServerResponse;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -98,6 +99,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
     }
 
     @Test
+    @Ignore
     public void testServerSideTelemetry() {
         final String username = "fake@test.com";
 
