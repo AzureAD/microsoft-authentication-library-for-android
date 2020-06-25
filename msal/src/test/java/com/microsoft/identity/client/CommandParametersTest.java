@@ -48,6 +48,7 @@ import org.robolectric.RobolectricTestRunner;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.UUID;
 
 @RunWith(RobolectricTestRunner.class)
 public class CommandParametersTest {
@@ -114,6 +115,34 @@ public class CommandParametersTest {
         Assert.assertEquals(false, commandParameters.isForceRefresh());
     }
 
+    @Test
+    public void testAcquireTokenOperationWithoutCorrelationId() {
+        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(getConfiguration(AAD_CP1_CONFIG_FILE), getCache(), getAcquireTokenParametersWithoutCorrelationId());
+        Assert.assertNull(commandParameters.getCorrelationId());
+    }
+
+    @Test
+    public void testAcquireTokenOperationWithCorrelationId() {
+        final UUID correlationId = UUID.randomUUID();
+        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(getConfiguration(AAD_NONE_CONFIG_FILE), getCache(), getAcquireTokenParametersWithCorrelationId(correlationId));
+        Assert.assertNotNull(commandParameters.getCorrelationId());
+        Assert.assertEquals(correlationId.toString(), commandParameters.getCorrelationId());
+    }
+
+    @Test
+    public void testAcquireTokenSilentOperationWithoutCorrelationId() {
+        SilentTokenCommandParameters commandParameters = CommandParametersAdapter.createSilentTokenCommandParameters(getConfiguration(AAD_CP1_CONFIG_FILE), getCache(), getAcquireTokenSilentParametersWithoutCorrelationId());
+        Assert.assertNull(commandParameters.getCorrelationId());
+    }
+
+    @Test
+    public void testAcquireTokenSilentOperationWithCorrelationId() {
+        final UUID correlationId = UUID.randomUUID();
+        SilentTokenCommandParameters commandParameters = CommandParametersAdapter.createSilentTokenCommandParameters(getConfiguration(AAD_NONE_CONFIG_FILE), getCache(), getAcquireTokenSilentParametersWithCorrelationId(correlationId));
+        Assert.assertNotNull(commandParameters.getCorrelationId());
+        Assert.assertEquals(correlationId.toString(), commandParameters.getCorrelationId());
+    }
+
     private ClaimsRequest getAccessTokenClaimsRequest(@NonNull String claimName, @NonNull String claimValue) {
         ClaimsRequest cp1ClaimsRequest = new ClaimsRequest();
         RequestedClaimAdditionalInformation info = new RequestedClaimAdditionalInformation();
@@ -155,6 +184,46 @@ public class CommandParametersTest {
         AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
                 .startAuthorizationFromActivity(mActivity)
+                .build();
+
+        return parameters;
+    }
+
+    private AcquireTokenSilentParameters getAcquireTokenSilentParametersWithoutCorrelationId() {
+        AcquireTokenSilentParameters parameters = new AcquireTokenSilentParameters.Builder()
+                .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
+                .fromAuthority("https://login.microsoftonline.com/common")
+                .build();
+
+        return parameters;
+    }
+
+    private AcquireTokenSilentParameters getAcquireTokenSilentParametersWithCorrelationId(final UUID correlationId) {
+        AcquireTokenSilentParameters parameters = new AcquireTokenSilentParameters.Builder()
+                .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
+                .fromAuthority("https://login.microsoftonline.com/common")
+                .withCorrelationId(correlationId)
+                .build();
+
+        return parameters;
+    }
+
+    private AcquireTokenParameters getAcquireTokenParametersWithoutCorrelationId() {
+        AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                .withClaims(getAccessTokenClaimsRequest("device_id", ""))
+                .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
+                .startAuthorizationFromActivity(mActivity)
+                .build();
+
+        return parameters;
+    }
+
+    private AcquireTokenParameters getAcquireTokenParametersWithCorrelationId(final UUID correlationId) {
+        AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                .withClaims(getAccessTokenClaimsRequest("device_id", ""))
+                .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
+                .startAuthorizationFromActivity(mActivity)
+                .withCorrelationId(correlationId)
                 .build();
 
         return parameters;

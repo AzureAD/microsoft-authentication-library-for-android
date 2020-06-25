@@ -26,6 +26,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.Date;
+import java.util.UUID;
 
 public interface IAuthenticationResult {
 
@@ -81,4 +82,13 @@ public interface IAuthenticationResult {
      */
     @NonNull
     String[] getScope();
+
+    /**
+     * Gets the correlation id used during the acquire token request. Could be null if an error
+     * occurs when parsing from String or if not set.
+     *
+     * @return a UUID representing a correlation id
+     */
+    @Nullable
+    UUID getCorrelationId(); // this should never actually be null for MSAL
 }

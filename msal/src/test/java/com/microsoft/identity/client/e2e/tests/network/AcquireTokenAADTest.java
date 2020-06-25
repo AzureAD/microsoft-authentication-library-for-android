@@ -49,7 +49,7 @@ public abstract class AcquireTokenAADTest extends AcquireTokenNetworkTest {
 
     @Override
     public String getAuthority() {
-        return (String) AcquireTokenTestHelper.getAccount().getClaims().get("iss");
+        return AcquireTokenTestHelper.getAccount().getAuthority();
     }
 
     public static class AzureWorldWideCloudUser extends AcquireTokenAADTest {
