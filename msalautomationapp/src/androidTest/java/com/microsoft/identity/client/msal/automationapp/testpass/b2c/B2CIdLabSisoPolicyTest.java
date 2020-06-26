@@ -41,41 +41,27 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 @RunWith(Parameterized.class)
 public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
 
     final static B2CProvider[] b2CProviders = new B2CProvider[]{
-            new B2CProvider.Local(),
-            new B2CProvider.Microsoft(),
-            new B2CProvider.Facebook(),
-            new B2CProvider.Google()
+            B2CProvider.Local,
+            B2CProvider.MSA,
+            B2CProvider.Google,
+            B2CProvider.Facebook,
     };
 
-    final static List<Object[]> testData = new ArrayList<>();
-
-    static {
-        for (final B2CProvider b2CProvider : b2CProviders) {
-            testData.add(new Object[]{
-                    b2CProvider.getProviderName(),
-                    b2CProvider
-            });
-        }
-    }
-
-
     @Parameterized.Parameters(name = "{0}")
-    public static Iterable<Object[]> data() {
-        return testData;
+    public static B2CProvider[] data() {
+        return b2CProviders;
     }
 
     private final B2CProvider mB2cProvider;
 
-    public B2CIdLabSisoPolicyTest(@NonNull final String providerName, @NonNull final B2CProvider b2CProvider) {
+    public B2CIdLabSisoPolicyTest(@NonNull final B2CProvider b2CProvider) {
         mB2cProvider = b2CProvider;
     }
 
@@ -85,7 +71,7 @@ public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
     }
 
     @Test
-    public void basicTest() throws InterruptedException {
+    public void testCanLoginWithLocalAndSocialAccounts() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
