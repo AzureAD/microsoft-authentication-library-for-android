@@ -30,6 +30,8 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.utils.AdbShellUtils;
+import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
+import com.microsoft.identity.client.ui.automation.utils.SettingsUtils;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
 import org.junit.After;
@@ -67,6 +69,12 @@ public abstract class AbstractAcquireTokenTest extends AbstractPublicClientAppli
         // remove existing authenticator and company portal apps
         AdbShellUtils.removePackage(AZURE_AUTHENTICATOR_APP_PACKAGE_NAME);
         AdbShellUtils.removePackage(COMPANY_PORTAL_APP_PACKAGE_NAME);
+
+        // CP may still be installed if device admin
+        if (CommonUtils.isPackageInstalled(COMPANY_PORTAL_APP_PACKAGE_NAME)) {
+            SettingsUtils.disableAdmin("Company Portal");
+            AdbShellUtils.removePackage(COMPANY_PORTAL_APP_PACKAGE_NAME);
+        }
 
         if (mBroker != null) {
             // do a fresh install of broker
