@@ -10,9 +10,10 @@ import com.microsoft.identity.client.msal.automationapp.AbstractAcquireTokenNetw
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.ui.automation.broker.BrokerAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
-import com.microsoft.identity.client.ui.automation.interaction.AadPromptHandler;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AdfsPromptHandler;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
@@ -50,7 +51,7 @@ public class TestCase833513 extends AbstractAcquireTokenNetworkTest {
 
         // query to load a user from a different tenant that was used for WPJ
         final LabUserQuery query = new LabUserQuery();
-        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CLOUD;
+        query.userType = LabConstants.UserType.FEDERATED;
         query.federationProvider = LabConstants.FederationProvider.ADFS_V3;
 
         final String username = LabUserHelper.loadUserForTest(query);
@@ -59,10 +60,10 @@ public class TestCase833513 extends AbstractAcquireTokenNetworkTest {
         final SingleAccountPublicClientApplication singleAccountPCA =
                 (SingleAccountPublicClientApplication) mApplication;
 
-        final CountDownLatch latch = new CountDownLatch(1);
-
         // try sign in with an account from a different tenant
-        singleAccountPCA.signIn(mActivity, username, mScopes, successfulInteractiveCallback(latch));
+        // passing null for latch as we don't need to receive the result from this call
+        // we just want to get into the webview and look for the error in AAD page
+        singleAccountPCA.signIn(mActivity, username, mScopes, successfulInteractiveCallback(null));
 
         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                 .loginHintProvided(true)
@@ -73,14 +74,13 @@ public class TestCase833513 extends AbstractAcquireTokenNetworkTest {
                 .expectingNonZeroAccountsInBroker(false)
                 .build();
 
-        AadPromptHandler aadPromptHandler = new AadPromptHandler(promptHandlerParameters);
-        aadPromptHandler.handlePrompt(username, password);
+        AdfsPromptHandler adfsPromptHandler = new AdfsPromptHandler(promptHandlerParameters);
+        adfsPromptHandler.handlePrompt(username, password);
 
         // expecting error in WebView now
 
         final UiObject errMsg = UiAutomatorUtils.obtainUiObjectWithText("AADSTS50020");
         Assert.assertTrue(errMsg.exists());
-        latch.await();
     }
 
     @Override
