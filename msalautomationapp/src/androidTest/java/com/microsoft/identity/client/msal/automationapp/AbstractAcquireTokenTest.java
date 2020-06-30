@@ -121,7 +121,7 @@ public abstract class AbstractAcquireTokenTest extends AbstractPublicClientAppli
 
     /**
      * A callback that can be used to perform assertions on completion of an interactive request
-     * (success case) test.
+     * (cancel case) test.
      *
      * @param latch the latch associated to this request
      * @return an {@link AuthenticationCallback} object
