@@ -5,7 +5,14 @@ def getVersionFile() {
 def getVersionProps() {
     def versionPropsFile = getVersionFile()
     def versionProps = new Properties()
-    versionProps.load(new FileInputStream(versionPropsFile))
+    def versionPropsStream = new FileInputStream(versionPropsFile)
+
+    try {
+        versionProps.load(versionPropsStream)
+    } finally {
+        versionPropsStream.close();
+    }
+
     return versionProps
 }
 
