@@ -30,9 +30,8 @@ import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.msal.automationapp.AbstractAcquireTokenNetworkTest;
 import com.microsoft.identity.client.msal.automationapp.R;
-import com.microsoft.identity.client.ui.automation.broker.BrokerAuthenticator;
+import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AdfsPromptHandler;
@@ -44,8 +43,6 @@ import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.concurrent.CountDownLatch;
 
 // End My Shift - In Shared device mode, only account from the same tenant should be able to acquire token.
 public class TestCase833513 extends AbstractAcquireTokenNetworkTest {
@@ -130,7 +127,7 @@ public class TestCase833513 extends AbstractAcquireTokenNetworkTest {
 
     @Override
     public ITestBroker getBroker() {
-        return new BrokerAuthenticator();
+        return new BrokerMicrosoftAuthenticator();
     }
 
     @Override

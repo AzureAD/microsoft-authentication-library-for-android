@@ -29,7 +29,7 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.msal.automationapp.AbstractAcquireTokenNetworkTest;
 import com.microsoft.identity.client.msal.automationapp.ErrorCodes;
 import com.microsoft.identity.client.msal.automationapp.R;
-import com.microsoft.identity.client.ui.automation.broker.BrokerAuthenticator;
+import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
@@ -140,7 +140,7 @@ public class TestCase833516 extends AbstractAcquireTokenNetworkTest {
 
     @Override
     public ITestBroker getBroker() {
-        return new BrokerAuthenticator();
+        return new BrokerMicrosoftAuthenticator();
     }
 
     @Override
