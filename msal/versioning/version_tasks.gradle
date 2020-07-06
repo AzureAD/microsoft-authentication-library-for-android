@@ -3,9 +3,8 @@ def getVersionFile() {
 }
 
 def getVersionProps() {
-    def versionPropsFile = getVersionFile()
-    def versionProps = new Properties()
-    versionProps.load(new FileInputStream(versionPropsFile))
+    def versionProps = new Properties();
+    getVersionFile().withInputStream {stream -> versionProps.load(stream)}
     return versionProps
 }
 
