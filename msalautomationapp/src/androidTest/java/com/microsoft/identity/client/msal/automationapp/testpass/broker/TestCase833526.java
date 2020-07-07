@@ -97,7 +97,7 @@ public class TestCase833526 extends AbstractAcquireTokenNetworkTest {
         final IMdmAgent mdmAgent = (IMdmAgent) mBroker;
         mdmAgent.enrollDevice(username, password);
 
-        // SECOND REQUEST WITHOUT LOGIN HINT
+        // SECOND REQUEST WITH LOGIN HINT
 
         final CountDownLatch latchTryAcquireAgain = new CountDownLatch(1);
 

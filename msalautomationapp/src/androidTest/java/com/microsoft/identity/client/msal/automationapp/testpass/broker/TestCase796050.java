@@ -34,9 +34,9 @@ import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveR
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
@@ -49,7 +49,9 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
-// Multi-accounts for Broker - Add Account in Account Picker
+// Multi-accounts for Broker - Add Account in Account Chooser Activity
+// The goal of the test case is to ensure that we can add accounts in broker via the
+// "Add another account" option in Account Chooser Activity
 public class TestCase796050 extends AbstractAcquireTokenNetworkTest {
 
     @Test
@@ -65,7 +67,7 @@ public class TestCase796050 extends AbstractAcquireTokenNetworkTest {
 
         Assert.assertNotEquals(username1, username2);
 
-        // perform device registration
+        // perform device registration with one of the accounts (account 1 here)
         mBroker.performDeviceRegistration(
                 username1, password1
         );
@@ -79,13 +81,17 @@ public class TestCase796050 extends AbstractAcquireTokenNetworkTest {
                 .withPrompt(Prompt.SELECT_ACCOUNT)
                 .build();
 
-        // Start interactive token request in MSAL
+        // Start interactive token request in MSAL (without login hint)
         final InteractiveRequest interactiveRequest = new InteractiveRequest(
                 mApplication,
                 parameters,
                 new OnInteractionRequired() {
                     @Override
                     public void handleUserInteraction() {
+                        // Account Chooser Activity should be displayed by broker after calling
+                        // acquire token. In Account Choose Activity, click on "Add another account"
+                        // When a username is not provided to the below method, it clicks on
+                        // "Add another account"
                         mBroker.handleAccountPicker(null);
 
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
@@ -99,6 +105,8 @@ public class TestCase796050 extends AbstractAcquireTokenNetworkTest {
                                 .broker(null)
                                 .build();
 
+                        // In the WebView AAD login page, login with credentials for the other
+                        // account aka Account 2 that we created earlier
                         new AadPromptHandler(promptHandlerParameters)
                                 .handlePrompt(username2, password2);
 
@@ -111,18 +119,19 @@ public class TestCase796050 extends AbstractAcquireTokenNetworkTest {
 
         // Assert Authenticator Account screen has both accounts
 
-        mBroker.launch();
+        mBroker.launch(); // open Authenticator App
 
         final UiObject account1 = UiAutomatorUtils.obtainUiObjectWithText(username1);
-        Assert.assertTrue(account1.exists());
+        Assert.assertTrue(account1.exists()); // make sure account 1 is there
 
         final UiObject account2 = UiAutomatorUtils.obtainUiObjectWithText(username2);
-        Assert.assertTrue(account2.exists());
+        Assert.assertTrue(account2.exists()); // make sure account 2 is there
 
-        // SILENT REQUEST
+        // SILENT REQUEST - start a acquireTokenSilent request in MSAL with the Account 2
 
         final IAccount account = getAccount();
 
+        // Make sure we have the most recent account aka Account 2
         Assert.assertEquals(username2, account.getUsername());
 
         final CountDownLatch silentLatch = new CountDownLatch(1);
@@ -135,6 +144,7 @@ public class TestCase796050 extends AbstractAcquireTokenNetworkTest {
                 .withCallback(successfulSilentCallback(silentLatch))
                 .build();
 
+        // get a token silently
         mApplication.acquireTokenSilentAsync(silentParameters);
         silentLatch.await();
     }
