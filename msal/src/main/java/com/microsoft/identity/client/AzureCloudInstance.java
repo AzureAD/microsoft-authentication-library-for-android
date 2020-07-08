@@ -27,9 +27,24 @@ package com.microsoft.identity.client;
  */
 public enum AzureCloudInstance {
 
+    /**
+     * Microsoft Azure public cloud. Maps to https://login.microsoftonline.com
+     */
     AzurePublic("https://login.microsoftonline.com"),
+
+    /**
+     * Microsoft Chinese national cloud. Maps to https://login.partner.microsoftonline.cn
+     */
     AzureChina("https://login.partner.microsoftonline.cn"),
+
+    /**
+     * Microsoft German national cloud (“Black Forest”). Maps to https://login.microsoftonline.de
+     */
     AzureGermany("https://login.microsoftonline.de"),
+
+    /**
+     * US Government cloud. Maps to https://login.microsoftonline.us
+     */
     AzureUsGov("https://login.microsoftonline.us");
 
     private String cloudInstanceUri;
