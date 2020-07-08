@@ -117,8 +117,8 @@ public class TokenParametersAuthorityTest {
         Assert.assertEquals(expectedAuthorityUrl, tokenParameters.getAuthority());
     }
 
-    @Test
-    public void testCreateAuthorityFromCloudAndAudienceAndTenantIgnoresTenantIfAudienceNotMyOrg() {
+    @Test(expected = IllegalArgumentException.class)
+    public void testCreateAuthorityFromCloudAndAudienceFailsIfTenantSpecifiedAndAudienceNotMyOrg() {
         final AcquireTokenParameters tokenParameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
                 .withScopes(SCOPES)

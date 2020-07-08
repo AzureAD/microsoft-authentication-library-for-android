@@ -197,7 +197,15 @@ public abstract class TokenParameters {
         public B fromAuthority(@NonNull final AzureCloudInstance cloudInstance,
                                @NonNull final AadAuthorityAudience audience,
                                @Nullable final String tenant) {
-            if (audience == AadAuthorityAudience.AzureAdMyOrg) {
+            if (!TextUtils.isEmpty(tenant)) {
+                if (audience != AadAuthorityAudience.AzureAdMyOrg) {
+                    throw new IllegalArgumentException(
+                            "Audience must be " + AadAuthorityAudience.AzureAdMyOrg + " when tenant is specified"
+                    );
+                } else {
+                    return fromAuthority(cloudInstance, tenant);
+                }
+            } else if (audience == AadAuthorityAudience.AzureAdMyOrg) {
                 if (TextUtils.isEmpty(tenant)) {
                     throw new IllegalArgumentException(
                             "Tenant must be specified when the audience is " + audience
