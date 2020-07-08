@@ -263,10 +263,5 @@ public abstract class TokenParameters {
         public abstract B self();
 
         public abstract TokenParameters build();
-
-        private String createAuthorityUrl(@NonNull final AzureCloudInstance cloudInstance,
-                                          @NonNull final AadAuthorityAudience audience) {
-            return cloudInstance + "/" + audience;
-        }
     }
 }
