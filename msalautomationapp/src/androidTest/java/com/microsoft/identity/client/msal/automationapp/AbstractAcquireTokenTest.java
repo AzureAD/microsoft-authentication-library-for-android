@@ -22,6 +22,11 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp;
 
+import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
@@ -38,6 +43,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME;
@@ -102,6 +108,46 @@ public abstract class AbstractAcquireTokenTest extends AbstractPublicClientAppli
             public void onSuccess(IAuthenticationResult authenticationResult) {
                 Assert.assertFalse(StringUtil.isEmpty(authenticationResult.getAccessToken()));
                 mAccount = authenticationResult.getAccount();
+                latch.countDown();
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                fail(exception.getMessage());
+                latch.countDown();
+            }
+
+            @Override
+            public void onCancel() {
+                fail("User cancelled flow");
+                latch.countDown();
+            }
+        };
+    }
+
+    /**
+     * A callback that can be used to perform assertions on completion of an interactive request
+     * (success case) test.
+     *
+     * @param latch the latch associated to this request
+     * @return an {@link AuthenticationCallback} object
+     */
+    protected AuthenticationCallback successfulClaimsRequestInIdTokenInteractiveCallback(
+            @NonNull final CountDownLatch latch,
+            @NonNull final String requestedClaim,
+            @Nullable final String expectedValue
+    ) {
+        return new AuthenticationCallback() {
+            @Override
+            public void onSuccess(IAuthenticationResult authenticationResult) {
+                Assert.assertFalse(StringUtil.isEmpty(authenticationResult.getAccessToken()));
+                mAccount = authenticationResult.getAccount();
+                final Map<String, ?> claims = authenticationResult.getAccount().getClaims();
+                Assert.assertTrue(claims.containsKey(requestedClaim));
+                if (!TextUtils.isEmpty(expectedValue)) {
+                    final Object claimValue = claims.get(requestedClaim);
+                    Assert.assertEquals(expectedValue, claimValue.toString());
+                }
                 latch.countDown();
             }
 
