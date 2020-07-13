@@ -34,6 +34,7 @@ import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelpe
 import com.microsoft.identity.internal.testutils.TestUtils;
 
 import org.junit.Before;
+import org.robolectric.shadows.ShadowLog;
 
 import java.io.File;
 
@@ -50,6 +51,8 @@ public abstract class PublicClientApplicationAbstractTest implements IPublicClie
 
     @Before
     public void setup() {
+        ShadowLog.stream = System.out; // logging
+
         mContext = ApplicationProvider.getApplicationContext();
         mActivity = TestUtils.getMockActivity(mContext);
         setupPCA();
