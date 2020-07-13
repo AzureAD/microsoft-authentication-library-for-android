@@ -22,7 +22,10 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
@@ -186,8 +189,45 @@ public abstract class TokenParameters {
             return self();
         }
 
-        public B fromAuthority(String authority) {
-            mAuthority = authority;
+        public B fromAuthority(String authorityUrl) {
+            mAuthority = authorityUrl;
+            return self();
+        }
+
+        public B fromAuthority(@NonNull final AzureCloudInstance cloudInstance,
+                               @NonNull final AadAuthorityAudience audience,
+                               @Nullable final String tenant) {
+            if (!TextUtils.isEmpty(tenant)) {
+                if (audience != AadAuthorityAudience.AzureAdMyOrg) {
+                    throw new IllegalArgumentException(
+                            "Audience must be " + AadAuthorityAudience.AzureAdMyOrg + " when tenant is specified"
+                    );
+                } else {
+                    return fromAuthority(cloudInstance, tenant);
+                }
+            } else if (audience == AadAuthorityAudience.AzureAdMyOrg) {
+                if (TextUtils.isEmpty(tenant)) {
+                    throw new IllegalArgumentException(
+                            "Tenant must be specified when the audience is " + audience
+                    );
+                } else {
+                    mAuthority = cloudInstance.getCloudInstanceUri() + "/" + tenant;
+                    return self();
+                }
+            } else {
+                mAuthority = cloudInstance.getCloudInstanceUri() + "/" + audience.getAudienceValue();
+                return self();
+            }
+        }
+
+        public B fromAuthority(@NonNull final AzureCloudInstance cloudInstance,
+                               @NonNull final AadAuthorityAudience audience) {
+            return fromAuthority(cloudInstance, audience, null);
+        }
+
+        public B fromAuthority(@NonNull final AzureCloudInstance cloudInstance,
+                               @NonNull final String tenant) {
+            mAuthority = cloudInstance.getCloudInstanceUri() + "/" + tenant;
             return self();
         }
 
