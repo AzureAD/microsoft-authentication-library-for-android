@@ -113,9 +113,9 @@ public class SingleAccountPublicClientApplication
             @Override
             public void onMigrationFinished(int numberOfAccountsMigrated) {
                 final CommandParameters params = CommandParametersAdapter.createCommandParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
-                final BaseController controller;
+                final List<BaseController> controllers;
                 try {
-                    controller = MSALControllerFactory.getDefaultController(
+                    controllers = MSALControllerFactory.getAllControllers(
                             mPublicClientConfiguration.getAppContext(),
                             mPublicClientConfiguration.getDefaultAuthority(),
                             mPublicClientConfiguration);
@@ -126,7 +126,7 @@ public class SingleAccountPublicClientApplication
 
                 final GetCurrentAccountCommand command = new GetCurrentAccountCommand(
                         params,
-                        controller,
+                        controllers,
                         new CommandCallback<List<ICacheRecord>, BaseException>() {
                             @Override
                             public void onTaskCompleted(final List<ICacheRecord> result) {
