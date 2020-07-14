@@ -394,9 +394,9 @@ public class SingleAccountPublicClientApplication
                         requestAccountRecord
                 );
 
-        final BaseController controller;
+        final List<BaseController> controllers;
         try {
-            controller = MSALControllerFactory.getDefaultController(
+            controllers = MSALControllerFactory.getAllControllers(
                     mPublicClientConfiguration.getAppContext(),
                     mPublicClientConfiguration.getDefaultAuthority(),
                     mPublicClientConfiguration);
@@ -407,7 +407,7 @@ public class SingleAccountPublicClientApplication
 
         final RemoveCurrentAccountCommand command = new RemoveCurrentAccountCommand(
                 params,
-                controller,
+                controllers,
                 new CommandCallback<Boolean, BaseException>() {
                     @Override
                     public void onError(BaseException error) {
