@@ -44,6 +44,7 @@ import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.CommandParametersAdapter;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
@@ -65,10 +66,13 @@ import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SchemaUtil;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.commands.CommandCallback;
+import com.microsoft.identity.common.internal.commands.DCFCommandCallback;
+import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
 import com.microsoft.identity.common.internal.commands.GetDeviceModeCommand;
 import com.microsoft.identity.common.internal.commands.InteractiveTokenCommand;
 import com.microsoft.identity.common.internal.commands.SilentTokenCommand;
 import com.microsoft.identity.common.internal.commands.parameters.CommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.DeviceCodeFlowCommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.InteractiveTokenCommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.SilentTokenCommandParameters;
 import com.microsoft.identity.common.internal.controllers.BaseController;
@@ -86,6 +90,7 @@ import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccou
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
+import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.ResultFuture;
 import com.microsoft.identity.msal.BuildConfig;
@@ -1618,6 +1623,50 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         }
     }
 
+    public void deviceCodeFlow(@Nullable String[] scopes, @NonNull final DeviceCodeFlowCallback callback) {
+        // Create a DeviceCodeFlowCommandParameters object that takes in the desired scopes and the callback object
+        // Use CommandParametersAdapter
+        final DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter
+                    .createDeviceCodeFlowCommandParameters(
+                            mPublicClientConfiguration,
+                            mPublicClientConfiguration.getOAuth2TokenCache(),
+                            scopes);
+
+        // Create a CommandCallback object from the DeviceCodeFlowCallback object
+        // Use getCommandCallbackDCF
+        final DCFCommandCallback dcfCallback = getDCFCommandCallback(callback);
+
+        // Attempt protocol
+        try {
+            // Create a DeviceCodeFlowCommand object
+            // Pass the command parameters, default controller, and command callback
+            // Telemetry with DEVICE_CODE_FLOW_CALLBACK
+            final DeviceCodeFlowCommand deviceCodeFlowCommand = new DeviceCodeFlowCommand(
+                    commandParameters,
+                    MSALControllerFactory.getDefaultController(
+                            mPublicClientConfiguration.getAppContext(),
+                            mPublicClientConfiguration.getDefaultAuthority(),
+                            mPublicClientConfiguration
+                    ),
+                    dcfCallback,
+                    PublicApiId.DEVICE_CODE_FLOW_CALLBACK
+            );
+
+            // Run the command we created above in a separate thread to allow running HTTP Requests
+            Thread thread = new Thread(new Runnable(){
+                @Override
+                public void run(){
+                    CommandDispatcher.submitSilent(deviceCodeFlowCommand);
+                }
+            });
+            thread.start();
+        }
+        catch (final MsalClientException e) {
+            // Send the Exception through the callback object
+            callback.onError(e);
+        }
+    }
+
     private void checkInternetPermission() {
         final PackageManager packageManager = mPublicClientConfiguration.getAppContext().getPackageManager();
 
@@ -1685,6 +1734,38 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 } else {
                     throw new IllegalStateException("Silent requests cannot be cancelled.");
                 }
+            }
+        };
+    }
+
+    protected DCFCommandCallback getDCFCommandCallback(@NonNull final DeviceCodeFlowCallback callback) {
+        return new DCFCommandCallback<AcquireTokenResult, MsalServiceException>() {
+            @Override
+            public void getUserCode(@NonNull String vUri, @NonNull String user_code, @NonNull String message){
+                callback.getUserCode(vUri, user_code, message);
+            }
+
+            @Override
+            public void onTaskCompleted(AcquireTokenResult tokenResult) {
+                // Convert tokenResult to an AuthenticationResult object
+                IAuthenticationResult convertedResult = AuthenticationResultAdapter.adapt(
+                        tokenResult.getLocalAuthenticationResult());
+
+                // Type cast the interface object
+                AuthenticationResult authResult = (AuthenticationResult) convertedResult;
+
+                callback.getToken(authResult);
+            }
+
+            @Override
+            public void onError(MsalServiceException msalError) {
+                callback.onError(msalError);
+            }
+
+            @Override
+            public void onCancel() {
+                // Do nothing
+                // No current plans for allowing cancellation of DCF
             }
         };
     }

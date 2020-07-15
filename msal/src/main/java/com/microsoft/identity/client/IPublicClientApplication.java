@@ -25,6 +25,7 @@ package com.microsoft.identity.client;
 import android.app.Activity;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 
 import com.microsoft.identity.client.exception.MsalException;
@@ -83,6 +84,19 @@ public interface IPublicClientApplication {
      */
     @WorkerThread
     IAuthenticationResult acquireTokenSilent(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) throws InterruptedException, MsalException;
+
+    /**
+     * Perform the Device Code Flow (DCF) protocol to allow a deviceto authenticate and get a new access token without input capability.
+     * @param scopes
+     * @param callback The {@link DeviceCodeFlowCallback} object to receive responses from the protocol.
+     *                 1). Receiving authentication information (user_code, verification_uri, and instruction message)
+     *                 via {@link DeviceCodeFlowCallback#getUserCode(String, String, String)}.
+     *                 2). Receiving a successful authnetication result containing a fresh access token
+     *                 via {@link DeviceCodeFlowCallback#getToken(AuthenticationResult)}.
+     *                 3). Receiving an exception detailing what went wrong in the protocol
+     *                 via {@link DeviceCodeFlowCallback#onError(MsalException)}.
+     */
+    void deviceCodeFlow(@Nullable String[] scopes, @NonNull final DeviceCodeFlowCallback callback);
 
     /**
      * Returns the PublicClientConfiguration for this instance of PublicClientApplication.
@@ -160,6 +174,31 @@ public interface IPublicClientApplication {
          * Called once IMultipleAccountPublicClientApplication can't be created.
          */
         void onError(final MsalException exception);
+    }
+
+    interface DeviceCodeFlowCallback{
+        /**
+         * Called to display verification uri, user code, and instruction message during device code flow.
+         *
+         * @param vUri verification uri
+         * @param user_code user code
+         * @param message instruction message
+         */
+        void getUserCode(@NonNull String vUri, @NonNull String user_code, @NonNull String message);
+
+        /**
+         * Called once succeed and pass the result object.
+         *
+         * @param authResult the authentication result
+         */
+        void getToken(AuthenticationResult authResult);
+
+        /**
+         * Called once exception thrown.
+         *
+         * @param error error exception
+         */
+        void onError(MsalException error);
     }
 
 }
