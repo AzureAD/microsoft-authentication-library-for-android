@@ -34,6 +34,7 @@ import com.microsoft.identity.client.SilentAuthenticationCallback;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
+import com.microsoft.identity.client.ui.automation.browser.IBrowser;
 import com.microsoft.identity.client.ui.automation.utils.AdbShellUtils;
 import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
 import com.microsoft.identity.client.ui.automation.utils.SettingsUtils;
@@ -57,7 +58,7 @@ public abstract class AbstractAcquireTokenTest extends AbstractPublicClientAppli
     protected String[] mScopes;
     protected ITestBroker mBroker;
     protected IAccount mAccount;
-    protected IApp mBrowser;
+    protected IBrowser mBrowser;
 
     protected IAccount getAccount() {
         return mAccount;
@@ -70,7 +71,7 @@ public abstract class AbstractAcquireTokenTest extends AbstractPublicClientAppli
         mBrowser = getBrowser();
 
         // clear all cookies in the browser
-        mBrowser.clear();
+        ((IApp) mBrowser).clear();
 
         // remove existing authenticator and company portal apps
         AdbShellUtils.removePackage(AZURE_AUTHENTICATOR_APP_PACKAGE_NAME);

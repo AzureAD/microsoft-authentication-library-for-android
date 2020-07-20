@@ -72,12 +72,12 @@ public class TestCase833526 extends AbstractAcquireTokenNetworkTest {
                     public void handleUserInteraction() {
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHintProvided(true)
+                                .loginHint(username)
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
                                 .broker(getBroker())
-                                .expectingNonZeroAccountsInBroker(false)
+                                .expectingBrokerAccountChooserActivity(false)
                                 .enrollPageExpected(true)
                                 // cancel enroll here to short circuit as enroll will be started manually from CP anyway
                                 .enrollPageResponse(UiResponse.DECLINE)
@@ -120,12 +120,12 @@ public class TestCase833526 extends AbstractAcquireTokenNetworkTest {
                     public void handleUserInteraction() {
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHintProvided(true)
+                                .loginHint(username)
                                 .sessionExpected(true)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
                                 .broker(getBroker())
-                                .expectingNonZeroAccountsInBroker(true)
+                                .expectingBrokerAccountChooserActivity(true)
                                 .enrollPageExpected(false)
                                 .build();
 

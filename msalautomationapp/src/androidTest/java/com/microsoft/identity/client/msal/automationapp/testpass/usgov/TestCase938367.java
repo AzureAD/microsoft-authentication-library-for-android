@@ -28,6 +28,7 @@ import com.microsoft.identity.client.msal.automationapp.AbstractAcquireTokenNetw
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
+import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
@@ -64,14 +65,14 @@ public class TestCase938367 extends AbstractAcquireTokenNetworkTest {
                 new OnInteractionRequired() {
                     @Override
                     public void handleUserInteraction() {
-                        mBrowser.handleFirstRun();
+                        ((IApp) mBrowser).handleFirstRun();
 
                         final String username = mLoginHint;
                         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHintProvided(true)
+                                .loginHint(mLoginHint)
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)

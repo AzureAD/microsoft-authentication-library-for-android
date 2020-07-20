@@ -67,7 +67,7 @@ public class TestCase99267 extends BrokerLessMsalTest {
 
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHintProvided(true)
+                                .loginHint(mLoginHint)
                                 .sessionExpected(false)
                                 .consentPageExpected(true)
                                 .speedBumpExpected(false)

@@ -85,12 +85,12 @@ public class TestCase833516 extends AbstractAcquireTokenNetworkTest {
         singleAccountPCA.signIn(mActivity, username, mScopes, successfulInteractiveCallback(latch));
 
         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                .loginHintProvided(true)
+                .loginHint(username)
                 .sessionExpected(false)
                 .consentPageExpected(false)
                 .broker(mBroker)
                 .prompt(PromptParameter.SELECT_ACCOUNT)
-                .expectingNonZeroAccountsInBroker(false)
+                .expectingBrokerAccountChooserActivity(false)
                 .build();
 
         AadPromptHandler aadPromptHandler = new AadPromptHandler(promptHandlerParameters);

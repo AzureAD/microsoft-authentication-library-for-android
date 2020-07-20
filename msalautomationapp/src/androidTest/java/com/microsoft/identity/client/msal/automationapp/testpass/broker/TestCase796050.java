@@ -96,7 +96,7 @@ public class TestCase796050 extends AbstractAcquireTokenNetworkTest {
 
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHintProvided(false)
+                                .loginHint(null)
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)

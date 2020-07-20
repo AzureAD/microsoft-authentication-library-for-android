@@ -31,6 +31,7 @@ import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
+import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.b2c.B2CPromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.b2c.B2CProvider;
@@ -89,19 +90,19 @@ public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
                 new OnInteractionRequired() {
                     @Override
                     public void handleUserInteraction() {
-                        mBrowser.handleFirstRun();
+                        ((IApp) mBrowser).handleFirstRun();
 
                         final String username = mLoginHint;
                         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
                         final B2CPromptHandlerParameters promptHandlerParameters = B2CPromptHandlerParameters.builder()
                                 .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHintProvided(true)
+                                .loginHint(mLoginHint)
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
                                 .broker(getBroker())
-                                .expectingNonZeroAccountsInBroker(false)
+                                .expectingBrokerAccountChooserActivity(false)
                                 .b2cProvider(getB2cProvider())
                                 .build();
 

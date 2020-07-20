@@ -86,12 +86,12 @@ public class TestCase833513 extends AbstractAcquireTokenNetworkTest {
         singleAccountPCA.signIn(mActivity, username, mScopes, successfulInteractiveCallback(null));
 
         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                .loginHintProvided(true)
+                .loginHint(username)
                 .sessionExpected(false)
                 .consentPageExpected(false)
                 .broker(mBroker)
                 .prompt(PromptParameter.SELECT_ACCOUNT)
-                .expectingNonZeroAccountsInBroker(false)
+                .expectingBrokerAccountChooserActivity(false)
                 .build();
 
         AdfsPromptHandler adfsPromptHandler = new AdfsPromptHandler(promptHandlerParameters);

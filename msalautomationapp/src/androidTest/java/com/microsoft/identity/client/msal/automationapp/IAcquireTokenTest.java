@@ -24,6 +24,7 @@ package com.microsoft.identity.client.msal.automationapp;
 
 import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
+import com.microsoft.identity.client.ui.automation.browser.IBrowser;
 
 /**
  * An interface describing basic requirements to write an Acquire Token e2e test using MSAL library.
@@ -57,6 +58,6 @@ public interface IAcquireTokenTest {
      *
      * @return A {@link IApp} object representing the Android app of the browser being used
      */
-    IApp getBrowser();
+    IBrowser getBrowser();
 
 }

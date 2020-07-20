@@ -1,13 +1,10 @@
-package com.microsoft.identity.client.msal.automationapp.testpass.broker.usgov;
+package com.microsoft.identity.client.msal.automationapp.testpass.local;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.msal.automationapp.AbstractAcquireTokenNetworkTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
-import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
@@ -15,20 +12,17 @@ import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
-public class TestCase938447 extends AbstractAcquireTokenNetworkTest {
+@Ignore
+public class TestCase532736 extends BrokerLessMsalTest {
 
     @Test
-    public void test_938447() throws InterruptedException {
-        final String username = mLoginHint;
-        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
-
-        mBroker.performDeviceRegistration(username, password);
-
+    public void test_532736() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
@@ -36,7 +30,7 @@ public class TestCase938447 extends AbstractAcquireTokenNetworkTest {
                 .withLoginHint(mLoginHint)
                 .withScopes(Arrays.asList(mScopes))
                 .withCallback(successfulInteractiveCallback(latch))
-                .withPrompt(Prompt.SELECT_ACCOUNT)
+                .withPrompt(Prompt.LOGIN)
                 .build();
 
 
@@ -46,15 +40,15 @@ public class TestCase938447 extends AbstractAcquireTokenNetworkTest {
                 new OnInteractionRequired() {
                     @Override
                     public void handleUserInteraction() {
+                        final String username = mLoginHint;
+                        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                                .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHint(username)
-                                .sessionExpected(true)
+                                .prompt(PromptParameter.LOGIN)
+                                .loginHint(mLoginHint)
+                                .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .broker(getBroker())
-                                .expectingBrokerAccountChooserActivity(true)
-                                .expectingLoginPageAccountPicker(false)
                                 .build();
 
                         new AadPromptHandler(promptHandlerParameters)
@@ -71,8 +65,7 @@ public class TestCase938447 extends AbstractAcquireTokenNetworkTest {
     @Override
     public LabUserQuery getLabUserQuery() {
         final LabUserQuery query = new LabUserQuery();
-        query.userType = LabConstants.UserType.CLOUD;
-        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT;
+        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CLOUD;
         return query;
     }
 
@@ -88,16 +81,12 @@ public class TestCase938447 extends AbstractAcquireTokenNetworkTest {
 
     @Override
     public String getAuthority() {
-        return mApplication.getConfiguration().getDefaultAuthority().toString();
-    }
-
-    @Override
-    public ITestBroker getBroker() {
-        return new BrokerMicrosoftAuthenticator();
+        return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
     }
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_arlington;
+        return R.raw.msal_config_browser;
     }
+
 }

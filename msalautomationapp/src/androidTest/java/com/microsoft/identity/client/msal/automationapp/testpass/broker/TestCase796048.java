@@ -70,12 +70,12 @@ public class TestCase796048 extends AbstractAcquireTokenNetworkTest {
 
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHintProvided(true)
+                                .loginHint(mLoginHint)
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
                                 .broker(getBroker())
-                                .expectingNonZeroAccountsInBroker(false)
+                                .expectingBrokerAccountChooserActivity(false)
                                 .build();
 
                         new AadPromptHandler(promptHandlerParameters)

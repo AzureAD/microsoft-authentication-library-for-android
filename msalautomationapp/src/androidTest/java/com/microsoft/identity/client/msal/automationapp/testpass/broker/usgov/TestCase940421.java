@@ -59,13 +59,13 @@ public class TestCase940421 extends AbstractAcquireTokenNetworkTest {
                     public void handleUserInteraction() {
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHintProvided(true)
+                                .loginHint(username)
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
                                 .broker(getBroker())
-                                .expectingNonZeroAccountsInBroker(false)
-                                .expectingNonZeroAccountsInCookie(false)
+                                .expectingBrokerAccountChooserActivity(false)
+                                .expectingLoginPageAccountPicker(false)
                                 .registerPageExpected(true)
                                 .build();
 

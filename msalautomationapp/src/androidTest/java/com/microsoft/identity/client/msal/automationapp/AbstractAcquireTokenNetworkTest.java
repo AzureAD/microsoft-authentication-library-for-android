@@ -24,6 +24,8 @@ package com.microsoft.identity.client.msal.automationapp;
 
 import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
+import com.microsoft.identity.client.ui.automation.browser.IBrowser;
+import com.microsoft.identity.client.ui.automation.utils.AdbShellUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
@@ -37,6 +39,7 @@ public abstract class AbstractAcquireTokenNetworkTest extends AbstractAcquireTok
 
     @Before
     public void setup() {
+        AdbShellUtils.enableAutomaticTimeZone();
         final LabUserQuery query = getLabUserQuery();
         final String tempUserType = getTempUserType();
 
@@ -59,7 +62,7 @@ public abstract class AbstractAcquireTokenNetworkTest extends AbstractAcquireTok
     }
 
     @Override
-    public IApp getBrowser() {
+    public IBrowser getBrowser() {
         return new BrowserChrome();
     }
 

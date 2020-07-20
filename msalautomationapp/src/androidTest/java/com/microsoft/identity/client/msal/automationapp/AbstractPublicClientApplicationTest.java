@@ -31,7 +31,9 @@ import androidx.test.rule.ActivityTestRule;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.ui.automation.utils.AdbShellUtils;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 

@@ -1,16 +1,16 @@
-package com.microsoft.identity.client.msal.automationapp.testpass.broker.usgov;
+package com.microsoft.identity.client.msal.automationapp.testpass.local;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.msal.automationapp.AbstractAcquireTokenNetworkTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
-import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
+import com.microsoft.identity.client.ui.automation.app.AzureSampleApp;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
+import com.microsoft.identity.client.ui.automation.interaction.UiResponse;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
@@ -19,21 +19,51 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
-public class TestCase938447 extends AbstractAcquireTokenNetworkTest {
+public class TestCase497038 extends BrokerLessMsalTest {
 
     @Test
-    public void test_938447() throws InterruptedException {
+    public void test_497038() throws InterruptedException {
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
-        mBroker.performDeviceRegistration(username, password);
+        AzureSampleApp azureSampleApp = new AzureSampleApp();
+        azureSampleApp.uninstall();
+
+        azureSampleApp.install();
+        azureSampleApp.launch();
+        azureSampleApp.handleFirstRun();
+
+        final MicrosoftStsPromptHandlerParameters microsoftStsPromptHandlerParameters =
+                MicrosoftStsPromptHandlerParameters.builder()
+                        .prompt(PromptParameter.SELECT_ACCOUNT)
+                        .broker(getBroker())
+                        .loginHint(null)
+                        .consentPageExpected(true)
+                        .consentPageResponse(UiResponse.ACCEPT)
+                        .speedBumpExpected(false)
+                        .enrollPageExpected(false)
+                        .registerPageExpected(false)
+                        .expectingBrokerAccountChooserActivity(false)
+                        .expectingLoginPageAccountPicker(false)
+                        .isFederated(false)
+                        .sessionExpected(false)
+                        .build();
+
+        azureSampleApp.signIn(username, password, getBrowser(), true, microsoftStsPromptHandlerParameters);
+
+        Thread.sleep(TimeUnit.SECONDS.toMillis(5));
+
+        azureSampleApp.confirmSignedIn(username);
+
+        // NOW LOGIN INTO MSAL AUTOMATION APP
 
         final CountDownLatch latch = new CountDownLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(mLoginHint)
+                .withLoginHint(username)
                 .withScopes(Arrays.asList(mScopes))
                 .withCallback(successfulInteractiveCallback(latch))
                 .withPrompt(Prompt.SELECT_ACCOUNT)
@@ -48,13 +78,12 @@ public class TestCase938447 extends AbstractAcquireTokenNetworkTest {
                     public void handleUserInteraction() {
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.SELECT_ACCOUNT)
+                                .broker(getBroker())
                                 .loginHint(username)
                                 .sessionExpected(true)
                                 .consentPageExpected(false)
-                                .speedBumpExpected(false)
-                                .broker(getBroker())
-                                .expectingBrokerAccountChooserActivity(true)
-                                .expectingLoginPageAccountPicker(false)
+                                .speedBumpExpected(true)
+                                .speedBumpResponse(UiResponse.ACCEPT)
                                 .build();
 
                         new AadPromptHandler(promptHandlerParameters)
@@ -70,15 +99,12 @@ public class TestCase938447 extends AbstractAcquireTokenNetworkTest {
 
     @Override
     public LabUserQuery getLabUserQuery() {
-        final LabUserQuery query = new LabUserQuery();
-        query.userType = LabConstants.UserType.CLOUD;
-        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT;
-        return query;
+        return null;
     }
 
     @Override
     public String getTempUserType() {
-        return null;
+        return LabConstants.TempUserType.BASIC;
     }
 
     @Override
@@ -88,16 +114,12 @@ public class TestCase938447 extends AbstractAcquireTokenNetworkTest {
 
     @Override
     public String getAuthority() {
-        return mApplication.getConfiguration().getDefaultAuthority().toString();
-    }
-
-    @Override
-    public ITestBroker getBroker() {
-        return new BrokerMicrosoftAuthenticator();
+        return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
     }
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_arlington;
+        return R.raw.msal_config_browser;
     }
+
 }
