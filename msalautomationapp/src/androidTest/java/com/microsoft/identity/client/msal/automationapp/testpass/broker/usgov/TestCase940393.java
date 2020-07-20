@@ -2,7 +2,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.usgov;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.msal.automationapp.AbstractAcquireTokenNetworkTest;
+import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
@@ -15,13 +15,12 @@ import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
-public class TestCase940393 extends AbstractAcquireTokenNetworkTest {
+public class TestCase940393 extends AbstractMsalUiTest {
 
     @Test
     public void test_938447() throws InterruptedException {

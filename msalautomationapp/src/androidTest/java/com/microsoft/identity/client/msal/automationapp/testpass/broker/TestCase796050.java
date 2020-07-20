@@ -28,7 +28,7 @@ import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.msal.automationapp.AbstractAcquireTokenNetworkTest;
+import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
@@ -52,7 +52,7 @@ import java.util.concurrent.CountDownLatch;
 // Multi-accounts for Broker - Add Account in Account Chooser Activity
 // The goal of the test case is to ensure that we can add accounts in broker via the
 // "Add another account" option in Account Chooser Activity
-public class TestCase796050 extends AbstractAcquireTokenNetworkTest {
+public class TestCase796050 extends AbstractMsalUiTest {
 
     @Test
     public void test_796050() throws InterruptedException {

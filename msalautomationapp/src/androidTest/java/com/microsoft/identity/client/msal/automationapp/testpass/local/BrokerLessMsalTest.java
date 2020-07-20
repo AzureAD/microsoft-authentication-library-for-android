@@ -22,10 +22,10 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.local;
 
-import com.microsoft.identity.client.msal.automationapp.AbstractAcquireTokenNetworkTest;
+import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 
-public abstract class BrokerLessMsalTest extends AbstractAcquireTokenNetworkTest {
+public abstract class BrokerLessMsalTest extends AbstractMsalUiTest {
 
     @Override
     public ITestBroker getBroker() {

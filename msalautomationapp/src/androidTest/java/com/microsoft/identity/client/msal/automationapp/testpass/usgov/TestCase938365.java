@@ -24,7 +24,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.usgov;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.msal.automationapp.AbstractAcquireTokenNetworkTest;
+import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
@@ -44,7 +44,7 @@ import java.util.concurrent.CountDownLatch;
 
 // Interactive token acquisition with instance_aware=true, no login hint, and cloud account,
 // and WW common authority
-public class TestCase938365 extends AbstractAcquireTokenNetworkTest {
+public class TestCase938365 extends AbstractMsalUiTest {
 
     @Test
     public void test_938365() throws InterruptedException {

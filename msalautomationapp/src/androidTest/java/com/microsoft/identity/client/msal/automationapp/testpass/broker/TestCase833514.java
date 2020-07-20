@@ -10,7 +10,7 @@ import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.msal.automationapp.AbstractAcquireTokenNetworkTest;
+import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.ui.automation.app.AzureSampleApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
@@ -28,7 +28,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
-public class TestCase833514 extends AbstractAcquireTokenNetworkTest {
+public class TestCase833514 extends AbstractMsalUiTest {
 
     @Test
     public void test_833514() throws MsalException, InterruptedException {

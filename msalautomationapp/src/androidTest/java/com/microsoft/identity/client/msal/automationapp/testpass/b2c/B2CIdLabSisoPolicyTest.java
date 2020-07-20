@@ -38,6 +38,7 @@ import com.microsoft.identity.client.ui.automation.interaction.b2c.B2CProvider;
 import com.microsoft.identity.client.ui.automation.interaction.b2c.IdLabB2cSisoPolicyPromptHandler;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -45,6 +46,7 @@ import org.junit.runners.Parameterized;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
+@Ignore
 @RunWith(Parameterized.class)
 public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
 

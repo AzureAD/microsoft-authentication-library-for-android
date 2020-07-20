@@ -28,7 +28,7 @@ import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.msal.automationapp.AbstractAcquireTokenNetworkTest;
+import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
@@ -45,7 +45,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 // End My Shift - In Shared device mode, only account from the same tenant should be able to acquire token.
-public class TestCase833513 extends AbstractAcquireTokenNetworkTest {
+public class TestCase833513 extends AbstractMsalUiTest {
 
     @Test
     public void test_833513() throws MsalException, InterruptedException {

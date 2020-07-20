@@ -2,7 +2,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.usgov;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.msal.automationapp.AbstractAcquireTokenNetworkTest;
+import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
 @Ignore // failing - needs investigation why being prompted for password
-public class TestCase948676 extends AbstractAcquireTokenNetworkTest {
+public class TestCase948676 extends AbstractMsalUiTest {
 
     @Test
     public void test_948676() throws InterruptedException {

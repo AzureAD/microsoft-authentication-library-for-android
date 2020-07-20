@@ -26,7 +26,7 @@ import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.msal.automationapp.AbstractAcquireTokenNetworkTest;
+import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
@@ -44,7 +44,7 @@ import org.junit.Test;
 import java.util.concurrent.CountDownLatch;
 
 // [MSAL] SovCloud: Silent Auth w/o cache w/o MFA w/ Prompt Auto  w/ Broker
-public class TestCase796048 extends AbstractAcquireTokenNetworkTest {
+public class TestCase796048 extends AbstractMsalUiTest {
 
     @Test
     public void test_796048() throws InterruptedException {

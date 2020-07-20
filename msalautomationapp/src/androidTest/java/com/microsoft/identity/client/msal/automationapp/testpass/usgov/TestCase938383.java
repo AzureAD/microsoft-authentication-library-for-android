@@ -4,7 +4,7 @@ import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.msal.automationapp.AbstractAcquireTokenNetworkTest;
+import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
@@ -23,7 +23,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
-public class TestCase938383 extends AbstractAcquireTokenNetworkTest {
+public class TestCase938383 extends AbstractMsalUiTest {
 
     @Test
     public void test_938383() throws InterruptedException {

@@ -26,7 +26,7 @@ import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.msal.automationapp.AbstractAcquireTokenNetworkTest;
+import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.ErrorCodes;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
@@ -45,7 +45,7 @@ import org.junit.Test;
 import java.util.concurrent.CountDownLatch;
 
 // End My Shift - In Shared device mode, there can be only one sign-in account.
-public class TestCase833516 extends AbstractAcquireTokenNetworkTest {
+public class TestCase833516 extends AbstractMsalUiTest {
 
     @Test
     public void test_833516() throws MsalException, InterruptedException {

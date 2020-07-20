@@ -1,68 +1,99 @@
-// Copyright (c) Microsoft Corporation.
-// All rights reserved.
+//  Copyright (c) Microsoft Corporation.
+//  All rights reserved.
 //
-// This code is licensed under the MIT License.
+//  This code is licensed under the MIT License.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files(the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions :
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files(the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions :
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp;
 
+import android.app.Activity;
+import android.content.Context;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.test.core.app.ApplicationProvider;
+import androidx.test.rule.ActivityTestRule;
 
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
+import com.microsoft.identity.client.IPublicClientApplication;
+import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.ui.automation.IBrokerTest;
+import com.microsoft.identity.client.ui.automation.ILabTest;
 import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
+import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
 import com.microsoft.identity.client.ui.automation.browser.IBrowser;
-import com.microsoft.identity.client.ui.automation.utils.AdbShellUtils;
-import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
-import com.microsoft.identity.client.ui.automation.utils.SettingsUtils;
+import com.microsoft.identity.client.ui.automation.testrules.InstallBrokerTestRule;
+import com.microsoft.identity.client.ui.automation.testrules.LoadLabUserTestRule;
+import com.microsoft.identity.client.ui.automation.testrules.RemoveBrokersBeforeTestRule;
+import com.microsoft.identity.client.ui.automation.testrules.ResetAutomaticTimeZoneTestRule;
+import com.microsoft.identity.client.ui.automation.testrules.UiAutomatorTestRule;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
+import org.junit.rules.TestRule;
 
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
-import static junit.framework.Assert.fail;
+import static org.junit.Assert.fail;
 
-public abstract class AbstractAcquireTokenTest extends AbstractPublicClientApplicationTest implements IAcquireTokenTest {
+public abstract class AbstractMsalUiTest implements IMsalTest, IBrokerTest, ILabTest {
 
-    private static final String TAG = AbstractAcquireTokenTest.class.getSimpleName();
+    protected Context mContext;
+    protected Activity mActivity;
+    protected IPublicClientApplication mApplication;
 
     protected String[] mScopes;
     protected ITestBroker mBroker;
     protected IAccount mAccount;
     protected IBrowser mBrowser;
+    protected String mLoginHint;
 
-    protected IAccount getAccount() {
-        return mAccount;
-    }
+    @Rule(order = 0)
+    public final TestRule uiAutomatorTestRule = new UiAutomatorTestRule();
+
+    @Rule(order = 1)
+    public final TestRule resetAutomaticTimeRule = new ResetAutomaticTimeZoneTestRule();
+
+    @Rule(order = 2)
+    public final TestRule loadLabUserRule = getLabUserQuery() != null
+            ? new LoadLabUserTestRule(getLabUserQuery())
+            : new LoadLabUserTestRule(getTempUserType());
+
+    @Rule(order = 3)
+    public final TestRule removeBrokersRule = new RemoveBrokersBeforeTestRule();
+
+    @Rule(order = 4)
+    public final TestRule installBrokerRule = new InstallBrokerTestRule(getBroker());
+
+    @Rule(order = 5)
+    public ActivityTestRule<MainActivity> mActivityRule =
+            new ActivityTestRule(MainActivity.class);
 
     @Before
     public void setup() {
@@ -73,27 +104,35 @@ public abstract class AbstractAcquireTokenTest extends AbstractPublicClientAppli
         // clear all cookies in the browser
         ((IApp) mBrowser).clear();
 
-        // remove existing authenticator and company portal apps
-        AdbShellUtils.removePackage(AZURE_AUTHENTICATOR_APP_PACKAGE_NAME);
-        AdbShellUtils.removePackage(COMPANY_PORTAL_APP_PACKAGE_NAME);
+        mLoginHint = ((LoadLabUserTestRule) loadLabUserRule).getLabUserUpn();
 
-        // CP may still be installed if device admin
-        if (CommonUtils.isPackageInstalled(COMPANY_PORTAL_APP_PACKAGE_NAME)) {
-            SettingsUtils.disableAdmin("Company Portal");
-            AdbShellUtils.removePackage(COMPANY_PORTAL_APP_PACKAGE_NAME);
-        }
-
-        if (mBroker != null) {
-            // do a fresh install of broker
-            mBroker.install();
-        }
-
-        super.setup();
+        mContext = ApplicationProvider.getApplicationContext();
+        mActivity = mActivityRule.getActivity();
+        setupPCA();
     }
 
     @After
     public void cleanup() {
         mAccount = null;
+    }
+
+    @Override
+    public IBrowser getBrowser() {
+        return new BrowserChrome();
+    }
+
+    private void setupPCA() {
+        try {
+            mApplication = PublicClientApplication.create(mContext, getConfigFileResourceId());
+        } catch (InterruptedException e) {
+            fail(e.getMessage());
+        } catch (MsalException e) {
+            fail(e.getMessage());
+        }
+    }
+
+    protected IAccount getAccount() {
+        return mAccount;
     }
 
     /**
@@ -114,13 +153,13 @@ public abstract class AbstractAcquireTokenTest extends AbstractPublicClientAppli
 
             @Override
             public void onError(MsalException exception) {
-                fail(exception.getMessage());
+                junit.framework.Assert.fail(exception.getMessage());
                 latch.countDown();
             }
 
             @Override
             public void onCancel() {
-                fail("User cancelled flow");
+                junit.framework.Assert.fail("User cancelled flow");
                 latch.countDown();
             }
         };
@@ -154,13 +193,13 @@ public abstract class AbstractAcquireTokenTest extends AbstractPublicClientAppli
 
             @Override
             public void onError(MsalException exception) {
-                fail(exception.getMessage());
+                junit.framework.Assert.fail(exception.getMessage());
                 latch.countDown();
             }
 
             @Override
             public void onCancel() {
-                fail("User cancelled flow");
+                junit.framework.Assert.fail("User cancelled flow");
                 latch.countDown();
             }
         };
@@ -212,7 +251,7 @@ public abstract class AbstractAcquireTokenTest extends AbstractPublicClientAppli
 
             @Override
             public void onError(MsalException exception) {
-                fail(exception.getMessage());
+                junit.framework.Assert.fail(exception.getMessage());
                 latch.countDown();
             }
         };
@@ -229,7 +268,7 @@ public abstract class AbstractAcquireTokenTest extends AbstractPublicClientAppli
         return new AuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
-                fail("Unexpected success");
+                junit.framework.Assert.fail("Unexpected success");
                 latch.countDown();
             }
 
@@ -241,7 +280,7 @@ public abstract class AbstractAcquireTokenTest extends AbstractPublicClientAppli
 
             @Override
             public void onCancel() {
-                fail("User cancelled flow");
+                junit.framework.Assert.fail("User cancelled flow");
                 latch.countDown();
             }
         };
@@ -258,7 +297,7 @@ public abstract class AbstractAcquireTokenTest extends AbstractPublicClientAppli
         return new SilentAuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
-                fail("Unexpected success");
+                junit.framework.Assert.fail("Unexpected success");
                 latch.countDown();
             }
 
