@@ -90,8 +90,8 @@ import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccou
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
-import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
+import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.ResultFuture;
 import com.microsoft.identity.msal.BuildConfig;
 
@@ -1739,17 +1739,17 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     protected DCFCommandCallback getDCFCommandCallback(@NonNull final DeviceCodeFlowCallback callback) {
-        return new DCFCommandCallback<AcquireTokenResult, MsalServiceException>() {
+        return new DCFCommandCallback<LocalAuthenticationResult, MsalServiceException>() {
             @Override
             public void getUserCode(@NonNull String vUri, @NonNull String user_code, @NonNull String message){
                 callback.getUserCode(vUri, user_code, message);
             }
 
             @Override
-            public void onTaskCompleted(AcquireTokenResult tokenResult) {
+            public void onTaskCompleted(LocalAuthenticationResult tokenResult) {
                 // Convert tokenResult to an AuthenticationResult object
                 IAuthenticationResult convertedResult = AuthenticationResultAdapter.adapt(
-                        tokenResult.getLocalAuthenticationResult());
+                        tokenResult);
 
                 // Type cast the interface object
                 AuthenticationResult authResult = (AuthenticationResult) convertedResult;
