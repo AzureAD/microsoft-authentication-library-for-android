@@ -26,9 +26,9 @@ import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.IPublicClientApplication;
-import com.microsoft.identity.client.e2e.shadows.ShadowDCFCommandAuthError;
-import com.microsoft.identity.client.e2e.shadows.ShadowDCFCommandSuccessful;
-import com.microsoft.identity.client.e2e.shadows.ShadowDCFCommandTokenError;
+import com.microsoft.identity.client.e2e.shadows.ShadowDeviceCodeFlowCommandAuthError;
+import com.microsoft.identity.client.e2e.shadows.ShadowDeviceCodeFlowCommandSuccessful;
+import com.microsoft.identity.client.e2e.shadows.ShadowDeviceCodeFlowCommandTokenError;
 import com.microsoft.identity.client.e2e.shadows.ShadowHttpRequestForMockedTest;
 import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest;
@@ -44,9 +44,13 @@ import org.robolectric.annotation.Config;
 
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.SINGLE_ACCOUNT_DCF_TEST_CONFIG_FILE_PATH;
 
+/**
+ * Testing class for the device code flow protocol. Currently only supporting testing for the API-side
+ * of the protocol. Will be extended to test individual aspects of the flow.
+ */
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {ShadowMsalUtils.class, ShadowHttpRequestForMockedTest.class})
-public class DeviceCodeFlowPublicAPITest extends PublicClientApplicationAbstractTest {
+public class DeviceCodeFlowAPITest extends PublicClientApplicationAbstractTest {
 
     private static Boolean uCode;
 
@@ -62,14 +66,13 @@ public class DeviceCodeFlowPublicAPITest extends PublicClientApplicationAbstract
     }
 
     @Test
-    @Config(shadows = {ShadowDCFCommandAuthError.class})
+    @Config(shadows = {ShadowDeviceCodeFlowCommandAuthError.class})
     public void testDeviceCodeFlowAuthFailure() {
         String[] scope = {"user.read"};
         mApplication.deviceCodeFlow(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
             @Override
             public void getUserCode(@NonNull String vUri, @NonNull String user_code, @NonNull String message) {
                 // This shouldn't run if authorization step fails
-                uCode = true;
                 Assert.fail();
             }
             @Override
@@ -89,7 +92,7 @@ public class DeviceCodeFlowPublicAPITest extends PublicClientApplicationAbstract
     }
 
     @Test
-    @Config(shadows = {ShadowDCFCommandTokenError.class})
+    @Config(shadows = {ShadowDeviceCodeFlowCommandTokenError.class})
     public void testDeviceCodeFlowTokenFailure() {
         String[] scope = {"user.read"};
         mApplication.deviceCodeFlow(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
@@ -120,7 +123,7 @@ public class DeviceCodeFlowPublicAPITest extends PublicClientApplicationAbstract
     }
 
     @Test
-    @Config(shadows = {ShadowDCFCommandSuccessful.class})
+    @Config(shadows = {ShadowDeviceCodeFlowCommandSuccessful.class})
     public void testDeviceCodeFlowSuccess() {
         String[] scope = {"user.read"};
         mApplication.deviceCodeFlow(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {

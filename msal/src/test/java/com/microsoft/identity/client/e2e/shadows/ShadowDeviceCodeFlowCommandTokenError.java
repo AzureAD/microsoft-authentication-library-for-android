@@ -24,14 +24,23 @@ package com.microsoft.identity.client.e2e.shadows;
 
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
+import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommandCallback;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 
 import org.robolectric.annotation.Implements;
+import org.robolectric.annotation.RealObject;
 
+/**
+ * Shadow class that simulates Device Code Flow failing due to an error in the token polling phase.
+ */
 @Implements(DeviceCodeFlowCommand.class)
-public class ShadowDCFCommandTokenError {
+public class ShadowDeviceCodeFlowCommandTokenError {
+    @RealObject
+    private DeviceCodeFlowCommand mDeviceCodeFlowCommand;
+
     public AcquireTokenResult execute() throws Exception {
-        DeviceCodeFlowCommand.dcfCallback.getUserCode(
+        DeviceCodeFlowCommandCallback callback = (DeviceCodeFlowCommandCallback) mDeviceCodeFlowCommand.getCallback();
+        callback.getUserCode(
                 "https://login.microsoftonline.com/common/oauth2/deviceauth",
                 "ABCDEFGH",
                 "Follow these instructions to authenticate.");

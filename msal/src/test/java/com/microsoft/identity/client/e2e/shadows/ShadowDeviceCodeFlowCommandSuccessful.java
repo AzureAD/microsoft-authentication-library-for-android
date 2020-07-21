@@ -25,21 +25,32 @@ package com.microsoft.identity.client.e2e.shadows;
 import com.microsoft.identity.common.internal.cache.CacheRecord;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
+import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommandCallback;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.request.SdkType;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
 
+import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
+import org.robolectric.annotation.RealObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Shadow class that simulates Device Code Flow successfully returning an acquire token result object.
+ */
 @Implements(DeviceCodeFlowCommand.class)
-public class ShadowDCFCommandSuccessful {
+public class ShadowDeviceCodeFlowCommandSuccessful {
+    @RealObject
+    private DeviceCodeFlowCommand mDeviceCodeFlowCommand;
+
+    @Implementation
     public AcquireTokenResult execute() {
-        DeviceCodeFlowCommand.dcfCallback.getUserCode(
+        DeviceCodeFlowCommandCallback callback = (DeviceCodeFlowCommandCallback) mDeviceCodeFlowCommand.getCallback();
+        callback.getUserCode(
                 "https://login.microsoftonline.com/common/oauth2/deviceauth",
                 "ABCDEFGH",
                 "Follow these instructions to authenticate.");

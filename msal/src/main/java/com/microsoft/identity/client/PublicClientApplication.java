@@ -66,7 +66,7 @@ import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SchemaUtil;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.commands.CommandCallback;
-import com.microsoft.identity.common.internal.commands.DCFCommandCallback;
+import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommandCallback;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
 import com.microsoft.identity.common.internal.commands.GetDeviceModeCommand;
 import com.microsoft.identity.common.internal.commands.InteractiveTokenCommand;
@@ -1633,8 +1633,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             scopes);
 
         // Create a CommandCallback object from the DeviceCodeFlowCallback object
-        // Use getCommandCallbackDCF
-        final DCFCommandCallback dcfCallback = getDCFCommandCallback(callback);
+        final DeviceCodeFlowCommandCallback dcfCallback = getDeviceCodeFlowCommandCallback(callback);
 
         // Attempt protocol
         try {
@@ -1649,7 +1648,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             mPublicClientConfiguration
                     ),
                     dcfCallback,
-                    PublicApiId.DEVICE_CODE_FLOW_CALLBACK
+                    PublicApiId.DEVICE_CODE_FLOW_WITH_CALLBACK
             );
 
             // Run the command we created above in a separate thread to allow running HTTP Requests
@@ -1738,11 +1737,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         };
     }
 
-    protected DCFCommandCallback getDCFCommandCallback(@NonNull final DeviceCodeFlowCallback callback) {
-        return new DCFCommandCallback<LocalAuthenticationResult, MsalServiceException>() {
+    protected DeviceCodeFlowCommandCallback getDeviceCodeFlowCommandCallback(@NonNull final DeviceCodeFlowCallback callback) {
+        return new DeviceCodeFlowCommandCallback<LocalAuthenticationResult, MsalServiceException>() {
             @Override
-            public void getUserCode(@NonNull String vUri, @NonNull String user_code, @NonNull String message){
-                callback.getUserCode(vUri, user_code, message);
+            public void getUserCode(@NonNull String vUri, @NonNull String userCode, @NonNull String message){
+                callback.getUserCode(vUri, userCode, message);
             }
 
             @Override

@@ -28,8 +28,11 @@ import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 
 import org.robolectric.annotation.Implements;
 
+/**
+ * Shadow class that simulates Device Code Flow failing due to an error in the authorization phase.
+ */
 @Implements(DeviceCodeFlowCommand.class)
-public class ShadowDCFCommandAuthError {
+public class ShadowDeviceCodeFlowCommandAuthError {
     public AcquireTokenResult execute() throws Exception {
         throw new MsalServiceException("invalid_scope", "This exception reflects an error in the authorization step in Device Code Flow (invalid scope).", null);
     }

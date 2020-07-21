@@ -181,10 +181,10 @@ public interface IPublicClientApplication {
          * Called to display verification uri, user code, and instruction message during device code flow.
          *
          * @param vUri verification uri
-         * @param user_code user code
+         * @param userCode user code
          * @param message instruction message
          */
-        void getUserCode(@NonNull String vUri, @NonNull String user_code, @NonNull String message);
+        void getUserCode(@NonNull String vUri, @NonNull String userCode, @NonNull String message);
 
         /**
          * Called once succeed and pass the result object.
