@@ -29,7 +29,6 @@ import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 
 import java.util.List;
@@ -87,7 +86,7 @@ public interface IPublicClientApplication {
     IAuthenticationResult acquireTokenSilent(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) throws InterruptedException, MsalException;
 
     /**
-     * Perform the Device Code Flow (DCF) protocol to allow a device to authenticate and get a new access token without input capability.
+     * Perform the Device Code Flow (DCF) protocol to allow a device without input capability to authenticate and get a new access token.
      * @param scopes the desired access scopes
      * @param callback callback object used to communicate with the API throughout the protocol
      */
@@ -176,10 +175,10 @@ public interface IPublicClientApplication {
      * This callback provides the following methods for communicating with the protocol.
      *                 1). Receiving authentication information (user_code, verification_uri, and instruction message)
      *                 via {@link DeviceCodeFlowCallback#onUserCodeReceived(String, String, String)}.
-     *                 2). Receiving a successful authnetication result containing a fresh access token
+     *                 2). Receiving a successful authentication result containing a fresh access token
      *                 via {@link DeviceCodeFlowCallback#onTokenReceived(AuthenticationResult)}.
      *                 3). Receiving an exception detailing what went wrong in the protocol
-     *                 via {@link DeviceCodeFlowCallback#onError(MsalServiceException)}.
+     *                 via {@link DeviceCodeFlowCallback#onError(MsalException)}.
      */
     interface DeviceCodeFlowCallback {
         /**
@@ -192,18 +191,18 @@ public interface IPublicClientApplication {
         void onUserCodeReceived(@NonNull String vUri, @NonNull String userCode, @NonNull String message);
 
         /**
-         * Invoked once succeed and pass the result object.
+         * Invoked once token is received and passes the {@link AuthenticationResult} object.
          *
          * @param authResult the authentication result
          */
         void onTokenReceived(AuthenticationResult authResult);
 
         /**
-         * Invoked once exception thrown.
+         * Invoked if an error is encountered during the device code flow and passes the exception object.
          *
          * @param error error exception
          */
-        void onError(MsalServiceException error);
+        void onError(MsalException error);
     }
 
 }

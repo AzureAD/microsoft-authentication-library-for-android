@@ -37,6 +37,7 @@ import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authscheme.AbstractAuthenticationScheme;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.commands.parameters.CommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.DeviceCodeFlowCommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.InteractiveTokenCommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.RemoveAccountCommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.SilentTokenCommandParameters;
@@ -456,5 +457,16 @@ public class LocalMSALController extends BaseController {
     @Override
     public boolean removeCurrentAccount(RemoveAccountCommandParameters parameters) throws Exception {
         return removeAccount(parameters);
+    }
+
+    // Placeholder methods to avoid inheritance error (these methods will be declared in BaseController)
+    // Also why the @Override annotation is missing
+    public AuthorizationResult deviceCodeFlowAuthRequest(DeviceCodeFlowCommandParameters parameters) throws Exception {
+        // TODO: Placeholder to avoid inheritance error. Will be implemented after Command/Controller level PR in Common
+        return null;
+    }
+    public AcquireTokenResult acquireDeviceCodeFlowToken(AuthorizationResult authorizationResult) throws Exception {
+        // TODO: Placeholder to avoid inheritance error. Will be implemented after Command/Controller level PR in Common
+        return null;
     }
 }

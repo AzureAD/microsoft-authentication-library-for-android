@@ -1646,14 +1646,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 PublicApiId.DEVICE_CODE_FLOW_WITH_CALLBACK
         );
 
-        // Run the command we created above in a separate thread to allow running HTTP Requests
-        Thread thread = new Thread(new Runnable(){
-            @Override
-            public void run(){
-                CommandDispatcher.submitSilent(deviceCodeFlowCommand);
-            }
-        });
-        thread.start();
+        CommandDispatcher.submitSilent(deviceCodeFlowCommand);
     }
 
     private void checkInternetPermission() {
@@ -1728,9 +1721,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     protected DeviceCodeFlowCommandCallback getDeviceCodeFlowCommandCallback(@NonNull final DeviceCodeFlowCallback callback) {
-        return new DeviceCodeFlowCommandCallback<LocalAuthenticationResult, MsalServiceException>() {
+        return new DeviceCodeFlowCommandCallback<LocalAuthenticationResult, MsalException>() {
             @Override
-            public void getUserCode(@NonNull String vUri, @NonNull String userCode, @NonNull String message){
+            public void onUserCodeReceived(@NonNull String vUri, @NonNull String userCode, @NonNull String message){
                 callback.onUserCodeReceived(vUri, userCode, message);
             }
 
@@ -1747,7 +1740,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             }
 
             @Override
-            public void onError(MsalServiceException msalError) {
+            public void onError(MsalException msalError) {
                 callback.onError(msalError);
             }
 

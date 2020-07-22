@@ -41,7 +41,7 @@ public class ShadowDeviceCodeFlowCommandTokenError {
 
     public AcquireTokenResult execute() throws Exception {
         final DeviceCodeFlowCommandCallback callback = (DeviceCodeFlowCommandCallback) mDeviceCodeFlowCommand.getCallback();
-        callback.getUserCode(
+        callback.onUserCodeReceived(
                 "https://login.microsoftonline.com/common/oauth2/deviceauth",
                 "ABCDEFGH",
                 "Follow these instructions to authenticate.");

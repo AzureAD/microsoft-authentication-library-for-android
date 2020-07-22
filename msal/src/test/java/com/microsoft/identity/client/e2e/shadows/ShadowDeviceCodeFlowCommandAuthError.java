@@ -33,6 +33,7 @@ import org.robolectric.annotation.Implements;
  */
 @Implements(DeviceCodeFlowCommand.class)
 public class ShadowDeviceCodeFlowCommandAuthError {
+    
     public AcquireTokenResult execute() throws Exception {
         throw new MsalServiceException("invalid_scope", "This exception reflects an error in the authorization step in Device Code Flow (invalid scope).", null);
     }

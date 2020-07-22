@@ -49,6 +49,7 @@ import com.microsoft.identity.common.internal.broker.MicrosoftAuthClient;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.commands.parameters.CommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.DeviceCodeFlowCommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.InteractiveTokenCommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.RemoveAccountCommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.SilentTokenCommandParameters;
@@ -57,6 +58,7 @@ import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.ClientInfo;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAccount;
+import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResult;
 import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.MsalBrokerResultAdapter;
@@ -553,6 +555,16 @@ public class BrokerMsalController extends BaseController {
                     public void putValueInSuccessEvent(ApiEndEvent event, Boolean result) {
                     }
                 });
+    }
+
+    // Placeholder methods to avoid inheritance error (these methods will be declared in BaseController)
+    // Also why the @Override annotation is missing
+    public AuthorizationResult deviceCodeFlowAuthRequest(DeviceCodeFlowCommandParameters parameters) throws ClientException {
+        throw new ClientException("deviceCodeFlowAuthRequest() not supported in BrokerMsalController");
+    }
+
+    public AcquireTokenResult acquireDeviceCodeFlowToken(AuthorizationResult authorizationResult) throws ClientException {
+        throw new ClientException("deviceCodeFlowAuthRequest() not supported in BrokerMsalController");
     }
 
     /**

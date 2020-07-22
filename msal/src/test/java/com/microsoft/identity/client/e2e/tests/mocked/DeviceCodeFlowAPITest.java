@@ -33,7 +33,7 @@ import com.microsoft.identity.client.e2e.shadows.ShadowHttpRequestForMockedTest;
 import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest;
 import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
-import com.microsoft.identity.client.exception.MsalServiceException;
+import com.microsoft.identity.client.exception.MsalException;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -52,7 +52,7 @@ import static com.microsoft.identity.internal.testutils.TestConstants.Configurat
 @Config(shadows = {ShadowMsalUtils.class, ShadowHttpRequestForMockedTest.class})
 public class DeviceCodeFlowAPITest extends PublicClientApplicationAbstractTest {
 
-    private boolean mUserCodeBoolean;
+    private boolean mUserCodeReceived;
 
     @Before
     public void setup() {
@@ -80,9 +80,9 @@ public class DeviceCodeFlowAPITest extends PublicClientApplicationAbstractTest {
                 Assert.fail();
             }
             @Override
-            public void onError(MsalServiceException error) {
+            public void onError(MsalException error) {
                 // Handle exception when authorization fails
-                Assert.assertFalse(mUserCodeBoolean);
+                Assert.assertFalse(mUserCodeReceived);
                 Assert.assertTrue(error.getErrorCode().equals("invalid_scope"));
             }
         });
@@ -102,8 +102,8 @@ public class DeviceCodeFlowAPITest extends PublicClientApplicationAbstractTest {
                 Assert.assertNotNull(userCode);
                 Assert.assertNotNull(message);
 
-                Assert.assertFalse(mUserCodeBoolean);
-                mUserCodeBoolean = true;
+                Assert.assertFalse(mUserCodeReceived);
+                mUserCodeReceived = true;
             }
             @Override
             public void onTokenReceived(AuthenticationResult authResult) {
@@ -111,9 +111,9 @@ public class DeviceCodeFlowAPITest extends PublicClientApplicationAbstractTest {
                 Assert.fail();
             }
             @Override
-            public void onError(MsalServiceException error) {
+            public void onError(MsalException error) {
                 // Handle Exception
-                Assert.assertTrue(mUserCodeBoolean);
+                Assert.assertTrue(mUserCodeReceived);
                 Assert.assertTrue(error.getErrorCode().equals("expired_token"));
             }
         });
@@ -133,16 +133,16 @@ public class DeviceCodeFlowAPITest extends PublicClientApplicationAbstractTest {
                 Assert.assertNotNull(userCode);
                 Assert.assertNotNull(message);
 
-                Assert.assertFalse(mUserCodeBoolean);
-                mUserCodeBoolean = true;
+                Assert.assertFalse(mUserCodeReceived);
+                mUserCodeReceived = true;
             }
             @Override
             public void onTokenReceived(AuthenticationResult authResult) {
-                Assert.assertTrue(mUserCodeBoolean);
+                Assert.assertTrue(mUserCodeReceived);
                 Assert.assertNotNull(authResult);
             }
             @Override
-            public void onError(MsalServiceException error) {
+            public void onError(MsalException error) {
                 // This shouldn't run
                 Assert.fail();
             }
