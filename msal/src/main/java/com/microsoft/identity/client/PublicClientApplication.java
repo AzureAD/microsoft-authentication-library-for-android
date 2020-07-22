@@ -47,6 +47,7 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.CommandParametersAdapter;
+import com.microsoft.identity.client.internal.controllers.LocalMSALController;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
@@ -1635,35 +1636,24 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         // Create a CommandCallback object from the DeviceCodeFlowCallback object
         final DeviceCodeFlowCommandCallback deviceCodeFlowCommandCallback = getDeviceCodeFlowCommandCallback(callback);
 
-        // Attempt protocol
-        try {
-            // Create a DeviceCodeFlowCommand object
-            // Pass the command parameters, default controller, and command callback
-            // Telemetry with DEVICE_CODE_FLOW_CALLBACK
-            final DeviceCodeFlowCommand deviceCodeFlowCommand = new DeviceCodeFlowCommand(
-                    commandParameters,
-                    MSALControllerFactory.getDefaultController(
-                            mPublicClientConfiguration.getAppContext(),
-                            mPublicClientConfiguration.getDefaultAuthority(),
-                            mPublicClientConfiguration
-                    ),
-                    deviceCodeFlowCommandCallback,
-                    PublicApiId.DEVICE_CODE_FLOW_WITH_CALLBACK
-            );
+        // Create a DeviceCodeFlowCommand object
+        // Pass the command parameters, default controller, and command callback
+        // Telemetry with DEVICE_CODE_FLOW_CALLBACK
+        final DeviceCodeFlowCommand deviceCodeFlowCommand = new DeviceCodeFlowCommand(
+                commandParameters,
+                new LocalMSALController(),
+                deviceCodeFlowCommandCallback,
+                PublicApiId.DEVICE_CODE_FLOW_WITH_CALLBACK
+        );
 
-            // Run the command we created above in a separate thread to allow running HTTP Requests
-            Thread thread = new Thread(new Runnable(){
-                @Override
-                public void run(){
-                    CommandDispatcher.submitSilent(deviceCodeFlowCommand);
-                }
-            });
-            thread.start();
-        }
-        catch (final MsalClientException e) {
-            // Send the Exception through the callback object
-            callback.onError(e);
-        }
+        // Run the command we created above in a separate thread to allow running HTTP Requests
+        Thread thread = new Thread(new Runnable(){
+            @Override
+            public void run(){
+                CommandDispatcher.submitSilent(deviceCodeFlowCommand);
+            }
+        });
+        thread.start();
     }
 
     private void checkInternetPermission() {

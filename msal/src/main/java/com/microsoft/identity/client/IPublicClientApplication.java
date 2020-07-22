@@ -29,6 +29,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 
 import java.util.List;
@@ -178,7 +179,7 @@ public interface IPublicClientApplication {
      *                 2). Receiving a successful authnetication result containing a fresh access token
      *                 via {@link DeviceCodeFlowCallback#onTokenReceived(AuthenticationResult)}.
      *                 3). Receiving an exception detailing what went wrong in the protocol
-     *                 via {@link DeviceCodeFlowCallback#onError(MsalException)}.
+     *                 via {@link DeviceCodeFlowCallback#onError(MsalServiceException)}.
      */
     interface DeviceCodeFlowCallback {
         /**
@@ -202,7 +203,7 @@ public interface IPublicClientApplication {
          *
          * @param error error exception
          */
-        void onError(MsalException error);
+        void onError(MsalServiceException error);
     }
 
 }

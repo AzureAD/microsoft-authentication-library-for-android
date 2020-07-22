@@ -33,7 +33,7 @@ import com.microsoft.identity.client.e2e.shadows.ShadowHttpRequestForMockedTest;
 import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest;
 import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
-import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.exception.MsalServiceException;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -80,7 +80,7 @@ public class DeviceCodeFlowAPITest extends PublicClientApplicationAbstractTest {
                 Assert.fail();
             }
             @Override
-            public void onError(MsalException error) {
+            public void onError(MsalServiceException error) {
                 // Handle exception when authorization fails
                 Assert.assertFalse(mUserCodeBoolean);
                 Assert.assertTrue(error.getErrorCode().equals("invalid_scope"));
@@ -111,7 +111,7 @@ public class DeviceCodeFlowAPITest extends PublicClientApplicationAbstractTest {
                 Assert.fail();
             }
             @Override
-            public void onError(MsalException error) {
+            public void onError(MsalServiceException error) {
                 // Handle Exception
                 Assert.assertTrue(mUserCodeBoolean);
                 Assert.assertTrue(error.getErrorCode().equals("expired_token"));
@@ -142,7 +142,7 @@ public class DeviceCodeFlowAPITest extends PublicClientApplicationAbstractTest {
                 Assert.assertNotNull(authResult);
             }
             @Override
-            public void onError(MsalException error) {
+            public void onError(MsalServiceException error) {
                 // This shouldn't run
                 Assert.fail();
             }
