@@ -28,6 +28,7 @@ import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.IMdmAgent;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
@@ -45,6 +46,7 @@ import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
 // Broker Auth for MDM account
+@RetryOnFailure(retryCount = 2)
 public class TestCase833526 extends AbstractMsalUiTest {
 
     @Test
