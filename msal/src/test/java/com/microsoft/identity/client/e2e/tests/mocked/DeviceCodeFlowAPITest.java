@@ -52,12 +52,11 @@ import static com.microsoft.identity.internal.testutils.TestConstants.Configurat
 @Config(shadows = {ShadowMsalUtils.class, ShadowHttpRequestForMockedTest.class})
 public class DeviceCodeFlowAPITest extends PublicClientApplicationAbstractTest {
 
-    private static Boolean uCode;
+    private boolean mUserCodeBoolean;
 
     @Before
     public void setup() {
         super.setup();
-        uCode = false;
     }
 
     @Override
@@ -71,19 +70,19 @@ public class DeviceCodeFlowAPITest extends PublicClientApplicationAbstractTest {
         String[] scope = {"user.read"};
         mApplication.deviceCodeFlow(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
             @Override
-            public void getUserCode(@NonNull String vUri, @NonNull String user_code, @NonNull String message) {
+            public void onUserCodeReceived(@NonNull String vUri, @NonNull String userCode, @NonNull String message) {
                 // This shouldn't run if authorization step fails
                 Assert.fail();
             }
             @Override
-            public void getToken(AuthenticationResult authResult) {
+            public void onTokenReceived(AuthenticationResult authResult) {
                 // This shouldn't run if authorization step fails
                 Assert.fail();
             }
             @Override
             public void onError(MsalException error) {
                 // Handle exception when authorization fails
-                Assert.assertFalse(uCode);
+                Assert.assertFalse(mUserCodeBoolean);
                 Assert.assertTrue(error.getErrorCode().equals("invalid_scope"));
             }
         });
@@ -97,24 +96,24 @@ public class DeviceCodeFlowAPITest extends PublicClientApplicationAbstractTest {
         String[] scope = {"user.read"};
         mApplication.deviceCodeFlow(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
             @Override
-            public void getUserCode(@NonNull String vUri, @NonNull String user_code, @NonNull String message) {
-                // Assert that the protocol returns the user_code and others after successful authorization
+            public void onUserCodeReceived(@NonNull String vUri, @NonNull String userCode, @NonNull String message) {
+                // Assert that the protocol returns the userCode and others after successful authorization
                 Assert.assertNotNull(vUri);
-                Assert.assertNotNull(user_code);
+                Assert.assertNotNull(userCode);
                 Assert.assertNotNull(message);
 
-                Assert.assertFalse(uCode);
-                uCode = true;
+                Assert.assertFalse(mUserCodeBoolean);
+                mUserCodeBoolean = true;
             }
             @Override
-            public void getToken(AuthenticationResult authResult) {
+            public void onTokenReceived(AuthenticationResult authResult) {
                 // This shouldn't run
                 Assert.fail();
             }
             @Override
             public void onError(MsalException error) {
                 // Handle Exception
-                Assert.assertTrue(uCode);
+                Assert.assertTrue(mUserCodeBoolean);
                 Assert.assertTrue(error.getErrorCode().equals("expired_token"));
             }
         });
@@ -128,18 +127,18 @@ public class DeviceCodeFlowAPITest extends PublicClientApplicationAbstractTest {
         String[] scope = {"user.read"};
         mApplication.deviceCodeFlow(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
             @Override
-            public void getUserCode(@NonNull String vUri, @NonNull String user_code, @NonNull String message) {
-                // Assert that the protocol returns the user_code and others after successful authorization
+            public void onUserCodeReceived(@NonNull String vUri, @NonNull String userCode, @NonNull String message) {
+                // Assert that the protocol returns the userCode and others after successful authorization
                 Assert.assertNotNull(vUri);
-                Assert.assertNotNull(user_code);
+                Assert.assertNotNull(userCode);
                 Assert.assertNotNull(message);
 
-                Assert.assertFalse(uCode);
-                uCode = true;
+                Assert.assertFalse(mUserCodeBoolean);
+                mUserCodeBoolean = true;
             }
             @Override
-            public void getToken(AuthenticationResult authResult) {
-                Assert.assertTrue(uCode);
+            public void onTokenReceived(AuthenticationResult authResult) {
+                Assert.assertTrue(mUserCodeBoolean);
                 Assert.assertNotNull(authResult);
             }
             @Override

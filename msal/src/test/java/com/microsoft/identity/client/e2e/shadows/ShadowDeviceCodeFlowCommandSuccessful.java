@@ -44,37 +44,38 @@ import java.util.List;
  */
 @Implements(DeviceCodeFlowCommand.class)
 public class ShadowDeviceCodeFlowCommandSuccessful {
+
     @RealObject
     private DeviceCodeFlowCommand mDeviceCodeFlowCommand;
 
     @Implementation
     public AcquireTokenResult execute() {
-        DeviceCodeFlowCommandCallback callback = (DeviceCodeFlowCommandCallback) mDeviceCodeFlowCommand.getCallback();
+        final DeviceCodeFlowCommandCallback callback = (DeviceCodeFlowCommandCallback) mDeviceCodeFlowCommand.getCallback();
         callback.getUserCode(
                 "https://login.microsoftonline.com/common/oauth2/deviceauth",
                 "ABCDEFGH",
                 "Follow these instructions to authenticate.");
 
         // Create parameters for dummy authentication result
-        CacheRecord cRecord = new CacheRecord();
-        cRecord.setAccount(new AccountRecord());
-        cRecord.getAccount().setHomeAccountId("abcd");
-        cRecord.getAccount().setLocalAccountId("abcd");
-        List<ICacheRecord> list = new ArrayList<>();
-        list.add(cRecord);
+        final CacheRecord cacheRecord = new CacheRecord();
+        cacheRecord.setAccount(new AccountRecord());
+        cacheRecord.getAccount().setHomeAccountId("abcd");
+        cacheRecord.getAccount().setLocalAccountId("abcd");
+        final List<ICacheRecord> cacheRecordList = new ArrayList<>();
+        cacheRecordList.add(cacheRecord);
 
         // Create dummy authentication result
-        ILocalAuthenticationResult localAuth = new LocalAuthenticationResult(
-                cRecord,
-                list,
+        final ILocalAuthenticationResult localAuthenticationResult = new LocalAuthenticationResult(
+                cacheRecord,
+                cacheRecordList,
                 SdkType.MSAL,
                 false
         );
 
         // Create dummy token result
-        AcquireTokenResult acqResult = new AcquireTokenResult();
-        acqResult.setLocalAuthenticationResult(localAuth);
+        final AcquireTokenResult tokenResult = new AcquireTokenResult();
+        tokenResult.setLocalAuthenticationResult(localAuthenticationResult);
 
-        return acqResult;
+        return tokenResult;
     }
 }

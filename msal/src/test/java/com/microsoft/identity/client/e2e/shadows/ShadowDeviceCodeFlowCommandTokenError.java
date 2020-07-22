@@ -35,11 +35,12 @@ import org.robolectric.annotation.RealObject;
  */
 @Implements(DeviceCodeFlowCommand.class)
 public class ShadowDeviceCodeFlowCommandTokenError {
+
     @RealObject
     private DeviceCodeFlowCommand mDeviceCodeFlowCommand;
 
     public AcquireTokenResult execute() throws Exception {
-        DeviceCodeFlowCommandCallback callback = (DeviceCodeFlowCommandCallback) mDeviceCodeFlowCommand.getCallback();
+        final DeviceCodeFlowCommandCallback callback = (DeviceCodeFlowCommandCallback) mDeviceCodeFlowCommand.getCallback();
         callback.getUserCode(
                 "https://login.microsoftonline.com/common/oauth2/deviceauth",
                 "ABCDEFGH",

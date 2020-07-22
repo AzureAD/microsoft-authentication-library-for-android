@@ -1633,7 +1633,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             scopes);
 
         // Create a CommandCallback object from the DeviceCodeFlowCallback object
-        final DeviceCodeFlowCommandCallback dcfCallback = getDeviceCodeFlowCommandCallback(callback);
+        final DeviceCodeFlowCommandCallback deviceCodeFlowCommandCallback = getDeviceCodeFlowCommandCallback(callback);
 
         // Attempt protocol
         try {
@@ -1647,7 +1647,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             mPublicClientConfiguration.getDefaultAuthority(),
                             mPublicClientConfiguration
                     ),
-                    dcfCallback,
+                    deviceCodeFlowCommandCallback,
                     PublicApiId.DEVICE_CODE_FLOW_WITH_CALLBACK
             );
 
@@ -1741,7 +1741,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         return new DeviceCodeFlowCommandCallback<LocalAuthenticationResult, MsalServiceException>() {
             @Override
             public void getUserCode(@NonNull String vUri, @NonNull String userCode, @NonNull String message){
-                callback.getUserCode(vUri, userCode, message);
+                callback.onUserCodeReceived(vUri, userCode, message);
             }
 
             @Override
@@ -1753,7 +1753,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 // Type cast the interface object
                 AuthenticationResult authResult = (AuthenticationResult) convertedResult;
 
-                callback.getToken(authResult);
+                callback.onTokenReceived(authResult);
             }
 
             @Override

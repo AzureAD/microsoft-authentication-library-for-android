@@ -21,6 +21,7 @@ import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAu
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
 import com.microsoft.identity.common.internal.authscheme.AbstractAuthenticationScheme;
 import com.microsoft.identity.common.internal.authscheme.AuthenticationSchemeFactory;
+import com.microsoft.identity.common.internal.authscheme.BearerAuthenticationSchemeInternal;
 import com.microsoft.identity.common.internal.cache.SchemaUtil;
 import com.microsoft.identity.common.internal.commands.parameters.CommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.DeviceCodeFlowCommandParameters;
@@ -199,10 +200,7 @@ public class CommandParametersAdapter {
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull String[] scopes){
 
-        final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
-                configuration.getAppContext(),
-                null
-        );
+        final AbstractAuthenticationScheme authenticationScheme = new BearerAuthenticationSchemeInternal();
 
         final DeviceCodeFlowCommandParameters commandParameters = DeviceCodeFlowCommandParameters.builder()
                 .androidApplicationContext(configuration.getAppContext())

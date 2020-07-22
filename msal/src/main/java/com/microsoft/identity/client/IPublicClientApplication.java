@@ -86,15 +86,9 @@ public interface IPublicClientApplication {
     IAuthenticationResult acquireTokenSilent(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) throws InterruptedException, MsalException;
 
     /**
-     * Perform the Device Code Flow (DCF) protocol to allow a deviceto authenticate and get a new access token without input capability.
-     * @param scopes
-     * @param callback The {@link DeviceCodeFlowCallback} object to receive responses from the protocol.
-     *                 1). Receiving authentication information (user_code, verification_uri, and instruction message)
-     *                 via {@link DeviceCodeFlowCallback#getUserCode(String, String, String)}.
-     *                 2). Receiving a successful authnetication result containing a fresh access token
-     *                 via {@link DeviceCodeFlowCallback#getToken(AuthenticationResult)}.
-     *                 3). Receiving an exception detailing what went wrong in the protocol
-     *                 via {@link DeviceCodeFlowCallback#onError(MsalException)}.
+     * Perform the Device Code Flow (DCF) protocol to allow a device to authenticate and get a new access token without input capability.
+     * @param scopes the desired access scopes
+     * @param callback callback object used to communicate with the API throughout the protocol
      */
     void deviceCodeFlow(@Nullable String[] scopes, @NonNull final DeviceCodeFlowCallback callback);
 
@@ -176,25 +170,35 @@ public interface IPublicClientApplication {
         void onError(final MsalException exception);
     }
 
-    interface DeviceCodeFlowCallback{
+    /**
+     * Callback object used in Device Code Flow.
+     * This callback provides the following methods for communicating with the protocol.
+     *                 1). Receiving authentication information (user_code, verification_uri, and instruction message)
+     *                 via {@link DeviceCodeFlowCallback#onUserCodeReceived(String, String, String)}.
+     *                 2). Receiving a successful authnetication result containing a fresh access token
+     *                 via {@link DeviceCodeFlowCallback#onTokenReceived(AuthenticationResult)}.
+     *                 3). Receiving an exception detailing what went wrong in the protocol
+     *                 via {@link DeviceCodeFlowCallback#onError(MsalException)}.
+     */
+    interface DeviceCodeFlowCallback {
         /**
-         * Called to display verification uri, user code, and instruction message during device code flow.
+         * Invoked to display verification uri, user code, and instruction message during device code flow.
          *
          * @param vUri verification uri
          * @param userCode user code
          * @param message instruction message
          */
-        void getUserCode(@NonNull String vUri, @NonNull String userCode, @NonNull String message);
+        void onUserCodeReceived(@NonNull String vUri, @NonNull String userCode, @NonNull String message);
 
         /**
-         * Called once succeed and pass the result object.
+         * Invoked once succeed and pass the result object.
          *
          * @param authResult the authentication result
          */
-        void getToken(AuthenticationResult authResult);
+        void onTokenReceived(AuthenticationResult authResult);
 
         /**
-         * Called once exception thrown.
+         * Invoked once exception thrown.
          *
          * @param error error exception
          */
