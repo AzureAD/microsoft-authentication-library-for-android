@@ -44,10 +44,12 @@ import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
 import com.microsoft.identity.client.ui.automation.browser.IBrowser;
+import com.microsoft.identity.client.ui.automation.testrules.DeviceEnrollmentFailureRecoveryRule;
 import com.microsoft.identity.client.ui.automation.testrules.InstallBrokerTestRule;
 import com.microsoft.identity.client.ui.automation.testrules.LoadLabUserTestRule;
 import com.microsoft.identity.client.ui.automation.testrules.RemoveBrokersBeforeTestRule;
 import com.microsoft.identity.client.ui.automation.testrules.ResetAutomaticTimeZoneTestRule;
+import com.microsoft.identity.client.ui.automation.testrules.RetryTestRule;
 import com.microsoft.identity.client.ui.automation.testrules.UiAutomatorTestRule;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
@@ -69,31 +71,37 @@ public abstract class AbstractMsalUiTest implements IMsalTest, IBrokerTest, ILab
     protected IPublicClientApplication mApplication;
 
     protected String[] mScopes;
-    protected ITestBroker mBroker;
+    protected ITestBroker mBroker = getBroker();
     protected IAccount mAccount;
     protected IBrowser mBrowser;
     protected String mLoginHint;
 
     @Rule(order = 0)
-    public final TestRule uiAutomatorTestRule = new UiAutomatorTestRule();
+    public TestRule retryRule = new RetryTestRule();
 
     @Rule(order = 1)
-    public final TestRule resetAutomaticTimeRule = new ResetAutomaticTimeZoneTestRule();
+    public final TestRule uiAutomatorTestRule = new UiAutomatorTestRule();
 
     @Rule(order = 2)
+    public final TestRule resetAutomaticTimeRule = new ResetAutomaticTimeZoneTestRule();
+
+    @Rule(order = 3)
     public final TestRule loadLabUserRule = getLabUserQuery() != null
             ? new LoadLabUserTestRule(getLabUserQuery())
             : new LoadLabUserTestRule(getTempUserType());
 
-    @Rule(order = 3)
+    @Rule(order = 4)
     public final TestRule removeBrokersRule = new RemoveBrokersBeforeTestRule();
 
-    @Rule(order = 4)
-    public final TestRule installBrokerRule = new InstallBrokerTestRule(getBroker());
-
     @Rule(order = 5)
+    public final TestRule installBrokerRule = new InstallBrokerTestRule(mBroker);
+
+    @Rule(order = 6)
     public ActivityTestRule<MainActivity> mActivityRule =
             new ActivityTestRule(MainActivity.class);
+
+    @Rule(order = 7)
+    public TestRule deviceEnrollmentFailureRecoveryRule = new DeviceEnrollmentFailureRecoveryRule();
 
     @Before
     public void setup() {
