@@ -25,6 +25,8 @@ package com.microsoft.identity.client;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.oauth2.OpenIdConnectPromptParameter;
 
+import java.util.Locale;
+
 /**
  * The UI options that developer can pass during interactive token acquisition requests.
  */
@@ -57,13 +59,13 @@ public enum Prompt {
     public String toString() {
         switch (this) {
             case SELECT_ACCOUNT:
-                return SELECT_ACCOUNT.name().toLowerCase();
+                return SELECT_ACCOUNT.name().toLowerCase(Locale.ROOT);
             case LOGIN:
-                return LOGIN.name().toLowerCase();
+                return LOGIN.name().toLowerCase(Locale.ROOT);
             case CONSENT:
-                return CONSENT.name().toLowerCase();
+                return CONSENT.name().toLowerCase(Locale.ROOT);
             case WHEN_REQUIRED:
-                return WHEN_REQUIRED.name().toLowerCase();
+                return WHEN_REQUIRED.name().toLowerCase(Locale.ROOT);
             default:
                 throw new IllegalArgumentException();
         }
