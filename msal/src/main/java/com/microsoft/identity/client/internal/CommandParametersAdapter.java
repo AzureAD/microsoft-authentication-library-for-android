@@ -200,6 +200,7 @@ public class CommandParametersAdapter {
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull String[] scopes){
 
+        // TODO: Consider implementing support for PoP
         final AbstractAuthenticationScheme authenticationScheme = new BearerAuthenticationSchemeInternal();
 
         final DeviceCodeFlowCommandParameters commandParameters = DeviceCodeFlowCommandParameters.builder()

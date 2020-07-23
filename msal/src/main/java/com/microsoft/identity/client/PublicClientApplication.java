@@ -1730,11 +1730,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             @Override
             public void onTaskCompleted(LocalAuthenticationResult tokenResult) {
                 // Convert tokenResult to an AuthenticationResult object
-                IAuthenticationResult convertedResult = AuthenticationResultAdapter.adapt(
+                final IAuthenticationResult convertedResult = AuthenticationResultAdapter.adapt(
                         tokenResult);
 
                 // Type cast the interface object
-                AuthenticationResult authResult = (AuthenticationResult) convertedResult;
+                final AuthenticationResult authResult = (AuthenticationResult) convertedResult;
 
                 callback.onTokenReceived(authResult);
             }

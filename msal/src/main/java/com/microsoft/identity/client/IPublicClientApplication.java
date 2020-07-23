@@ -87,6 +87,7 @@ public interface IPublicClientApplication {
 
     /**
      * Perform the Device Code Flow (DCF) protocol to allow a device without input capability to authenticate and get a new access token.
+     * Currently, flow is only supported in local MSAL. No Broker support.
      * @param scopes the desired access scopes
      * @param callback callback object used to communicate with the API throughout the protocol
      */
@@ -195,14 +196,14 @@ public interface IPublicClientApplication {
          *
          * @param authResult the authentication result
          */
-        void onTokenReceived(AuthenticationResult authResult);
+        void onTokenReceived(@NonNull final AuthenticationResult authResult);
 
         /**
          * Invoked if an error is encountered during the device code flow and passes the exception object.
          *
          * @param error error exception
          */
-        void onError(MsalException error);
+        void onError(@NonNull final MsalException error);
     }
 
 }
