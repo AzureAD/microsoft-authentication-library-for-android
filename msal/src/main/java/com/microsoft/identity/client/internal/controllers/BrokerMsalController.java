@@ -557,14 +557,14 @@ public class BrokerMsalController extends BaseController {
                 });
     }
 
-    // Placeholder methods to avoid inheritance error (these methods will be declared in BaseController)
-    // Also why the @Override annotation is missing
+    @Override
     public AuthorizationResult deviceCodeFlowAuthRequest(DeviceCodeFlowCommandParameters parameters) throws ClientException {
         throw new ClientException("deviceCodeFlowAuthRequest() not supported in BrokerMsalController");
     }
 
-    public AcquireTokenResult acquireDeviceCodeFlowToken(AuthorizationResult authorizationResult) throws ClientException {
-        throw new ClientException("deviceCodeFlowAuthRequest() not supported in BrokerMsalController");
+    @Override
+    public AcquireTokenResult acquireDeviceCodeFlowToken(AuthorizationResult authorizationResult, DeviceCodeFlowCommandParameters commandParameters) throws ClientException {
+        throw new ClientException("acquireDeviceCodeFlowToken() not supported in BrokerMsalController");
     }
 
     /**

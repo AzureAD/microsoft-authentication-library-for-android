@@ -29,6 +29,7 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
 
+import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.exception.ArgumentException;
 import com.microsoft.identity.common.exception.ClientException;
@@ -48,6 +49,8 @@ import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequ
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResult;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStatus;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStrategy;
+import com.microsoft.identity.common.internal.providers.oauth2.IErrorResponse;
+import com.microsoft.identity.common.internal.providers.oauth2.IResult;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2StrategyParameters;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
@@ -459,14 +462,34 @@ public class LocalMSALController extends BaseController {
         return removeAccount(parameters);
     }
 
-    // Placeholder methods to avoid inheritance error (these methods will be declared in BaseController)
-    // Also why the @Override annotation is missing
-    public AuthorizationResult deviceCodeFlowAuthRequest(DeviceCodeFlowCommandParameters parameters) throws Exception {
+    @Override
+    public AuthorizationResult deviceCodeFlowAuthRequest(final DeviceCodeFlowCommandParameters parameters) throws Exception {
         // TODO: Placeholder to avoid inheritance error. Will be implemented after Command/Controller level PR in Common
         return null;
     }
-    public AcquireTokenResult acquireDeviceCodeFlowToken(AuthorizationResult authorizationResult) throws Exception {
+
+    @Override
+    public AcquireTokenResult acquireDeviceCodeFlowToken(final AuthorizationResult authorizationResult, DeviceCodeFlowCommandParameters commandParameters) throws Exception {
         // TODO: Placeholder to avoid inheritance error. Will be implemented after Command/Controller level PR in Common
+        return null;
+    }
+
+    /**
+     * Helper method to check if a result object is valid (was a success). If not, an exception will be generated and thrown.
+     * @param result result object to be checked
+     * @throws MsalServiceException MsalServiceException object reflecting error code returned by the result
+     */
+    private void validateServiceResult(@NonNull IResult result) throws MsalServiceException {
+        //TODO: Will be implemented after Command/Controller level PR in Common
+    }
+
+    /**
+     * Given an error response object, create a serviceException object using the predefined error codes.
+     * @param response error response object to be checked
+     * @return an exception object
+     */
+    private ServiceException createServiceExceptionFromErrorResponse(IErrorResponse response) {
+        // TODO: Will be implemented after Command/Controller level PR in Common
         return null;
     }
 }
