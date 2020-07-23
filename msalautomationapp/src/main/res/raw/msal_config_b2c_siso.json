@@ -1,0 +1,10 @@
+{
+  "client_id" : "e3b9ad76-9763-4827-b088-80c7a7888f79",
+  "redirect_uri" : "msauth://com.msft.identity.client.sample.local/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D",
+  "authorities" : [
+    {
+      "type": "B2C",
+      "authority_url": "https://login.microsoftonline.com/tfp/msidlabb2c.onmicrosoft.com/B2C_1_SISOPolicy/"
+    }
+  ]
+}

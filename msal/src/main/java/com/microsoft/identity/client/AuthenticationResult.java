@@ -22,15 +22,19 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.microsoft.identity.common.internal.authscheme.TokenAuthenticationScheme;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.AccessTokenRecord;
+import com.microsoft.identity.common.internal.logging.Logger;
 
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -39,15 +43,20 @@ import java.util.concurrent.TimeUnit;
  */
 public final class AuthenticationResult implements IAuthenticationResult {
 
+    private static final String TAG = AuthenticationResult.class.getSimpleName();
+
     private final String mTenantId;
     private final AccessTokenRecord mAccessToken;
     private final IAccount mAccount;
+    private final UUID mCorrelationId;
 
-    AuthenticationResult(@NonNull final List<ICacheRecord> cacheRecords) {
+    AuthenticationResult(@NonNull final List<ICacheRecord> cacheRecords,
+                         @Nullable final String correlationId) {
         final ICacheRecord mostRecentlyAuthorized = cacheRecords.get(0);
         mAccessToken = mostRecentlyAuthorized.getAccessToken();
         mTenantId = mostRecentlyAuthorized.getAccount().getRealm();
         mAccount = AccountAdapter.adapt(cacheRecords).get(0);
+        mCorrelationId = sanitizeCorrelationId(correlationId);
     }
 
     @Override
@@ -107,5 +116,28 @@ public final class AuthenticationResult implements IAuthenticationResult {
     @NonNull
     public String[] getScope() {
         return mAccessToken.getTarget().split("\\s");
+    }
+
+    @Nullable
+    @Override
+    public UUID getCorrelationId() {
+        return mCorrelationId;
+    }
+
+    @Nullable
+    private UUID sanitizeCorrelationId(@Nullable final String correlationId) {
+        final String methodName = "sanitizeCorrelationId";
+
+        if (TextUtils.isEmpty(correlationId)) {
+            Logger.warn(TAG + methodName, "Correlation id was empty, returning null.");
+            return null;
+        }
+
+        try {
+            return UUID.fromString(correlationId);
+        } catch (IllegalArgumentException e) {
+            Logger.error(TAG + methodName, "Correlation id is not a valid UUID.", e);
+            return null;
+        }
     }
 }
