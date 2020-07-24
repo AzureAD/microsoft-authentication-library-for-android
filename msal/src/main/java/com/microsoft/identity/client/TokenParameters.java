@@ -33,6 +33,7 @@ import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 /**
@@ -248,7 +249,7 @@ public abstract class TokenParameters {
                 );
             } else {
                 mScopes = new ArrayList<String>() {{
-                    add(resource.toLowerCase().trim() + "/.default");
+                    add(resource.toLowerCase(Locale.ROOT).trim() + "/.default");
                 }};
             }
 

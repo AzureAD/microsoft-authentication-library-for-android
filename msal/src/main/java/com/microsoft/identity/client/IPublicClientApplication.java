@@ -91,7 +91,7 @@ public interface IPublicClientApplication {
      * @param scopes the desired access scopes
      * @param callback callback object used to communicate with the API throughout the protocol
      */
-    void deviceCodeFlow(@Nullable String[] scopes, @NonNull final DeviceCodeFlowCallback callback);
+    void acquireTokenWithDeviceCode(@Nullable String[] scopes, @NonNull final DeviceCodeFlowCallback callback);
 
     /**
      * Returns the PublicClientConfiguration for this instance of PublicClientApplication.
@@ -174,12 +174,12 @@ public interface IPublicClientApplication {
     /**
      * Callback object used in Device Code Flow.
      * This callback provides the following methods for communicating with the protocol.
-     *                 1). Receiving authentication information (user_code, verification_uri, and instruction message)
-     *                 via {@link DeviceCodeFlowCallback#onUserCodeReceived(String, String, String)}.
-     *                 2). Receiving a successful authentication result containing a fresh access token
-     *                 via {@link DeviceCodeFlowCallback#onTokenReceived(AuthenticationResult)}.
-     *                 3). Receiving an exception detailing what went wrong in the protocol
-     *                 via {@link DeviceCodeFlowCallback#onError(MsalException)}.
+     * 1). Receiving authentication information (user_code, verification_uri, and instruction message)
+     * via {@link DeviceCodeFlowCallback#onUserCodeReceived(String, String, String)}.
+     * 2). Receiving a successful authentication result containing a fresh access token
+     * via {@link DeviceCodeFlowCallback#onTokenReceived(AuthenticationResult)}.
+     * 3). Receiving an exception detailing what went wrong in the protocol
+     * via {@link DeviceCodeFlowCallback#onError(MsalException)}.
      */
     interface DeviceCodeFlowCallback {
         /**

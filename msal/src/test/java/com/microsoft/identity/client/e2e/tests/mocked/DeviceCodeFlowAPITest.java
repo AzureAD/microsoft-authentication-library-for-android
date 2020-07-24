@@ -68,7 +68,7 @@ public class DeviceCodeFlowAPITest extends PublicClientApplicationAbstractTest {
     @Config(shadows = {ShadowDeviceCodeFlowCommandAuthError.class})
     public void testDeviceCodeFlowAuthFailure() {
         String[] scope = {"user.read"};
-        mApplication.deviceCodeFlow(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
+        mApplication.acquireTokenWithDeviceCode(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
             @Override
             public void onUserCodeReceived(@NonNull String vUri, @NonNull String userCode, @NonNull String message) {
                 // This shouldn't run if authorization step fails
@@ -94,7 +94,7 @@ public class DeviceCodeFlowAPITest extends PublicClientApplicationAbstractTest {
     @Config(shadows = {ShadowDeviceCodeFlowCommandTokenError.class})
     public void testDeviceCodeFlowTokenFailure() {
         String[] scope = {"user.read"};
-        mApplication.deviceCodeFlow(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
+        mApplication.acquireTokenWithDeviceCode(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
             @Override
             public void onUserCodeReceived(@NonNull String vUri, @NonNull String userCode, @NonNull String message) {
                 // Assert that the protocol returns the userCode and others after successful authorization
@@ -125,7 +125,7 @@ public class DeviceCodeFlowAPITest extends PublicClientApplicationAbstractTest {
     @Config(shadows = {ShadowDeviceCodeFlowCommandSuccessful.class})
     public void testDeviceCodeFlowSuccess() {
         String[] scope = {"user.read"};
-        mApplication.deviceCodeFlow(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
+        mApplication.acquireTokenWithDeviceCode(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
             @Override
             public void onUserCodeReceived(@NonNull String vUri, @NonNull String userCode, @NonNull String message) {
                 // Assert that the protocol returns the userCode and others after successful authorization
