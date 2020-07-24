@@ -8,12 +8,12 @@ import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
+import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
-import com.microsoft.identity.client.ui.automation.utils.SettingsUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabResetHelper;
@@ -81,7 +81,7 @@ public class TestCase850457 extends AbstractMsalUiTest {
         Thread.sleep(TimeUnit.SECONDS.toMillis(60));
 
         // change device time to expire AT in cache
-        SettingsUtils.changeDeviceTime();
+        TestContext.getTestContext().getDevice().getSettings().changeDeviceTime();
 
 
         // SILENT REQUEST

@@ -8,12 +8,12 @@ import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
+import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.client.ui.automation.utils.SettingsUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
@@ -65,7 +65,7 @@ public class TestCase938383 extends AbstractMsalUiTest {
         interactiveRequest.execute();
         latch.await();
 
-        SettingsUtils.changeDeviceTime();
+        TestContext.getTestContext().getDevice().getSettings().changeDeviceTime();
 
         final CountDownLatch silentLatch = new CountDownLatch(1);
 
