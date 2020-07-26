@@ -40,6 +40,9 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
+// MSAL Falls Back on WebView When All Browsers are Disabled
+// todo need to see if we can disable browsers on the device (all of them!)
+// could may be use an emulator without a browser installed
 @Ignore
 public class TestCase532736 extends BrokerLessMsalTest {
 

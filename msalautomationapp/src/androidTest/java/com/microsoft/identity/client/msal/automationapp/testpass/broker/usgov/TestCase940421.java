@@ -44,6 +44,8 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
+// Interactive token acquisition with instance_aware=true and with custom claims request requiring
+// device auth {"access_token":{"deviceid":{"essential":true}}}
 public class TestCase940421 extends AbstractMsalUiTest {
 
     @Test
@@ -53,12 +55,14 @@ public class TestCase940421 extends AbstractMsalUiTest {
 
         final CountDownLatch latch = new CountDownLatch(1);
 
+        // create claims request object
         final ClaimsRequest claimsRequest = new ClaimsRequest();
         final RequestedClaimAdditionalInformation requestedClaimAdditionalInformation =
                 new RequestedClaimAdditionalInformation();
 
         requestedClaimAdditionalInformation.setEssential(true);
 
+        // request the deviceid claim in ID Token
         claimsRequest.requestClaimInIdToken("deviceid", requestedClaimAdditionalInformation);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
@@ -73,6 +77,7 @@ public class TestCase940421 extends AbstractMsalUiTest {
                 .build();
 
 
+        // start interactive acquire token request in MSAL (should succeed after device registration)
         final InteractiveRequest interactiveRequest = new InteractiveRequest(
                 mApplication,
                 parameters,

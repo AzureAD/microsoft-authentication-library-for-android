@@ -42,6 +42,8 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
+// Brokered authentication without PRT with instance_aware=true, no login hint, and cloud account,
+// and WW common authority
 public class TestCase940393 extends AbstractMsalUiTest {
 
     @Test
@@ -58,7 +60,7 @@ public class TestCase940393 extends AbstractMsalUiTest {
                 .withPrompt(Prompt.SELECT_ACCOUNT)
                 .build();
 
-
+        // start interactive acquire token request in MSAL (should succeed)
         final InteractiveRequest interactiveRequest = new InteractiveRequest(
                 mApplication,
                 parameters,

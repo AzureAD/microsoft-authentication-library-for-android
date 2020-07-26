@@ -68,6 +68,7 @@ public class TestCase850457 extends AbstractMsalUiTest {
                 .build();
 
 
+        // start interactive acquire token request in MSAL (should succeed)
         final InteractiveRequest interactiveRequest = new InteractiveRequest(
                 mApplication,
                 parameters,

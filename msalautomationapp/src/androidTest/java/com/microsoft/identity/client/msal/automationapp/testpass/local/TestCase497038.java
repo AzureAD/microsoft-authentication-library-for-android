@@ -43,6 +43,7 @@ import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+// Cross Apps SSO with System Browser
 public class TestCase497038 extends BrokerLessMsalTest {
 
     @Test
@@ -50,9 +51,11 @@ public class TestCase497038 extends BrokerLessMsalTest {
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
+        // uninstall the Azure Sample app to ensure clean state
         AzureSampleApp azureSampleApp = new AzureSampleApp();
         azureSampleApp.uninstall();
 
+        // install and launch the Azure Sample app
         azureSampleApp.install();
         azureSampleApp.launch();
         azureSampleApp.handleFirstRun();
@@ -73,10 +76,13 @@ public class TestCase497038 extends BrokerLessMsalTest {
                         .sessionExpected(false)
                         .build();
 
+        // sign in into the Azure Sample app
         azureSampleApp.signIn(username, password, getBrowser(), true, microsoftStsPromptHandlerParameters);
 
+        // sleep as it can take a bit for UPN to appear in Azure Sample app
         Thread.sleep(TimeUnit.SECONDS.toMillis(5));
 
+        // make sure we are sign in into the Azure Sample app
         azureSampleApp.confirmSignedIn(username);
 
         // NOW LOGIN INTO MSAL AUTOMATION APP
@@ -91,7 +97,7 @@ public class TestCase497038 extends BrokerLessMsalTest {
                 .withPrompt(Prompt.SELECT_ACCOUNT)
                 .build();
 
-
+        // start interactive acquire token request using MSAL from MSAL Automation app
         final InteractiveRequest interactiveRequest = new InteractiveRequest(
                 mApplication,
                 parameters,

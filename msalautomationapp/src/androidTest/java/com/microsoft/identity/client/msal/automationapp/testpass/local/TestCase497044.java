@@ -39,6 +39,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
+// Interactive auth w/ force_login w/ MFA
 public class TestCase497044 extends BrokerLessMsalTest {
 
     @Test
@@ -53,7 +54,7 @@ public class TestCase497044 extends BrokerLessMsalTest {
                 .withPrompt(Prompt.LOGIN)
                 .build();
 
-
+        // start interactive request in MSAL (should succeed)
         final InteractiveRequest interactiveRequest = new InteractiveRequest(
                 mApplication,
                 parameters,

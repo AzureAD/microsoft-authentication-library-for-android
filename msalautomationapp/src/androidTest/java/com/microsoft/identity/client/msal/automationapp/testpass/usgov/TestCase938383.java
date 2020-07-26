@@ -45,6 +45,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
+// Silent token acquisition with unexpired RT with USGov authority
 public class TestCase938383 extends AbstractMsalUiTest {
 
     @Test
@@ -58,7 +59,7 @@ public class TestCase938383 extends AbstractMsalUiTest {
                 .withPrompt(Prompt.SELECT_ACCOUNT)
                 .build();
 
-
+        // Start interactive token request in MSAL (should succeed)
         final InteractiveRequest interactiveRequest = new InteractiveRequest(
                 mApplication,
                 parameters,
@@ -87,12 +88,14 @@ public class TestCase938383 extends AbstractMsalUiTest {
         interactiveRequest.execute();
         latch.await();
 
+        // change the time on the device
         TestContext.getTestContext().getDevice().getSettings().changeDeviceTime();
 
         final CountDownLatch silentLatch = new CountDownLatch(1);
 
         final IAccount account = getAccount();
 
+        // start silent token request in MSAL
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(account)
                 .withScopes(Arrays.asList(mScopes))

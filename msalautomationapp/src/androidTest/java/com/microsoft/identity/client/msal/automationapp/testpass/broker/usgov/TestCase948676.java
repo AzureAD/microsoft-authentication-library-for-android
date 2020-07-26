@@ -43,6 +43,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
+// Broker authentication with PRT with USGov account with instance_aware=true
 @Ignore // failing - needs investigation why being prompted for password
 public class TestCase948676 extends AbstractMsalUiTest {
 
@@ -51,6 +52,7 @@ public class TestCase948676 extends AbstractMsalUiTest {
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
+        // perform device registration
         mBroker.performDeviceRegistration(username, password);
 
         final CountDownLatch latch = new CountDownLatch(1);
@@ -63,6 +65,7 @@ public class TestCase948676 extends AbstractMsalUiTest {
                 .build();
 
 
+        // start interactive acquire token request in MSAL (should succeed)
         final InteractiveRequest interactiveRequest = new InteractiveRequest(
                 mApplication,
                 parameters,
