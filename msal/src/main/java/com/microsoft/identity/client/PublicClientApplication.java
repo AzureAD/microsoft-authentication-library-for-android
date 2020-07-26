@@ -44,6 +44,7 @@ import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.helper.BrokerHelperActivity;
 import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.CommandParametersAdapter;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
@@ -1213,6 +1214,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         return BuildConfig.VERSION_NAME;
     }
 
+    public static void showMsalRedirectUriInfo(Activity activity){
+        activity.startActivity(BrokerHelperActivity.createStartIntent(activity.getApplicationContext()));
+    }
+
     @Override
     public PublicClientApplicationConfiguration getConfiguration() {
         return mPublicClientConfiguration;
@@ -1916,4 +1921,5 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         return isAccountHomeTenant;
     }
+
 }

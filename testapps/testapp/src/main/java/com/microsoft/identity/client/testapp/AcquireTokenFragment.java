@@ -22,6 +22,7 @@
 //   THE SOFTWARE.
 package com.microsoft.identity.client.testapp;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
@@ -45,6 +46,7 @@ import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.Prompt;
+import com.microsoft.identity.client.PublicClientApplication;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,6 +72,7 @@ public class AcquireTokenFragment extends Fragment {
     private Button mAcquireTokenSilent;
     private Button mAcquireTokenWithResource;
     private Button mAcquireTokenSilentWithResource;
+    private Button mBrokerHelper;
     private Spinner mSelectAccount;
     private Spinner mConfigFileSpinner;
     private Spinner mAuthScheme;
@@ -108,6 +111,7 @@ public class AcquireTokenFragment extends Fragment {
         mAcquireTokenSilent = view.findViewById(R.id.btn_acquiretokensilent);
         mAcquireTokenWithResource = view.findViewById(R.id.btn_acquiretokenWithResource);
         mAcquireTokenSilentWithResource = view.findViewById(R.id.btn_acquiretokensilentWithResource);
+        mBrokerHelper = view.findViewById(R.id.btnBrokerHelper);
         mConfigFileSpinner = view.findViewById(R.id.configFile);
         mAuthScheme = view.findViewById(R.id.authentication_scheme);
         mPublicApplicationMode = view.findViewById(R.id.public_application_mode);
@@ -117,6 +121,8 @@ public class AcquireTokenFragment extends Fragment {
 
         mPopSection = view.findViewById(R.id.pop_section);
         mLoginHintSection = view.findViewById(R.id.login_hint_section);
+
+
 
         bindSelectAccountSpinner(mSelectAccount, null);
         mSelectAccount.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -194,6 +200,14 @@ public class AcquireTokenFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 mMsalWrapper.acquireTokenSilentWithResource(getCurrentRequestOptions(), acquireTokenCallback);
+            }
+        });
+
+        final Activity activity = this.getActivity();
+        mBrokerHelper.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                PublicClientApplication.showMsalRedirectUriInfo(activity);
             }
         });
 
