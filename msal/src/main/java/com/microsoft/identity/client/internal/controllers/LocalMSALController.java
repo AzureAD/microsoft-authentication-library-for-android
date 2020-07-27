@@ -473,23 +473,4 @@ public class LocalMSALController extends BaseController {
         // TODO: Placeholder to avoid inheritance error. Will be implemented after Command/Controller level PR in Common
         return null;
     }
-
-    /**
-     * Helper method to check if a result object is valid (was a success). If not, an exception will be generated and thrown.
-     * @param result result object to be checked
-     * @throws MsalServiceException MsalServiceException object reflecting error code returned by the result
-     */
-    private void validateServiceResult(@NonNull IResult result) throws MsalServiceException {
-        //TODO: Will be implemented after Command/Controller level PR in Common
-    }
-
-    /**
-     * Given an error response object, create a serviceException object using the predefined error codes.
-     * @param response error response object to be checked
-     * @return an exception object
-     */
-    private ServiceException createServiceExceptionFromErrorResponse(IErrorResponse response) {
-        // TODO: Will be implemented after Command/Controller level PR in Common
-        return null;
-    }
 }
