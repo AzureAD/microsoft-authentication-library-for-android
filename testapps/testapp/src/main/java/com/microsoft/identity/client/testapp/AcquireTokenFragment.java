@@ -122,8 +122,6 @@ public class AcquireTokenFragment extends Fragment {
         mPopSection = view.findViewById(R.id.pop_section);
         mLoginHintSection = view.findViewById(R.id.login_hint_section);
 
-
-
         bindSelectAccountSpinner(mSelectAccount, null);
         mSelectAccount.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -207,7 +205,7 @@ public class AcquireTokenFragment extends Fragment {
         mBrokerHelper.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                PublicClientApplication.showMsalRedirectUriInfo(activity);
+                PublicClientApplication.showExpectedMsalRedirectUriInfo(activity);
             }
         });
 

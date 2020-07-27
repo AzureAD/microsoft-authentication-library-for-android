@@ -1214,7 +1214,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         return BuildConfig.VERSION_NAME;
     }
 
-    public static void showMsalRedirectUriInfo(Activity activity){
+    /**
+     * Presents an activity that includes the package name, signature, redirect URI and manifest entry required for your application
+     * @param activity
+     */
+    public static void showExpectedMsalRedirectUriInfo(Activity activity){
         activity.startActivity(BrokerHelperActivity.createStartIntent(activity.getApplicationContext()));
     }
 

@@ -17,14 +17,12 @@ import com.microsoft.identity.msal.R;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
+/**
+ * Activity to show the expected redirect URL (which includes support for Broker)
+ */
 public class BrokerHelperActivity extends Activity {
 
-    TextView mPackageName;
-    TextView mSignature;
-    TextView mRedirect;
-    TextView mManifest;
-
-    String mManifestTemplate= "<activity android:name=\"com.microsoft.identity.client.BrowserTabActivity\">\n" +
+    private final String MANIFEST_TEMPLATE = "<activity android:name=\"com.microsoft.identity.client.BrowserTabActivity\">\n" +
             "    <intent-filter>\n" +
             "        <action android:name=\"android.intent.action.VIEW\" />\n" +
             "        <category android:name=\"android.intent.category.DEFAULT\" />\n" +
@@ -35,10 +33,14 @@ public class BrokerHelperActivity extends Activity {
             "            android:scheme=\"msauth\" />\n" +
             "    </intent-filter>\n" +
             "</activity>";
+    TextView mPackageName;
+    TextView mSignature;
+    TextView mRedirect;
+    TextView mManifest;
 
     public static Intent createStartIntent(final Context context) {
         final Intent intent = new Intent(context, BrokerHelperActivity.class);
-          return intent;
+        return intent;
     }
 
     @Override
@@ -53,29 +55,27 @@ public class BrokerHelperActivity extends Activity {
 
         mSignature.append(getSignature(false));
         mRedirect.append(BrokerValidator.getBrokerRedirectUri(this.getApplicationContext(), this.getPackageName()));
-        mManifest.append(String.format(mManifestTemplate, this.getPackageName(), getSignature(false)));
+        mManifest.append(String.format(MANIFEST_TEMPLATE, this.getPackageName(), getSignature(false)));
         mPackageName.append(this.getPackageName());
-
-
     }
 
-    private String getSignature(Boolean urlEncode){
+    private String getSignature(final boolean urlEncode) {
 
         final PackageHelper info = new PackageHelper(this.getApplicationContext().getPackageManager());
         final String signatureDigest = info.getCurrentSignatureForPackage(this.getPackageName());
         String signature = "";
 
         try {
-            if(urlEncode) {
+            if (urlEncode) {
                 signature = URLEncoder.encode(signatureDigest, AuthenticationConstants.ENCODING_UTF8);
-            }else{
+            } else {
                 signature = signatureDigest;
             }
         } catch (UnsupportedEncodingException e) {
-            Log.e("getSignature", "Error encoding signature digest", e);
+            Log.e("getSignature", "Character encoding " + AuthenticationConstants.ENCODING_UTF8 + " is not supported.", e);
+            throw new RuntimeException("Unexpected: Unable to get the signature for this application package.");
         }
 
         return signature;
-
     }
 }
