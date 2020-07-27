@@ -44,9 +44,11 @@ import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.helper.BrokerHelperActivity;
 import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.CommandParametersAdapter;
+import com.microsoft.identity.client.internal.controllers.LocalMSALController;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
@@ -66,10 +68,13 @@ import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SchemaUtil;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.commands.CommandCallback;
+import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommandCallback;
+import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
 import com.microsoft.identity.common.internal.commands.GetDeviceModeCommand;
 import com.microsoft.identity.common.internal.commands.InteractiveTokenCommand;
 import com.microsoft.identity.common.internal.commands.SilentTokenCommand;
 import com.microsoft.identity.common.internal.commands.parameters.CommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.DeviceCodeFlowCommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.InteractiveTokenCommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.SilentTokenCommandParameters;
 import com.microsoft.identity.common.internal.controllers.BaseController;
@@ -88,6 +93,7 @@ import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefre
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
+import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.ResultFuture;
 import com.microsoft.identity.msal.BuildConfig;
 
@@ -1627,6 +1633,31 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         }
     }
 
+    public void acquireTokenWithDeviceCode(@Nullable String[] scopes, @NonNull final DeviceCodeFlowCallback callback) {
+        // Create a DeviceCodeFlowCommandParameters object that takes in the desired scopes and the callback object
+        // Use CommandParametersAdapter
+        final DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter
+                    .createDeviceCodeFlowCommandParameters(
+                            mPublicClientConfiguration,
+                            mPublicClientConfiguration.getOAuth2TokenCache(),
+                            scopes);
+
+        // Create a CommandCallback object from the DeviceCodeFlowCallback object
+        final DeviceCodeFlowCommandCallback deviceCodeFlowCommandCallback = getDeviceCodeFlowCommandCallback(callback);
+
+        // Create a DeviceCodeFlowCommand object
+        // Pass the command parameters, default controller, and command callback
+        // Telemetry with DEVICE_CODE_FLOW_CALLBACK
+        final DeviceCodeFlowCommand deviceCodeFlowCommand = new DeviceCodeFlowCommand(
+                commandParameters,
+                new LocalMSALController(),
+                deviceCodeFlowCommandCallback,
+                PublicApiId.DEVICE_CODE_FLOW_WITH_CALLBACK
+        );
+
+        CommandDispatcher.submitSilent(deviceCodeFlowCommand);
+    }
+
     private void checkInternetPermission() {
         final PackageManager packageManager = mPublicClientConfiguration.getAppContext().getPackageManager();
 
@@ -1694,6 +1725,38 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 } else {
                     throw new IllegalStateException("Silent requests cannot be cancelled.");
                 }
+            }
+        };
+    }
+
+    protected DeviceCodeFlowCommandCallback getDeviceCodeFlowCommandCallback(@NonNull final DeviceCodeFlowCallback callback) {
+        return new DeviceCodeFlowCommandCallback<LocalAuthenticationResult, MsalException>() {
+            @Override
+            public void onUserCodeReceived(@NonNull String vUri, @NonNull String userCode, @NonNull String message){
+                callback.onUserCodeReceived(vUri, userCode, message);
+            }
+
+            @Override
+            public void onTaskCompleted(LocalAuthenticationResult tokenResult) {
+                // Convert tokenResult to an AuthenticationResult object
+                final IAuthenticationResult convertedResult = AuthenticationResultAdapter.adapt(
+                        tokenResult);
+
+                // Type cast the interface object
+                final AuthenticationResult authResult = (AuthenticationResult) convertedResult;
+
+                callback.onTokenReceived(authResult);
+            }
+
+            @Override
+            public void onError(MsalException msalError) {
+                callback.onError(msalError);
+            }
+
+            @Override
+            public void onCancel() {
+                // Do nothing
+                // No current plans for allowing cancellation of DCF
             }
         };
     }
