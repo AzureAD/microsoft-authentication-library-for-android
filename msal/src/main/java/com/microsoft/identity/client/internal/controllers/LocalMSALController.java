@@ -474,9 +474,9 @@ public class LocalMSALController extends BaseController {
                 "Device Code Flow: Authorizing user code..."
         );
 
-        // TODO: Placeholder to avoid inheritance error. Will be implemented after Command/Controller level PR in Common
-
         // Default scopes here
+
+        logParameters(TAG, parameters);
 
         // Start telemetry with LOCAL_DEVICE_CODE_FLOW_ACQUIRE_URL_AND_CODE
         Telemetry.emit(
@@ -489,10 +489,21 @@ public class LocalMSALController extends BaseController {
         final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
         strategyParameters.setContext(parameters.getAndroidApplicationContext());
 
-        logParameters(TAG, parameters);
+        final OAuth2Strategy oAuth2Strategy = parameters
+                .getAuthority()
+                .createOAuth2Strategy(strategyParameters);
 
+        // DCF protocol step 1: Get user code
+        // Populate global authorization request
+        mAuthorizationRequest = getAuthorizationRequest(oAuth2Strategy, parameters);
 
-        //logResult(TAG, result);
+        // Call method defined in oAuth2Strategy to request authorization
+        final AuthorizationResult authorizationResult;
+        //final AuthorizationResult authorizationResult = oAuth2Strategy.getDeviceCode(mAuthorizationRequest);
+
+        validateServiceResult(authorizationResult);
+
+        logResult(TAG, authorizationResult);
 
         // End telemetry with LOCAL_DEVICE_CODE_FLOW_ACQUIRE_URL_AND_CODE
         Telemetry.emit(
@@ -500,7 +511,7 @@ public class LocalMSALController extends BaseController {
                         .putApiId(TelemetryEventStrings.Api.LOCAL_DEVICE_CODE_FLOW_ACQUIRE_URL_AND_CODE)
         );
 
-        return null;
+        return authorizationResult;
     }
 
     @Override
@@ -611,7 +622,7 @@ public class LocalMSALController extends BaseController {
      * @throws MsalServiceException MsalServiceException object reflecting error code returned by the result
      */
     private void validateServiceResult(@NonNull IResult result) throws MsalServiceException {
-        //TODO: Will be implemented after Command/Controller level PR in Common
+
     }
 
     /**
