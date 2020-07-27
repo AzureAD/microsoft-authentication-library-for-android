@@ -44,6 +44,7 @@ import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.helper.BrokerHelperActivity;
 import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.CommandParametersAdapter;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
@@ -1213,6 +1214,14 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         return BuildConfig.VERSION_NAME;
     }
 
+    /**
+     * Presents an activity that includes the package name, signature, redirect URI and manifest entry required for your application
+     * @param activity
+     */
+    public static void showExpectedMsalRedirectUriInfo(Activity activity){
+        activity.startActivity(BrokerHelperActivity.createStartIntent(activity.getApplicationContext()));
+    }
+
     @Override
     public PublicClientApplicationConfiguration getConfiguration() {
         return mPublicClientConfiguration;
@@ -1916,4 +1925,5 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         return isAccountHomeTenant;
     }
+
 }
