@@ -1,0 +1,12 @@
+{
+  "client_id": "d335d85e-5aa7-4f03-8c2f-81b2699f30a6",
+  "authorization_user_agent": "DEFAULT",
+  "redirect_uri": "msauth://com.onmicrosoft.fadiorgorg/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D",
+  "account_mode" : "SINGLE",
+  "authorities": [
+    {
+      "type": "AAD",
+      "authority_url": "https://login.microsoftonline.com/2d94acaa-ef23-4d35-9678-8995364ac965"
+    }
+  ]
+}
