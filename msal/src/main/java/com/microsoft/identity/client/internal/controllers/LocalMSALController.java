@@ -45,6 +45,9 @@ import com.microsoft.identity.common.internal.commands.parameters.SilentTokenCom
 import com.microsoft.identity.common.internal.controllers.BaseController;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.logging.Logger;
+import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftSts;
+import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationResponse;
+import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsTokenRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResult;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationStatus;
@@ -464,13 +467,171 @@ public class LocalMSALController extends BaseController {
 
     @Override
     public AuthorizationResult deviceCodeFlowAuthRequest(final DeviceCodeFlowCommandParameters parameters) throws Exception {
-        // TODO: Placeholder to avoid inheritance error. Will be implemented after Command/Controller level PR in Common
-        return null;
+        // Logging start of method
+        final String methodName = ":deviceCodeFlowAuthRequest";
+        Logger.verbose(
+                TAG + methodName,
+                "Device Code Flow: Authorizing user code..."
+        );
+
+        // Default scopes here
+
+        logParameters(TAG, parameters);
+
+        // Start telemetry with LOCAL_DEVICE_CODE_FLOW_ACQUIRE_URL_AND_CODE
+        Telemetry.emit(
+                new ApiStartEvent()
+                        .putProperties(parameters)
+                        .putApiId(TelemetryEventStrings.Api.LOCAL_DEVICE_CODE_FLOW_ACQUIRE_URL_AND_CODE)
+        );
+
+        // Create OAuth2Strategy using commandParameters and strategyParameters
+        final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
+        strategyParameters.setContext(parameters.getAndroidApplicationContext());
+
+        final OAuth2Strategy oAuth2Strategy = parameters
+                .getAuthority()
+                .createOAuth2Strategy(strategyParameters);
+
+        // DCF protocol step 1: Get user code
+        // Populate global authorization request
+        mAuthorizationRequest = getAuthorizationRequest(oAuth2Strategy, parameters);
+
+        // Call method defined in oAuth2Strategy to request authorization
+        final AuthorizationResult authorizationResult;
+        //final AuthorizationResult authorizationResult = oAuth2Strategy.getDeviceCode(mAuthorizationRequest);
+
+        validateServiceResult(authorizationResult);
+
+        logResult(TAG, authorizationResult);
+
+        // End telemetry with LOCAL_DEVICE_CODE_FLOW_ACQUIRE_URL_AND_CODE
+        Telemetry.emit(
+                new ApiEndEvent()
+                        .putApiId(TelemetryEventStrings.Api.LOCAL_DEVICE_CODE_FLOW_ACQUIRE_URL_AND_CODE)
+        );
+
+        return authorizationResult;
     }
 
     @Override
-    public AcquireTokenResult acquireDeviceCodeFlowToken(final AuthorizationResult authorizationResult, DeviceCodeFlowCommandParameters commandParameters) throws Exception {
-        // TODO: Placeholder to avoid inheritance error. Will be implemented after Command/Controller level PR in Common
+    public AcquireTokenResult acquireDeviceCodeFlowToken(final AuthorizationResult authorizationResult, final DeviceCodeFlowCommandParameters parameters) throws Exception {
+        // Logging start of method
+        final String methodName = ":acquireDeviceCodeFlowToken";
+        Logger.verbose(
+                TAG + methodName,
+                "Device Code Flow: Polling for token..."
+        );
+
+        // Start telemetry with LOCAL_DEVICE_CODE_FLOW_POLLING
+        Telemetry.emit(
+                new ApiStartEvent()
+                        .putApiId(TelemetryEventStrings.Api.LOCAL_DEVICE_CODE_FLOW_POLLING)
+        );
+
+        // Create empty AcquireTokenResult object
+        final AcquireTokenResult acquireTokenResult = new AcquireTokenResult();
+
+        // Assign authorization result
+        acquireTokenResult.setAuthorizationResult(authorizationResult);
+
+        // Fetch the Authorization Response
+        final MicrosoftStsAuthorizationResponse authorizationResponse = (MicrosoftStsAuthorizationResponse) authorizationResult.getAuthorizationResponse();
+
+        // Create OAuth2Strategy using commandParameters and strategyParameters
+        final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
+        strategyParameters.setContext(parameters.getAndroidApplicationContext());
+
+        final OAuth2Strategy oAuth2Strategy = parameters
+                .getAuthority()
+                .createOAuth2Strategy(strategyParameters);
+
+        // DCF protocol step 2: Poll for token
+        TokenResult tokenResult = null;
+
+        // Create token request outside of loop so it isn't re-created after every loop
+        final MicrosoftStsTokenRequest tokenRequest = (MicrosoftStsTokenRequest) oAuth2Strategy.createTokenRequest(
+                mAuthorizationRequest,
+                authorizationResponse,
+                parameters.getAuthenticationScheme()
+        );
+
+        // Fetch wait interval
+        final int interval = Integer.parseInt(authorizationResponse.getInterval());
+
+        String errorCode = "authorization_pending";
+
+        // Loop to send multiple requests checking for token
+        while (errorCode.equals("authorization_pending")) {
+
+            // Execute Token Request
+            tokenResult = oAuth2Strategy.requestToken(tokenRequest);
+
+            if (tokenResult.getErrorResponse() != null) {
+                errorCode = tokenResult.getErrorResponse().getError();
+            }
+
+            if (errorCode.equals("authorization_pending")) {
+                // interval is passed through params
+                Thread.sleep(interval);
+            }
+        }
+
+        // Assign token result
+        acquireTokenResult.setTokenResult(tokenResult);
+
+        // Validate request success, may throw MsalServiceException
+        validateServiceResult(tokenResult);
+
+        // If the token is valid, save it into token cache
+        final List<ICacheRecord> records = saveTokens(
+                oAuth2Strategy,
+                mAuthorizationRequest,
+                acquireTokenResult.getTokenResult().getTokenResponse(),
+                parameters.getOAuth2TokenCache()
+        );
+
+        // Once the token is stored, fetch and assign the authentication result
+        final ICacheRecord newestRecord = records.get(0);
+        acquireTokenResult.setLocalAuthenticationResult(
+                new LocalAuthenticationResult(
+                        finalizeCacheRecordForResult(
+                                newestRecord,
+                                parameters.getAuthenticationScheme()
+                        ),
+                        records,
+                        SdkType.MSAL,
+                        false
+                )
+        );
+
+        logResult(TAG, tokenResult);
+
+        // End telemetry with LOCAL_DEVICE_CODE_FLOW_POLLING
+        Telemetry.emit(
+                new ApiEndEvent()
+                        .putApiId(TelemetryEventStrings.Api.LOCAL_DEVICE_CODE_FLOW_POLLING)
+        );
+
+        return acquireTokenResult;
+    }
+
+    /**
+     * Helper method to check if a result object is valid (was a success). If not, an exception will be generated and thrown.
+     * @param result result object to be checked
+     * @throws MsalServiceException MsalServiceException object reflecting error code returned by the result
+     */
+    private void validateServiceResult(@NonNull IResult result) throws MsalServiceException {
+
+    }
+
+    /**
+     * Given an error response object, create a serviceException object using the predefined error codes.
+     * @param response error response object to be checked
+     * @return an exception object
+     */
+    private ServiceException createServiceExceptionFromErrorResponse(IErrorResponse response) {
+        // TODO: Will be implemented after Command/Controller level PR in Common
         return null;
     }
 }
