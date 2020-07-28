@@ -60,6 +60,10 @@ import java.util.concurrent.CountDownLatch;
 
 import static org.junit.Assert.fail;
 
+/**
+ * A base model for an E2E MSAL UI Test. This class will apply all the rules required for an MSAL
+ * test and will get everything setup for use by child classes.
+ */
 public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest {
 
     protected Context mContext;

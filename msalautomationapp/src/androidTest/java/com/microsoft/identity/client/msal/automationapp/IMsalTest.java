@@ -22,20 +22,24 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp;
 
-import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.browser.IBrowser;
 
+/**
+ * An interface describing a test of the Microsoft Authentication Library (MSAL). Implementing this
+ * interface on a test facilitates specifying the necessary parameters required to test the basic
+ * functionality in MSAL.
+ */
 public interface IMsalTest {
 
     /**
-     * Get the scopes that can be used for an acquire token test
+     * Get the scopes that can be used for an acquire token test.
      *
      * @return A string array consisting of OAUTH2 Scopes
      */
     String[] getScopes();
 
     /**
-     * Get the authority url that can be used for an acquire token test
+     * Get the authority url that can be used for an acquire token test.
      *
      * @return A string representing the url for an authority that can be used as token issuer
      */
@@ -45,10 +49,15 @@ public interface IMsalTest {
      * Get the browser that may be being used during an acquire test. If a broker is present on the
      * device then the browser may not be used for those acquire token requests.
      *
-     * @return A {@link IApp} object representing the Android app of the browser being used
+     * @return A {@link IBrowser} object representing the Android app of the browser being used
      */
     IBrowser getBrowser();
 
+    /**
+     * The MSAL config file that should be used to create a PublicClientApplication for the test.
+     *
+     * @return config file resource id
+     */
     int getConfigFileResourceId();
 
 }

@@ -8,6 +8,9 @@ import com.microsoft.identity.client.ui.automation.rules.InstallBrokerTestRule;
 import org.junit.Rule;
 import org.junit.rules.TestRule;
 
+/**
+ * An MSAL test model that would leverage an {@link ITestBroker} installed on the device.
+ */
 public abstract class AbstractMsalBrokerTest extends AbstractMsalUiTest implements IBrokerTest {
 
     protected ITestBroker mBroker = getBroker();
