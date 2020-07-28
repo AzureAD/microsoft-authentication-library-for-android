@@ -31,7 +31,6 @@ import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.ui.automation.app.AzureSampleApp;
 import com.microsoft.identity.client.ui.automation.app.IApp;
@@ -119,7 +118,7 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
 
         ((IApp) mBrowser).launch();
         ((IApp) mBrowser).handleFirstRun();
-        mBrowser.browse("https://myapps.microsoft.com");
+        mBrowser.navigateTo("https://myapps.microsoft.com");
 
         final CountDownLatch getAccountLatch = new CountDownLatch(1);
 
@@ -172,7 +171,7 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
 
         ((IApp) mBrowser).forceStop();
         ((IApp) mBrowser).launch();
-        mBrowser.browse("https://myapps.microsoft.com");
+        mBrowser.navigateTo("https://myapps.microsoft.com");
 
         azureSampleApp.forceStop();
         azureSampleApp.launch();

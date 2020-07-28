@@ -89,7 +89,7 @@ public class TestCase938383 extends AbstractMsalUiTest {
         latch.await();
 
         // change the time on the device
-        TestContext.getTestContext().getDevice().getSettings().changeDeviceTime();
+        TestContext.getTestContext().getTestDevice().getSettings().changeDeviceTime();
 
         final CountDownLatch silentLatch = new CountDownLatch(1);
 

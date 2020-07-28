@@ -78,7 +78,7 @@ public class TestCase497038 extends AbstractMsalUiTest {
                         .build();
 
         // sign in into the Azure Sample app
-        azureSampleApp.signIn(username, password, getBrowser(), true, microsoftStsPromptHandlerParameters);
+        azureSampleApp.signInWithSingleAccountFragment(username, password, getBrowser(), true, microsoftStsPromptHandlerParameters);
 
         // sleep as it can take a bit for UPN to appear in Azure Sample app
         Thread.sleep(TimeUnit.SECONDS.toMillis(5));

@@ -32,7 +32,6 @@ import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.ui.automation.app.AzureSampleApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
@@ -106,7 +105,7 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
                         .build();
 
         // sign in into Azure Sample App
-        azureSampleApp.signIn(username, password, getBrowser(), false, microsoftStsPromptHandlerParameters);
+        azureSampleApp.signInWithSingleAccountFragment(username, password, getBrowser(), false, microsoftStsPromptHandlerParameters);
 
         // make sure we have successfully signed in
         azureSampleApp.confirmSignedIn(username);

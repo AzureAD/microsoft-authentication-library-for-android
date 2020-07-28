@@ -104,7 +104,7 @@ public class TestCase850457 extends AbstractMsalBrokerTest {
         Thread.sleep(TimeUnit.SECONDS.toMillis(60));
 
         // change device time to expire AT in cache
-        TestContext.getTestContext().getDevice().getSettings().changeDeviceTime();
+        TestContext.getTestContext().getTestDevice().getSettings().changeDeviceTime();
 
 
         // SILENT REQUEST
