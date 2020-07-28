@@ -29,10 +29,12 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
 
+import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.exception.ArgumentException;
 import com.microsoft.identity.common.exception.ClientException;
+import com.microsoft.identity.common.exception.ErrorStrings;
 import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authscheme.AbstractAuthenticationScheme;
@@ -466,7 +468,7 @@ public class LocalMSALController extends BaseController {
     }
 
     @Override
-    public AuthorizationResult deviceCodeFlowAuthRequest(final DeviceCodeFlowCommandParameters parameters) throws Exception {
+    public AuthorizationResult deviceCodeFlowAuthRequest(final DeviceCodeFlowCommandParameters parameters) throws MsalException, ClientException {
         // Logging start of method
         final String methodName = ":deviceCodeFlowAuthRequest";
         Logger.verbose(
@@ -475,6 +477,7 @@ public class LocalMSALController extends BaseController {
         );
 
         // Default scopes here
+        // TODO: Add default scopes
 
         logParameters(TAG, parameters);
 
@@ -498,8 +501,10 @@ public class LocalMSALController extends BaseController {
         mAuthorizationRequest = getAuthorizationRequest(oAuth2Strategy, parameters);
 
         // Call method defined in oAuth2Strategy to request authorization
-        final AuthorizationResult authorizationResult;
+        final AuthorizationResult authorizationResult = null;
         //final AuthorizationResult authorizationResult = oAuth2Strategy.getDeviceCode(mAuthorizationRequest);
+
+        oAuth2Strategy.getDeviceCode();
 
         validateServiceResult(authorizationResult);
 
@@ -515,7 +520,11 @@ public class LocalMSALController extends BaseController {
     }
 
     @Override
-    public AcquireTokenResult acquireDeviceCodeFlowToken(final AuthorizationResult authorizationResult, final DeviceCodeFlowCommandParameters parameters) throws Exception {
+    public AcquireTokenResult acquireDeviceCodeFlowToken(
+            final AuthorizationResult authorizationResult,
+            final DeviceCodeFlowCommandParameters parameters)
+            throws MsalException, ClientException, IOException, InterruptedException {
+
         // Logging start of method
         final String methodName = ":acquireDeviceCodeFlowToken";
         Logger.verbose(
@@ -618,11 +627,24 @@ public class LocalMSALController extends BaseController {
 
     /**
      * Helper method to check if a result object is valid (was a success). If not, an exception will be generated and thrown.
+     * This method is called in both parts of the DCF protocol.
      * @param result result object to be checked
      * @throws MsalServiceException MsalServiceException object reflecting error code returned by the result
      */
     private void validateServiceResult(@NonNull IResult result) throws MsalServiceException {
+        // If result was unsuccessful, create an exception
+        if (!result.getSuccess()) {
+            // Create ServiceException object
+            ServiceException serviceException = createServiceExceptionForDeviceCodeFlow(result.getErrorResponse());
 
+            // Convert ServiceException to MsalServiceException, then throw
+            throw new MsalServiceException(
+                    serviceException.getErrorCode(),
+                    serviceException.getMessage(),
+                    serviceException.getHttpStatusCode(),
+                    serviceException
+            );
+        }
     }
 
     /**
@@ -630,8 +652,29 @@ public class LocalMSALController extends BaseController {
      * @param response error response object to be checked
      * @return an exception object
      */
-    private ServiceException createServiceExceptionFromErrorResponse(IErrorResponse response) {
-        // TODO: Will be implemented after Command/Controller level PR in Common
-        return null;
+    private ServiceException createServiceExceptionForDeviceCodeFlow(IErrorResponse response) {
+        // Based on error code, fetch the error message
+        String errorCode = response.getError();
+        String errorMessage = null;
+
+        // Check response code against pre-defined error codes
+        switch (errorCode) {
+            case ErrorStrings.DEVICE_CODE_FLOW_AUTHORIZATION_DECLINED_CODE:
+                errorMessage = ErrorStrings.DEVICE_CODE_FLOW_AUTHORIZATION_DECLINED_MESSAGE;
+                break;
+            case ErrorStrings.DEVICE_CODE_FLOW_EXPIRED_TOKEN_CODE:
+                errorMessage = ErrorStrings.DEVICE_CODE_FLOW_EXPIRED_TOKEN_MESSAGE;
+                break;
+            default:
+                errorMessage = ErrorStrings.DEVICE_CODE_FLOW_DEFAULT_ERROR_MESSAGE;
+        }
+
+        // Create a ServiceException object and return it
+        return new ServiceException(
+                errorCode,
+                errorMessage,
+                response.hashCode(),
+                null
+        );
     }
 }
