@@ -504,8 +504,6 @@ public class LocalMSALController extends BaseController {
         final AuthorizationResult authorizationResult = null;
         //final AuthorizationResult authorizationResult = oAuth2Strategy.getDeviceCode(mAuthorizationRequest);
 
-        oAuth2Strategy.getDeviceCode();
-
         validateServiceResult(authorizationResult);
 
         logResult(TAG, authorizationResult);
