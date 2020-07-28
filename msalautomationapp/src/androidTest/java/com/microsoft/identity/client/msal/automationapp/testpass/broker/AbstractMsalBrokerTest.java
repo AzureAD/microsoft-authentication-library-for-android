@@ -12,6 +12,6 @@ public abstract class AbstractMsalBrokerTest extends AbstractMsalUiTest implemen
 
     protected ITestBroker mBroker = getBroker();
 
-    @Rule
+    @Rule(order = 7)
     public final TestRule installBrokerRule = new InstallBrokerTestRule(mBroker);
 }

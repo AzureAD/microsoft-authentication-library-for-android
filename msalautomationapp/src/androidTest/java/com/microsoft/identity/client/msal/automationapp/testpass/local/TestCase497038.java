@@ -64,7 +64,7 @@ public class TestCase497038 extends AbstractMsalUiTest {
         final MicrosoftStsPromptHandlerParameters microsoftStsPromptHandlerParameters =
                 MicrosoftStsPromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
-                        .broker(getBroker())
+                        .broker(null)
                         .loginHint(null)
                         .consentPageExpected(true)
                         .consentPageResponse(UiResponse.ACCEPT)
@@ -107,7 +107,7 @@ public class TestCase497038 extends AbstractMsalUiTest {
                     public void handleUserInteraction() {
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .broker(getBroker())
+                                .broker(null)
                                 .loginHint(username)
                                 .sessionExpected(true)
                                 .consentPageExpected(false)

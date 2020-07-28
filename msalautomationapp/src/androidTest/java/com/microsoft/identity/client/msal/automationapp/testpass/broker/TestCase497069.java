@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
+import androidx.annotation.NonNull;
+
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
@@ -150,6 +152,7 @@ public class TestCase497069 extends AbstractMsalBrokerTest {
         return mApplication.getConfiguration().getDefaultAuthority().toString();
     }
 
+    @NonNull
     @Override
     public ITestBroker getBroker() {
         return new BrokerMicrosoftAuthenticator();

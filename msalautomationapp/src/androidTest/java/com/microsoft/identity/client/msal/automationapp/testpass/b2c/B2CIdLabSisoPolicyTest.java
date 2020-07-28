@@ -103,7 +103,7 @@ public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .broker(getBroker())
+                                .broker(null)
                                 .expectingBrokerAccountChooserActivity(false)
                                 .b2cProvider(getB2cProvider())
                                 .build();
