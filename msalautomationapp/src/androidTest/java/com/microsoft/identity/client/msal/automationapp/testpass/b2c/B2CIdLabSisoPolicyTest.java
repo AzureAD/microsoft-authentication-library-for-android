@@ -46,6 +46,11 @@ import org.junit.runners.Parameterized;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
+// TODO Parameterized Tests and Rules don't work well together as the rules on the parent are
+//  executed as part of the call to the super constructor and hence the member variables in the child
+//  class aren't set yet. If we try to use such members inside a rule or during its constructor then
+//  we get an NPE. There is a plan to fix this by refactoring this test to use rule to parameterize
+//  the tests and this will be fixed very soon!
 @Ignore
 @RunWith(Parameterized.class)
 public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
