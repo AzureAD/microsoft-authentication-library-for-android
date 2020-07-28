@@ -24,6 +24,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.local;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
+import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
@@ -44,7 +45,7 @@ import java.util.concurrent.CountDownLatch;
 // todo need to see if we can disable browsers on the device (all of them!)
 // could may be use an emulator without a browser installed
 @Ignore
-public class TestCase532736 extends BrokerLessMsalTest {
+public class TestCase532736 extends AbstractMsalUiTest {
 
     @Test
     public void test_532736() throws InterruptedException {

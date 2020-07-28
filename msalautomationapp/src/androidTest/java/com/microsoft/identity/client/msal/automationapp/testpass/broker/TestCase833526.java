@@ -47,7 +47,7 @@ import java.util.concurrent.CountDownLatch;
 
 // Broker Auth for MDM account
 @RetryOnFailure(retryCount = 2)
-public class TestCase833526 extends AbstractMsalUiTest {
+public class TestCase833526 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_833526() throws InterruptedException {

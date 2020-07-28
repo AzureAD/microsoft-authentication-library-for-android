@@ -44,7 +44,7 @@ import org.junit.Test;
 import java.util.concurrent.CountDownLatch;
 
 // [MSAL] SovCloud: Silent Auth w/o cache w/o MFA w/ Prompt Auto  w/ Broker
-public class TestCase796048 extends AbstractMsalUiTest {
+public class TestCase796048 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_796048() throws InterruptedException {

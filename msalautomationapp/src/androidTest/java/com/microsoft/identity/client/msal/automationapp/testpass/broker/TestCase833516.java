@@ -45,7 +45,7 @@ import org.junit.Test;
 import java.util.concurrent.CountDownLatch;
 
 // End My Shift - In Shared device mode, there can be only one sign-in account.
-public class TestCase833516 extends AbstractMsalUiTest {
+public class TestCase833516 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_833516() throws MsalException, InterruptedException {

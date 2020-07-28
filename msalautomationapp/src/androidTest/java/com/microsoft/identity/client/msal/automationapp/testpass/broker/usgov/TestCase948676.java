@@ -24,10 +24,10 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.usgov;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
+import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
@@ -45,7 +45,7 @@ import java.util.concurrent.CountDownLatch;
 
 // Broker authentication with PRT with USGov account with instance_aware=true
 @Ignore // failing - needs investigation why being prompted for password
-public class TestCase948676 extends AbstractMsalUiTest {
+public class TestCase948676 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_948676() throws InterruptedException {

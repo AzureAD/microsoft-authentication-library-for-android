@@ -28,6 +28,7 @@ import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
+import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
@@ -44,7 +45,7 @@ import java.util.concurrent.CountDownLatch;
 
 // Brokered authentication without PRT with instance_aware=true, no login hint, and cloud account,
 // and WW common authority
-public class TestCase940393 extends AbstractMsalUiTest {
+public class TestCase940393 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_938447() throws InterruptedException {

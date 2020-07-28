@@ -110,11 +110,6 @@ public class TestCase938365 extends AbstractMsalUiTest {
     }
 
     @Override
-    public ITestBroker getBroker() {
-        return null;
-    }
-
-    @Override
     public int getConfigFileResourceId() {
         return R.raw.msal_config_instance_aware_common;
     }

@@ -50,7 +50,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 @Ignore
-public class TestCase850457 extends AbstractMsalUiTest {
+public class TestCase850457 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_850457() throws InterruptedException {

@@ -43,7 +43,7 @@ import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
 // Broker Auth for non-joined account - select_account
-public class TestCase497069 extends AbstractMsalUiTest {
+public class TestCase497069 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_497069() throws InterruptedException {

@@ -38,14 +38,10 @@ import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.ui.automation.IBrokerTest;
 import com.microsoft.identity.client.ui.automation.ILabTest;
-import com.microsoft.identity.client.ui.automation.app.IApp;
-import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
 import com.microsoft.identity.client.ui.automation.browser.IBrowser;
 import com.microsoft.identity.client.ui.automation.rules.DeviceEnrollmentFailureRecoveryRule;
-import com.microsoft.identity.client.ui.automation.rules.InstallBrokerTestRule;
 import com.microsoft.identity.client.ui.automation.rules.LoadLabUserTestRule;
 import com.microsoft.identity.client.ui.automation.rules.RemoveBrokersBeforeTestRule;
 import com.microsoft.identity.client.ui.automation.rules.ResetAutomaticTimeZoneTestRule;
@@ -64,14 +60,13 @@ import java.util.concurrent.CountDownLatch;
 
 import static org.junit.Assert.fail;
 
-public abstract class AbstractMsalUiTest implements IMsalTest, IBrokerTest, ILabTest {
+public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest {
 
     protected Context mContext;
     protected Activity mActivity;
     protected IPublicClientApplication mApplication;
 
     protected String[] mScopes;
-    protected ITestBroker mBroker = getBroker();
     protected IAccount mAccount;
     protected IBrowser mBrowser;
     protected String mLoginHint;
@@ -94,23 +89,19 @@ public abstract class AbstractMsalUiTest implements IMsalTest, IBrokerTest, ILab
     public final TestRule removeBrokersRule = new RemoveBrokersBeforeTestRule();
 
     @Rule(order = 5)
-    public final TestRule installBrokerRule = new InstallBrokerTestRule(mBroker);
-
-    @Rule(order = 6)
     public ActivityTestRule<MainActivity> mActivityRule =
             new ActivityTestRule(MainActivity.class);
 
-    @Rule(order = 7)
+    @Rule(order = 6)
     public TestRule deviceEnrollmentFailureRecoveryRule = new DeviceEnrollmentFailureRecoveryRule();
 
     @Before
     public void setup() {
         mScopes = getScopes();
-        mBroker = getBroker();
         mBrowser = getBrowser();
 
         // clear all cookies in the browser
-        ((IApp) mBrowser).clear();
+        mBrowser.clear();
 
         mLoginHint = ((LoadLabUserTestRule) loadLabUserRule).getLabUserUpn();
 

@@ -24,6 +24,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.local;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
+import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
@@ -44,7 +45,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 // Cross Apps SSO with System Browser
-public class TestCase497038 extends BrokerLessMsalTest {
+public class TestCase497038 extends AbstractMsalUiTest {
 
     @Test
     public void test_497038() throws InterruptedException {

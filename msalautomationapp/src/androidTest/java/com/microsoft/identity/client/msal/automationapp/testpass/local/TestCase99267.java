@@ -24,6 +24,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.local;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
+import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
@@ -41,7 +42,7 @@ import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
 // Interactive Auth with select_account (no consent record)
-public class TestCase99267 extends BrokerLessMsalTest {
+public class TestCase99267 extends AbstractMsalUiTest {
 
     @Test
     public void test_99267() throws InterruptedException {

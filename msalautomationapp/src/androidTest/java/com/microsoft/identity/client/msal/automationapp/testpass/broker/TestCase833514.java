@@ -50,7 +50,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
-public class TestCase833514 extends AbstractMsalUiTest {
+public class TestCase833514 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_833514() throws MsalException, InterruptedException {

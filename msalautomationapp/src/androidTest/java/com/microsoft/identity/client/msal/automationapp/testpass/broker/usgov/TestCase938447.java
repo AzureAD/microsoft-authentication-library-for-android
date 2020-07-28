@@ -28,6 +28,7 @@ import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
+import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
@@ -43,7 +44,7 @@ import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
 // Broker authentication with PRT with USGov account
-public class TestCase938447 extends AbstractMsalUiTest {
+public class TestCase938447 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_938447() throws InterruptedException {

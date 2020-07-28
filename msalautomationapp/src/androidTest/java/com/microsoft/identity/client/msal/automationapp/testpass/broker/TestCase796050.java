@@ -52,7 +52,7 @@ import java.util.concurrent.CountDownLatch;
 // Multi-accounts for Broker - Add Account in Account Chooser Activity
 // The goal of the test case is to ensure that we can add accounts in broker via the
 // "Add another account" option in Account Chooser Activity
-public class TestCase796050 extends AbstractMsalUiTest {
+public class TestCase796050 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_796050() throws InterruptedException {
