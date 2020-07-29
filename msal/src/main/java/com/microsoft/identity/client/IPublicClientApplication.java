@@ -25,6 +25,7 @@ package com.microsoft.identity.client;
 import android.app.Activity;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 
 import com.microsoft.identity.client.exception.MsalException;
@@ -83,6 +84,14 @@ public interface IPublicClientApplication {
      */
     @WorkerThread
     IAuthenticationResult acquireTokenSilent(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) throws InterruptedException, MsalException;
+
+    /**
+     * Perform the Device Code Flow (DCF) protocol to allow a device without input capability to authenticate and get a new access token.
+     * Currently, flow is only supported in local MSAL. No Broker support.
+     * @param scopes the desired access scopes
+     * @param callback callback object used to communicate with the API throughout the protocol
+     */
+    void acquireTokenWithDeviceCode(@Nullable String[] scopes, @NonNull final DeviceCodeFlowCallback callback);
 
     /**
      * Returns the PublicClientConfiguration for this instance of PublicClientApplication.
@@ -160,6 +169,41 @@ public interface IPublicClientApplication {
          * Called once IMultipleAccountPublicClientApplication can't be created.
          */
         void onError(final MsalException exception);
+    }
+
+    /**
+     * Callback object used in Device Code Flow.
+     * This callback provides the following methods for communicating with the protocol.
+     * 1). Receiving authentication information (user_code, verification_uri, and instruction message)
+     * via {@link DeviceCodeFlowCallback#onUserCodeReceived(String, String, String)}.
+     * 2). Receiving a successful authentication result containing a fresh access token
+     * via {@link DeviceCodeFlowCallback#onTokenReceived(AuthenticationResult)}.
+     * 3). Receiving an exception detailing what went wrong in the protocol
+     * via {@link DeviceCodeFlowCallback#onError(MsalException)}.
+     */
+    interface DeviceCodeFlowCallback {
+        /**
+         * Invoked to display verification uri, user code, and instruction message during device code flow.
+         *
+         * @param vUri verification uri
+         * @param userCode user code
+         * @param message instruction message
+         */
+        void onUserCodeReceived(@NonNull String vUri, @NonNull String userCode, @NonNull String message);
+
+        /**
+         * Invoked once token is received and passes the {@link AuthenticationResult} object.
+         *
+         * @param authResult the authentication result
+         */
+        void onTokenReceived(@NonNull final AuthenticationResult authResult);
+
+        /**
+         * Invoked if an error is encountered during the device code flow and passes the exception object.
+         *
+         * @param error error exception
+         */
+        void onError(@NonNull final MsalException error);
     }
 
 }
