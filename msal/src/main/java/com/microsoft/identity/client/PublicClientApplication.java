@@ -1729,9 +1729,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     private DeviceCodeFlowCommandCallback getDeviceCodeFlowCommandCallback(@NonNull final DeviceCodeFlowCallback callback) {
-        return new DeviceCodeFlowCommandCallback<LocalAuthenticationResult, BaseException>() {
+        return new DeviceCodeFlowCommandCallback<LocalAuthenticationResult, MsalException>() {
             @Override
-            public void onUserCodeReceived(@NonNull String vUri, @NonNull String userCode, @NonNull String message){
+            public void onUserCodeReceived(String vUri, String userCode, String message){
                 callback.onUserCodeReceived(vUri, userCode, message);
             }
 
@@ -1748,7 +1748,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             }
 
             @Override
-            public void onError(BaseException msalError) {
+            public void onError(MsalException msalError) {
                 callback.onError(msalError);
             }
 
