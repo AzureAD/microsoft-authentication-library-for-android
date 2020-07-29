@@ -179,7 +179,7 @@ public interface IPublicClientApplication {
      * 2). Receiving a successful authentication result containing a fresh access token
      * via {@link DeviceCodeFlowCallback#onTokenReceived(AuthenticationResult)}.
      * 3). Receiving an exception detailing what went wrong in the protocol
-     * via {@link DeviceCodeFlowCallback#onError(MsalException)}.
+     * via {@link DeviceCodeFlowCallback#onError(Exception)}.
      *
      * Refer to {@link PublicClientApplication#acquireTokenWithDeviceCode(String[], DeviceCodeFlowCallback)}.
      */
@@ -205,7 +205,7 @@ public interface IPublicClientApplication {
          *
          * @param error error exception
          */
-        void onError(@NonNull final MsalException error);
+        void onError(@NonNull final Exception error);
     }
 
 }

@@ -47,7 +47,7 @@ import com.microsoft.identity.common.internal.commands.parameters.SilentTokenCom
 import com.microsoft.identity.common.internal.controllers.BaseController;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.logging.Logger;
-import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftSts;
+import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationResponse;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsTokenRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
@@ -468,7 +468,7 @@ public class LocalMSALController extends BaseController {
     }
 
     @Override
-    public AuthorizationResult deviceCodeFlowAuthRequest(final DeviceCodeFlowCommandParameters parameters) throws MsalException, ClientException {
+    public AuthorizationResult deviceCodeFlowAuthRequest(final DeviceCodeFlowCommandParameters parameters) throws MsalException, ClientException, IOException {
         // Logging start of method
         final String methodName = ":deviceCodeFlowAuthRequest";
         Logger.verbose(
@@ -477,35 +477,43 @@ public class LocalMSALController extends BaseController {
         );
 
         // Default scopes here
-        // TODO: Add default scopes
+        final Set<String> mergedScopes = addDefaultScopes(parameters);
 
-        logParameters(TAG, parameters);
+        final DeviceCodeFlowCommandParameters parametersWithScopes = parameters
+                .toBuilder()
+                .scopes(mergedScopes)
+                .build();
+
+        logParameters(TAG, parametersWithScopes);
 
         // Start telemetry with LOCAL_DEVICE_CODE_FLOW_ACQUIRE_URL_AND_CODE
         Telemetry.emit(
                 new ApiStartEvent()
-                        .putProperties(parameters)
+                        .putProperties(parametersWithScopes)
                         .putApiId(TelemetryEventStrings.Api.LOCAL_DEVICE_CODE_FLOW_ACQUIRE_URL_AND_CODE)
         );
 
         // Create OAuth2Strategy using commandParameters and strategyParameters
         final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
-        strategyParameters.setContext(parameters.getAndroidApplicationContext());
+        strategyParameters.setContext(parametersWithScopes.getAndroidApplicationContext());
 
-        final OAuth2Strategy oAuth2Strategy = parameters
+        final OAuth2Strategy oAuth2Strategy = parametersWithScopes
                 .getAuthority()
                 .createOAuth2Strategy(strategyParameters);
 
         // DCF protocol step 1: Get user code
         // Populate global authorization request
-        mAuthorizationRequest = getAuthorizationRequest(oAuth2Strategy, parameters);
+        mAuthorizationRequest = getAuthorizationRequest(oAuth2Strategy, parametersWithScopes);
 
         // Call method defined in oAuth2Strategy to request authorization
-        final AuthorizationResult authorizationResult = null;
-        //final AuthorizationResult authorizationResult = oAuth2Strategy.getDeviceCode(mAuthorizationRequest);
+        final AuthorizationResult authorizationResult = oAuth2Strategy.getDeviceCode((MicrosoftStsAuthorizationRequest) mAuthorizationRequest, null);
 
         validateServiceResult(authorizationResult);
 
+        Logger.verbose(
+                TAG + methodName,
+                "Device Code Flow authorization step finished..."
+        );
         logResult(TAG, authorizationResult);
 
         // End telemetry with LOCAL_DEVICE_CODE_FLOW_ACQUIRE_URL_AND_CODE
@@ -564,12 +572,13 @@ public class LocalMSALController extends BaseController {
         );
 
         // Fetch wait interval
-        final int interval = Integer.parseInt(authorizationResponse.getInterval());
+        final int interval = Integer.parseInt(authorizationResponse.getInterval()) * 1000;
 
         String errorCode = "authorization_pending";
 
         // Loop to send multiple requests checking for token
         while (errorCode.equals("authorization_pending")) {
+            errorCode = ""; // Reset error code
 
             // Execute Token Request
             tokenResult = oAuth2Strategy.requestToken(tokenRequest);
@@ -617,6 +626,7 @@ public class LocalMSALController extends BaseController {
         // End telemetry with LOCAL_DEVICE_CODE_FLOW_POLLING
         Telemetry.emit(
                 new ApiEndEvent()
+                        .putResult(acquireTokenResult)
                         .putApiId(TelemetryEventStrings.Api.LOCAL_DEVICE_CODE_FLOW_POLLING)
         );
 
@@ -663,6 +673,9 @@ public class LocalMSALController extends BaseController {
             case ErrorStrings.DEVICE_CODE_FLOW_EXPIRED_TOKEN_CODE:
                 errorMessage = ErrorStrings.DEVICE_CODE_FLOW_EXPIRED_TOKEN_MESSAGE;
                 break;
+            case ErrorStrings.DEVICE_CODE_FLOW_INVALID_GRANT_CODE:
+                errorMessage = ErrorStrings.DEVICE_CODE_FLOW_INVALID_GRANT_MESSAGE;
+                break;
             default:
                 errorMessage = ErrorStrings.DEVICE_CODE_FLOW_DEFAULT_ERROR_MESSAGE;
         }
@@ -671,7 +684,7 @@ public class LocalMSALController extends BaseController {
         return new ServiceException(
                 errorCode,
                 errorMessage,
-                response.hashCode(),
+                ServiceException.DEFAULT_STATUS_CODE,
                 null
         );
     }

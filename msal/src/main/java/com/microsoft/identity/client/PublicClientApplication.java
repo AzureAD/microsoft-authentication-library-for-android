@@ -44,7 +44,6 @@ import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.helper.BrokerHelperActivity;
 import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.CommandParametersAdapter;
@@ -1729,8 +1728,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         };
     }
 
-    protected DeviceCodeFlowCommandCallback getDeviceCodeFlowCommandCallback(@NonNull final DeviceCodeFlowCallback callback) {
-        return new DeviceCodeFlowCommandCallback<LocalAuthenticationResult, MsalException>() {
+    private DeviceCodeFlowCommandCallback getDeviceCodeFlowCommandCallback(@NonNull final DeviceCodeFlowCallback callback) {
+        return new DeviceCodeFlowCommandCallback<LocalAuthenticationResult, BaseException>() {
             @Override
             public void onUserCodeReceived(@NonNull String vUri, @NonNull String userCode, @NonNull String message){
                 callback.onUserCodeReceived(vUri, userCode, message);
@@ -1749,7 +1748,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             }
 
             @Override
-            public void onError(MsalException msalError) {
+            public void onError(BaseException msalError) {
                 callback.onError(msalError);
             }
 
