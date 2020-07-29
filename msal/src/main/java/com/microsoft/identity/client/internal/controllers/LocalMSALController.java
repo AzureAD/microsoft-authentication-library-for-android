@@ -32,6 +32,7 @@ import androidx.annotation.WorkerThread;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.exception.ArgumentException;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
@@ -39,6 +40,7 @@ import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authscheme.AbstractAuthenticationScheme;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
+import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
 import com.microsoft.identity.common.internal.commands.parameters.CommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.DeviceCodeFlowCommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.InteractiveTokenCommandParameters;
@@ -574,10 +576,10 @@ public class LocalMSALController extends BaseController {
         // Fetch wait interval
         final int interval = Integer.parseInt(authorizationResponse.getInterval()) * 1000;
 
-        String errorCode = "authorization_pending";
+        String errorCode = ErrorStrings.DEVICE_CODE_FLOW_AUTHORIZATION_PENDING_CODE;
 
         // Loop to send multiple requests checking for token
-        while (errorCode.equals("authorization_pending")) {
+        while (errorCode.equals(ErrorStrings.DEVICE_CODE_FLOW_AUTHORIZATION_PENDING_CODE)) {
             errorCode = ""; // Reset error code
 
             // Execute Token Request
@@ -587,7 +589,7 @@ public class LocalMSALController extends BaseController {
                 errorCode = tokenResult.getErrorResponse().getError();
             }
 
-            if (errorCode.equals("authorization_pending")) {
+            if (errorCode.equals(ErrorStrings.DEVICE_CODE_FLOW_AUTHORIZATION_PENDING_CODE)) {
                 // interval is passed through params
                 Thread.sleep(interval);
             }
@@ -639,11 +641,11 @@ public class LocalMSALController extends BaseController {
      * @param result result object to be checked
      * @throws MsalServiceException MsalServiceException object reflecting error code returned by the result
      */
-    private void validateServiceResult(@NonNull IResult result) throws MsalServiceException {
+    private void validateServiceResult(@NonNull final IResult result) throws MsalServiceException {
         // If result was unsuccessful, create an exception
         if (!result.getSuccess()) {
             // Create ServiceException object
-            ServiceException serviceException = createServiceExceptionForDeviceCodeFlow(result.getErrorResponse());
+            final ServiceException serviceException = createServiceExceptionForDeviceCodeFlow(result.getErrorResponse());
 
             // Convert ServiceException to MsalServiceException, then throw
             throw new MsalServiceException(
@@ -660,10 +662,10 @@ public class LocalMSALController extends BaseController {
      * @param response error response object to be checked
      * @return an exception object
      */
-    private ServiceException createServiceExceptionForDeviceCodeFlow(IErrorResponse response) {
+    private ServiceException createServiceExceptionForDeviceCodeFlow(@NonNull final IErrorResponse response) {
         // Based on error code, fetch the error message
-        String errorCode = response.getError();
-        String errorMessage = null;
+        final String errorCode = response.getError();
+        final String errorMessage;
 
         // Check response code against pre-defined error codes
         switch (errorCode) {
@@ -673,7 +675,7 @@ public class LocalMSALController extends BaseController {
             case ErrorStrings.DEVICE_CODE_FLOW_EXPIRED_TOKEN_CODE:
                 errorMessage = ErrorStrings.DEVICE_CODE_FLOW_EXPIRED_TOKEN_MESSAGE;
                 break;
-            case ErrorStrings.DEVICE_CODE_FLOW_INVALID_GRANT_CODE:
+            case AuthenticationConstants.OAuth2ErrorCode.INVALID_GRANT:
                 errorMessage = ErrorStrings.DEVICE_CODE_FLOW_INVALID_GRANT_MESSAGE;
                 break;
             default:
