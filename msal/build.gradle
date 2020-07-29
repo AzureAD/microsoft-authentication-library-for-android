@@ -148,9 +148,9 @@ dependencies {
         transitive = false
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '2.0.12-hf1', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '2.0.15-SNAPSHOT', changing: true)
 
-    distApi("com.microsoft.identity:common:2.0.12-hf1") {
+    distApi("com.microsoft.identity:common:2.0.15") {
         transitive = false
     }
 }
@@ -208,8 +208,8 @@ publishing {
 
                 // Description
                 asNode().appendNode(
-                        'description',
-                        'Microsoft Identity library for Android gives you the ability to add authentication to your application with just a few lines of additional code. Using our MSAL SDKs you can quickly and easily extend your existing application to all the employees that use MSA, B2C, Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.'
+                    'description',
+                    'Microsoft Identity library for Android gives you the ability to add authentication to your application with just a few lines of additional code. Using our MSAL SDKs you can quickly and easily extend your existing application to all the employees that use MSA, B2C, Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.'
                 )
 
                 // URL

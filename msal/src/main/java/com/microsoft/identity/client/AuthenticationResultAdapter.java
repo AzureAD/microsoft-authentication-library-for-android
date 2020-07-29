@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 class AuthenticationResultAdapter {
@@ -40,7 +41,8 @@ class AuthenticationResultAdapter {
 
     static IAuthenticationResult adapt(@NonNull final ILocalAuthenticationResult localAuthenticationResult) {
         final IAuthenticationResult authenticationResult = new AuthenticationResult(
-                localAuthenticationResult.getCacheRecordWithTenantProfileData()
+                localAuthenticationResult.getCacheRecordWithTenantProfileData(),
+                localAuthenticationResult.getCorrelationId()
         );
         return authenticationResult;
     }
@@ -86,14 +88,14 @@ class AuthenticationResultAdapter {
 
         // Add each granted scope to the Set
         for (final String grantedScope : grantedScopes) {
-            grantedScopesSet.add(grantedScope.toLowerCase());
+            grantedScopesSet.add(grantedScope.toLowerCase(Locale.ROOT));
         }
 
         final Set<String> requestedScopesSet = new HashSet<>();
 
         // Add each requested scope to the Set
         for (final String requestedScope : requestedScopes) {
-            requestedScopesSet.add(requestedScope.toLowerCase());
+            requestedScopesSet.add(requestedScope.toLowerCase(Locale.ROOT));
         }
 
         final List<String> declinedScopes = new ArrayList<>();
