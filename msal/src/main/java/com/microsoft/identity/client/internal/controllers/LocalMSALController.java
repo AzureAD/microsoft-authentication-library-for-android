@@ -38,6 +38,7 @@ import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
 import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.authorities.Authority;
+import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.authscheme.AbstractAuthenticationScheme;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.commands.parameters.CommandParameters;
@@ -507,8 +508,10 @@ public class LocalMSALController extends BaseController {
         // Populate global authorization request
         mAuthorizationRequest = getAuthorizationRequest(oAuth2Strategy, parametersWithScopes);
 
+        final String authorityUri = ((AzureActiveDirectoryAuthority) parametersWithScopes.getAuthority()).getAudience().getCloudUrl();
+
         // Call method defined in oAuth2Strategy to request authorization
-        final AuthorizationResult authorizationResult = oAuth2Strategy.getDeviceCode((MicrosoftStsAuthorizationRequest) mAuthorizationRequest, null);
+        final AuthorizationResult authorizationResult = oAuth2Strategy.getDeviceCode((MicrosoftStsAuthorizationRequest) mAuthorizationRequest, authorityUri);
 
         validateServiceResult(authorizationResult);
 
