@@ -27,6 +27,6 @@
 
         <!-- Activity to invoke an interactive request to the intent passed by ad-accounts(Broker) -->
         <activity
-            android:name="com.microsoft.identity.client.internal.controllers.BrokerActivity" />
+            android:name="com.microsoft.identity.common.internal.broker.BrokerActivity" />
     </application>
 </manifest>
