@@ -1,5 +1,14 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
+Version 1.6.0
+-----------
+- Introduces new AadAuthorityAudience enum to support new syntax for specifying cloud + audience
+- Adds new property to IAuthenticationResult: correlation_id
+- Fix for String encoding issue affecting devices with Turkish locale
+- Fix for #1092: (Single Account Mode) getCurrentAccount() does not return MSA accounts if broker is installed
+- Fix for #1096: (Single Account Mode) signOut() doesn't remove MSA accounts if broker is installed
+- Picks up common@2.0.15
+
 Version 1.5.5
 -----------
 - Picks up fixes in common@2.0.12-hf1
