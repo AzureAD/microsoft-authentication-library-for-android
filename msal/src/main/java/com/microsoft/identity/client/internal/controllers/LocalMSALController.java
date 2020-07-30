@@ -531,7 +531,7 @@ public class LocalMSALController extends BaseController {
     public AcquireTokenResult acquireDeviceCodeFlowToken(
             final AuthorizationResult authorizationResult,
             final DeviceCodeFlowCommandParameters parameters)
-            throws MsalException, ClientException, IOException, InterruptedException {
+            throws MsalException, ClientException, IOException {
 
         // Logging start of method
         final String methodName = ":acquireDeviceCodeFlowToken";
