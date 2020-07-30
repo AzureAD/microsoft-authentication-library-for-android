@@ -40,7 +40,6 @@ import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authscheme.AbstractAuthenticationScheme;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
-import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
 import com.microsoft.identity.common.internal.commands.parameters.CommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.DeviceCodeFlowCommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.InteractiveTokenCommandParameters;
@@ -70,6 +69,7 @@ import com.microsoft.identity.common.internal.telemetry.TelemetryEventStrings;
 import com.microsoft.identity.common.internal.telemetry.events.ApiEndEvent;
 import com.microsoft.identity.common.internal.telemetry.events.ApiStartEvent;
 import com.microsoft.identity.common.internal.ui.AuthorizationStrategyFactory;
+import com.microsoft.identity.common.internal.util.ThreadUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -579,19 +579,22 @@ public class LocalMSALController extends BaseController {
         String errorCode = ErrorStrings.DEVICE_CODE_FLOW_AUTHORIZATION_PENDING_CODE;
 
         // Loop to send multiple requests checking for token
-        while (errorCode.equals(ErrorStrings.DEVICE_CODE_FLOW_AUTHORIZATION_PENDING_CODE)) {
+        while (authorizationPending(errorCode)) {
             errorCode = ""; // Reset error code
 
             // Execute Token Request
             tokenResult = oAuth2Strategy.requestToken(tokenRequest);
 
+            // Fetch error if the request failed
             if (tokenResult.getErrorResponse() != null) {
                 errorCode = tokenResult.getErrorResponse().getError();
             }
 
-            if (errorCode.equals(ErrorStrings.DEVICE_CODE_FLOW_AUTHORIZATION_PENDING_CODE)) {
-                // interval is passed through params
-                Thread.sleep(interval);
+            // Check if authorization is pending
+            if (authorizationPending(errorCode)) {
+                // Wait between polls
+                ThreadUtils.sleepSafely(interval, TAG,
+                        "Attempting to sleep thread during Device Code Flow token polling...");
             }
         }
 
@@ -633,6 +636,15 @@ public class LocalMSALController extends BaseController {
         );
 
         return acquireTokenResult;
+    }
+
+    /**
+     * Returns true if the given error shows authorization is pending.
+     * @param errorCode error from response
+     * @return true or false if error is pending
+     */
+    private boolean authorizationPending(@NonNull final String errorCode) {
+        return errorCode.equals(ErrorStrings.DEVICE_CODE_FLOW_AUTHORIZATION_PENDING_CODE);
     }
 
     /**
