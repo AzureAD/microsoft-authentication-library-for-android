@@ -1,5 +1,9 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
+Version v.Next
+----------
+- Moved broker controller and strategy classes to common for MSALCPP brokered auth.
+
 Version 1.6.0
 -----------
 - Introduces new AadAuthorityAudience enum to support new syntax for specifying cloud + audience
