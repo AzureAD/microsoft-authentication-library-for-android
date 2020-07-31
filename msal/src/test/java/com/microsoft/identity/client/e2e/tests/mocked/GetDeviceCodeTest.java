@@ -1,16 +1,36 @@
+// Copyright (c) Microsoft Corporation.
+// All rights reserved.
+//
+// This code is licensed under the MIT License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files(the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions :
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.mocked;
 
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
-import com.microsoft.identity.client.e2e.shadows.ShadowHttpRequestForMockedTest;
 import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
-import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryOAuth2Configuration;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryOAuth2Strategy;
+import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationErrorResponse;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationResponse;
-import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResult;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2StrategyParameters;
@@ -58,58 +78,78 @@ public class GetDeviceCodeTest extends PublicClientApplicationAbstractTest {
     }
 
     @Test
-    public void testOne() {
+    public void testGetDeviceCodeSuccessResult() {
         final MicrosoftStsAuthorizationRequest authorizationRequest = builder.build();
         final AuthorizationResult authorizationResult = runGetDeviceCodeThread(authorizationRequest, urlBody);
         final MicrosoftStsAuthorizationResponse authorizationResponse = (MicrosoftStsAuthorizationResponse) authorizationResult.getAuthorizationResponse();
 
         Assert.assertTrue(authorizationResult.getSuccess());
         Assert.assertNotNull(authorizationResponse);
+
         Assert.assertNotNull(authorizationResponse.getDeviceCode());
+        Assert.assertNotNull(authorizationResponse.getUserCode());
+        Assert.assertNotNull(authorizationResponse.getMessage());
+        Assert.assertNotNull(authorizationResponse.getInterval());
+        Assert.assertNotNull(authorizationResponse.getExpiresIn());
+        Assert.assertNotNull(authorizationResponse.getVerificationUri());
+
         Assert.assertNull(authorizationResult.getAuthorizationErrorResponse());
     }
 
-    private AuthorizationResult runGetDeviceCodeThread(final MicrosoftStsAuthorizationRequest authorizationRequest, final String urlBody) {
-        GetDeviceCodeRunner runner = new GetDeviceCodeRunner(authorizationRequest, urlBody);
+    @Test
+    public void testGetDeviceCodeFailureNoClientId() {
+        final MicrosoftStsAuthorizationRequest authorizationRequest = builder.setClientId(null).build();
+        final AuthorizationResult authorizationResult = runGetDeviceCodeThread(authorizationRequest, urlBody);
+        final MicrosoftStsAuthorizationErrorResponse authorizationErrorResponse = (MicrosoftStsAuthorizationErrorResponse) authorizationResult.getAuthorizationErrorResponse();
 
-        Thread thread = new Thread(runner);
-        thread.start();
+        Assert.assertFalse(authorizationResult.getSuccess());
+        Assert.assertNull(authorizationResult.getAuthorizationResponse());
 
-        try {
-            thread.join();
-        }
-        catch (InterruptedException e){
-            Assert.fail();
-        }
+        Assert.assertNotNull(authorizationErrorResponse);
+        Assert.assertEquals("invalid_request", authorizationErrorResponse.getError());
+    }
 
-        return runner.getResult();
+    @Test
+    public void testGetDeviceCodeFailureNoScope() {
+        final MicrosoftStsAuthorizationRequest authorizationRequest = builder.setScope(null).build();
+        final AuthorizationResult authorizationResult = runGetDeviceCodeThread(authorizationRequest, urlBody);
+        final MicrosoftStsAuthorizationErrorResponse authorizationErrorResponse = (MicrosoftStsAuthorizationErrorResponse) authorizationResult.getAuthorizationErrorResponse();
+
+        Assert.assertFalse(authorizationResult.getSuccess());
+        Assert.assertNull(authorizationResult.getAuthorizationResponse());
+
+        Assert.assertNotNull(authorizationErrorResponse);
+        Assert.assertEquals("invalid_request", authorizationErrorResponse.getError());
+    }
+
+    @Test
+    public void testGetDeviceCodeFailureBadScope() {
+        final MicrosoftStsAuthorizationRequest authorizationRequest = builder.setScope("/").build();
+        final AuthorizationResult authorizationResult = runGetDeviceCodeThread(authorizationRequest, urlBody);
+        final MicrosoftStsAuthorizationErrorResponse authorizationErrorResponse = (MicrosoftStsAuthorizationErrorResponse) authorizationResult.getAuthorizationErrorResponse();
+
+        Assert.assertFalse(authorizationResult.getSuccess());
+        Assert.assertNull(authorizationResult.getAuthorizationResponse());
+
+        Assert.assertNotNull(authorizationErrorResponse);
+        Assert.assertEquals("invalid_scope", authorizationErrorResponse.getError());
     }
 
     /**
-     *
+     * Helper function to run getDeviceCode(). Catches exception
+     * @param authorizationRequest request to send to getDeviceCode()
+     * @param urlBody url to send to getDeviceCode()
+     * @return authorizationResult from getDeviceCode()
      */
-    private class GetDeviceCodeRunner implements Runnable {
-        private MicrosoftStsAuthorizationRequest mAuthorizationRequest;
-        private String mUrlBody;
-        private AuthorizationResult mAuthorizationResult;
-
-        public GetDeviceCodeRunner(final MicrosoftStsAuthorizationRequest authorizationRequest, final String urlBody){
-            this.mAuthorizationRequest = authorizationRequest;
-            this.mUrlBody = urlBody;
+    private AuthorizationResult runGetDeviceCodeThread(final MicrosoftStsAuthorizationRequest authorizationRequest, final String urlBody) {
+        AuthorizationResult authorizationResult = null;
+        try {
+            authorizationResult = strategy.getDeviceCode(authorizationRequest, urlBody);
+        }
+        catch (IOException e){
+            Assert.fail();
         }
 
-        @Override
-        public void run() {
-            try {
-                mAuthorizationResult = strategy.getDeviceCode(mAuthorizationRequest, mUrlBody);
-            }
-            catch (IOException e){
-                Assert.fail();
-            }
-        }
-
-        public AuthorizationResult getResult() {
-            return mAuthorizationResult;
-        }
+        return authorizationResult;
     }
 }

@@ -1730,7 +1730,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     private DeviceCodeFlowCommandCallback getDeviceCodeFlowCommandCallback(@NonNull final DeviceCodeFlowCallback callback) {
-        return new DeviceCodeFlowCommandCallback<LocalAuthenticationResult, ServiceException>() {
+        return new DeviceCodeFlowCommandCallback<LocalAuthenticationResult, BaseException>() {
             @Override
             public void onUserCodeReceived(String vUri, String userCode, String message){
                 callback.onUserCodeReceived(vUri, userCode, message);
@@ -1749,15 +1749,26 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             }
 
             @Override
-            public void onError(ServiceException error) {
-                callback.onError(
-                        new MsalServiceException(
-                                error.getErrorCode(),
-                                error.getMessage(),
-                                error.getHttpStatusCode(),
-                                error
-                        )
-                );
+            public void onError(BaseException error) {
+                final MsalException msalException;
+
+                if (error instanceof ServiceException) {
+                    msalException = new MsalServiceException(
+                            error.getErrorCode(),
+                            error.getMessage(),
+                            ((ServiceException) error).getHttpStatusCode(),
+                            error
+                    );
+                }
+                else {
+                    msalException = new MsalClientException(
+                            error.getErrorCode(),
+                            error.getMessage(),
+                            error
+                    );
+                }
+
+                callback.onError(msalException);
             }
 
             @Override
