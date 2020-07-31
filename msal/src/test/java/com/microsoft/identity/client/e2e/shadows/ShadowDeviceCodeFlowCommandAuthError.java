@@ -22,7 +22,7 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.shadows;
 
-import com.microsoft.identity.client.exception.MsalServiceException;
+import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 
@@ -35,6 +35,6 @@ import org.robolectric.annotation.Implements;
 public class ShadowDeviceCodeFlowCommandAuthError {
     
     public AcquireTokenResult execute() throws Exception {
-        throw new MsalServiceException("invalid_scope", "This exception reflects an error in the authorization step in Device Code Flow (invalid scope).", null);
+        throw new ServiceException("invalid_scope", "This exception reflects an error in the authorization step in Device Code Flow (invalid scope).", null);
     }
 }
