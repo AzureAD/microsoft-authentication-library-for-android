@@ -86,7 +86,7 @@ public class GetDeviceCodeTest extends PublicClientApplicationAbstractTest {
     }
 
     /**
-     * 
+     *
      */
     private class GetDeviceCodeRunner implements Runnable {
         private MicrosoftStsAuthorizationRequest mAuthorizationRequest;
