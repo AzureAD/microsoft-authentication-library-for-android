@@ -191,21 +191,21 @@ public interface IPublicClientApplication {
          * @param userCode user code
          * @param message instruction message
          */
-        void onUserCodeReceived(String vUri, String userCode, String message);
+        void onUserCodeReceived(@NonNull final String vUri, @NonNull final String userCode, @NonNull final String message);
 
         /**
          * Invoked once token is received and passes the {@link AuthenticationResult} object.
          *
          * @param authResult the authentication result
          */
-        void onTokenReceived(final AuthenticationResult authResult);
+        void onTokenReceived(@NonNull final AuthenticationResult authResult);
 
         /**
          * Invoked if an error is encountered during the device code flow and passes the exception object.
          *
          * @param error error exception
          */
-        void onError(final MsalException error);
+        void onError(@NonNull final MsalException error);
     }
 
 }

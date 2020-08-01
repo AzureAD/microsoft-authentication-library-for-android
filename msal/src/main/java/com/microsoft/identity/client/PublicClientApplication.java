@@ -1732,7 +1732,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     private DeviceCodeFlowCommandCallback getDeviceCodeFlowCommandCallback(@NonNull final DeviceCodeFlowCallback callback) {
         return new DeviceCodeFlowCommandCallback<LocalAuthenticationResult, BaseException>() {
             @Override
-            public void onUserCodeReceived(String vUri, String userCode, String message){
+            public void onUserCodeReceived(@NonNull String vUri, @NonNull String userCode, @NonNull String message){
                 callback.onUserCodeReceived(vUri, userCode, message);
             }
 
