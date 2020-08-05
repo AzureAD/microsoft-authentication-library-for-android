@@ -201,6 +201,10 @@ public class CommandParametersAdapter {
             @NonNull String[] scopes){
 
         // TODO: Consider implementing support for PoP
+
+        final String uri = ((AzureActiveDirectoryAuthority) configuration.getAuthorities().get(0)).getAudience().getCloudUrl();
+        final Authority authority = Authority.getAuthorityFromAuthorityUrl(uri);
+
         final AbstractAuthenticationScheme authenticationScheme = new BearerAuthenticationSchemeInternal();
 
         final DeviceCodeFlowCommandParameters commandParameters = DeviceCodeFlowCommandParameters.builder()
@@ -217,7 +221,7 @@ public class CommandParametersAdapter {
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .authenticationScheme(authenticationScheme)
                 .scopes(new HashSet<>(Arrays.asList(scopes)))
-                .authority(configuration.getDefaultAuthority())
+                .authority(authority)
                 .build();
 
         return commandParameters;
