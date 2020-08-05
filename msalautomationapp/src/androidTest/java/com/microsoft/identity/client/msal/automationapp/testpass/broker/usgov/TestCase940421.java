@@ -47,6 +47,7 @@ import java.util.concurrent.CountDownLatch;
 
 // Interactive token acquisition with instance_aware=true and with custom claims request requiring
 // device auth {"access_token":{"deviceid":{"essential":true}}}
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/940421
 public class TestCase940421 extends AbstractMsalBrokerTest {
 
     @Test

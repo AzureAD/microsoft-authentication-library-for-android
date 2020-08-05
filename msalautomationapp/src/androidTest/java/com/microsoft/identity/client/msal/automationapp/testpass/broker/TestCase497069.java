@@ -45,6 +45,7 @@ import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
 // Broker Auth for non-joined account - select_account
+// https://identitydivision.visualstudio.com/DefaultCollection/DevEx/_workitems/edit/497069
 public class TestCase497069 extends AbstractMsalBrokerTest {
 
     @Test

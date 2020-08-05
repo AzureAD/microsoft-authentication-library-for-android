@@ -43,6 +43,7 @@ import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
 // Silent Auth with force_refresh
+// https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99563
 public class TestCase99563 extends AbstractMsalUiTest {
 
     @Test

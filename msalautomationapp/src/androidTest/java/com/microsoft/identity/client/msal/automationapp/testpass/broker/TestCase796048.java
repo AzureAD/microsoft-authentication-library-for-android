@@ -26,15 +26,15 @@ import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
+import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
@@ -44,6 +44,7 @@ import org.junit.Test;
 import java.util.concurrent.CountDownLatch;
 
 // [MSAL] SovCloud: Silent Auth w/o cache w/o MFA w/ Prompt Auto  w/ Broker
+// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/796048
 public class TestCase796048 extends AbstractMsalBrokerTest {
 
     @Test
@@ -86,6 +87,10 @@ public class TestCase796048 extends AbstractMsalBrokerTest {
 
         interactiveRequest.execute();
         latch.await();
+
+        // now expire AT
+
+        TestContext.getTestContext().getTestDevice().getSettings().changeDeviceTime();
 
         // SILENT REQUEST
 

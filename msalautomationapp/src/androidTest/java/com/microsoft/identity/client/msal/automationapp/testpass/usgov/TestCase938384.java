@@ -43,6 +43,7 @@ import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
 // Interactive token acquisition with instance_aware=false and USGov authority
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938384
 public class TestCase938384 extends AbstractMsalUiTest {
 
     @Test

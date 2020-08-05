@@ -42,6 +42,7 @@ import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
 // Interactive Auth with select_account (no consent record)
+// https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99267
 public class TestCase99267 extends AbstractMsalUiTest {
 
     @Test

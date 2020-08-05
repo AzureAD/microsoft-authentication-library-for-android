@@ -44,6 +44,7 @@ import java.util.concurrent.CountDownLatch;
 
 // Interactive token acquisition with instance_aware=true, login hint present, and cloud account,
 // and WW organizations authority
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938367
 public class TestCase938367 extends AbstractMsalUiTest {
 
     @Test

@@ -45,6 +45,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 // Cross Apps SSO with System Browser
+// https://identitydivision.visualstudio.com/DefaultCollection/DevEx/_workitems/edit/497038
 public class TestCase497038 extends AbstractMsalUiTest {
 
     @Test

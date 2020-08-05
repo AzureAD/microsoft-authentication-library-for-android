@@ -46,6 +46,7 @@ import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
 // Silent token acquisition with unexpired RT with USGov authority
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938383
 public class TestCase938383 extends AbstractMsalUiTest {
 
     @Test

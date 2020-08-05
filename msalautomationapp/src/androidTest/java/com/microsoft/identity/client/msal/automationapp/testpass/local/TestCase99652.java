@@ -42,6 +42,7 @@ import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
 // Interactive auth with force_login for managed account(with consent record)
+// https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99652
 public class TestCase99652 extends AbstractMsalUiTest {
 
     @Test

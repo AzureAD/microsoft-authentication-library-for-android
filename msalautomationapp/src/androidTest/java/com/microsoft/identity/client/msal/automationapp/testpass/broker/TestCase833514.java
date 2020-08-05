@@ -49,6 +49,8 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
+// End My Shift - In Shared device mode, an account signed in through App A can be used by App B.
+// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833514
 public class TestCase833514 extends AbstractMsalBrokerTest {
 
     @Test

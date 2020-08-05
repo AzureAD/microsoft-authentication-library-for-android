@@ -43,6 +43,7 @@ import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
 // Interactive auth with force_login and step-up MFA
+// https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99656
 public class TestCase99656 extends AbstractMsalUiTest {
 
     @Test

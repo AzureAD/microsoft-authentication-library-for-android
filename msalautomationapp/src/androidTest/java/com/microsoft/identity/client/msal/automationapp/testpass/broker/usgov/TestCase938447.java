@@ -44,6 +44,7 @@ import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
 // Broker authentication with PRT with USGov account
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938447
 public class TestCase938447 extends AbstractMsalBrokerTest {
 
     @Test
