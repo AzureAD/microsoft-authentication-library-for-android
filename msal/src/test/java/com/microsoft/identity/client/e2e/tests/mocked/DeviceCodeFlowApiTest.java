@@ -30,7 +30,6 @@ import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowDeviceCodeFlowCommandAuthError;
 import com.microsoft.identity.client.e2e.shadows.ShadowDeviceCodeFlowCommandSuccessful;
 import com.microsoft.identity.client.e2e.shadows.ShadowDeviceCodeFlowCommandTokenError;
-import com.microsoft.identity.client.e2e.shadows.ShadowHttpRequestForMockedTest;
 import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest;
 import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
@@ -73,37 +72,15 @@ import static com.microsoft.identity.internal.testutils.TestConstants.Configurat
 @Config(shadows = {ShadowMsalUtils.class})
 public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
-    private MicrosoftStsAuthorizationRequest.Builder mBuilder;
     private String mUrlBody;
-    private OAuth2Strategy mStrategy;
-    private MicrosoftStsTokenRequest mTokenRequest;
     private boolean mUserCodeReceived;
 
     @Before
     public void setup() {
         super.setup();
 
-        // getDeviceCode() testing variables
         final PublicClientApplicationConfiguration config = mApplication.getConfiguration();
         mUrlBody = ((AzureActiveDirectoryAuthority) config.getAuthorities().get(0)).getAudience().getCloudUrl();
-        mBuilder = new MicrosoftStsAuthorizationRequest.Builder();
-        mBuilder.setClientId(config.getClientId())
-                .setScope("user.read")
-                .setState("State!");
-
-        final OAuth2StrategyParameters options = new OAuth2StrategyParameters();
-        mStrategy = new AzureActiveDirectoryOAuth2Strategy(
-                new AzureActiveDirectoryOAuth2Configuration(),
-                options
-        );
-
-        // token request testing variable
-        mTokenRequest = new MicrosoftStsTokenRequest();
-        mTokenRequest.setCodeVerifier("");
-        mTokenRequest.setCorrelationId(UUID.fromString("a-b-c-d-e"));
-        mTokenRequest.setClientId(config.getClientId());
-        mTokenRequest.setGrantType(TokenRequest.GrantTypes.DEVICE_CODE);
-        mTokenRequest.setRedirectUri(config.getRedirectUri());
     }
 
     @Override
@@ -116,8 +93,15 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
     //===========================================================================================================
     @Test
     public void testGetDeviceCodeSuccessResult() throws IOException {
-        final MicrosoftStsAuthorizationRequest authorizationRequest = mBuilder.build();
-        final AuthorizationResult authorizationResult = mStrategy.getDeviceCode(authorizationRequest, mUrlBody);
+        final OAuth2StrategyParameters options = new OAuth2StrategyParameters();
+        final OAuth2Strategy strategy = new AzureActiveDirectoryOAuth2Strategy(
+                new AzureActiveDirectoryOAuth2Configuration(),
+                options
+        );
+
+        final MicrosoftStsAuthorizationRequest.Builder builder = createMockAuthorizationRequestBuilder();
+        final MicrosoftStsAuthorizationRequest authorizationRequest = builder.build();
+        final AuthorizationResult authorizationResult = strategy.getDeviceCode(authorizationRequest, mUrlBody);
         final MicrosoftStsAuthorizationResponse authorizationResponse = (MicrosoftStsAuthorizationResponse) authorizationResult.getAuthorizationResponse();
 
         Assert.assertTrue(authorizationResult.getSuccess());
@@ -135,8 +119,15 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
     @Test
     public void testGetDeviceCodeFailureNoClientId() throws IOException {
-        final MicrosoftStsAuthorizationRequest authorizationRequest = mBuilder.setClientId(null).build();
-        final AuthorizationResult authorizationResult = mStrategy.getDeviceCode(authorizationRequest, mUrlBody);
+        final OAuth2StrategyParameters options = new OAuth2StrategyParameters();
+        final OAuth2Strategy strategy = new AzureActiveDirectoryOAuth2Strategy(
+                new AzureActiveDirectoryOAuth2Configuration(),
+                options
+        );
+
+        final MicrosoftStsAuthorizationRequest.Builder builder = createMockAuthorizationRequestBuilder();
+        final MicrosoftStsAuthorizationRequest authorizationRequest = builder.setClientId(null).build();
+        final AuthorizationResult authorizationResult = strategy.getDeviceCode(authorizationRequest, mUrlBody);
         final MicrosoftStsAuthorizationErrorResponse authorizationErrorResponse = (MicrosoftStsAuthorizationErrorResponse) authorizationResult.getAuthorizationErrorResponse();
 
         Assert.assertFalse(authorizationResult.getSuccess());
@@ -148,8 +139,15 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
     @Test
     public void testGetDeviceCodeFailureNoScope() throws IOException {
-        final MicrosoftStsAuthorizationRequest authorizationRequest = mBuilder.setScope(null).build();
-        final AuthorizationResult authorizationResult = mStrategy.getDeviceCode(authorizationRequest, mUrlBody);
+        final OAuth2StrategyParameters options = new OAuth2StrategyParameters();
+        final OAuth2Strategy strategy = new AzureActiveDirectoryOAuth2Strategy(
+                new AzureActiveDirectoryOAuth2Configuration(),
+                options
+        );
+
+        final MicrosoftStsAuthorizationRequest.Builder builder = createMockAuthorizationRequestBuilder();
+        final MicrosoftStsAuthorizationRequest authorizationRequest = builder.setScope(null).build();
+        final AuthorizationResult authorizationResult = strategy.getDeviceCode(authorizationRequest, mUrlBody);
         final MicrosoftStsAuthorizationErrorResponse authorizationErrorResponse = (MicrosoftStsAuthorizationErrorResponse) authorizationResult.getAuthorizationErrorResponse();
 
         Assert.assertFalse(authorizationResult.getSuccess());
@@ -161,8 +159,15 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
     @Test
     public void testGetDeviceCodeFailureBadScope() throws IOException {
-        final MicrosoftStsAuthorizationRequest authorizationRequest = mBuilder.setScope("/").build();
-        final AuthorizationResult authorizationResult = mStrategy.getDeviceCode(authorizationRequest, mUrlBody);
+        final OAuth2StrategyParameters options = new OAuth2StrategyParameters();
+        final OAuth2Strategy strategy = new AzureActiveDirectoryOAuth2Strategy(
+                new AzureActiveDirectoryOAuth2Configuration(),
+                options
+        );
+
+        final MicrosoftStsAuthorizationRequest.Builder builder = createMockAuthorizationRequestBuilder();
+        final MicrosoftStsAuthorizationRequest authorizationRequest = builder.setScope("/").build();
+        final AuthorizationResult authorizationResult = strategy.getDeviceCode(authorizationRequest, mUrlBody);
         final MicrosoftStsAuthorizationErrorResponse authorizationErrorResponse = (MicrosoftStsAuthorizationErrorResponse) authorizationResult.getAuthorizationErrorResponse();
 
         Assert.assertFalse(authorizationResult.getSuccess());
@@ -170,6 +175,16 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
         Assert.assertNotNull(authorizationErrorResponse);
         Assert.assertEquals(ErrorStrings.INVALID_SCOPE, authorizationErrorResponse.getError());
+    }
+
+    private MicrosoftStsAuthorizationRequest.Builder createMockAuthorizationRequestBuilder() {
+        final PublicClientApplicationConfiguration config = mApplication.getConfiguration();
+        final MicrosoftStsAuthorizationRequest.Builder builder = new MicrosoftStsAuthorizationRequest.Builder();
+        builder.setClientId(config.getClientId())
+                .setScope("user.read")
+                .setState("State!");
+
+        return builder;
     }
 
     //===========================================================================================================
@@ -182,7 +197,9 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
         final OAuth2StrategyParameters options = new OAuth2StrategyParameters();
         final OAuth2Strategy strategy = new MicrosoftStsOAuth2Strategy(config, options);
 
-        final TokenResult tokenResult = strategy.requestToken(mTokenRequest);
+        final MicrosoftStsTokenRequest tokenRequest = createMockTokenRequest();
+
+        final TokenResult tokenResult = strategy.requestToken(tokenRequest);
         Assert.assertNull(tokenResult.getTokenResponse());
         Assert.assertNotNull(tokenResult.getErrorResponse());
         Assert.assertEquals(ErrorStrings.INVALID_REQUEST, tokenResult.getErrorResponse().getError());
@@ -195,47 +212,35 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
         final OAuth2StrategyParameters options = new OAuth2StrategyParameters();
         final OAuth2Strategy strategy = new MicrosoftStsOAuth2Strategy(config, options);
 
+        final MicrosoftStsTokenRequest tokenRequest = createMockTokenRequest();
+
         // Previously authenticated code
-        mTokenRequest.setDeviceCode(
+        tokenRequest.setDeviceCode(
                 "AAQABAAEAAAAm-06blBE1TpVMil8KPQ41e5vDLI7te0y-3XHYO_uurPryAiyBiPiKnjEVzAQZQzCyGZERne4a" +
                         "IwYAiBlQ8an93ENYuVOO-vEAt48FEJSEMQqq-zHZVD59bkc6eYIAViZKVvTv5_qilKj4uEjVE9BGkIxY5B6Uq1K8oWHEqzH-w6CiWjC8vQc6mSV_FPCbnAggAA");
 
-        final TokenResult tokenResult = strategy.requestToken(mTokenRequest);
+        final TokenResult tokenResult = strategy.requestToken(tokenRequest);
         Assert.assertNull(tokenResult.getTokenResponse());
         Assert.assertNotNull(tokenResult.getErrorResponse());
-        Assert.assertEquals(ErrorStrings.DEVICE_CODE_FLOW_EXPIRED_TOKEN_CODE, tokenResult.getErrorResponse().getError());
+        Assert.assertEquals(ErrorStrings.DEVICE_CODE_FLOW_EXPIRED_TOKEN_ERROR_CODE, tokenResult.getErrorResponse().getError());
     }
 
-    // A device code that has not yet been registered leads to invalid_grant, not bad_verification_code
-//    @Test
-//    public void testDeviceCodeFlowTokenBadVerificationCode() throws IOException, ClientException {
-//        final MicrosoftStsOAuth2Configuration config = new MicrosoftStsOAuth2Configuration();
-//        config.setAuthorityUrl(new URL(mUrlBody));
-//        final OAuth2StrategyParameters options = new OAuth2StrategyParameters();
-//        final OAuth2Strategy strategy = new MicrosoftStsOAuth2Strategy(config, options);
-//        mTokenRequest.setDeviceCode(
-//                "AAQABAAEAAAAm-06blBE1TpVMil8KPQ41e5vDLI7te0y-3XHYO_uurPryAiyBiPiKnjEVzAQZQzCyGZERne4a" +
-//                        "IwYAiBlQ8an93ENYuVOO-vEAt48FEJSEMQqq-zHZVD59bkc6eYIAViZKVvTv5_qilKj4uEjVE9BGkIxY5B6Uq1K8oWHEqzH-w6CiWjC8vQc6mSV_FPCbnAggBA");
-//
-//        final TokenResult tokenResult = strategy.requestToken(mTokenRequest);
-//        Assert.assertNull(tokenResult.getTokenResponse());
-//        Assert.assertNotNull(tokenResult.getErrorResponse());
-//        Assert.assertEquals(ErrorStrings.DEVICE_CODE_FLOW_BAD_VERIFICATION_CODE, tokenResult.getErrorResponse().getError());
-//    }
+    /**
+     * Helper function to create a mock token request.
+     * @return a token request.
+     */
+    private MicrosoftStsTokenRequest createMockTokenRequest() {
+        final PublicClientApplicationConfiguration config = mApplication.getConfiguration();
 
-    // authorization_declined is triggered in the actual auth side
-//    @Test
-//    public void testDeviceCodeFlowTokenAuthorizationDeclined() throws IOException, ClientException {
-//        final MicrosoftStsOAuth2Configuration config = new MicrosoftStsOAuth2Configuration();
-//        config.setAuthorityUrl(new URL(mUrlBody));
-//        final OAuth2StrategyParameters options = new OAuth2StrategyParameters();
-//        final OAuth2Strategy strategy = new MicrosoftStsOAuth2Strategy(config, options);
-//
-//        final TokenResult tokenResult = strategy.requestToken(mTokenRequest);
-//        Assert.assertNull(tokenResult.getTokenResponse());
-//        Assert.assertNotNull(tokenResult.getErrorResponse());
-//        Assert.assertEquals(ErrorStrings.DEVICE_CODE_FLOW_AUTHORIZATION_DECLINED_CODE, tokenResult.getErrorResponse().getError());
-//    }
+        final MicrosoftStsTokenRequest tokenRequest = new MicrosoftStsTokenRequest();
+        tokenRequest.setCodeVerifier("");
+        tokenRequest.setCorrelationId(UUID.fromString("a-b-c-d-e"));
+        tokenRequest.setClientId(config.getClientId());
+        tokenRequest.setGrantType(TokenRequest.GrantTypes.DEVICE_CODE);
+        tokenRequest.setRedirectUri(config.getRedirectUri());
+
+        return tokenRequest;
+    }
 
     //===========================================================================================================
     // API-Side Testing
@@ -290,7 +295,7 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
             public void onError(@NonNull MsalException error) {
                 // Handle Exception
                 Assert.assertTrue(mUserCodeReceived);
-                Assert.assertEquals(ErrorStrings.DEVICE_CODE_FLOW_EXPIRED_TOKEN_CODE, error.getErrorCode());
+                Assert.assertEquals(ErrorStrings.DEVICE_CODE_FLOW_EXPIRED_TOKEN_ERROR_CODE, error.getErrorCode());
             }
         });
 

@@ -47,6 +47,6 @@ public class ShadowDeviceCodeFlowCommandTokenError {
                 "ABCDEFGH",
                 "Follow these instructions to authenticate.");
 
-        throw new ServiceException(ErrorStrings.DEVICE_CODE_FLOW_EXPIRED_TOKEN_CODE, "The device_code expired. No need to continue polling for the token (expired token).", null);
+        throw new ServiceException(ErrorStrings.DEVICE_CODE_FLOW_EXPIRED_TOKEN_ERROR_CODE, "The device_code expired. No need to continue polling for the token (expired token).", null);
     }
 }
