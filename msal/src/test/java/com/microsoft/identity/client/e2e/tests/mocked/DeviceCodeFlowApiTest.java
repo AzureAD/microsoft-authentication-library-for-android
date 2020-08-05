@@ -177,6 +177,10 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
         Assert.assertEquals(ErrorStrings.INVALID_SCOPE, authorizationErrorResponse.getError());
     }
 
+    /**
+     * Helper function to create a mock authorization request builder
+     * @return builder object
+     */
     private MicrosoftStsAuthorizationRequest.Builder createMockAuthorizationRequestBuilder() {
         final PublicClientApplicationConfiguration config = mApplication.getConfiguration();
         final MicrosoftStsAuthorizationRequest.Builder builder = new MicrosoftStsAuthorizationRequest.Builder();
