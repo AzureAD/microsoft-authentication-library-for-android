@@ -202,8 +202,7 @@ public class CommandParametersAdapter {
 
         // TODO: Consider implementing support for PoP
 
-        final String uri = ((AzureActiveDirectoryAuthority) configuration.getAuthorities().get(0)).getAudience().getCloudUrl();
-        final Authority authority = Authority.getAuthorityFromAuthorityUrl(uri);
+        final Authority authority = configuration.getDefaultAuthority();
 
         final AbstractAuthenticationScheme authenticationScheme = new BearerAuthenticationSchemeInternal();
 

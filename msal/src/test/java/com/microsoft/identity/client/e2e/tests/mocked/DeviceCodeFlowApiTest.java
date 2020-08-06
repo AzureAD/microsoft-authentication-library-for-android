@@ -36,13 +36,9 @@ import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
-import com.microsoft.identity.common.internal.authorities.Authority;
-import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationErrorResponse;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationResponse;
-import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Configuration;
-import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsOAuth2Strategy;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsTokenRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResult;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
@@ -58,7 +54,6 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.UUID;
 
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.SINGLE_ACCOUNT_DCF_TEST_CONFIG_FILE_PATH;
@@ -71,15 +66,11 @@ import static com.microsoft.identity.internal.testutils.TestConstants.Configurat
 @Config(shadows = {ShadowMsalUtils.class})
 public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
-    private String mUrlBody;
     private boolean mUserCodeReceived;
 
     @Before
     public void setup() {
         super.setup();
-
-        final PublicClientApplicationConfiguration config = mApplication.getConfiguration();
-        mUrlBody = ((AzureActiveDirectoryAuthority) config.getAuthorities().get(0)).getAudience().getCloudUrl();
     }
 
     @Override
@@ -92,9 +83,9 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
     //===========================================================================================================
     @Test
     public void testGetDeviceCodeSuccessResult() throws IOException, ClientException {
-        final Authority authority = Authority.getAuthorityFromAuthorityUrl(mUrlBody);
         final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
-        final OAuth2Strategy strategy = authority.createOAuth2Strategy(strategyParameters);
+        final PublicClientApplicationConfiguration config = mApplication.getConfiguration();
+        final OAuth2Strategy strategy = config.getDefaultAuthority().createOAuth2Strategy(strategyParameters);
 
         final MicrosoftStsAuthorizationRequest.Builder builder = createMockAuthorizationRequestBuilder();
         final MicrosoftStsAuthorizationRequest authorizationRequest = builder.build();
@@ -116,9 +107,9 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
     @Test
     public void testGetDeviceCodeFailureNoClientId() throws IOException, ClientException {
-        final Authority authority = Authority.getAuthorityFromAuthorityUrl(mUrlBody);
         final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
-        final OAuth2Strategy strategy = authority.createOAuth2Strategy(strategyParameters);
+        final PublicClientApplicationConfiguration config = mApplication.getConfiguration();
+        final OAuth2Strategy strategy = config.getDefaultAuthority().createOAuth2Strategy(strategyParameters);
 
         final MicrosoftStsAuthorizationRequest.Builder builder = createMockAuthorizationRequestBuilder();
         final MicrosoftStsAuthorizationRequest authorizationRequest = builder.setClientId(null).build();
@@ -134,9 +125,9 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
     @Test
     public void testGetDeviceCodeFailureNoScope() throws IOException, ClientException {
-        final Authority authority = Authority.getAuthorityFromAuthorityUrl(mUrlBody);
         final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
-        final OAuth2Strategy strategy = authority.createOAuth2Strategy(strategyParameters);
+        final PublicClientApplicationConfiguration config = mApplication.getConfiguration();
+        final OAuth2Strategy strategy = config.getDefaultAuthority().createOAuth2Strategy(strategyParameters);
 
         final MicrosoftStsAuthorizationRequest.Builder builder = createMockAuthorizationRequestBuilder();
         final MicrosoftStsAuthorizationRequest authorizationRequest = builder.setScope(null).build();
@@ -152,9 +143,9 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
     @Test
     public void testGetDeviceCodeFailureBadScope() throws IOException, ClientException {
-        final Authority authority = Authority.getAuthorityFromAuthorityUrl(mUrlBody);
         final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
-        final OAuth2Strategy strategy = authority.createOAuth2Strategy(strategyParameters);
+        final PublicClientApplicationConfiguration config = mApplication.getConfiguration();
+        final OAuth2Strategy strategy = config.getDefaultAuthority().createOAuth2Strategy(strategyParameters);
 
         final MicrosoftStsAuthorizationRequest.Builder builder = createMockAuthorizationRequestBuilder();
         final MicrosoftStsAuthorizationRequest authorizationRequest = builder.setScope("/").build();
@@ -187,10 +178,9 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
     //===========================================================================================================x
     @Test
     public void testDeviceCodeFlowTokenInvalidRequest() throws IOException, ClientException {
-        final MicrosoftStsOAuth2Configuration config = new MicrosoftStsOAuth2Configuration();
-        config.setAuthorityUrl(new URL(mUrlBody));
-        final OAuth2StrategyParameters options = new OAuth2StrategyParameters();
-        final OAuth2Strategy strategy = new MicrosoftStsOAuth2Strategy(config, options);
+        final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
+        final PublicClientApplicationConfiguration config = mApplication.getConfiguration();
+        final OAuth2Strategy strategy = config.getDefaultAuthority().createOAuth2Strategy(strategyParameters);
 
         final MicrosoftStsTokenRequest tokenRequest = createMockTokenRequest();
 
@@ -202,10 +192,9 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
     @Test
     public void testDeviceCodeFlowTokenExpiredToken() throws IOException, ClientException {
-        final MicrosoftStsOAuth2Configuration config = new MicrosoftStsOAuth2Configuration();
-        config.setAuthorityUrl(new URL(mUrlBody));
-        final OAuth2StrategyParameters options = new OAuth2StrategyParameters();
-        final OAuth2Strategy strategy = new MicrosoftStsOAuth2Strategy(config, options);
+        final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
+        final PublicClientApplicationConfiguration config = mApplication.getConfiguration();
+        final OAuth2Strategy strategy = config.getDefaultAuthority().createOAuth2Strategy(strategyParameters);
 
         final MicrosoftStsTokenRequest tokenRequest = createMockTokenRequest();
 
