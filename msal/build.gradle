@@ -278,10 +278,13 @@ publishing {
 
 tasks.whenTaskAdded { task ->
     if (task.name.contains('assemble')) {
-        task.dependsOn 'checkstyle', 'pmd', 'lint'
+        task.dependsOn 'checkstyle', 'pmd'
     }
 
-    if (task.name.contains('assemble') && !task.name.contains('Snapshot') && !task.name.contains('Test')) {
-        task.dependsOn 'javadocJar', 'sourcesJar'
+    if (task.name.contains('assemble')
+        && !task.name.contains('Snapshot')
+        && !task.name.contains('Test')
+        && !task.name.contains('Local')) {
+        task.dependsOn 'lint', 'javadocJar', 'sourcesJar'
     }
 }
