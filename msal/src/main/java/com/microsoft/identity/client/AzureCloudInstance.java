@@ -38,7 +38,7 @@ public enum AzureCloudInstance {
     AzureChina("https://login.partner.microsoftonline.cn"),
 
     /**
-     * Microsoft German national cloud (“Black Forest”). Maps to https://login.microsoftonline.de
+     * Microsoft German national cloud ("Black Forest"). Maps to https://login.microsoftonline.de
      */
     AzureGermany("https://login.microsoftonline.de"),
 
