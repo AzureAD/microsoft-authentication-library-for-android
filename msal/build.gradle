@@ -277,7 +277,7 @@ publishing {
 }
 
 tasks.whenTaskAdded { task ->
-    if (task.name == 'assembleDebug' || task.name == 'assembleRelease') {
+    if (task.name == 'assembleDebug' || task.name == 'assembleRelease' || task.name == 'assembleDistRelease') {
         task.dependsOn 'checkstyle', 'pmd', 'lint', 'javadocJar', 'sourcesJar'
     }
 }
