@@ -180,6 +180,8 @@ public interface IPublicClientApplication {
      * via {@link DeviceCodeFlowCallback#onTokenReceived(AuthenticationResult)}.
      * 3). Receiving an exception detailing what went wrong in the protocol
      * via {@link DeviceCodeFlowCallback#onError(MsalException)}.
+     *
+     * Refer to {@link PublicClientApplication#acquireTokenWithDeviceCode(String[], DeviceCodeFlowCallback)}.
      */
     interface DeviceCodeFlowCallback {
         /**
@@ -189,7 +191,7 @@ public interface IPublicClientApplication {
          * @param userCode user code
          * @param message instruction message
          */
-        void onUserCodeReceived(@NonNull String vUri, @NonNull String userCode, @NonNull String message);
+        void onUserCodeReceived(@NonNull final String vUri, @NonNull final String userCode, @NonNull final String message);
 
         /**
          * Invoked once token is received and passes the {@link AuthenticationResult} object.

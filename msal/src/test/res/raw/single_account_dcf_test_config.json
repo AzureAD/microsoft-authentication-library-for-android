@@ -6,7 +6,10 @@
   "authorities": [
     {
       "type": "AAD",
-      "authority_url": "https://login.microsoftonline.com/2d94acaa-ef23-4d35-9678-8995364ac965"
+      "audience": {
+        "type": "AzureADMyOrg",
+        "tenant_id": "2d94acaa-ef23-4d35-9678-8995364ac965"
+      }
     }
   ]
 }
