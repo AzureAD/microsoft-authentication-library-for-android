@@ -28,10 +28,10 @@ import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
+import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
@@ -127,6 +127,10 @@ public class TestCase796050 extends AbstractMsalBrokerTest {
 
         final UiObject account2 = UiAutomatorUtils.obtainUiObjectWithText(username2);
         Assert.assertTrue(account2.exists()); // make sure account 2 is there
+
+        // NOW change device time (advance clock by more than an hour)
+
+        TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
 
         // SILENT REQUEST - start a acquireTokenSilent request in MSAL with the Account 2
 
