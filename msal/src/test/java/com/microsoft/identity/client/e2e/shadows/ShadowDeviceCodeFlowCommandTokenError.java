@@ -22,7 +22,8 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.shadows;
 
-import com.microsoft.identity.client.exception.MsalServiceException;
+import com.microsoft.identity.common.exception.ErrorStrings;
+import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommandCallback;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
@@ -46,6 +47,6 @@ public class ShadowDeviceCodeFlowCommandTokenError {
                 "ABCDEFGH",
                 "Follow these instructions to authenticate.");
 
-        throw new MsalServiceException("expired_token", "This exception reflects an error in the token polling step in Device Code Flow (expired token).", null);
+        throw new ServiceException(ErrorStrings.DEVICE_CODE_FLOW_EXPIRED_TOKEN_ERROR_CODE, "The device_code expired. No need to continue polling for the token (expired token).", null);
     }
 }

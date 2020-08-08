@@ -201,6 +201,9 @@ public class CommandParametersAdapter {
             @NonNull String[] scopes){
 
         // TODO: Consider implementing support for PoP
+
+        final Authority authority = configuration.getDefaultAuthority();
+
         final AbstractAuthenticationScheme authenticationScheme = new BearerAuthenticationSchemeInternal();
 
         final DeviceCodeFlowCommandParameters commandParameters = DeviceCodeFlowCommandParameters.builder()
@@ -217,7 +220,7 @@ public class CommandParametersAdapter {
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .authenticationScheme(authenticationScheme)
                 .scopes(new HashSet<>(Arrays.asList(scopes)))
-                .authority(configuration.getDefaultAuthority())
+                .authority(authority)
                 .build();
 
         return commandParameters;
