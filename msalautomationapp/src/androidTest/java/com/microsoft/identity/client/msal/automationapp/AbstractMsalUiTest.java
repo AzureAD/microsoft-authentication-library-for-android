@@ -254,7 +254,7 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest {
 
             @Override
             public void onError(MsalException exception) {
-                junit.framework.Assert.fail(exception.getMessage());
+                Assert.fail(exception.getMessage());
                 latch.countDown();
             }
         };
