@@ -90,7 +90,7 @@ public class TestCase796048 extends AbstractMsalBrokerTest {
 
         // now expire AT
 
-        TestContext.getTestContext().getTestDevice().getSettings().changeDeviceTime();
+        TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
 
         // SILENT REQUEST
 

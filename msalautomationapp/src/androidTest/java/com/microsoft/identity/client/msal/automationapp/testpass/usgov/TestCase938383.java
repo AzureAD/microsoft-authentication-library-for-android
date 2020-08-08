@@ -32,7 +32,6 @@ import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveR
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.app.IApp;
-import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
@@ -90,7 +89,7 @@ public class TestCase938383 extends AbstractMsalUiTest {
         latch.await();
 
         // change the time on the device
-        TestContext.getTestContext().getTestDevice().getSettings().changeDeviceTime();
+        TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
 
         final CountDownLatch silentLatch = new CountDownLatch(1);
 
