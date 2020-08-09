@@ -24,12 +24,13 @@ package com.microsoft.identity.client.msal.automationapp.testpass.usgov;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.msal.automationapp.AbstractAcquireTokenNetworkTest;
+import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
+import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
-import com.microsoft.identity.client.ui.automation.interaction.AadPromptHandler;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
@@ -43,7 +44,8 @@ import java.util.concurrent.CountDownLatch;
 
 // Interactive token acquisition with instance_aware=true, login hint present, and federated account,
 // and WW common authority
-public class TestCase938368 extends AbstractAcquireTokenNetworkTest {
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938368
+public class TestCase938368 extends AbstractMsalUiTest {
 
     @Test
     public void test_938368() throws InterruptedException {
@@ -64,14 +66,14 @@ public class TestCase938368 extends AbstractAcquireTokenNetworkTest {
                 new OnInteractionRequired() {
                     @Override
                     public void handleUserInteraction() {
-                        mBrowser.handleFirstRun();
+                        ((IApp) mBrowser).handleFirstRun();
 
                         final String username = mLoginHint;
                         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHintProvided(true)
+                                .loginHint(mLoginHint)
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
@@ -107,11 +109,6 @@ public class TestCase938368 extends AbstractAcquireTokenNetworkTest {
     @Override
     public String getAuthority() {
         return mApplication.getConfiguration().getDefaultAuthority().toString();
-    }
-
-    @Override
-    public ITestBroker getBroker() {
-        return null;
     }
 
     @Override

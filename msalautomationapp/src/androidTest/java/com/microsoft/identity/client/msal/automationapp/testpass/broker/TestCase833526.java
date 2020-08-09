@@ -1,28 +1,26 @@
-//  Copyright (c) Microsoft Corporation.
-//  All rights reserved.
+// Copyright (c) Microsoft Corporation.
+// All rights reserved.
 //
-//  This code is licensed under the MIT License.
+// This code is licensed under the MIT License.
 //
-//  Permission is hereby granted, free of charge, to any person obtaining a copy
-//  of this software and associated documentation files(the "Software"), to deal
-//  in the Software without restriction, including without limitation the rights
-//  to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
-//  copies of the Software, and to permit persons to whom the Software is
-//  furnished to do so, subject to the following conditions :
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files(the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions :
 //
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-//  THE SOFTWARE.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
-
-import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
@@ -30,11 +28,14 @@ import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
+import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
+import com.microsoft.identity.client.ui.automation.broker.IMdmAgent;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.client.ui.automation.interaction.UiResponse;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
@@ -44,32 +45,34 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
-// Broker Auth for non-joined account - select_account
-// https://identitydivision.visualstudio.com/DefaultCollection/DevEx/_workitems/edit/497069
-public class TestCase497069 extends AbstractMsalBrokerTest {
+// Broker Auth for MDM account
+// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833526
+@RetryOnFailure(retryCount = 2)
+public class TestCase833526 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_497069() throws InterruptedException {
+    public void test_833526() throws InterruptedException {
+        final String username = mLoginHint;
+        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+
         final CountDownLatch latch = new CountDownLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(mLoginHint)
+                .withLoginHint(username)
                 .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulInteractiveCallback(latch))
+                .withCallback(cancelInteractiveCallback(latch))
                 .withPrompt(Prompt.SELECT_ACCOUNT)
                 .build();
 
-
+        // start interactive token request in MSAL
+        // we expect to see enroll page as device is not enrolled
         final InteractiveRequest interactiveRequest = new InteractiveRequest(
                 mApplication,
                 parameters,
                 new OnInteractionRequired() {
                     @Override
                     public void handleUserInteraction() {
-                        final String username = mLoginHint;
-                        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
-
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.SELECT_ACCOUNT)
                                 .loginHint(username)
@@ -78,6 +81,9 @@ public class TestCase497069 extends AbstractMsalBrokerTest {
                                 .speedBumpExpected(false)
                                 .broker(getBroker())
                                 .expectingBrokerAccountChooserActivity(false)
+                                .enrollPageExpected(true)
+                                // cancel enroll here to short circuit as enroll will be started manually from CP anyway
+                                .enrollPageResponse(UiResponse.DECLINE)
                                 .build();
 
                         new AadPromptHandler(promptHandlerParameters)
@@ -89,35 +95,41 @@ public class TestCase497069 extends AbstractMsalBrokerTest {
         interactiveRequest.execute();
         latch.await();
 
-        // SECOND REQUEST WITHOUT LOGIN HINT
+        // enroll device with CP
 
-        final CountDownLatch latchNoLoginHint = new CountDownLatch(1);
+        final IMdmAgent mdmAgent = (IMdmAgent) mBroker;
+        mdmAgent.enrollDevice(username, password);
 
-        final AcquireTokenParameters parametersNoLoginHint = new AcquireTokenParameters.Builder()
+        // SECOND REQUEST WITH LOGIN HINT
+
+        final CountDownLatch latchTryAcquireAgain = new CountDownLatch(1);
+
+        // try another interactive token request in MSAL
+        // we should not see enroll page and request should succeed as device is already enrolled
+        final AcquireTokenParameters parametersTryAcquireAgain = new AcquireTokenParameters.Builder()
+                .withLoginHint(username)
                 .startAuthorizationFromActivity(mActivity)
                 .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulInteractiveCallback(latchNoLoginHint))
+                .withCallback(successfulInteractiveCallback(latchTryAcquireAgain))
                 .withPrompt(Prompt.SELECT_ACCOUNT)
                 .build();
 
 
-        final InteractiveRequest interactiveRequestNoLoginHint = new InteractiveRequest(
+        final InteractiveRequest interactiveRequestTryAgain = new InteractiveRequest(
                 mApplication,
-                parametersNoLoginHint,
+                parametersTryAcquireAgain,
                 new OnInteractionRequired() {
                     @Override
                     public void handleUserInteraction() {
-                        final String username = mLoginHint;
-                        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
-
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHint(null)
+                                .loginHint(username)
                                 .sessionExpected(true)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
                                 .broker(getBroker())
                                 .expectingBrokerAccountChooserActivity(true)
+                                .enrollPageExpected(false)
                                 .build();
 
                         new AadPromptHandler(promptHandlerParameters)
@@ -126,8 +138,8 @@ public class TestCase497069 extends AbstractMsalBrokerTest {
                 }
         );
 
-        interactiveRequestNoLoginHint.execute();
-        latchNoLoginHint.await();
+        interactiveRequestTryAgain.execute();
+        latchTryAcquireAgain.await();
     }
 
 
@@ -135,6 +147,7 @@ public class TestCase497069 extends AbstractMsalBrokerTest {
     public LabUserQuery getLabUserQuery() {
         final LabUserQuery query = new LabUserQuery();
         query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CLOUD;
+        query.protectionPolicy = LabConstants.ProtectionPolicy.MDM_CA;
         return query;
     }
 
@@ -150,18 +163,16 @@ public class TestCase497069 extends AbstractMsalBrokerTest {
 
     @Override
     public String getAuthority() {
-        return mApplication.getConfiguration().getDefaultAuthority().toString();
+        return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
     }
 
-    @NonNull
     @Override
     public ITestBroker getBroker() {
-        return new BrokerMicrosoftAuthenticator();
+        return new BrokerCompanyPortal();
     }
 
     @Override
     public int getConfigFileResourceId() {
         return R.raw.msal_config_default;
     }
-
 }

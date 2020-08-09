@@ -20,7 +20,7 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.usgov;
+package com.microsoft.identity.client.msal.automationapp.testpass.local;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
@@ -28,11 +28,9 @@ import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.ui.automation.app.IApp;
-import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
@@ -42,37 +40,34 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
-// Interactive token acquisition with instance_aware=true, login hint present, and cloud account,
-// and WW organizations authority
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938367
-public class TestCase938367 extends AbstractMsalUiTest {
+// Interactive auth w/ force_login w/ MFA
+// https://identitydivision.visualstudio.com/DefaultCollection/DevEx/_workitems/edit/497044
+public class TestCase497044 extends AbstractMsalUiTest {
 
     @Test
-    public void test_938367() throws InterruptedException {
+    public void test_99652() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .withLoginHint(mLoginHint)
                 .startAuthorizationFromActivity(mActivity)
+                .withLoginHint(mLoginHint)
                 .withScopes(Arrays.asList(mScopes))
                 .withCallback(successfulInteractiveCallback(latch))
-                .withPrompt(Prompt.SELECT_ACCOUNT)
+                .withPrompt(Prompt.LOGIN)
                 .build();
 
-
+        // start interactive request in MSAL (should succeed)
         final InteractiveRequest interactiveRequest = new InteractiveRequest(
                 mApplication,
                 parameters,
                 new OnInteractionRequired() {
                     @Override
                     public void handleUserInteraction() {
-                        ((IApp) mBrowser).handleFirstRun();
-
                         final String username = mLoginHint;
                         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                                .prompt(PromptParameter.SELECT_ACCOUNT)
+                                .prompt(PromptParameter.LOGIN)
                                 .loginHint(mLoginHint)
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
@@ -89,10 +84,11 @@ public class TestCase938367 extends AbstractMsalUiTest {
         latch.await();
     }
 
+
     @Override
     public LabUserQuery getLabUserQuery() {
         final LabUserQuery query = new LabUserQuery();
-        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT;
+        query.mfa = LabConstants.Mfa.AUTO_MFA_ON_ALL;
         return query;
     }
 
@@ -113,7 +109,7 @@ public class TestCase938367 extends AbstractMsalUiTest {
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_instance_aware_organization;
+        return R.raw.msal_config_webview;
     }
 
 }

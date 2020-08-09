@@ -26,10 +26,11 @@ import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
+import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.ui.automation.interaction.AadPromptHandler;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
@@ -42,7 +43,8 @@ import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
 // Interactive auth with force_login and step-up MFA
-public class TestCase99656 extends BrokerLessMsalTest {
+// https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99656
+public class TestCase99656 extends AbstractMsalUiTest {
 
     @Test
     public void test_99656() throws InterruptedException {
@@ -68,7 +70,7 @@ public class TestCase99656 extends BrokerLessMsalTest {
 
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHintProvided(true)
+                                .loginHint(mLoginHint)
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
@@ -122,7 +124,7 @@ public class TestCase99656 extends BrokerLessMsalTest {
 
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.LOGIN)
-                                .loginHintProvided(true)
+                                .loginHint(mLoginHint)
                                 .sessionExpected(true)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
