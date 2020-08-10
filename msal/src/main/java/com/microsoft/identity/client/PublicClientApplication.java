@@ -48,6 +48,7 @@ import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.helper.BrokerHelperActivity;
 import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.CommandParametersAdapter;
+import com.microsoft.identity.common.adal.internal.BrokerRtAccessor;
 import com.microsoft.identity.common.internal.controllers.LocalMSALController;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
@@ -187,7 +188,7 @@ import static com.microsoft.identity.common.internal.util.StringUtil.isUuid;
  * </p>
  * </p>
  */
-public class PublicClientApplication implements IPublicClientApplication, ITokenShare {
+public class PublicClientApplication implements IPublicClientApplication, ITokenShare, IBrokerRtAccessor {
 
     private static final String TAG = PublicClientApplication.class.getSimpleName();
     private static final String INTERNET_PERMISSION = "android.permission.INTERNET";
@@ -219,8 +220,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     private static final String TSM_MSG_FAILED_TO_RETRIEVE
             = "Failed to retrieve FRT - see getCause() for additional Exception info";
 
+    private static final String MSG_FAILED_TO_RETRIEVE_BRT
+            = "Failed to retrieve BRT - see getCause() for additional Exception info";
+
     protected PublicClientApplicationConfiguration mPublicClientConfiguration;
     protected TokenShareUtility mTokenShareUtility;
+    protected BrokerRtAccessor mBrokerRtAccessor;
 
     //region PCA factory methods
 
@@ -1029,6 +1034,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         initializeLoggerSettings(mPublicClientConfiguration.getLoggerConfiguration());
 
         initializeTokenSharingLibrary();
+        initializeBrokerRtAccessor();
 
         mPublicClientConfiguration.checkIntentFilterAddedToAppManifestForBrokerFlow();
 
@@ -1101,6 +1107,17 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         }
     }
 
+    private void initializeBrokerRtAccessor() {
+        if (mPublicClientConfiguration.getOAuth2TokenCache() instanceof MsalOAuth2TokenCache) {
+            mBrokerRtAccessor = new BrokerRtAccessor(
+                    (MsalOAuth2TokenCache) mPublicClientConfiguration.getOAuth2TokenCache(),
+                    mPublicClientConfiguration.getAppContext()
+            );
+        } else {
+            throw new IllegalStateException("Broker RT accessor support mandates use of the MsalOAuth2TokenCache");
+        }
+    }
+
     private void setupTelemetry(@NonNull final Context context,
                                 @NonNull final PublicClientApplicationConfiguration developerConfig) {
         if (null != developerConfig.getTelemetryConfiguration()) {
@@ -1119,6 +1136,22 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 .withContext(context)
                 .defaultConfiguration(developerConfig.getTelemetryConfiguration())
                 .build();
+    }
+
+    @Override
+    public String getBrokerRt(@NonNull final String accountObjectId) throws MsalClientException {
+        validateNonNullArgument(accountObjectId, "accountObjectId");
+        validateBrokerNotInUse();
+
+        try {
+            return mBrokerRtAccessor.getBrokerRt(accountObjectId);
+        } catch (final Exception e) {
+            throw new MsalClientException(
+                    TOKEN_CACHE_ITEM_NOT_FOUND,
+                    MSG_FAILED_TO_RETRIEVE_BRT,
+                    e
+            );
+        }
     }
 
     @Override
@@ -1222,9 +1255,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     /**
      * Presents an activity that includes the package name, signature, redirect URI and manifest entry required for your application
+     *
      * @param activity
      */
-    public static void showExpectedMsalRedirectUriInfo(Activity activity){
+    public static void showExpectedMsalRedirectUriInfo(Activity activity) {
         activity.startActivity(BrokerHelperActivity.createStartIntent(activity.getApplicationContext()));
     }
 
@@ -1637,10 +1671,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         // Create a DeviceCodeFlowCommandParameters object that takes in the desired scopes and the callback object
         // Use CommandParametersAdapter
         final DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter
-                    .createDeviceCodeFlowCommandParameters(
-                            mPublicClientConfiguration,
-                            mPublicClientConfiguration.getOAuth2TokenCache(),
-                            scopes);
+                .createDeviceCodeFlowCommandParameters(
+                        mPublicClientConfiguration,
+                        mPublicClientConfiguration.getOAuth2TokenCache(),
+                        scopes);
 
         // Create a CommandCallback object from the DeviceCodeFlowCallback object
         final DeviceCodeFlowCommandCallback deviceCodeFlowCommandCallback = getDeviceCodeFlowCommandCallback(callback);
@@ -1732,7 +1766,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     private DeviceCodeFlowCommandCallback getDeviceCodeFlowCommandCallback(@NonNull final DeviceCodeFlowCallback callback) {
         return new DeviceCodeFlowCommandCallback<LocalAuthenticationResult, BaseException>() {
             @Override
-            public void onUserCodeReceived(@NonNull String vUri, @NonNull String userCode, @NonNull String message){
+            public void onUserCodeReceived(@NonNull String vUri, @NonNull String userCode, @NonNull String message) {
                 callback.onUserCodeReceived(vUri, userCode, message);
             }
 
@@ -1759,8 +1793,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             ((ServiceException) error).getHttpStatusCode(),
                             error
                     );
-                }
-                else {
+                } else {
                     msalException = new MsalClientException(
                             error.getErrorCode(),
                             error.getMessage(),
