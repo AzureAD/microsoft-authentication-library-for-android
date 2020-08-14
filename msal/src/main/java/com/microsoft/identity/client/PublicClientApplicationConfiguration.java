@@ -46,6 +46,7 @@ import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.telemetry.TelemetryConfiguration;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 import com.microsoft.identity.common.internal.ui.browser.BrowserDescriptor;
+import com.microsoft.identity.common.internal.util.ObjectUtils;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -77,6 +78,8 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 
 public class PublicClientApplicationConfiguration {
     private static final String TAG = PublicClientApplicationConfiguration.class.getSimpleName();
+
+    private static final Pattern BROKER_REDIRECT_URI_REGEX = Pattern.compile("msauth://\\([^/]*\\)/.*");
 
     public static final class SerializedNames {
         static final String CLIENT_ID = "client_id";
@@ -480,10 +483,13 @@ public class PublicClientApplicationConfiguration {
     }
 
     private boolean isBrokerRedirectUri() {
-        final String BROKER_REDIRECT_URI_REGEX = "msauth://" + mAppContext.getPackageName() + "/.*";
-        final Pattern pairRegex = Pattern.compile(BROKER_REDIRECT_URI_REGEX);
-        final Matcher matcher = pairRegex.matcher(mRedirectUri);
-        return matcher.matches();
+        final Matcher matcher = BROKER_REDIRECT_URI_REGEX.matcher(mRedirectUri);
+        if (matcher.matches()) {
+            if (ObjectUtils.equals(mAppContext.getPackageName(), matcher.group(1))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // Verifies broker redirect URI against the app's signature, to make sure that this is legit.
@@ -554,7 +560,9 @@ public class PublicClientApplicationConfiguration {
         if (!isBrokerRedirectUri()) {
             // This means that the app is still using the legacy local-only MSAL Redirect uri (already removed from the new portal).
             // If this is the case, we can assume that the user doesn't need Broker support.
-            Logger.info(TAG, "The app is still using legacy MSAL redirect uri. Switch to MSAL local auth.");
+            Logger.info(TAG, "The app is still using legacy MSAL redirect uri. Switch to MSAL local auth."
+                + "  For brokered auth, the redirect URI is expected to conform to " + BROKER_REDIRECT_URI_REGEX + " where the authority in "
+                + "that uri is the package name.");
             mUseBroker = false;
             return;
         }
