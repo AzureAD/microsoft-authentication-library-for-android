@@ -484,10 +484,8 @@ public class PublicClientApplicationConfiguration {
 
     private boolean isBrokerRedirectUri() {
         final Matcher matcher = BROKER_REDIRECT_URI_REGEX.matcher(mRedirectUri);
-        if (matcher.matches()) {
-            if (ObjectUtils.equals(mAppContext.getPackageName(), matcher.group(1))) {
-                return true;
-            }
+        if (matcher.matches()i && ObjectUtils.equals(mAppContext.getPackageName(), matcher.group(1))) {
+            return true;
         }
         return false;
     }
