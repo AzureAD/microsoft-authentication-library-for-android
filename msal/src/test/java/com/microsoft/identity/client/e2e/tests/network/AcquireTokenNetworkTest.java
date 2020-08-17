@@ -22,24 +22,34 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.network;
 
+import android.util.Log;
+
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
+import com.microsoft.identity.client.e2e.rules.NetworkTestsRuleChain;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthority;
 import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.ErrorCodes;
+import com.microsoft.identity.internal.testutils.BuildConfig;
 import com.microsoft.identity.internal.testutils.TestUtils;
+import com.microsoft.identity.internal.testutils.kusto.EstsKustoUtils;
+import com.microsoft.identity.internal.testutils.kusto.FileUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import java.io.File;
 import java.util.Arrays;
 
 import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.failureSilentCallback;
@@ -52,7 +62,12 @@ import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushSchedul
 @Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowMsalUtils.class})
 public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest implements IAcquireTokenNetworkTest {
 
+    private static final String TAG = AcquireTokenNetworkTest.class.getSimpleName();
+
     private String mUsername;
+
+    @Rule
+    public TestRule rule = NetworkTestsRuleChain.getRule();
 
     @Before
     public void setup() {
@@ -60,6 +75,20 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
         final LabUserQuery query = getLabUserQuery();
         mUsername = LabUserHelper.loadUserForTest(query);
         super.setup();
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        Log.i(TAG, "Should upload test results to Kusto: " + BuildConfig.UPLOAD_TEST_RESULTS_TO_KUSTO);
+
+        if (BuildConfig.UPLOAD_TEST_RESULTS_TO_KUSTO) {
+            Log.i(TAG, "Initiating test result ingestion into Kusto.");
+            final File testResultFile = FileUtils.getTestResultFile();
+            Log.i(TAG, "Obtained test result file from: " + testResultFile.getAbsolutePath());
+            EstsKustoUtils.ingestKusto(testResultFile.getAbsolutePath());
+            final boolean deleted = testResultFile.delete();
+            Log.i(TAG, "Deleted test result file: " + deleted);
+        }
     }
 
     @Test
