@@ -57,6 +57,8 @@ import java.util.regex.Pattern;
 import javax.crypto.SecretKey;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.ACCOUNT_MODE;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORITIES;
@@ -482,12 +484,10 @@ public class PublicClientApplicationConfiguration {
         }
     }
 
-    private boolean isBrokerRedirectUri() {
-        final Matcher matcher = BROKER_REDIRECT_URI_REGEX.matcher(mRedirectUri);
-        if (matcher.matches() && ObjectUtils.equals(mAppContext.getPackageName(), matcher.group(1))) {
-            return true;
-        }
-        return false;
+    @VisibleForTesting
+    public static boolean isBrokerRedirectUri(final @NonNull String redirectUri, final @Nullable String packageName) {
+        final Matcher matcher = BROKER_REDIRECT_URI_REGEX.matcher(redirectUri);
+        return matcher.matches() && ObjectUtils.equals(packageName, matcher.group(1));
     }
 
     // Verifies broker redirect URI against the app's signature, to make sure that this is legit.
@@ -555,7 +555,7 @@ public class PublicClientApplicationConfiguration {
             return;
         }
 
-        if (!isBrokerRedirectUri()) {
+        if (!isBrokerRedirectUri(mRedirectUri, mAppContext.getPackageName())) {
             // This means that the app is still using the legacy local-only MSAL Redirect uri (already removed from the new portal).
             // If this is the case, we can assume that the user doesn't need Broker support.
             Logger.info(TAG, "The app is still using legacy MSAL redirect uri. Switch to MSAL local auth."
