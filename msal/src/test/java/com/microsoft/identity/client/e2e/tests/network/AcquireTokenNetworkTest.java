@@ -36,7 +36,7 @@ import com.microsoft.identity.client.e2e.utils.ErrorCodes;
 import com.microsoft.identity.internal.testutils.BuildConfig;
 import com.microsoft.identity.internal.testutils.TestUtils;
 import com.microsoft.identity.internal.testutils.kusto.EstsKustoUtils;
-import com.microsoft.identity.internal.testutils.kusto.FileUtils;
+import com.microsoft.identity.internal.testutils.kusto.TestResultFileUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
@@ -83,9 +83,9 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
 
         if (BuildConfig.UPLOAD_TEST_RESULTS_TO_KUSTO) {
             Log.i(TAG, "Initiating test result ingestion into Kusto.");
-            final File testResultFile = FileUtils.getTestResultFile();
+            final File testResultFile = TestResultFileUtils.getTestResultFile();
             Log.i(TAG, "Obtained test result file from: " + testResultFile.getAbsolutePath());
-            EstsKustoUtils.ingestKusto(testResultFile.getAbsolutePath());
+            EstsKustoUtils.ingestAndroidClientTestResults(testResultFile.getAbsolutePath());
             final boolean deleted = testResultFile.delete();
             Log.i(TAG, "Deleted test result file: " + deleted);
         }

@@ -6,6 +6,9 @@ import com.microsoft.identity.internal.testutils.kusto.CaptureKustoTestResultRul
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
 
+/**
+ * Utility file to obtain JUnit test rules that are created via a {@link RuleChain}.
+ */
 public class NetworkTestsRuleChain {
 
     private final static String TAG = NetworkTestsRuleChain.class.getSimpleName();

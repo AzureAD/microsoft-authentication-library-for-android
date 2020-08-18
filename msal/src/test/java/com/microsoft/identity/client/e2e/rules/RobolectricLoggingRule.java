@@ -7,6 +7,9 @@ import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 import org.robolectric.shadows.ShadowLog;
 
+/**
+ * A JUnit rule to enable logging during a Robolectric Test.
+ */
 public class RobolectricLoggingRule implements TestRule {
 
     private final static String TAG = RobolectricLoggingRule.class.getSimpleName();
