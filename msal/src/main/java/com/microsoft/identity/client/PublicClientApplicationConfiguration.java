@@ -81,7 +81,7 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 public class PublicClientApplicationConfiguration {
     private static final String TAG = PublicClientApplicationConfiguration.class.getSimpleName();
 
-    private static final Pattern BROKER_REDIRECT_URI_REGEX = Pattern.compile("msauth://\\([^/]*\\)/.*");
+    private static final Pattern BROKER_REDIRECT_URI_REGEX = Pattern.compile("msauth://([^/]*)/.*");
 
     public static final class SerializedNames {
         static final String CLIENT_ID = "client_id";
