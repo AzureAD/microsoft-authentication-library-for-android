@@ -81,7 +81,7 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 public class PublicClientApplicationConfiguration {
     private static final String TAG = PublicClientApplicationConfiguration.class.getSimpleName();
 
-    private static final Pattern BROKER_REDIRECT_URI_REGEX = Pattern.compile("msauth://([^/]*)/.*");
+    private static final String BROKER_REDIRECT_URI_SCHEME_AND_SEPARATOR = "msauth://";
 
     public static final class SerializedNames {
         static final String CLIENT_ID = "client_id";
@@ -486,8 +486,8 @@ public class PublicClientApplicationConfiguration {
 
     @VisibleForTesting
     public static boolean isBrokerRedirectUri(final @NonNull String redirectUri, final @Nullable String packageName) {
-        final Matcher matcher = BROKER_REDIRECT_URI_REGEX.matcher(redirectUri);
-        return matcher.matches() && ObjectUtils.equals(packageName, matcher.group(1));
+        final String potentialPrefix = BROKER_REDIRECT_URI_SCHEME_AND_SEPARATOR + packageName + "/";
+        return redirectUri != null && redirectUri.startsWith(potentialPrefix);
     }
 
     // Verifies broker redirect URI against the app's signature, to make sure that this is legit.
@@ -559,7 +559,7 @@ public class PublicClientApplicationConfiguration {
             // This means that the app is still using the legacy local-only MSAL Redirect uri (already removed from the new portal).
             // If this is the case, we can assume that the user doesn't need Broker support.
             Logger.warn(TAG, "The app is still using legacy MSAL redirect uri. Switch to MSAL local auth."
-                + "  For brokered auth, the redirect URI is expected to conform to " + BROKER_REDIRECT_URI_REGEX + " where the authority in "
+                + "  For brokered auth, the redirect URI is expected to conform to 'msauth://<authority>/.*' where the authority in "
                 + "that uri is the package name.");
             mUseBroker = false;
             return;
