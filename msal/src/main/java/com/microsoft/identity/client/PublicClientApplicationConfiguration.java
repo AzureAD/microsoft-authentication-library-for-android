@@ -485,7 +485,7 @@ public class PublicClientApplicationConfiguration {
     }
 
     @VisibleForTesting
-    public static boolean isBrokerRedirectUri(final @NonNull String redirectUri, final @Nullable String packageName) {
+    public static boolean isBrokerRedirectUri(final @NonNull String redirectUri, final @NonNull String packageName) {
         final String potentialPrefix = BROKER_REDIRECT_URI_SCHEME_AND_SEPARATOR + packageName + "/";
         return redirectUri != null && redirectUri.startsWith(potentialPrefix);
     }
