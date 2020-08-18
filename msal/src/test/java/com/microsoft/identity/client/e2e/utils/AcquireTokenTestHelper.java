@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.e2e.utils;
 
+import android.util.Log;
+
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
@@ -29,12 +31,19 @@ import com.microsoft.identity.client.SilentAuthenticationCallback;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.internal.util.StringUtil;
+import com.microsoft.identity.internal.testutils.BuildConfig;
+import com.microsoft.identity.internal.testutils.kusto.EstsKustoUtils;
+import com.microsoft.identity.internal.testutils.kusto.TestResultFileUtils;
 
 import org.junit.Assert;
+
+import java.io.File;
 
 import static junit.framework.Assert.fail;
 
 public class AcquireTokenTestHelper {
+
+    private static final String TAG = AcquireTokenTestHelper.class.getSimpleName();
 
     private static IAccount sAccount;
 
@@ -142,6 +151,22 @@ public class AcquireTokenTestHelper {
         };
 
         return callback;
+    }
+
+    /**
+     * Initiates uploading of test results to ESTS Kusto cluster if specified during build time.
+     */
+    public static void uploadTestResultsToKustoIfNeeded() {
+        Log.i(TAG, "Should upload test results to Kusto: " + BuildConfig.UPLOAD_TEST_RESULTS_TO_KUSTO);
+
+        if (BuildConfig.UPLOAD_TEST_RESULTS_TO_KUSTO) {
+            Log.i(TAG, "Initiating test result ingestion into Kusto.");
+            final File testResultFile = TestResultFileUtils.getTestResultFile();
+            Log.i(TAG, "Obtained test result file from: " + testResultFile.getAbsolutePath());
+            EstsKustoUtils.ingestAndroidClientTestResults(testResultFile.getAbsolutePath());
+            final boolean deleted = testResultFile.delete();
+            Log.i(TAG, "Deleted test result file: " + deleted);
+        }
     }
 
 }

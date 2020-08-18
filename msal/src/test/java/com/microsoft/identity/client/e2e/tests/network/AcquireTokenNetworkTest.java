@@ -22,8 +22,6 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.network;
 
-import android.util.Log;
-
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.e2e.rules.NetworkTestsRuleChain;
@@ -33,10 +31,7 @@ import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.ErrorCodes;
-import com.microsoft.identity.internal.testutils.BuildConfig;
 import com.microsoft.identity.internal.testutils.TestUtils;
-import com.microsoft.identity.internal.testutils.kusto.EstsKustoUtils;
-import com.microsoft.identity.internal.testutils.kusto.TestResultFileUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
@@ -49,13 +44,13 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import java.io.File;
 import java.util.Arrays;
 
 import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.failureSilentCallback;
 import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.getAccount;
 import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.successfulInteractiveCallback;
 import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.successfulSilentCallback;
+import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.uploadTestResultsToKustoIfNeeded;
 import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
 
 @RunWith(RobolectricTestRunner.class)
@@ -79,16 +74,7 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
 
     @AfterClass
     public static void tearDown() {
-        Log.i(TAG, "Should upload test results to Kusto: " + BuildConfig.UPLOAD_TEST_RESULTS_TO_KUSTO);
-
-        if (BuildConfig.UPLOAD_TEST_RESULTS_TO_KUSTO) {
-            Log.i(TAG, "Initiating test result ingestion into Kusto.");
-            final File testResultFile = TestResultFileUtils.getTestResultFile();
-            Log.i(TAG, "Obtained test result file from: " + testResultFile.getAbsolutePath());
-            EstsKustoUtils.ingestAndroidClientTestResults(testResultFile.getAbsolutePath());
-            final boolean deleted = testResultFile.delete();
-            Log.i(TAG, "Deleted test result file: " + deleted);
-        }
+        uploadTestResultsToKustoIfNeeded();
     }
 
     @Test

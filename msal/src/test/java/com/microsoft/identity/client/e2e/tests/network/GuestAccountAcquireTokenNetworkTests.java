@@ -11,6 +11,7 @@ import com.microsoft.identity.internal.testutils.labutils.LabGuest;
 import com.microsoft.identity.internal.testutils.labutils.LabGuestAccountHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,12 +19,19 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.getAccount;
+import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.uploadTestResultsToKustoIfNeeded;
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
 import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowMsalUtils.class})
 public class GuestAccountAcquireTokenNetworkTests extends AcquireTokenAbstractTest {
+
+    @AfterClass
+    public static void tearDown() {
+        uploadTestResultsToKustoIfNeeded();
+    }
+
     @Override
     public String[] getScopes() {
         return USER_READ_SCOPE;

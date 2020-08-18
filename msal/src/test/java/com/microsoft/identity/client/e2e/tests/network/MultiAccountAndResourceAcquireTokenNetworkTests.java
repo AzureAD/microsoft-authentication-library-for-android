@@ -32,6 +32,7 @@ import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
+import org.junit.AfterClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -41,6 +42,7 @@ import java.util.Arrays;
 
 import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.getAccount;
 import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.successfulInteractiveCallback;
+import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.uploadTestResultsToKustoIfNeeded;
 import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
 import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.AD_GRAPH_USER_READ_SCOPE;
@@ -51,6 +53,12 @@ import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USE
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowMsalUtils.class})
 public class MultiAccountAndResourceAcquireTokenNetworkTests extends AcquireTokenAbstractTest {
+
+    @AfterClass
+    public static void tearDown() {
+        uploadTestResultsToKustoIfNeeded();
+    }
+
     @Override
     public String[] getScopes() {
         return USER_READ_SCOPE;
