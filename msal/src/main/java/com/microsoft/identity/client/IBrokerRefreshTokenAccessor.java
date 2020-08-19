@@ -26,7 +26,7 @@ import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.exception.MsalClientException;
 
-public interface IBrokerRtAccessor {
+public interface IBrokerRefreshTokenAccessor {
 
     /**
      * Returns a Broker RT associated to the identifier.
@@ -34,5 +34,5 @@ public interface IBrokerRtAccessor {
      *
      * @param accountObjectId Account's local object ID.
      * */
-    String getBrokerRt(@NonNull final String accountObjectId) throws MsalClientException;
+    String getBrokerRefreshToken(@NonNull final String accountObjectId) throws MsalClientException;
 }

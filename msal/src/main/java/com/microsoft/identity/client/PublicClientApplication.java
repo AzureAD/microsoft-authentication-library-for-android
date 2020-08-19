@@ -48,7 +48,7 @@ import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.helper.BrokerHelperActivity;
 import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.CommandParametersAdapter;
-import com.microsoft.identity.common.adal.internal.BrokerRtAccessor;
+import com.microsoft.identity.common.adal.internal.BrokerRefreshTokenAccessor;
 import com.microsoft.identity.common.internal.controllers.LocalMSALController;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
@@ -188,7 +188,7 @@ import static com.microsoft.identity.common.internal.util.StringUtil.isUuid;
  * </p>
  * </p>
  */
-public class PublicClientApplication implements IPublicClientApplication, ITokenShare, IBrokerRtAccessor {
+public class PublicClientApplication implements IPublicClientApplication, ITokenShare, IBrokerRefreshTokenAccessor {
 
     private static final String TAG = PublicClientApplication.class.getSimpleName();
     private static final String INTERNET_PERMISSION = "android.permission.INTERNET";
@@ -225,7 +225,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     protected PublicClientApplicationConfiguration mPublicClientConfiguration;
     protected TokenShareUtility mTokenShareUtility;
-    protected BrokerRtAccessor mBrokerRtAccessor;
+    protected BrokerRefreshTokenAccessor mBrokerRtAccessor;
 
     //region PCA factory methods
 
@@ -1109,7 +1109,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     private void initializeBrokerRtAccessor() {
         if (mPublicClientConfiguration.getOAuth2TokenCache() instanceof MsalOAuth2TokenCache) {
-            mBrokerRtAccessor = new BrokerRtAccessor(
+            mBrokerRtAccessor = new BrokerRefreshTokenAccessor(
                     (MsalOAuth2TokenCache) mPublicClientConfiguration.getOAuth2TokenCache(),
                     mPublicClientConfiguration.getAppContext()
             );
@@ -1139,12 +1139,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     @Override
-    public String getBrokerRt(@NonNull final String accountObjectId) throws MsalClientException {
+    public String getBrokerRefreshToken(@NonNull final String accountObjectId) throws MsalClientException {
         validateNonNullArgument(accountObjectId, "accountObjectId");
         validateBrokerNotInUse();
 
         try {
-            return mBrokerRtAccessor.getBrokerRt(accountObjectId);
+            return mBrokerRtAccessor.getBrokerRefreshToken(accountObjectId);
         } catch (final Exception e) {
             throw new MsalClientException(
                     TOKEN_CACHE_ITEM_NOT_FOUND,
