@@ -46,6 +46,7 @@ import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.telemetry.TelemetryConfiguration;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 import com.microsoft.identity.common.internal.ui.browser.BrowserDescriptor;
+import com.microsoft.identity.common.internal.util.ObjectUtils;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -56,6 +57,8 @@ import java.util.regex.Pattern;
 import javax.crypto.SecretKey;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.ACCOUNT_MODE;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORITIES;
@@ -77,6 +80,8 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 
 public class PublicClientApplicationConfiguration {
     private static final String TAG = PublicClientApplicationConfiguration.class.getSimpleName();
+
+    private static final String BROKER_REDIRECT_URI_SCHEME_AND_SEPARATOR = "msauth://";
 
     public static final class SerializedNames {
         static final String CLIENT_ID = "client_id";
@@ -479,11 +484,10 @@ public class PublicClientApplicationConfiguration {
         }
     }
 
-    private boolean isBrokerRedirectUri() {
-        final String BROKER_REDIRECT_URI_REGEX = "msauth://" + mAppContext.getPackageName() + "/.*";
-        final Pattern pairRegex = Pattern.compile(BROKER_REDIRECT_URI_REGEX);
-        final Matcher matcher = pairRegex.matcher(mRedirectUri);
-        return matcher.matches();
+    @VisibleForTesting
+    public static boolean isBrokerRedirectUri(final @NonNull String redirectUri, final @NonNull String packageName) {
+        final String potentialPrefix = BROKER_REDIRECT_URI_SCHEME_AND_SEPARATOR + packageName + "/";
+        return redirectUri != null && redirectUri.startsWith(potentialPrefix);
     }
 
     // Verifies broker redirect URI against the app's signature, to make sure that this is legit.
@@ -551,10 +555,12 @@ public class PublicClientApplicationConfiguration {
             return;
         }
 
-        if (!isBrokerRedirectUri()) {
+        if (!isBrokerRedirectUri(mRedirectUri, mAppContext.getPackageName())) {
             // This means that the app is still using the legacy local-only MSAL Redirect uri (already removed from the new portal).
             // If this is the case, we can assume that the user doesn't need Broker support.
-            Logger.info(TAG, "The app is still using legacy MSAL redirect uri. Switch to MSAL local auth.");
+            Logger.warn(TAG, "The app is still using legacy MSAL redirect uri. Switch to MSAL local auth."
+                + "  For brokered auth, the redirect URI is expected to conform to 'msauth://<authority>/.*' where the authority in "
+                + "that uri is the package name of the app. This package name is listed as 'applicationId' in the build.gradle file.");
             mUseBroker = false;
             return;
         }
