@@ -24,36 +24,36 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.msal.automationapp.AbstractAcquireTokenNetworkTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.ui.automation.broker.BrokerAuthenticator;
+import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
-import com.microsoft.identity.client.ui.automation.interaction.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
-public class TestCase769049 extends AbstractAcquireTokenNetworkTest {
+// SovCloud: Interactive Auth w/o cache w/o MFA w/ Prompt Auto w/ Broker
+// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/796049
+public class TestCase796049 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_769049() throws InterruptedException {
+    public void test_796049() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(mLoginHint)
-                .withScopes(Arrays.asList(mScopes))
+                .withResource(mScopes[0])
                 .withCallback(successfulInteractiveCallback(latch))
-                .withPrompt(Prompt.LOGIN)
+                .withPrompt(Prompt.SELECT_ACCOUNT)
                 .build();
 
 
@@ -67,13 +67,13 @@ public class TestCase769049 extends AbstractAcquireTokenNetworkTest {
                         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                                .prompt(PromptParameter.LOGIN)
-                                .loginHintProvided(true)
+                                .prompt(PromptParameter.SELECT_ACCOUNT)
+                                .loginHint(username)
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
                                 .broker(getBroker())
-                                .expectingNonZeroAccountsInBroker(false)
+                                .expectingBrokerAccountChooserActivity(false)
                                 .build();
 
                         new AadPromptHandler(promptHandlerParameters)
@@ -91,9 +91,9 @@ public class TestCase769049 extends AbstractAcquireTokenNetworkTest {
 
         final AcquireTokenParameters parametersNoLoginHint = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
-                .withScopes(Arrays.asList(mScopes))
+                .withResource(mScopes[0])
                 .withCallback(successfulInteractiveCallback(latchNoLoginHint))
-                .withPrompt(Prompt.LOGIN)
+                .withPrompt(Prompt.SELECT_ACCOUNT)
                 .build();
 
 
@@ -107,13 +107,13 @@ public class TestCase769049 extends AbstractAcquireTokenNetworkTest {
                         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                                .prompt(PromptParameter.LOGIN)
-                                .loginHintProvided(false)
+                                .prompt(PromptParameter.SELECT_ACCOUNT)
+                                .loginHint(null)
                                 .sessionExpected(true)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
                                 .broker(getBroker())
-                                .expectingNonZeroAccountsInBroker(true)
+                                .expectingBrokerAccountChooserActivity(true)
                                 .build();
 
                         new AadPromptHandler(promptHandlerParameters)
@@ -130,7 +130,7 @@ public class TestCase769049 extends AbstractAcquireTokenNetworkTest {
     @Override
     public LabUserQuery getLabUserQuery() {
         final LabUserQuery query = new LabUserQuery();
-        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CLOUD;
+        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_GERMANY_CLOUD;
         return query;
     }
 
@@ -141,21 +141,21 @@ public class TestCase769049 extends AbstractAcquireTokenNetworkTest {
 
     @Override
     public String[] getScopes() {
-        return new String[]{"User.read"};
+        return new String[]{"00000002-0000-0000-c000-000000000000"};
     }
 
     @Override
     public String getAuthority() {
-        return mApplication.getConfiguration().getDefaultAuthority().toString();
+        return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
     }
 
     @Override
     public ITestBroker getBroker() {
-        return new BrokerAuthenticator();
+        return new BrokerMicrosoftAuthenticator();
     }
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_default;
+        return R.raw.msal_config_instance_aware_common;
     }
 }

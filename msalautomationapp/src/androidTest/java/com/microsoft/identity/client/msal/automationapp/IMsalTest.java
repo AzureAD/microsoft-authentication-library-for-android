@@ -22,45 +22,42 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp;
 
-import android.app.Activity;
-import android.content.Context;
+import com.microsoft.identity.client.ui.automation.browser.IBrowser;
 
-import androidx.test.core.app.ApplicationProvider;
-import androidx.test.rule.ActivityTestRule;
+/**
+ * An interface describing a test of the Microsoft Authentication Library (MSAL). Implementing this
+ * interface on a test facilitates specifying the necessary parameters required to test the basic
+ * functionality in MSAL.
+ */
+public interface IMsalTest {
 
-import com.microsoft.identity.client.IPublicClientApplication;
-import com.microsoft.identity.client.PublicClientApplication;
-import com.microsoft.identity.client.exception.MsalException;
+    /**
+     * Get the scopes that can be used for an acquire token test.
+     *
+     * @return A string array consisting of OAUTH2 Scopes
+     */
+    String[] getScopes();
 
-import org.junit.Before;
-import org.junit.Rule;
+    /**
+     * Get the authority url that can be used for an acquire token test.
+     *
+     * @return A string representing the url for an authority that can be used as token issuer
+     */
+    String getAuthority();
 
-import static org.junit.Assert.fail;
+    /**
+     * Get the browser that may be being used during an acquire test. If a broker is present on the
+     * device then the browser may not be used for those acquire token requests.
+     *
+     * @return A {@link IBrowser} object representing the Android app of the browser being used
+     */
+    IBrowser getBrowser();
 
-public abstract class AbstractPublicClientApplicationTest implements IPublicClientApplicationTest {
+    /**
+     * The MSAL config file that should be used to create a PublicClientApplication for the test.
+     *
+     * @return config file resource id
+     */
+    int getConfigFileResourceId();
 
-    @Rule
-    public ActivityTestRule<MainActivity> mActivityRule =
-            new ActivityTestRule(MainActivity.class);
-
-    protected Context mContext;
-    protected Activity mActivity;
-    protected IPublicClientApplication mApplication;
-
-    @Before
-    public void setup() {
-        mContext = ApplicationProvider.getApplicationContext();
-        mActivity = mActivityRule.getActivity();
-        setupPCA();
-    }
-
-    private void setupPCA() {
-        try {
-            mApplication = PublicClientApplication.create(mContext, getConfigFileResourceId());
-        } catch (InterruptedException e) {
-            fail(e.getMessage());
-        } catch (MsalException e) {
-            fail(e.getMessage());
-        }
-    }
 }

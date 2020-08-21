@@ -20,7 +20,7 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.usgov;
+package com.microsoft.identity.client.msal.automationapp.testpass.local;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
@@ -28,11 +28,12 @@ import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.ui.automation.app.IApp;
-import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.client.ui.automation.app.AzureSampleApp;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
+import com.microsoft.identity.client.ui.automation.interaction.UiResponse;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
@@ -41,42 +42,78 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
-// Interactive token acquisition with instance_aware=true, login hint present, and cloud account,
-// and WW organizations authority
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938367
-public class TestCase938367 extends AbstractMsalUiTest {
+// Cross Apps SSO with System Browser
+// https://identitydivision.visualstudio.com/DefaultCollection/DevEx/_workitems/edit/497038
+public class TestCase497038 extends AbstractMsalUiTest {
 
     @Test
-    public void test_938367() throws InterruptedException {
+    public void test_497038() throws InterruptedException {
+        final String username = mLoginHint;
+        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+
+        // uninstall the Azure Sample app to ensure clean state
+        AzureSampleApp azureSampleApp = new AzureSampleApp();
+        azureSampleApp.uninstall();
+
+        // install and launch the Azure Sample app
+        azureSampleApp.install();
+        azureSampleApp.launch();
+        azureSampleApp.handleFirstRun();
+
+        final MicrosoftStsPromptHandlerParameters microsoftStsPromptHandlerParameters =
+                MicrosoftStsPromptHandlerParameters.builder()
+                        .prompt(PromptParameter.SELECT_ACCOUNT)
+                        .broker(null)
+                        .loginHint(null)
+                        .consentPageExpected(true)
+                        .consentPageResponse(UiResponse.ACCEPT)
+                        .speedBumpExpected(false)
+                        .enrollPageExpected(false)
+                        .registerPageExpected(false)
+                        .expectingBrokerAccountChooserActivity(false)
+                        .expectingLoginPageAccountPicker(false)
+                        .isFederated(false)
+                        .sessionExpected(false)
+                        .build();
+
+        // sign in into the Azure Sample app
+        azureSampleApp.signInWithSingleAccountFragment(username, password, getBrowser(), true, microsoftStsPromptHandlerParameters);
+
+        // sleep as it can take a bit for UPN to appear in Azure Sample app
+        Thread.sleep(TimeUnit.SECONDS.toMillis(5));
+
+        // make sure we are sign in into the Azure Sample app
+        azureSampleApp.confirmSignedIn(username);
+
+        // NOW LOGIN INTO MSAL AUTOMATION APP
+
         final CountDownLatch latch = new CountDownLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .withLoginHint(mLoginHint)
                 .startAuthorizationFromActivity(mActivity)
+                .withLoginHint(username)
                 .withScopes(Arrays.asList(mScopes))
                 .withCallback(successfulInteractiveCallback(latch))
                 .withPrompt(Prompt.SELECT_ACCOUNT)
                 .build();
 
-
+        // start interactive acquire token request using MSAL from MSAL Automation app
         final InteractiveRequest interactiveRequest = new InteractiveRequest(
                 mApplication,
                 parameters,
                 new OnInteractionRequired() {
                     @Override
                     public void handleUserInteraction() {
-                        ((IApp) mBrowser).handleFirstRun();
-
-                        final String username = mLoginHint;
-                        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
-
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHint(mLoginHint)
-                                .sessionExpected(false)
+                                .broker(null)
+                                .loginHint(username)
+                                .sessionExpected(true)
                                 .consentPageExpected(false)
-                                .speedBumpExpected(false)
+                                .speedBumpExpected(true)
+                                .speedBumpResponse(UiResponse.ACCEPT)
                                 .build();
 
                         new AadPromptHandler(promptHandlerParameters)
@@ -89,16 +126,15 @@ public class TestCase938367 extends AbstractMsalUiTest {
         latch.await();
     }
 
+
     @Override
     public LabUserQuery getLabUserQuery() {
-        final LabUserQuery query = new LabUserQuery();
-        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT;
-        return query;
+        return null;
     }
 
     @Override
     public String getTempUserType() {
-        return null;
+        return LabConstants.TempUserType.BASIC;
     }
 
     @Override
@@ -108,12 +144,12 @@ public class TestCase938367 extends AbstractMsalUiTest {
 
     @Override
     public String getAuthority() {
-        return mApplication.getConfiguration().getDefaultAuthority().toString();
+        return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
     }
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_instance_aware_organization;
+        return R.raw.msal_config_browser;
     }
 
 }
