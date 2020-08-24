@@ -1110,8 +1110,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     private void initializeBrokerRtAccessor() {
         if (mPublicClientConfiguration.getOAuth2TokenCache() instanceof MsalOAuth2TokenCache) {
             mBrokerRtAccessor = new BrokerRefreshTokenAccessor(
-                    (MsalOAuth2TokenCache) mPublicClientConfiguration.getOAuth2TokenCache(),
-                    mPublicClientConfiguration.getAppContext()
+                    mPublicClientConfiguration.getAppContext(),
+                    (MsalOAuth2TokenCache) mPublicClientConfiguration.getOAuth2TokenCache()
             );
         } else {
             throw new IllegalStateException("Broker RT accessor support mandates use of the MsalOAuth2TokenCache");
