@@ -2,7 +2,7 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 Version v.Next
 ----------
-- Expose RT to Broker apps for performing Device Registration.
+- Allow Broker apps to obtain an RT associated to Broker's client ID (for WPJ).
 - Moved broker controller and strategy classes to common for MSALCPP brokered auth.
 
 Version 1.6.0
