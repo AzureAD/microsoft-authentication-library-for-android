@@ -28,8 +28,8 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.authscheme.BearerAuthenticationSchemeInternal;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
@@ -37,6 +37,7 @@ import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.logging.Logger;
 
+import static com.microsoft.identity.client.exception.MsalClientException.NOT_ELIGIBLE_TO_USE_BROKER;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
@@ -56,24 +57,23 @@ public final class BrokerClientIdRefreshTokenAccessor {
      * @param context         application context
      * @param accountObjectId local_account_id of the account.
      * @return an RT, if there's any.
-     * @throws ClientException if the calling app is not a broker app.
+     * @throws MsalClientException if the calling app is not a broker app.
      */
     public static @Nullable String get(@NonNull final Context context,
-                                       @NonNull final String accountObjectId) throws ClientException {
+                                       @NonNull final String accountObjectId) throws MsalClientException {
         final String methodName = "getBrokerRefreshToken";
-
-        final MsalOAuth2TokenCache tokenCache = MsalOAuth2TokenCache.create(context);
 
         if (!AZURE_AUTHENTICATOR_APP_PACKAGE_NAME.equals(context.getPackageName()) &&
                 !COMPANY_PORTAL_APP_PACKAGE_NAME.equals(context.getPackageName())) {
-            throw new ClientException("This can only be invoked by Broker apps.");
+            throw new MsalClientException(NOT_ELIGIBLE_TO_USE_BROKER, "This can only be invoked by Broker apps.");
         }
 
         if (!new BrokerValidator(context).verifySignature(context.getPackageName())) {
-            throw new ClientException("This can only be invoked by Broker apps with a valid signature hash.");
+            throw new MsalClientException(NOT_ELIGIBLE_TO_USE_BROKER, "This can only be invoked by Broker apps with a valid signature hash.");
         }
 
-        final ICacheRecord cacheRecord = getCacheRecordForIdentifier(accountObjectId);
+        final MsalOAuth2TokenCache tokenCache = MsalOAuth2TokenCache.create(context);
+        final ICacheRecord cacheRecord = getCacheRecordForIdentifier(tokenCache, accountObjectId);
 
         if (cacheRecord == null) {
             Logger.verbose(TAG + methodName, "No cache record found.");
@@ -95,7 +95,7 @@ public final class BrokerClientIdRefreshTokenAccessor {
 
     private static ICacheRecord getCacheRecordForIdentifier(
             @NonNull final MsalOAuth2TokenCache tokenCache,
-            @NonNull final String accountObjectId) throws ClientException {
+            @NonNull final String accountObjectId) throws MsalClientException {
         final AccountRecord localAccountRecord = tokenCache.getAccountByLocalAccountId(
                 null,
                 AuthenticationConstants.Broker.BROKER_CLIENT_ID,
@@ -105,7 +105,7 @@ public final class BrokerClientIdRefreshTokenAccessor {
         // Check it's not null
         if (null == localAccountRecord) {
             // Unrecognized identifier, cannot supply a token.
-            throw new ClientException(TOKEN_CACHE_ITEM_NOT_FOUND);
+            throw new MsalClientException(TOKEN_CACHE_ITEM_NOT_FOUND);
         }
 
         return tokenCache.load(
