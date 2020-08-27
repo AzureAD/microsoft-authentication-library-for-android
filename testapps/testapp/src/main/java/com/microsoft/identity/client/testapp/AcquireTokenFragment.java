@@ -223,7 +223,7 @@ public class AcquireTokenFragment extends Fragment {
         mAcquireTokenWithDeviceCodeFlow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mMsalWrapper.acquireTokenSilentWithDeviceCodeFlow(getCurrentRequestOptions(), acquireTokenCallback);
+                mMsalWrapper.acquireTokenWithDeviceCodeFlow(getCurrentRequestOptions(), acquireTokenCallback);
             }
         });
 

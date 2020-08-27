@@ -194,8 +194,8 @@ abstract class MsalWrapper {
 
     abstract void acquireTokenSilentAsyncInternal(@NonNull final AcquireTokenSilentParameters parameters);
 
-    public void acquireTokenSilentWithDeviceCodeFlow(@NonNull RequestOptions requestOptions,
-                                                     @NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback) {
+    public void acquireTokenWithDeviceCodeFlow(@NonNull RequestOptions requestOptions,
+                                               @NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback) {
 
         acquireTokenWithDeviceCodeFlowInternal(
                 requestOptions.getScopes().toLowerCase().split(" "),
