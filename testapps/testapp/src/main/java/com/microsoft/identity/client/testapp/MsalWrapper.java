@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.AuthenticationCallback;
+import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
@@ -192,6 +193,33 @@ abstract class MsalWrapper {
     }
 
     abstract void acquireTokenSilentAsyncInternal(@NonNull final AcquireTokenSilentParameters parameters);
+
+    public void acquireTokenWithDeviceCodeFlow(@NonNull RequestOptions requestOptions,
+                                               @NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback) {
+
+        acquireTokenWithDeviceCodeFlowInternal(
+                requestOptions.getScopes().toLowerCase().split(" "),
+                new IPublicClientApplication.DeviceCodeFlowCallback() {
+                    @Override
+                    public void onUserCodeReceived(@NonNull String vUri, @NonNull String userCode, @NonNull String message) {
+                        callback.showMessage(
+                                "Uri: " + vUri + "\n" +
+                                "UserCode: " + userCode);
+                    }
+
+                    @Override
+                    public void onTokenReceived(@NonNull AuthenticationResult authResult) {
+                        callback.onSuccess(authResult);
+                    }
+
+                    @Override
+                    public void onError(@NonNull MsalException e) {
+                        callback.showMessage("Unexpected error." + e.getMessage());
+                    }
+                });
+    }
+
+    abstract void acquireTokenWithDeviceCodeFlowInternal(@NonNull String[] scopes, @NonNull final IPublicClientApplication.DeviceCodeFlowCallback callback);
 
     AuthenticationCallback getAuthenticationCallback(@NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback) {
         return new AuthenticationCallback() {
