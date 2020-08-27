@@ -50,7 +50,9 @@ import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
 import com.microsoft.identity.common.internal.result.ResultFuture;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
+import static com.microsoft.identity.client.exception.MsalClientException.UNKNOWN_ERROR;
 import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
 import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArg;
 
@@ -160,12 +162,21 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
             }
         }, PublicApiId.MULTIPLE_ACCOUNT_PCA_GET_ACCOUNTS);
 
-        final AsyncResult<List<IAccount>> result = future.get();
+        try {
+            final AsyncResult<List<IAccount>> result = future.get();
 
-        if (result.getSuccess()) {
-            return result.getResult();
-        } else {
-            throw result.getException();
+            if (result.getSuccess()) {
+                return result.getResult();
+            } else {
+                throw result.getException();
+            }
+        } catch (final ExecutionException e) {
+            // Shouldn't be thrown.
+            throw new MsalClientException(
+                    UNKNOWN_ERROR,
+                    "Unexpected error while loading accounts.",
+                    e
+            );
         }
     }
 
@@ -192,7 +203,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     private void getAccountInternal(@NonNull final String identifier,
                                     @NonNull final GetAccountCallback callback,
                                     @NonNull final String publicApiId) {
-        if(callback == null){
+        if (callback == null) {
             throw new IllegalArgumentException("callback cannot be null or empty");
         }
         try {
@@ -310,14 +321,22 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
             }
         }, PublicApiId.MULTIPLE_ACCOUNT_PCA_GET_ACCOUNT_WITH_IDENTIFIER);
 
-        AsyncResult<IAccount> result = future.get();
+        try {
+            AsyncResult<IAccount> result = future.get();
 
-        if (result.getSuccess()) {
-            return result.getResult();
-        } else {
-            throw result.getException();
+            if (result.getSuccess()) {
+                return result.getResult();
+            } else {
+                throw result.getException();
+            }
+        } catch (final ExecutionException e) {
+            // Shouldn't be thrown.
+            throw new MsalClientException(
+                    UNKNOWN_ERROR,
+                    "Unexpected error while loading account",
+                    e
+            );
         }
-
     }
 
     @Override
@@ -408,12 +427,21 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                     }
                 }, PublicApiId.MULTIPLE_ACCOUNT_PCA_REMOVE_ACCOUNT_WITH_ACCOUNT);
 
-        AsyncResult<Boolean> result = future.get();
+        try {
+            final AsyncResult<Boolean> result = future.get();
 
-        if (result.getSuccess()) {
-            return result.getResult().booleanValue();
-        } else {
-            throw result.getException();
+            if (result.getSuccess()) {
+                return result.getResult().booleanValue();
+            } else {
+                throw result.getException();
+            }
+        } catch (final ExecutionException e) {
+            // Shouldn't be thrown.
+            throw new MsalClientException(
+                    UNKNOWN_ERROR,
+                    "Unexpected error while removing account.",
+                    e
+            );
         }
     }
 

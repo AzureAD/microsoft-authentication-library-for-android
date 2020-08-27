@@ -103,10 +103,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static com.microsoft.identity.client.PublicClientApplicationConfigurationFactory.initializeConfiguration;
+import static com.microsoft.identity.client.exception.MsalClientException.UNKNOWN_ERROR;
 import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
 import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArg;
 import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArgument;
@@ -798,15 +800,24 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         );
 
         //Blocking Call
-        AsyncResult<IPublicClientApplication> result = future.get();
+        try {
+            AsyncResult<IPublicClientApplication> result = future.get();
 
-        if (!result.getSuccess()) {
-            //Exception thrown
-            MsalException ex = result.getException();
-            throw ex;
+            if (!result.getSuccess()) {
+                //Exception thrown
+                MsalException ex = result.getException();
+                throw ex;
+            }
+
+            return result.getResult();
+        } catch (final ExecutionException e) {
+            // Shouldn't be thrown.
+            throw new MsalClientException(
+                    UNKNOWN_ERROR,
+                    "Unexpected error while initializing PCA.",
+                    e
+            );
         }
-
-        return result.getResult();
     }
 
     @WorkerThread
@@ -1624,12 +1635,21 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         acquireTokenSilentAsyncInternal(acquireTokenSilentParameters, publicApiId);
 
-        AsyncResult<IAuthenticationResult> result = future.get();
+        try {
+            AsyncResult<IAuthenticationResult> result = future.get();
 
-        if (result.getSuccess()) {
-            return result.getResult();
-        } else {
-            throw result.getException();
+            if (result.getSuccess()) {
+                return result.getResult();
+            } else {
+                throw result.getException();
+            }
+        } catch (final ExecutionException e) {
+            // Shouldn't be thrown.
+            throw new MsalClientException(
+                    UNKNOWN_ERROR,
+                    "Unexpected error while acquiring token.",
+                    e
+            );
         }
     }
 
@@ -1946,12 +1966,20 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         acquireTokenSilentAsyncInternal(acquireTokenSilentParameters, publicApiId);
 
-        final AsyncResult<IAuthenticationResult> result = future.get();
+        try {
+            final AsyncResult<IAuthenticationResult> result = future.get();
 
-        if (result.getSuccess()) {
-            return result.getResult();
-        } else {
-            throw result.getException();
+            if (result.getSuccess()) {
+                return result.getResult();
+            } else {
+                throw result.getException();
+            }
+        } catch (final ExecutionException e) {
+            throw new MsalClientException(
+                    UNKNOWN_ERROR,
+                    "Unexpected error while acquiring token.",
+                    e
+            );
         }
     }
 
