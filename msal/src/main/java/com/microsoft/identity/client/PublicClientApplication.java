@@ -48,7 +48,6 @@ import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.helper.BrokerHelperActivity;
 import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.CommandParametersAdapter;
-import com.microsoft.identity.common.adal.internal.BrokerRefreshTokenAccessor;
 import com.microsoft.identity.common.internal.controllers.LocalMSALController;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
@@ -188,7 +187,7 @@ import static com.microsoft.identity.common.internal.util.StringUtil.isUuid;
  * </p>
  * </p>
  */
-public class PublicClientApplication implements IPublicClientApplication, ITokenShare, IBrokerRefreshTokenAccessor {
+public class PublicClientApplication implements IPublicClientApplication, ITokenShare {
 
     private static final String TAG = PublicClientApplication.class.getSimpleName();
     private static final String INTERNET_PERMISSION = "android.permission.INTERNET";
@@ -225,7 +224,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     protected PublicClientApplicationConfiguration mPublicClientConfiguration;
     protected TokenShareUtility mTokenShareUtility;
-    protected BrokerRefreshTokenAccessor mBrokerRtAccessor;
 
     //region PCA factory methods
 
@@ -1034,7 +1032,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         initializeLoggerSettings(mPublicClientConfiguration.getLoggerConfiguration());
 
         initializeTokenSharingLibrary();
-        initializeBrokerRtAccessor();
 
         mPublicClientConfiguration.checkIntentFilterAddedToAppManifestForBrokerFlow();
 
@@ -1107,17 +1104,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         }
     }
 
-    private void initializeBrokerRtAccessor() {
-        if (mPublicClientConfiguration.getOAuth2TokenCache() instanceof MsalOAuth2TokenCache) {
-            mBrokerRtAccessor = new BrokerRefreshTokenAccessor(
-                    mPublicClientConfiguration.getAppContext(),
-                    (MsalOAuth2TokenCache) mPublicClientConfiguration.getOAuth2TokenCache()
-            );
-        } else {
-            throw new IllegalStateException("Broker RT accessor support mandates use of the MsalOAuth2TokenCache");
-        }
-    }
-
     private void setupTelemetry(@NonNull final Context context,
                                 @NonNull final PublicClientApplicationConfiguration developerConfig) {
         if (null != developerConfig.getTelemetryConfiguration()) {
@@ -1136,22 +1122,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 .withContext(context)
                 .defaultConfiguration(developerConfig.getTelemetryConfiguration())
                 .build();
-    }
-
-    @Override
-    public String getBrokerRefreshToken(@NonNull final String accountObjectId) throws MsalClientException {
-        validateNonNullArgument(accountObjectId, "accountObjectId");
-        validateBrokerNotInUse();
-
-        try {
-            return mBrokerRtAccessor.getBrokerRefreshToken(accountObjectId);
-        } catch (final Exception e) {
-            throw new MsalClientException(
-                    TOKEN_CACHE_ITEM_NOT_FOUND,
-                    MSG_FAILED_TO_RETRIEVE_BRT,
-                    e
-            );
-        }
     }
 
     @Override
