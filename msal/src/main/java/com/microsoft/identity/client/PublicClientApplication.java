@@ -221,9 +221,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     private static final String TSM_MSG_FAILED_TO_RETRIEVE
             = "Failed to retrieve FRT - see getCause() for additional Exception info";
 
-    private static final String MSG_FAILED_TO_RETRIEVE_BRT
-            = "Failed to retrieve BRT - see getCause() for additional Exception info";
-
     protected PublicClientApplicationConfiguration mPublicClientConfiguration;
     protected TokenShareUtility mTokenShareUtility;
 
