@@ -23,6 +23,7 @@
 package com.microsoft.identity.client.testapp;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
@@ -103,5 +104,11 @@ public class MultipleAccountModeWrapper extends MsalWrapper {
     @Override
     void acquireTokenSilentAsyncInternal(@NonNull AcquireTokenSilentParameters parameters) {
         mApp.acquireTokenSilentAsync(parameters);
+    }
+
+    @Override
+    void acquireTokenWithDeviceCodeFlowInternal(@NonNull String[] scopes,
+                                                @NonNull final IPublicClientApplication.DeviceCodeFlowCallback callback) {
+        mApp.acquireTokenWithDeviceCode(scopes, callback);
     }
 }
