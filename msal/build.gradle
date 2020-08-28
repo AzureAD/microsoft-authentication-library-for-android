@@ -148,7 +148,7 @@ dependencies {
         transitive = false
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '2.0.15-SNAPSHOT', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '2.1.0-DCFCut', changing: true)
 
     distApi("com.microsoft.identity:common:2.1.0-DCFCut") {
         transitive = false
