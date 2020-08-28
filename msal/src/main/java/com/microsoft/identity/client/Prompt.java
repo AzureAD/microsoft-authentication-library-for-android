@@ -74,7 +74,6 @@ public enum Prompt {
     public OpenIdConnectPromptParameter toOpenIdConnectPromptParameter() {
         String tag = Prompt.class.getSimpleName() + ":toOpenIdConnectPromptParameter";
         switch (this) {
-
             case LOGIN:
                 return OpenIdConnectPromptParameter.LOGIN;
             case CONSENT:
