@@ -399,7 +399,7 @@ public class CommandParametersAdapter {
     }
 
     private static OpenIdConnectPromptParameter getPromptParameter(@NonNull final AcquireTokenParameters parameters) {
-        if (parameters.getPrompt() == null || parameters.getPrompt() == Prompt.WHEN_REQUIRED) {
+        if (parameters.getPrompt() == null) {
             return OpenIdConnectPromptParameter.SELECT_ACCOUNT;
         } else {
             return parameters.getPrompt().toOpenIdConnectPromptParameter();
