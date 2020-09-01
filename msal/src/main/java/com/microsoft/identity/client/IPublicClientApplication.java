@@ -91,7 +91,7 @@ public interface IPublicClientApplication {
      * @param scopes the desired access scopes
      * @param callback callback object used to communicate with the API throughout the protocol
      */
-    void acquireTokenWithDeviceCode(@Nullable String[] scopes, @NonNull final DeviceCodeFlowCallback callback);
+    void acquireTokenWithDeviceCode(@NonNull String[] scopes, @NonNull final DeviceCodeFlowCallback callback);
 
     /**
      * Returns the PublicClientConfiguration for this instance of PublicClientApplication.
