@@ -20,7 +20,7 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.usgov;
+package com.microsoft.identity.client.msal.automationapp.testpass.usgov.fairfaxmigrated;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
@@ -29,7 +29,6 @@ import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.app.IApp;
-import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
@@ -42,20 +41,21 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
-// Interactive token acquisition with instance_aware=false and USGov authority
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938384
-public class TestCase938384 extends AbstractMsalUiTest {
+// Interactive token acquisition with instance_aware=true, login hint present, and cloud account,
+// and WW organizations authority
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1116092
+public class TestCase1116092 extends AbstractMsalUiTest {
 
     @Test
-    public void test_938384() throws InterruptedException {
+    public void test_1116092() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                .withLoginHint(mLoginHint)
                 .startAuthorizationFromActivity(mActivity)
                 .withScopes(Arrays.asList(mScopes))
                 .withCallback(successfulInteractiveCallback(latch))
                 .withPrompt(Prompt.SELECT_ACCOUNT)
-                .fromAuthority(getAuthority())
                 .build();
 
 
@@ -72,7 +72,7 @@ public class TestCase938384 extends AbstractMsalUiTest {
 
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHint(null)
+                                .loginHint(mLoginHint)
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
@@ -91,7 +91,7 @@ public class TestCase938384 extends AbstractMsalUiTest {
     @Override
     public LabUserQuery getLabUserQuery() {
         final LabUserQuery query = new LabUserQuery();
-        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT;
+        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT_MIGRATED;
         return query;
     }
 
@@ -107,12 +107,12 @@ public class TestCase938384 extends AbstractMsalUiTest {
 
     @Override
     public String getAuthority() {
-        return "https://login.microsoftonline.us/common";
+        return mApplication.getConfiguration().getDefaultAuthority().toString();
     }
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_default;
+        return R.raw.msal_config_instance_aware_organization;
     }
 
 }
