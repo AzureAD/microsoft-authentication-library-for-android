@@ -20,19 +20,15 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.broker.usgov;
+package com.microsoft.identity.client.msal.automationapp.testpass.blackforest;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.claims.ClaimsRequest;
-import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
-import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
-import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
+import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
@@ -45,57 +41,40 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
-// Interactive token acquisition with instance_aware=true and with custom claims request requiring
-// device auth {"access_token":{"deviceid":{"essential":true}}}
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/940421
-public class TestCase940421 extends AbstractMsalBrokerTest {
+// Interactive token acquisition with instance_aware=true, no login hint, and cloud account,
+// and WW common authority
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1116114
+public class TestCase1116114 extends AbstractMsalUiTest {
 
     @Test
-    public void test_940421() throws InterruptedException {
-        final String username = mLoginHint;
-        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
-
+    public void test_1116114() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
-
-        // create claims request object
-        final ClaimsRequest claimsRequest = new ClaimsRequest();
-        final RequestedClaimAdditionalInformation requestedClaimAdditionalInformation =
-                new RequestedClaimAdditionalInformation();
-
-        requestedClaimAdditionalInformation.setEssential(true);
-
-        // request the deviceid claim in ID Token
-        claimsRequest.requestClaimInIdToken("deviceid", requestedClaimAdditionalInformation);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
                 .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulClaimsRequestInIdTokenInteractiveCallback(
-                        latch, "deviceid", null
-                ))
+                .withCallback(successfulInteractiveCallback(latch))
                 .withPrompt(Prompt.SELECT_ACCOUNT)
-                .withClaims(claimsRequest)
-                .withLoginHint(username)
                 .build();
 
 
-        // start interactive acquire token request in MSAL (should succeed after device registration)
         final InteractiveRequest interactiveRequest = new InteractiveRequest(
                 mApplication,
                 parameters,
                 new OnInteractionRequired() {
                     @Override
                     public void handleUserInteraction() {
+                        ((IApp) mBrowser).handleFirstRun();
+
+                        final String username = mLoginHint;
+                        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                                .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHint(username)
+                                .loginHint(null)
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .broker(getBroker())
-                                .expectingBrokerAccountChooserActivity(false)
-                                .expectingLoginPageAccountPicker(false)
-                                .registerPageExpected(true)
+                                .prompt(PromptParameter.SELECT_ACCOUNT)
                                 .build();
 
                         new AadPromptHandler(promptHandlerParameters)
@@ -108,12 +87,10 @@ public class TestCase940421 extends AbstractMsalBrokerTest {
         latch.await();
     }
 
-
     @Override
     public LabUserQuery getLabUserQuery() {
         final LabUserQuery query = new LabUserQuery();
-        query.userType = LabConstants.UserType.CLOUD;
-        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT;
+        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_GERMANY_CLOUD_MIGRATED;
         return query;
     }
 
@@ -133,13 +110,7 @@ public class TestCase940421 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public ITestBroker getBroker() {
-        return new BrokerMicrosoftAuthenticator();
-    }
-
-    @Override
     public int getConfigFileResourceId() {
         return R.raw.msal_config_instance_aware_common;
     }
-
 }

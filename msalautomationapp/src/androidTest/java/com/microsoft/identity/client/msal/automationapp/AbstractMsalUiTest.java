@@ -92,9 +92,6 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest {
     public ActivityTestRule<MainActivity> mActivityRule =
             new ActivityTestRule(MainActivity.class);
 
-    @Rule(order = 5)
-    public TestRule deviceEnrollmentFailureRecoveryRule = new DeviceEnrollmentFailureRecoveryRule();
-
     @Before
     public void setup() {
         loadLabUser();
