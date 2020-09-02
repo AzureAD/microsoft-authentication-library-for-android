@@ -1104,7 +1104,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             mTokenShareUtility = new TokenShareUtility(
                     mPublicClientConfiguration.getClientId(),
                     mPublicClientConfiguration.getRedirectUri(),
-                    mPublicClientConfiguration.getDefaultAuthority().getAuthorityURL().toString(),
                     (MsalOAuth2TokenCache) mPublicClientConfiguration.getOAuth2TokenCache()
             );
         } else {
