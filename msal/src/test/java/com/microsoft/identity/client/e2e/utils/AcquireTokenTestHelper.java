@@ -32,7 +32,6 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.internal.testutils.BuildConfig;
-import com.microsoft.identity.internal.testutils.kusto.EstsKustoUtils;
 import com.microsoft.identity.internal.testutils.kusto.TestResultFileUtils;
 
 import org.junit.Assert;
@@ -163,8 +162,7 @@ public class AcquireTokenTestHelper {
             Log.i(TAG, "Initiating test result ingestion into Kusto.");
             final File testResultFile = TestResultFileUtils.getTestResultFile();
             Log.i(TAG, "Obtained test result file from: " + testResultFile.getAbsolutePath());
-            EstsKustoUtils.ingestAndroidClientTestResults(testResultFile.getAbsolutePath());
-            final boolean deleted = testResultFile.delete();
+            final boolean deleted = false; //testResultFile.delete();
             Log.i(TAG, "Deleted test result file: " + deleted);
         }
     }
