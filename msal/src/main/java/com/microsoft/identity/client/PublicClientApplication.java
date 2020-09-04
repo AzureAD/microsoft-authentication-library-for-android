@@ -1232,9 +1232,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     /**
      * Presents an activity that includes the package name, signature, redirect URI and manifest entry required for your application
+     *
      * @param activity
      */
-    public static void showExpectedMsalRedirectUriInfo(Activity activity){
+    public static void showExpectedMsalRedirectUriInfo(Activity activity) {
         activity.startActivity(BrokerHelperActivity.createStartIntent(activity.getApplicationContext()));
     }
 
@@ -1656,10 +1657,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         // Create a DeviceCodeFlowCommandParameters object that takes in the desired scopes and the callback object
         // Use CommandParametersAdapter
         final DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter
-                    .createDeviceCodeFlowCommandParameters(
-                            mPublicClientConfiguration,
-                            mPublicClientConfiguration.getOAuth2TokenCache(),
-                            scopes);
+                .createDeviceCodeFlowCommandParameters(
+                        mPublicClientConfiguration,
+                        mPublicClientConfiguration.getOAuth2TokenCache(),
+                        scopes);
 
         // Create a CommandCallback object from the DeviceCodeFlowCallback object
         final DeviceCodeFlowCommandCallback deviceCodeFlowCommandCallback = getDeviceCodeFlowCommandCallback(callback);
@@ -1751,7 +1752,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     private DeviceCodeFlowCommandCallback getDeviceCodeFlowCommandCallback(@NonNull final DeviceCodeFlowCallback callback) {
         return new DeviceCodeFlowCommandCallback<LocalAuthenticationResult, BaseException>() {
             @Override
-            public void onUserCodeReceived(@NonNull String vUri, @NonNull String userCode, @NonNull String message){
+            public void onUserCodeReceived(@NonNull String vUri, @NonNull String userCode, @NonNull String message) {
                 callback.onUserCodeReceived(vUri, userCode, message);
             }
 
@@ -1778,8 +1779,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             ((ServiceException) error).getHttpStatusCode(),
                             error
                     );
-                }
-                else {
+                } else {
                     msalException = new MsalClientException(
                             error.getErrorCode(),
                             error.getMessage(),
