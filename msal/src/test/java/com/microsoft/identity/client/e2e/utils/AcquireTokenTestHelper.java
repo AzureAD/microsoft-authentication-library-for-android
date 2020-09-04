@@ -36,8 +36,6 @@ import static junit.framework.Assert.fail;
 
 public class AcquireTokenTestHelper {
 
-    private static final String TAG = AcquireTokenTestHelper.class.getSimpleName();
-
     private static IAccount sAccount;
 
     public static IAccount getAccount() {
