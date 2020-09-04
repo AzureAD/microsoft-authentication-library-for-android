@@ -12,7 +12,6 @@ buildscript {
 
     dependencies {
         classpath "com.android.tools.build:gradle:$rootProject.ext.gradleVersion"
-        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
     }
 }
 
