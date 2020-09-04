@@ -20,64 +20,39 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.b2c;
-
-import androidx.annotation.NonNull;
+package com.microsoft.identity.client.msal.automationapp.testpass.blackforest;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
-import com.microsoft.identity.client.AcquireTokenSilentParameters;
-import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
+import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.app.IApp;
+import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
-import com.microsoft.identity.client.ui.automation.interaction.b2c.B2CPromptHandlerParameters;
-import com.microsoft.identity.client.ui.automation.interaction.b2c.B2CProvider;
-import com.microsoft.identity.client.ui.automation.interaction.b2c.IdLabB2cSisoPolicyPromptHandler;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
+import com.microsoft.identity.internal.testutils.labutils.LabConstants;
+import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
-@RunWith(Parameterized.class)
-public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
-
-    final static B2CProvider[] b2CProviders = new B2CProvider[]{
-            B2CProvider.Local,
-            B2CProvider.MSA,
-            B2CProvider.Google,
-            B2CProvider.Facebook,
-    };
-
-    @Parameterized.Parameters(name = "{0}")
-    public static B2CProvider[] data() {
-        return b2CProviders;
-    }
-
-    private final B2CProvider mB2cProvider;
-
-    public B2CIdLabSisoPolicyTest(@NonNull final B2CProvider b2CProvider) {
-        mB2cProvider = b2CProvider;
-    }
-
-    @Override
-    public B2CProvider getB2cProvider() {
-        return mB2cProvider;
-    }
+// Interactive token acquisition with instance_aware=true, login hint present, and cloud account,
+// and WW organizations authority
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1116115
+public class TestCase1116115 extends AbstractMsalUiTest {
 
     @Test
-    public void testCanLoginWithLocalAndSocialAccounts() throws InterruptedException {
+    public void test_1116115() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(mLoginHint)
+                .startAuthorizationFromActivity(mActivity)
                 .withScopes(Arrays.asList(mScopes))
                 .withCallback(successfulInteractiveCallback(latch))
                 .withPrompt(Prompt.SELECT_ACCOUNT)
@@ -95,18 +70,15 @@ public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
                         final String username = mLoginHint;
                         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
-                        final B2CPromptHandlerParameters promptHandlerParameters = B2CPromptHandlerParameters.builder()
+                        final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.SELECT_ACCOUNT)
                                 .loginHint(mLoginHint)
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .broker(null)
-                                .expectingBrokerAccountChooserActivity(false)
-                                .b2cProvider(getB2cProvider())
                                 .build();
 
-                        new IdLabB2cSisoPolicyPromptHandler(promptHandlerParameters)
+                        new AadPromptHandler(promptHandlerParameters)
                                 .handlePrompt(username, password);
                     }
                 }
@@ -114,44 +86,33 @@ public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
 
         interactiveRequest.execute();
         latch.await();
+    }
 
-        // ------ do silent request ------
+    @Override
+    public LabUserQuery getLabUserQuery() {
+        final LabUserQuery query = new LabUserQuery();
+        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_GERMANY_CLOUD_MIGRATED;
+        return query;
+    }
 
-        IAccount account = getAccount();
+    @Override
+    public String getTempUserType() {
+        return null;
+    }
 
-        final CountDownLatch silentLatch = new CountDownLatch(1);
+    @Override
+    public String[] getScopes() {
+        return new String[]{"User.read"};
+    }
 
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .forAccount(account)
-                .fromAuthority(getAuthority())
-                .forceRefresh(false)
-                .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulSilentCallback(silentLatch))
-                .build();
-
-        mApplication.acquireTokenSilentAsync(silentParameters);
-        silentLatch.await();
-
-        // ------ do force refresh silent request ------
-
-        account = getAccount();
-
-        final CountDownLatch silentForceLatch = new CountDownLatch(1);
-
-        final AcquireTokenSilentParameters silentForceParameters = new AcquireTokenSilentParameters.Builder()
-                .forAccount(account)
-                .fromAuthority(getAuthority())
-                .forceRefresh(true)
-                .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulSilentCallback(silentForceLatch))
-                .build();
-
-        mApplication.acquireTokenSilentAsync(silentForceParameters);
-        silentForceLatch.await();
+    @Override
+    public String getAuthority() {
+        return mApplication.getConfiguration().getDefaultAuthority().toString();
     }
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_b2c_siso;
+        return R.raw.msal_config_instance_aware_organization;
     }
+
 }

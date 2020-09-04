@@ -20,19 +20,21 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.usgov;
+package com.microsoft.identity.client.msal.automationapp.testpass.blackforest;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
+import com.microsoft.identity.client.AcquireTokenSilentParameters;
+import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
+import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.app.IApp;
-import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
@@ -42,13 +44,12 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
-// Interactive token acquisition with instance_aware=true, no login hint, and cloud account,
-// and WW common authority
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938365
-public class TestCase938365 extends AbstractMsalUiTest {
+// Silent token acquisition with unexpired RT with USGov authority
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1116117
+public class TestCase1116117 extends AbstractMsalUiTest {
 
     @Test
-    public void test_938365() throws InterruptedException {
+    public void test_1116117() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
@@ -58,7 +59,7 @@ public class TestCase938365 extends AbstractMsalUiTest {
                 .withPrompt(Prompt.SELECT_ACCOUNT)
                 .build();
 
-
+        // Start interactive token request in MSAL (should succeed)
         final InteractiveRequest interactiveRequest = new InteractiveRequest(
                 mApplication,
                 parameters,
@@ -71,11 +72,11 @@ public class TestCase938365 extends AbstractMsalUiTest {
                         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
+                                .prompt(PromptParameter.SELECT_ACCOUNT)
                                 .loginHint(null)
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .prompt(PromptParameter.SELECT_ACCOUNT)
                                 .build();
 
                         new AadPromptHandler(promptHandlerParameters)
@@ -86,12 +87,30 @@ public class TestCase938365 extends AbstractMsalUiTest {
 
         interactiveRequest.execute();
         latch.await();
+
+        // change the time on the device
+        TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
+
+        final CountDownLatch silentLatch = new CountDownLatch(1);
+
+        final IAccount account = getAccount();
+
+        // start silent token request in MSAL
+        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                .forAccount(account)
+                .withScopes(Arrays.asList(mScopes))
+                .fromAuthority(account.getAuthority())
+                .withCallback(successfulSilentCallback(silentLatch))
+                .build();
+
+        mApplication.acquireTokenSilentAsync(silentParameters);
+        silentLatch.await();
     }
 
     @Override
     public LabUserQuery getLabUserQuery() {
         final LabUserQuery query = new LabUserQuery();
-        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT;
+        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_GERMANY_CLOUD_MIGRATED;
         return query;
     }
 
@@ -107,7 +126,7 @@ public class TestCase938365 extends AbstractMsalUiTest {
 
     @Override
     public String getAuthority() {
-        return mApplication.getConfiguration().getDefaultAuthority().toString();
+        return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
     }
 
     @Override
