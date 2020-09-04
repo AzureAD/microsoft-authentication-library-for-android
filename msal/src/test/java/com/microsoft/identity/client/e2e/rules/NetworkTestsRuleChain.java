@@ -39,6 +39,9 @@ public class NetworkTestsRuleChain {
         System.out.println(TAG + ": Adding Robolectric Logging Rule");
         RuleChain ruleChain = RuleChain.outerRule(new RobolectricLoggingRule());
 
+        System.out.println(TAG + ": Should write test results to CSV: " +
+                BuildConfig.SAVE_TEST_RESULTS_TO_CSV);
+
         if (BuildConfig.SAVE_TEST_RESULTS_TO_CSV) {
             System.out.println(TAG + ": Adding Rule to capture test results for Kusto");
             ruleChain = ruleChain.around(new CaptureKustoTestResultRule());
