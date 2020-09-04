@@ -35,7 +35,6 @@ import com.microsoft.identity.internal.testutils.TestUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -50,14 +49,11 @@ import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.fai
 import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.getAccount;
 import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.successfulInteractiveCallback;
 import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.successfulSilentCallback;
-import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.uploadTestResultsToKustoIfNeeded;
 import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowMsalUtils.class})
 public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest implements IAcquireTokenNetworkTest {
-
-    private static final String TAG = AcquireTokenNetworkTest.class.getSimpleName();
 
     private String mUsername;
 
@@ -70,11 +66,6 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
         final LabUserQuery query = getLabUserQuery();
         mUsername = LabUserHelper.loadUserForTest(query);
         super.setup();
-    }
-
-    @AfterClass
-    public static void tearDown() {
-        uploadTestResultsToKustoIfNeeded();
     }
 
     @Test
