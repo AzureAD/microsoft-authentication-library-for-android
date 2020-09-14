@@ -22,6 +22,9 @@
 //   THE SOFTWARE.
 package com.microsoft.identity.client.testapp;
 
+import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
@@ -45,6 +48,7 @@ import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.Prompt;
+import com.microsoft.identity.client.PublicClientApplication;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,11 +74,15 @@ public class AcquireTokenFragment extends Fragment {
     private Button mAcquireTokenSilent;
     private Button mAcquireTokenWithResource;
     private Button mAcquireTokenSilentWithResource;
+    private Button mAcquireTokenWithDeviceCodeFlow;
+    private Button mBrokerHelper;
     private Spinner mSelectAccount;
     private Spinner mConfigFileSpinner;
     private Spinner mAuthScheme;
     private TextView mPublicApplicationMode;
     private TextView mDefaultBrowser;
+    private TextView mStatus;
+    private Button mStatusCopyBtn;
     private Spinner mPopHttpMethod;
     private EditText mPopResourceUrl;
 
@@ -108,10 +116,14 @@ public class AcquireTokenFragment extends Fragment {
         mAcquireTokenSilent = view.findViewById(R.id.btn_acquiretokensilent);
         mAcquireTokenWithResource = view.findViewById(R.id.btn_acquiretokenWithResource);
         mAcquireTokenSilentWithResource = view.findViewById(R.id.btn_acquiretokensilentWithResource);
+        mAcquireTokenWithDeviceCodeFlow = view.findViewById(R.id.btn_acquiretokenWithDeviceCodeFlow);
+        mBrokerHelper = view.findViewById(R.id.btnBrokerHelper);
         mConfigFileSpinner = view.findViewById(R.id.configFile);
         mAuthScheme = view.findViewById(R.id.authentication_scheme);
         mPublicApplicationMode = view.findViewById(R.id.public_application_mode);
         mDefaultBrowser = view.findViewById(R.id.default_browser);
+        mStatus = view.findViewById(R.id.status);
+        mStatusCopyBtn = view.findViewById(R.id.btn_statusCopy);
         mPopHttpMethod = view.findViewById(R.id.pop_http_method);
         mPopResourceUrl = view.findViewById(R.id.pop_resource_url);
 
@@ -157,6 +169,17 @@ public class AcquireTokenFragment extends Fragment {
             }
         });
 
+        mStatusCopyBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+                final ClipData clip = ClipData.newPlainText("MSAL Test App", mStatus.getText());
+                clipboard.setPrimaryClip(clip);
+
+                Toast.makeText(getContext(), "Text copied to clipboard.", Toast.LENGTH_LONG).show();
+            }
+        });
+
         final INotifyOperationResultCallback acquireTokenCallback = new INotifyOperationResultCallback<IAuthenticationResult>() {
             @Override
             public void onSuccess(IAuthenticationResult result) {
@@ -165,7 +188,7 @@ public class AcquireTokenFragment extends Fragment {
 
             @Override
             public void showMessage(String message) {
-                showMessageWithToast(message);
+                AcquireTokenFragment.this.showMessage(message);
             }
         };
 
@@ -197,6 +220,22 @@ public class AcquireTokenFragment extends Fragment {
             }
         });
 
+        mAcquireTokenWithDeviceCodeFlow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mMsalWrapper.acquireTokenWithDeviceCodeFlow(getCurrentRequestOptions(), acquireTokenCallback);
+            }
+        });
+
+
+        final Activity activity = this.getActivity();
+        mBrokerHelper.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                PublicClientApplication.showExpectedMsalRedirectUriInfo(activity);
+            }
+        });
+
         mGetUsers.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -217,7 +256,7 @@ public class AcquireTokenFragment extends Fragment {
 
                             @Override
                             public void showMessage(String message) {
-                                showMessageWithToast(message);
+                                AcquireTokenFragment.this.showMessage(message);
                             }
                         });
             }
@@ -284,7 +323,7 @@ public class AcquireTokenFragment extends Fragment {
 
                 @Override
                 public void showMessage(String message) {
-                    showMessageWithToast(message);
+                    AcquireTokenFragment.this.showMessage(message);
                 }
             });
         }
@@ -414,17 +453,18 @@ public class AcquireTokenFragment extends Fragment {
 
                     @Override
                     public void showMessage(String message) {
-                        showMessageWithToast(message);
+                        AcquireTokenFragment.this.showMessage(message);
                     }
                 });
     }
 
-    private void showMessageWithToast(final String msg) {
+    private void showMessage(final String msg) {
         new Handler(getActivity().getMainLooper()).post(new Runnable() {
 
             @Override
             public void run() {
                 Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
+                mStatus.setText(msg);
             }
         });
     }

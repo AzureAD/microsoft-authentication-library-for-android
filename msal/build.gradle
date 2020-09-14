@@ -148,9 +148,9 @@ dependencies {
         transitive = false
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '2.0.15', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.0.1', changing: true)
 
-    distApi("com.microsoft.identity:common:2.0.15") {
+    distApi("com.microsoft.identity:common:3.0.1") {
         transitive = false
     }
 }
@@ -277,7 +277,14 @@ publishing {
 }
 
 tasks.whenTaskAdded { task ->
-    if (task.name == 'assembleDebug' || task.name == 'assembleRelease') {
-        task.dependsOn 'checkstyle', 'pmd', 'lint', 'javadocJar', 'sourcesJar'
+    if (task.name.contains('assemble')) {
+        task.dependsOn 'checkstyle', 'pmd'
+    }
+
+    if (task.name.contains('assemble')
+        && !task.name.contains('Snapshot')
+        && !task.name.contains('Test')
+        && !task.name.contains('Local')) {
+        task.dependsOn 'lint', 'javadocJar', 'sourcesJar'
     }
 }

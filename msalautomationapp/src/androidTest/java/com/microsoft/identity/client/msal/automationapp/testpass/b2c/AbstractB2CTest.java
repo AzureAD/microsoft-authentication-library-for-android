@@ -22,13 +22,11 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.b2c;
 
-import com.microsoft.identity.client.msal.automationapp.AbstractAcquireTokenNetworkTest;
-import com.microsoft.identity.client.msal.automationapp.R;
-import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
+import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
-public abstract class AbstractB2CTest extends AbstractAcquireTokenNetworkTest implements IB2CTest {
+public abstract class AbstractB2CTest extends AbstractMsalUiTest implements IB2CTest {
 
     @Override
     public LabUserQuery getLabUserQuery() {
@@ -51,10 +49,5 @@ public abstract class AbstractB2CTest extends AbstractAcquireTokenNetworkTest im
     @Override
     public String getAuthority() {
         return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
-    }
-
-    @Override
-    public ITestBroker getBroker() {
-        return null;
     }
 }
