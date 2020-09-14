@@ -27,8 +27,14 @@ import androidx.annotation.NonNull;
 import com.microsoft.identity.common.adal.internal.tokensharing.ITokenShareResultInternal;
 import com.microsoft.identity.common.adal.internal.tokensharing.TokenShareResultInternal;
 
+/**
+ * Refresh Token Related Metadata for consumption by TSL.
+ */
 public class TokenShareResult extends TokenShareResultInternal {
 
+    /**
+     * The format of the refresh token in this result payload.
+     */
     public static class TokenShareExportFormat {
 
         /**
