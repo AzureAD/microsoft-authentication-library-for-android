@@ -21,8 +21,10 @@ import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAu
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
 import com.microsoft.identity.common.internal.authscheme.AbstractAuthenticationScheme;
 import com.microsoft.identity.common.internal.authscheme.AuthenticationSchemeFactory;
+import com.microsoft.identity.common.internal.authscheme.BearerAuthenticationSchemeInternal;
 import com.microsoft.identity.common.internal.cache.SchemaUtil;
 import com.microsoft.identity.common.internal.commands.parameters.CommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.DeviceCodeFlowCommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.InteractiveTokenCommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.RemoveAccountCommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.SilentTokenCommandParameters;
@@ -188,6 +190,37 @@ public class CommandParametersAdapter {
                 .scopes(new HashSet<>(parameters.getScopes()))
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .correlationId(parameters.getCorrelationId())
+                .build();
+
+        return commandParameters;
+    }
+
+    public static DeviceCodeFlowCommandParameters createDeviceCodeFlowCommandParameters(
+            @NonNull final PublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull String[] scopes){
+
+        // TODO: Consider implementing support for PoP
+
+        final Authority authority = configuration.getDefaultAuthority();
+
+        final AbstractAuthenticationScheme authenticationScheme = new BearerAuthenticationSchemeInternal();
+
+        final DeviceCodeFlowCommandParameters commandParameters = DeviceCodeFlowCommandParameters.builder()
+                .androidApplicationContext(configuration.getAppContext())
+                .applicationName(configuration.getAppContext().getPackageName())
+                .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                .clientId(configuration.getClientId())
+                .isSharedDevice(configuration.getIsSharedDevice())
+                .redirectUri(configuration.getRedirectUri())
+                .oAuth2TokenCache(tokenCache)
+                .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
+                .sdkType(SdkType.MSAL)
+                .sdkVersion(PublicClientApplication.getSdkVersion())
+                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                .authenticationScheme(authenticationScheme)
+                .scopes(new HashSet<>(Arrays.asList(scopes)))
+                .authority(authority)
                 .build();
 
         return commandParameters;
@@ -366,7 +399,7 @@ public class CommandParametersAdapter {
     }
 
     private static OpenIdConnectPromptParameter getPromptParameter(@NonNull final AcquireTokenParameters parameters) {
-        if (parameters.getPrompt() == null || parameters.getPrompt() == Prompt.WHEN_REQUIRED) {
+        if (parameters.getPrompt() == null) {
             return OpenIdConnectPromptParameter.SELECT_ACCOUNT;
         } else {
             return parameters.getPrompt().toOpenIdConnectPromptParameter();
