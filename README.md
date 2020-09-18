@@ -74,7 +74,7 @@ Please also add the following lines to your repositories section in your gradle 
 
 ```gradle
 maven { 
-    url 'https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed%40Local/maven/v1' 
+    url 'https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed/maven/v1' 
 }
 ```
 

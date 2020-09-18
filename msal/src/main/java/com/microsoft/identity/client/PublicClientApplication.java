@@ -48,11 +48,11 @@ import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.helper.BrokerHelperActivity;
 import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.CommandParametersAdapter;
-import com.microsoft.identity.common.internal.controllers.LocalMSALController;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
+import com.microsoft.identity.common.adal.internal.tokensharing.ITokenShareResultInternal;
 import com.microsoft.identity.common.adal.internal.tokensharing.TokenShareUtility;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ClientException;
@@ -68,8 +68,8 @@ import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SchemaUtil;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.commands.CommandCallback;
-import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommandCallback;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
+import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommandCallback;
 import com.microsoft.identity.common.internal.commands.GetDeviceModeCommand;
 import com.microsoft.identity.common.internal.commands.InteractiveTokenCommand;
 import com.microsoft.identity.common.internal.commands.SilentTokenCommand;
@@ -80,6 +80,7 @@ import com.microsoft.identity.common.internal.commands.parameters.SilentTokenCom
 import com.microsoft.identity.common.internal.controllers.BaseController;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
 import com.microsoft.identity.common.internal.controllers.ExceptionAdapter;
+import com.microsoft.identity.common.internal.controllers.LocalMSALController;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
 import com.microsoft.identity.common.internal.logging.Logger;
@@ -1132,12 +1133,13 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     @Override
-    public String getOrgIdFamilyRefreshToken(@NonNull final String identifier) throws MsalClientException {
+    public TokenShareResult getOrgIdFamilyRefreshTokenWithMetadata(@NonNull final String identifier) throws MsalClientException {
         validateNonNullArgument(identifier, "identifier");
         validateBrokerNotInUse();
 
         try {
-            return mTokenShareUtility.getOrgIdFamilyRefreshToken(identifier);
+            final ITokenShareResultInternal resultInternal = mTokenShareUtility.getOrgIdFamilyRefreshTokenWithMetadata(identifier);
+            return new TokenShareResult(resultInternal);
         } catch (final Exception e) {
             throw new MsalClientException(
                     TOKEN_CACHE_ITEM_NOT_FOUND,
@@ -1145,6 +1147,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     e
             );
         }
+    }
+
+    @Override
+    public String getOrgIdFamilyRefreshToken(@NonNull final String identifier) throws MsalClientException {
+        return getOrgIdFamilyRefreshTokenWithMetadata(identifier).getRefreshToken();
     }
 
     @Override
@@ -1164,12 +1171,13 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     @Override
-    public String getMsaFamilyRefreshToken(@NonNull final String identifier) throws MsalClientException {
+    public TokenShareResult getMsaFamilyRefreshTokenWithMetadata(@NonNull final String identifier) throws MsalClientException {
         validateNonNullArgument(identifier, "identifier");
         validateBrokerNotInUse();
 
         try {
-            return mTokenShareUtility.getMsaFamilyRefreshToken(identifier);
+            final ITokenShareResultInternal resultInternal = mTokenShareUtility.getMsaFamilyRefreshTokenWithMetadata(identifier);
+            return new TokenShareResult(resultInternal);
         } catch (final Exception e) {
             throw new MsalClientException(
                     TOKEN_CACHE_ITEM_NOT_FOUND,
@@ -1177,6 +1185,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     e
             );
         }
+    }
+
+    @Override
+    public String getMsaFamilyRefreshToken(@NonNull final String identifier) throws MsalClientException {
+        return getMsaFamilyRefreshTokenWithMetadata(identifier).getRefreshToken();
     }
 
     @Override
