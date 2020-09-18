@@ -1,12 +1,10 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
-Version 2.0.0
+Version v.Next
 ----------
-- Add Device Code Flow Support (#1112)
-- Moved broker controller and strategy classes to common for MSALCPP brokered auth. (#1115)
-- Allow Broker apps to obtain an RT associated to Broker's client ID (for WPJ). (#1126)
-- (API Breaking Change) Removed 'defaultAuthority' param from TokenShareUtility; MSA RT ingestion always uses WW-/consumers. (#1147)
-- Picks up common@3.0.1
+- Allow Broker apps to obtain an RT associated to Broker's client ID (for WPJ).
+- Moved broker controller and strategy classes to common for MSALCPP brokered auth.
+- Removed 'defaultAuthority' param from TokenShareUtility; MSA RT ingestion always uses WW-/consumers.
 
 Version 1.6.0
 -----------

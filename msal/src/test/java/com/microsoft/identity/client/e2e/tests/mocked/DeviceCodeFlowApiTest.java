@@ -218,12 +218,10 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
         final MicrosoftStsTokenRequest tokenRequest = new MicrosoftStsTokenRequest();
         tokenRequest.setCodeVerifier("");
-        tokenRequest.setCorrelationId(UUID.randomUUID());
+        tokenRequest.setCorrelationId(UUID.fromString("a-b-c-d-e"));
         tokenRequest.setClientId(config.getClientId());
         tokenRequest.setGrantType(TokenRequest.GrantTypes.DEVICE_CODE);
         tokenRequest.setRedirectUri(config.getRedirectUri());
-        tokenRequest.setClientAppName("TestApp");
-        tokenRequest.setClientAppVersion("1.0");
 
         return tokenRequest;
     }
