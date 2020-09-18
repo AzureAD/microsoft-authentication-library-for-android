@@ -1,6 +1,6 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
-Version 2.0.0
+Version v.Next
 ----------
 - Allow Broker apps to obtain an RT associated to Broker's client ID (for WPJ).
 - Moved broker controller and strategy classes to common for MSALCPP brokered auth.

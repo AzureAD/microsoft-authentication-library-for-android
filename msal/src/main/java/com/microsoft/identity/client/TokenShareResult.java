@@ -22,49 +22,47 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import com.microsoft.identity.client.exception.MsalClientException;
-import com.microsoft.identity.common.adal.internal.tokensharing.ITokenShareInternal;
+import androidx.annotation.NonNull;
+
 import com.microsoft.identity.common.adal.internal.tokensharing.ITokenShareResultInternal;
+import com.microsoft.identity.common.adal.internal.tokensharing.TokenShareResultInternal;
 
 /**
- * Interface defining necessary methods for TokenShareLibrary (TSL) integration.
+ * Refresh Token Related Metadata for consumption by TSL.
  */
-public interface ITokenShare extends ITokenShareInternal {
+public class TokenShareResult extends TokenShareResultInternal {
+
+    /**
+     * The format of the refresh token in this result payload.
+     */
+    public static class TokenShareExportFormat {
+
+        /**
+         * Used for ORG_ID accounts. Legacy format used by ADAL.
+         */
+        public static final String SSO_STATE_SERIALIZER_BLOB = TokenShareExportFormatInternal.SSO_STATE_SERIALIZER_BLOB;
+
+        /**
+         * Raw RT String. Used by MSA format.
+         */
+        public static final String RAW = TokenShareExportFormatInternal.RAW;
+    }
+
+    TokenShareResult(@NonNull final ITokenShareResultInternal resultInternal) {
+        super(
+                resultInternal.getCacheRecord(),
+                resultInternal.getRefreshToken(),
+                resultInternal.getFormat()
+        );
+    }
 
     /**
      * {@inheritDoc}
+     *
+     * @see TokenShareExportFormat
      */
     @Override
-    TokenShareResult getOrgIdFamilyRefreshTokenWithMetadata(String identifier) throws MsalClientException;
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    String getOrgIdFamilyRefreshToken(String identifier) throws MsalClientException;
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    void saveOrgIdFamilyRefreshToken(String ssoStateSerializerBlob) throws MsalClientException;
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    TokenShareResult getMsaFamilyRefreshTokenWithMetadata(String identifier) throws MsalClientException;
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    String getMsaFamilyRefreshToken(String identifier) throws MsalClientException;
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    void saveMsaFamilyRefreshToken(String refreshToken) throws MsalClientException;
-
+    public String getFormat() {
+        return super.getFormat();
+    }
 }
