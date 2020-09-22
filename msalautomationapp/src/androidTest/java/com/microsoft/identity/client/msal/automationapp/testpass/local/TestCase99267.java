@@ -24,11 +24,10 @@ package com.microsoft.identity.client.msal.automationapp.testpass.local;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.client.ui.automation.interaction.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.UiResponse;
@@ -42,8 +41,7 @@ import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
 // Interactive Auth with select_account (no consent record)
-// https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99267
-public class TestCase99267 extends AbstractMsalUiTest {
+public class TestCase99267 extends BrokerLessMsalTest {
 
     @Test
     public void test_99267() throws InterruptedException {
@@ -69,7 +67,7 @@ public class TestCase99267 extends AbstractMsalUiTest {
 
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHint(mLoginHint)
+                                .loginHintProvided(true)
                                 .sessionExpected(false)
                                 .consentPageExpected(true)
                                 .speedBumpExpected(false)

@@ -54,9 +54,7 @@ import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.ResultFuture;
 
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
-import static com.microsoft.identity.client.exception.MsalClientException.UNKNOWN_ERROR;
 import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
 import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS;
 import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_SCOPES_AUTHORITY_CALLBACK;
@@ -198,21 +196,12 @@ public class SingleAccountPublicClientApplication
                 SINGLE_ACCOUNT_PCA_GET_CURRENT_ACCOUNT
         );
 
-        try {
-            final AsyncResult<CurrentAccountResult> result = future.get();
+        final AsyncResult<CurrentAccountResult> result = future.get();
 
-            if (result.getSuccess()) {
-                return result.getResult();
-            } else {
-                throw result.getException();
-            }
-        } catch (final ExecutionException e) {
-            // Shouldn't be thrown.
-            throw new MsalClientException(
-                    UNKNOWN_ERROR,
-                    "Unknown exception while fetching current account.",
-                    e
-            );
+        if (result.getSuccess()) {
+            return result.getResult();
+        } else {
+            throw result.getException();
         }
     }
 
@@ -464,21 +453,12 @@ public class SingleAccountPublicClientApplication
                 SINGLE_ACCOUNT_PCA_SIGN_OUT
         );
 
-        try {
-            final AsyncResult<Boolean> result = future.get();
+        final AsyncResult<Boolean> result = future.get();
 
-            if (result.getSuccess()) {
-                return result.getResult();
-            } else {
-                throw result.getException();
-            }
-        } catch (final ExecutionException e) {
-            // Shouldn't be thrown.
-            throw new MsalClientException(
-                    UNKNOWN_ERROR,
-                    "Unexpected error during signOut.",
-                    e
-            );
+        if (result.getSuccess()) {
+            return result.getResult();
+        } else {
+            throw result.getException();
         }
     }
 

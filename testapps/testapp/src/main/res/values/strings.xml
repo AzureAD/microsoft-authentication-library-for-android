@@ -60,5 +60,4 @@
     <string name="pop_http_method_text">PoP HTTP Method</string>
     <string name="pop_default_resource_url">https://signedhttprequest.azurewebsites.net/api/validateSHR</string>
     <string name="claims">Claims</string>
-    <string name="status">Status:</string>
 </resources>

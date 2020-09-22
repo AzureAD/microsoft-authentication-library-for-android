@@ -1,11 +1,5 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
-Version 2.0.0
-----------
-- Allow Broker apps to obtain an RT associated to Broker's client ID (for WPJ).
-- Moved broker controller and strategy classes to common for MSALCPP brokered auth.
-- Removed 'defaultAuthority' param from TokenShareUtility; MSA RT ingestion always uses WW-/consumers.
-
 Version 1.6.0
 -----------
 - Introduces new AadAuthorityAudience enum to support new syntax for specifying cloud + audience

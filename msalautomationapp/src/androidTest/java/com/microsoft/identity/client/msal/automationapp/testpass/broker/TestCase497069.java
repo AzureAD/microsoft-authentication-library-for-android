@@ -22,19 +22,17 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
-import androidx.annotation.NonNull;
-
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
+import com.microsoft.identity.client.msal.automationapp.AbstractAcquireTokenNetworkTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
+import com.microsoft.identity.client.ui.automation.broker.BrokerAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
+import com.microsoft.identity.client.ui.automation.interaction.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
@@ -45,8 +43,7 @@ import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
 // Broker Auth for non-joined account - select_account
-// https://identitydivision.visualstudio.com/DefaultCollection/DevEx/_workitems/edit/497069
-public class TestCase497069 extends AbstractMsalBrokerTest {
+public class TestCase497069 extends AbstractAcquireTokenNetworkTest {
 
     @Test
     public void test_497069() throws InterruptedException {
@@ -72,12 +69,12 @@ public class TestCase497069 extends AbstractMsalBrokerTest {
 
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHint(username)
+                                .loginHintProvided(true)
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
                                 .broker(getBroker())
-                                .expectingBrokerAccountChooserActivity(false)
+                                .expectingNonZeroAccountsInBroker(false)
                                 .build();
 
                         new AadPromptHandler(promptHandlerParameters)
@@ -112,12 +109,12 @@ public class TestCase497069 extends AbstractMsalBrokerTest {
 
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHint(null)
+                                .loginHintProvided(false)
                                 .sessionExpected(true)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
                                 .broker(getBroker())
-                                .expectingBrokerAccountChooserActivity(true)
+                                .expectingNonZeroAccountsInBroker(true)
                                 .build();
 
                         new AadPromptHandler(promptHandlerParameters)
@@ -153,10 +150,9 @@ public class TestCase497069 extends AbstractMsalBrokerTest {
         return mApplication.getConfiguration().getDefaultAuthority().toString();
     }
 
-    @NonNull
     @Override
     public ITestBroker getBroker() {
-        return new BrokerMicrosoftAuthenticator();
+        return new BrokerAuthenticator();
     }
 
     @Override

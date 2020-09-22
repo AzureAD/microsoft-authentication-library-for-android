@@ -72,14 +72,18 @@ public enum Prompt {
     }
 
     public OpenIdConnectPromptParameter toOpenIdConnectPromptParameter() {
+        String tag = Prompt.class.getSimpleName() + ":toOpenIdConnectPromptParameter";
         switch (this) {
+            case SELECT_ACCOUNT:
+                return OpenIdConnectPromptParameter.SELECT_ACCOUNT;
             case LOGIN:
                 return OpenIdConnectPromptParameter.LOGIN;
             case CONSENT:
                 return OpenIdConnectPromptParameter.CONSENT;
             case WHEN_REQUIRED:
-                return OpenIdConnectPromptParameter.UNSET;
-            case SELECT_ACCOUNT:
+                String error = "WHEN_REQUIRED Does not have corresponding value in in the OIDC prompt enumeration.  It's meant to convey do not sent the prompt parameter.";
+                Logger.info(tag, error);
+                throw new UnsupportedOperationException(error);
             default:
                 return OpenIdConnectPromptParameter.SELECT_ACCOUNT;
         }

@@ -20,40 +20,23 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client;
+
+package com.microsoft.identity.client.exception;
+
+import com.microsoft.identity.common.exception.BaseException;
+import com.microsoft.identity.common.exception.ErrorStrings;
 
 /**
- * The clouds that can be used for Authority when making token requests in MSAL
+ * An exception that represents an error where MSAL cannot reach Broker (i.e. through Bind Service or AccountManager).
  */
-public enum AzureCloudInstance {
-
+public class BrokerCommunicationException extends BaseException {
     /**
-     * Microsoft Azure public cloud. Maps to https://login.microsoftonline.com
+     * Initiates the {@link com.microsoft.identity.client.exception.BrokerCommunicationException} with error message and throwable.
+     *
+     * @param errorMessage The error message contained in the exception.
+     * @param throwable    The {@link Throwable} contains the cause for the exception.
      */
-    AzurePublic("https://login.microsoftonline.com"),
-
-    /**
-     * Microsoft Chinese national cloud. Maps to https://login.partner.microsoftonline.cn
-     */
-    AzureChina("https://login.partner.microsoftonline.cn"),
-
-    /**
-     * Microsoft German national cloud (“Black Forest”). Maps to https://login.microsoftonline.de
-     */
-    AzureGermany("https://login.microsoftonline.de"),
-
-    /**
-     * US Government cloud. Maps to https://login.microsoftonline.us
-     */
-    AzureUsGov("https://login.microsoftonline.us");
-
-    private String cloudInstanceUri;
-
-    AzureCloudInstance(String cloudInstanceUri) {
-        this.cloudInstanceUri = cloudInstanceUri;
-    }
-
-    public String getCloudInstanceUri() {
-        return cloudInstanceUri;
+    public BrokerCommunicationException(final String errorMessage, final Throwable throwable) {
+        super(ErrorStrings.IO_ERROR, errorMessage, throwable);
     }
 }

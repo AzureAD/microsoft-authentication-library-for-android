@@ -99,6 +99,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
     }
 
     @Test
+    @Ignore
     public void testServerSideTelemetry() {
         final String username = "fake@test.com";
 

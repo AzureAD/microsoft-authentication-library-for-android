@@ -24,7 +24,6 @@ package com.microsoft.identity.client.e2e.tests.network;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.IAccount;
-import com.microsoft.identity.client.e2e.rules.NetworkTestsRuleChain;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthority;
 import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
@@ -33,9 +32,7 @@ import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
@@ -54,10 +51,6 @@ import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USE
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowMsalUtils.class})
 public class MultiAccountAndResourceAcquireTokenNetworkTests extends AcquireTokenAbstractTest {
-
-    @Rule
-    public TestRule rule = NetworkTestsRuleChain.getRule();
-
     @Override
     public String[] getScopes() {
         return USER_READ_SCOPE;

@@ -26,12 +26,12 @@ import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
+import com.microsoft.identity.client.msal.automationapp.AbstractAcquireTokenNetworkTest;
 import com.microsoft.identity.client.msal.automationapp.ErrorCodes;
 import com.microsoft.identity.client.msal.automationapp.R;
-import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
+import com.microsoft.identity.client.ui.automation.broker.BrokerAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.client.ui.automation.interaction.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
@@ -45,8 +45,7 @@ import org.junit.Test;
 import java.util.concurrent.CountDownLatch;
 
 // End My Shift - In Shared device mode, there can be only one sign-in account.
-// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833516
-public class TestCase833516 extends AbstractMsalBrokerTest {
+public class TestCase833516 extends AbstractAcquireTokenNetworkTest {
 
     @Test
     public void test_833516() throws MsalException, InterruptedException {
@@ -86,12 +85,12 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
         singleAccountPCA.signIn(mActivity, username, mScopes, successfulInteractiveCallback(latch));
 
         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                .loginHint(username)
+                .loginHintProvided(true)
                 .sessionExpected(false)
                 .consentPageExpected(false)
                 .broker(mBroker)
                 .prompt(PromptParameter.SELECT_ACCOUNT)
-                .expectingBrokerAccountChooserActivity(false)
+                .expectingNonZeroAccountsInBroker(false)
                 .build();
 
         AadPromptHandler aadPromptHandler = new AadPromptHandler(promptHandlerParameters);
@@ -141,7 +140,7 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
 
     @Override
     public ITestBroker getBroker() {
-        return new BrokerMicrosoftAuthenticator();
+        return new BrokerAuthenticator();
     }
 
     @Override
