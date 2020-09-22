@@ -89,7 +89,7 @@ android {
 dependencies {
     // Compile Dependency
     localImplementation project(':msal')
-    distImplementation 'com.microsoft.identity.client:msal:1.5.0'
+    distImplementation 'com.microsoft.identity.client:msal:2.+'
     implementation "androidx.constraintlayout:constraintlayout:$rootProject.ext.constraintLayoutVersion"
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
     implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
@@ -100,8 +100,12 @@ dependencies {
     // Set this dependency to use JUnit 4 rules
     androidTestImplementation "androidx.test:rules:$rootProject.rulesVersion"
     androidTestImplementation "androidx.test.uiautomator:uiautomator:$rootProject.ext.uiAutomatorVersion"
-    androidTestImplementation(project(":testutils"))
-    androidTestImplementation(project(":uiautomationutilities"))
+    androidTestImplementation(project(":testutils")) {
+        exclude module: 'common'
+    }
+    androidTestImplementation(project(":uiautomationutilities")) {
+        exclude module: 'common'
+    }
     androidTestImplementation "androidx.test:runner:$rootProject.ext.androidxTestRunnerVersion"
     androidTestUtil "androidx.test:orchestrator:$rootProject.ext.androidxTestOrchestratorVersion"
 }
