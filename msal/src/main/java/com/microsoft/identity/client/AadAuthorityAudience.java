@@ -25,30 +25,34 @@ package com.microsoft.identity.client;
 import androidx.annotation.Nullable;
 
 /**
- * The audiences that can be used for Authority when making token requests in MSAL
+ * The audiences that can be used for Authority when making token requests in MSAL.
  */
 public enum AadAuthorityAudience {
 
     /**
      * Users with a personal Microsoft account, or a work or school account in any organization’s
-     * Azure AD tenant. Maps to https://[instance]/common/
+     * Azure AD tenant.
+     * Maps to https://[instance]/common/.
      */
     AzureAdAndPersonalMicrosoftAccount("common"),
 
     /**
      * Users with a Microsoft work or school account in any organization’s Azure AD tenant
-     * (i.e. multi-tenant). Maps to https://[instance]/organizations/
+     * (multi-tenant app).
+     * Maps to https://[instance]/organizations/.
      */
     AzureAdMultipleOrgs("organizations"),
 
     /**
-     * Users with a personal Microsoft account. Maps to https://[instance]/consumers/
+     * Users with a personal Microsoft account.
+     * Maps to https://[instance]/consumers/.
      */
     PersonalMicrosoftAccount("consumers"),
 
     /**
      * Users with a Microsoft work or school account in my organization’s Azure AD tenant
-     * (i.e. single tenant). Maps to https://[instance]/[tenantId]
+     * (single-tenant app).
+     * Maps to https://[instance]/[tenantId].
      */
     AzureAdMyOrg(null);
 
