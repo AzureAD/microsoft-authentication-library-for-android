@@ -3,12 +3,14 @@ project.ext.vstsUsername = System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") !
 project.ext.vstsPassword = System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
 
 buildscript {
+    print("Root project: $rootProject")
     apply from: rootProject.file("gradle/versions.gradle")
 
     repositories {
         google()
         jcenter()
     }
+    print("Gradle version: $rootProject.ext.gradleVersion")
 
     dependencies {
         classpath "com.android.tools.build:gradle:$rootProject.ext.gradleVersion"

@@ -1,7 +1,10 @@
+plugins {
+    id "org.sonarqube" version "2.6.2"
+    id "com.github.spotbugs" version "4.4.5"
+}
 apply plugin: 'com.android.library'
 apply plugin: 'checkstyle'
 apply plugin: 'pmd'
-apply plugin: 'maven'
 apply plugin: 'maven-publish'
 apply from: 'versioning/version_tasks.gradle'
 group = 'com.microsoft.identity.client'
@@ -117,6 +120,27 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     from javadoc.destinationDir
     destinationDir = reporting.file("$project.buildDir/outputs/jar/")
 }
+
+// Configure spotbugs plugin.
+spotbugs {
+    toolVersion = "4.1.1"
+    ignoreFailures = false
+    showStackTraces = true
+    showProgress = true
+    effort = 'MAX'
+    reportLevel = 'default'
+    visitors = [ 'FindSqlInjection', 'SwitchFallthrough' ]
+    // omitVisitors = [ 'FindNonShortCircuit' ]
+    reportsDir = file("$buildDir/output/spotbugs")
+    //includeFilter = file("include.xml")
+    //excludeFilter = file("exclude.xml")
+    onlyAnalyze = [ 'com.microsoft.*' ]
+    maxHeapSize = '1g'
+    extraArgs = [ '-nested:false' ]
+    // jvmArgs = [ '-Duser.language=en' ]
+    //classes = files("$project.buildDir/intermediates/javac")
+}
+
 
 task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
@@ -286,5 +310,15 @@ tasks.whenTaskAdded { task ->
         && !task.name.contains('Test')
         && !task.name.contains('Local')) {
         task.dependsOn 'lint', 'javadocJar', 'sourcesJar'
+    }
+}
+
+
+tasks.withType(com.github.spotbugs.snom.SpotBugsTask) {
+    dependsOn 'assemble'
+    reports {
+        // Enable HTML report only
+        html.enabled = true
+        xml.enabled = false
     }
 }
