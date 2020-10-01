@@ -27,6 +27,9 @@ import com.microsoft.identity.internal.testutils.kusto.CaptureKustoTestResultRul
 
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
+import org.junit.rules.Timeout;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * Utility file to obtain JUnit test rules that are created via a {@link RuleChain}.
@@ -38,6 +41,9 @@ public class NetworkTestsRuleChain {
     public static TestRule getRule() {
         System.out.println(TAG + ": Adding Robolectric Logging Rule");
         RuleChain ruleChain = RuleChain.outerRule(new RobolectricLoggingRule());
+
+        System.out.println(TAG + ": Adding Timeout Rule");
+        ruleChain = ruleChain.around(new Timeout(30, TimeUnit.SECONDS));
 
         System.out.println(TAG + ": Should write test results to CSV: " +
                 BuildConfig.SAVE_TEST_RESULTS_TO_CSV);
