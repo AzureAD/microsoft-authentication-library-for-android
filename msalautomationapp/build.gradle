@@ -50,25 +50,59 @@ android {
         }
     }
 
-    testBuildType = "release"
+    testBuildType = "debug"
 
     lintOptions {
         abortOnError false
     }
 
-    flavorDimensions "main"
+    flavorDimensions "main", "broker"
 
     productFlavors {
         local {
+            dimension "main"
             applicationIdSuffix ".local"
             versionNameSuffix "-local"
             resValue("string", "application_name", "msal-local")
         }
         dist {
+            dimension "main"
             // Keep .local because the redirect url we registered on the portal contains .local, not .dist
             applicationIdSuffix ".local"
             versionNameSuffix "-dist"
             resValue("string", "application_name", "msal-dist")
+        }
+
+        authenticator {
+            dimension "broker"
+        }
+
+        companyPortal {
+            dimension "broker"
+        }
+
+        brokerHost {
+            dimension "broker"
+        }
+    }
+
+    variantFilter { variant ->
+        def flavorName = variant.flavors*.name
+        def buildType = variant.buildType.name
+        // To check for a certain build type, use variant.buildType.name == "<buildType>"
+        if (buildType.contains("release")) {
+            // Gradle ignores any variants that satisfy the conditions above.
+            setIgnore(true)
+        }
+
+        if (flavorName.contains("dist") && flavorName.contains("brokerHost")) {
+            // Gradle ignores any variants that satisfy the conditions above.
+            setIgnore(true)
+        }
+
+        if (flavorName.contains("local") && flavorName.contains("companyPortal") && buildType.contains("debug")) {
+            // Gradle ignores any variants that satisfy the conditions above.
+            setIgnore(true)
         }
     }
 
