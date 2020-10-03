@@ -73,15 +73,15 @@ android {
             resValue("string", "application_name", "msal-dist")
         }
 
-        authenticator {
+        BrokerMicrosoftAuthenticator {
             dimension "broker"
         }
 
-        companyPortal {
+        BrokerCompanyPortal {
             dimension "broker"
         }
 
-        brokerHost {
+        BrokerHost {
             dimension "broker"
         }
     }
@@ -95,12 +95,12 @@ android {
             setIgnore(true)
         }
 
-        if (flavorName.contains("dist") && flavorName.contains("brokerHost")) {
+        if (flavorName.contains("dist") && flavorName.contains("BrokerHost")) {
             // Gradle ignores any variants that satisfy the conditions above.
             setIgnore(true)
         }
 
-        if (flavorName.contains("local") && flavorName.contains("companyPortal") && buildType.contains("debug")) {
+        if (flavorName.contains("local") && flavorName.contains("BrokerCompanyPortal") && buildType.contains("debug")) {
             // Gradle ignores any variants that satisfy the conditions above.
             setIgnore(true)
         }
