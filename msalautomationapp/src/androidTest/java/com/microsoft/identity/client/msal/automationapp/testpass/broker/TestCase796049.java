@@ -150,11 +150,6 @@ public class TestCase796049 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public ITestBroker getBroker() {
-        return new BrokerMicrosoftAuthenticator();
-    }
-
-    @Override
     public int getConfigFileResourceId() {
         return R.raw.msal_config_instance_aware_common;
     }
