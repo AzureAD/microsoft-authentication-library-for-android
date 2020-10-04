@@ -286,7 +286,7 @@ public class PublicClientApplicationConfiguration {
      * @return The boolean indicator of whether or not to use the broker.
      */
     public Boolean getUseBroker() {
-        return mUseBroker;
+        return mUseBroker == null ? true : false;
     }
 
     /**
