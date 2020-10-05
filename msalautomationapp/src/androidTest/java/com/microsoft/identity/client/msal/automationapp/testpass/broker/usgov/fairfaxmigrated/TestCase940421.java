@@ -89,7 +89,7 @@ public class TestCase940421 extends AbstractMsalBrokerTest {
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .broker(getBroker())
+                                .broker(mBroker)
                                 .expectingBrokerAccountChooserActivity(false)
                                 .expectingLoginPageAccountPicker(false)
                                 .registerPageExpected(true)

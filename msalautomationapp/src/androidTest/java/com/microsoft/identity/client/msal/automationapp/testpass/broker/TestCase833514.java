@@ -97,7 +97,7 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
         final MicrosoftStsPromptHandlerParameters microsoftStsPromptHandlerParameters =
                 MicrosoftStsPromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
-                        .broker(getBroker())
+                        .broker(mBroker)
                         .loginHint(null)
                         .consentPageExpected(false)
                         .speedBumpExpected(false)

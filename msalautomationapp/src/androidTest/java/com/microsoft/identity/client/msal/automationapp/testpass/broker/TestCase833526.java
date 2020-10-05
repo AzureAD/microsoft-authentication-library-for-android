@@ -81,7 +81,7 @@ public class TestCase833526 extends AbstractMsalBrokerTest {
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .broker(getBroker())
+                                .broker(mBroker)
                                 .expectingBrokerAccountChooserActivity(false)
                                 .enrollPageExpected(true)
                                 // cancel enroll here to short circuit as enroll will be started manually from CP anyway
@@ -129,7 +129,7 @@ public class TestCase833526 extends AbstractMsalBrokerTest {
                                 .sessionExpected(true)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .broker(getBroker())
+                                .broker(mBroker)
                                 .expectingBrokerAccountChooserActivity(true)
                                 .enrollPageExpected(false)
                                 .build();
