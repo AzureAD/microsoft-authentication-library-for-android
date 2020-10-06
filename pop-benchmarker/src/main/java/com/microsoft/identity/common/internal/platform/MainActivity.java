@@ -245,14 +245,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getIsHardwareIsolated(@NonNull final AsyncResultCallback<String> callback) {
-        final Timer.TimerResult<Boolean> result = Timer.execute(new Callable<Boolean>() {
-            @Override
-            public Boolean call() throws Exception {
-                // TODO
-                return false;
-            }
-        });
-        mThreadMarshaller.postResult(result.mResult.toString(), callback);
+        try {
+            final IDevicePopManager devicePopManager = getRandomPopMgr();
+            devicePopManager.generateAsymmetricKey(MainActivity.this);
+            final Timer.TimerResult<Boolean> result = Timer.execute(new Callable<Boolean>() {
+                @Override
+                public Boolean call() throws Exception {
+                    return IDevicePopManager.SecureHardwareState.TRUE_UNATTESTED
+                            == devicePopManager.getSecureHardwareState();
+                }
+            });
+            mThreadMarshaller.postResult(result.mResult.toString(), callback);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void getSigningTiming(@NonNull final AsyncResultCallback<String> callback) {
