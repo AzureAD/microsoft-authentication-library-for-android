@@ -20,7 +20,7 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.testing.popbenchmarker;
+package com.microsoft.identity.common.internal.platform;
 
 import android.os.Build;
 import android.os.Bundle;
@@ -31,28 +31,18 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.crypto.RSASSASigner;
-import com.nimbusds.jose.crypto.impl.RSAKeyUtils;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
+import com.microsoft.identity.common.exception.ClientException;
 
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.KeyStore;
-import java.security.PrivateKey;
+import java.io.IOException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Semaphore;
-
-import static com.microsoft.testing.popbenchmarker.PopUtils.ANDROID_KEYSTORE;
-import static com.microsoft.testing.popbenchmarker.PopUtils.KEYSTORE_ALIAS;
-import static com.microsoft.testing.popbenchmarker.PopUtils.getInitializedRsaKeyPairGenerator;
-import static com.microsoft.testing.popbenchmarker.PopUtils.isInsideSecureHardware;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -62,6 +52,8 @@ public class MainActivity extends AppCompatActivity {
     private List<Long> mKeyGenerationTimings = new ArrayList<>();
     private List<Long> mKeyLoadTimings = new ArrayList<>();
     private List<Long> mSigningTimings = new ArrayList<>();
+
+    private List<IDevicePopManager> mPopMgrs = new ArrayList<>();
 
     private TextView
             mTvManufacturer,
@@ -84,7 +76,6 @@ public class MainActivity extends AppCompatActivity {
         setText(mTvModel, Build.MODEL);
         setText(mTvOsVer, Build.VERSION.RELEASE);
         setText(mTvApiLevel, Build.VERSION.SDK_INT);
-
         executeBenchmarks();
     }
 
@@ -117,6 +108,13 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        // Clean up
+                        for (final IDevicePopManager devicePopManager : mPopMgrs) {
+                            devicePopManager.clearAsymmetricKey();
+                        }
+                        mPopMgrs.clear();
+
+                        // Enable our button
                         mBtn_Restart.setText("Restart");
                         mBtn_Restart.setEnabled(true);
                     }
@@ -236,15 +234,22 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private IDevicePopManager getRandomPopMgr() {
+        try {
+            final IDevicePopManager popManager = new DevicePopManager(UUID.randomUUID().toString());
+            mPopMgrs.add(popManager);
+            return popManager;
+        } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private void getIsHardwareIsolated(@NonNull final AsyncResultCallback<String> callback) {
         final Timer.TimerResult<Boolean> result = Timer.execute(new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
-                final KeyStore keyStore = KeyStore.getInstance(ANDROID_KEYSTORE);
-                keyStore.load(null);
-                final KeyStore.Entry entry = keyStore.getEntry(KEYSTORE_ALIAS, null);
-                PrivateKey privateKey = ((KeyStore.PrivateKeyEntry) entry).getPrivateKey();
-                return isInsideSecureHardware(privateKey);
+                // TODO
+                return false;
             }
         });
         mThreadMarshaller.postResult(result.mResult.toString(), callback);
@@ -252,41 +257,15 @@ public class MainActivity extends AppCompatActivity {
 
     private void getSigningTiming(@NonNull final AsyncResultCallback<String> callback) {
         try {
-            // Prepare JWT with claims set
-            final JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
-                    .subject("test")
-                    .issuer("https://login.microsoftonline.com")
-                    .expirationTime(new Date(new Date().getTime() + 60 * 1000))
-                    .build();
-
-            final KeyStore keyStore = KeyStore.getInstance(ANDROID_KEYSTORE);
-            keyStore.load(null);
-
-            final KeyStore.Entry entry = keyStore.getEntry(KEYSTORE_ALIAS, null);
-            final PrivateKey privateKey = ((KeyStore.PrivateKeyEntry) entry).getPrivateKey();
-
-            final RSASSASigner signer = new RSASSASigner(privateKey);
-
-            final SignedJWT signedJWT = new SignedJWT(
-                    new JWSHeader.Builder(JWSAlgorithm.RS256)
-                            //.keyID(key.getKeyID())
-                            .build(),
-                    claimsSet
-            );
-
+            final IDevicePopManager tmpPoPMgr = getRandomPopMgr();
+            tmpPoPMgr.generateAsymmetricKey(MainActivity.this);
             final Timer.TimerResult<Void> result = Timer.execute(new Callable<Void>() {
                 @Override
                 public Void call() throws Exception {
-                    // Compute the RSA signature
-                    signedJWT.sign(signer);
-
-                    // To serialize to compact form, produces something like
-                    // eyJhbGciOiJSUzI1NiJ9.SW4gUlNBIHdlIHRydXN0IQ.IRMQENi4nJyp4er2L
-                    // mZq3ivwoAjqa1uUkSBKFIX7ATndFF5ivnt-m8uApHO4kfIFOrW7w2Ezmlg3Qd
-                    // maXlS9DhN0nUk_hGI3amEjkKd0BWYCB8vfUbUv0XGjQip78AI4z1PrFRNidm7
-                    // -jPDm5Iq0SZnjKjCNS5Q15fokXZc8u0A
-                    final String signed = signedJWT.serialize();
-
+                    tmpPoPMgr.sign(
+                            IDevicePopManager.SigningAlgorithm.SHA_256_WITH_RSA,
+                            "The quick brown fox jumped over the lazy dog."
+                    );
                     return null;
                 }
             });
@@ -298,42 +277,37 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getKeyLoadTiming(@NonNull final AsyncResultCallback<String> callback) {
-        final Timer.TimerResult<Void> result = Timer.execute(new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                final KeyStore keyStore = KeyStore.getInstance(ANDROID_KEYSTORE);
-                keyStore.load(null);
-                keyStore.getEntry(KEYSTORE_ALIAS, null);
-                return null;
-            }
-        });
-        mKeyLoadTimings.add(result.mDuration);
-        mThreadMarshaller.postResult(String.valueOf(result.mDuration), callback);
+        // Pregenerate a key, to load it again for measurement.
+        try {
+            final String uuid = UUID.randomUUID().toString();
+            final IDevicePopManager devicePopManager = new DevicePopManager(uuid);
+            devicePopManager.generateAsymmetricKey(MainActivity.this);
+            mPopMgrs.add(devicePopManager);
+            final Timer.TimerResult<Void> result = Timer.execute(new Callable<Void>() {
+                @Override
+                public Void call() throws Exception {
+                    new DevicePopManager(uuid);
+                    return null;
+                }
+            });
+            mKeyLoadTimings.add(result.mDuration);
+            mThreadMarshaller.postResult(String.valueOf(result.mDuration), callback);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void getKeyGenerationTiming(@NonNull final AsyncResultCallback<String> callback) {
+        final IDevicePopManager tmpPopMgr = getRandomPopMgr();
         final Timer.TimerResult<Void> result = Timer.execute(new Callable<Void>() {
             @Override
             public Void call() {
-                KeyPairGenerator kpg;
-
                 try {
-                    while (true) {
-                        kpg = getInitializedRsaKeyPairGenerator(MainActivity.this);
-                        final KeyPair kp = kpg.generateKeyPair();
-                        // Check that the generated thumbprint size is 2048, if it is not, retry...
-                        final int length = RSAKeyUtils.keyBitLength(kp.getPrivate());
-
-                        if (length >= 2048 || length < 0) {
-                            break;
-                        }
-                    }
-
-                } catch (UnsupportedOperationException e) {
-                    crash(e);
+                    tmpPopMgr.generateAsymmetricKey(MainActivity.this);
+                    return null;
+                } catch (ClientException e) {
+                    throw new RuntimeException(e);
                 }
-
-                return null;
             }
         });
         mKeyGenerationTimings.add(result.mDuration);
