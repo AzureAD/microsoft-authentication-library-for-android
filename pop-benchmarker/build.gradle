@@ -22,7 +22,5 @@ android {
 dependencies {
     implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
     implementation "androidx.constraintlayout:constraintlayout:$rootProject.ext.constraintLayoutVersion"
-    implementation(project(":common")) {
-        //transitive = false
-    }
+    implementation(project(":common"))
 }
