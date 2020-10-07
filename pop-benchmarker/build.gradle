@@ -21,5 +21,6 @@ android {
 
 dependencies {
     implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
-    implementation "com.nimbusds:nimbus-jose-jwt:7.8"
+    implementation "androidx.constraintlayout:constraintlayout:$rootProject.ext.constraintLayoutVersion"
+    implementation(project(":common"))
 }
