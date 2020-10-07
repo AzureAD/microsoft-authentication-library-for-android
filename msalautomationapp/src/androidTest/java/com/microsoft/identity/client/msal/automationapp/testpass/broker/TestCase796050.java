@@ -32,6 +32,8 @@ import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.TestContext;
+import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
+import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
@@ -56,7 +58,7 @@ import java.util.concurrent.CountDownLatch;
 public class TestCase796050 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_796050() throws InterruptedException {
+    public void test_796050() {
 
         // already created test user
         final String username1 = mLoginHint;
@@ -73,7 +75,7 @@ public class TestCase796050 extends AbstractMsalBrokerTest {
                 username1, password1
         );
 
-        final CountDownLatch latch = new CountDownLatch(1);
+        final TokenRequestLatch latch = new TokenRequestLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
@@ -116,7 +118,7 @@ public class TestCase796050 extends AbstractMsalBrokerTest {
         );
 
         interactiveRequest.execute();
-        latch.await();
+        latch.await(TokenRequestTimeout.MEDIUM);
 
         // Assert Authenticator Account screen has both accounts
 
@@ -139,7 +141,7 @@ public class TestCase796050 extends AbstractMsalBrokerTest {
         // Make sure we have the most recent account aka Account 2
         Assert.assertEquals(username2, account.getUsername());
 
-        final CountDownLatch silentLatch = new CountDownLatch(1);
+        final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(account)
@@ -151,7 +153,7 @@ public class TestCase796050 extends AbstractMsalBrokerTest {
 
         // get a token silently
         mApplication.acquireTokenSilentAsync(silentParameters);
-        silentLatch.await();
+        silentLatch.await(TokenRequestTimeout.SILENT);
     }
 
 

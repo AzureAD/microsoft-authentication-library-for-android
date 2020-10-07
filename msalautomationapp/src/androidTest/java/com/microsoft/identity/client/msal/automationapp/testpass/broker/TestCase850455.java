@@ -30,6 +30,8 @@ import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
+import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
+import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
@@ -48,8 +50,8 @@ import java.util.concurrent.CountDownLatch;
 public class TestCase850455 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_850455() throws InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
+    public void test_850455() {
+        final TokenRequestLatch latch = new TokenRequestLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
@@ -86,13 +88,13 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
         );
 
         interactiveRequest.execute();
-        latch.await();
+        latch.await(TokenRequestTimeout.MEDIUM);
 
         // SILENT REQUEST
 
         final IAccount account = getAccount();
 
-        final CountDownLatch silentLatch = new CountDownLatch(1);
+        final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(account)
@@ -103,7 +105,7 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
-        silentLatch.await();
+        silentLatch.await(TokenRequestTimeout.SILENT);
 
     }
 

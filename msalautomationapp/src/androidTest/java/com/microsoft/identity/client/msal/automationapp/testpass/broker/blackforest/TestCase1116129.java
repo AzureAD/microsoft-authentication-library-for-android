@@ -28,6 +28,8 @@ import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
+import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
+import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
@@ -47,14 +49,14 @@ import java.util.concurrent.CountDownLatch;
 public class TestCase1116129 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_1116129() throws InterruptedException {
+    public void test_1116129() {
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
         // perform device registration (will obtain PRT in Broker for supplied account)
         mBroker.performDeviceRegistration(username, password);
 
-        final CountDownLatch latch = new CountDownLatch(1);
+        final TokenRequestLatch latch = new TokenRequestLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
@@ -89,7 +91,7 @@ public class TestCase1116129 extends AbstractMsalBrokerTest {
         );
 
         interactiveRequest.execute();
-        latch.await();
+        latch.await(TokenRequestTimeout.MEDIUM);
     }
 
 

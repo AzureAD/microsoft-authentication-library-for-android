@@ -29,6 +29,8 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.ErrorCodes;
 import com.microsoft.identity.client.msal.automationapp.R;
+import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
+import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
@@ -80,7 +82,7 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
         final SingleAccountPublicClientApplication singleAccountPCA =
                 (SingleAccountPublicClientApplication) mApplication;
 
-        final CountDownLatch latch = new CountDownLatch(1);
+        final TokenRequestLatch latch = new TokenRequestLatch(1);
 
         // try sign in with an account from the same tenant
         singleAccountPCA.signIn(mActivity, username, mScopes, successfulInteractiveCallback(latch));
@@ -97,7 +99,7 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
         AadPromptHandler aadPromptHandler = new AadPromptHandler(promptHandlerParameters);
         aadPromptHandler.handlePrompt(username, password);
 
-        latch.await();
+        latch.await(TokenRequestTimeout.MEDIUM);
 
         // try sign in with a different account - it should fail
 
@@ -109,12 +111,12 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
         final String anotherUserFromSameTenant = LabUserHelper.loadUserForTest(query2);
         password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
-        final CountDownLatch latch2 = new CountDownLatch(1);
+        final TokenRequestLatch latch2 = new TokenRequestLatch(1);
 
         // try sign in with an account from the same tenant
         singleAccountPCA.signIn(mActivity, anotherUserFromSameTenant, mScopes, failureInteractiveCallback(latch2, ErrorCodes.INVALID_PARAMETER));
 
-        latch2.await();
+        latch2.await(TokenRequestTimeout.MEDIUM);
     }
 
     @Override

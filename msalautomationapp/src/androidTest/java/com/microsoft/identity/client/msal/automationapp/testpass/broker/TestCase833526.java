@@ -28,6 +28,8 @@ import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
+import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
+import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.IMdmAgent;
@@ -51,11 +53,11 @@ import java.util.concurrent.CountDownLatch;
 public class TestCase833526 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_833526() throws InterruptedException {
+    public void test_833526() {
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
-        final CountDownLatch latch = new CountDownLatch(1);
+        final TokenRequestLatch latch = new TokenRequestLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
@@ -93,7 +95,7 @@ public class TestCase833526 extends AbstractMsalBrokerTest {
         );
 
         interactiveRequest.execute();
-        latch.await();
+        latch.await(TokenRequestTimeout.LONG);
 
         // enroll device with CP
 
@@ -102,7 +104,7 @@ public class TestCase833526 extends AbstractMsalBrokerTest {
 
         // SECOND REQUEST WITH LOGIN HINT
 
-        final CountDownLatch latchTryAcquireAgain = new CountDownLatch(1);
+        final TokenRequestLatch latchTryAcquireAgain = new TokenRequestLatch(1);
 
         // try another interactive token request in MSAL
         // we should not see enroll page and request should succeed as device is already enrolled
@@ -139,7 +141,7 @@ public class TestCase833526 extends AbstractMsalBrokerTest {
         );
 
         interactiveRequestTryAgain.execute();
-        latchTryAcquireAgain.await();
+        latchTryAcquireAgain.await(TokenRequestTimeout.MEDIUM);
     }
 
 
