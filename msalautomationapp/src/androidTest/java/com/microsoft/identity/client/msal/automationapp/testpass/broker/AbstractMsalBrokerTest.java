@@ -58,12 +58,12 @@ public abstract class AbstractMsalBrokerTest extends AbstractMsalUiTest implemen
 
     @Override
     public ITestBroker getBroker() {
-        switch (BuildConfig.FLAVOR_broker) {
-            case "BrokerHost" :
+        switch (BuildConfig.SELECTED_BROKER) {
+            case BuildConfig.BrokerHost:
                 return new BrokerHost();
-            case "BrokerMicrosoftAuthenticator":
+            case BuildConfig.BrokerMicrosoftAuthenticator:
                 return new BrokerMicrosoftAuthenticator();
-            case "BrokerCompanyPortal":
+            case BuildConfig.BrokerCompanyPortal:
                 return new BrokerCompanyPortal();
             default:
                 throw new UnsupportedOperationException("Unsupported broker :(");

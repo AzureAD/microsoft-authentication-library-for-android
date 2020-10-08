@@ -1,6 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
+
+    final String BROKER_HOST = "BrokerHost"
+    final String BROKER_MICROSOFT_AUTHENTICATOR = "BrokerMicrosoftAuthenticator"
+    final String BROKER_COMPANY_PORTAL = "BrokerCompanyPortal"
+    final String SELECTED_BROKER = "SELECTED_BROKER"
+
     signingConfigs {
         debug {
             storeFile file("./debug.keystore")
@@ -31,6 +37,11 @@ android {
         // "pm clear" command after each test invocation. This command ensures
         // that the app's state is completely cleared between tests.
         testInstrumentationRunnerArguments clearPackageData: 'true'
+
+        // constants
+        buildConfigField("String", BROKER_MICROSOFT_AUTHENTICATOR, "\"$BROKER_MICROSOFT_AUTHENTICATOR\"")
+        buildConfigField("String", BROKER_COMPANY_PORTAL, "\"$BROKER_COMPANY_PORTAL\"")
+        buildConfigField("String", BROKER_HOST, "\"$BROKER_HOST\"")
     }
 
     testOptions {
@@ -75,14 +86,17 @@ android {
 
         BrokerMicrosoftAuthenticator {
             dimension "broker"
+            buildConfigField("String", SELECTED_BROKER, "\"$BROKER_MICROSOFT_AUTHENTICATOR\"")
         }
 
         BrokerCompanyPortal {
             dimension "broker"
+            buildConfigField("String", SELECTED_BROKER, "\"$BROKER_COMPANY_PORTAL\"")
         }
 
         BrokerHost {
             dimension "broker"
+            buildConfigField("String", SELECTED_BROKER, "\"$BROKER_HOST\"")
         }
     }
 
