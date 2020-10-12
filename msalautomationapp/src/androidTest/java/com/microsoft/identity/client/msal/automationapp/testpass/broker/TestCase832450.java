@@ -23,7 +23,9 @@
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
 import android.app.Activity;
+
 import androidx.annotation.NonNull;
+
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IAccount;
@@ -49,6 +51,7 @@ import java.util.concurrent.CountDownLatch;
 //Non Joined AcquireToken test with MSAL and Broker
 //https:identitydivision.visualstudio.com/DevEx/_workitems/edit/832450
 public class TestCase832450 extends AbstractMsalBrokerTest {
+
     @Test
     public void test_832450() throws InterruptedException {
         final String username = mLoginHint;
@@ -64,7 +67,6 @@ public class TestCase832450 extends AbstractMsalBrokerTest {
                 .withCallback(successfulInteractiveCallback(latch))
                 .withPrompt(Prompt.SELECT_ACCOUNT)
                 .build();
-
 
         final InteractiveRequest interactiveRequest = new InteractiveRequest(
                 mApplication,
@@ -92,6 +94,7 @@ public class TestCase832450 extends AbstractMsalBrokerTest {
         latch.await();
 
         final IAccount account = getAccount();
+
         // acquiring token silently
         final CountDownLatch silentLatch = new CountDownLatch(1);
 
@@ -122,7 +125,6 @@ public class TestCase832450 extends AbstractMsalBrokerTest {
 
         mApplication.acquireTokenSilentAsync(refreshSilentParameters);
         refreshTokenLatch.await();
-
     }
 
     @Override
