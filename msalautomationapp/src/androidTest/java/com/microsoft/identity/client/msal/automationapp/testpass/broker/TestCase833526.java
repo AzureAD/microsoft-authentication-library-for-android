@@ -29,6 +29,7 @@ import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
+import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.IMdmAgent;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
@@ -48,6 +49,7 @@ import java.util.concurrent.CountDownLatch;
 // Broker Auth for MDM account
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833526
 @RetryOnFailure(retryCount = 2)
+@SupportedBrokers(brokers = BrokerCompanyPortal.class)
 public class TestCase833526 extends AbstractMsalBrokerTest {
 
     @Test
@@ -79,7 +81,7 @@ public class TestCase833526 extends AbstractMsalBrokerTest {
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .broker(getBroker())
+                                .broker(mBroker)
                                 .expectingBrokerAccountChooserActivity(false)
                                 .enrollPageExpected(true)
                                 // cancel enroll here to short circuit as enroll will be started manually from CP anyway
@@ -127,7 +129,7 @@ public class TestCase833526 extends AbstractMsalBrokerTest {
                                 .sessionExpected(true)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .broker(getBroker())
+                                .broker(mBroker)
                                 .expectingBrokerAccountChooserActivity(true)
                                 .enrollPageExpected(false)
                                 .build();
@@ -164,11 +166,6 @@ public class TestCase833526 extends AbstractMsalBrokerTest {
     @Override
     public String getAuthority() {
         return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
-    }
-
-    @Override
-    public ITestBroker getBroker() {
-        return new BrokerCompanyPortal();
     }
 
     @Override
