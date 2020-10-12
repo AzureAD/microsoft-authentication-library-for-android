@@ -1765,6 +1765,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     private DeviceCodeFlowCommandCallback getDeviceCodeFlowCommandCallback(@NonNull final DeviceCodeFlowCallback callback) {
         return new DeviceCodeFlowCommandCallback<LocalAuthenticationResult, BaseException>() {
+
             @Override
             public void onUserCodeReceived(@NonNull final String vUri,
                                            @NonNull final String userCode,
