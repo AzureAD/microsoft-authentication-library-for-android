@@ -30,6 +30,9 @@ import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
+import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
+import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
+import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
@@ -46,6 +49,7 @@ import org.junit.Test;
 
 // End My Shift - In Shared device mode, only account from the same tenant should be able to acquire token.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833513
+@SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
 public class TestCase833513 extends AbstractMsalBrokerTest {
 
     @Test
@@ -124,11 +128,6 @@ public class TestCase833513 extends AbstractMsalBrokerTest {
     @Override
     public String getAuthority() {
         return null;
-    }
-
-    @Override
-    public ITestBroker getBroker() {
-        return new BrokerMicrosoftAuthenticator();
     }
 
     @Override
