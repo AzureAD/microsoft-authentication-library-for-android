@@ -44,7 +44,7 @@ import java.util.Map;
 public class CommandParametersAdapter {
 
     private static final String TAG = CommandParametersAdapter.class.getSimpleName();
-    public static final String CLIENT_CAPABILITIES_CLAIM = "XMS_CC";
+    public static final String CLIENT_CAPABILITIES_CLAIM = "xms_cc";
 
     public static CommandParameters createCommandParameters(
             @NonNull final PublicClientApplicationConfiguration configuration,
