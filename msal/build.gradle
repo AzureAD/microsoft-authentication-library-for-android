@@ -11,6 +11,7 @@ jacoco {
     reportsDir = file("$buildDir/reports/unitTests")
 }
 
+//To include Robolectric tests in the Jacoco report, flag -> "includeNolocationClasses" is set to true
 tasks.withType(Test) {
     jacoco.includeNoLocationClasses = true
 }
@@ -136,46 +137,30 @@ task sourcesJar(type: Jar) {
 task createMsalCoverageReportTask() {
     group = "Msal Reporting"
     description = "Generate Coverage Report tasks for every build Flavour"
+    android.libraryVariants.all { variant ->
+        def buildVariant = variant.name
+        def testTaskName = "test${buildVariant.capitalize()}UnitTest"
 
-    def buildTypes = android.buildTypes.collect { type ->
-        type.name
-    }
-    def productFlavors = android.productFlavors.collect { flavor ->
-        flavor.name
-    }
-    // When no product flavors defined, use empty string
-    if (!productFlavors) productFlavors.add('')
-    productFlavors.each { productFlavorName ->
-        buildTypes.each { buildTypeName ->
-            def sourceName
-            if (!productFlavorName) {
-                sourceName = "${buildTypeName}"
-            } else {
-                sourceName = "${productFlavorName}${buildTypeName.capitalize()}"
-            }
-            def testTaskName = "test${sourceName.capitalize()}UnitTest"
+        // Tasks for generating Coverage reports for every buildVariant
+        task "${buildVariant}MsalCoverageReport" (type:JacocoReport, dependsOn: ["$testTaskName", "create${buildVariant.capitalize()}CoverageReport"]) {
+            group = "Msal Reporting"
+            description = "Generate Msal Coverage Reports(UnitTest & AndroidTests) on the ${buildVariant.capitalize()}"
 
-            // Tasks for generating Coverage reports for every sourceName
-            task "${sourceName}MsalCoverageReport" (type:JacocoReport, dependsOn: ["$testTaskName", "create${sourceName.capitalize()}CoverageReport"]) {
-                group = "Msal Reporting"
-                description = "Generate Msal Coverage Reports(UnitTest & AndroidTests) on the ${sourceName.capitalize()}"
-
-                def coverageSourceDirs = "${projectDir}/src/main/java"
-                def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test.*']
-                def javaClasses = fileTree(
-                        dir: "${buildDir}/intermediates/javac/${sourceName}/classes",
-                        excludes: fileFilter
-                )
-                sourceDirectories.from = files([coverageSourceDirs])
-                additionalSourceDirs.from = files(coverageSourceDirs)
-                classDirectories.from = files([javaClasses])
-                executionData.from = fileTree(dir: "$buildDir", includes: [
-                        "jacoco/${testTaskName}.exec"
-                ])
-                reports {
-                    xml.enabled = true
-                    html.enabled = true
-                }
+            def coverageSourceDirs = "${projectDir}/src/main/java"
+            def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test.*']
+            def javaClasses = fileTree(
+                    dir: "${buildDir}/intermediates/javac/${buildVariant}/classes",
+                    excludes: fileFilter
+            )
+            sourceDirectories.from = files([coverageSourceDirs])
+            additionalSourceDirs.from = files(coverageSourceDirs)
+            classDirectories.from = files([javaClasses])
+            executionData.from = fileTree(dir: "$buildDir", includes: [
+                    "jacoco/${testTaskName}.exec"
+            ])
+            reports {
+                xml.enabled = true
+                html.enabled = true
             }
         }
     }
