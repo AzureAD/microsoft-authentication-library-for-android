@@ -17,13 +17,12 @@ env:
 
 android:
   components:
-    - tools
-    - platform-tools
     - extra-google-m2repository
 
 before_install:
   - chmod +x gradlew
   - touch ~/.android/repositories.cfg
+  - yes | sdkmanager "tools"
   - yes | sdkmanager "platform-tools" "platforms;android-29"
   - yes | sdkmanager "build-tools;29.0.3"
   - yes | sdkmanager "system-images;android-29;google_apis;x86"
