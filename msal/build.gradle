@@ -90,8 +90,8 @@ android {
                 exclude 'com/microsoft/identity/client/e2e/tests/network'
             }
 
-            systemProperty 'robolectric.offline', 'true'
-            systemProperty 'robolectric.dependency.dir', './libs'
+            //systemProperty 'robolectric.offline', 'true'
+            //systemProperty 'robolectric.dependency.dir', './libs'
         }
     }
 }
