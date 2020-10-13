@@ -24,15 +24,12 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.msal.automationapp.AbstractAcquireTokenNetworkTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.ui.automation.broker.BrokerAuthenticator;
-import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
-import com.microsoft.identity.client.ui.automation.interaction.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
@@ -42,7 +39,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
-public class TestCase769049 extends AbstractAcquireTokenNetworkTest {
+public class TestCase769049 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_769049() throws InterruptedException {
@@ -68,12 +65,12 @@ public class TestCase769049 extends AbstractAcquireTokenNetworkTest {
 
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.LOGIN)
-                                .loginHintProvided(true)
+                                .loginHint(mLoginHint)
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .broker(getBroker())
-                                .expectingNonZeroAccountsInBroker(false)
+                                .broker(mBroker)
+                                .expectingBrokerAccountChooserActivity(false)
                                 .build();
 
                         new AadPromptHandler(promptHandlerParameters)
@@ -108,12 +105,12 @@ public class TestCase769049 extends AbstractAcquireTokenNetworkTest {
 
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.LOGIN)
-                                .loginHintProvided(false)
                                 .sessionExpected(true)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .broker(getBroker())
-                                .expectingNonZeroAccountsInBroker(true)
+                                .broker(mBroker)
+                                .expectingBrokerAccountChooserActivity(true)
+                                .expectingProvidedAccountInBroker(true)
                                 .build();
 
                         new AadPromptHandler(promptHandlerParameters)
@@ -147,11 +144,6 @@ public class TestCase769049 extends AbstractAcquireTokenNetworkTest {
     @Override
     public String getAuthority() {
         return mApplication.getConfiguration().getDefaultAuthority().toString();
-    }
-
-    @Override
-    public ITestBroker getBroker() {
-        return new BrokerAuthenticator();
     }
 
     @Override

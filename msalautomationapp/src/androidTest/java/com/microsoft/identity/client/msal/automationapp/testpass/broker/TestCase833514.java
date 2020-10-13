@@ -33,7 +33,9 @@ import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.msal.automationapp.R;
+import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.AzureSampleApp;
+import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
@@ -51,6 +53,7 @@ import java.util.concurrent.CountDownLatch;
 
 // End My Shift - In Shared device mode, an account signed in through App A can be used by App B.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833514
+@SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
 public class TestCase833514 extends AbstractMsalBrokerTest {
 
     @Test
@@ -94,7 +97,7 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
         final MicrosoftStsPromptHandlerParameters microsoftStsPromptHandlerParameters =
                 MicrosoftStsPromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
-                        .broker(getBroker())
+                        .broker(mBroker)
                         .loginHint(null)
                         .consentPageExpected(false)
                         .speedBumpExpected(false)
@@ -181,11 +184,6 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
     @Override
     public String getAuthority() {
         return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
-    }
-
-    @Override
-    public ITestBroker getBroker() {
-        return new BrokerMicrosoftAuthenticator();
     }
 
     @Override

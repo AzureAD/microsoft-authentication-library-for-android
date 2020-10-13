@@ -1,6 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
+
+    final String BROKER_HOST = "BrokerHost"
+    final String BROKER_MICROSOFT_AUTHENTICATOR = "BrokerMicrosoftAuthenticator"
+    final String BROKER_COMPANY_PORTAL = "BrokerCompanyPortal"
+    final String SELECTED_BROKER = "SELECTED_BROKER"
+
     signingConfigs {
         debug {
             storeFile file("./debug.keystore")
@@ -31,6 +37,11 @@ android {
         // "pm clear" command after each test invocation. This command ensures
         // that the app's state is completely cleared between tests.
         testInstrumentationRunnerArguments clearPackageData: 'true'
+
+        // constants
+        buildConfigField("String", BROKER_MICROSOFT_AUTHENTICATOR, "\"$BROKER_MICROSOFT_AUTHENTICATOR\"")
+        buildConfigField("String", BROKER_COMPANY_PORTAL, "\"$BROKER_COMPANY_PORTAL\"")
+        buildConfigField("String", BROKER_HOST, "\"$BROKER_HOST\"")
     }
 
     testOptions {
@@ -50,25 +61,62 @@ android {
         }
     }
 
-    testBuildType = "release"
+    testBuildType = "debug"
 
     lintOptions {
         abortOnError false
     }
 
-    flavorDimensions "main"
+    flavorDimensions "main", "broker"
 
     productFlavors {
         local {
+            dimension "main"
             applicationIdSuffix ".local"
             versionNameSuffix "-local"
             resValue("string", "application_name", "msal-local")
         }
         dist {
+            dimension "main"
             // Keep .local because the redirect url we registered on the portal contains .local, not .dist
             applicationIdSuffix ".local"
             versionNameSuffix "-dist"
             resValue("string", "application_name", "msal-dist")
+        }
+
+        BrokerMicrosoftAuthenticator {
+            dimension "broker"
+            buildConfigField("String", SELECTED_BROKER, "\"$BROKER_MICROSOFT_AUTHENTICATOR\"")
+        }
+
+        BrokerCompanyPortal {
+            dimension "broker"
+            buildConfigField("String", SELECTED_BROKER, "\"$BROKER_COMPANY_PORTAL\"")
+        }
+
+        BrokerHost {
+            dimension "broker"
+            buildConfigField("String", SELECTED_BROKER, "\"$BROKER_HOST\"")
+        }
+    }
+
+    variantFilter { variant ->
+        def flavorName = variant.flavors*.name
+        def buildType = variant.buildType.name
+        // To check for a certain build type, use variant.buildType.name == "<buildType>"
+        if (buildType.contains("release")) {
+            // Gradle ignores any variants that satisfy the conditions above.
+            setIgnore(true)
+        }
+
+        if (flavorName.contains("dist") && flavorName.contains("BrokerHost")) {
+            // Gradle ignores any variants that satisfy the conditions above.
+            setIgnore(true)
+        }
+
+        if (flavorName.contains("local") && flavorName.contains("BrokerCompanyPortal") && buildType.contains("debug")) {
+            // Gradle ignores any variants that satisfy the conditions above.
+            setIgnore(true)
         }
     }
 
@@ -89,7 +137,7 @@ android {
 dependencies {
     // Compile Dependency
     localImplementation project(':msal')
-    distImplementation 'com.microsoft.identity.client:msal:1.5.0'
+    distImplementation 'com.microsoft.identity.client:msal:2.+'
     implementation "androidx.constraintlayout:constraintlayout:$rootProject.ext.constraintLayoutVersion"
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
     implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
@@ -100,8 +148,12 @@ dependencies {
     // Set this dependency to use JUnit 4 rules
     androidTestImplementation "androidx.test:rules:$rootProject.rulesVersion"
     androidTestImplementation "androidx.test.uiautomator:uiautomator:$rootProject.ext.uiAutomatorVersion"
-    androidTestImplementation(project(":testutils"))
-    androidTestImplementation(project(":uiautomationutilities"))
+    androidTestImplementation(project(":testutils")) {
+        exclude module: 'common'
+    }
+    androidTestImplementation(project(":uiautomationutilities")) {
+        exclude module: 'common'
+    }
     androidTestImplementation "androidx.test:runner:$rootProject.ext.androidxTestRunnerVersion"
     androidTestUtil "androidx.test:orchestrator:$rootProject.ext.androidxTestOrchestratorVersion"
 }

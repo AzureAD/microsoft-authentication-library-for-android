@@ -1,5 +1,9 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
+v.Next
+----------
+- Expose expiresIn in MSAL Device Code flow callback #1169
+
 Version 2.0.0
 ----------
 - Add Device Code Flow Support (#1112)
