@@ -23,9 +23,9 @@ before_install:
   - chmod +x gradlew
   - touch ~/.android/repositories.cfg
   - yes | sdkmanager "tools"
-  - yes | sdkmanager "platforms;android-29"
-  - yes | sdkmanager "build-tools;29.0.3"
-  - yes | sdkmanager "system-images;android-29;google_apis;x86"
+  - yes | sdkmanager "platforms;android-29" | grep -v = || true
+  - yes | sdkmanager "build-tools;29.0.3" | grep -v = || true
+  - yes | sdkmanager "system-images;android-29;google_apis;x86" | grep -v = || true
 
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
