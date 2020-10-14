@@ -27,7 +27,7 @@ before_install:
   - yes | sdkmanager "build-tools;29.0.3" | grep -v = || true
   - yes | sdkmanager --install "system-images;android-29;google_apis;x86_64" | grep -v = || true
   - echo no | avdmanager create avd --force -n test -k "system-images;android-29;google_apis;x86_64"
-  - emulator -avd test -no-audio -no-window
+  - $ANDROID_HOME/emulator/emulator -avd test -no-audio -no-window
 
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
