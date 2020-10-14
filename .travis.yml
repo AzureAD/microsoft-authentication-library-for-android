@@ -26,6 +26,8 @@ before_install:
   - yes | sdkmanager "platforms;android-29" | grep -v = || true
   - yes | sdkmanager "build-tools;29.0.3" | grep -v = || true
   - yes | sdkmanager "system-images;android-29;google_apis;x86" | grep -v = || true
+  - echo no | avdmanager create avd --force -n test -k "system-images;android-29;google_apis;x86"
+  - emulator -avd test -no-audio -no-window &
 
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
@@ -37,8 +39,6 @@ cache:
     - $HOME/.android/build-cache
 
 before_script:
-  - echo no | avdmanager create avd --force -n test -k "system-images;android-29;google_apis;x86"
-  - emulator -avd test -no-audio -no-window &
   - android-wait-for-emulator
   - adb shell input keyevent 82 &
 
