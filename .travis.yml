@@ -1,5 +1,5 @@
 # ./travis.yml for MSAL android
-language: minimal
+language: java
 dist: bionic
 
 # Build Variables
@@ -11,9 +11,6 @@ env:
     - ARCH=x86_64
 
 before_install:
-  # set JAVA_HOME path
-  - export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
-  - echo $JAVA_HOME
   # download and unzip Android SDK command line tools
   - wget -nv https://dl.google.com/android/repository/$ADNDROID_TOOLS
   - unzip -q $ADNDROID_TOOLS -d $HOME/sdk
