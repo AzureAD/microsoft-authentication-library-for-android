@@ -22,9 +22,9 @@ android:
 before_install:
   - chmod +x gradlew
   - touch ~/.android/repositories.cfg
-  - yes | sdkmanager --install "tools"
-  - yes | sdkmanager --install "platforms;android-29" | grep -v = || true
-  - yes | sdkmanager --install "build-tools;29.0.3" | grep -v = || true
+  - yes | sdkmanager "tools"
+  - yes | sdkmanager "platforms;android-29" | grep -v = || true
+  - yes | sdkmanager "build-tools;29.0.3" | grep -v = || true
   - yes | sdkmanager --install "system-images;android-29;google_apis;x86_64" | grep -v = || true
   - echo no | avdmanager create avd --force -n test -k "system-images;android-29;google_apis;x86_64"
   - emulator -avd test -no-audio -no-window
