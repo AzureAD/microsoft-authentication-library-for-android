@@ -13,7 +13,8 @@ env:
 
 before_install:
   # set JAVA_HOME path
-  - export JAVA_HOME=/usr/lib/jvm/java-10-openjdk-amd64
+  #- export JAVA_HOME=/usr/lib/jvm/java-10-openjdk-amd64
+  - whereis java
   # download and unzip Android SDK command line tools
   - wget -nv https://dl.google.com/android/repository/$ADNDROID_TOOLS
   - unzip -q $ADNDROID_TOOLS -d $HOME/sdk
