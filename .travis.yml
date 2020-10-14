@@ -1,5 +1,5 @@
 # ./travis.yml for MSAL android
-language: bash
+language: android
 dist: bionic
 jdk: oraclejdk8
 
