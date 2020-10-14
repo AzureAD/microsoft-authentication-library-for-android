@@ -1,5 +1,5 @@
 # ./travis.yml for MSAL android
-language: android
+language: minimal
 dist: bionic
 jdk: openjdk10
 
@@ -7,20 +7,24 @@ jdk: openjdk10
 env:
   global:
     - BUILD_TOOLS_VERSION=29.0.3
-    - COMPILE_SDK_VERSION=29
-    - EMULATOR_API_VERSION=29
-
-    # This is to guarantee a clean gradle log
-    - TERM=dumb
-
-android:
-  components:
-    - extra-google-m2repository
+    - API_VERSION=29
+    - ADNDROID_TOOLS=commandlinetools-linux-6609375_latest.zip
+    - ARCH=x86_64
 
 before_install:
+  # set JAVA_HOME path
+  - export JAVA_HOME=/usr/lib/jvm/java-10-openjdk-amd64
+  # download and unzip Android SDK command line tools
+  - wget -nv https://dl.google.com/android/repository/$ADNDROID_TOOLS
+  - unzip -q $ADNDROID_TOOLS -d $HOME/sdk
+  # set SDK tools path variable and ANDROID_HOME
+  - export PATH=$PATH:$HOME/sdk/tools/bin
+  - export ANDROID_HOME=$HOME/sdk
+  # create empty cfg file to prevent sdkmanager warning message
+  - mkdir -p $HOME/.android && touch $HOME/.android/repositories.cfg
   - chmod +x gradlew
-  - touch ~/.android/repositories.cfg
-  - yes | sdkmanager "tools"
+  - yes | sdkmanager --licenses >/dev/null
+  - yes | sdkmanager "tools" | grep -v = || true
   - yes | sdkmanager "platforms;android-29" | grep -v = || true
   - yes | sdkmanager "build-tools;29.0.3" | grep -v = || true
   - yes | sdkmanager --install "system-images;android-29;google_apis;x86_64" | grep -v = || true
