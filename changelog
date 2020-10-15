@@ -1,4 +1,9 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
+
+Version 2.0.2
+----------
+- Correct capitalization of client_capabilities claim 'xms_cc' (LLT) #1191
+
 Version 2.0.1
 ----------
 - Added a check for UNSET OpenIdConnectPromptParameter value.
