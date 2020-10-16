@@ -41,7 +41,6 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.ui.automation.ILabTest;
 import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
 import com.microsoft.identity.client.ui.automation.browser.IBrowser;
-import com.microsoft.identity.client.ui.automation.rules.DeviceEnrollmentFailureRecoveryRule;
 import com.microsoft.identity.client.ui.automation.rules.RemoveBrokersBeforeTestRule;
 import com.microsoft.identity.client.ui.automation.rules.ResetAutomaticTimeZoneTestRule;
 import com.microsoft.identity.client.ui.automation.rules.RetryTestRule;
@@ -165,13 +164,13 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest {
 
             @Override
             public void onError(MsalException exception) {
-                junit.framework.Assert.fail(exception.getMessage());
+                Assert.fail(exception.getMessage());
                 latch.countDown();
             }
 
             @Override
             public void onCancel() {
-                junit.framework.Assert.fail("User cancelled flow");
+                Assert.fail("User cancelled flow");
                 latch.countDown();
             }
         };
@@ -205,13 +204,13 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest {
 
             @Override
             public void onError(MsalException exception) {
-                junit.framework.Assert.fail(exception.getMessage());
                 latch.countDown();
+                Assert.fail(exception.getMessage());
             }
 
             @Override
             public void onCancel() {
-                junit.framework.Assert.fail("User cancelled flow");
+                Assert.fail("User cancelled flow");
                 latch.countDown();
             }
         };
@@ -280,7 +279,7 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest {
         return new AuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
-                junit.framework.Assert.fail("Unexpected success");
+                Assert.fail("Unexpected success");
                 latch.countDown();
             }
 
@@ -292,7 +291,7 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest {
 
             @Override
             public void onCancel() {
-                junit.framework.Assert.fail("User cancelled flow");
+                Assert.fail("User cancelled flow");
                 latch.countDown();
             }
         };
@@ -309,7 +308,7 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest {
         return new SilentAuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
-                junit.framework.Assert.fail("Unexpected success");
+                Assert.fail("Unexpected success");
                 latch.countDown();
             }
 
