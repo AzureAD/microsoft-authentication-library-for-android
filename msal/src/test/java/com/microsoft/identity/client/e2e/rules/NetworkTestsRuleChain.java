@@ -42,9 +42,6 @@ public class NetworkTestsRuleChain {
         System.out.println(TAG + ": Adding Robolectric Logging Rule");
         RuleChain ruleChain = RuleChain.outerRule(new RobolectricLoggingRule());
 
-        System.out.println(TAG + ": Adding Timeout Rule");
-        ruleChain = ruleChain.around(new Timeout(30, TimeUnit.SECONDS));
-
         System.out.println(TAG + ": Should write test results to CSV: " +
                 BuildConfig.SAVE_TEST_RESULTS_TO_CSV);
 
@@ -52,6 +49,9 @@ public class NetworkTestsRuleChain {
             System.out.println(TAG + ": Adding Rule to capture test results for Kusto");
             ruleChain = ruleChain.around(new CaptureKustoTestResultRule());
         }
+
+        System.out.println(TAG + ": Adding Timeout Rule");
+        ruleChain = ruleChain.around(new Timeout(30, TimeUnit.SECONDS));
 
         return ruleChain;
     }
