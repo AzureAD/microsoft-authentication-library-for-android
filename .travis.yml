@@ -13,7 +13,7 @@ before_install:
   # download and unzip Android SDK command line tools
   - sudo apt install openjdk-8-jdk
   - echo $JAVA_HOME
-  - sudo update-alternatives — config java
+  - sudo update-alternatives --config java
   - wget -nv https://dl.google.com/android/repository/$ANDROID_TOOLS
   - unzip -q $ANDROID_TOOLS -d $HOME/sdk
   # set SDK tools path variable and ANDROID_HOME
