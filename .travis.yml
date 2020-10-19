@@ -1,8 +1,5 @@
 # ./travis.yml for MSAL android
-language: java
 dist: bionic
-jdk:
-  - oraclejdk9
 
 # Build Variables
 env:
@@ -14,6 +11,7 @@ env:
 
 before_install:
   # download and unzip Android SDK command line tools
+  - sudo apt install openjdk-8-jdk
   - wget -nv https://dl.google.com/android/repository/$ANDROID_TOOLS
   - unzip -q $ANDROID_TOOLS -d $HOME/sdk
   # set SDK tools path variable and ANDROID_HOME
