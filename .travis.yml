@@ -1,6 +1,8 @@
 # ./travis.yml for MSAL android
 language: java
 dist: bionic
+jdk:
+  - oraclejdk8
 
 # Build Variables
 env:
