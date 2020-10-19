@@ -37,8 +37,8 @@ before_install:
 
   #Create emulator
   - echo no | $ANDROID_BIN/avdmanager create avd --force -n test -k "system-images;android-29;default;x86_64"
-
-  - sudo -E bash -c "$ANDROID_HOME/emulator/emulator -avd test -no-audio -no-window"
+  - sudo $ANDROID_HOME/platform-tools/adb start-server
+  - sudo -E sudo -u $USER -E bash -c "$ANDROID_HOME/emulator/emulator -avd test -no-audio -no-window"
 
   
 
