@@ -2,7 +2,7 @@
 language: java
 dist: bionic
 jdk:
-  - oraclejdk8
+  - oraclejdk9
 
 # Build Variables
 env:
