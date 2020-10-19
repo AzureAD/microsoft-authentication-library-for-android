@@ -22,10 +22,11 @@ before_install:
   # create empty cfg file to prevent sdkmanager warning message
   - mkdir -p $HOME/.android && touch $HOME/.android/repositories.cfg
   - chmod +x gradlew
-  - yes | sdkmanager --install "tools" | grep -v = || true
-  - yes | sdkmanager --install "platforms;android-29" | grep -v = || true
-  - yes | sdkmanager --install "build-tools;29.0.3" | grep -v = || true
-  - yes | sdkmanager --install "system-images;android-29;default;x86_64" | grep -v = || true
+  - sdkmanager --update
+  - yes | sdkmanager --install "tools" --sdk_root=$ANDROID_HOME | grep -v = || true
+  - yes | sdkmanager --install "platforms;android-29" --sdk_root=$ANDROID_HOME | grep -v = || true
+  - yes | sdkmanager --install "build-tools;29.0.3" --sdk_root=$ANDROID_HOME | grep -v = || true
+  - yes | sdkmanager --install "system-images;android-29;default;x86_64" --sdk_root=$ANDROID_HOME | grep -v = || true
     
     # Set up KVM on linux for hardware acceleration. Manually here so it only happens for emulator tests, takes ~30s
   - travis_retry sudo -E apt-get -yq --no-install-suggests --no-install-recommends install bridge-utils libpulse0 libvirt-bin qemu-kvm virtinst ubuntu-vm-builder
