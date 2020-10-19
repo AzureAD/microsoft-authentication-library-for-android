@@ -9,24 +9,25 @@ env:
   global:
     - BUILD_TOOLS_VERSION=29.0.3
     - API_VERSION=29
-    - ADNDROID_TOOLS=commandlinetools-linux-6609375_latest.zip
+    - ANDROID_TOOLS=commandlinetools-linux-6609375_latest.zip
     - ARCH=x86_64
 
 before_install:
   # download and unzip Android SDK command line tools
   - wget -nv https://dl.google.com/android/repository/$ADNDROID_TOOLS
-  - unzip -q $ADNDROID_TOOLS -d $HOME/sdk
+  - unzip -q $ANDROID_TOOLS -d $HOME/sdk
   # set SDK tools path variable and ANDROID_HOME
-  - export ANDROID_TOOLS=$HOME/sdk/tools/bin
+  - export ANDROID_BIN=$HOME/sdk/tools/bin
   - export ANDROID_HOME=$HOME/sdk
+  - export ANDROID_SDK_ROOT=$HOME/sdk
   # create empty cfg file to prevent sdkmanager warning message
   - mkdir -p $HOME/.android && touch $HOME/.android/repositories.cfg
   - chmod +x gradlew
-  - $ANDROID_TOOLS/sdkmanager --update --sdk_root=$ANDROID_HOME
-  - yes | $ANDROID_TOOLS/sdkmanager --install "tools" --sdk_root=$ANDROID_HOME | grep -v = || true
-  - yes | $ANDROID_TOOLS/sdkmanager --install "platforms;android-29" --sdk_root=$ANDROID_HOME | grep -v = || true
-  - yes | $ANDROID_TOOLS/sdkmanager --install "build-tools;29.0.3" --sdk_root=$ANDROID_HOME | grep -v = || true
-  - yes | $ANDROID_TOOLS/sdkmanager --install "system-images;android-29;default;x86_64" --sdk_root=$ANDROID_HOME | grep -v = || true
+  - $ANDROID_BIN/sdkmanager --update --sdk_root=$ANDROID_HOME
+  - yes | $ANDROID_BIN/sdkmanager --install "tools" --sdk_root=$ANDROID_HOME | grep -v = || true
+  - yes | $ANDROID_BIN/sdkmanager --install "platforms;android-29" --sdk_root=$ANDROID_HOME | grep -v = || true
+  - yes | $ANDROID_BIN/sdkmanager --install "build-tools;29.0.3" --sdk_root=$ANDROID_HOME | grep -v = || true
+  - yes | $ANDROID_BIN/sdkmanager --install "system-images;android-29;default;x86_64" --sdk_root=$ANDROID_HOME | grep -v = || true
     
     # Set up KVM on linux for hardware acceleration. Manually here so it only happens for emulator tests, takes ~30s
   - travis_retry sudo -E apt-get -yq --no-install-suggests --no-install-recommends install bridge-utils libpulse0 libvirt-bin qemu-kvm virtinst ubuntu-vm-builder
@@ -34,12 +35,12 @@ before_install:
   - sudo adduser $USER kvm
 
   #Create emulator
-  - echo no | $ANDROID_TOOLS/avdmanager create avd --force -n test -k "system-images;android-29;default;x86_64"
+  - echo no | $ANDROID_BIN/avdmanager create avd --force -n test -k "system-images;android-29;default;x86_64"
 
   # This double "sudo" monstrosity is used to have Travis execute the
   # emulator with its new group permissions and help preserve the rule
   # of least privilege.
-  - sudo -E sudo -u $USER -E bash -c "$ANDROID_TOOLS/emulator/emulator -avd test -no-audio -no-window &"
+  - sudo -E sudo -u $USER -E bash -c "$ANDROID_BIN/emulator/emulator -avd test -no-audio -no-window &"
 
   
 
