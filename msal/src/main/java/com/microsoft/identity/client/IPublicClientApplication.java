@@ -31,6 +31,7 @@ import androidx.annotation.WorkerThread;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 
+import java.util.Date;
 import java.util.List;
 
 public interface IPublicClientApplication {
@@ -175,7 +176,7 @@ public interface IPublicClientApplication {
      * Callback object used in Device Code Flow.
      * This callback provides the following methods for communicating with the protocol.
      * 1). Receiving authentication information (user_code, verification_uri, and instruction message)
-     * via {@link DeviceCodeFlowCallback#onUserCodeReceived(String, String, String)}.
+     * via {@link DeviceCodeFlowCallback#onUserCodeReceived(String, String, String, Date)}.
      * 2). Receiving a successful authentication result containing a fresh access token
      * via {@link DeviceCodeFlowCallback#onTokenReceived(AuthenticationResult)}.
      * 3). Receiving an exception detailing what went wrong in the protocol
@@ -190,8 +191,14 @@ public interface IPublicClientApplication {
          * @param vUri verification uri
          * @param userCode user code
          * @param message instruction message
+         * @param sessionExpirationDate the expiration date of DCF session to be displayed to the user ONLY.
+         *                              When the session expires, onError() will return an exception with DEVICE_CODE_FLOW_EXPIRED_TOKEN_ERROR_CODE.
+         *                              Please rely on that exception for non-UX purposes.
          */
-        void onUserCodeReceived(@NonNull final String vUri, @NonNull final String userCode, @NonNull final String message);
+        void onUserCodeReceived(@NonNull final String vUri,
+                                @NonNull final String userCode,
+                                @NonNull final String message,
+                                @NonNull final Date sessionExpirationDate);
 
         /**
          * Invoked once token is received and passes the {@link AuthenticationResult} object.
