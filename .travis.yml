@@ -22,7 +22,7 @@ before_install:
   # create empty cfg file to prevent sdkmanager warning message
   - mkdir -p $HOME/.android && touch $HOME/.android/repositories.cfg
   - chmod +x gradlew
-  - yes | sdkmanager "tools" | grep -v = || true
+  - yes | sdkmanager --install "tools" | grep -v = || true
   - yes | sdkmanager --install "platforms;android-29" | grep -v = || true
   - yes | sdkmanager --install "build-tools;29.0.3" | grep -v = || true
   - yes | sdkmanager --install "system-images;android-29;default;x86_64" | grep -v = || true
