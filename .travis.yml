@@ -17,16 +17,16 @@ before_install:
   - wget -nv https://dl.google.com/android/repository/$ADNDROID_TOOLS
   - unzip -q $ADNDROID_TOOLS -d $HOME/sdk
   # set SDK tools path variable and ANDROID_HOME
-  - export PATH=$PATH:$HOME/sdk/tools/bin
+  # - export PATH=$PATH:$HOME/sdk/tools/bin
   - export ANDROID_HOME=$HOME/sdk
   # create empty cfg file to prevent sdkmanager warning message
   - mkdir -p $HOME/.android && touch $HOME/.android/repositories.cfg
   - chmod +x gradlew
-  - sdkmanager --update --sdk_root=$ANDROID_HOME
-  - yes | sdkmanager --install "tools" --sdk_root=$ANDROID_HOME | grep -v = || true
-  - yes | sdkmanager --install "platforms;android-29" --sdk_root=$ANDROID_HOME | grep -v = || true
-  - yes | sdkmanager --install "build-tools;29.0.3" --sdk_root=$ANDROID_HOME | grep -v = || true
-  - yes | sdkmanager --install "system-images;android-29;default;x86_64" --sdk_root=$ANDROID_HOME | grep -v = || true
+  - $ANDROID_HOME/sdkmanager --update --sdk_root=$ANDROID_HOME
+  - yes | $ANDROID_HOME/sdkmanager --install "tools" --sdk_root=$ANDROID_HOME | grep -v = || true
+  - yes | $ANDROID_HOME/sdkmanager --install "platforms;android-29" --sdk_root=$ANDROID_HOME | grep -v = || true
+  - yes | $ANDROID_HOME/sdkmanager --install "build-tools;29.0.3" --sdk_root=$ANDROID_HOME | grep -v = || true
+  - yes | $ANDROID_HOME/sdkmanager --install "system-images;android-29;default;x86_64" --sdk_root=$ANDROID_HOME | grep -v = || true
     
     # Set up KVM on linux for hardware acceleration. Manually here so it only happens for emulator tests, takes ~30s
   - travis_retry sudo -E apt-get -yq --no-install-suggests --no-install-recommends install bridge-utils libpulse0 libvirt-bin qemu-kvm virtinst ubuntu-vm-builder
@@ -34,7 +34,7 @@ before_install:
   - sudo adduser $USER kvm
 
   #Create emulator
-  - echo no | avdmanager create avd --force -n test -k "system-images;android-29;default;x86_64"
+  - echo no | $ANDROID_HOME/avdmanager create avd --force -n test -k "system-images;android-29;default;x86_64"
 
   # This double "sudo" monstrosity is used to have Travis execute the
   # emulator with its new group permissions and help preserve the rule
