@@ -54,6 +54,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.UUID;
 
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.SINGLE_ACCOUNT_DCF_TEST_CONFIG_FILE_PATH;
@@ -237,7 +238,10 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
         String[] scope = {"user.read"};
         mApplication.acquireTokenWithDeviceCode(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
             @Override
-            public void onUserCodeReceived(@NonNull String vUri, @NonNull String userCode, @NonNull String message) {
+            public void onUserCodeReceived(@NonNull String vUri,
+                                           @NonNull String userCode,
+                                           @NonNull String message,
+                                           @NonNull Date sessionExpirationDate) {
                 // This shouldn't run if authorization step fails
                 Assert.fail();
             }
@@ -263,11 +267,15 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
         String[] scope = {"user.read"};
         mApplication.acquireTokenWithDeviceCode(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
             @Override
-            public void onUserCodeReceived(@NonNull String vUri, @NonNull String userCode, @NonNull String message) {
+            public void onUserCodeReceived(@NonNull String vUri,
+                                           @NonNull String userCode,
+                                           @NonNull String message,
+                                           @NonNull Date sessionExpirationDate) {
                 // Assert that the protocol returns the userCode and others after successful authorization
                 Assert.assertNotNull(vUri);
                 Assert.assertNotNull(userCode);
                 Assert.assertNotNull(message);
+                Assert.assertNotNull(sessionExpirationDate);
 
                 Assert.assertFalse(mUserCodeReceived);
                 mUserCodeReceived = true;
@@ -294,11 +302,15 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
         String[] scope = {"user.read"};
         mApplication.acquireTokenWithDeviceCode(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
             @Override
-            public void onUserCodeReceived(@NonNull String vUri, @NonNull String userCode, @NonNull String message) {
+            public void onUserCodeReceived(@NonNull String vUri,
+                                           @NonNull String userCode,
+                                           @NonNull String message,
+                                           @NonNull Date sessionExpirationDate) {
                 // Assert that the protocol returns the userCode and others after successful authorization
                 Assert.assertNotNull(vUri);
                 Assert.assertNotNull(userCode);
                 Assert.assertNotNull(message);
+                Assert.assertNotNull(sessionExpirationDate);
 
                 Assert.assertFalse(mUserCodeReceived);
                 mUserCodeReceived = true;

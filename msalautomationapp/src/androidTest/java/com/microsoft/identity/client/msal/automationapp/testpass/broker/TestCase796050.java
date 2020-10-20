@@ -32,8 +32,8 @@ import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.TestContext;
+import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
-import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
@@ -118,15 +118,17 @@ public class TestCase796050 extends AbstractMsalBrokerTest {
         interactiveRequest.execute();
         latch.await();
 
-        // Assert Authenticator Account screen has both accounts
+        if (mBroker instanceof BrokerMicrosoftAuthenticator) {
+            // Assert Authenticator Account screen has both accounts
 
-        mBroker.launch(); // open Authenticator App
+            mBroker.launch(); // open Authenticator App
 
-        final UiObject account1 = UiAutomatorUtils.obtainUiObjectWithText(username1);
-        Assert.assertTrue(account1.exists()); // make sure account 1 is there
+            final UiObject account1 = UiAutomatorUtils.obtainUiObjectWithText(username1);
+            Assert.assertTrue(account1.exists()); // make sure account 1 is there
 
-        final UiObject account2 = UiAutomatorUtils.obtainUiObjectWithText(username2);
-        Assert.assertTrue(account2.exists()); // make sure account 2 is there
+            final UiObject account2 = UiAutomatorUtils.obtainUiObjectWithText(username2);
+            Assert.assertTrue(account2.exists()); // make sure account 2 is there
+        }
 
         // NOW change device time (advance clock by more than an hour)
 
@@ -173,11 +175,6 @@ public class TestCase796050 extends AbstractMsalBrokerTest {
     @Override
     public String getAuthority() {
         return mApplication.getConfiguration().getDefaultAuthority().toString();
-    }
-
-    @Override
-    public ITestBroker getBroker() {
-        return new BrokerMicrosoftAuthenticator();
     }
 
     @Override
