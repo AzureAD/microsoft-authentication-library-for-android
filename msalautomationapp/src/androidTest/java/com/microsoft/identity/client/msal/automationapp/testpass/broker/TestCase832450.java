@@ -58,7 +58,7 @@ public class TestCase832450 extends AbstractMsalBrokerTest {
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
-        //acquiring token
+        //acquiring token.
         final CountDownLatch latch = new CountDownLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
