@@ -104,11 +104,6 @@ android {
                     dir: "${buildDir}/intermediates/javac/${buildVariant}/classes",
                     excludes: fileFilter
             )
-            sourceDirectories.from = files([coverageSourceDirs])
-            classDirectories.from = files([javaClasses])
-            executionData.from = fileTree(dir: "$buildDir", includes: [
-                    "jacoco/${testTaskName}.exec"
-            ])
             //To include common files in the coverage report
             def commonBuild = buildVariant.matches("(.*)Debug(.*)") ? "debug" : "release"
             def additionalCoverageSourceDirs = "${projectDir}/../common/common/src/main/java"
