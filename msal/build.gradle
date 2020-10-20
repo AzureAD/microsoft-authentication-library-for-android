@@ -7,10 +7,6 @@ apply from: 'versioning/version_tasks.gradle'
 group = 'com.microsoft.identity.client'
 apply plugin: 'jacoco'
 
-jacoco {
-    reportsDir = file("$buildDir/reports/unitTests")
-}
-
 //To include Robolectric tests in the Jacoco report, flag -> "includeNolocationClasses" is set to true
 tasks.withType(Test) {
     jacoco.includeNoLocationClasses = true
@@ -32,11 +28,11 @@ android {
 
     buildTypes {
         debug {
-            testCoverageEnabled true
+            testCoverageEnabled false
             debuggable true
         }
         release {
-            testCoverageEnabled true
+            testCoverageEnabled false
             minifyEnabled false
             debuggable false
             consumerProguardFiles 'consumer-rules.pro'
@@ -91,77 +87,9 @@ android {
         }
 
         def buildVariant = variant.name
-        def testTaskName = "test${buildVariant.capitalize()}UnitTest"
-
-        // Tasks for generating Coverage reports(UnitTest & AndroidTests) for every build variant
-        task "${buildVariant}MsalCoverageReport" (type:JacocoReport, dependsOn: ["$testTaskName", "create${buildVariant.capitalize()}CoverageReport"]) {
-            group = "Code Coverage"
-            description = "Generate Msal Coverage Reports(UnitTest & AndroidTests) on the ${buildVariant.capitalize()}"
-
-            def coverageSourceDirs = "${projectDir}/src/main/java"
-            def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test.*']
-            def javaClasses = fileTree(
-                    dir: "${buildDir}/intermediates/javac/${buildVariant}/classes",
-                    excludes: fileFilter
-            )
-            //To include common files in the coverage report
-            def commonBuild = buildVariant.matches("(.*)Debug(.*)") ? "debug" : "release"
-            def additionalCoverageSourceDirs = "${projectDir}/../common/common/src/main/java"
-            def additionalJavaClasses = fileTree(
-                    dir: "${buildDir}/../common/intermediates/javac/${commonBuild}/classes",
-                    excludes: fileFilter
-            )
-
-            sourceDirectories.from = files([coverageSourceDirs])
-            additionalSourceDirs.from = files(additionalCoverageSourceDirs)
-            additionalClassDirs.from = files([additionalJavaClasses])
-            classDirectories.from = files([javaClasses])
-            executionData.from = fileTree(dir: "$buildDir", includes: [
-                    "jacoco/${testTaskName}.exec"
-            ])
-            reports {
-                xml.enabled = true
-                html.enabled = true
-            }
-        }
-
-        // Tasks for generating Coverage reports(UnitTest) for every build variant
-        task "${buildVariant}MsalUnitTestCoverageReport" (type:JacocoReport, dependsOn: ["$testTaskName"]) {
-            group = "Code Coverage"
-            description = "Generate Msal Coverage Reports(UnitTest) on the ${buildVariant.capitalize()}"
-
-            def coverageSourceDirs = "${projectDir}/src/main/java"
-            def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test.*']
-            def javaClasses = fileTree(
-                    dir: "${buildDir}/intermediates/javac/${buildVariant}/classes",
-                    excludes: fileFilter
-            )
-            //To include common files in the coverage report
-            def commonBuild = buildVariant.matches("(.*)Debug(.*)") ? "debug" : "release"
-            def additionalCoverageSourceDirs = "${projectDir}/../common/common/src/main/java"
-            def additionalJavaClasses = fileTree(
-                    dir: "${buildDir}/../common/intermediates/javac/${commonBuild}/classes",
-                    excludes: fileFilter
-            )
-
-            sourceDirectories.from = files([coverageSourceDirs])
-            additionalSourceDirs.from = files(additionalCoverageSourceDirs)
-            additionalClassDirs.from = files([additionalJavaClasses])
-            classDirectories.from = files([javaClasses])
-            executionData.from = fileTree(dir: "$buildDir", includes: [
-                    "jacoco/${testTaskName}.exec"
-            ])
-            reports {
-                xml.enabled = true
-                html.enabled = true
-            }
-        }
-
-        // Tasks for generating Coverage reports(AndroidTest) for every build variant
-        task "${buildVariant}MsalAndroidTestCoverageReport" (type:JacocoReport, dependsOn: ["create${buildVariant.capitalize()}CoverageReport"]) {
-            group = "Code Coverage"
-            description = "Generate Msal Coverage Report(AndroidTest) on the ${buildVariant.capitalize()}"
-        }
+        createCoverageTask(buildVariant, "UnitTest")
+        createCoverageTask(buildVariant, "AndroidTest")
+        createCoverageTask(buildVariant, "BothTest")
     }
 
     testOptions {
@@ -177,6 +105,52 @@ android {
             systemProperty 'robolectric.dependency.dir', './libs'
         }
     }
+}
+
+ext.createCoverageTask = { buildVariant, testType ->
+    def unitTest = "test${buildVariant.capitalize()}UnitTest"
+    def androidTest = "connected${buildVariant.capitalize()}AndroidTest"
+    def unitTestFile = "jacoco/${unitTest}.exec"
+    def androidTestFile = "outputs/code_coverage/${buildVariant}AndroidTest/connected/*.ec"
+    def taskList, executionFiles
+    if (testType.matches("BothTest")) {
+        taskList = [unitTest, androidTest]
+        executionFiles = [unitTestFile, androidTestFile]
+    } else if (testType.matches("UnitTest")){
+        taskList = [unitTest]
+        executionFiles = [unitTestFile]
+    } else {
+        taskList = [androidTest]
+        executionFiles = [androidTestFile]
+    }
+
+    task "${buildVariant}Msal${testType}CoverageReport" (type:JacocoReport, dependsOn: taskList) {
+        group = "Code Coverage"
+        description = "Generate Msal Coverage Reports(${testType}) on the ${buildVariant.capitalize()}"
+        def coverageSourceDirs = "${projectDir}/src/main/java"
+        def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test.*']
+        def javaClasses = fileTree(
+                dir: "${buildDir}/intermediates/javac/${buildVariant}/classes",
+                excludes: fileFilter
+        )
+        //To include common files in the coverage report
+        def commonBuild = buildVariant.matches("(.*)Debug(.*)") ? "debug" : "release"
+        def additionalCoverageSourceDirs = "${projectDir}/../common/common/src/main/java"
+        def additionalJavaClasses = fileTree(
+                dir: "${buildDir}/../common/intermediates/javac/${commonBuild}/classes",
+                excludes: fileFilter
+        )
+
+        sourceDirectories.from = files([coverageSourceDirs])
+        additionalSourceDirs.from = files(additionalCoverageSourceDirs)
+        additionalClassDirs.from = files([additionalJavaClasses])
+        classDirectories.from = files([javaClasses])
+        executionData.from = fileTree(dir: "$buildDir", includes: executionFiles)
+        reports {
+            xml.enabled = true
+        }
+    }
+
 }
 
 // Task to generate javadoc
