@@ -54,6 +54,7 @@ public class TestCase948676 extends AbstractMsalBrokerTest {
         // perform device registration (will obtain PRT in Broker for supplied account)
         mBroker.performDeviceRegistration(username, password);
 
+        //acquiring token
         final CountDownLatch latch = new CountDownLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
@@ -113,11 +114,6 @@ public class TestCase948676 extends AbstractMsalBrokerTest {
     @Override
     public String getAuthority() {
         return mApplication.getConfiguration().getDefaultAuthority().toString();
-    }
-
-    @Override
-    public ITestBroker getBroker() {
-        return new BrokerMicrosoftAuthenticator();
     }
 
     @Override
