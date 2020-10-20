@@ -37,7 +37,9 @@ import org.robolectric.annotation.Implements;
 import org.robolectric.annotation.RealObject;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Shadow class that simulates Device Code Flow successfully returning an acquire token result object.
@@ -50,11 +52,16 @@ public class ShadowDeviceCodeFlowCommandSuccessful {
 
     @Implementation
     public AcquireTokenResult execute() {
+        // 15 minutes is the default timeout.
+        final Date expiryDate = new Date();
+        expiryDate.setTime(expiryDate.getTime() + TimeUnit.MINUTES.toMillis(15));
+
         final DeviceCodeFlowCommandCallback callback = (DeviceCodeFlowCommandCallback) mDeviceCodeFlowCommand.getCallback();
         callback.onUserCodeReceived(
                 "https://login.microsoftonline.com/common/oauth2/deviceauth",
                 "ABCDEFGH",
-                "Follow these instructions to authenticate.");
+                "Follow these instructions to authenticate.",
+                expiryDate);
 
         // Create parameters for dummy authentication result
         final CacheRecord cacheRecord = new CacheRecord();
