@@ -47,9 +47,10 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 //Non Joined AcquireToken test with MSAL and Broker
-//https:identitydivision.visualstudio.com/DevEx/_workitems/edit/832450
+//https://identitydivision.visualstudio.com/DevEx/_workitems/edit/832450
 public class TestCase832450 extends AbstractMsalBrokerTest {
 
     @Test
@@ -80,8 +81,8 @@ public class TestCase832450 extends AbstractMsalBrokerTest {
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .broker(getBroker())
-                                .expectingBrokerAccountChooserActivity(true)
+                                .broker(mBroker)
+                                .expectingBrokerAccountChooserActivity(false)
                                 .build();
 
                         new AadPromptHandler(promptHandlerParameters)
@@ -111,6 +112,7 @@ public class TestCase832450 extends AbstractMsalBrokerTest {
 
         // forwarding time for 1 day.
         TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
+        Thread.sleep(TimeUnit.SECONDS.toMillis(30));
 
         // acquiring token silently
         final CountDownLatch refreshTokenLatch = new CountDownLatch(1);
@@ -118,7 +120,6 @@ public class TestCase832450 extends AbstractMsalBrokerTest {
         final AcquireTokenSilentParameters refreshSilentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(account)
                 .fromAuthority(account.getAuthority())
-                .forceRefresh(true)
                 .withScopes(Arrays.asList(mScopes))
                 .withCallback(successfulSilentCallback(refreshTokenLatch))
                 .build();
@@ -140,12 +141,6 @@ public class TestCase832450 extends AbstractMsalBrokerTest {
     @Override
     public int getConfigFileResourceId() {
         return R.raw.msal_config_default;
-    }
-
-    @NonNull
-    @Override
-    public ITestBroker getBroker() {
-        return new BrokerMicrosoftAuthenticator();
     }
 
     @Override
