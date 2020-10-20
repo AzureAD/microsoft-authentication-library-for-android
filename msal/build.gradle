@@ -109,6 +109,21 @@ android {
             executionData.from = fileTree(dir: "$buildDir", includes: [
                     "jacoco/${testTaskName}.exec"
             ])
+            //To include common files in the coverage report
+            def commonBuild = buildVariant.matches("(.*)Debug(.*)") ? "debug" : "release"
+            def additionalCoverageSourceDirs = "${projectDir}/../common/common/src/main/java"
+            def additionalJavaClasses = fileTree(
+                    dir: "${buildDir}/../common/intermediates/javac/${commonBuild}/classes",
+                    excludes: fileFilter
+            )
+
+            sourceDirectories.from = files([coverageSourceDirs])
+            additionalSourceDirs.from = files(additionalCoverageSourceDirs)
+            additionalClassDirs.from = files([additionalJavaClasses])
+            classDirectories.from = files([javaClasses])
+            executionData.from = fileTree(dir: "$buildDir", includes: [
+                    "jacoco/${testTaskName}.exec"
+            ])
             reports {
                 xml.enabled = true
                 html.enabled = true
@@ -126,7 +141,17 @@ android {
                     dir: "${buildDir}/intermediates/javac/${buildVariant}/classes",
                     excludes: fileFilter
             )
+            //To include common files in the coverage report
+            def commonBuild = buildVariant.matches("(.*)Debug(.*)") ? "debug" : "release"
+            def additionalCoverageSourceDirs = "${projectDir}/../common/common/src/main/java"
+            def additionalJavaClasses = fileTree(
+                    dir: "${buildDir}/../common/intermediates/javac/${commonBuild}/classes",
+                    excludes: fileFilter
+            )
+
             sourceDirectories.from = files([coverageSourceDirs])
+            additionalSourceDirs.from = files(additionalCoverageSourceDirs)
+            additionalClassDirs.from = files([additionalJavaClasses])
             classDirectories.from = files([javaClasses])
             executionData.from = fileTree(dir: "$buildDir", includes: [
                     "jacoco/${testTaskName}.exec"
