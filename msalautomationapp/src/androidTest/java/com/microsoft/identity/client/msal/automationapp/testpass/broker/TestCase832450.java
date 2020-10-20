@@ -49,7 +49,7 @@ import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
 //Non Joined AcquireToken test with MSAL and Broker
-//https:identitydivision.visualstudio.com/DevEx/_workitems/edit/832450
+// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/832450
 public class TestCase832450 extends AbstractMsalBrokerTest {
 
     @Test
