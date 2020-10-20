@@ -1,3 +1,25 @@
+// Copyright (c) Microsoft Corporation.
+// All rights reserved.
+//
+// This code is licensed under the MIT License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files(the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions :
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
 import androidx.annotation.NonNull;
@@ -22,9 +44,10 @@ import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 //Joined AcquireToken test with MSAL and Broker
-//https:identitydivision.visualstudio.com/DevEx/_workitems/edit/832430
+//https://identitydivision.visualstudio.com/DevEx/_workitems/edit/832430
 public class TestCase832430 extends AbstractMsalBrokerTest {
 
     @Test
@@ -55,8 +78,8 @@ public class TestCase832430 extends AbstractMsalBrokerTest {
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .broker(getBroker())
-                                .expectingBrokerAccountChooserActivity(true)
+                                .broker(mBroker)
+                                .expectingBrokerAccountChooserActivity(false)
                                 .registerPageExpected(true)
                                 .build();
 
@@ -77,7 +100,6 @@ public class TestCase832430 extends AbstractMsalBrokerTest {
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(account)
                 .fromAuthority(account.getAuthority())
-                .forceRefresh(false)
                 .withResource(mScopes[0])
                 .withCallback(successfulSilentCallback(silentLatch))
                 .build();
@@ -87,6 +109,7 @@ public class TestCase832430 extends AbstractMsalBrokerTest {
 
         //forwarding time 1 day
         TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
+        Thread.sleep(TimeUnit.SECONDS.toMillis(30));
 
         // acquiring token silently after expiring AT
         final CountDownLatch refreshTokenLatch = new CountDownLatch(1);
@@ -94,7 +117,6 @@ public class TestCase832430 extends AbstractMsalBrokerTest {
         final AcquireTokenSilentParameters refreshTokenParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(account)
                 .fromAuthority(account.getAuthority())
-                .forceRefresh(true)
                 .withResource(mScopes[0])
                 .withCallback(successfulSilentCallback(refreshTokenLatch))
                 .build();
@@ -124,12 +146,6 @@ public class TestCase832430 extends AbstractMsalBrokerTest {
     @Override
     public String getAuthority() {
         return mApplication.getConfiguration().getDefaultAuthority().toString();
-    }
-
-    @NonNull
-    @Override
-    public ITestBroker getBroker() {
-        return new BrokerMicrosoftAuthenticator();
     }
 
     @Override
