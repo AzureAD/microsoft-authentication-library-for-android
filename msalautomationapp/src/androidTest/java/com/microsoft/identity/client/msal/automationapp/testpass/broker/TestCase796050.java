@@ -35,7 +35,6 @@ import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
-import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
@@ -49,7 +48,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.concurrent.CountDownLatch;
 
 // Multi-accounts for Broker - Add Account in Account Chooser Activity
 // The goal of the test case is to ensure that we can add accounts in broker via the
@@ -120,15 +118,17 @@ public class TestCase796050 extends AbstractMsalBrokerTest {
         interactiveRequest.execute();
         latch.await(TokenRequestTimeout.MEDIUM);
 
-        // Assert Authenticator Account screen has both accounts
+        if (mBroker instanceof BrokerMicrosoftAuthenticator) {
+            // Assert Authenticator Account screen has both accounts
 
-        mBroker.launch(); // open Authenticator App
+            mBroker.launch(); // open Authenticator App
 
-        final UiObject account1 = UiAutomatorUtils.obtainUiObjectWithText(username1);
-        Assert.assertTrue(account1.exists()); // make sure account 1 is there
+            final UiObject account1 = UiAutomatorUtils.obtainUiObjectWithText(username1);
+            Assert.assertTrue(account1.exists()); // make sure account 1 is there
 
-        final UiObject account2 = UiAutomatorUtils.obtainUiObjectWithText(username2);
-        Assert.assertTrue(account2.exists()); // make sure account 2 is there
+            final UiObject account2 = UiAutomatorUtils.obtainUiObjectWithText(username2);
+            Assert.assertTrue(account2.exists()); // make sure account 2 is there
+        }
 
         // NOW change device time (advance clock by more than an hour)
 
@@ -175,11 +175,6 @@ public class TestCase796050 extends AbstractMsalBrokerTest {
     @Override
     public String getAuthority() {
         return mApplication.getConfiguration().getDefaultAuthority().toString();
-    }
-
-    @Override
-    public ITestBroker getBroker() {
-        return new BrokerMicrosoftAuthenticator();
     }
 
     @Override

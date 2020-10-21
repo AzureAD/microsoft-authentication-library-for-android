@@ -22,18 +22,13 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
-import androidx.annotation.NonNull;
-
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
-import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
-import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
@@ -44,7 +39,6 @@ import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.concurrent.CountDownLatch;
 
 // Broker Auth for non-joined account - select_account
 // https://identitydivision.visualstudio.com/DefaultCollection/DevEx/_workitems/edit/497069
@@ -78,7 +72,7 @@ public class TestCase497069 extends AbstractMsalBrokerTest {
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .broker(getBroker())
+                                .broker(mBroker)
                                 .expectingBrokerAccountChooserActivity(false)
                                 .build();
 
@@ -118,7 +112,7 @@ public class TestCase497069 extends AbstractMsalBrokerTest {
                                 .sessionExpected(true)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .broker(getBroker())
+                                .broker(mBroker)
                                 .expectingBrokerAccountChooserActivity(true)
                                 .build();
 
@@ -153,12 +147,6 @@ public class TestCase497069 extends AbstractMsalBrokerTest {
     @Override
     public String getAuthority() {
         return mApplication.getConfiguration().getDefaultAuthority().toString();
-    }
-
-    @NonNull
-    @Override
-    public ITestBroker getBroker() {
-        return new BrokerMicrosoftAuthenticator();
     }
 
     @Override

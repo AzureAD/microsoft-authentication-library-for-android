@@ -31,6 +31,9 @@ import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import org.robolectric.annotation.Implements;
 import org.robolectric.annotation.RealObject;
 
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
+
 /**
  * Shadow class that simulates Device Code Flow failing due to an error in the token polling phase.
  */
@@ -42,10 +45,16 @@ public class ShadowDeviceCodeFlowCommandTokenError {
 
     public AcquireTokenResult execute() throws Exception {
         final DeviceCodeFlowCommandCallback callback = (DeviceCodeFlowCommandCallback) mDeviceCodeFlowCommand.getCallback();
+
+        // 15 minutes is the default timeout.
+        final Date expiryDate = new Date();
+        expiryDate.setTime(expiryDate.getTime() + TimeUnit.MINUTES.toMillis(15));
+
         callback.onUserCodeReceived(
                 "https://login.microsoftonline.com/common/oauth2/deviceauth",
                 "ABCDEFGH",
-                "Follow these instructions to authenticate.");
+                "Follow these instructions to authenticate.",
+                expiryDate);
 
         throw new ServiceException(ErrorStrings.DEVICE_CODE_FLOW_EXPIRED_TOKEN_ERROR_CODE, "The device_code expired. No need to continue polling for the token (expired token).", null);
     }

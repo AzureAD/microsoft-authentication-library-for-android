@@ -26,16 +26,16 @@ import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.ErrorCodes;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
+import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
-import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
@@ -44,10 +44,9 @@ import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.concurrent.CountDownLatch;
-
 // End My Shift - In Shared device mode, there can be only one sign-in account.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833516
+@SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
 public class TestCase833516 extends AbstractMsalBrokerTest {
 
     @Test
@@ -139,11 +138,6 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
     @Override
     public String getAuthority() {
         return null;
-    }
-
-    @Override
-    public ITestBroker getBroker() {
-        return new BrokerMicrosoftAuthenticator();
     }
 
     @Override

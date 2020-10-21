@@ -77,7 +77,7 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .broker(getBroker())
+                                .broker(mBroker)
                                 .expectingBrokerAccountChooserActivity(false)
                                 .build();
 
@@ -130,11 +130,6 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
     @Override
     public String getAuthority() {
         return "https://login.microsoftonline.de/common";
-    }
-
-    @Override
-    public ITestBroker getBroker() {
-        return new BrokerMicrosoftAuthenticator();
     }
 
     @Override

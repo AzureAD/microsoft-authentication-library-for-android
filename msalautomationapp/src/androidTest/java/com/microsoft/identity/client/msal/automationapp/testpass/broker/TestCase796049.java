@@ -74,7 +74,7 @@ public class TestCase796049 extends AbstractMsalBrokerTest {
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .broker(getBroker())
+                                .broker(mBroker)
                                 .expectingBrokerAccountChooserActivity(false)
                                 .build();
 
@@ -114,7 +114,7 @@ public class TestCase796049 extends AbstractMsalBrokerTest {
                                 .sessionExpected(true)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .broker(getBroker())
+                                .broker(mBroker)
                                 .expectingBrokerAccountChooserActivity(true)
                                 .build();
 
@@ -149,11 +149,6 @@ public class TestCase796049 extends AbstractMsalBrokerTest {
     @Override
     public String getAuthority() {
         return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
-    }
-
-    @Override
-    public ITestBroker getBroker() {
-        return new BrokerMicrosoftAuthenticator();
     }
 
     @Override
