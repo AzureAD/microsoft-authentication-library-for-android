@@ -24,11 +24,18 @@ package com.microsoft.identity.client;
 
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.adal.internal.tokensharing.ITokenShareInternal;
+import com.microsoft.identity.common.adal.internal.tokensharing.ITokenShareResultInternal;
 
 /**
  * Interface defining necessary methods for TokenShareLibrary (TSL) integration.
  */
 public interface ITokenShare extends ITokenShareInternal {
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    TokenShareResult getOrgIdFamilyRefreshTokenWithMetadata(String identifier) throws MsalClientException;
 
     /**
      * {@inheritDoc}
@@ -41,6 +48,12 @@ public interface ITokenShare extends ITokenShareInternal {
      */
     @Override
     void saveOrgIdFamilyRefreshToken(String ssoStateSerializerBlob) throws MsalClientException;
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    TokenShareResult getMsaFamilyRefreshTokenWithMetadata(String identifier) throws MsalClientException;
 
     /**
      * {@inheritDoc}

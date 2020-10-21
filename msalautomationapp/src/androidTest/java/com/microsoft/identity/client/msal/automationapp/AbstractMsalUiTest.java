@@ -41,14 +41,12 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.ui.automation.ILabTest;
 import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
 import com.microsoft.identity.client.ui.automation.browser.IBrowser;
-import com.microsoft.identity.client.ui.automation.rules.DeviceEnrollmentFailureRecoveryRule;
-import com.microsoft.identity.client.ui.automation.rules.FirebaseRule;
-import com.microsoft.identity.client.ui.automation.rules.LoadLabUserTestRule;
 import com.microsoft.identity.client.ui.automation.rules.RemoveBrokersBeforeTestRule;
 import com.microsoft.identity.client.ui.automation.rules.ResetAutomaticTimeZoneTestRule;
 import com.microsoft.identity.client.ui.automation.rules.RetryTestRule;
 import com.microsoft.identity.client.ui.automation.rules.UiAutomatorTestRule;
 import com.microsoft.identity.common.internal.util.StringUtil;
+import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -59,6 +57,7 @@ import org.junit.rules.TestRule;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
+import static com.microsoft.identity.client.ui.automation.rules.LoadLabUserTestRule.TEMP_USER_WAIT_TIME;
 import static org.junit.Assert.fail;
 
 /**
@@ -86,36 +85,41 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest {
     public final TestRule resetAutomaticTimeRule = new ResetAutomaticTimeZoneTestRule();
 
     @Rule(order = 3)
-    public final TestRule firebaseTestRule = new FirebaseRule();
-
-    @Rule(order = 4)
-    public final TestRule loadLabUserRule = getLabUserQuery() != null
-            ? new LoadLabUserTestRule(getLabUserQuery())
-            : new LoadLabUserTestRule(getTempUserType());
-
-    @Rule(order = 5)
     public final TestRule removeBrokersRule = new RemoveBrokersBeforeTestRule();
 
-    @Rule(order = 6)
+    @Rule(order = 4)
     public ActivityTestRule<MainActivity> mActivityRule =
             new ActivityTestRule(MainActivity.class);
 
-    @Rule(order = 7)
-    public TestRule deviceEnrollmentFailureRecoveryRule = new DeviceEnrollmentFailureRecoveryRule();
-
     @Before
     public void setup() {
+        loadLabUser();
         mScopes = getScopes();
         mBrowser = getBrowser();
 
         // clear all cookies in the browser
         mBrowser.clear();
 
-        mLoginHint = ((LoadLabUserTestRule) loadLabUserRule).getLabUserUpn();
-
         mContext = ApplicationProvider.getApplicationContext();
         mActivity = mActivityRule.getActivity();
         setupPCA();
+    }
+
+    private void loadLabUser() {
+        if (getLabUserQuery() != null) {
+            mLoginHint = LabUserHelper.loadUserForTest(getLabUserQuery());
+        } else if (getTempUserType() != null) {
+            mLoginHint = LabUserHelper.loadTempUser(getTempUserType());
+            try {
+                // temp user takes some time to actually being created even though it may be
+                // returned by the LAB API. Adding a wait here before we proceed with the test.
+                Thread.sleep(TEMP_USER_WAIT_TIME);
+            } catch (final InterruptedException e) {
+                throw new AssertionError(e);
+            }
+        } else {
+            throw new IllegalArgumentException("Both Lab User query and temp user type were null.");
+        }
     }
 
     @After
@@ -160,13 +164,13 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest {
 
             @Override
             public void onError(MsalException exception) {
-                junit.framework.Assert.fail(exception.getMessage());
+                Assert.fail(exception.getMessage());
                 latch.countDown();
             }
 
             @Override
             public void onCancel() {
-                junit.framework.Assert.fail("User cancelled flow");
+                Assert.fail("User cancelled flow");
                 latch.countDown();
             }
         };
@@ -200,13 +204,13 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest {
 
             @Override
             public void onError(MsalException exception) {
-                junit.framework.Assert.fail(exception.getMessage());
                 latch.countDown();
+                Assert.fail(exception.getMessage());
             }
 
             @Override
             public void onCancel() {
-                junit.framework.Assert.fail("User cancelled flow");
+                Assert.fail("User cancelled flow");
                 latch.countDown();
             }
         };
@@ -275,7 +279,7 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest {
         return new AuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
-                junit.framework.Assert.fail("Unexpected success");
+                Assert.fail("Unexpected success");
                 latch.countDown();
             }
 
@@ -287,7 +291,7 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest {
 
             @Override
             public void onCancel() {
-                junit.framework.Assert.fail("User cancelled flow");
+                Assert.fail("User cancelled flow");
                 latch.countDown();
             }
         };
@@ -304,7 +308,7 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest {
         return new SilentAuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
-                junit.framework.Assert.fail("Unexpected success");
+                Assert.fail("Unexpected success");
                 latch.countDown();
             }
 

@@ -31,6 +31,8 @@ import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
+import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
+import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.b2c.B2CPromptHandlerParameters;
@@ -38,20 +40,12 @@ import com.microsoft.identity.client.ui.automation.interaction.b2c.B2CProvider;
 import com.microsoft.identity.client.ui.automation.interaction.b2c.IdLabB2cSisoPolicyPromptHandler;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
-import java.util.concurrent.CountDownLatch;
 
-// TODO Parameterized Tests and Rules don't work well together as the rules on the parent are
-//  executed as part of the call to the super constructor and hence the member variables in the child
-//  class aren't set yet. If we try to use such members inside a rule or during its constructor then
-//  we get an NPE. There is a plan to fix this by refactoring this test to use rule to parameterize
-//  the tests and this will be fixed very soon!
-@Ignore
 @RunWith(Parameterized.class)
 public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
 
@@ -79,8 +73,8 @@ public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
     }
 
     @Test
-    public void testCanLoginWithLocalAndSocialAccounts() throws InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
+    public void testCanLoginWithLocalAndSocialAccounts() {
+        final TokenRequestLatch latch = new TokenRequestLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
@@ -120,13 +114,13 @@ public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
         );
 
         interactiveRequest.execute();
-        latch.await();
+        latch.await(TokenRequestTimeout.MEDIUM);
 
         // ------ do silent request ------
 
         IAccount account = getAccount();
 
-        final CountDownLatch silentLatch = new CountDownLatch(1);
+        final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(account)
@@ -137,13 +131,13 @@ public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
-        silentLatch.await();
+        silentLatch.await(TokenRequestTimeout.SILENT);
 
         // ------ do force refresh silent request ------
 
         account = getAccount();
 
-        final CountDownLatch silentForceLatch = new CountDownLatch(1);
+        final TokenRequestLatch silentForceLatch = new TokenRequestLatch(1);
 
         final AcquireTokenSilentParameters silentForceParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(account)
@@ -154,7 +148,7 @@ public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentForceParameters);
-        silentForceLatch.await();
+        silentForceLatch.await(TokenRequestTimeout.SILENT);
     }
 
     @Override

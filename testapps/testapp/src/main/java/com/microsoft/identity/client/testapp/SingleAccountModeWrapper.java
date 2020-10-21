@@ -28,6 +28,7 @@ import androidx.annotation.Nullable;
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IAccount;
+import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.exception.ClientException;
@@ -121,5 +122,11 @@ public class SingleAccountModeWrapper extends MsalWrapper {
     @Override
     void acquireTokenSilentAsyncInternal(@NonNull AcquireTokenSilentParameters parameters) {
         mApp.acquireTokenSilentAsync(parameters);
+    }
+
+    @Override
+    void acquireTokenWithDeviceCodeFlowInternal(@NonNull String[] scopes,
+                                                @NonNull final IPublicClientApplication.DeviceCodeFlowCallback callback) {
+        mApp.acquireTokenWithDeviceCode(scopes, callback);
     }
 }

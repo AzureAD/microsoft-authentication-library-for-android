@@ -20,17 +20,16 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.broker.usgov;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.usgov.fairfaxmigrated;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
-import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
-import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
+import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
+import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
@@ -41,25 +40,21 @@ import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.concurrent.CountDownLatch;
 
-// Broker authentication with PRT with USGov account
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938447
-public class TestCase938447 extends AbstractMsalBrokerTest {
+// Brokered authentication without PRT with instance_aware=true, no login hint, and cloud account,
+// and WW common authority
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/940393
+public class TestCase940393 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_938447() throws InterruptedException {
+    public void test_938447() {
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
-        // perform device registration (will obtain PRT in Broker for supplied account)
-        mBroker.performDeviceRegistration(username, password);
-
-        final CountDownLatch latch = new CountDownLatch(1);
+        final TokenRequestLatch latch = new TokenRequestLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(mLoginHint)
                 .withScopes(Arrays.asList(mScopes))
                 .withCallback(successfulInteractiveCallback(latch))
                 .withPrompt(Prompt.SELECT_ACCOUNT)
@@ -74,12 +69,12 @@ public class TestCase938447 extends AbstractMsalBrokerTest {
                     public void handleUserInteraction() {
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHint(username)
-                                .sessionExpected(true)
+                                .loginHint(null)
+                                .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .broker(getBroker())
-                                .expectingBrokerAccountChooserActivity(true)
+                                .broker(mBroker)
+                                .expectingBrokerAccountChooserActivity(false)
                                 .expectingLoginPageAccountPicker(false)
                                 .build();
 
@@ -90,7 +85,7 @@ public class TestCase938447 extends AbstractMsalBrokerTest {
         );
 
         interactiveRequest.execute();
-        latch.await();
+        latch.await(TokenRequestTimeout.MEDIUM);
     }
 
 
@@ -98,7 +93,7 @@ public class TestCase938447 extends AbstractMsalBrokerTest {
     public LabUserQuery getLabUserQuery() {
         final LabUserQuery query = new LabUserQuery();
         query.userType = LabConstants.UserType.CLOUD;
-        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT;
+        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT_MIGRATED;
         return query;
     }
 
@@ -118,12 +113,8 @@ public class TestCase938447 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public ITestBroker getBroker() {
-        return new BrokerMicrosoftAuthenticator();
+    public int getConfigFileResourceId() {
+        return R.raw.msal_config_instance_aware_organization;
     }
 
-    @Override
-    public int getConfigFileResourceId() {
-        return R.raw.msal_config_arlington;
-    }
 }

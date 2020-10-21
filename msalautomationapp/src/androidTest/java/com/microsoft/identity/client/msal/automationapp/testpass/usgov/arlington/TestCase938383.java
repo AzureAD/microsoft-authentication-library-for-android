@@ -20,17 +20,20 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.broker.usgov;
+package com.microsoft.identity.client.msal.automationapp.testpass.usgov.arlington;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
+import com.microsoft.identity.client.AcquireTokenSilentParameters;
+import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
-import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
-import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
+import com.microsoft.identity.client.ui.automation.TestContext;
+import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
+import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
@@ -43,17 +46,13 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
-// Brokered authentication without PRT with instance_aware=true, no login hint, and cloud account,
-// and WW common authority
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/940393
-public class TestCase940393 extends AbstractMsalBrokerTest {
+// Silent token acquisition with unexpired RT with USGov authority
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938383
+public class TestCase938383 extends AbstractMsalUiTest {
 
     @Test
-    public void test_938447() throws InterruptedException {
-        final String username = mLoginHint;
-        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
-
-        final CountDownLatch latch = new CountDownLatch(1);
+    public void test_938383() {
+        final TokenRequestLatch latch = new TokenRequestLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
@@ -62,22 +61,24 @@ public class TestCase940393 extends AbstractMsalBrokerTest {
                 .withPrompt(Prompt.SELECT_ACCOUNT)
                 .build();
 
-        // start interactive acquire token request in MSAL (should succeed)
+        // Start interactive token request in MSAL (should succeed)
         final InteractiveRequest interactiveRequest = new InteractiveRequest(
                 mApplication,
                 parameters,
                 new OnInteractionRequired() {
                     @Override
                     public void handleUserInteraction() {
+                        ((IApp) mBrowser).handleFirstRun();
+
+                        final String username = mLoginHint;
+                        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.SELECT_ACCOUNT)
                                 .loginHint(null)
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .broker(getBroker())
-                                .expectingBrokerAccountChooserActivity(false)
-                                .expectingLoginPageAccountPicker(false)
                                 .build();
 
                         new AadPromptHandler(promptHandlerParameters)
@@ -87,14 +88,30 @@ public class TestCase940393 extends AbstractMsalBrokerTest {
         );
 
         interactiveRequest.execute();
-        latch.await();
-    }
+        latch.await(TokenRequestTimeout.MEDIUM);
 
+        // change the time on the device
+        TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
+
+        final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
+
+        final IAccount account = getAccount();
+
+        // start silent token request in MSAL
+        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                .forAccount(account)
+                .withScopes(Arrays.asList(mScopes))
+                .fromAuthority(account.getAuthority())
+                .withCallback(successfulSilentCallback(silentLatch))
+                .build();
+
+        mApplication.acquireTokenSilentAsync(silentParameters);
+        silentLatch.await(TokenRequestTimeout.SILENT);
+    }
 
     @Override
     public LabUserQuery getLabUserQuery() {
         final LabUserQuery query = new LabUserQuery();
-        query.userType = LabConstants.UserType.CLOUD;
         query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT;
         return query;
     }
@@ -111,17 +128,11 @@ public class TestCase940393 extends AbstractMsalBrokerTest {
 
     @Override
     public String getAuthority() {
-        return mApplication.getConfiguration().getDefaultAuthority().toString();
-    }
-
-    @Override
-    public ITestBroker getBroker() {
-        return new BrokerMicrosoftAuthenticator();
+        return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
     }
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_instance_aware_organization;
+        return R.raw.msal_config_instance_aware_common;
     }
-
 }

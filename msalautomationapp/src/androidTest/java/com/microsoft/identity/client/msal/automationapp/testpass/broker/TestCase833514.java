@@ -33,9 +33,12 @@ import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.msal.automationapp.R;
+import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
+import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.AzureSampleApp;
+import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
-import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
@@ -47,10 +50,10 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.concurrent.CountDownLatch;
 
 // End My Shift - In Shared device mode, an account signed in through App A can be used by App B.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833514
+@SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
 public class TestCase833514 extends AbstractMsalBrokerTest {
 
     @Test
@@ -94,7 +97,7 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
         final MicrosoftStsPromptHandlerParameters microsoftStsPromptHandlerParameters =
                 MicrosoftStsPromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
-                        .broker(getBroker())
+                        .broker(mBroker)
                         .loginHint(null)
                         .consentPageExpected(false)
                         .speedBumpExpected(false)
@@ -115,7 +118,7 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
         final SingleAccountPublicClientApplication singleAccountPCA =
                 (SingleAccountPublicClientApplication) mApplication;
 
-        final CountDownLatch getAccountLatch = new CountDownLatch(1);
+        final TokenRequestLatch getAccountLatch = new TokenRequestLatch(1);
 
         final IAccount[] accounts = new IAccount[1];
 
@@ -144,9 +147,9 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
             }
         });
 
-        getAccountLatch.await();
+        getAccountLatch.await(TokenRequestTimeout.SILENT);
 
-        final CountDownLatch silentLatch = new CountDownLatch(1);
+        final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
 
         // perform acquire token silent with account used for get account
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
@@ -158,7 +161,7 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
 
         singleAccountPCA.acquireTokenSilentAsync(silentParameters);
 
-        silentLatch.await();
+        silentLatch.await(TokenRequestTimeout.SILENT);
     }
 
     @Override
@@ -181,11 +184,6 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
     @Override
     public String getAuthority() {
         return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
-    }
-
-    @Override
-    public ITestBroker getBroker() {
-        return new BrokerMicrosoftAuthenticator();
     }
 
     @Override

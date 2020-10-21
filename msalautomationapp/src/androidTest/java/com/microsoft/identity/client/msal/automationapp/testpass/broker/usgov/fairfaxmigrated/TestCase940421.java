@@ -20,19 +20,21 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.usgov;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.usgov.fairfaxmigrated;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
+import com.microsoft.identity.client.claims.ClaimsRequest;
+import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.ui.automation.app.IApp;
-import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
+import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
+import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
@@ -40,42 +42,58 @@ import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.concurrent.CountDownLatch;
 
-// Interactive token acquisition with instance_aware=true, no login hint, and cloud account,
-// and WW common authority
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938365
-public class TestCase938365 extends AbstractMsalUiTest {
+// Interactive token acquisition with instance_aware=true and with custom claims request requiring
+// device auth {"access_token":{"deviceid":{"essential":true}}}
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/940421
+public class TestCase940421 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_938365() throws InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
+    public void test_940421() {
+        final String username = mLoginHint;
+        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+
+        final TokenRequestLatch latch = new TokenRequestLatch(1);
+
+        // create claims request object
+        final ClaimsRequest claimsRequest = new ClaimsRequest();
+        final RequestedClaimAdditionalInformation requestedClaimAdditionalInformation =
+                new RequestedClaimAdditionalInformation();
+
+        requestedClaimAdditionalInformation.setEssential(true);
+
+        // request the deviceid claim in ID Token
+        claimsRequest.requestClaimInIdToken("deviceid", requestedClaimAdditionalInformation);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
                 .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulInteractiveCallback(latch))
+                .withCallback(successfulClaimsRequestInIdTokenInteractiveCallback(
+                        latch, "deviceid", null
+                ))
                 .withPrompt(Prompt.SELECT_ACCOUNT)
+                .withClaims(claimsRequest)
+                .withLoginHint(username)
                 .build();
 
 
+        // start interactive acquire token request in MSAL (should succeed after device registration)
         final InteractiveRequest interactiveRequest = new InteractiveRequest(
                 mApplication,
                 parameters,
                 new OnInteractionRequired() {
                     @Override
                     public void handleUserInteraction() {
-                        ((IApp) mBrowser).handleFirstRun();
-
-                        final String username = mLoginHint;
-                        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
-
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                                .loginHint(null)
+                                .prompt(PromptParameter.SELECT_ACCOUNT)
+                                .loginHint(username)
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .prompt(PromptParameter.SELECT_ACCOUNT)
+                                .broker(mBroker)
+                                .expectingBrokerAccountChooserActivity(false)
+                                .expectingLoginPageAccountPicker(false)
+                                .registerPageExpected(true)
                                 .build();
 
                         new AadPromptHandler(promptHandlerParameters)
@@ -85,13 +103,15 @@ public class TestCase938365 extends AbstractMsalUiTest {
         );
 
         interactiveRequest.execute();
-        latch.await();
+        latch.await(TokenRequestTimeout.LONG);
     }
+
 
     @Override
     public LabUserQuery getLabUserQuery() {
         final LabUserQuery query = new LabUserQuery();
-        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT;
+        query.userType = LabConstants.UserType.CLOUD;
+        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT_MIGRATED;
         return query;
     }
 
@@ -114,4 +134,5 @@ public class TestCase938365 extends AbstractMsalUiTest {
     public int getConfigFileResourceId() {
         return R.raw.msal_config_instance_aware_common;
     }
+
 }

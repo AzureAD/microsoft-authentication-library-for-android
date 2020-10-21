@@ -26,6 +26,8 @@ import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
+import org.junit.Ignore;
+
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_MOONCAKE_CONFIG_FILE_PATH;
 import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.AD_GRAPH_USER_READ_SCOPE;
@@ -70,6 +72,15 @@ public abstract class AcquireTokenAADTest extends AcquireTokenNetworkTest {
         }
     }
 
+    public static class AzureUsGovCloudMigratedUser extends AcquireTokenAADTest {
+        @Override
+        public LabUserQuery getLabUserQuery() {
+            final LabUserQuery query = new LabUserQuery();
+            query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT_MIGRATED;
+            return query;
+        }
+    }
+
     public static class AzureChinaCloudUser extends AcquireTokenAADTest {
         @Override
         public String getConfigFilePath() {
@@ -89,6 +100,16 @@ public abstract class AcquireTokenAADTest extends AcquireTokenNetworkTest {
         public LabUserQuery getLabUserQuery() {
             final LabUserQuery query = new LabUserQuery();
             query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_GERMANY_CLOUD;
+            return query;
+        }
+    }
+
+    @Ignore
+    public static class AzureGermanyCloudMigratedUser extends AcquireTokenAADTest {
+        @Override
+        public LabUserQuery getLabUserQuery() {
+            final LabUserQuery query = new LabUserQuery();
+            query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_GERMANY_CLOUD_MIGRATED;
             return query;
         }
     }

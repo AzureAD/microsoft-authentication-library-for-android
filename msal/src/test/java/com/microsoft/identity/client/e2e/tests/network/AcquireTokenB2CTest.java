@@ -27,7 +27,7 @@ import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.B2C_CUSTOM_DOMAIN_CONFIG_FILE_PATH;
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.B2C_GLOBAL_DOMAIN_CONFIG_FILE_PATH;
-import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.B2C_SCOPE;
+import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.B2C_READ_SCOPE;
 
 /**
  * Run all tests in the {@link AcquireTokenNetworkTest} class using B2C
@@ -43,7 +43,7 @@ public abstract class AcquireTokenB2CTest extends AcquireTokenNetworkTest {
 
     @Override
     public String[] getScopes() {
-        return B2C_SCOPE;
+        return B2C_READ_SCOPE;
     }
 
     public static class B2CLocalUserGlobalMsftDomain extends AcquireTokenB2CTest {
