@@ -28,6 +28,8 @@ import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
+import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
+import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
@@ -48,8 +50,8 @@ import java.util.concurrent.CountDownLatch;
 public class TestCase938367 extends AbstractMsalUiTest {
 
     @Test
-    public void test_938367() throws InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
+    public void test_938367() {
+        final TokenRequestLatch latch = new TokenRequestLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .withLoginHint(mLoginHint)
@@ -86,7 +88,7 @@ public class TestCase938367 extends AbstractMsalUiTest {
         );
 
         interactiveRequest.execute();
-        latch.await();
+        latch.await(TokenRequestTimeout.MEDIUM);
     }
 
     @Override
