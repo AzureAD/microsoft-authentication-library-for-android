@@ -51,7 +51,7 @@ android {
 
     buildTypes {
         release {
-            testCoverageEnabled true
+            testCoverageEnabled false
             debuggable true
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -59,7 +59,7 @@ android {
         }
 
         debug {
-            testCoverageEnabled true
+            testCoverageEnabled false
             multiDexKeepProguard file('proguard-multidex-rules.pro')
         }
     }
@@ -135,6 +135,47 @@ android {
         }
     }
 
+    applicationVariants.all { variant ->
+        def buildVariant = variant.name
+        createCoverageTask(buildVariant, "AndroidTest")
+    }
+}
+
+ext.createCoverageTask = { buildVariant, testType ->
+    def androidTest = "connected${buildVariant.capitalize()}AndroidTest"
+    def androidTestFile = "outputs/code_coverage/${buildVariant}AndroidTest/connected/*.ec"
+
+    task "${buildVariant}Msal${testType}CoverageReport" (type:JacocoReport, dependsOn: [androidTest]) {
+        group = "Code Coverage MsalAutomation"
+        description = "Generate Msal Coverage Reports(${testType}) on the ${buildVariant.capitalize()}"
+        def coverageSourceDirs = "${projectDir}/src/main/java"
+        def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test.*']
+        def javaClasses = fileTree(
+                dir: "${buildDir}/intermediates/javac/${buildVariant}/classes",
+                excludes: fileFilter
+        )
+        //To include common files in the coverage report
+        def commonBuild = buildVariant.matches("(.*)Debug(.*)") ? "debug" : "release"
+        //To include msal files in the coverage report
+        def msalBuild = buildVariant.matches("(.*)local(.*)") ? "localDebug" : "distDebug"
+        def additionalCoverageSourceDirs = [
+                "${projectDir}/../msal/msal/src/main/java",
+                "${projectDir}/../common/common/src/main/java",
+        ]
+        def additionalJavaClasses = [
+                fileTree( dir: "${buildDir}/../common/intermediates/javac/${commonBuild}/classes", excludes: fileFilter),
+                fileTree( dir: "${buildDir}/../msal/intermediates/javac/${msalBuild}/classes", excludes: fileFilter)
+        ]
+
+        sourceDirectories.from = files([coverageSourceDirs])
+        additionalSourceDirs.from = files(additionalCoverageSourceDirs)
+        additionalClassDirs.from = files([additionalJavaClasses])
+        classDirectories.from = files([javaClasses])
+        executionData.from = fileTree(dir: "$buildDir", includes: [androidTestFile])
+        reports {
+            xml.enabled = true
+        }
+    }
 }
 
 dependencies {
@@ -161,16 +202,3 @@ dependencies {
     androidTestUtil "androidx.test:orchestrator:$rootProject.ext.androidxTestOrchestratorVersion"
 }
 
-task createMsalAutomationCoverageReportTask() {
-    group = "MsalAutomation Reporting"
-    description = "Generate AndroidTests Coverage Report tasks for every build Flavour"
-    android.applicationVariants.all { variant ->
-        def buildVariant = variant.name
-
-        // Tasks for generating Coverage reports for every buildVariant
-        task "${buildVariant}MsalAutomationCoverageReport" (type:JacocoReport, dependsOn: ["create${buildVariant.capitalize()}CoverageReport"]) {
-            group = "MsalAutomation Reporting"
-            description = "Generate MsalAutomation AndroidTests Coverage Reports on the ${buildVariant.capitalize()}"
-        }
-    }
-}
