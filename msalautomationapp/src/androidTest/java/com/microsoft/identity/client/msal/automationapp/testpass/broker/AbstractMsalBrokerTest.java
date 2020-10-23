@@ -44,16 +44,16 @@ public abstract class AbstractMsalBrokerTest extends AbstractMsalUiTest implemen
 
     protected ITestBroker mBroker = getBroker();
 
-    @Rule(order = 5)
+    @Rule(order = 6)
     public final TestRule brokerSupportRule = new BrokerSupportRule(mBroker);
 
-    @Rule(order = 6)
+    @Rule(order = 7)
     public final TestRule installBrokerRule = new InstallBrokerTestRule(mBroker);
 
-    @Rule(order = 7)
+    @Rule(order = 8)
     public final TestRule powerLiftIncidentRule = new PowerLiftIncidentRule(mBroker);
 
-    @Rule(order = 8)
+    @Rule(order = 9)
     public final TestRule deviceEnrollmentFailureRecoveryRule = new DeviceEnrollmentFailureRecoveryRule();
 
     @Override

@@ -41,6 +41,7 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.ui.automation.ILabTest;
 import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
 import com.microsoft.identity.client.ui.automation.browser.IBrowser;
+import com.microsoft.identity.client.ui.automation.rules.FirebaseRule;
 import com.microsoft.identity.client.ui.automation.rules.RemoveBrokersBeforeTestRule;
 import com.microsoft.identity.client.ui.automation.rules.ResetAutomaticTimeZoneTestRule;
 import com.microsoft.identity.client.ui.automation.rules.RetryTestRule;
@@ -85,9 +86,12 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest {
     public final TestRule resetAutomaticTimeRule = new ResetAutomaticTimeZoneTestRule();
 
     @Rule(order = 3)
-    public final TestRule removeBrokersRule = new RemoveBrokersBeforeTestRule();
+    public final TestRule firebaseTestRule = new FirebaseRule();
 
     @Rule(order = 4)
+    public final TestRule removeBrokersRule = new RemoveBrokersBeforeTestRule();
+
+    @Rule(order = 5)
     public ActivityTestRule<MainActivity> mActivityRule =
             new ActivityTestRule(MainActivity.class);
 
