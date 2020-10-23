@@ -31,6 +31,8 @@ import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.TestContext;
+import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
+import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
@@ -49,8 +51,8 @@ import java.util.concurrent.CountDownLatch;
 public class TestCase1116117 extends AbstractMsalUiTest {
 
     @Test
-    public void test_1116117() throws InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
+    public void test_1116117() {
+        final TokenRequestLatch latch = new TokenRequestLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
@@ -86,12 +88,12 @@ public class TestCase1116117 extends AbstractMsalUiTest {
         );
 
         interactiveRequest.execute();
-        latch.await();
+        latch.await(TokenRequestTimeout.MEDIUM);
 
         // change the time on the device
         TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
 
-        final CountDownLatch silentLatch = new CountDownLatch(1);
+        final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
 
         final IAccount account = getAccount();
 
@@ -104,7 +106,7 @@ public class TestCase1116117 extends AbstractMsalUiTest {
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
-        silentLatch.await();
+        silentLatch.await(TokenRequestTimeout.SILENT);
     }
 
     @Override
