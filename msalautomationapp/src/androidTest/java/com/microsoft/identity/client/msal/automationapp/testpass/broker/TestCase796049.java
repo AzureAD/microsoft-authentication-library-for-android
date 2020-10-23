@@ -27,6 +27,8 @@ import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
+import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
+import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
@@ -45,8 +47,8 @@ import java.util.concurrent.CountDownLatch;
 public class TestCase796049 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_796049() throws InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
+    public void test_796049() {
+        final TokenRequestLatch latch = new TokenRequestLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
@@ -83,11 +85,11 @@ public class TestCase796049 extends AbstractMsalBrokerTest {
         );
 
         interactiveRequest.execute();
-        latch.await();
+        latch.await(TokenRequestTimeout.MEDIUM);
 
         // SECOND REQUEST WITHOUT LOGIN HINT
 
-        final CountDownLatch latchNoLoginHint = new CountDownLatch(1);
+        final TokenRequestLatch latchNoLoginHint = new TokenRequestLatch(1);
 
         final AcquireTokenParameters parametersNoLoginHint = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
@@ -123,7 +125,7 @@ public class TestCase796049 extends AbstractMsalBrokerTest {
         );
 
         interactiveRequestNoLoginHint.execute();
-        latchNoLoginHint.await();
+        latchNoLoginHint.await(TokenRequestTimeout.MEDIUM);
     }
 
 

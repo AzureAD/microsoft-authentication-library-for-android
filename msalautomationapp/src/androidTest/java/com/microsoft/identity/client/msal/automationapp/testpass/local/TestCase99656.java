@@ -30,6 +30,8 @@ import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
+import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
+import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
@@ -47,8 +49,8 @@ import java.util.concurrent.CountDownLatch;
 public class TestCase99656 extends AbstractMsalUiTest {
 
     @Test
-    public void test_99656() throws InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
+    public void test_99656() {
+        final TokenRequestLatch latch = new TokenRequestLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
@@ -83,11 +85,11 @@ public class TestCase99656 extends AbstractMsalUiTest {
         );
 
         interactiveRequest.execute();
-        latch.await();
+        latch.await(TokenRequestTimeout.MEDIUM);
 
         final IAccount account = getAccount();
 
-        final CountDownLatch silentLatch = new CountDownLatch(1);
+        final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(account)
@@ -98,11 +100,11 @@ public class TestCase99656 extends AbstractMsalUiTest {
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
-        silentLatch.await();
+        silentLatch.await(TokenRequestTimeout.SILENT);
 
         // second interactive request
 
-        final CountDownLatch latch2 = new CountDownLatch(1);
+        final TokenRequestLatch latch2 = new TokenRequestLatch(1);
 
         final AcquireTokenParameters interactiveParams2 = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
@@ -137,7 +139,7 @@ public class TestCase99656 extends AbstractMsalUiTest {
         );
 
         interactiveRequest2.execute();
-        latch2.await();
+        latch2.await(TokenRequestTimeout.MEDIUM);
 
     }
 
