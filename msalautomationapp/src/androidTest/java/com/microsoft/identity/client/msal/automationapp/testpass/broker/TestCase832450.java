@@ -49,8 +49,8 @@ import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-//Non Joined AcquireToken test with MSAL and Broker
-//https://identitydivision.visualstudio.com/DevEx/_workitems/edit/832450
+// Non Joined AcquireToken test with MSAL and Broker
+// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/832450
 public class TestCase832450 extends AbstractMsalBrokerTest {
 
     @Test
@@ -82,7 +82,7 @@ public class TestCase832450 extends AbstractMsalBrokerTest {
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
                                 .broker(mBroker)
-                                .expectingBrokerAccountChooserActivity(false)
+                                .expectingBrokerAccountChooserActivity(true)
                                 .build();
 
                         new AadPromptHandler(promptHandlerParameters)
