@@ -12,6 +12,11 @@ tasks.withType(Test) {
     jacoco.includeNoLocationClasses = true
 }
 
+//Constants:- used to generate Coverage report task
+def unitTestType = "UnitTest"
+def androidTestType = "AndroidTest"
+def bothTestType = "BothTest"
+
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -87,9 +92,9 @@ android {
         }
 
         def buildVariant = variant.name
-        createCoverageTask(buildVariant, "UnitTest")
-        createCoverageTask(buildVariant, "AndroidTest")
-        createCoverageTask(buildVariant, "BothTest")
+        createCoverageTask(buildVariant, unitTestType)
+        createCoverageTask(buildVariant, androidTestType)
+        createCoverageTask(buildVariant, bothTestType)
     }
 
     testOptions {
@@ -108,19 +113,19 @@ android {
 }
 
 ext.createCoverageTask = { buildVariant, testType ->
-    def unitTest = "test${buildVariant.capitalize()}UnitTest"
-    def androidTest = "connected${buildVariant.capitalize()}AndroidTest"
-    def unitTestFile = "jacoco/${unitTest}.exec"
+    def unitTestTask = "test${buildVariant.capitalize()}UnitTest"
+    def androidTestTask = "connected${buildVariant.capitalize()}AndroidTest"
+    def unitTestFile = "jacoco/${unitTestTask}.exec"
     def androidTestFile = "outputs/code_coverage/${buildVariant}AndroidTest/connected/*.ec"
     def taskList, executionFiles
-    if (testType.matches("BothTest")) {
-        taskList = [unitTest, androidTest]
+    if (testType.matches(bothTestType)) {
+        taskList = [unitTestTask, androidTestTask]
         executionFiles = [unitTestFile, androidTestFile]
-    } else if (testType.matches("UnitTest")){
-        taskList = [unitTest]
+    } else if (testType.matches(unitTestType)){
+        taskList = [unitTestTask]
         executionFiles = [unitTestFile]
     } else {
-        taskList = [androidTest]
+        taskList = [androidTestTask]
         executionFiles = [androidTestFile]
     }
 
@@ -150,7 +155,6 @@ ext.createCoverageTask = { buildVariant, testType ->
             xml.enabled = true
         }
     }
-
 }
 
 // Task to generate javadoc

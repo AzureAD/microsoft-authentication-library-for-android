@@ -1,6 +1,9 @@
 apply plugin: 'com.android.application'
 apply plugin: 'jacoco'
 
+//Constant:- used to generate Coverage report task
+def androidTestType = "AndroidTest"
+
 android {
 
     final String BROKER_HOST = "BrokerHost"
@@ -137,15 +140,15 @@ android {
 
     applicationVariants.all { variant ->
         def buildVariant = variant.name
-        createCoverageTask(buildVariant, "AndroidTest")
+        createCoverageTask(buildVariant, androidTestType)
     }
 }
 
 ext.createCoverageTask = { buildVariant, testType ->
-    def androidTest = "connected${buildVariant.capitalize()}AndroidTest"
+    def androidTestTask = "connected${buildVariant.capitalize()}AndroidTest"
     def androidTestFile = "outputs/code_coverage/${buildVariant}AndroidTest/connected/*.ec"
 
-    task "${buildVariant}Msal${testType}CoverageReport" (type:JacocoReport, dependsOn: [androidTest]) {
+    task "${buildVariant}Msal${testType}CoverageReport" (type:JacocoReport, dependsOn: [androidTestTask]) {
         group = "Code Coverage MsalAutomation"
         description = "Generate Msal Coverage Reports(${testType}) on the ${buildVariant.capitalize()}"
         def coverageSourceDirs = "${projectDir}/src/main/java"
