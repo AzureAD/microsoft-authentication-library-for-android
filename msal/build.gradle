@@ -7,7 +7,7 @@ apply from: 'versioning/version_tasks.gradle'
 group = 'com.microsoft.identity.client'
 apply plugin: 'jacoco'
 
-//To include Robolectric tests in the Jacoco report, flag -> "includeNolocationClasses" is set to true
+// To include Robolectric tests in the Jacoco report, flag -> "includeNolocationClasses" is set to true
 tasks.withType(Test) {
     jacoco.includeNoLocationClasses = true
 }
@@ -91,6 +91,7 @@ android {
             outputFileName = fileName
         }
 
+        // create separate code coverage tasks(for unitTests, androidTests and both Tests) for every build variant
         def buildVariant = variant.name
         createCoverageTask(buildVariant, unitTestType)
         createCoverageTask(buildVariant, androidTestType)
@@ -113,10 +114,15 @@ android {
 }
 
 ext.createCoverageTask = { buildVariant, testType ->
+    // Code coverage task depends on additional task to run all unit tests and android tests
     def unitTestTask = "test${buildVariant.capitalize()}UnitTest"
     def androidTestTask = "connected${buildVariant.capitalize()}AndroidTest"
+
+    // Output of those additional tasks are stored in .exec file for unit tests and .ec file for android tests
     def unitTestFile = "jacoco/${unitTestTask}.exec"
     def androidTestFile = "outputs/code_coverage/${buildVariant}AndroidTest/connected/*.ec"
+
+    // Include Task and corresponding output file of tests, according to testType
     def taskList, executionFiles
     if (testType.matches(bothTestType)) {
         taskList = [unitTestTask, androidTestTask]
@@ -129,16 +135,20 @@ ext.createCoverageTask = { buildVariant, testType ->
         executionFiles = [androidTestFile]
     }
 
+    // Task to generate coverage report for particular build variant, that depends on additional tasks depending on testType
     task "${buildVariant}Msal${testType}CoverageReport" (type:JacocoReport, dependsOn: taskList) {
         group = "Code Coverage"
         description = "Generate Msal Coverage Reports(${testType}) on the ${buildVariant.capitalize()}"
+
+        // Include source files(of msal) in which code coverage needs to be found, after filtering out some set of files
         def coverageSourceDirs = "${projectDir}/src/main/java"
         def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test.*']
         def javaClasses = fileTree(
                 dir: "${buildDir}/intermediates/javac/${buildVariant}/classes",
                 excludes: fileFilter
         )
-        //To include common files in the coverage report
+
+        // Include additional source files(as msal depends on common) in code coverage report
         def commonBuild = buildVariant.matches("(.*)Debug(.*)") ? "debug" : "release"
         def additionalCoverageSourceDirs = "${projectDir}/../common/common/src/main/java"
         def additionalJavaClasses = fileTree(
@@ -146,11 +156,16 @@ ext.createCoverageTask = { buildVariant, testType ->
                 excludes: fileFilter
         )
 
+        //Include all those directories for source files and additional source files defined above
         sourceDirectories.from = files([coverageSourceDirs])
         additionalSourceDirs.from = files(additionalCoverageSourceDirs)
         additionalClassDirs.from = files([additionalJavaClasses])
         classDirectories.from = files([javaClasses])
+
+        //Code coverage report is generated based on the the output files of additional tasks(unitTestTask, androidTestTask or both)
         executionData.from = fileTree(dir: "$buildDir", includes: executionFiles)
+
+        // html reports are auto-generated without enabling flag, so enabling xml flag
         reports {
             xml.enabled = true
         }
@@ -209,7 +224,7 @@ dependencies {
         transitive = false
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.0.1', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.0.4-SNAPSHOT', changing: true)
 
     distApi("com.microsoft.identity:common:3.0.2") {
         transitive = false
