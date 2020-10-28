@@ -3,7 +3,15 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 v.Next
 ----------
 - Expose expiresIn in MSAL Device Code flow callback #1169
+
+Version 2.0.2
+----------
 - Correct capitalization of client_capabilities claim 'xms_cc' (LLT) #1191
+
+Version 2.0.1
+----------
+- Added a check for UNSET OpenIdConnectPromptParameter value.
+- Picks up common@3.0.2
 
 Version 2.0.0
 ----------
