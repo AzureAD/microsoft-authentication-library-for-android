@@ -3,12 +3,12 @@ ext {
     // SDK
     minSdkVersion = 16
     automationAppMinSDKVersion = 21
-    targetSdkVersion = 27
+    targetSdkVersion = 28
     compileSdkVersion = 28
     buildToolsVersion = "28.0.3"
 
     // Plugins
-    gradleVersion = '3.3.1'
+    gradleVersion = '4.0.1'
     androidMavenGradlePluginVersion = "1.4.1"
 
     // Libraries
@@ -26,13 +26,14 @@ ext {
     gsonVersion = "2.8.5"
     junitVersion = "4.12"
     legacySupportV4Version = "1.0.0"
+    localBroadcastManagerVersion = "1.0.0"
     lombokVersion = "1.18.12"
     materialVersion = "1.0.0"
     mockitoCoreVersion = "2.18.3"
     mockitoAndroidVersion = "2.18.3"
     multidexVersion = "2.0.1"
-    powerMockVersion = "1.6.6"
     nimbusVersion = "8.2"
+    powerMockVersion = "1.6.6"
     runnerVersion = "1.2.0"
     rulesVersion = "1.2.0"
     robolectricVersion = "4.3.1"
@@ -41,4 +42,24 @@ ext {
     // TODO: adal automation test app.
     supportLibraryVersion = "27.1.+"
     adalLegacy = "1.15.0"
+    adalSnapshot = "3.1.1-SNAPSHOT"
+    adalLatest = "3.1.1"
+
+
+    //#### The following are TSL version variables - BEGIN
+    projectCompileSdkVersion = 29
+    projectBuildToolsVersion = '28.0.3'
+    projectMinSdkVersion = 14
+    projectTargetSdkVersion = 29
+
+    projectVersionCode = 1
+    projectVersionName = "1.5.9"
+
+    junitLibraryVersion = "4.12"
+    androidSupportLibraryVersion = "28.0.0"
+    gsonLibraryVersion = "2.8.0"
+    supportTestLibraryVersion = "0.4.1"
+    mockitoLibraryVersion = "1.2"
+    dexMakerLibraryVersion = "1.2"
+    //#### The ABOVE are TSL version variables - END
 }

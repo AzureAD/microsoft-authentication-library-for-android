@@ -107,8 +107,6 @@ android {
                 exclude 'com/microsoft/identity/client/e2e/tests/network'
             }
 
-            systemProperty 'robolectric.offline', 'true'
-            systemProperty 'robolectric.dependency.dir', './libs'
         }
     }
 }
@@ -189,15 +187,11 @@ task javadoc(type: Javadoc) {
 
 // Task to generate javadoc.jar
 task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
     from javadoc.destinationDir
-    destinationDir = reporting.file("$project.buildDir/outputs/jar/")
 }
 
 task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
-    classifier = 'sources'
-    destinationDir = reporting.file("$project.buildDir/outputs/jar/")
 }
 
 dependencies {
@@ -354,7 +348,7 @@ publishing {
 
 tasks.whenTaskAdded { task ->
     if (task.name.contains('assemble')) {
-        task.dependsOn 'checkstyle', 'pmd'
+        task.dependsOn 'pmd'
     }
 
     if (task.name.contains('assemble')
