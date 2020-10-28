@@ -5,4 +5,6 @@ services:
 
 before_install:
 - docker pull authclient/ac-28:0.1.1
-- docker run -d -p 127.0.0.1:80:4567 authclient/ac-28:0.1.1 /bin/sh -c "/usr/local/android-sdk/emulator/emulator -avd test -no-audio -no-window -gpu off & /usr/local/android-sdk/platform-tools/adb wait-for-any-device; gradle msal:connectedLocalDebugAndroidTest"
+
+script:
+- docker run --rm -v $TRAVIS_BUILD_DIR -w /home/gradle/project authclient/ac-28:0.1.1 /bin/sh -c "/usr/local/android-sdk/emulator/emulator -avd test -no-audio -no-window -gpu off & /usr/local/android-sdk/platform-tools/adb wait-for-any-device; gradle msal:connectedLocalDebugAndroidTest"
