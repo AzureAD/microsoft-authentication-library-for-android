@@ -5,5 +5,5 @@
         android:title="Search Pkgs"
         android:icon="@android:drawable/ic_search_category_default"
         app:showAsAction="collapseActionView|ifRoom"
-        app:actionViewClass="android.widget.SearchView" />
+        app:actionViewClass="androidx.appcompat.widget.SearchView" />
 </menu>
