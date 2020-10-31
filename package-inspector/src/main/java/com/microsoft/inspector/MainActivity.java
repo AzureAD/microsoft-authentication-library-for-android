@@ -32,12 +32,17 @@ import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.os.Bundle;
 import android.util.Base64;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.SearchView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -47,6 +52,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -59,23 +65,27 @@ public class MainActivity extends AppCompatActivity {
     private Map<String, String> mPkgAuthenticators = new HashMap<>();
 
     @Override
-    @SuppressLint("PackageManagerGetSignatures")
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        mListView = findViewById(R.id.lv_apps);
-
-        mPackageManager = getPackageManager();
-        populateAuthenticatorsLookup(AccountManager.get(this));
-        mApplications = mPackageManager.getInstalledApplications(PackageManager.GET_META_DATA);
-        Collections.sort(mApplications, new Comparator<ApplicationInfo>() {
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.options_menu, menu);
+        SearchView search = (SearchView) menu.findItem(R.id.search).getActionView();
+        search.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
-            public int compare(@NonNull final ApplicationInfo info1,
-                               @NonNull final ApplicationInfo info2) {
-                return info1.packageName.compareTo(info2.packageName);
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                filterAndDisplayPackages(newText);
+                return true;
             }
         });
 
+        return true;
+    }
+
+    private void filterAndDisplayPackages(@Nullable final String filterText) {
         final List<String> packageNames = new ArrayList<>(mApplications.size());
 
         for (final ApplicationInfo applicationInfo : mApplications) {
@@ -88,6 +98,17 @@ public class MainActivity extends AppCompatActivity {
             packageNames.add(packageDisplayName);
         }
 
+        if (null != filterText && !filterText.isEmpty()) {
+            // iterate over the package names, remove those who don't contain the filter text
+            for(Iterator<String> nameItr = packageNames.iterator(); nameItr.hasNext();) {
+                final String pkgName = nameItr.next();
+
+                if (!pkgName.toLowerCase().contains(filterText.toLowerCase())) {
+                    nameItr.remove();
+                }
+            }
+        }
+
         final ArrayAdapter<String> appAdapter = new ArrayAdapter<>(
                 this,
                 android.R.layout.simple_list_item_1,
@@ -95,6 +116,7 @@ public class MainActivity extends AppCompatActivity {
         );
 
         mListView.setAdapter(appAdapter);
+        appAdapter.notifyDataSetChanged();
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
@@ -139,6 +161,27 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    @Override
+    @SuppressLint("PackageManagerGetSignatures")
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        mListView = findViewById(R.id.lv_apps);
+
+        mPackageManager = getPackageManager();
+        populateAuthenticatorsLookup(AccountManager.get(this));
+        mApplications = mPackageManager.getInstalledApplications(PackageManager.GET_META_DATA);
+        Collections.sort(mApplications, new Comparator<ApplicationInfo>() {
+            @Override
+            public int compare(@NonNull final ApplicationInfo info1,
+                               @NonNull final ApplicationInfo info2) {
+                return info1.packageName.compareTo(info2.packageName);
+            }
+        });
+
+        filterAndDisplayPackages(null);
     }
 
     private void populateAuthenticatorsLookup(@NonNull final AccountManager accountManager) {
