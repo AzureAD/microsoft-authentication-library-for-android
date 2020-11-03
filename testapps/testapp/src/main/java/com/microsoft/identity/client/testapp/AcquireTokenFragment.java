@@ -76,6 +76,7 @@ public class AcquireTokenFragment extends Fragment {
     private Button mAcquireTokenSilentWithResource;
     private Button mAcquireTokenWithDeviceCodeFlow;
     private Button mBrokerHelper;
+    private Button mGenerateSHR;
     private Spinner mSelectAccount;
     private Spinner mConfigFileSpinner;
     private Spinner mAuthScheme;
@@ -118,6 +119,7 @@ public class AcquireTokenFragment extends Fragment {
         mAcquireTokenSilentWithResource = view.findViewById(R.id.btn_acquiretokensilentWithResource);
         mAcquireTokenWithDeviceCodeFlow = view.findViewById(R.id.btn_acquiretokenWithDeviceCodeFlow);
         mBrokerHelper = view.findViewById(R.id.btnBrokerHelper);
+        mGenerateSHR = view.findViewById(R.id.btn_generate_shr);
         mConfigFileSpinner = view.findViewById(R.id.configFile);
         mAuthScheme = view.findViewById(R.id.authentication_scheme);
         mPublicApplicationMode = view.findViewById(R.id.public_application_mode);
@@ -271,8 +273,10 @@ public class AcquireTokenFragment extends Fragment {
         final Constants.AuthScheme authScheme = Constants.AuthScheme.valueOf(mAuthScheme.getSelectedItem().toString());
         if (authScheme == Constants.AuthScheme.POP) {
             mPopSection.setVisibility(View.VISIBLE);
+            mGenerateSHR.setVisibility(View.VISIBLE);
         } else {
             mPopSection.setVisibility(View.GONE);
+            mGenerateSHR.setVisibility(View.GONE);
         }
     }
 
