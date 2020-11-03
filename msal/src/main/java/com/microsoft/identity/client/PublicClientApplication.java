@@ -1264,6 +1264,20 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     @Override
+    public String generateSignedHttpRequest(@NonNull final IAccount account,
+                                            @NonNull final PoPAuthenticationScheme popParameters) {
+        // TODO
+        return null;
+    }
+
+    @Override
+    public void generateSignedHttpRequest(@NonNull final IAccount account,
+                                          @NonNull final PoPAuthenticationScheme popParameters,
+                                          @NonNull final SignedHttpRequestRequestCallback callback) {
+        // TODO
+    }
+
+    @Override
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @NonNull final AuthenticationCallback callback) {
