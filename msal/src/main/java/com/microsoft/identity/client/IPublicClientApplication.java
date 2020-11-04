@@ -135,6 +135,9 @@ public interface IPublicClientApplication {
                                    @NonNull final SignedHttpRequestRequestCallback callback
     );
 
+    /**
+     * Callback used to receive the result of {@link #generateSignedHttpRequest(IAccount, PoPAuthenticationScheme)}.
+     */
     interface SignedHttpRequestRequestCallback extends TaskCompletedCallbackWithError<String, MsalException> {
 
         /**
