@@ -125,6 +125,7 @@ abstract class MsalWrapper {
                 builder.withAuthenticationScheme(
                         PoPAuthenticationScheme.builder()
                                 .withHttpMethod(requestOptions.getPopHttpMethod())
+                                .withClientClaims(requestOptions.getPoPClientClaims())
                                 .withUrl(new URL(requestOptions.getPopResourceUrl()))
                                 .build()
                 );
@@ -184,6 +185,7 @@ abstract class MsalWrapper {
                 builder.withAuthenticationScheme(
                         PoPAuthenticationScheme.builder()
                                 .withHttpMethod(requestOptions.getPopHttpMethod())
+                                .withClientClaims(requestOptions.getPoPClientClaims())
                                 .withUrl(new URL(requestOptions.getPopResourceUrl())).build()
                 );
             } catch (MalformedURLException e) {
