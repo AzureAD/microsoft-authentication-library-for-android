@@ -86,6 +86,7 @@ public class AcquireTokenFragment extends Fragment {
     private Button mStatusCopyBtn;
     private Spinner mPopHttpMethod;
     private EditText mPopResourceUrl;
+    private EditText mPopClientClaims;
 
     private LinearLayout mPopSection;
     private LinearLayout mLoginHintSection;
@@ -128,6 +129,7 @@ public class AcquireTokenFragment extends Fragment {
         mStatusCopyBtn = view.findViewById(R.id.btn_statusCopy);
         mPopHttpMethod = view.findViewById(R.id.pop_http_method);
         mPopResourceUrl = view.findViewById(R.id.pop_resource_url);
+        mPopClientClaims = view.findViewById(R.id.pop_client_claims);
 
         mPopSection = view.findViewById(R.id.pop_section);
         mLoginHintSection = view.findViewById(R.id.login_hint_section);
@@ -261,6 +263,27 @@ public class AcquireTokenFragment extends Fragment {
                                 AcquireTokenFragment.this.showMessage(message);
                             }
                         });
+            }
+        });
+
+        final INotifyOperationResultCallback<String> generateShrCallback =
+                new INotifyOperationResultCallback<String>() {
+
+            @Override
+            public void onSuccess(String result) {
+                mOnFragmentInteractionListener.onGetStringResult(result);
+            }
+
+            @Override
+            public void showMessage(String message) {
+                AcquireTokenFragment.this.showMessage(message);
+            }
+        };
+
+        mGenerateSHR.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mMsalWrapper.generateSignedHttpRequest(getCurrentRequestOptions(), generateShrCallback);
             }
         });
 
@@ -417,6 +440,7 @@ public class AcquireTokenFragment extends Fragment {
                 ? null // None specified
                 : HttpMethod.valueOf(httpMethodTextFromSpinner);
         final String popResourceUrl = mPopResourceUrl.getText().toString();
+        final String popClientClaimsTxt = mPopClientClaims.getText().toString();
 
         return new RequestOptions(
                 configFile,
@@ -431,7 +455,8 @@ public class AcquireTokenFragment extends Fragment {
                 authority,
                 authScheme,
                 popHttpMethod,
-                popResourceUrl
+                popResourceUrl,
+                popClientClaimsTxt
         );
     }
 
@@ -475,6 +500,8 @@ public class AcquireTokenFragment extends Fragment {
 
     public interface OnFragmentInteractionListener {
         void onGetAuthResult(IAuthenticationResult result);
+
+        void onGetStringResult(String valueToDisplay);
 
         void onGetUsers();
     }

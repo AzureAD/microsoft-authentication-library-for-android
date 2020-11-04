@@ -2,6 +2,7 @@ package com.microsoft.identity.client.testapp;
 
 import android.app.Activity;
 import android.content.Context;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -9,6 +10,7 @@ import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.AuthenticationResult;
+import com.microsoft.identity.client.HttpMethod;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
@@ -208,9 +210,9 @@ abstract class MsalWrapper {
                                                    @NonNull Date sessionExpirationDate) {
                         callback.showMessage(
                                 "Uri: " + vUri + "\n" +
-                                "UserCode: " + userCode + "\n" +
-                                "Message: " + message + "\n" +
-                                "sessionExpirationDate: " + sessionExpirationDate);
+                                        "UserCode: " + userCode + "\n" +
+                                        "Message: " + message + "\n" +
+                                        "sessionExpirationDate: " + sessionExpirationDate);
                     }
 
                     @Override
@@ -266,4 +268,52 @@ abstract class MsalWrapper {
             }
         };
     }
+
+    public void generateSignedHttpRequest(@NonNull final RequestOptions currentRequestOptions,
+                                          @NonNull final INotifyOperationResultCallback<String> generateShrCallback) {
+        // Build up the params we want/need
+        final IAccount currentAccount = currentRequestOptions.getAccount();
+        final HttpMethod popHttpMethod = currentRequestOptions.getPopHttpMethod();
+        final String resourceUrl = currentRequestOptions.getPopResourceUrl();
+        final String clientClaims = currentRequestOptions.getPoPClientClaims();
+
+        if (null == currentAccount) {
+            // User must first sign-in
+            generateShrCallback.showMessage("No user signed-in or selected.");
+            return;
+        }
+
+        try {
+            final PoPAuthenticationScheme popParams =
+                    PoPAuthenticationScheme.builder()
+                            .withHttpMethod(popHttpMethod)
+                            .withUrl(new URL(resourceUrl))
+                            .withClientClaims(clientClaims)
+                            .build();
+
+            Log.d(
+                    MsalWrapper.class.getSimpleName() + ":generateSHR",
+                    "Account: " + currentAccount.getUsername()
+                    + "\n"
+                    + "HttpMethod: " + popHttpMethod
+                    + "\n"
+                    + "Resource URL: " + resourceUrl
+                    + "\n"
+                    + "Client Claims: " + clientClaims
+            );
+
+            generateSignedHttpRequestInternal(
+                    currentAccount,
+                    popParams,
+                    generateShrCallback
+            );
+        } catch (MalformedURLException e) {
+            generateShrCallback.showMessage("Invalid URL.");
+        }
+    }
+
+    public abstract void generateSignedHttpRequestInternal(@NonNull final IAccount account,
+                                                           @NonNull final PoPAuthenticationScheme params,
+                                                           @NonNull final INotifyOperationResultCallback<String> generateShrCallback
+    );
 }
