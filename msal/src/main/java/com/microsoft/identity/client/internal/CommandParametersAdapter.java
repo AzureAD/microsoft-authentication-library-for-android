@@ -11,7 +11,7 @@ import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.ITenantProfile;
 import com.microsoft.identity.client.MultiTenantAccount;
-import com.microsoft.identity.client.Prompt;
+import com.microsoft.identity.client.PoPAuthenticationScheme;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.claims.ClaimsRequest;
@@ -25,6 +25,7 @@ import com.microsoft.identity.common.internal.authscheme.BearerAuthenticationSch
 import com.microsoft.identity.common.internal.cache.SchemaUtil;
 import com.microsoft.identity.common.internal.commands.parameters.CommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.DeviceCodeFlowCommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.GenerateShrCommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.InteractiveTokenCommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.RemoveAccountCommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.SilentTokenCommandParameters;
@@ -198,7 +199,7 @@ public class CommandParametersAdapter {
     public static DeviceCodeFlowCommandParameters createDeviceCodeFlowCommandParameters(
             @NonNull final PublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
-            @NonNull String[] scopes){
+            @NonNull String[] scopes) {
 
         // TODO: Consider implementing support for PoP
 
@@ -404,5 +405,28 @@ public class CommandParametersAdapter {
         } else {
             return parameters.getPrompt().toOpenIdConnectPromptParameter();
         }
+    }
+
+    public static GenerateShrCommandParameters createGenerateShrCommandParameters(
+            @NonNull final PublicClientApplicationConfiguration clientConfig,
+            @NonNull final OAuth2TokenCache oAuth2TokenCache,
+            @NonNull final String homeAccountId,
+            @NonNull final PoPAuthenticationScheme popParameters) {
+        final Context context = clientConfig.getAppContext();
+        return GenerateShrCommandParameters.builder()
+                .androidApplicationContext(context)
+                .applicationName(context.getPackageName())
+                .applicationVersion(getPackageVersion(context))
+                .clientId(clientConfig.getClientId())
+                .isSharedDevice(clientConfig.getIsSharedDevice())
+                .redirectUri(clientConfig.getRedirectUri())
+                .oAuth2TokenCache(oAuth2TokenCache)
+                .requiredBrokerProtocolVersion(clientConfig.getRequiredBrokerProtocolVersion())
+                .sdkType(SdkType.MSAL)
+                .sdkVersion(PublicClientApplication.getSdkVersion())
+                .powerOptCheckEnabled(clientConfig.isPowerOptCheckForEnabled())
+                .homeAccountId(homeAccountId)
+                .popParameters(popParameters)
+                .build();
     }
 }

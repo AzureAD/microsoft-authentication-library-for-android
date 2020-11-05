@@ -135,6 +135,7 @@ public class SingleAccountModeWrapper extends MsalWrapper {
     public void generateSignedHttpRequestInternal(@NonNull final IAccount account,
                                                   @NonNull final PoPAuthenticationScheme params,
                                                   @NonNull final INotifyOperationResultCallback<String> generateShrCallback) {
+        // TODO Make async!
         generateShrCallback.onSuccess("Result!");
     }
 }

@@ -122,6 +122,20 @@ public class MultipleAccountModeWrapper extends MsalWrapper {
     public void generateSignedHttpRequestInternal(@NonNull final IAccount account,
                                                   @NonNull final PoPAuthenticationScheme params,
                                                   @NonNull final INotifyOperationResultCallback<String> generateShrCallback) {
-        generateShrCallback.onSuccess("Result!");
+        mApp.generateSignedHttpRequest(
+                account,
+                params,
+                new IPublicClientApplication.SignedHttpRequestRequestCallback() {
+                    @Override
+                    public void onTaskCompleted(String result) {
+                        generateShrCallback.onSuccess(result);
+                    }
+
+                    @Override
+                    public void onError(MsalException exception) {
+                        generateShrCallback.showMessage(exception.getMessage());
+                    }
+                }
+        );
     }
 }

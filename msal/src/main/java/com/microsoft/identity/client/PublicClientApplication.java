@@ -70,11 +70,13 @@ import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager
 import com.microsoft.identity.common.internal.commands.CommandCallback;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommandCallback;
+import com.microsoft.identity.common.internal.commands.GenerateShrCommand;
 import com.microsoft.identity.common.internal.commands.GetDeviceModeCommand;
 import com.microsoft.identity.common.internal.commands.InteractiveTokenCommand;
 import com.microsoft.identity.common.internal.commands.SilentTokenCommand;
 import com.microsoft.identity.common.internal.commands.parameters.CommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.DeviceCodeFlowCommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.GenerateShrCommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.InteractiveTokenCommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.SilentTokenCommandParameters;
 import com.microsoft.identity.common.internal.controllers.BaseController;
@@ -93,6 +95,7 @@ import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccou
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
+import com.microsoft.identity.common.internal.result.GenerateShrResult;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.ResultFuture;
@@ -1265,16 +1268,118 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     @Override
     public String generateSignedHttpRequest(@NonNull final IAccount account,
-                                            @NonNull final PoPAuthenticationScheme popParameters) {
-        // TODO
-        return null;
+                                            @NonNull final PoPAuthenticationScheme popParameters) throws MsalException {
+        final ResultFuture<AsyncResult<GenerateShrResult>> future = new ResultFuture<>();
+
+        final GenerateShrCommandParameters cmdParams =
+                CommandParametersAdapter.createGenerateShrCommandParameters(
+                        mPublicClientConfiguration,
+                        mPublicClientConfiguration.getOAuth2TokenCache(),
+                        ((Account) account).getHomeAccountId(), // TODO Cleanup?
+                        popParameters
+                );
+        final GenerateShrCommand generateShrCommand = new GenerateShrCommand(
+                cmdParams,
+                MSALControllerFactory.getAllControllers(
+                        mPublicClientConfiguration.getAppContext(),
+                        mPublicClientConfiguration.getDefaultAuthority(),
+                        mPublicClientConfiguration
+                ),
+                new CommandCallback<GenerateShrResult, ClientException>() {
+                    @Override
+                    public void onCancel() {
+                        // Not cancellable
+                    }
+
+                    @Override
+                    public void onError(ClientException error) {
+                        future.setResult(new AsyncResult<GenerateShrResult>(null, clientExceptionToMsalException(error)));
+                    }
+
+                    @Override
+                    public void onTaskCompleted(GenerateShrResult generateShrResult) {
+                        future.setResult(new AsyncResult<>(generateShrResult, null));
+                    }
+                },
+                ""
+        );
+
+        // Execute this command silently...
+        CommandDispatcher.submitSilent(generateShrCommand);
+
+        try {
+            final AsyncResult<GenerateShrResult> asyncResult = future.get();
+
+            if (asyncResult.getSuccess()) {
+                return asyncResult.getResult().getShr();
+            } else {
+                throw asyncResult.getException();
+            }
+        } catch (ExecutionException | InterruptedException e) {
+            throw new MsalClientException(
+                    UNKNOWN_ERROR,
+                    "Unexpected error while acquiring token.",
+                    e
+            );
+        }
     }
 
     @Override
     public void generateSignedHttpRequest(@NonNull final IAccount account,
                                           @NonNull final PoPAuthenticationScheme popParameters,
                                           @NonNull final SignedHttpRequestRequestCallback callback) {
-        // TODO
+        final GenerateShrCommandParameters cmdParams =
+                CommandParametersAdapter.createGenerateShrCommandParameters(
+                        mPublicClientConfiguration,
+                        mPublicClientConfiguration.getOAuth2TokenCache(),
+                        ((Account) account).getHomeAccountId(), // TODO Cleanup?
+                        popParameters
+                );
+        try {
+            final GenerateShrCommand generateShrCommand = new GenerateShrCommand(
+                    cmdParams,
+                    MSALControllerFactory.getAllControllers(
+                            mPublicClientConfiguration.getAppContext(),
+                            mPublicClientConfiguration.getDefaultAuthority(),
+                            mPublicClientConfiguration
+                    ),
+                    new CommandCallback<GenerateShrResult, ClientException>() {
+                        @Override
+                        public void onCancel() {
+                            // Not cancellable
+                        }
+
+                        @Override
+                        public void onError(ClientException error) {
+                            callback.onError(clientExceptionToMsalException(error));
+                        }
+
+                        @Override
+                        public void onTaskCompleted(GenerateShrResult generateShrResult) {
+                            callback.onTaskCompleted(generateShrResult.getShr());
+                        }
+                    },
+                    ""
+            );
+
+            // Execute this command silently...
+            CommandDispatcher.submitSilent(generateShrCommand);
+        } catch (final MsalClientException e) {
+            final MsalClientException clientException = new MsalClientException(
+                    UNKNOWN_ERROR,
+                    "Unexpected error while acquiring token.",
+                    e
+            );
+            callback.onError(clientException);
+        }
+    }
+
+    private MsalException clientExceptionToMsalException(@NonNull final ClientException exception) {
+        // TODO can this be cleaned up a bit?
+        return new MsalClientException(
+                exception.getErrorCode(),
+                exception.getMessage()
+        );
     }
 
     @Override
