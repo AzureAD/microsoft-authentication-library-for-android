@@ -1318,7 +1318,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         } catch (ExecutionException | InterruptedException e) {
             throw new MsalClientException(
                     UNKNOWN_ERROR,
-                    "Unexpected error while acquiring token.",
+                    "Unexpected error while generating SHR.",
                     e
             );
         }
@@ -1367,7 +1367,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         } catch (final MsalClientException e) {
             final MsalClientException clientException = new MsalClientException(
                     UNKNOWN_ERROR,
-                    "Unexpected error while acquiring token.",
+                    "Unexpected error while generating SHR.",
                     e
             );
             callback.onError(clientException);
