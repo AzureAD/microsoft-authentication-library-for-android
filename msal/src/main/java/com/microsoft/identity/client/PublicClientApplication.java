@@ -1285,15 +1285,20 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                         mPublicClientConfiguration.getDefaultAuthority(),
                         mPublicClientConfiguration
                 ),
-                new CommandCallback<GenerateShrResult, ClientException>() {
+                new CommandCallback<GenerateShrResult, BaseException>() {
                     @Override
                     public void onCancel() {
                         // Not cancellable
                     }
 
                     @Override
-                    public void onError(ClientException error) {
-                        future.setResult(new AsyncResult<GenerateShrResult>(null, clientExceptionToMsalException(error)));
+                    public void onError(BaseException error) {
+                        future.setResult(
+                                new AsyncResult<GenerateShrResult>(
+                                        null,
+                                        baseExceptionToMsalException(error)
+                                )
+                        );
                     }
 
                     @Override
@@ -1343,15 +1348,15 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             mPublicClientConfiguration.getDefaultAuthority(),
                             mPublicClientConfiguration
                     ),
-                    new CommandCallback<GenerateShrResult, ClientException>() {
+                    new CommandCallback<GenerateShrResult, BaseException>() {
                         @Override
                         public void onCancel() {
                             // Not cancellable
                         }
 
                         @Override
-                        public void onError(ClientException error) {
-                            callback.onError(clientExceptionToMsalException(error));
+                        public void onError(BaseException error) {
+                            callback.onError(baseExceptionToMsalException(error));
                         }
 
                         @Override
@@ -1374,12 +1379,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         }
     }
 
-    private MsalException clientExceptionToMsalException(@NonNull final ClientException exception) {
-        // TODO can this be cleaned up a bit?
-        return new MsalClientException(
-                exception.getErrorCode(),
-                exception.getMessage()
-        );
+    private MsalException baseExceptionToMsalException(@NonNull final BaseException exception) {
+        return new MsalClientException(exception.getErrorCode(), exception.getMessage());
     }
 
     @Override
