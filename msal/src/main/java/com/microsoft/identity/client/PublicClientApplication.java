@@ -45,6 +45,7 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
+import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.client.helper.BrokerHelperActivity;
 import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.CommandParametersAdapter;
@@ -1380,6 +1381,13 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     private MsalException baseExceptionToMsalException(@NonNull final BaseException exception) {
+        if (GenerateShrResult.Errors.NO_ACCOUNT_FOUND.equalsIgnoreCase(exception.getErrorCode())) {
+            return new MsalUiRequiredException(
+                    GenerateShrResult.Errors.NO_ACCOUNT_FOUND,
+                    "The supplied account could not be located."
+            );
+        }
+
         return new MsalClientException(exception.getErrorCode(), exception.getMessage());
     }
 
