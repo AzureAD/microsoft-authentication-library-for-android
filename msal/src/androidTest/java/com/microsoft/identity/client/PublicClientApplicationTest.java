@@ -217,6 +217,7 @@ public final class PublicClientApplicationTest {
     /**
      * Verify correct exception is thrown if callback is not provided.
      */
+    @Ignore
     @Test(expected = IllegalArgumentException.class)
     public void testCallBackEmpty() throws PackageManager.NameNotFoundException, MsalClientException {
         final Context context = new MockContext(mAppContext);
