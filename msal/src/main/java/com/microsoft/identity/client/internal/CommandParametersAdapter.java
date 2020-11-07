@@ -407,6 +407,15 @@ public class CommandParametersAdapter {
         }
     }
 
+    /**
+     * Constructs the {@link GenerateShrCommandParameters} for the supplied args.
+     *
+     * @param clientConfig     The configuration of our current app.
+     * @param oAuth2TokenCache Our local token cache.
+     * @param homeAccountId    The home_account_id of the user for whom we're signing.
+     * @param popParameters    The pop params to embed in the resulting SHR.
+     * @return The fully-formed command params.
+     */
     public static GenerateShrCommandParameters createGenerateShrCommandParameters(
             @NonNull final PublicClientApplicationConfiguration clientConfig,
             @NonNull final OAuth2TokenCache oAuth2TokenCache,
