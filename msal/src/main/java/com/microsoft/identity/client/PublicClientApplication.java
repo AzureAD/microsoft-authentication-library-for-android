@@ -1293,7 +1293,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     }
 
                     @Override
-                    public void onError(BaseException error) {
+                    public void onError(@NonNull final BaseException error) {
                         future.setResult(
                                 new AsyncResult<GenerateShrResult>(
                                         null,
@@ -1303,7 +1303,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     }
 
                     @Override
-                    public void onTaskCompleted(GenerateShrResult generateShrResult) {
+                    public void onTaskCompleted(@NonNull final GenerateShrResult generateShrResult) {
                         future.setResult(new AsyncResult<>(generateShrResult, null));
                     }
                 },
@@ -1356,12 +1356,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                         }
 
                         @Override
-                        public void onError(BaseException error) {
+                        public void onError(@NonNull final BaseException error) {
                             callback.onError(baseExceptionToMsalException(error));
                         }
 
                         @Override
-                        public void onTaskCompleted(GenerateShrResult generateShrResult) {
+                        public void onTaskCompleted(@NonNull final GenerateShrResult generateShrResult) {
                             callback.onTaskCompleted(generateShrResult.getShr());
                         }
                     },
