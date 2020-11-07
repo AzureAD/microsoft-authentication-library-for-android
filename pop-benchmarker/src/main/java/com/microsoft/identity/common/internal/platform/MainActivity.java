@@ -251,7 +251,7 @@ public class MainActivity extends AppCompatActivity {
             final Timer.TimerResult<Boolean> result = Timer.execute(new Callable<Boolean>() {
                 @Override
                 public Boolean call() throws Exception {
-                    return IDevicePopManager.SecureHardwareState.TRUE_UNATTESTED
+                    return SecureHardwareState.TRUE_UNATTESTED
                             == devicePopManager.getSecureHardwareState();
                 }
             });
