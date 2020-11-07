@@ -107,6 +107,15 @@ public class PoPAuthenticationScheme
             return this;
         }
 
+        /**
+         * Sets the client_claims to be embedded in the resulting SHR.
+         * <p>
+         * Important: Use of this API requires setting the minimum_required_broker_protocol_version to
+         * "6.0" or higher.
+         *
+         * @param clientClaims
+         * @return
+         */
         public Builder withClientClaims(@Nullable final String clientClaims) {
             mClientClaims = clientClaims;
             return this;

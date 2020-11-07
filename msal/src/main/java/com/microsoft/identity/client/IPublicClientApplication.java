@@ -113,6 +113,9 @@ public interface IPublicClientApplication {
     /**
      * Signs the provided {@link PoPAuthenticationScheme} parameters into a JWT on behalf of the
      * provided {@link IAccount}.
+     * <p>
+     * Important: Use of this API requires setting the minimum_required_broker_protocol_version to
+     * "6.0" or higher.
      *
      * @param account       The account for whom signing shall occur.
      * @param popParameters The input parameters.
@@ -125,6 +128,9 @@ public interface IPublicClientApplication {
     /**
      * Signs the provided {@link PoPAuthenticationScheme} parameters into a JWT on behalf of the
      * provided {@link IAccount}.
+     * <p>
+     * Important: Use of this API requires setting the minimum_required_broker_protocol_version to
+     * "6.0" or higher.
      *
      * @param account       The account for whom signing shall occur.
      * @param popParameters The input parameters.
