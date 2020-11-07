@@ -1276,7 +1276,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 CommandParametersAdapter.createGenerateShrCommandParameters(
                         mPublicClientConfiguration,
                         mPublicClientConfiguration.getOAuth2TokenCache(),
-                        ((Account) account).getHomeAccountId(), // TODO Cleanup?
+                        ((Account) account).getHomeAccountId(),
                         popParameters
                 );
         final GenerateShrCommand generateShrCommand = new GenerateShrCommand(
@@ -1338,7 +1338,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 CommandParametersAdapter.createGenerateShrCommandParameters(
                         mPublicClientConfiguration,
                         mPublicClientConfiguration.getOAuth2TokenCache(),
-                        ((Account) account).getHomeAccountId(), // TODO Cleanup?
+                        ((Account) account).getHomeAccountId(),
                         popParameters
                 );
         try {
