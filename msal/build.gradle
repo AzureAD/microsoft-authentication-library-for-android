@@ -122,14 +122,16 @@ dependencies {
     implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
     implementation "androidx.browser:browser:$rootProject.ext.browserVersion"
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
-    implementation "com.nimbusds:nimbus-jose-jwt:$rootProject.ext.nimbusVersion"
+    implementation ("com.nimbusds:nimbus-jose-jwt:$rootProject.ext.nimbusVersion") {
+        exclude module: 'asm'
+    }
     implementation "androidx.constraintlayout:constraintlayout:$rootProject.ext.constraintLayoutVersion"
 
     // test dependencies
     testImplementation "junit:junit:$rootProject.ext.junitVersion"
     // TODO the below dependency should be mockito-core but the MockMaker isn't working...
     testImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
-    testImplementation "org.robolectric:robolectric:$rootProject.ext.robolectricVersion"
+    testImplementation ("org.robolectric:robolectric:$rootProject.ext.robolectricVersion")
     testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"
     testImplementation project(':testutils')
     // instrumentation test dependencies
