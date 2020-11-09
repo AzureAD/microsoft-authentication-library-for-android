@@ -53,8 +53,9 @@ android {
     }
 
     buildTypes {
+        // testCoverageEnabled flag is set to true to get coverage reports for Android Tests
         release {
-            testCoverageEnabled false
+            testCoverageEnabled true
             debuggable true
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -62,7 +63,7 @@ android {
         }
 
         debug {
-            testCoverageEnabled false
+            testCoverageEnabled true
             multiDexKeepProguard file('proguard-multidex-rules.pro')
         }
     }
@@ -165,14 +166,16 @@ ext.createCoverageTask = { buildVariant, testType ->
 
         // Include additional source files(as msalautomation depends on common and msal) in code coverage report
         def commonBuild = buildVariant.matches("(.*)Debug(.*)") ? "debug" : "release"
+        def commonFilePath = buildDir.absolutePath.matches("(.*)android_auth(.*)") ? "common" : "../common/common/build";
         def msalBuild = buildVariant.matches("(.*)local(.*)") ? "localDebug" : "distDebug"
+        def msalFilePath = buildDir.absolutePath.matches("(.*)android_auth(.*)") ? "msal" : "../msal/build";
         def additionalCoverageSourceDirs = [
-                "${projectDir}/../msal/msal/src/main/java",
+                "${projectDir}/../msal/src/main/java",
                 "${projectDir}/../common/common/src/main/java",
         ]
         def additionalJavaClasses = [
-                fileTree( dir: "${buildDir}/../common/intermediates/javac/${commonBuild}/classes", excludes: fileFilter),
-                fileTree( dir: "${buildDir}/../msal/intermediates/javac/${msalBuild}/classes", excludes: fileFilter)
+                fileTree( dir: "${buildDir}/../${commonFilePath}/intermediates/javac/${commonBuild}/classes", excludes: fileFilter),
+                fileTree( dir: "${buildDir}/../${msalFilePath}/intermediates/javac/${msalBuild}/classes", excludes: fileFilter)
         ]
 
         //Include all those directories for source files and additional source files defined above

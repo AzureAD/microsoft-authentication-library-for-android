@@ -32,12 +32,13 @@ android {
     }
 
     buildTypes {
+        // testCoverageEnabled flag is set to true to get coverage reports for Android Tests
         debug {
-            testCoverageEnabled false
+            testCoverageEnabled true
             debuggable true
         }
         release {
-            testCoverageEnabled false
+            testCoverageEnabled true
             minifyEnabled false
             debuggable false
             consumerProguardFiles 'consumer-rules.pro'
@@ -138,19 +139,21 @@ ext.createCoverageTask = { buildVariant, testType ->
         group = "Code Coverage"
         description = "Generate Msal Coverage Reports(${testType}) on the ${buildVariant.capitalize()}"
 
-        // Include source files(of msal) in which code coverage needs to be found, after filtering out some set of files
-        def coverageSourceDirs = "${projectDir}/src/main/java"
+        def commonBuild = buildVariant.matches("(.*)Debug(.*)") ? "debug" : "release"
+        def commonFilePath = buildDir.absolutePath.matches("(.*)android_auth(.*)") ? "common" : "../common/common/build";
         def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test.*']
+
+        // Include source files(of msal) in which code coverage needs to be found, after filtering out some set of files
+        def coverageSourceDirs = "${projectDir}/src/main/java";
         def javaClasses = fileTree(
                 dir: "${buildDir}/intermediates/javac/${buildVariant}/classes",
                 excludes: fileFilter
         )
 
         // Include additional source files(as msal depends on common) in code coverage report
-        def commonBuild = buildVariant.matches("(.*)Debug(.*)") ? "debug" : "release"
         def additionalCoverageSourceDirs = "${projectDir}/../common/common/src/main/java"
         def additionalJavaClasses = fileTree(
-                dir: "${buildDir}/../common/intermediates/javac/${commonBuild}/classes",
+                dir: "${buildDir}/../${commonFilePath}/intermediates/javac/${commonBuild}/classes",
                 excludes: fileFilter
         )
 
