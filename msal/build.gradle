@@ -190,8 +190,10 @@ afterEvaluate {
    // Gradle 6.1.1 and Android Gradle Plugin 4.0.1 doesn't rename the file (see 'outputFileName' above)
    // Adding this work around to have the file properly renamed.
    def buildFile = file("$buildDir/outputs/aar/${archivesBaseName}-release.aar")
-   tasks.named("assembleRelease").configure {
+   print "Build file $buildFile"
+   tasks.named("assembleLocalRelease").configure {
        doLast {
+           print "Renaming build file $buildFile to '$buildDir/outputs/aar/${archivesBaseName}-${version}.aar'"
            buildFile.renameTo("$buildDir/outputs/aar/${archivesBaseName}-${version}.aar")
        }
    }
