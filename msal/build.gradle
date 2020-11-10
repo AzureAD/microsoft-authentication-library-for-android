@@ -112,6 +112,7 @@ task javadoc(type: Javadoc) {
 // Task to generate javadoc.jar
 task javadocJar(type: Jar, dependsOn: javadoc) {
     from javadoc.destinationDir
+    classifier 'javadoc'
 }
 
 task sourcesJar(type: Jar) {
