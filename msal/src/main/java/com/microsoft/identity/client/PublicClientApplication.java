@@ -1307,7 +1307,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                         future.setResult(new AsyncResult<>(generateShrResult, null));
                     }
                 },
-                "" // Public API ID
+                "1100" // Public API ID
         );
 
         // Execute this command silently...
@@ -1365,7 +1365,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             callback.onTaskCompleted(generateShrResult.getShr());
                         }
                     },
-                    "" // Public API ID
+                    "1101" // Public API ID
             );
 
             // Execute this command silently...
