@@ -191,7 +191,7 @@ afterEvaluate {
    // Adding this work around to have the file properly renamed.
    def buildFile = file("$buildDir/outputs/aar/${archivesBaseName}-release.aar")
    print "Build file $buildFile"
-   tasks.named("assembleRelease").configure {
+   tasks.named("assembleDistRelease").configure {
        doLast {
            print "Renaming build file $buildFile to '$buildDir/outputs/aar/${archivesBaseName}-${version}.aar'"
            buildFile.renameTo("$buildDir/outputs/aar/${archivesBaseName}-${version}.aar")
