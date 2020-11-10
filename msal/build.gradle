@@ -195,13 +195,8 @@ afterEvaluate {
    print "Build file $buildFile"
    tasks.named("assembleDistRelease").configure {
        doLast {
-           if (System.properties['os.name'].toLowerCase().contains('windows')) {
-               print "Renaming build file $buildFile to '$buildDir/outputs/aar/${archivesBaseName}-${version}.aar'"
-               buildFile.renameTo("$buildDir\\outputs\\aar\\${archivesBaseName}-${version}.aar")
-           } else {
-               print "Renaming build file $buildFile to '$buildDir/outputs/aar/${archivesBaseName}-${version}.aar'"
-               buildFile.renameTo("$buildDir/outputs/aar/${archivesBaseName}-${version}.aar")
-           }
+           print "Renaming build file $buildFile to '$buildDir${File.separator}outputs${File.separator}aar${File.separator}${archivesBaseName}-${version}.aar'"
+           buildFile.renameTo("$buildDir${File.separator}outputs${File.separator}aar${File.separator}${archivesBaseName}-${version}.aar")
        }
    }
 }
