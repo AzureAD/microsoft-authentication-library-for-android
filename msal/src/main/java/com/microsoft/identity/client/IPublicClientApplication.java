@@ -27,7 +27,6 @@ import android.app.Activity;
 import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
 
-import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
 
@@ -121,6 +120,7 @@ public interface IPublicClientApplication {
      * @param popParameters The input parameters.
      * @return The resulting SHR.
      */
+    @NonNull
     String generateSignedHttpRequest(@NonNull final IAccount account,
                                      @NonNull final PoPAuthenticationScheme popParameters
     ) throws MsalException;
