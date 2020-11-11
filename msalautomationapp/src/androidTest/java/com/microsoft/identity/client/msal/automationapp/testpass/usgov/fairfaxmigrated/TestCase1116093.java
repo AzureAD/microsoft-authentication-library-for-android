@@ -38,6 +38,7 @@ import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -46,6 +47,7 @@ import java.util.concurrent.CountDownLatch;
 // Interactive token acquisition with instance_aware=true, login hint present, and federated account,
 // and WW common authority
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1116093
+@Ignore
 public class TestCase1116093 extends AbstractMsalUiTest {
 
     @Test
