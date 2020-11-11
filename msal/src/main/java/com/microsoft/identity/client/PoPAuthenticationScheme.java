@@ -113,8 +113,9 @@ public class PoPAuthenticationScheme
          * Important: Use of this API requires setting the minimum_required_broker_protocol_version to
          * "6.0" or higher.
          *
-         * @param clientClaims
-         * @return
+         * @param clientClaims A string of arbitrary data to be signed into the resulting Signed
+         *                     HTTP Request (SHR).
+         * @return This Builder.
          */
         public Builder withClientClaims(@Nullable final String clientClaims) {
             mClientClaims = clientClaims;
