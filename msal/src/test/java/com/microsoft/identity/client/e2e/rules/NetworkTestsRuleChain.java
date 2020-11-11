@@ -27,6 +27,9 @@ import com.microsoft.identity.internal.testutils.kusto.CaptureKustoTestResultRul
 
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
+import org.junit.rules.Timeout;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * Utility file to obtain JUnit test rules that are created via a {@link RuleChain}.
@@ -46,6 +49,9 @@ public class NetworkTestsRuleChain {
             System.out.println(TAG + ": Adding Rule to capture test results for Kusto");
             ruleChain = ruleChain.around(new CaptureKustoTestResultRule());
         }
+
+        System.out.println(TAG + ": Adding Timeout Rule");
+        ruleChain = ruleChain.around(new Timeout(30, TimeUnit.SECONDS));
 
         return ruleChain;
     }
