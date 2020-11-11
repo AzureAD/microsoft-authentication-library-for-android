@@ -37,6 +37,7 @@ import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -44,6 +45,7 @@ import java.util.Arrays;
 // Brokered authentication without PRT with instance_aware=true, no login hint, and cloud account,
 // and WW common authority
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1116130
+@Ignore
 public class TestCase1116130 extends AbstractMsalBrokerTest {
 
     @Test
