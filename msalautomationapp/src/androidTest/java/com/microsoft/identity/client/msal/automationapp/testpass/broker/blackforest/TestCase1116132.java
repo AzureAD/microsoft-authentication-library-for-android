@@ -39,6 +39,7 @@ import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -46,6 +47,7 @@ import java.util.Arrays;
 // Interactive token acquisition with instance_aware=true and with custom claims request requiring
 // device auth {"access_token":{"deviceid":{"essential":true}}}
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1116132
+@Ignore
 public class TestCase1116132 extends AbstractMsalBrokerTest {
 
     @Test

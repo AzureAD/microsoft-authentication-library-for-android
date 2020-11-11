@@ -37,12 +37,14 @@ import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
 
 // Broker authentication with PRT with USGov account
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1116129
+@Ignore
 public class TestCase1116129 extends AbstractMsalBrokerTest {
 
     @Test

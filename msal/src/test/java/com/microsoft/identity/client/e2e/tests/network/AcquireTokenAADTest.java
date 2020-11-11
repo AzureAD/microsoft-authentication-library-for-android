@@ -72,6 +72,7 @@ public abstract class AcquireTokenAADTest extends AcquireTokenNetworkTest {
         }
     }
 
+    @Ignore
     public static class AzureUsGovCloudMigratedUser extends AcquireTokenAADTest {
         @Override
         public LabUserQuery getLabUserQuery() {

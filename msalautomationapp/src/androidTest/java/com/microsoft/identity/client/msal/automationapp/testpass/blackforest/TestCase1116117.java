@@ -41,6 +41,7 @@ import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -48,6 +49,7 @@ import java.util.concurrent.CountDownLatch;
 
 // Silent token acquisition with unexpired RT with USGov authority
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1116117
+@Ignore
 public class TestCase1116117 extends AbstractMsalUiTest {
 
     @Test
