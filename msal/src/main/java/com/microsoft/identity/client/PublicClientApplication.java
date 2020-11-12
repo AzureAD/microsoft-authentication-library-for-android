@@ -115,6 +115,7 @@ import java.util.concurrent.Executors;
 
 import static com.microsoft.identity.client.PublicClientApplicationConfigurationFactory.initializeConfiguration;
 import static com.microsoft.identity.client.exception.MsalClientException.UNKNOWN_ERROR;
+import static com.microsoft.identity.client.internal.CommandParametersAdapter.createGenerateShrCommandParameters;
 import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
 import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArg;
 import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArgument;
@@ -1272,20 +1273,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                             @NonNull final PoPAuthenticationScheme popParameters) throws MsalException {
         final ResultFuture<AsyncResult<GenerateShrResult>> future = new ResultFuture<>();
 
-        final GenerateShrCommandParameters cmdParams =
-                CommandParametersAdapter.createGenerateShrCommandParameters(
-                        mPublicClientConfiguration,
-                        mPublicClientConfiguration.getOAuth2TokenCache(),
-                        ((Account) account).getHomeAccountId(),
-                        popParameters
-                );
-        final GenerateShrCommand generateShrCommand = new GenerateShrCommand(
-                cmdParams,
-                MSALControllerFactory.getAllControllers(
-                        mPublicClientConfiguration.getAppContext(),
-                        mPublicClientConfiguration.getDefaultAuthority(),
-                        mPublicClientConfiguration
-                ),
+        final GenerateShrCommand generateShrCommand = createGenerateShrCommand(
+                account,
+                popParameters,
                 new CommandCallback<GenerateShrResult, BaseException>() {
                     @Override
                     public void onCancel() {
@@ -1334,21 +1324,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     public void generateSignedHttpRequest(@NonNull final IAccount account,
                                           @NonNull final PoPAuthenticationScheme popParameters,
                                           @NonNull final SignedHttpRequestRequestCallback callback) {
-        final GenerateShrCommandParameters cmdParams =
-                CommandParametersAdapter.createGenerateShrCommandParameters(
-                        mPublicClientConfiguration,
-                        mPublicClientConfiguration.getOAuth2TokenCache(),
-                        ((Account) account).getHomeAccountId(),
-                        popParameters
-                );
         try {
-            final GenerateShrCommand generateShrCommand = new GenerateShrCommand(
-                    cmdParams,
-                    MSALControllerFactory.getAllControllers(
-                            mPublicClientConfiguration.getAppContext(),
-                            mPublicClientConfiguration.getDefaultAuthority(),
-                            mPublicClientConfiguration
-                    ),
+            final GenerateShrCommand generateShrCommand = createGenerateShrCommand(
+                    account,
+                    popParameters,
                     new CommandCallback<GenerateShrResult, BaseException>() {
                         @Override
                         public void onCancel() {
@@ -1378,6 +1357,29 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             );
             callback.onError(clientException);
         }
+    }
+
+    private GenerateShrCommand createGenerateShrCommand(@NonNull final IAccount account,
+                                                        @NonNull final PoPAuthenticationScheme popParams,
+                                                        @NonNull final CommandCallback<GenerateShrResult, BaseException> cmdCallback,
+                                                        @NonNull final String publicApiId) throws MsalClientException {
+        final GenerateShrCommandParameters cmdParams = createGenerateShrCommandParameters(
+                mPublicClientConfiguration,
+                mPublicClientConfiguration.getOAuth2TokenCache(),
+                ((Account) account).getHomeAccountId(),
+                popParams
+        );
+
+        return new GenerateShrCommand(
+                cmdParams,
+                MSALControllerFactory.getAllControllers(
+                        mPublicClientConfiguration.getAppContext(),
+                        mPublicClientConfiguration.getDefaultAuthority(),
+                        mPublicClientConfiguration
+                ),
+                cmdCallback,
+                publicApiId
+        );
     }
 
     private MsalException baseExceptionToMsalException(@NonNull final BaseException exception) {
