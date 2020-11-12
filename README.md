@@ -16,6 +16,16 @@ The MSAL library for Android gives your app the ability to use the [Microsoft Cl
 
 > Looking for developers interested in providing early feedback on a x-platform implementation of MSAL written in C++ and Java, callable from Java, Kotlin and C++.  If you're interested please please contact shoatman@microsoft.com.
 
+***11/09/2020***
+ - Android changes for SDK30, see [the android developers notice](https://android-developers.googleblog.com/2020/07/preparing-your-build-for-package-visibility-in-android-11.html).
+
+***09/04/2020*** New updates with [MSAL 2.0.0](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v2.0.0)
+ - Add Device Code Flow Support (#1112)
+ - Introduces new AadAuthorityAudience enum to support new syntax for specifying cloud + audience
+ - Broker Content Provider Changes
+ - FOCI support for Local MSAL
+ - Added new Single Account Public Client Application API overloads
+
 ***02/12/2020*** New updates with [MSAL 1.3.0](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v1.3.0):
 
   - WebView zoom controls are now configurable 
