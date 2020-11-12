@@ -28,8 +28,10 @@ import android.content.Context;
 import androidx.test.core.app.ApplicationProvider;
 
 import com.microsoft.identity.client.IPublicClientApplication;
+import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper;
 import com.microsoft.identity.internal.testutils.TestUtils;
 
 import org.junit.Before;
@@ -52,6 +54,10 @@ public abstract class PublicClientApplicationAbstractTest implements IPublicClie
         mContext = ApplicationProvider.getApplicationContext();
         mActivity = TestUtils.getMockActivity(mContext);
         setupPCA();
+        Logger.getInstance().setEnableLogcatLog(true);
+        Logger.getInstance().setEnablePII(true);
+        Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
+        CommandDispatcherHelper.clear();
     }
 
     private void setupPCA() {

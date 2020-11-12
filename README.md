@@ -6,7 +6,7 @@ Microsoft Authentication Library (MSAL) for Android
 
 The MSAL library for Android gives your app the ability to use the [Microsoft Cloud](https://cloud.microsoft.com) by supporting [Microsoft Azure Active Directory](https://azure.microsoft.com/services/active-directory/) and [Microsoft accounts](https://account.microsoft.com) in a converged experience using industry standard OAuth2 and OpenID Connect. The library also supports [Azure AD B2C](https://azure.microsoft.com/services/active-directory-b2c/).
 
-[![Version Badge](https://img.shields.io/maven-central/v/com.microsoft.identity.client/msal.svg)](http://repo1.maven.org/maven2/com/microsoft/identity/client/msal/)
+[![Version Badge](https://img.shields.io/maven-central/v/com.microsoft.identity.client/msal.svg)](https://repo1.maven.org/maven2/com/microsoft/identity/client/msal/)
 [![Build Status](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-android.svg?branch=master)](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-android)
 
 
@@ -15,6 +15,16 @@ The MSAL library for Android gives your app the ability to use the [Microsoft Cl
 ### What's new?
 
 > Looking for developers interested in providing early feedback on a x-platform implementation of MSAL written in C++ and Java, callable from Java, Kotlin and C++.  If you're interested please please contact shoatman@microsoft.com.
+
+***11/09/2020***
+ - Android changes for SDK30, see [the android developers notice](https://android-developers.googleblog.com/2020/07/preparing-your-build-for-package-visibility-in-android-11.html).
+
+***09/04/2020*** New updates with [MSAL 2.0.0](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v2.0.0)
+ - Add Device Code Flow Support (#1112)
+ - Introduces new AadAuthorityAudience enum to support new syntax for specifying cloud + audience
+ - Broker Content Provider Changes
+ - FOCI support for Local MSAL
+ - Added new Single Account Public Client Application API overloads
 
 ***02/12/2020*** New updates with [MSAL 1.3.0](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v1.3.0):
 
@@ -66,7 +76,15 @@ Add to your app's build.gradle:
 
 ```gradle
 dependencies {
-    implementation 'com.microsoft.identity.client:msal:1.0.+'
+    implementation 'com.microsoft.identity.client:msal:1.5.+'
+}
+```
+
+Please also add the following lines to your repositories section in your gradle script:
+
+```gradle
+maven { 
+    url 'https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed/maven/v1' 
 }
 ```
 
@@ -112,10 +130,12 @@ It's simplest to create your configuration file as a "raw" resource file in your
             <data
                 android:scheme="msauth"
                 android:host="<YOUR_PACKAGE_NAME>"
-                android:path="/<YOUR_BASE64_URL_ENCODED_PACKAGE_SIGNATURE>" />
+                android:path="/<YOUR_BASE64_ENCODED_PACKAGE_SIGNATURE>" />
         </intent-filter>
     </activity>
 ```
+
+>NOTE: Please refer to [this FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki/MSAL-FAQ#redirect-uri-issues) for more information on common redirect uri issues.
 
 ### Step 4: Create an MSAL PublicClientApplication
 
@@ -215,7 +235,10 @@ If you find and bug or have a feature request, please raise the issue on [GitHub
 
 We enthusiastically welcome contributions and feedback. You should [clone the repo and start contributing now](https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki/MSAL-Contributing).
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments. .
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+
+## Android Studio Build Requirement
+Please note that this project uses [Lombok](https://projectlombok.org/) internally and while using Android Studio you will need to install [Lobmok Plugin](https://plugins.jetbrains.com/plugin/6317-lombok) to get the project to build successfully within Android Studio.
 
 ## Roadmap
 |Date | Release | Blog post| Main features|

@@ -22,7 +22,10 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
@@ -30,6 +33,8 @@ import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
 
 /**
  * Base class for AcquireTokenParameters and AcquireTokenSilentParameters
@@ -42,6 +47,7 @@ public abstract class TokenParameters {
     private ClaimsRequest mClaimsRequest;
     private AccountRecord mAccountRecord;
     private AuthenticationScheme mAuthenticationScheme;
+    private String mCorrelationId;
 
     protected TokenParameters(@NonNull final TokenParameters.Builder builder) {
         mAccount = builder.mAccount;
@@ -49,6 +55,7 @@ public abstract class TokenParameters {
         mClaimsRequest = builder.mClaimsRequest;
         mScopes = builder.mScopes;
         mAuthenticationScheme = builder.mAuthenticationScheme;
+        mCorrelationId = builder.mCorrelationId;
     }
 
     /**
@@ -138,6 +145,16 @@ public abstract class TokenParameters {
     }
 
     /**
+     * Gets the correlation id passed to Token Parameters. If specified, MSAL will use this
+     * correlation id for the request instead of generating a new one.
+     *
+     * @return a String representing the correlation id passed to TokenParameters
+     */
+    public String getCorrelationId() {
+        return mCorrelationId;
+    }
+
+    /**
      * TokenParameters builder
      *
      * @param <B>
@@ -149,6 +166,7 @@ public abstract class TokenParameters {
         private String mAuthority;
         private ClaimsRequest mClaimsRequest;
         private AuthenticationScheme mAuthenticationScheme;
+        private String mCorrelationId;
 
         public B withAuthenticationScheme(@NonNull final AuthenticationScheme scheme) {
             mAuthenticationScheme = scheme;
@@ -172,8 +190,45 @@ public abstract class TokenParameters {
             return self();
         }
 
-        public B fromAuthority(String authority) {
-            mAuthority = authority;
+        public B fromAuthority(String authorityUrl) {
+            mAuthority = authorityUrl;
+            return self();
+        }
+
+        public B fromAuthority(@NonNull final AzureCloudInstance cloudInstance,
+                               @NonNull final AadAuthorityAudience audience,
+                               @Nullable final String tenant) {
+            if (!TextUtils.isEmpty(tenant)) {
+                if (audience != AadAuthorityAudience.AzureAdMyOrg) {
+                    throw new IllegalArgumentException(
+                            "Audience must be " + AadAuthorityAudience.AzureAdMyOrg + " when tenant is specified"
+                    );
+                } else {
+                    return fromAuthority(cloudInstance, tenant);
+                }
+            } else if (audience == AadAuthorityAudience.AzureAdMyOrg) {
+                if (TextUtils.isEmpty(tenant)) {
+                    throw new IllegalArgumentException(
+                            "Tenant must be specified when the audience is " + audience
+                    );
+                } else {
+                    mAuthority = cloudInstance.getCloudInstanceUri() + "/" + tenant;
+                    return self();
+                }
+            } else {
+                mAuthority = cloudInstance.getCloudInstanceUri() + "/" + audience.getAudienceValue();
+                return self();
+            }
+        }
+
+        public B fromAuthority(@NonNull final AzureCloudInstance cloudInstance,
+                               @NonNull final AadAuthorityAudience audience) {
+            return fromAuthority(cloudInstance, audience, null);
+        }
+
+        public B fromAuthority(@NonNull final AzureCloudInstance cloudInstance,
+                               @NonNull final String tenant) {
+            mAuthority = cloudInstance.getCloudInstanceUri() + "/" + tenant;
             return self();
         }
 
@@ -194,10 +249,15 @@ public abstract class TokenParameters {
                 );
             } else {
                 mScopes = new ArrayList<String>() {{
-                    add(resource.toLowerCase().trim() + "/.default");
+                    add(resource.toLowerCase(Locale.ROOT).trim() + "/.default");
                 }};
             }
 
+            return self();
+        }
+
+        public B withCorrelationId(@NonNull final UUID correlationId) {
+            mCorrelationId = correlationId.toString();
             return self();
         }
 

@@ -60,6 +60,7 @@ AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
              PoPAuthenticationScheme.builder()
                  .withMethod(HttpMethod.GET) // The HTTP method used to request the resource
                  .withUrl(url) // The URL of the resource server
+                 .withNonce(nonce) // Optional nonce value
                  .build()
          ).build()
 

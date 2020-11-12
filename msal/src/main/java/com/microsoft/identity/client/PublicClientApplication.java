@@ -44,12 +44,15 @@ import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.exception.MsalServiceException;
+import com.microsoft.identity.client.helper.BrokerHelperActivity;
 import com.microsoft.identity.client.internal.AsyncResult;
+import com.microsoft.identity.client.internal.CommandParametersAdapter;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
-import com.microsoft.identity.client.internal.controllers.OperationParametersAdapter;
 import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
+import com.microsoft.identity.common.adal.internal.tokensharing.ITokenShareResultInternal;
 import com.microsoft.identity.common.adal.internal.tokensharing.TokenShareUtility;
 import com.microsoft.identity.common.exception.BaseException;
 import com.microsoft.identity.common.exception.ClientException;
@@ -64,13 +67,20 @@ import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManage
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SchemaUtil;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
+import com.microsoft.identity.common.internal.commands.CommandCallback;
+import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
+import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommandCallback;
+import com.microsoft.identity.common.internal.commands.GetDeviceModeCommand;
+import com.microsoft.identity.common.internal.commands.InteractiveTokenCommand;
+import com.microsoft.identity.common.internal.commands.SilentTokenCommand;
+import com.microsoft.identity.common.internal.commands.parameters.CommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.DeviceCodeFlowCommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.InteractiveTokenCommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.SilentTokenCommandParameters;
 import com.microsoft.identity.common.internal.controllers.BaseController;
-import com.microsoft.identity.common.internal.controllers.CommandCallback;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
 import com.microsoft.identity.common.internal.controllers.ExceptionAdapter;
-import com.microsoft.identity.common.internal.controllers.GetDeviceModeCommand;
-import com.microsoft.identity.common.internal.controllers.InteractiveTokenCommand;
-import com.microsoft.identity.common.internal.controllers.TokenCommand;
+import com.microsoft.identity.common.internal.controllers.LocalMSALController;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
 import com.microsoft.identity.common.internal.logging.Logger;
@@ -83,28 +93,28 @@ import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccou
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
-import com.microsoft.identity.common.internal.request.AcquireTokenOperationParameters;
-import com.microsoft.identity.common.internal.request.AcquireTokenSilentOperationParameters;
-import com.microsoft.identity.common.internal.request.OperationParameters;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
+import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.ResultFuture;
 import com.microsoft.identity.msal.BuildConfig;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static com.microsoft.identity.client.PublicClientApplicationConfigurationFactory.initializeConfiguration;
+import static com.microsoft.identity.client.exception.MsalClientException.UNKNOWN_ERROR;
 import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
 import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArg;
 import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArgument;
 import static com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter.msalExceptionFromBaseException;
-import static com.microsoft.identity.client.internal.controllers.OperationParametersAdapter.isAccountHomeTenant;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_SHARING_DESERIALIZATION_ERROR;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_SHARING_MSA_PERSISTENCE_ERROR;
@@ -119,6 +129,7 @@ import static com.microsoft.identity.common.exception.ErrorStrings.SINGLE_ACCOUN
 import static com.microsoft.identity.common.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_CODE;
 import static com.microsoft.identity.common.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_MESSAGE;
 import static com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience.isHomeTenantAlias;
+import static com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken.TENANT_ID;
 import static com.microsoft.identity.common.internal.util.StringUtil.isUuid;
 
 /**
@@ -791,15 +802,24 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         );
 
         //Blocking Call
-        AsyncResult<IPublicClientApplication> result = future.get();
+        try {
+            AsyncResult<IPublicClientApplication> result = future.get();
 
-        if (!result.getSuccess()) {
-            //Exception thrown
-            MsalException ex = result.getException();
-            throw ex;
+            if (!result.getSuccess()) {
+                //Exception thrown
+                MsalException ex = result.getException();
+                throw ex;
+            }
+
+            return result.getResult();
+        } catch (final ExecutionException e) {
+            // Shouldn't be thrown.
+            throw new MsalClientException(
+                    UNKNOWN_ERROR,
+                    "Unexpected error while initializing PCA.",
+                    e
+            );
         }
-
-        return result.getResult();
     }
 
     @WorkerThread
@@ -875,13 +895,13 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             config.setRedirectUri(redirectUri);
         }
 
-        final OperationParameters params = OperationParametersAdapter.createOperationParameters(config, config.getOAuth2TokenCache());
+        final CommandParameters params = CommandParametersAdapter.createCommandParameters(config, config.getOAuth2TokenCache());
 
         final BaseController controller;
         try {
             controller = MSALControllerFactory.getDefaultController(
                     config.getAppContext(),
-                    params.getAuthority(),
+                    config.getDefaultAuthority(),
                     config);
         } catch (MsalClientException e) {
             listener.onError(e);
@@ -916,7 +936,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     public void onCancel() {
                         // Should not be reached.
                     }
-                }
+                },
+                null
         );
 
         CommandDispatcher.submitSilent(command);
@@ -1085,7 +1106,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             mTokenShareUtility = new TokenShareUtility(
                     mPublicClientConfiguration.getClientId(),
                     mPublicClientConfiguration.getRedirectUri(),
-                    mPublicClientConfiguration.getDefaultAuthority().getAuthorityURL().toString(),
                     (MsalOAuth2TokenCache) mPublicClientConfiguration.getOAuth2TokenCache()
             );
         } else {
@@ -1114,12 +1134,13 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     @Override
-    public String getOrgIdFamilyRefreshToken(@NonNull final String identifier) throws MsalClientException {
+    public TokenShareResult getOrgIdFamilyRefreshTokenWithMetadata(@NonNull final String identifier) throws MsalClientException {
         validateNonNullArgument(identifier, "identifier");
         validateBrokerNotInUse();
 
         try {
-            return mTokenShareUtility.getOrgIdFamilyRefreshToken(identifier);
+            final ITokenShareResultInternal resultInternal = mTokenShareUtility.getOrgIdFamilyRefreshTokenWithMetadata(identifier);
+            return new TokenShareResult(resultInternal);
         } catch (final Exception e) {
             throw new MsalClientException(
                     TOKEN_CACHE_ITEM_NOT_FOUND,
@@ -1127,6 +1148,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     e
             );
         }
+    }
+
+    @Override
+    public String getOrgIdFamilyRefreshToken(@NonNull final String identifier) throws MsalClientException {
+        return getOrgIdFamilyRefreshTokenWithMetadata(identifier).getRefreshToken();
     }
 
     @Override
@@ -1146,12 +1172,13 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     @Override
-    public String getMsaFamilyRefreshToken(@NonNull final String identifier) throws MsalClientException {
+    public TokenShareResult getMsaFamilyRefreshTokenWithMetadata(@NonNull final String identifier) throws MsalClientException {
         validateNonNullArgument(identifier, "identifier");
         validateBrokerNotInUse();
 
         try {
-            return mTokenShareUtility.getMsaFamilyRefreshToken(identifier);
+            final ITokenShareResultInternal resultInternal = mTokenShareUtility.getMsaFamilyRefreshTokenWithMetadata(identifier);
+            return new TokenShareResult(resultInternal);
         } catch (final Exception e) {
             throw new MsalClientException(
                     TOKEN_CACHE_ITEM_NOT_FOUND,
@@ -1159,6 +1186,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     e
             );
         }
+    }
+
+    @Override
+    public String getMsaFamilyRefreshToken(@NonNull final String identifier) throws MsalClientException {
+        return getMsaFamilyRefreshTokenWithMetadata(identifier).getRefreshToken();
     }
 
     @Override
@@ -1210,6 +1242,15 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      */
     public static String getSdkVersion() {
         return BuildConfig.VERSION_NAME;
+    }
+
+    /**
+     * Presents an activity that includes the package name, signature, redirect URI and manifest entry required for your application
+     *
+     * @param activity
+     */
+    public static void showExpectedMsalRedirectUriInfo(Activity activity) {
+        activity.startActivity(BrokerHelperActivity.createStartIntent(activity.getApplicationContext()));
     }
 
     @Override
@@ -1331,13 +1372,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             )
                     );
 
-                    final AcquireTokenOperationParameters params = OperationParametersAdapter.
-                            createAcquireTokenOperationParameters(
-                                    acquireTokenParameters,
+                    final InteractiveTokenCommandParameters params = CommandParametersAdapter.
+                            createInteractiveTokenCommandParameters(
                                     mPublicClientConfiguration,
-                                    mPublicClientConfiguration.getOAuth2TokenCache()
+                                    mPublicClientConfiguration.getOAuth2TokenCache(),
+                                    acquireTokenParameters
                             );
-
 
                     final InteractiveTokenCommand command = new InteractiveTokenCommand(
                             params,
@@ -1346,10 +1386,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                     params.getAuthority(),
                                     mPublicClientConfiguration
                             ),
-                            localAuthenticationCallback
+                            localAuthenticationCallback,
+                            publicApiId
                     );
 
-                    command.setPublicApiId(publicApiId);
                     CommandDispatcher.beginInteractive(command);
                 } catch (final Exception exception) {
                     // convert exception to BaseException
@@ -1416,25 +1456,25 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             )
                     );
 
-                    final AcquireTokenSilentOperationParameters params =
-                            OperationParametersAdapter.createAcquireTokenSilentOperationParameters(
-                                    acquireTokenSilentParameters,
+                    final SilentTokenCommandParameters params =
+                            CommandParametersAdapter.createSilentTokenCommandParameters(
                                     mPublicClientConfiguration,
-                                    mPublicClientConfiguration.getOAuth2TokenCache()
+                                    mPublicClientConfiguration.getOAuth2TokenCache(),
+                                    acquireTokenSilentParameters
                             );
 
 
-                    final TokenCommand silentTokenCommand = new TokenCommand(
+                    final SilentTokenCommand silentTokenCommand = new SilentTokenCommand(
                             params,
                             MSALControllerFactory.getAllControllers(
                                     mPublicClientConfiguration.getAppContext(),
                                     params.getAuthority(),
                                     mPublicClientConfiguration
                             ),
-                            callback
+                            callback,
+                            publicApiId
                     );
 
-                    silentTokenCommand.setPublicApiId(publicApiId);
                     CommandDispatcher.submitSilent(silentTokenCommand);
                 } catch (final Exception exception) {
                     // convert exception to BaseException
@@ -1518,6 +1558,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                 authority.getAuthorityURL().toString()
                         );
             }
+            // Set the tenant id obtained for the accountRecord
+            accountRecord.setRealm(tenantId);
 
             IAccount accountForRequest;
 
@@ -1607,13 +1649,47 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         acquireTokenSilentAsyncInternal(acquireTokenSilentParameters, publicApiId);
 
-        AsyncResult<IAuthenticationResult> result = future.get();
+        try {
+            AsyncResult<IAuthenticationResult> result = future.get();
 
-        if (result.getSuccess()) {
-            return result.getResult();
-        } else {
-            throw result.getException();
+            if (result.getSuccess()) {
+                return result.getResult();
+            } else {
+                throw result.getException();
+            }
+        } catch (final ExecutionException e) {
+            // Shouldn't be thrown.
+            throw new MsalClientException(
+                    UNKNOWN_ERROR,
+                    "Unexpected error while acquiring token.",
+                    e
+            );
         }
+    }
+
+    public void acquireTokenWithDeviceCode(@Nullable String[] scopes, @NonNull final DeviceCodeFlowCallback callback) {
+        // Create a DeviceCodeFlowCommandParameters object that takes in the desired scopes and the callback object
+        // Use CommandParametersAdapter
+        final DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter
+                .createDeviceCodeFlowCommandParameters(
+                        mPublicClientConfiguration,
+                        mPublicClientConfiguration.getOAuth2TokenCache(),
+                        scopes);
+
+        // Create a CommandCallback object from the DeviceCodeFlowCallback object
+        final DeviceCodeFlowCommandCallback deviceCodeFlowCommandCallback = getDeviceCodeFlowCommandCallback(callback);
+
+        // Create a DeviceCodeFlowCommand object
+        // Pass the command parameters, default controller, and command callback
+        // Telemetry with DEVICE_CODE_FLOW_CALLBACK
+        final DeviceCodeFlowCommand deviceCodeFlowCommand = new DeviceCodeFlowCommand(
+                commandParameters,
+                new LocalMSALController(),
+                deviceCodeFlowCommandCallback,
+                PublicApiId.DEVICE_CODE_FLOW_WITH_CALLBACK
+        );
+
+        CommandDispatcher.submitSilent(deviceCodeFlowCommand);
     }
 
     private void checkInternetPermission() {
@@ -1683,6 +1759,59 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 } else {
                     throw new IllegalStateException("Silent requests cannot be cancelled.");
                 }
+            }
+        };
+    }
+
+    private DeviceCodeFlowCommandCallback getDeviceCodeFlowCommandCallback(@NonNull final DeviceCodeFlowCallback callback) {
+        return new DeviceCodeFlowCommandCallback<LocalAuthenticationResult, BaseException>() {
+
+            @Override
+            public void onUserCodeReceived(@NonNull final String vUri,
+                                           @NonNull final String userCode,
+                                           @NonNull final String message,
+                                           @NonNull final Date sessionExpirationDate) {
+                callback.onUserCodeReceived(vUri, userCode, message, sessionExpirationDate);
+            }
+
+            @Override
+            public void onTaskCompleted(LocalAuthenticationResult tokenResult) {
+                // Convert tokenResult to an AuthenticationResult object
+                final IAuthenticationResult convertedResult = AuthenticationResultAdapter.adapt(
+                        tokenResult);
+
+                // Type cast the interface object
+                final AuthenticationResult authResult = (AuthenticationResult) convertedResult;
+
+                callback.onTokenReceived(authResult);
+            }
+
+            @Override
+            public void onError(BaseException error) {
+                final MsalException msalException;
+
+                if (error instanceof ServiceException) {
+                    msalException = new MsalServiceException(
+                            error.getErrorCode(),
+                            error.getMessage(),
+                            ((ServiceException) error).getHttpStatusCode(),
+                            error
+                    );
+                } else {
+                    msalException = new MsalClientException(
+                            error.getErrorCode(),
+                            error.getMessage(),
+                            error
+                    );
+                }
+
+                callback.onError(msalException);
+            }
+
+            @Override
+            public void onCancel() {
+                // Do nothing
+                // No current plans for allowing cancellation of DCF
             }
         };
     }
@@ -1854,12 +1983,20 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         acquireTokenSilentAsyncInternal(acquireTokenSilentParameters, publicApiId);
 
-        final AsyncResult<IAuthenticationResult> result = future.get();
+        try {
+            final AsyncResult<IAuthenticationResult> result = future.get();
 
-        if (result.getSuccess()) {
-            return result.getResult();
-        } else {
-            throw result.getException();
+            if (result.getSuccess()) {
+                return result.getResult();
+            } else {
+                throw result.getException();
+            }
+        } catch (final ExecutionException e) {
+            throw new MsalClientException(
+                    UNKNOWN_ERROR,
+                    "Unexpected error while acquiring token.",
+                    e
+            );
         }
     }
 
@@ -1903,4 +2040,16 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     private static void runOnBackground(@NonNull final Runnable runnable) {
         new Thread(runnable).start();
     }
+
+    private static boolean isAccountHomeTenant(@Nullable final Map<String, ?> claims,
+                                               @NonNull final String tenantId) {
+        boolean isAccountHomeTenant = false;
+
+        if (null != claims && !claims.isEmpty()) {
+            isAccountHomeTenant = claims.get(TENANT_ID).equals(tenantId);
+        }
+
+        return isAccountHomeTenant;
+    }
+
 }

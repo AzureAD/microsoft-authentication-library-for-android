@@ -25,6 +25,8 @@ package com.microsoft.identity.client;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.oauth2.OpenIdConnectPromptParameter;
 
+import java.util.Locale;
+
 /**
  * The UI options that developer can pass during interactive token acquisition requests.
  */
@@ -57,31 +59,27 @@ public enum Prompt {
     public String toString() {
         switch (this) {
             case SELECT_ACCOUNT:
-                return SELECT_ACCOUNT.name().toLowerCase();
+                return SELECT_ACCOUNT.name().toLowerCase(Locale.ROOT);
             case LOGIN:
-                return LOGIN.name().toLowerCase();
+                return LOGIN.name().toLowerCase(Locale.ROOT);
             case CONSENT:
-                return CONSENT.name().toLowerCase();
+                return CONSENT.name().toLowerCase(Locale.ROOT);
             case WHEN_REQUIRED:
-                return WHEN_REQUIRED.name().toLowerCase();
+                return WHEN_REQUIRED.name().toLowerCase(Locale.ROOT);
             default:
                 throw new IllegalArgumentException();
         }
     }
 
     public OpenIdConnectPromptParameter toOpenIdConnectPromptParameter() {
-        String tag = Prompt.class.getSimpleName() + ":toOpenIdConnectPromptParameter";
         switch (this) {
-            case SELECT_ACCOUNT:
-                return OpenIdConnectPromptParameter.SELECT_ACCOUNT;
             case LOGIN:
                 return OpenIdConnectPromptParameter.LOGIN;
             case CONSENT:
                 return OpenIdConnectPromptParameter.CONSENT;
             case WHEN_REQUIRED:
-                String error = "WHEN_REQUIRED Does not have corresponding value in in the OIDC prompt enumeration.  It's meant to convey do not sent the prompt parameter.";
-                Logger.info(tag, error);
-                throw new UnsupportedOperationException(error);
+                return OpenIdConnectPromptParameter.UNSET;
+            case SELECT_ACCOUNT:
             default:
                 return OpenIdConnectPromptParameter.SELECT_ACCOUNT;
         }
