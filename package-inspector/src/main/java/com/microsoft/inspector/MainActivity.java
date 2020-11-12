@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
                 try {
                     final ApplicationInfo clickedAppInfo = mPackageManager.getApplicationInfo(
-                            packageNames.get(0),
+                            packageNames.get(position),
                             PackageManager.GET_META_DATA
                     );
                     final PackageInfo packageInfo = mPackageManager.getPackageInfo(
