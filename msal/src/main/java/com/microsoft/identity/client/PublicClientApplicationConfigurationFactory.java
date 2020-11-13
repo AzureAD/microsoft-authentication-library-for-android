@@ -162,7 +162,14 @@ public class PublicClientApplicationConfigurationFactory {
         final String config = new String(buffer);
         final Gson gson = getGsonForLoadingConfiguration();
 
-        return gson.fromJson(config, PublicClientApplicationConfiguration.class);
+        try {
+            return gson.fromJson(config, PublicClientApplicationConfiguration.class);
+        } catch (final Exception e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            throw new IllegalArgumentException("Error while processing configuration", e);
+        }
     }
 
     private static Gson getGsonForLoadingConfiguration() {
