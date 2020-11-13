@@ -30,6 +30,7 @@ import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
+import com.microsoft.identity.client.PoPAuthenticationScheme;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.ui.browser.BrowserSelector;
@@ -41,7 +42,7 @@ public class SingleAccountModeWrapper extends MsalWrapper {
 
     private ISingleAccountPublicClientApplication mApp;
 
-    public SingleAccountModeWrapper(ISingleAccountPublicClientApplication app){
+    public SingleAccountModeWrapper(ISingleAccountPublicClientApplication app) {
         mApp = app;
     }
 
@@ -128,5 +129,26 @@ public class SingleAccountModeWrapper extends MsalWrapper {
     void acquireTokenWithDeviceCodeFlowInternal(@NonNull String[] scopes,
                                                 @NonNull final IPublicClientApplication.DeviceCodeFlowCallback callback) {
         mApp.acquireTokenWithDeviceCode(scopes, callback);
+    }
+
+    @Override
+    public void generateSignedHttpRequestInternal(@NonNull final IAccount account,
+                                                  @NonNull final PoPAuthenticationScheme params,
+                                                  @NonNull final INotifyOperationResultCallback<String> generateShrCallback) {
+        mApp.generateSignedHttpRequest(
+                account,
+                params,
+                new IPublicClientApplication.SignedHttpRequestRequestCallback() {
+                    @Override
+                    public void onTaskCompleted(String result) {
+                        generateShrCallback.onSuccess(result);
+                    }
+
+                    @Override
+                    public void onError(MsalException exception) {
+                        generateShrCallback.showMessage(exception.getMessage());
+                    }
+                }
+        );
     }
 }
