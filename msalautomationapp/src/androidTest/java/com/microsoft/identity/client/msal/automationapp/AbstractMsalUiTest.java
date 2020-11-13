@@ -52,6 +52,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.RuleChain;
+import org.junit.rules.TestRule;
 
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -75,9 +76,12 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
     protected String mLoginHint;
 
     @Rule(order = 0)
-    public RuleChain primaryRules = getPrimaryRules();
+    public TestRule forceRule = new ForceRunRule();
 
     @Rule(order = 1)
+    public RuleChain primaryRules = getPrimaryRules();
+
+    @Rule(order = 2)
     public ActivityTestRule<MainActivity> mActivityRule =
             new ActivityTestRule(MainActivity.class);
 

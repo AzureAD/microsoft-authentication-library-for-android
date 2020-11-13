@@ -24,6 +24,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
+import com.microsoft.identity.client.msal.automationapp.ForceRun;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
@@ -42,6 +43,7 @@ import java.util.Arrays;
 
 // Broker Auth for non-joined account - select_account
 // https://identitydivision.visualstudio.com/DefaultCollection/DevEx/_workitems/edit/497069
+@ForceRun
 public class TestCase497069 extends AbstractMsalBrokerTest {
 
     @Test
