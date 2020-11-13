@@ -27,6 +27,7 @@ import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.msal.automationapp.ErrorCodes;
+import com.microsoft.identity.client.msal.automationapp.ForceRun;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
@@ -47,6 +48,7 @@ import org.junit.Test;
 // End My Shift - In Shared device mode, there can be only one sign-in account.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833516
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
+@ForceRun
 public class TestCase833516 extends AbstractMsalBrokerTest {
 
     @Test
