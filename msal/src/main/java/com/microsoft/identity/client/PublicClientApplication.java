@@ -134,6 +134,8 @@ import static com.microsoft.identity.common.exception.ErrorStrings.SINGLE_ACCOUN
 import static com.microsoft.identity.common.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_CODE;
 import static com.microsoft.identity.common.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_MESSAGE;
 import static com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience.isHomeTenantAlias;
+import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST;
+import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST_ASYNC;
 import static com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken.TENANT_ID;
 import static com.microsoft.identity.common.internal.util.StringUtil.isUuid;
 
@@ -1297,7 +1299,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                         future.setResult(new AsyncResult<>(generateShrResult, null));
                     }
                 },
-                "1100" // Public API ID
+                PCA_GENERATE_SIGNED_HTTP_REQUEST
         );
 
         // Execute this command silently...
@@ -1344,7 +1346,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             callback.onTaskCompleted(generateShrResult.getShr());
                         }
                     },
-                    "1101" // Public API ID
+                    PCA_GENERATE_SIGNED_HTTP_REQUEST_ASYNC
             );
 
             // Execute this command silently...
