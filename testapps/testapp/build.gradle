@@ -25,7 +25,15 @@
 
 apply plugin: 'com.android.application'
 
+def msalVersion = "2.+"
+
+if (project.hasProperty("distMsalVersion")) {
+    msalVersion = distMsalVersion
+}
+
+
 android {
+
     compileSdkVersion rootProject.ext.compileSdkVersion
     defaultConfig {
         applicationId "com.msft.identity.client.sample"
@@ -78,7 +86,7 @@ android {
 dependencies {
     // Compile Dependency
     localImplementation project(':msal')
-    distImplementation 'com.microsoft.identity.client:msal:2.+'
+    distImplementation "com.microsoft.identity.client:msal:${msalVersion}"
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
     implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
     implementation "androidx.legacy:legacy-support-v4:$rootProject.ext.legacySupportV4Version"

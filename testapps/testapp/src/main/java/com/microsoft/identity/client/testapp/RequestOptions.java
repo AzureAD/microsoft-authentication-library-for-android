@@ -26,8 +26,8 @@ import com.microsoft.identity.client.HttpMethod;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
 
-class RequestOptions
-{
+class RequestOptions {
+
     final Constants.ConfigFile mConfigFile;
     final String mLoginHint;
     final IAccount mAccount;
@@ -41,6 +41,7 @@ class RequestOptions
     final Constants.AuthScheme mAuthScheme;
     final HttpMethod mPopHttpMethod;
     final String mPopResourceUrl;
+    final String mPoPClientClaims;
 
     RequestOptions(final Constants.ConfigFile configFile,
                    final String loginHint,
@@ -54,7 +55,8 @@ class RequestOptions
                    final String authority,
                    final Constants.AuthScheme authScheme,
                    final HttpMethod popHttpMethod,
-                   final String popResourceUrl) {
+                   final String popResourceUrl,
+                   final String popClientClaims) {
         mConfigFile = configFile;
         mLoginHint = loginHint;
         mAccount = account;
@@ -68,6 +70,7 @@ class RequestOptions
         mAuthScheme = authScheme;
         mPopHttpMethod = popHttpMethod;
         mPopResourceUrl = popResourceUrl;
+        mPoPClientClaims = popClientClaims;
     }
 
     Constants.ConfigFile getConfigFile() {
@@ -120,5 +123,9 @@ class RequestOptions
 
     String getPopResourceUrl() {
         return mPopResourceUrl;
+    }
+
+    String getPoPClientClaims() {
+        return mPoPClientClaims;
     }
 }
