@@ -119,8 +119,11 @@ public class MainActivity extends AppCompatActivity {
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                final ApplicationInfo clickedAppInfo = mApplications.get(position);
                 try {
+                    final ApplicationInfo clickedAppInfo = mPackageManager.getApplicationInfo(
+                            packageNames.get(position),
+                            PackageManager.GET_META_DATA
+                    );
                     final PackageInfo packageInfo = mPackageManager.getPackageInfo(
                             clickedAppInfo.packageName,
                             PackageManager.GET_SIGNATURES

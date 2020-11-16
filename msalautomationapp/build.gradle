@@ -4,6 +4,12 @@ apply plugin: 'jacoco'
 //Constant:- used to generate Coverage report task
 def androidTestType = "AndroidTest"
 
+def msalVersion = "2.+"
+
+if (project.hasProperty("distMsalVersion")) {
+    msalVersion = distMsalVersion
+}
+
 android {
 
     final String BROKER_HOST = "BrokerHost"
@@ -197,7 +203,7 @@ ext.createCoverageTask = { buildVariant, testType ->
 dependencies {
     // Compile Dependency
     localImplementation project(':msal')
-    distImplementation 'com.microsoft.identity.client:msal:2.+'
+    distImplementation "com.microsoft.identity.client:msal:${msalVersion}"
     implementation "androidx.constraintlayout:constraintlayout:$rootProject.ext.constraintLayoutVersion"
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
     implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
