@@ -45,10 +45,8 @@ import java.util.concurrent.CountDownLatch;
 
 // Broker authentication with PRT with USGov account with instance_aware=true
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/948676
-@Ignore
 public class TestCase948676 extends AbstractMsalBrokerTest {
 
-    @Test
     public void test_948676() throws InterruptedException {
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();

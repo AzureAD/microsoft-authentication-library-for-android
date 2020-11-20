@@ -45,10 +45,8 @@ import java.util.Arrays;
 // Brokered authentication without PRT with instance_aware=true, no login hint, and cloud account,
 // and WW common authority
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/940393
-@Ignore
 public class TestCase940393 extends AbstractMsalBrokerTest {
 
-    @Test
     public void test_938447() {
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
