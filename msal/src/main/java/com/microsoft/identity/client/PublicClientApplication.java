@@ -45,6 +45,7 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
+import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.client.helper.BrokerHelperActivity;
 import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.CommandParametersAdapter;
@@ -70,11 +71,13 @@ import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager
 import com.microsoft.identity.common.internal.commands.CommandCallback;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommandCallback;
+import com.microsoft.identity.common.internal.commands.GenerateShrCommand;
 import com.microsoft.identity.common.internal.commands.GetDeviceModeCommand;
 import com.microsoft.identity.common.internal.commands.InteractiveTokenCommand;
 import com.microsoft.identity.common.internal.commands.SilentTokenCommand;
 import com.microsoft.identity.common.internal.commands.parameters.CommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.DeviceCodeFlowCommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.GenerateShrCommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.InteractiveTokenCommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.SilentTokenCommandParameters;
 import com.microsoft.identity.common.internal.controllers.BaseController;
@@ -93,6 +96,7 @@ import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccou
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
+import com.microsoft.identity.common.internal.result.GenerateShrResult;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.ResultFuture;
@@ -111,6 +115,7 @@ import java.util.concurrent.Executors;
 
 import static com.microsoft.identity.client.PublicClientApplicationConfigurationFactory.initializeConfiguration;
 import static com.microsoft.identity.client.exception.MsalClientException.UNKNOWN_ERROR;
+import static com.microsoft.identity.client.internal.CommandParametersAdapter.createGenerateShrCommandParameters;
 import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
 import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArg;
 import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArgument;
@@ -129,6 +134,8 @@ import static com.microsoft.identity.common.exception.ErrorStrings.SINGLE_ACCOUN
 import static com.microsoft.identity.common.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_CODE;
 import static com.microsoft.identity.common.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_MESSAGE;
 import static com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience.isHomeTenantAlias;
+import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST;
+import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST_ASYNC;
 import static com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken.TENANT_ID;
 import static com.microsoft.identity.common.internal.util.StringUtil.isUuid;
 
@@ -1261,6 +1268,131 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     @Override
     public boolean isSharedDevice() {
         return mPublicClientConfiguration.getIsSharedDevice();
+    }
+
+    @Override
+    public String generateSignedHttpRequest(@NonNull final IAccount account,
+                                            @NonNull final PoPAuthenticationScheme popParameters) throws MsalException {
+        final ResultFuture<AsyncResult<GenerateShrResult>> future = new ResultFuture<>();
+
+        final GenerateShrCommand generateShrCommand = createGenerateShrCommand(
+                account,
+                popParameters,
+                new CommandCallback<GenerateShrResult, BaseException>() {
+                    @Override
+                    public void onCancel() {
+                        // Not cancellable
+                    }
+
+                    @Override
+                    public void onError(@NonNull final BaseException error) {
+                        future.setResult(
+                                new AsyncResult<GenerateShrResult>(
+                                        null,
+                                        baseExceptionToMsalException(error)
+                                )
+                        );
+                    }
+
+                    @Override
+                    public void onTaskCompleted(@NonNull final GenerateShrResult generateShrResult) {
+                        future.setResult(new AsyncResult<>(generateShrResult, null));
+                    }
+                },
+                PCA_GENERATE_SIGNED_HTTP_REQUEST
+        );
+
+        // Execute this command silently...
+        CommandDispatcher.submitSilent(generateShrCommand);
+
+        try {
+            final AsyncResult<GenerateShrResult> asyncResult = future.get();
+
+            if (asyncResult.getSuccess()) {
+                return asyncResult.getResult().getShr();
+            } else {
+                throw asyncResult.getException();
+            }
+        } catch (ExecutionException | InterruptedException e) {
+            throw new MsalClientException(
+                    UNKNOWN_ERROR,
+                    "Unexpected error while generating SHR.",
+                    e
+            );
+        }
+    }
+
+    @Override
+    public void generateSignedHttpRequest(@NonNull final IAccount account,
+                                          @NonNull final PoPAuthenticationScheme popParameters,
+                                          @NonNull final SignedHttpRequestRequestCallback callback) {
+        try {
+            final GenerateShrCommand generateShrCommand = createGenerateShrCommand(
+                    account,
+                    popParameters,
+                    new CommandCallback<GenerateShrResult, BaseException>() {
+                        @Override
+                        public void onCancel() {
+                            // Not cancellable
+                        }
+
+                        @Override
+                        public void onError(@NonNull final BaseException error) {
+                            callback.onError(baseExceptionToMsalException(error));
+                        }
+
+                        @Override
+                        public void onTaskCompleted(@NonNull final GenerateShrResult generateShrResult) {
+                            callback.onTaskCompleted(generateShrResult.getShr());
+                        }
+                    },
+                    PCA_GENERATE_SIGNED_HTTP_REQUEST_ASYNC
+            );
+
+            // Execute this command silently...
+            CommandDispatcher.submitSilent(generateShrCommand);
+        } catch (final MsalClientException e) {
+            final MsalClientException clientException = new MsalClientException(
+                    UNKNOWN_ERROR,
+                    "Unexpected error while generating SHR.",
+                    e
+            );
+            callback.onError(clientException);
+        }
+    }
+
+    private GenerateShrCommand createGenerateShrCommand(@NonNull final IAccount account,
+                                                        @NonNull final PoPAuthenticationScheme popParams,
+                                                        @NonNull final CommandCallback<GenerateShrResult, BaseException> cmdCallback,
+                                                        @NonNull final String publicApiId) throws MsalClientException {
+        final GenerateShrCommandParameters cmdParams = createGenerateShrCommandParameters(
+                mPublicClientConfiguration,
+                mPublicClientConfiguration.getOAuth2TokenCache(),
+                ((Account) account).getHomeAccountId(),
+                popParams
+        );
+
+        return new GenerateShrCommand(
+                cmdParams,
+                MSALControllerFactory.getAllControllers(
+                        mPublicClientConfiguration.getAppContext(),
+                        mPublicClientConfiguration.getDefaultAuthority(),
+                        mPublicClientConfiguration
+                ),
+                cmdCallback,
+                publicApiId
+        );
+    }
+
+    private MsalException baseExceptionToMsalException(@NonNull final BaseException exception) {
+        if (GenerateShrResult.Errors.NO_ACCOUNT_FOUND.equalsIgnoreCase(exception.getErrorCode())) {
+            return new MsalUiRequiredException(
+                    GenerateShrResult.Errors.NO_ACCOUNT_FOUND,
+                    "The supplied account could not be located."
+            );
+        }
+
+        return new MsalClientException(exception.getErrorCode(), exception.getMessage());
     }
 
     @Override

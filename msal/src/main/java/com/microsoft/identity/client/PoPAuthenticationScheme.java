@@ -37,14 +37,17 @@ public class PoPAuthenticationScheme
     private final URL mUrl;
     private final HttpMethod mHttpMethod;
     private final String mNonce;
+    private final String mClientClaims;
 
     private PoPAuthenticationScheme(@NonNull final HttpMethod method,
                                     @NonNull final URL url,
-                                    @Nullable final String nonce) {
+                                    @Nullable final String nonce,
+                                    @Nullable final String clientClaims) {
         super(PopAuthenticationSchemeInternal.SCHEME_POP);
         mHttpMethod = method;
         mUrl = url;
         mNonce = nonce;
+        mClientClaims = clientClaims;
     }
 
     public static Builder builder() {
@@ -69,6 +72,11 @@ public class PoPAuthenticationScheme
     }
 
     @Override
+    public String getClientClaims() {
+        return mClientClaims;
+    }
+
+    @Override
     public String getNonce() {
         return mNonce;
     }
@@ -78,6 +86,7 @@ public class PoPAuthenticationScheme
         private URL mUrl;
         private HttpMethod mHttpMethod;
         private String mNonce;
+        private String mClientClaims;
 
         private Builder() {
             // Intentionally blank
@@ -98,6 +107,21 @@ public class PoPAuthenticationScheme
             return this;
         }
 
+        /**
+         * Sets the client_claims to be embedded in the resulting SHR.
+         * <p>
+         * Important: Use of this API requires setting the minimum_required_broker_protocol_version to
+         * "6.0" or higher.
+         *
+         * @param clientClaims A string of arbitrary data to be signed into the resulting Signed
+         *                     HTTP Request (SHR).
+         * @return This Builder.
+         */
+        public Builder withClientClaims(@Nullable final String clientClaims) {
+            mClientClaims = clientClaims;
+            return this;
+        }
+
         public PoPAuthenticationScheme build() {
             String errMsg = "PoP authentication scheme param must not be null: ";
 
@@ -105,7 +129,7 @@ public class PoPAuthenticationScheme
                 throw new IllegalArgumentException(errMsg + "URL");
             }
 
-            return new PoPAuthenticationScheme(mHttpMethod, mUrl, mNonce);
+            return new PoPAuthenticationScheme(mHttpMethod, mUrl, mNonce, mClientClaims);
         }
     }
 }

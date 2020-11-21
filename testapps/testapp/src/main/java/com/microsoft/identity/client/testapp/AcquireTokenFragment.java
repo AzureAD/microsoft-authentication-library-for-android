@@ -76,6 +76,7 @@ public class AcquireTokenFragment extends Fragment {
     private Button mAcquireTokenSilentWithResource;
     private Button mAcquireTokenWithDeviceCodeFlow;
     private Button mBrokerHelper;
+    private Button mGenerateSHR;
     private Spinner mSelectAccount;
     private Spinner mConfigFileSpinner;
     private Spinner mAuthScheme;
@@ -85,6 +86,7 @@ public class AcquireTokenFragment extends Fragment {
     private Button mStatusCopyBtn;
     private Spinner mPopHttpMethod;
     private EditText mPopResourceUrl;
+    private EditText mPopClientClaims;
 
     private LinearLayout mPopSection;
     private LinearLayout mLoginHintSection;
@@ -118,6 +120,7 @@ public class AcquireTokenFragment extends Fragment {
         mAcquireTokenSilentWithResource = view.findViewById(R.id.btn_acquiretokensilentWithResource);
         mAcquireTokenWithDeviceCodeFlow = view.findViewById(R.id.btn_acquiretokenWithDeviceCodeFlow);
         mBrokerHelper = view.findViewById(R.id.btnBrokerHelper);
+        mGenerateSHR = view.findViewById(R.id.btn_generate_shr);
         mConfigFileSpinner = view.findViewById(R.id.configFile);
         mAuthScheme = view.findViewById(R.id.authentication_scheme);
         mPublicApplicationMode = view.findViewById(R.id.public_application_mode);
@@ -126,6 +129,7 @@ public class AcquireTokenFragment extends Fragment {
         mStatusCopyBtn = view.findViewById(R.id.btn_statusCopy);
         mPopHttpMethod = view.findViewById(R.id.pop_http_method);
         mPopResourceUrl = view.findViewById(R.id.pop_resource_url);
+        mPopClientClaims = view.findViewById(R.id.pop_client_claims);
 
         mPopSection = view.findViewById(R.id.pop_section);
         mLoginHintSection = view.findViewById(R.id.login_hint_section);
@@ -262,6 +266,27 @@ public class AcquireTokenFragment extends Fragment {
             }
         });
 
+        final INotifyOperationResultCallback<String> generateShrCallback =
+                new INotifyOperationResultCallback<String>() {
+
+            @Override
+            public void onSuccess(String result) {
+                mOnFragmentInteractionListener.onGetStringResult(result);
+            }
+
+            @Override
+            public void showMessage(String message) {
+                AcquireTokenFragment.this.showMessage(message);
+            }
+        };
+
+        mGenerateSHR.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mMsalWrapper.generateSignedHttpRequest(getCurrentRequestOptions(), generateShrCallback);
+            }
+        });
+
 
         loadMsalApplicationFromRequestParameters(getCurrentRequestOptions());
         return view;
@@ -271,8 +296,10 @@ public class AcquireTokenFragment extends Fragment {
         final Constants.AuthScheme authScheme = Constants.AuthScheme.valueOf(mAuthScheme.getSelectedItem().toString());
         if (authScheme == Constants.AuthScheme.POP) {
             mPopSection.setVisibility(View.VISIBLE);
+            mGenerateSHR.setVisibility(View.VISIBLE);
         } else {
             mPopSection.setVisibility(View.GONE);
+            mGenerateSHR.setVisibility(View.GONE);
         }
     }
 
@@ -413,6 +440,7 @@ public class AcquireTokenFragment extends Fragment {
                 ? null // None specified
                 : HttpMethod.valueOf(httpMethodTextFromSpinner);
         final String popResourceUrl = mPopResourceUrl.getText().toString();
+        final String popClientClaimsTxt = mPopClientClaims.getText().toString();
 
         return new RequestOptions(
                 configFile,
@@ -427,7 +455,8 @@ public class AcquireTokenFragment extends Fragment {
                 authority,
                 authScheme,
                 popHttpMethod,
-                popResourceUrl
+                popResourceUrl,
+                popClientClaimsTxt
         );
     }
 
@@ -471,6 +500,8 @@ public class AcquireTokenFragment extends Fragment {
 
     public interface OnFragmentInteractionListener {
         void onGetAuthResult(IAuthenticationResult result);
+
+        void onGetStringResult(String valueToDisplay);
 
         void onGetUsers();
     }
