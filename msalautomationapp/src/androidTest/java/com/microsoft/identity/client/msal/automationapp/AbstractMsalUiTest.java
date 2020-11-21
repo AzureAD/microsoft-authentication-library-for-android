@@ -131,8 +131,8 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
             fail(e.getMessage());
         }
 
-        Logger.getInstance().setEnableLogcatLog(true);
-        Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
+//        Logger.getInstance().setEnableLogcatLog(true);
+//        Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
     }
 
     protected IAccount getAccount() {
