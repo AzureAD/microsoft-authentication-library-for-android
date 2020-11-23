@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.uiautomator.UiDevice;
 import androidx.test.uiautomator.UiObject;
 import androidx.test.uiautomator.UiObjectNotFoundException;
 
@@ -108,6 +110,7 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
 
         //launching azure sample app and confirming user signed in or not.
         final AzureSampleApp azureSampleApp = new AzureSampleApp();
+        azureSampleApp.uninstall();
         azureSampleApp.install();
         azureSampleApp.launch();
         Thread.sleep(TimeUnit.SECONDS.toMillis(5));
@@ -122,14 +125,14 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         //relaunching chrome after clearing history of chrome.
         chrome.launch();
         chrome.handleFirstRun();
-        chrome.navigateTo("https://myapps.microsoft.com");
+        navigateTo("myapps.microsoft.com");
         UiAutomatorUtils.handleInput("i0116", username);
-        UiObject button = UiAutomatorUtils.obtainUiObjectWithText("Next");
-        button.click();
+        UiObject nextButton = UiAutomatorUtils.obtainUiObjectWithText("Next");
+        nextButton.click();
         UiAutomatorUtils.handleInput("i0118", password);
         UiAutomatorUtils.handleButtonClick("idSIButton9");
-        final UiObject saveAccount = UiAutomatorUtils.obtainUiObjectWithText("No");
-        saveAccount.click();
+        final UiObject noButton = UiAutomatorUtils.obtainUiObjectWithText("No");
+        noButton.click();
 
         //signing out from the appliction.
         ((SingleAccountPublicClientApplication) mApplication).signOut();
@@ -140,7 +143,7 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
 
         //confirming account is signed out in google chrome.
         chrome.launch();
-        chrome.navigateTo("myapps.microsoft.com");
+        navigateTo("myapps.microsoft.com");
         user = UiAutomatorUtils.obtainUiObjectWithText(username);
         Assert.assertTrue(user.exists());
 
@@ -150,6 +153,13 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
 
     }
 
+    private void navigateTo(String url) throws UiObjectNotFoundException {
+        UiDevice device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
+        UiObject searchField = UiAutomatorUtils.obtainUiObjectWithText("Search or type");
+        searchField.click();
+        searchField.setText(url);
+        device.pressEnter();
+    }
     @Override
     public String[] getScopes() {
         return new String[]{"User.read"};
