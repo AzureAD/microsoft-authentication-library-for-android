@@ -78,6 +78,7 @@ public class MainActivity extends AppCompatActivity
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
+    private String mStringResult;
     private IAuthenticationResult mAuthResult;
 
     private RelativeLayout mContentMain;
@@ -191,6 +192,8 @@ public class MainActivity extends AppCompatActivity
                         ResultFragment.DISPLAYABLE,
                         mAuthResult.getAccount().getUsername()
                 );
+            } else if (null != mStringResult) {
+                bundle.putString(ResultFragment.STRING_DATA_TO_DISPLAY, mStringResult);
             }
 
             fragment.setArguments(bundle);
@@ -242,6 +245,12 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onGetAuthResult(IAuthenticationResult result) {
         mAuthResult = result;
+        onNavigationItemSelected(getNavigationView().getMenu().getItem(1));
+    }
+
+    @Override
+    public void onGetStringResult(String valueToDisplay) {
+        mStringResult = valueToDisplay;
         onNavigationItemSelected(getNavigationView().getMenu().getItem(1));
     }
 
