@@ -160,6 +160,7 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         searchField.setText(url);
         device.pressEnter();
     }
+
     @Override
     public String[] getScopes() {
         return new String[]{"User.read"};
