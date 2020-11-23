@@ -34,6 +34,7 @@ import androidx.test.rule.ActivityTestRule;
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
+import com.microsoft.identity.client.ILoggerCallback;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.PublicClientApplication;
@@ -43,6 +44,8 @@ import com.microsoft.identity.client.ui.automation.ILabTest;
 import com.microsoft.identity.client.ui.automation.IRuleBasedTest;
 import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
 import com.microsoft.identity.client.ui.automation.browser.IBrowser;
+import com.microsoft.identity.client.ui.automation.logging.FileLogStrategy;
+import com.microsoft.identity.client.ui.automation.logging.LogLevel;
 import com.microsoft.identity.client.ui.automation.rules.RulesHelper;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
@@ -75,9 +78,12 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
     protected String mLoginHint;
 
     @Rule(order = 0)
-    public RuleChain primaryRules = getPrimaryRules();
+    public LoggingRule loggingRule = new LoggingRule();
 
     @Rule(order = 1)
+    public RuleChain primaryRules = getPrimaryRules();
+
+    @Rule(order = 2)
     public ActivityTestRule<MainActivity> mActivityRule =
             new ActivityTestRule(MainActivity.class);
 
@@ -130,9 +136,6 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
         } catch (MsalException e) {
             fail(e.getMessage());
         }
-
-        Logger.getInstance().setEnableLogcatLog(true);
-        Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
     }
 
     protected IAccount getAccount() {
