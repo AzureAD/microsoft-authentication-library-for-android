@@ -11,13 +11,11 @@ android checkstyle
 -->
 <module name="Checker">
   <module name="SuppressWarningsFilter"/>
-  <module name="SuppressionCommentFilter" />
   <module name="SuppressionFilter">
     <property name="file" value="${checkstyleConfigDir}/suppressions.xml"/>
   </module>
   <property name="severity" value="warning"/>
-  <module name="TreeWalker">
-    <module name="FileContentsHolder"/>
+    <module name="TreeWalker">
     <module name="SuppressWarningsHolder" />
     <property name="tabWidth" value="4"/>
     <module name="JavadocMethod">
@@ -116,7 +114,6 @@ android checkstyle
     </module>
   </module>
   <module name="NewlineAtEndOfFile">
-    <property name="severity" value="ignore"/>
     <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
   </module>
   <module name="Translation"/>
