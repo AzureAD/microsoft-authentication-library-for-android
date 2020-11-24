@@ -74,14 +74,14 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
     protected String mLoginHint;
 
     @Rule(order = 0)
-    public LoggingRule loggingRule = new LoggingRule();
-
-    @Rule(order = 1)
     public RuleChain primaryRules = getPrimaryRules();
 
-    @Rule(order = 2)
+    @Rule(order = 1)
     public ActivityTestRule<MainActivity> mActivityRule =
             new ActivityTestRule(MainActivity.class);
+
+    @Rule(order = 2)
+    public MsalLoggingRule msalLoggingRule = new MsalLoggingRule();
 
     @Before
     public void setup() {
