@@ -31,6 +31,10 @@ import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
+/**
+ * A Junit Rule to enable MSAL logging during automation and set external logger to dump these logs
+ * to a separate file.
+ */
 public class MsalLoggingRule implements TestRule {
 
     final static String LOG_FOLDER_NAME = "automation";
