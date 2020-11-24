@@ -34,7 +34,7 @@ public class MsalLoggingRule implements TestRule {
         final String msalLogFileName = description.getMethodName() + "-msal.log";
         final FileLogger msalfileLogger = new FileLogger(msalLogFileName);
         Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
-        Logger.getInstance().setEnableLogcatLog(true);
+        Logger.getInstance().setEnableLogcatLog(false);
         Logger.getInstance().setExternalLogger(new ILoggerCallback() {
             @Override
             public void log(String tag, Logger.LogLevel logLevel, String message, boolean containsPII) {
