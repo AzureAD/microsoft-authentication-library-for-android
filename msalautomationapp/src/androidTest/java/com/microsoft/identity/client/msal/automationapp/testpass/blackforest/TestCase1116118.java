@@ -46,10 +46,8 @@ import java.util.concurrent.CountDownLatch;
 
 // Interactive token acquisition with instance_aware=false and USGov authority
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1116118
-@Ignore
 public class TestCase1116118 extends AbstractMsalUiTest {
 
-    @Test
     public void test_1116118() {
         final TokenRequestLatch latch = new TokenRequestLatch(1);
 

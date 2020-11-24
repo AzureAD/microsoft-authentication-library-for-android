@@ -44,10 +44,8 @@ import java.util.Arrays;
 
 // Broker authentication with PRT with USGov account
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1116129
-@Ignore
 public class TestCase1116129 extends AbstractMsalBrokerTest {
 
-    @Test
     public void test_1116129() {
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
