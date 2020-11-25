@@ -126,7 +126,7 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         //relaunching chrome after clearing history of chrome.
         chrome.launch();
         chrome.handleFirstRun();
-        navigateTo("myapps.microsoft.com");
+        chrome.navigateTo("myapps.microsoft.com");
         UiAutomatorUtils.handleInput("i0116", username);
         UiObject nextButton = UiAutomatorUtils.obtainUiObjectWithText("Next");
         nextButton.click();
@@ -144,7 +144,7 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
 
         //confirming account is signed out in google chrome.
         chrome.launch();
-        navigateTo("myapps.microsoft.com");
+        chrome.navigateTo("myapps.microsoft.com");
         user = UiAutomatorUtils.obtainUiObjectWithText(username);
         Assert.assertTrue(user.exists());
 
@@ -154,13 +154,6 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
 
     }
 
-    private void navigateTo(String url) throws UiObjectNotFoundException {
-        UiDevice device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
-        UiObject searchField = UiAutomatorUtils.obtainUiObjectWithText("Search or type");
-        searchField.click();
-        searchField.setText(url);
-        device.pressEnter();
-    }
 
     @Override
     public String[] getScopes() {
