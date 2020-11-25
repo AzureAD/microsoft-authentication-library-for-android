@@ -26,6 +26,7 @@ import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
+import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
@@ -35,7 +36,7 @@ import org.junit.Test;
 
 // End My Shift - Perform shared device registration with non-admin account.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833511
-@SupportedBrokers(brokers = {BrokerHost.class})
+@SupportedBrokers(brokers = {BrokerHost.class, BrokerMicrosoftAuthenticator.class})
 public class TestCase833511 extends AbstractMsalBrokerTest {
 
     @Test
