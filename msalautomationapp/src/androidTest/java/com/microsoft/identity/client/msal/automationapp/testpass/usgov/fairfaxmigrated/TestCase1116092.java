@@ -47,10 +47,8 @@ import java.util.concurrent.CountDownLatch;
 // Interactive token acquisition with instance_aware=true, login hint present, and cloud account,
 // and WW organizations authority
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1116092
-@Ignore
 public class TestCase1116092 extends AbstractMsalUiTest {
 
-    @Test
     public void test_1116092() {
         final TokenRequestLatch latch = new TokenRequestLatch(1);
 

@@ -49,10 +49,8 @@ import java.util.concurrent.CountDownLatch;
 
 // Silent token acquisition with unexpired RT with USGov authority
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1116117
-@Ignore
 public class TestCase1116117 extends AbstractMsalUiTest {
 
-    @Test
     public void test_1116117() {
         final TokenRequestLatch latch = new TokenRequestLatch(1);
 
