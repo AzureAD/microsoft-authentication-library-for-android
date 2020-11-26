@@ -24,12 +24,16 @@ package com.microsoft.identity.client.msal.automationapp;
 
 import com.microsoft.identity.client.ILoggerCallback;
 import com.microsoft.identity.client.Logger;
-import com.microsoft.identity.client.ui.automation.logging.FileLogger;
+import com.microsoft.identity.client.ui.automation.logging.LogLevel;
+import com.microsoft.identity.client.ui.automation.logging.appender.FileAppender;
+import com.microsoft.identity.client.ui.automation.logging.formatter.LogcatLikeFormatter;
 import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
 
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
+
+import java.io.IOException;
 
 /**
  * A Junit Rule to enable MSAL logging during automation and set external logger to dump these logs
@@ -44,21 +48,23 @@ public class MsalLoggingRule implements TestRule {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
-                final FileLogger msalLogStrategy = turnOnMsalLogging(description);
+                final FileAppender msalLogFileAppender = turnOnMsalLogging(description);
 
                 base.evaluate();
 
+                msalLogFileAppender.closeWriter();
+
                 CommonUtils.copyFileToFolderInSdCard(
-                        msalLogStrategy.getLogFile(),
+                        msalLogFileAppender.getLogFile(),
                         LOG_FOLDER_NAME
                 );
             }
         };
     }
 
-    private FileLogger turnOnMsalLogging(final Description description) {
+    private FileAppender turnOnMsalLogging(final Description description) throws IOException {
         final String msalLogFileName = description.getMethodName() + "-msal.log";
-        final FileLogger msalfileLogger = new FileLogger(msalLogFileName);
+        final FileAppender msalfileLogAppender = new FileAppender(msalLogFileName, new LogcatLikeFormatter());
         Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
         Logger.getInstance().setEnableLogcatLog(false);
         Logger.getInstance().setExternalLogger(new ILoggerCallback() {
@@ -66,17 +72,21 @@ public class MsalLoggingRule implements TestRule {
             public void log(String tag, Logger.LogLevel logLevel, String message, boolean containsPII) {
                 switch (logLevel) {
                     case VERBOSE:
-                        msalfileLogger.v(tag, message);
+                        msalfileLogAppender.append(LogLevel.VERBOSE, tag, message, null);
+                        break;
                     case INFO:
-                        msalfileLogger.i(tag, message);
+                        msalfileLogAppender.append(LogLevel.INFO, tag, message, null);
+                        break;
                     case ERROR:
-                        msalfileLogger.e(tag, message);
+                        msalfileLogAppender.append(LogLevel.ERROR, tag, message, null);
+                        break;
                     case WARNING:
-                        msalfileLogger.w(tag, message);
+                        msalfileLogAppender.append(LogLevel.WARN, tag, message, null);
+                        break;
                 }
             }
         });
 
-        return msalfileLogger;
+        return msalfileLogAppender;
     }
 }
