@@ -22,6 +22,8 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp;
 
+import androidx.annotation.NonNull;
+
 import com.microsoft.identity.client.ILoggerCallback;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.ui.automation.logging.LogLevel;
@@ -64,29 +66,31 @@ public class MsalLoggingRule implements TestRule {
 
     private FileAppender turnOnMsalLogging(final Description description) throws IOException {
         final String msalLogFileName = description.getMethodName() + "-msal.log";
-        final FileAppender msalfileLogAppender = new FileAppender(msalLogFileName, new LogcatLikeFormatter());
+        final FileAppender msalFileLogAppender = new FileAppender(msalLogFileName, new LogcatLikeFormatter());
         Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
         Logger.getInstance().setEnableLogcatLog(false);
         Logger.getInstance().setExternalLogger(new ILoggerCallback() {
             @Override
-            public void log(String tag, Logger.LogLevel logLevel, String message, boolean containsPII) {
-                switch (logLevel) {
-                    case VERBOSE:
-                        msalfileLogAppender.append(LogLevel.VERBOSE, tag, message, null);
-                        break;
-                    case INFO:
-                        msalfileLogAppender.append(LogLevel.INFO, tag, message, null);
-                        break;
-                    case ERROR:
-                        msalfileLogAppender.append(LogLevel.ERROR, tag, message, null);
-                        break;
-                    case WARNING:
-                        msalfileLogAppender.append(LogLevel.WARN, tag, message, null);
-                        break;
-                }
+            public void log(final String tag, final Logger.LogLevel logLevel,
+                            final String message, boolean containsPII) {
+                final LogLevel level = convertMsalLogLevelToInternalLogLevel(logLevel);
+                msalFileLogAppender.append(level, tag, message, null);
             }
         });
 
-        return msalfileLogAppender;
+        return msalFileLogAppender;
+    }
+
+    private LogLevel convertMsalLogLevelToInternalLogLevel(@NonNull final Logger.LogLevel logLevel) {
+        switch (logLevel) {
+            case VERBOSE:
+                return LogLevel.VERBOSE;
+            case WARNING:
+                return LogLevel.WARN;
+            case ERROR:
+                return LogLevel.ERROR;
+            default:
+                return LogLevel.INFO;
+        }
     }
 }
