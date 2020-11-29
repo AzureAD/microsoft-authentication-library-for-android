@@ -26,6 +26,7 @@ import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.IPublicClientApplication;
+import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 
 /**
  * This class is a wrapper around the {@link IPublicClientApplication#acquireToken(AcquireTokenParameters)}
