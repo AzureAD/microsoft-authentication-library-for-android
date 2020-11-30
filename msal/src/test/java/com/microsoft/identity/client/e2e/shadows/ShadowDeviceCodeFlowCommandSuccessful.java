@@ -64,9 +64,9 @@ public class ShadowDeviceCodeFlowCommandSuccessful {
                 expiryDate);
 
         // Create parameters for dummy authentication result
-        final CacheRecordBuilder recordBuilder = new CacheRecord.builder();
+        final CacheRecord.CacheRecordBuilder recordBuilder = CacheRecord.builder();
         final AccountRecord accountRecord = new AccountRecord();
-        recordBuilder.account(accountRecord);
+        recordBuilder.mAccount(accountRecord);
         accountRecord.setHomeAccountId("abcd");
         accountRecord.setLocalAccountId("abcd");
         final List<ICacheRecord> cacheRecordList = new ArrayList<>();
