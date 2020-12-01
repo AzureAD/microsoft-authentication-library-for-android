@@ -55,11 +55,11 @@ public class AuthenticationResultTest {
         final IdTokenRecord idTokenRecord = new IdTokenRecord();
         idTokenRecord.setSecret(MockTokenCreator.createMockIdToken());
 
-        final CacheRecord cacheRecord = new CacheRecord();
-        cacheRecord.setAccount(accountRecord);
-        cacheRecord.setIdToken(idTokenRecord);
+        final CacheRecord.CacheRecordBuilder cacheRecord = CacheRecord.builder();
+        cacheRecord.mAccount(accountRecord);
+        cacheRecord.mIdToken(idTokenRecord);
 
-        cacheRecords.add(cacheRecord);
+        cacheRecords.add(cacheRecord.build());
 
         mCacheRecords = cacheRecords;
     }

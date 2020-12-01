@@ -28,11 +28,14 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.microsoft.identity.client.Logger;
 
+import net.jcip.annotations.Immutable;
+
 import java.lang.reflect.Type;
 import java.util.Locale;
 
 import static com.microsoft.identity.client.Logger.LogLevel;
 
+@Immutable
 public class LogLevelDeserializer implements JsonDeserializer<Logger.LogLevel> {
 
     @Override
