@@ -117,10 +117,8 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         Thread.sleep(TimeUnit.SECONDS.toMillis(5));
         azureSampleApp.confirmSignedIn(username);
 
-        //signing in chrome browser.
+        //clearing history of chrome.
         IBrowser chrome = new BrowserChrome();
-        chrome.launch();
-        chrome.handleFirstRun();
         chrome.clear();
 
         //relaunching chrome after clearing history of chrome.
