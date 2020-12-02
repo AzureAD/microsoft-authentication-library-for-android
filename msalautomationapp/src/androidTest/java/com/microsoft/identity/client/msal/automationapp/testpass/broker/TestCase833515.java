@@ -127,10 +127,12 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         chrome.navigateTo("myapps.microsoft.com");
         UiAutomatorUtils.handleInput("i0116", username);
         UiObject nextButton = UiAutomatorUtils.obtainUiObjectWithText("Next");
+        Assert.assertTrue(nextButton.exists());
         nextButton.click();
         UiAutomatorUtils.handleInput("i0118", password);
         UiAutomatorUtils.handleButtonClick("idSIButton9");
         final UiObject noButton = UiAutomatorUtils.obtainUiObjectWithText("No");
+        Assert.assertTrue(noButton.exists());
         noButton.click();
 
         //signing out from the appliction.
@@ -138,6 +140,7 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
 
         //selecting which account should be logged out.
         UiObject user = UiAutomatorUtils.obtainUiObjectWithText(username);
+        Assert.assertTrue(user.exists());
         user.click();
 
         //confirming account is signed out in google chrome.
