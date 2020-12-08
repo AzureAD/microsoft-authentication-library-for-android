@@ -59,6 +59,7 @@ import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.security.Permission;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -220,7 +221,8 @@ public class TestCase1136662 extends AbstractMsalBrokerTest {
 
         newInteractiveRequest.execute();
 
-        performTLSOpeation(username, password);
+        Tls tlsOperation = new Tls();
+        tlsOperation.performTLSOperation(username, password);
 
         interactiveLatch.await(TokenRequestTimeout.LONG);
 
@@ -244,44 +246,8 @@ public class TestCase1136662 extends AbstractMsalBrokerTest {
 
         // dismiss dialog
         UiAutomatorUtils.handleButtonClick("android:id/button1");
-        Assert.assertEquals(newUpn,"Error");
+        Assert.assertEquals(newUpn, "Error");
 
-
-    }
-
-    private void performTLSOpeation(final String username, final String password) throws UiObjectNotFoundException {
-
-        final UiDevice device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
-
-        final BrowserChrome chrome = new BrowserChrome();
-        chrome.handleFirstRun();
-        // click on Open up from chrome tabs to open in google chrome.
-        UiAutomatorUtils.handleButtonClick("com.android.chrome:id/menu_button");
-        final UiObject openTabs = UiAutomatorUtils.obtainUiObjectWithText("Open");
-        Assert.assertTrue(openTabs.exists());
-        openTabs.click();
-
-        // in url removing x-client-SKU=MSAL.Android.
-        final UiObject urlBar = UiAutomatorUtils.obtainUiObjectWithResourceId("com.android.chrome:id/url_bar");
-        Assert.assertTrue(urlBar.exists());
-        String url = urlBar.getText();
-        url = url.replace("x-client-SKU=MSAL.Android", "");
-
-        // entering the final url in google chrome.
-        urlBar.click();
-        UiAutomatorUtils.handleButtonClick("com.android.chrome:id/delete_button");
-        urlBar.setText(url);
-        device.pressEnter();
-
-        // entering credentials.
-        UiAutomatorUtils.handleInput("i0116", username);
-        UiAutomatorUtils.handleButtonClick("idSIButton9");
-
-        UiAutomatorUtils.handleInput("i0118", password);
-        UiAutomatorUtils.handleButtonClick("idSIButton9");
-
-        //installing certificate.
-        UiAutomatorUtils.handleButtonClick("android:id/button1");
     }
 
 
