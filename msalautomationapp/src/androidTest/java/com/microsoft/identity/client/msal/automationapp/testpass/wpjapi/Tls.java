@@ -13,11 +13,13 @@ import org.junit.Assert;
 public class Tls {
 
     public void performTLSOperation(final String username, final String password) throws UiObjectNotFoundException {
+
         final UiDevice device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
 
         final BrowserChrome chrome = new BrowserChrome();
         chrome.handleFirstRun();
-        // click on Open up from chrome tabs to open in google chrome.
+
+        // click on Open in chrome tabs.
         UiAutomatorUtils.handleButtonClick("com.android.chrome:id/menu_button");
         final UiObject openTabs = UiAutomatorUtils.obtainUiObjectWithText("Open");
         Assert.assertTrue(openTabs.exists());
@@ -29,7 +31,7 @@ public class Tls {
         String url = urlBar.getText();
         url = url.replace("x-client-SKU=MSAL.Android", "");
 
-        // entering the final url in google chrome.
+        // entering the final url in urlbar.
         urlBar.click();
         UiAutomatorUtils.handleButtonClick("com.android.chrome:id/delete_button");
         urlBar.setText(url);

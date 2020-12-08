@@ -136,7 +136,7 @@ public class TestCase1136662 extends AbstractMsalBrokerTest {
         azureSampleApp.uninstall();
         azureSampleApp.install();
         azureSampleApp.launch();
-        Thread.sleep(TimeUnit.SECONDS.toMillis(5));
+        Thread.sleep(TimeUnit.SECONDS.toMillis(10));
         azureSampleApp.confirmSignedIn(username2);
 
         // installing Microsoft authenticator app using local apk.
