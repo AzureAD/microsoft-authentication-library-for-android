@@ -74,6 +74,10 @@ public class TestCase1136662 extends AbstractMsalBrokerTest {
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
+        //clearing Browsing History
+        final BrowserChrome chrome = new BrowserChrome();
+        chrome.clear();
+
         // installing Broker Host Broker.
         final ITestBroker sBroker = new BrokerHost();
         sBroker.install();
@@ -81,10 +85,10 @@ public class TestCase1136662 extends AbstractMsalBrokerTest {
         // performing shared device registration.
         sBroker.performSharedDeviceRegistration(username, password);
 
-        //getting DeviceID.
+        // getting DeviceID.
         final String deviceID1 = sBroker.obtainDeviceId();
 
-        //creating temp user of type Basic.
+        // creating temp user of type Basic.
         final String username2 = LabUserHelper.loadTempUser(LabConstants.TempUserType.BASIC);
         final String password2 = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
@@ -94,13 +98,13 @@ public class TestCase1136662 extends AbstractMsalBrokerTest {
         // pca should now be in SINGLE account mode
         Assert.assertTrue(mApplication instanceof SingleAccountPublicClientApplication);
 
-        //acquiring token with username2.
+        // acquiring token with username2.
         final CountDownLatch latch = new CountDownLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(username2)
-                .withResource(mScopes[0])
+                .withScopes(Arrays.asList(mScopes))
                 .withCallback(successfulInteractiveCallback(latch))
                 .withPrompt(Prompt.SELECT_ACCOUNT)
                 .build();
@@ -143,14 +147,11 @@ public class TestCase1136662 extends AbstractMsalBrokerTest {
         final ITestBroker localBrokerAuthenticator = new BrokerMicrosoftAuthenticator(new LocalApkInstaller());
         localBrokerAuthenticator.install();
 
-        // Installing Certificate in Broker Host.
-        sBroker.launch();
-
-        // getting device id.
+        // obtaining device id.
         final String deviceID2 = sBroker.obtainDeviceId();
         Assert.assertEquals(deviceID2, deviceID1);
 
-        // getting wpj upn
+        // obtaining wpj upn.
         UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/buttonGetWpjUpn");
 
         // Look for the UPN dialog box
@@ -171,6 +172,7 @@ public class TestCase1136662 extends AbstractMsalBrokerTest {
         UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/buttonInstallCert");
         UiAutomatorUtils.handleButtonClick("android:id/button1");
 
+        mApplication = PublicClientApplication.create(mContext, R.raw.msal_config_instance_aware_common_skip_broker);
 
         // calling acquire token.
         final TokenRequestLatch interactiveLatch = new TokenRequestLatch(1);
@@ -208,7 +210,7 @@ public class TestCase1136662 extends AbstractMsalBrokerTest {
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .broker(localBrokerAuthenticator)
+                                .broker(mBroker)
                                 .expectingBrokerAccountChooserActivity(false)
                                 .expectingLoginPageAccountPicker(false)
                                 .registerPageExpected(false)
@@ -222,7 +224,7 @@ public class TestCase1136662 extends AbstractMsalBrokerTest {
         newInteractiveRequest.execute();
 
         Tls tlsOperation = new Tls();
-        tlsOperation.performTLSOperation(username, password);
+        tlsOperation.performTLSOperation(username2, password2);
 
         interactiveLatch.await(TokenRequestTimeout.LONG);
 
@@ -231,6 +233,7 @@ public class TestCase1136662 extends AbstractMsalBrokerTest {
 
         sBroker.launch();
         UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/buttonLeave");
+        Thread.sleep(TimeUnit.SECONDS.toMillis(30));
 
         // getting wpj upn which should be error.
         UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/buttonGetWpjUpn");
@@ -249,7 +252,6 @@ public class TestCase1136662 extends AbstractMsalBrokerTest {
         Assert.assertEquals(newUpn, "Error");
 
     }
-
 
     @Override
     public String[] getScopes() {

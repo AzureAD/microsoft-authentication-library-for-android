@@ -10,9 +10,12 @@ import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 
 import org.junit.Assert;
 
+import java.sql.Time;
+import java.util.concurrent.TimeUnit;
+
 public class Tls {
 
-    public void performTLSOperation(final String username, final String password) throws UiObjectNotFoundException {
+    public void performTLSOperation(final String username, final String password) throws UiObjectNotFoundException, InterruptedException {
 
         final UiDevice device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
 
@@ -20,6 +23,7 @@ public class Tls {
         chrome.handleFirstRun();
 
         // click on Open in chrome tabs.
+        Thread.sleep(TimeUnit.SECONDS.toMillis(10));
         UiAutomatorUtils.handleButtonClick("com.android.chrome:id/menu_button");
         final UiObject openTabs = UiAutomatorUtils.obtainUiObjectWithText("Open");
         Assert.assertTrue(openTabs.exists());
@@ -28,12 +32,14 @@ public class Tls {
         // in url removing x-client-SKU=MSAL.Android.
         final UiObject urlBar = UiAutomatorUtils.obtainUiObjectWithResourceId("com.android.chrome:id/url_bar");
         Assert.assertTrue(urlBar.exists());
+        Thread.sleep(TimeUnit.SECONDS.toMillis(10));
         String url = urlBar.getText();
         url = url.replace("x-client-SKU=MSAL.Android", "");
 
         // entering the final url in urlbar.
         urlBar.click();
         UiAutomatorUtils.handleButtonClick("com.android.chrome:id/delete_button");
+        Thread.sleep(TimeUnit.SECONDS.toMillis(3));
         urlBar.setText(url);
         device.pressEnter();
 
@@ -44,7 +50,12 @@ public class Tls {
         UiAutomatorUtils.handleInput("i0118", password);
         UiAutomatorUtils.handleButtonClick("idSIButton9");
 
-        //installing certificate.
+        // installing certificate.
         UiAutomatorUtils.handleButtonClick("android:id/button1");
+
+        final UiObject appSelector = UiAutomatorUtils.obtainUiObjectWithText("MSAL");
+        appSelector.click();
+        final UiObject useSelector = UiAutomatorUtils.obtainUiObjectWithText("JUST ONCE");
+        useSelector.click();
     }
 }
