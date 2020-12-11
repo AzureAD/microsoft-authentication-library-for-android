@@ -26,14 +26,16 @@ import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.ErrorCodes;
 import com.microsoft.identity.client.msal.automationapp.R;
+import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
+import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
+import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
-import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
@@ -42,10 +44,9 @@ import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.concurrent.CountDownLatch;
-
 // End My Shift - In Shared device mode, there can be only one sign-in account.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833516
+@SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
 public class TestCase833516 extends AbstractMsalBrokerTest {
 
     @Test
@@ -80,7 +81,7 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
         final SingleAccountPublicClientApplication singleAccountPCA =
                 (SingleAccountPublicClientApplication) mApplication;
 
-        final CountDownLatch latch = new CountDownLatch(1);
+        final TokenRequestLatch latch = new TokenRequestLatch(1);
 
         // try sign in with an account from the same tenant
         singleAccountPCA.signIn(mActivity, username, mScopes, successfulInteractiveCallback(latch));
@@ -97,7 +98,7 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
         AadPromptHandler aadPromptHandler = new AadPromptHandler(promptHandlerParameters);
         aadPromptHandler.handlePrompt(username, password);
 
-        latch.await();
+        latch.await(TokenRequestTimeout.MEDIUM);
 
         // try sign in with a different account - it should fail
 
@@ -109,12 +110,12 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
         final String anotherUserFromSameTenant = LabUserHelper.loadUserForTest(query2);
         password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
-        final CountDownLatch latch2 = new CountDownLatch(1);
+        final TokenRequestLatch latch2 = new TokenRequestLatch(1);
 
         // try sign in with an account from the same tenant
         singleAccountPCA.signIn(mActivity, anotherUserFromSameTenant, mScopes, failureInteractiveCallback(latch2, ErrorCodes.INVALID_PARAMETER));
 
-        latch2.await();
+        latch2.await(TokenRequestTimeout.MEDIUM);
     }
 
     @Override
@@ -137,11 +138,6 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
     @Override
     public String getAuthority() {
         return null;
-    }
-
-    @Override
-    public ITestBroker getBroker() {
-        return new BrokerMicrosoftAuthenticator();
     }
 
     @Override

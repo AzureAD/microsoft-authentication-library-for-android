@@ -27,8 +27,8 @@ import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
-import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
+import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
+import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
@@ -39,13 +39,12 @@ import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.concurrent.CountDownLatch;
 
 public class TestCase769049 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_769049() throws InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
+    public void test_769049() {
+        final TokenRequestLatch latch = new TokenRequestLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
@@ -71,7 +70,7 @@ public class TestCase769049 extends AbstractMsalBrokerTest {
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .broker(getBroker())
+                                .broker(mBroker)
                                 .expectingBrokerAccountChooserActivity(false)
                                 .build();
 
@@ -82,11 +81,11 @@ public class TestCase769049 extends AbstractMsalBrokerTest {
         );
 
         interactiveRequest.execute();
-        latch.await();
+        latch.await(TokenRequestTimeout.MEDIUM);
 
         // SECOND REQUEST WITHOUT LOGIN HINT
 
-        final CountDownLatch latchNoLoginHint = new CountDownLatch(1);
+        final TokenRequestLatch latchNoLoginHint = new TokenRequestLatch(1);
 
         final AcquireTokenParameters parametersNoLoginHint = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
@@ -110,7 +109,7 @@ public class TestCase769049 extends AbstractMsalBrokerTest {
                                 .sessionExpected(true)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .broker(getBroker())
+                                .broker(mBroker)
                                 .expectingBrokerAccountChooserActivity(true)
                                 .expectingProvidedAccountInBroker(true)
                                 .build();
@@ -122,7 +121,7 @@ public class TestCase769049 extends AbstractMsalBrokerTest {
         );
 
         interactiveRequestNoLoginHint.execute();
-        latchNoLoginHint.await();
+        latchNoLoginHint.await(TokenRequestTimeout.MEDIUM);
     }
 
 
@@ -146,11 +145,6 @@ public class TestCase769049 extends AbstractMsalBrokerTest {
     @Override
     public String getAuthority() {
         return mApplication.getConfiguration().getDefaultAuthority().toString();
-    }
-
-    @Override
-    public ITestBroker getBroker() {
-        return new BrokerMicrosoftAuthenticator();
     }
 
     @Override
