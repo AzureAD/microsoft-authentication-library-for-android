@@ -6,13 +6,19 @@ import androidx.test.uiautomator.UiObject;
 import androidx.test.uiautomator.UiObjectNotFoundException;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
+import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.Prompt;
+import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
+import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
+import com.microsoft.identity.client.ui.automation.TestContext;
+import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
+import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
@@ -24,35 +30,41 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadP
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
+import com.microsoft.identity.internal.testutils.labutils.LabDeviceHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
 public class TestCase1136625 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_1136625() throws InterruptedException, UiObjectNotFoundException {
+    public void test_1136625() throws InterruptedException, UiObjectNotFoundException, MsalException {
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
         BrowserChrome chrome = new BrowserChrome();
         chrome.clear();
 
+        // installing BrokerHost.
         ITestBroker sBroker = new BrokerHost();
         sBroker.install();
-        //broker1.perform DeviceRegistration.
+
+        // perform DeviceRegistration.
         sBroker.performDeviceRegistration(username, password);
-        //broker2.getDeviceId()
-        //launchMsalTestApp and acquiretoken.
-        final CountDownLatch latch = new CountDownLatch(1);
+
+        //getting DeviceID.
+        final String deviceID1 = sBroker.obtainDeviceId();
+
+        final TokenRequestLatch latch = new TokenRequestLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(null)
-                .withResource(mScopes[0])
+                .withLoginHint(username)
+                .withScopes(Arrays.asList(mScopes))
                 .withCallback(successfulInteractiveCallback(latch))
                 .withPrompt(Prompt.SELECT_ACCOUNT)
                 .build();
@@ -65,12 +77,12 @@ public class TestCase1136625 extends AbstractMsalBrokerTest {
                     public void handleUserInteraction() {
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHint(null)
-                                .sessionExpected(true)
+                                .loginHint(username)
+                                .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
                                 .broker(mBroker)
-                                .expectingBrokerAccountChooserActivity(true)
+                                .expectingBrokerAccountChooserActivity(false)
                                 .registerPageExpected(false)
                                 .build();
 
@@ -81,29 +93,51 @@ public class TestCase1136625 extends AbstractMsalBrokerTest {
         );
 
         interactiveRequest.execute();
-        latch.await();
-
-        //close and relaunch the broker.
-        sBroker.launch();
-        sBroker.obtainDeviceId();
+        latch.await(TokenRequestTimeout.LONG);
 
         //installing latest version of Microsoft authenticator app.
-        ITestBroker localBrokerAuthenticator = new BrokerMicrosoftAuthenticator(new LocalApkInstaller());
+        final ITestBroker localBrokerAuthenticator = new BrokerMicrosoftAuthenticator(new LocalApkInstaller());
         localBrokerAuthenticator.install();
 
         //relaunching BrokerHost.
         sBroker.launch();
-        //do some operations on sBroker.
 
-        //installing Certificate in the brokerHost.
-        //UiDevice device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
+        // obtaining account upn.
+        UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/buttonGetWpjUpn");
+
+        // Look for the UPN dialog box
+        final UiObject showUpnDialog = UiAutomatorUtils.obtainUiObjectWithResourceId(
+                "android:id/message"
+        );
+
+        Assert.assertTrue(showUpnDialog.exists());
+
+        try {
+            // Obtain the text on the UPN dialog box
+            final String[] upnDialogTextParts = showUpnDialog.getText().split(":");
+
+            Assert.assertEquals(username, upnDialogTextParts[1]);
+        } catch (final UiObjectNotFoundException e) {
+            throw new AssertionError(e);
+        } finally {
+            // dismiss dialog
+            UiAutomatorUtils.handleButtonClick("android:id/button1");
+        }
+
+        // obtaining Deviceid.
+        final String deviceID2 = sBroker.obtainDeviceId();
+
+        Assert.assertEquals(deviceID1, deviceID2);
+
+        // installing Certificate in the brokerHost.
         UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/buttonInstallCert");
         UiAutomatorUtils.handleButtonClick("android:id/button1");
 
+        mApplication = PublicClientApplication.create(mContext, R.raw.msal_config_instance_aware_common_skip_broker);
 
-        //acquiring token with claims.
-        final CountDownLatch interactiveLatch = new CountDownLatch(1);
+        final TokenRequestLatch interactiveLatch = new TokenRequestLatch(1);
 
+        // create claims request object
         final ClaimsRequest claimsRequest = new ClaimsRequest();
         final RequestedClaimAdditionalInformation requestedClaimAdditionalInformation =
                 new RequestedClaimAdditionalInformation();
@@ -113,51 +147,78 @@ public class TestCase1136625 extends AbstractMsalBrokerTest {
         // request the deviceid claim in ID Token
         claimsRequest.requestClaimInIdToken("deviceid", requestedClaimAdditionalInformation);
 
-
-        final AcquireTokenParameters interactiveParameters = new AcquireTokenParameters.Builder()
+        final AcquireTokenParameters newParameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(successfulClaimsRequestInIdTokenInteractiveCallback(
+                        interactiveLatch, "deviceid", deviceID1
+                ))
+                .withPrompt(Prompt.LOGIN)
+                .withClaims(claimsRequest)
                 .withLoginHint(null)
-                .withResource(mScopes[0])
-                .withCallback(successfulInteractiveCallback(interactiveLatch))
-                .withPrompt(Prompt.SELECT_ACCOUNT)
                 .build();
 
-        performTLSOpeation(username, password);
+        final InteractiveRequest newInteractiveRequest = new InteractiveRequest(
+                mApplication,
+                newParameters,
+                new OnInteractionRequired() {
+                    @Override
+                    public void handleUserInteraction() {
+                        final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
+                                .prompt(PromptParameter.LOGIN)
+                                .loginHint(null)
+                                .sessionExpected(false)
+                                .consentPageExpected(false)
+                                .speedBumpExpected(false)
+                                .broker(localBrokerAuthenticator)
+                                .expectingBrokerAccountChooserActivity(false)
+                                .expectingLoginPageAccountPicker(false)
+                                .registerPageExpected(false)
+                                .build();
 
-        interactiveLatch.wait();
+                        new AadPromptHandler(promptHandlerParameters);
+                    }
+                }
+        );
 
-    }
+        newInteractiveRequest.execute();
 
-    private void performTLSOpeation(final String username, final String password) throws UiObjectNotFoundException {
+        //performTLSOpeation(username, password);
 
-        UiDevice device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
+        interactiveLatch.await(TokenRequestTimeout.LONG);
 
-        // click on Open up from chrome tabs to open in google chrome.
-        UiAutomatorUtils.handleButtonClick("com.android.chrome:id/menu_button");
-        UiObject openTabs = UiAutomatorUtils.obtainUiObjectWithExactText("Open up");
-        Assert.assertTrue(openTabs.exists());
-        openTabs.click();
+        // advance clock by more than an hour to expire AT in cache
+        TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
 
-        // in url removing x-client-SKU=MSAL.Android.
-        UiObject urlBar = UiAutomatorUtils.obtainUiObjectWithResourceId("com.android.chrome:id/url_bar");
-        Assert.assertTrue(urlBar.exists());
-        String url = urlBar.getText();
-        url = url.replace("x-client-SKU=MSAL.Android", "");
+        // launching BrokerHost Broker.
+        sBroker.launch();
 
-        // entering the final url in google chrome.
-        UiAutomatorUtils.handleButtonClick("com.android.chrome:id/delete_button");
-        urlBar.setText(url);
-        device.pressEnter();
+        // leaving wpjupn.
+        UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/buttonLeave");
 
-        // entering credentials.
-        UiAutomatorUtils.handleInput("i0116", username);
-        UiAutomatorUtils.handleButtonClick("idSIButton9");
+        // getting wpj upn which should be error.
+        UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/buttonGetWpjUpn");
 
-        UiAutomatorUtils.handleInput("i0118", password);
-        UiAutomatorUtils.handleButtonClick("idSIButton9");
+        // Look for the UPN dialog box
+        final UiObject showUpnDialogBox = UiAutomatorUtils.obtainUiObjectWithResourceId(
+                "android:id/message"
+        );
 
-        //installing certificate.
+        Assert.assertTrue(showUpnDialogBox.exists());
+
+        final String newUpn = showUpnDialogBox.getText().split(":")[0];
+
+        // dismiss dialog
         UiAutomatorUtils.handleButtonClick("android:id/button1");
+        Assert.assertEquals(newUpn, "Error");
+
+        // Deleting device.
+        LabDeviceHelper.deleteDevice(username, deviceID1);
+
+        // asserting msal automation app in multiple account mode.
+        mApplication = PublicClientApplication.create(mContext, getConfigFileResourceId());
+        Assert.assertTrue(mApplication instanceof MultipleAccountPublicClientApplication);
+
     }
 
     @Override
