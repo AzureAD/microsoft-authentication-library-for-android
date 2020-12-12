@@ -35,7 +35,6 @@ import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IPublicClientApplication;
-import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
 import com.microsoft.identity.client.exception.MsalException;
@@ -80,6 +79,9 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
     @Rule(order = 1)
     public ActivityTestRule<MainActivity> mActivityRule =
             new ActivityTestRule(MainActivity.class);
+
+    @Rule(order = 2)
+    public MsalLoggingRule msalLoggingRule = new MsalLoggingRule();
 
     @Before
     public void setup() {
@@ -130,9 +132,6 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
         } catch (MsalException e) {
             fail(e.getMessage());
         }
-
-        Logger.getInstance().setEnableLogcatLog(true);
-        Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
     }
 
     protected IAccount getAccount() {
