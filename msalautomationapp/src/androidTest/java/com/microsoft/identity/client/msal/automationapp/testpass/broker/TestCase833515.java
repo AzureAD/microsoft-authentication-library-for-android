@@ -22,10 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
-import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.uiautomator.UiDevice;
 import androidx.test.uiautomator.UiObject;
-import androidx.test.uiautomator.UiObjectNotFoundException;
 
 import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
@@ -40,6 +37,7 @@ import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
 import com.microsoft.identity.client.ui.automation.browser.IBrowser;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadLoginComponentHandler;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
@@ -58,8 +56,10 @@ import java.util.concurrent.TimeUnit;
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
 public class TestCase833515 extends AbstractMsalBrokerTest {
 
+    final static String MY_APPS_URL = "myapps.microsoft.com";
+
     @Test
-    public void test_833515() throws MsalException, InterruptedException, UiObjectNotFoundException {
+    public void test_833515() throws MsalException, InterruptedException {
         // pca should be in MULTIPLE account mode starting out
         Assert.assertTrue(mApplication instanceof MultipleAccountPublicClientApplication);
 
@@ -81,8 +81,7 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         Assert.assertTrue(mApplication.isSharedDevice());
 
         //creating a basic temp user account
-        final String newUser = LabConstants.TempUserType.BASIC;
-        final String username = LabUserHelper.loadTempUser(newUser);
+        final String username = LabUserHelper.loadTempUser(LabConstants.TempUserType.BASIC);
         String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
         Thread.sleep(TimeUnit.SECONDS.toMillis(30));
 
@@ -118,43 +117,48 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         azureSampleApp.confirmSignedIn(username);
 
         //clearing history of chrome.
-        IBrowser chrome = new BrowserChrome();
+        final IBrowser chrome = new BrowserChrome();
         chrome.clear();
 
         //relaunching chrome after clearing history of chrome.
         chrome.launch();
         chrome.handleFirstRun();
-        chrome.navigateTo("myapps.microsoft.com");
-        UiAutomatorUtils.handleInput("i0116", username);
-        UiObject nextButton = UiAutomatorUtils.obtainUiObjectWithText("Next");
-        Assert.assertTrue(nextButton.exists());
-        nextButton.click();
-        UiAutomatorUtils.handleInput("i0118", password);
-        UiAutomatorUtils.handleButtonClick("idSIButton9");
-        final UiObject noButton = UiAutomatorUtils.obtainUiObjectWithText("No");
-        Assert.assertTrue(noButton.exists());
-        noButton.click();
+        chrome.navigateTo(MY_APPS_URL);
 
-        //signing out from the appliction.
+        // login into myapps from chrome
+        final AadLoginComponentHandler aadLoginComponentHandler = new AadLoginComponentHandler();
+        aadLoginComponentHandler.handleEmailField(username);
+        aadLoginComponentHandler.handlePasswordField(password);
+        aadLoginComponentHandler.handleNextButton(); // keep me signed in
+
+        //signing out from the application.
         ((SingleAccountPublicClientApplication) mApplication).signOut();
 
         //selecting which account should be logged out.
-        UiObject user = UiAutomatorUtils.obtainUiObjectWithText(username);
-        Assert.assertTrue(user.exists());
-        user.click();
+        aadLoginComponentHandler.handleAccountPicker(username);
+
+        final UiObject signOutConfirmationUrl = UiAutomatorUtils.obtainUiObjectWithText(
+                "login.microsoftonline.com/common/oauth2/v2.0/logoutsession"
+        );
+
+        Assert.assertTrue(signOutConfirmationUrl.exists());
+
+        // can sometimes take a few seconds to actually be signed out
+        Thread.sleep(TimeUnit.SECONDS.toMillis(5));
 
         //confirming account is signed out in google chrome.
         chrome.launch();
-        chrome.navigateTo("myapps.microsoft.com");
-        user = UiAutomatorUtils.obtainUiObjectWithText(username);
-        Assert.assertTrue(user.exists());
+        chrome.navigateTo(MY_APPS_URL);
+        aadLoginComponentHandler.handleAccountPicker(username);
+
+        // we must see password prompt after sign out
+        final UiObject passwordField = UiAutomatorUtils.obtainUiObjectWithResourceId("i0118");
+        Assert.assertTrue(passwordField.exists());
 
         //Confirming account is signed out in Azure.
         azureSampleApp.launch();
         azureSampleApp.confirmSignedIn("None");
-
     }
-
 
     @Override
     public String[] getScopes() {
