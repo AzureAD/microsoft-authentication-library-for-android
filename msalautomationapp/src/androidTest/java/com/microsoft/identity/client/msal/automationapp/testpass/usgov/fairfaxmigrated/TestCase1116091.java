@@ -46,10 +46,8 @@ import java.util.Arrays;
 // Interactive token acquisition with instance_aware=true, no login hint, and cloud account,
 // and WW common authority
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1116091
-@Ignore
 public class TestCase1116091 extends AbstractMsalUiTest {
 
-    @Test
     public void test_1116091() {
         final TokenRequestLatch latch = new TokenRequestLatch(1);
 

@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
+import androidx.annotation.NonNull;
+
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.BuildConfig;
 import com.microsoft.identity.client.ui.automation.IBrokerTest;
@@ -29,13 +31,9 @@ import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
-import com.microsoft.identity.client.ui.automation.rules.BrokerSupportRule;
-import com.microsoft.identity.client.ui.automation.rules.DeviceEnrollmentFailureRecoveryRule;
-import com.microsoft.identity.client.ui.automation.rules.InstallBrokerTestRule;
-import com.microsoft.identity.client.ui.automation.rules.PowerLiftIncidentRule;
+import com.microsoft.identity.client.ui.automation.rules.RulesHelper;
 
-import org.junit.Rule;
-import org.junit.rules.TestRule;
+import org.junit.rules.RuleChain;
 
 /**
  * An MSAL test model that would leverage an {@link ITestBroker} installed on the device.
@@ -44,20 +42,14 @@ public abstract class AbstractMsalBrokerTest extends AbstractMsalUiTest implemen
 
     protected ITestBroker mBroker = getBroker();
 
-    @Rule(order = 5)
-    public final TestRule brokerSupportRule = new BrokerSupportRule(mBroker);
-
-    @Rule(order = 6)
-    public final TestRule installBrokerRule = new InstallBrokerTestRule(mBroker);
-
-    @Rule(order = 7)
-    public final TestRule powerLiftIncidentRule = new PowerLiftIncidentRule(mBroker);
-
-    @Rule(order = 8)
-    public final TestRule deviceEnrollmentFailureRecoveryRule = new DeviceEnrollmentFailureRecoveryRule();
-
+    @NonNull
     @Override
     public ITestBroker getBroker() {
+        // only initialize once....so calling getBroker from anywhere returns the same instance
+        if (mBroker != null) {
+            return mBroker;
+        }
+
         switch (BuildConfig.SELECTED_BROKER) {
             case BuildConfig.BrokerHost:
                 return new BrokerHost();
@@ -68,5 +60,10 @@ public abstract class AbstractMsalBrokerTest extends AbstractMsalUiTest implemen
             default:
                 throw new UnsupportedOperationException("Unsupported broker :(");
         }
+    }
+
+    @Override
+    public RuleChain getPrimaryRules() {
+        return RulesHelper.getPrimaryRules(getBroker());
     }
 }
