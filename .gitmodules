@@ -2,3 +2,4 @@
 	path = common
 	url = https://github.com/AzureAD/microsoft-authentication-library-common-for-android.git
 	branch = neagarw/test-perf
+	fetchRecurseSubmodules = true
