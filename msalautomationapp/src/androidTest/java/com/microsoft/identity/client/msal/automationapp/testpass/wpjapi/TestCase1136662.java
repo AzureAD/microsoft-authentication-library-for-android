@@ -135,13 +135,7 @@ public class TestCase1136662 extends AbstractMsalBrokerTest {
         interactiveRequest.execute();
         latch.await();
 
-        // installing Azure Sample App.
-        final AzureSampleApp azureSampleApp = new AzureSampleApp();
-        azureSampleApp.uninstall();
-        azureSampleApp.install();
-        azureSampleApp.launch();
-        Thread.sleep(TimeUnit.SECONDS.toMillis(10));
-        azureSampleApp.confirmSignedIn(username2);
+        SupportingUtilities.confirmSignInAzure(username);
 
         // installing Microsoft authenticator app using local apk.
         final ITestBroker localBrokerAuthenticator = new BrokerMicrosoftAuthenticator(new LocalApkInstaller());
@@ -151,26 +145,12 @@ public class TestCase1136662 extends AbstractMsalBrokerTest {
         final String deviceID2 = sBroker.obtainDeviceId();
         Assert.assertEquals(deviceID2, deviceID1);
 
-        // obtaining wpj upn.
-        UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/buttonGetWpjUpn");
-
-        // Look for the UPN dialog box
-        final UiObject showUpnDialog = UiAutomatorUtils.obtainUiObjectWithResourceId(
-                "android:id/message"
-        );
-
-        Assert.assertTrue(showUpnDialog.exists());
-
-        final String upn = showUpnDialog.getText().split(":")[1];
-
-        // dismiss dialog
-        UiAutomatorUtils.handleButtonClick("android:id/button1");
-
+        // obtaining upn.
+        final String upn = SupportingUtilities.getUpn(sBroker);
         Assert.assertEquals(upn, username);
 
-        //installing certificate.
-        UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/buttonInstallCert");
-        UiAutomatorUtils.handleButtonClick("android:id/button1");
+        // installing certificate.
+        SupportingUtilities.installCertificate(sBroker);
 
         mApplication = PublicClientApplication.create(mContext, R.raw.msal_config_instance_aware_common_skip_broker);
 
@@ -222,34 +202,14 @@ public class TestCase1136662 extends AbstractMsalBrokerTest {
         );
 
         newInteractiveRequest.execute();
-
-        Tls tlsOperation = new Tls();
-        tlsOperation.performTLSOperation(username2, password2);
+        SupportingUtilities.performTLSOperation(username2, password2);
 
         interactiveLatch.await(TokenRequestTimeout.LONG);
 
         // advance clock by more than an hour to expire AT in cache
         TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
 
-        sBroker.launch();
-        UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/buttonLeave");
-        Thread.sleep(TimeUnit.SECONDS.toMillis(30));
-
-        // getting wpj upn which should be error.
-        UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/buttonGetWpjUpn");
-
-        // Look for the UPN dialog box
-        final UiObject showUpnDialogBox = UiAutomatorUtils.obtainUiObjectWithResourceId(
-                "android:id/message"
-        );
-
-        Assert.assertTrue(showUpnDialogBox.exists());
-
-        final String newUpn = showUpnDialogBox.getText().split(":")[0];
-
-        // dismiss dialog
-        UiAutomatorUtils.handleButtonClick("android:id/button1");
-        Assert.assertEquals(newUpn, "Error");
+        SupportingUtilities.performWpjLeave(sBroker);
 
     }
 
