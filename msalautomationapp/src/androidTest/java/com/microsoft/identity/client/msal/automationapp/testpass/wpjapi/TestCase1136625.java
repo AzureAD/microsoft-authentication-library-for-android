@@ -46,6 +46,7 @@ public class TestCase1136625 extends AbstractMsalBrokerTest {
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
+        // clearing Browsing history.
         BrowserChrome chrome = new BrowserChrome();
         chrome.clear();
 
@@ -99,30 +100,7 @@ public class TestCase1136625 extends AbstractMsalBrokerTest {
         final ITestBroker localBrokerAuthenticator = new BrokerMicrosoftAuthenticator(new LocalApkInstaller());
         localBrokerAuthenticator.install();
 
-        //relaunching BrokerHost.
-        sBroker.launch();
-
-        // obtaining account upn.
-        UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/buttonGetWpjUpn");
-
-        // Look for the UPN dialog box
-        final UiObject showUpnDialog = UiAutomatorUtils.obtainUiObjectWithResourceId(
-                "android:id/message"
-        );
-
-        Assert.assertTrue(showUpnDialog.exists());
-
-        try {
-            // Obtain the text on the UPN dialog box
-            final String[] upnDialogTextParts = showUpnDialog.getText().split(":");
-
-            Assert.assertEquals(username, upnDialogTextParts[1]);
-        } catch (final UiObjectNotFoundException e) {
-            throw new AssertionError(e);
-        } finally {
-            // dismiss dialog
-            UiAutomatorUtils.handleButtonClick("android:id/button1");
-        }
+       SupportingUtilities.getUpn(sBroker);
 
         // obtaining Deviceid.
         final String deviceID2 = sBroker.obtainDeviceId();
@@ -130,8 +108,7 @@ public class TestCase1136625 extends AbstractMsalBrokerTest {
         Assert.assertEquals(deviceID1, deviceID2);
 
         // installing Certificate in the brokerHost.
-        UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/buttonInstallCert");
-        UiAutomatorUtils.handleButtonClick("android:id/button1");
+        SupportingUtilities.installCertificate(sBroker);
 
         mApplication = PublicClientApplication.create(mContext, R.raw.msal_config_instance_aware_common_skip_broker);
 
@@ -170,7 +147,7 @@ public class TestCase1136625 extends AbstractMsalBrokerTest {
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .broker(localBrokerAuthenticator)
+                                .broker(mBroker)
                                 .expectingBrokerAccountChooserActivity(false)
                                 .expectingLoginPageAccountPicker(false)
                                 .registerPageExpected(false)
@@ -183,41 +160,21 @@ public class TestCase1136625 extends AbstractMsalBrokerTest {
 
         newInteractiveRequest.execute();
 
-        //performTLSOpeation(username, password);
-
+        SupportingUtilities.performTLSOperation(username, password);
         interactiveLatch.await(TokenRequestTimeout.LONG);
 
         // advance clock by more than an hour to expire AT in cache
         TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
 
-        // launching BrokerHost Broker.
-        sBroker.launch();
-
-        // leaving wpjupn.
-        UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/buttonLeave");
-
-        // getting wpj upn which should be error.
-        UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/buttonGetWpjUpn");
-
-        // Look for the UPN dialog box
-        final UiObject showUpnDialogBox = UiAutomatorUtils.obtainUiObjectWithResourceId(
-                "android:id/message"
-        );
-
-        Assert.assertTrue(showUpnDialogBox.exists());
-
-        final String newUpn = showUpnDialogBox.getText().split(":")[0];
-
-        // dismiss dialog
-        UiAutomatorUtils.handleButtonClick("android:id/button1");
-        Assert.assertEquals(newUpn, "Error");
+        // performing wpj leave.
+        SupportingUtilities.performWpjLeave(sBroker);
 
         // Deleting device.
-        LabDeviceHelper.deleteDevice(username, deviceID1);
-
-        // asserting msal automation app in multiple account mode.
-        mApplication = PublicClientApplication.create(mContext, getConfigFileResourceId());
-        Assert.assertTrue(mApplication instanceof MultipleAccountPublicClientApplication);
+//        LabDeviceHelper.deleteDevice(username, deviceID1);
+//
+//        // asserting msal automation app in multiple account mode.
+//        mApplication = PublicClientApplication.create(mContext, getConfigFileResourceId());
+//        Assert.assertTrue(mApplication instanceof MultipleAccountPublicClientApplication);
 
     }
 
