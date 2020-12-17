@@ -32,6 +32,7 @@ import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveR
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
@@ -46,6 +47,7 @@ import java.util.concurrent.CountDownLatch;
 
 // Interactive auth with force_login and step-up MFA
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99656
+@RetryOnFailure(retryCount = 2)
 public class TestCase99656 extends AbstractMsalUiTest {
 
     @Test
