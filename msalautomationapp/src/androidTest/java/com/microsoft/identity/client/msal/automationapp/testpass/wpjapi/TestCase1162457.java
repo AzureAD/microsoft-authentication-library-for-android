@@ -81,12 +81,10 @@ public class TestCase1162457 extends AbstractMsalBrokerTest {
         sBroker.performDeviceRegistration(username, password);
 
         // getting DeviceID.
-        final String deviceID1 = sBroker.obtainDeviceId();
+        final String deviceID = sBroker.obtainDeviceId();
 
         //installing certificate.
-        UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/buttonInstallCert");
-        UiAutomatorUtils.handleButtonClick("android:id/button1");
-        Thread.sleep(TimeUnit.SECONDS.toMillis(5));
+        SupportingUtilities.installCertificate();
 
         mApplication = PublicClientApplication.create(mContext, R.raw.msal_config_instance_aware_common_skip_broker);
 
@@ -138,10 +136,7 @@ public class TestCase1162457 extends AbstractMsalBrokerTest {
         );
 
         newInteractiveRequest.execute();
-
-        Tls tlsOperation = new Tls();
-        tlsOperation.performTLSOperation(username, password);
-
+        SupportingUtilities.performTLSOperation(username, password);
         interactiveLatch.await();
 
         mApplication = PublicClientApplication.create(mContext, getConfigFileResourceId());
@@ -181,37 +176,10 @@ public class TestCase1162457 extends AbstractMsalBrokerTest {
 
         interactiveRequest.execute();
         latch.await();
+        
+        SupportingUtilities.performWpjLeave(sBroker);
 
-        // installing Azure Sample App.
-        final AzureSampleApp azureSampleApp = new AzureSampleApp();
-        azureSampleApp.uninstall();
-        azureSampleApp.install();
-        azureSampleApp.launch();
-        Thread.sleep(TimeUnit.SECONDS.toMillis(10));
-        azureSampleApp.confirmSignedIn(username);
-
-        sBroker.launch();
-        UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/buttonLeave");
-        Thread.sleep(TimeUnit.SECONDS.toMillis(10));
-
-        // getting wpj upn which should be error.
-        UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/buttonGetWpjUpn");
-
-        // Look for the UPN dialog box
-        final UiObject showUpnDialogBox = UiAutomatorUtils.obtainUiObjectWithResourceId(
-                "android:id/message"
-        );
-
-        Assert.assertTrue(showUpnDialogBox.exists());
-
-        final String newUpn = showUpnDialogBox.getText().split(":")[0];
-
-        // dismiss dialog
-        UiAutomatorUtils.handleButtonClick("android:id/button1");
-        Assert.assertEquals(newUpn, "Error");
-
-        boolean deleteDevice = LabDeviceHelper.deleteDevice(username, deviceID1);
-        Assert.assertEquals(deleteDevice, false);
+        SupportingUtilities.deleteDevice(username, deviceID);
 
     }
 
