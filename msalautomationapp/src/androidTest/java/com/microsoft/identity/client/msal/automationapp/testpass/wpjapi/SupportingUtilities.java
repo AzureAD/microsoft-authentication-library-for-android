@@ -10,6 +10,7 @@ import com.microsoft.identity.client.ui.automation.app.AzureSampleApp;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
+import com.microsoft.identity.internal.testutils.labutils.LabDeviceHelper;
 
 import org.junit.Assert;
 
@@ -28,7 +29,7 @@ public class SupportingUtilities {
         // click on Open in chrome tabs.
         Thread.sleep(TimeUnit.SECONDS.toMillis(10));
         UiAutomatorUtils.handleButtonClick("com.android.chrome:id/menu_button");
-        final UiObject openTabs = UiAutomatorUtils.obtainUiObjectWithText("Open");
+        final UiObject openTabs = UiAutomatorUtils.obtainUiObjectWithText("Open in Chrome");
         Assert.assertTrue(openTabs.exists());
         openTabs.click();
 
@@ -41,8 +42,6 @@ public class SupportingUtilities {
 
         // entering the final url in urlbar.
         urlBar.click();
-        UiAutomatorUtils.handleButtonClick("com.android.chrome:id/delete_button");
-        Thread.sleep(TimeUnit.SECONDS.toMillis(3));
         urlBar.setText(url);
         device.pressEnter();
 
@@ -119,5 +118,13 @@ public class SupportingUtilities {
         // dismiss dialog
         UiAutomatorUtils.handleButtonClick("android:id/button1");
         return upn;
+    }
+
+    public static void deleteDevice(final String upn, final String deviceId) {
+        try {
+            final boolean deviceDeleted = LabDeviceHelper.deleteDevice(upn, deviceID1);
+        } catch (LabApiException e) {
+            Assert.assertTrue(e.getCode() == 400);
+        }
     }
 }

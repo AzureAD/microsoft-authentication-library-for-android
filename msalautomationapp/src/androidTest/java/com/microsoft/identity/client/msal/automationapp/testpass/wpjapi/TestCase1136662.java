@@ -28,6 +28,7 @@ import androidx.test.uiautomator.UiObject;
 import androidx.test.uiautomator.UiObjectNotFoundException;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
+import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
@@ -90,7 +91,6 @@ public class TestCase1136662 extends AbstractMsalBrokerTest {
 
         // creating temp user of type Basic.
         final String username2 = LabUserHelper.loadTempUser(LabConstants.TempUserType.BASIC);
-        final String password2 = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
         // re-create PCA after device registration
         mApplication = PublicClientApplication.create(mContext, getConfigFileResourceId());
@@ -127,7 +127,7 @@ public class TestCase1136662 extends AbstractMsalBrokerTest {
                                 .build();
 
                         new AadPromptHandler(promptHandlerParameters)
-                                .handlePrompt(username2, password2);
+                                .handlePrompt(username2, password);
                     }
                 }
         );
@@ -190,7 +190,7 @@ public class TestCase1136662 extends AbstractMsalBrokerTest {
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .broker(mBroker)
+                                .broker(localBrokerAuthenticator)
                                 .expectingBrokerAccountChooserActivity(false)
                                 .expectingLoginPageAccountPicker(false)
                                 .registerPageExpected(false)
@@ -202,7 +202,7 @@ public class TestCase1136662 extends AbstractMsalBrokerTest {
         );
 
         newInteractiveRequest.execute();
-        SupportingUtilities.performTLSOperation(username2, password2);
+        SupportingUtilities.performTLSOperation(username2, password);
 
         interactiveLatch.await(TokenRequestTimeout.LONG);
 
@@ -210,6 +210,14 @@ public class TestCase1136662 extends AbstractMsalBrokerTest {
         TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
 
         SupportingUtilities.performWpjLeave(sBroker);
+
+        SupportingUtilities.deleteDevice(upn, deviceID1);
+
+        // re-create PCA after device registration
+        mApplication = PublicClientApplication.create(mContext, getConfigFileResourceId());
+
+        // pca should now be in SINGLE account mode
+        Assert.assertTrue(mApplication instanceof MultipleAccountPublicClientApplication);
 
     }
 
