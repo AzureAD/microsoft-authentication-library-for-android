@@ -68,7 +68,7 @@ public class TestCase1136627 extends AbstractMsalBrokerTest {
         chrome.clear();
 
         // installing BrokerHost.
-        ITestBroker sBroker = new BrokerHost("BrokerHost_1.apk");
+        ITestBroker sBroker = new BrokerHost("BrokerHost_Prod.apk");
         sBroker.install();
 
         // perform DeviceRegistration.
@@ -114,7 +114,7 @@ public class TestCase1136627 extends AbstractMsalBrokerTest {
         latch.await(TokenRequestTimeout.LONG);
 
         //installing latest version of BrokerHost app.
-        final ITestBroker tBroker = new BrokerHost("BrokerHost_2.apk");
+        final ITestBroker tBroker = new BrokerHost("BrokerHost_RC.apk");
         tBroker.install();
 
         SupportingUtilities.getUpn(tBroker);
@@ -192,7 +192,6 @@ public class TestCase1136627 extends AbstractMsalBrokerTest {
         } catch (LabApiException e) {
             Assert.assertTrue(e.getCode() == 400);
         }
-
     }
 
     @Override
