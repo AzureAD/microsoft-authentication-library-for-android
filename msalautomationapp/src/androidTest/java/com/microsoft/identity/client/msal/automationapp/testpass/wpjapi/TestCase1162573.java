@@ -1,3 +1,25 @@
+//  Copyright (c) Microsoft Corporation.
+//  All rights reserved.
+//
+//  This code is licensed under the MIT License.
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files(the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions :
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.wpjapi;
 
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -37,6 +59,8 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
+// User-based join (shared) - Old API, New Broker side.
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1162573
 public class TestCase1162573 extends AbstractMsalBrokerTest {
 
     @Test
@@ -59,9 +83,7 @@ public class TestCase1162573 extends AbstractMsalBrokerTest {
         // getting DeviceID.
         final String deviceID1 = sBroker.obtainDeviceId();
 
-        //installing certificate.
-        UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/buttonInstallCert");
-        UiAutomatorUtils.handleButtonClick("android:id/button1");
+        SupportingUtilities.installCertificate(sBroker);
 
         mApplication = PublicClientApplication.create(mContext, getConfigFileResourceId());
 
@@ -154,45 +176,14 @@ public class TestCase1162573 extends AbstractMsalBrokerTest {
         );
 
         newInteractiveRequest.execute();
-
-//        Tls tlsOperation = new Tls();
-//        tlsOperation.performTLSOperation(username, password);
-
+        SupportingUtilities.performTlsOperation(username, password);
         interactiveLatch.await();
 
-        // installing Azure Sample App.
-        final AzureSampleApp azureSampleApp = new AzureSampleApp();
-        azureSampleApp.uninstall();
-        azureSampleApp.install();
-        azureSampleApp.launch();
-        Thread.sleep(TimeUnit.SECONDS.toMillis(10));
-        azureSampleApp.confirmSignedIn(username);
+        SupportingUtilities.performWpjLeave(sBroker);
 
-        sBroker.launch();
-        UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/buttonLeave");
-        Thread.sleep(TimeUnit.SECONDS.toMillis(10));
-
-        // getting wpj upn which should be error.
-        UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/buttonGetWpjUpn");
-
-        // Look for the UPN dialog box
-        final UiObject showUpnDialogBox = UiAutomatorUtils.obtainUiObjectWithResourceId(
-                "android:id/message"
-        );
-
-        Assert.assertTrue(showUpnDialogBox.exists());
-
-        final String newUpn = showUpnDialogBox.getText().split(":")[0];
-
-        // dismiss dialog
-        UiAutomatorUtils.handleButtonClick("android:id/button1");
-        Assert.assertEquals(newUpn, "Error");
-
-        boolean deleteDevice = LabDeviceHelper.deleteDevice(username, deviceID1);
-        Assert.assertEquals(deleteDevice, false);
+        SupportingUtilities.deleteDevice(username, deviceID1);
 
     }
-
 
     @Override
     public String[] getScopes() {
