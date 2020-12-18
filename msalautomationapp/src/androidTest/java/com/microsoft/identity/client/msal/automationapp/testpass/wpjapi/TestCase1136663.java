@@ -62,6 +62,7 @@ public class TestCase1136663 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_1136663() throws MsalException, InterruptedException {
+
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
@@ -70,7 +71,7 @@ public class TestCase1136663 extends AbstractMsalBrokerTest {
         chrome.clear();
 
         // installing Broker Host Broker.
-        final ITestBroker sBroker = new BrokerHost("BrokerHost_Prod.apk");
+        final ITestBroker sBroker = new BrokerHost("BrokerHost_1.apk");
         sBroker.install();
 
         // performing shared device registration.
@@ -129,7 +130,7 @@ public class TestCase1136663 extends AbstractMsalBrokerTest {
         SupportingUtilities.confirmSignInAzure(username);
 
         // installing Microsoft authenticator app using local apk.
-        final ITestBroker tBroker = new BrokerHost("BrokerHost_RC.apk");
+        final ITestBroker tBroker = new BrokerHost("BrokerHost_2.apk");
         tBroker.install();
 
         // obtaining device id.
