@@ -1,3 +1,25 @@
+//  Copyright (c) Microsoft Corporation.
+//  All rights reserved.
+//
+//  This code is licensed under the MIT License.
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files(the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions :
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.wpjapi;
 
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -39,6 +61,8 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
+// User-based join (non-shared) - Old API, Update Broker side.
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1136625
 public class TestCase1136625 extends AbstractMsalBrokerTest {
 
     @Test
@@ -100,7 +124,7 @@ public class TestCase1136625 extends AbstractMsalBrokerTest {
         final ITestBroker localBrokerAuthenticator = new BrokerMicrosoftAuthenticator(new LocalApkInstaller());
         localBrokerAuthenticator.install();
 
-       SupportingUtilities.getUpn(sBroker);
+        SupportingUtilities.getUpn(sBroker);
 
         // obtaining Deviceid.
         final String deviceID2 = sBroker.obtainDeviceId();
@@ -147,7 +171,7 @@ public class TestCase1136625 extends AbstractMsalBrokerTest {
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .broker(mBroker)
+                                .broker(localBrokerAuthenticator)
                                 .expectingBrokerAccountChooserActivity(false)
                                 .expectingLoginPageAccountPicker(false)
                                 .registerPageExpected(false)
@@ -169,13 +193,11 @@ public class TestCase1136625 extends AbstractMsalBrokerTest {
         // performing wpj leave.
         SupportingUtilities.performWpjLeave(sBroker);
 
-        // Deleting device.
-//        LabDeviceHelper.deleteDevice(username, deviceID1);
-//
-//        // asserting msal automation app in multiple account mode.
-//        mApplication = PublicClientApplication.create(mContext, getConfigFileResourceId());
-//        Assert.assertTrue(mApplication instanceof MultipleAccountPublicClientApplication);
-
+        try {
+            final boolean deviceDeleted = LabDeviceHelper.deleteDevice(upn, deviceID1);
+        } catch (LabApiException e) {
+            Assert.assertTrue(e.getCode() == 400);
+        }
     }
 
     @Override
