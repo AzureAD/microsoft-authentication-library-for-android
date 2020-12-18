@@ -1,0 +1,14 @@
+docs:
+  - docs/**/*
+common:
+  - common/**/*
+msal:
+  - msal/**/*
+test-automation:
+  - msalautomationapp/**/*
+package-inspector:
+  - package-inspector/**/*
+pop-benchmarker:
+  - pop-benchmarker/**/*
+testapps:
+  - testapps/**/*
