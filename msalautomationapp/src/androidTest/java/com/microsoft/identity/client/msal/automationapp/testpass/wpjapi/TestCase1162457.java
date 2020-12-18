@@ -176,7 +176,7 @@ public class TestCase1162457 extends AbstractMsalBrokerTest {
 
         interactiveRequest.execute();
         latch.await();
-        
+
         SupportingUtilities.performWpjLeave(sBroker);
 
         SupportingUtilities.deleteDevice(username, deviceID);
