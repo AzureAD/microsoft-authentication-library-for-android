@@ -33,9 +33,10 @@ import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractio
 import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.common.internal.util.ThreadUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
@@ -43,7 +44,6 @@ import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 // Interactive auth with force_login and step-up MFA
@@ -51,8 +51,10 @@ import java.util.concurrent.TimeUnit;
 @RetryOnFailure
 public class TestCase99656 extends AbstractMsalUiTest {
 
+    private final String TAG = TestCase99656.class.getSimpleName();
+
     @Test
-    public void test_99656() throws InterruptedException {
+    public void test_99656() {
         final TokenRequestLatch latch = new TokenRequestLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
@@ -107,7 +109,11 @@ public class TestCase99656 extends AbstractMsalUiTest {
 
         // second interactive request
         // wait about a minute here to throttle usage of AUTO MFA account
-        Thread.sleep(TimeUnit.MINUTES.toMillis(1));
+        ThreadUtils.sleepSafely(
+                (int) TimeUnit.MINUTES.toMillis(1),
+                TAG,
+                "Problem occurred while sleeping safely to throttle AUTO MFA requests."
+        );
 
         final TokenRequestLatch latch2 = new TokenRequestLatch(1);
 
