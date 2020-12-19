@@ -45,7 +45,7 @@ import java.util.concurrent.CountDownLatch;
 
 // Interactive auth w/ force_login w/ MFA
 // https://identitydivision.visualstudio.com/DefaultCollection/DevEx/_workitems/edit/497044
-@RetryOnFailure(retryCount = 2)
+@RetryOnFailure
 public class TestCase497044 extends AbstractMsalUiTest {
 
     @Test
