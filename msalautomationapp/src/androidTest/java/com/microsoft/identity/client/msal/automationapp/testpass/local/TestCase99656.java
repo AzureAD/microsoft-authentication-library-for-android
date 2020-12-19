@@ -32,9 +32,11 @@ import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveR
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.common.internal.util.ThreadUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
@@ -42,11 +44,14 @@ import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 // Interactive auth with force_login and step-up MFA
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99656
+@RetryOnFailure
 public class TestCase99656 extends AbstractMsalUiTest {
+
+    private final String TAG = TestCase99656.class.getSimpleName();
 
     @Test
     public void test_99656() {
@@ -103,6 +108,12 @@ public class TestCase99656 extends AbstractMsalUiTest {
         silentLatch.await(TokenRequestTimeout.SILENT);
 
         // second interactive request
+        // wait about a minute here to throttle usage of AUTO MFA account
+        ThreadUtils.sleepSafely(
+                (int) TimeUnit.MINUTES.toMillis(1),
+                TAG,
+                "Problem occurred while sleeping safely to throttle AUTO MFA requests."
+        );
 
         final TokenRequestLatch latch2 = new TokenRequestLatch(1);
 
