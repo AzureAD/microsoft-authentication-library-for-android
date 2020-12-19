@@ -44,6 +44,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 // Interactive auth with force_login and step-up MFA
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99656
@@ -51,7 +52,7 @@ import java.util.concurrent.CountDownLatch;
 public class TestCase99656 extends AbstractMsalUiTest {
 
     @Test
-    public void test_99656() {
+    public void test_99656() throws InterruptedException {
         final TokenRequestLatch latch = new TokenRequestLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
@@ -105,6 +106,8 @@ public class TestCase99656 extends AbstractMsalUiTest {
         silentLatch.await(TokenRequestTimeout.SILENT);
 
         // second interactive request
+        // wait about a minute here to throttle usage of AUTO MFA account
+        Thread.sleep(TimeUnit.MINUTES.toMillis(1));
 
         final TokenRequestLatch latch2 = new TokenRequestLatch(1);
 
