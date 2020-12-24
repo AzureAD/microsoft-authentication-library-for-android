@@ -214,11 +214,16 @@ dependencies {
     // Set this dependency to use JUnit 4 rules
     androidTestImplementation "androidx.test:rules:$rootProject.rulesVersion"
     androidTestImplementation "androidx.test.uiautomator:uiautomator:$rootProject.ext.uiAutomatorVersion"
-    androidTestImplementation(project(":testutils")) {
+    compileOnly "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
+    annotationProcessor "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
+
+    implementation(project(":testutils")) {
         exclude module: 'common'
+        exclude module: 'appcompat'
     }
-    androidTestImplementation(project(":uiautomationutilities")) {
+    implementation(project(":uiautomationutilities")) {
         exclude module: 'common'
+        exclude module: 'appcompat'
     }
     androidTestImplementation "androidx.test:runner:$rootProject.ext.androidxTestRunnerVersion"
     androidTestUtil "androidx.test:orchestrator:$rootProject.ext.androidxTestOrchestratorVersion"
