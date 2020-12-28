@@ -93,7 +93,9 @@ public class TestCasePerf extends AbstractMsalUiTest {
 
         final IAccount account = getAccount();
 
-        for(int i = 0; i < 2; i++) {
+        final int numberOfOccurrenceOfTest = 10;
+        final String outputFilenamePrefix = "PerfDataTarget";
+        for(int i = 0; i < numberOfOccurrenceOfTest; i++) {
             CodeMarkerManager.clear();
             final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
 
@@ -108,7 +110,7 @@ public class TestCasePerf extends AbstractMsalUiTest {
             mApplication.acquireTokenSilentAsync(silentParameters);
             silentLatch.await(TokenRequestTimeout.SILENT);
             try {
-                FileAppender fileAppender = new FileAppender("PerfDataTarget"+i+".txt",new SimpleTextFormatter());
+                FileAppender fileAppender = new FileAppender(outputFilenamePrefix + i + ".txt", new SimpleTextFormatter());
                 fileAppender.append(CodeMarkerManager.getFileContent());
                 CommonUtils.copyFileToFolderInSdCard(
                         fileAppender.getLogFile(),
@@ -118,7 +120,7 @@ public class TestCasePerf extends AbstractMsalUiTest {
                 e.printStackTrace();
             }
 
-            if(i < 1) {
+            if(i < numberOfOccurrenceOfTest - 1) {
                 try {
                     Thread.sleep(30000);
                 } catch (InterruptedException e) {
