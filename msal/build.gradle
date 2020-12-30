@@ -38,7 +38,12 @@ android {
     defaultConfig {
         multiDexEnabled true
         minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
+        if(project.getProperties().get("robolectricSdkVersion")){
+            println "Using command line parameter robolectricSdkVersion for target sdk version"
+            targetSdkVersion project.getProperties().get("robolectricSdkVersion")
+        }else{
+            targetSdkVersion rootProject.ext.targetSdkVersion
+        }
         versionCode getAppVersionCode()
         versionName getAppVersionName()
         project.archivesBaseName = "msal"
