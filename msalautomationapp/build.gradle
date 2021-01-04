@@ -12,6 +12,12 @@ if (project.hasProperty("distMsalVersion")) {
 
 android {
 
+    compileOptions {
+        // Sets Java compatibility to Java 8
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
     final String BROKER_HOST = "BrokerHost"
     final String BROKER_MICROSOFT_AUTHENTICATOR = "BrokerMicrosoftAuthenticator"
     final String BROKER_COMPANY_PORTAL = "BrokerCompanyPortal"
