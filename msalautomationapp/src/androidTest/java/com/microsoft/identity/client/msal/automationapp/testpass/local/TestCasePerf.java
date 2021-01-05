@@ -94,6 +94,7 @@ public class TestCasePerf extends AbstractMsalUiTest {
 
         final IAccount account = getAccount();
 
+        CodeMarkerManager.setEnableCodeMarker(true);
         final int numberOfOccurrenceOfTest = 10;
         final String outputFilenamePrefix = "PerfDataTarget";
         for(int i = 0; i < numberOfOccurrenceOfTest; i++) {
@@ -125,6 +126,7 @@ public class TestCasePerf extends AbstractMsalUiTest {
                     CommandDispatcherHelper.clear();
             }
         }
+        CodeMarkerManager.setEnableCodeMarker(false);
     }
 
 
