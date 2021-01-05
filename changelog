@@ -2,6 +2,7 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 v.Next
 ----------
+- Better messaging clarity around redirect URI.
 
 Version 2.0.5
 ----------
