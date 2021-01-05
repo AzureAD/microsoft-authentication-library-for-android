@@ -8,7 +8,7 @@ MSAL Android divides public client applications into 2 sub-types:
 
 - Single Account Public Client Application - Which is intended to be used by applications that only expect one account to be in use at a time
   - For example: Line of business applications
-- Multiple Account Public Client Applications - Which is intended to be used by applications that expect their user to have multiple accounts and to want to use multiple accounts at the same time.
+- Multiple Account Public Client Applications - Which is intended to be used by B2C applications and applications that expect their user to have multiple accounts and to want to use multiple accounts at the same time.
   - For example: Email clients
 
 ## Factory Methods
