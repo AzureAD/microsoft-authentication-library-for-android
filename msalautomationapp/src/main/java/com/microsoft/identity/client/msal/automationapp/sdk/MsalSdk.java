@@ -44,10 +44,9 @@ import com.microsoft.identity.client.exception.MsalUserCancelException;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.sdk.ResultFuture;
+import com.microsoft.identity.client.ui.automation.sdk.IAuthSdk;
 
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * A Sdk wrapper for Microsoft Authentication Library (MSAL) which implements
@@ -55,10 +54,10 @@ import java.util.TreeMap;
  * AuthResult, MSAL tests can leverage this sdk for acquiring token with specific
  * parameters and get back the final result.
  */
-public class MsalSdk implements IAuthSdk {
+public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
     
     @Override
-    public MsalAuthResult acquireTokenInteractive(@NonNull MsalAuthTestParams authTestParams, OnInteractionRequired interactionRequiredCallback, TokenRequestTimeout tokenRequestTimeout) throws Throwable {
+    public MsalAuthResult acquireTokenInteractive(@NonNull MsalAuthTestParams authTestParams, final OnInteractionRequired interactionRequiredCallback, final TokenRequestTimeout tokenRequestTimeout) throws Throwable {
         final IPublicClientApplication pca = setupPCA(
                 authTestParams.getActivity(),
                 authTestParams.getMsalConfigResourceId()
@@ -94,7 +93,7 @@ public class MsalSdk implements IAuthSdk {
     }
 
     @Override
-    public MsalAuthResult acquireTokenSilent(@NonNull MsalAuthTestParams authTestParams, TokenRequestTimeout tokenRequestTimeout) throws Throwable {
+    public MsalAuthResult acquireTokenSilent(@NonNull MsalAuthTestParams authTestParams, final TokenRequestTimeout tokenRequestTimeout) throws Throwable {
         final IPublicClientApplication pca = setupPCA(
             authTestParams.getActivity(),
             authTestParams.getMsalConfigResourceId()
@@ -133,7 +132,7 @@ public class MsalSdk implements IAuthSdk {
     }
 
     private IPublicClientApplication setupPCA(@NonNull final Context context,
-                                             int msalConfigResourceId) {
+                                              final int msalConfigResourceId) {
         try {
             return PublicClientApplication.create(context, msalConfigResourceId);
         } catch (InterruptedException | MsalException e) {
