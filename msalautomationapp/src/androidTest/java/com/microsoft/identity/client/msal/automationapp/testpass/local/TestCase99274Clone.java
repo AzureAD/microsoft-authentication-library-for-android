@@ -22,16 +22,12 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.local;
 
-import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
-import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
-import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
-import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
@@ -40,6 +36,7 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadP
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 
 import org.junit.Test;
 
@@ -64,7 +61,7 @@ public class TestCase99274Clone extends AbstractMsalUiTest {
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-        final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired() {
+        final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
@@ -92,7 +89,7 @@ public class TestCase99274Clone extends AbstractMsalUiTest {
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-        final MsalAuthResult consentRecordResults = msalSdk.acquireTokenInteractive(consentRecordParams, new com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired() {
+        final MsalAuthResult consentRecordResults = msalSdk.acquireTokenInteractive(consentRecordParams, new OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()

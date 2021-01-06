@@ -35,6 +35,7 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadP
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 
 import org.junit.Test;
 
@@ -59,15 +60,7 @@ public class TestCase99267Clone extends AbstractMsalUiTest {
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-//        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-//                .startAuthorizationFromActivity(mActivity)
-//                .withLoginHint(mLoginHint)
-//                .withScopes(Arrays.asList(mScopes))
-//                .withCallback(successfulInteractiveCallback(latch))
-//                .withPrompt(Prompt.SELECT_ACCOUNT)
-//                .build();
-
-        final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired() {
+        final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
