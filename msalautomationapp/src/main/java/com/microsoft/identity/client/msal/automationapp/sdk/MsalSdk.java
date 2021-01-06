@@ -87,7 +87,7 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
         try {
             final IAuthenticationResult result = future.get();
             return new MsalAuthResult(result);
-        } catch (Exception exception) {
+        } catch (final Exception exception) {
             return new MsalAuthResult(exception);
         }
     }
