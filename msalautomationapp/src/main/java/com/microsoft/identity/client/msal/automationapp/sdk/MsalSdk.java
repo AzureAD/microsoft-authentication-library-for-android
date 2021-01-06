@@ -44,10 +44,9 @@ import com.microsoft.identity.client.exception.MsalUserCancelException;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.sdk.ResultFuture;
+import com.microsoft.identity.client.ui.automation.sdk.IAuthSdk;
 
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * A Sdk wrapper for Microsoft Authentication Library (MSAL) which implements
@@ -55,7 +54,7 @@ import java.util.TreeMap;
  * AuthResult, MSAL tests can leverage this sdk for acquiring token with specific
  * parameters and get back the final result.
  */
-public class MsalSdk implements IAuthSdk {
+public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
     
     @Override
     public MsalAuthResult acquireTokenInteractive(@NonNull MsalAuthTestParams authTestParams, final OnInteractionRequired interactionRequiredCallback, final TokenRequestTimeout tokenRequestTimeout) throws Throwable {
