@@ -58,7 +58,7 @@ import java.util.TreeMap;
 public class MsalSdk implements IAuthSdk {
     
     @Override
-    public MsalAuthResult acquireTokenInteractive(@NonNull MsalAuthTestParams authTestParams, OnInteractionRequired interactionRequiredCallback, TokenRequestTimeout tokenRequestTimeout) throws Throwable {
+    public MsalAuthResult acquireTokenInteractive(@NonNull MsalAuthTestParams authTestParams, final OnInteractionRequired interactionRequiredCallback, final TokenRequestTimeout tokenRequestTimeout) throws Throwable {
         final IPublicClientApplication pca = setupPCA(
                 authTestParams.getActivity(),
                 authTestParams.getMsalConfigResourceId()
@@ -94,7 +94,7 @@ public class MsalSdk implements IAuthSdk {
     }
 
     @Override
-    public MsalAuthResult acquireTokenSilent(@NonNull MsalAuthTestParams authTestParams, TokenRequestTimeout tokenRequestTimeout) throws Throwable {
+    public MsalAuthResult acquireTokenSilent(@NonNull MsalAuthTestParams authTestParams, final TokenRequestTimeout tokenRequestTimeout) throws Throwable {
         final IPublicClientApplication pca = setupPCA(
             authTestParams.getActivity(),
             authTestParams.getMsalConfigResourceId()
@@ -133,7 +133,7 @@ public class MsalSdk implements IAuthSdk {
     }
 
     private IPublicClientApplication setupPCA(@NonNull final Context context,
-                                             int msalConfigResourceId) {
+                                              final int msalConfigResourceId) {
         try {
             return PublicClientApplication.create(context, msalConfigResourceId);
         } catch (InterruptedException | MsalException e) {
