@@ -123,7 +123,12 @@ public class TestCasePerf extends AbstractMsalUiTest {
             }
 
             if(i < numberOfOccurrenceOfTest - 1) {
-                    CommandDispatcherHelper.clear();
+                // CommandDispatcherHelper.clear();
+                try {
+                    Thread.sleep(30000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
         CodeMarkerManager.setEnableCodeMarker(false);
