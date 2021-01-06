@@ -56,9 +56,7 @@ import java.util.TreeMap;
  * parameters and get back the final result.
  */
 public class MsalSdk implements IAuthSdk {
-
-    protected Map<String, String> upnUserIdMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-
+    
     @Override
     public MsalAuthResult acquireTokenInteractive(@NonNull MsalAuthTestParams authTestParams, OnInteractionRequired interactionRequiredCallback, TokenRequestTimeout tokenRequestTimeout) throws Throwable {
         final IPublicClientApplication pca = setupPCA(
@@ -129,7 +127,7 @@ public class MsalSdk implements IAuthSdk {
         try {
             final IAuthenticationResult result = future.get();
             return new MsalAuthResult(result);
-        } catch (Exception exception) {
+        } catch (final Exception exception) {
             return new MsalAuthResult(exception);
         }
     }
@@ -179,7 +177,7 @@ public class MsalSdk implements IAuthSdk {
         }
     }
 
-    private IAccount getAccountForSingleAccountPca(SingleAccountPublicClientApplication pca) {
+    private IAccount getAccountForSingleAccountPca(@NonNull final SingleAccountPublicClientApplication pca) {
         final ResultFuture<IAccount, Exception> future = new ResultFuture<>();
 
         pca.getCurrentAccountAsync(new ISingleAccountPublicClientApplication.CurrentAccountCallback() {
@@ -206,7 +204,7 @@ public class MsalSdk implements IAuthSdk {
         }
     }
 
-    private IAccount getAccountForMultipleAccountPca(MultipleAccountPublicClientApplication pca,
+    private IAccount getAccountForMultipleAccountPca(@NonNull final MultipleAccountPublicClientApplication pca,
                                                      final String username) {
         final ResultFuture<IAccount, Exception> future = new ResultFuture<>();
 
@@ -224,31 +222,8 @@ public class MsalSdk implements IAuthSdk {
 
         try {
             return future.get();
-        } catch (Exception exception) {
+        } catch (final Exception exception) {
             throw new AssertionError(exception);
         }
     }
-
-//    private AuthenticationContext createAuthContext(final Context context, final String authority) {
-//        return new AuthenticationContext(context, authority, true);
-//    }
-//
-//    private AuthenticationCallback getAuthenticationCallback(
-//            final ResultFuture<AuthenticationResult, Exception> future) {
-//        return new AuthenticationCallback<AuthenticationResult>() {
-//            @Override
-//            public void onSuccess(final AuthenticationResult authenticationResult) {
-//                upnUserIdMap.put(
-//                        authenticationResult.getUserInfo().getDisplayableId(),
-//                        authenticationResult.getUserInfo().getUserId()
-//                );
-//                future.setResult(authenticationResult);
-//            }
-//
-//            @Override
-//            public void onError(final Exception e) {
-//                future.setException(e);
-//            }
-//        };
-//    }
 }
