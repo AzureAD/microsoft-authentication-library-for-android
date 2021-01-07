@@ -57,7 +57,7 @@ import java.util.ArrayList;
 public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
     
     @Override
-    public MsalAuthResult acquireTokenInteractive(@NonNull MsalAuthTestParams authTestParams, final OnInteractionRequired interactionRequiredCallback, final TokenRequestTimeout tokenRequestTimeout) throws Throwable {
+    public MsalAuthResult acquireTokenInteractive(@NonNull MsalAuthTestParams authTestParams, final OnInteractionRequired interactionRequiredCallback, @NonNull final TokenRequestTimeout tokenRequestTimeout) throws Throwable {
         final IPublicClientApplication pca = setupPCA(
                 authTestParams.getActivity(),
                 authTestParams.getMsalConfigResourceId()
@@ -85,7 +85,7 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
         interactionRequiredCallback.handleUserInteraction();
 
         try {
-            final IAuthenticationResult result = future.get();
+            final IAuthenticationResult result = future.get(tokenRequestTimeout.getTime(), tokenRequestTimeout.getTimeUnit());
             return new MsalAuthResult(result);
         } catch (final Exception exception) {
             return new MsalAuthResult(exception);
@@ -93,7 +93,7 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
     }
 
     @Override
-    public MsalAuthResult acquireTokenSilent(@NonNull MsalAuthTestParams authTestParams, final TokenRequestTimeout tokenRequestTimeout) throws Throwable {
+    public MsalAuthResult acquireTokenSilent(@NonNull MsalAuthTestParams authTestParams, @NonNull final TokenRequestTimeout tokenRequestTimeout) throws Throwable {
         final IPublicClientApplication pca = setupPCA(
             authTestParams.getActivity(),
             authTestParams.getMsalConfigResourceId()
@@ -124,7 +124,7 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
         pca.acquireTokenSilentAsync(acquireTokenParameters);
 
         try {
-            final IAuthenticationResult result = future.get();
+            final IAuthenticationResult result = future.get(tokenRequestTimeout.getTime(), tokenRequestTimeout.getTimeUnit());
             return new MsalAuthResult(result);
         } catch (final Exception exception) {
             return new MsalAuthResult(exception);
