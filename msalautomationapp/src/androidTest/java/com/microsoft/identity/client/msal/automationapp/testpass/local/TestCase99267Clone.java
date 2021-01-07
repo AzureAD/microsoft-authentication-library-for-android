@@ -28,6 +28,7 @@ import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
+import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.UiResponse;
@@ -75,7 +76,7 @@ public class TestCase99267Clone extends AbstractMsalUiTest {
                 new AadPromptHandler(promptHandlerParameters)
                         .handlePrompt(username, password);
             }
-        },null);
+        }, TokenRequestTimeout.MEDIUM);
 
         authResult.assertSuccess();
 
