@@ -930,6 +930,19 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
                         try {
                             if (config.getAccountMode() == AccountMode.SINGLE || isSharedDevice) {
+                                if (null != config.getDefaultAuthority() &&
+                                        config.getDefaultAuthority() instanceof AzureActiveDirectoryB2CAuthority) {
+                                    Logger.warn(
+                                            TAG,
+                                            "Warning! B2C applications should use MultipleAccountPublicClientApplication. "
+                                                    + "Use of SingleAccount mode with multiple IEF policies is unsupported."
+                                    );
+
+                                    if (config.getAuthorities().size() > 1) {
+                                        throw new MsalClientException("SingleAccountPublicClientApplication cannot be used with multiple B2C policies.");
+                                    }
+                                }
+
                                 listener.onCreated(new SingleAccountPublicClientApplication(config));
                             } else {
                                 listener.onCreated(new MultipleAccountPublicClientApplication(config));
