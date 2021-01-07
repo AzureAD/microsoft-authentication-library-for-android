@@ -114,6 +114,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static com.microsoft.identity.client.PublicClientApplicationConfigurationFactory.initializeConfiguration;
+import static com.microsoft.identity.client.exception.MsalClientException.SAPCA_USE_WITH_MULTI_POLICY_B2C;
 import static com.microsoft.identity.client.exception.MsalClientException.UNKNOWN_ERROR;
 import static com.microsoft.identity.client.internal.CommandParametersAdapter.createGenerateShrCommandParameters;
 import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
@@ -939,7 +940,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                     );
 
                                     if (config.getAuthorities().size() > 1) {
-                                        throw new MsalClientException("SingleAccountPublicClientApplication cannot be used with multiple B2C policies.");
+                                        throw new MsalClientException(SAPCA_USE_WITH_MULTI_POLICY_B2C);
                                     }
                                 }
 
