@@ -95,7 +95,7 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
 
         CodeMarkerManager.setEnableCodeMarker(true);
         final int numberOfOccurrenceOfTest = 10;
-        final String outputFilenamePrefix = "PerfDataTarget";
+        final String outputFilenamePrefix = "PerfDataTargetBrokerHost";
         for(int i = 0; i < numberOfOccurrenceOfTest; i++) {
             CodeMarkerManager.clear();
             final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
