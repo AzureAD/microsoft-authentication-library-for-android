@@ -20,17 +20,23 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
+package com.microsoft.identity.client.msal.automationapp.sdk;
 
-package com.microsoft.identity.client.msal.automationapp;
+import com.microsoft.identity.client.Prompt;
+import com.microsoft.identity.client.ui.automation.sdk.AuthTestParams;
 
-import android.app.Activity;
-import android.os.Bundle;
+import java.util.List;
 
-public class MainActivity extends Activity {
+import lombok.Getter;
+import lombok.experimental.SuperBuilder;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-    }
+// MSAL Test Parameters Class which has all the parameters required for MSAL with or w/o Broker Automation TestCases
+@Getter
+@SuperBuilder
+public class MsalAuthTestParams extends AuthTestParams {
+
+    private final Prompt promptParameter;
+    private final boolean forceRefresh;
+    private final int msalConfigResourceId;
+    private final List<String> scopes;
 }
