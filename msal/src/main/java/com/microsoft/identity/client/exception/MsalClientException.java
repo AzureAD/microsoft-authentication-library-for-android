@@ -201,7 +201,7 @@ public final class MsalClientException extends MsalException {
     /**
      * Configuration error. SingleAccount apps cannot be used with multiple B2C policies, as each policy creates a separate Account.
      */
-    static final String SAPCA_USE_WITH_MULTI_POLICY_B2C = "SingleAccountPublicClientApplication cannot be used with multiple B2C policies.";
+    public static final String SAPCA_USE_WITH_MULTI_POLICY_B2C = "SingleAccountPublicClientApplication cannot be used with multiple B2C policies.";
 
     public MsalClientException(final String errorCode) {
         super(errorCode);
