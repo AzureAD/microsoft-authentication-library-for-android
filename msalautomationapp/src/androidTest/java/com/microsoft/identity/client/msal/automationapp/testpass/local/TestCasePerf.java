@@ -39,7 +39,6 @@ import com.microsoft.identity.client.ui.automation.logging.appender.FileAppender
 import com.microsoft.identity.client.ui.automation.logging.formatter.SimpleTextFormatter;
 import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
 import com.microsoft.identity.common.CodeMarkerManager;
-import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
@@ -95,10 +94,11 @@ public class TestCasePerf extends AbstractMsalUiTest {
         final IAccount account = getAccount();
 
         CodeMarkerManager.setEnableCodeMarker(true);
+        CodeMarkerManager.setPrefixScenarioCode("100");
         final int numberOfOccurrenceOfTest = 10;
         final String outputFilenamePrefix = "PerfDataTarget";
         for(int i = 0; i < numberOfOccurrenceOfTest; i++) {
-            CodeMarkerManager.clear();
+            CodeMarkerManager.clearMarkers();
             final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
 
             final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()

@@ -26,7 +26,6 @@ import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
@@ -94,10 +93,11 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
         final IAccount account = getAccount();
 
         CodeMarkerManager.setEnableCodeMarker(true);
+        CodeMarkerManager.setPrefixScenarioCode("200");
         final int numberOfOccurrenceOfTest = 10;
         final String outputFilenamePrefix = "PerfDataTargetBrokerHost";
         for(int i = 0; i < numberOfOccurrenceOfTest; i++) {
-            CodeMarkerManager.clear();
+            CodeMarkerManager.clearMarkers();
             final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
 
             final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
