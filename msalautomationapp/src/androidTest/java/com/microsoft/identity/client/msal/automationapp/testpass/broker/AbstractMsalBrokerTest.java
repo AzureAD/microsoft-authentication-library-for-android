@@ -27,6 +27,7 @@ import androidx.annotation.NonNull;
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.BuildConfig;
 import com.microsoft.identity.client.ui.automation.IBrokerTest;
+import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
@@ -34,6 +35,9 @@ import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.rules.RulesHelper;
 
 import org.junit.rules.RuleChain;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * An MSAL test model that would leverage an {@link ITestBroker} installed on the device.
@@ -57,6 +61,19 @@ public abstract class AbstractMsalBrokerTest extends AbstractMsalUiTest implemen
                 return new BrokerMicrosoftAuthenticator();
             case BuildConfig.BrokerCompanyPortal:
                 return new BrokerCompanyPortal();
+            case BuildConfig.AutoBroker: {
+                SupportedBrokers supportedBrokersAnnotation = getClass().getAnnotation(SupportedBrokers.class);
+                if (supportedBrokersAnnotation == null) {
+                    return new BrokerMicrosoftAuthenticator();
+                }
+                final List<Class<? extends ITestBroker>> supportedBrokerClasses =
+                        Arrays.asList(supportedBrokersAnnotation.brokers());
+                if (BuildConfig.FLAVOR_main == "dist" && supportedBrokerClasses.contains(new BrokerCompanyPortal().getClass())) {
+                    return new BrokerCompanyPortal();
+                } else {
+                    return new BrokerMicrosoftAuthenticator();
+                }
+            }
             default:
                 throw new UnsupportedOperationException("Unsupported broker :(");
         }
