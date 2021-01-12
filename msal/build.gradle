@@ -5,16 +5,16 @@ apply plugin: 'maven'
 apply plugin: 'maven-publish'
 apply from: 'versioning/version_tasks.gradle'
 group = 'com.microsoft.identity.client'
-apply plugin: 'jacoco'
-
-// To include Robolectric tests in the Jacoco report, flag -> "includeNolocationClasses" is set to true
-
-tasks.withType(Test) {
-    jacoco.includeNoLocationClasses = true
-    //This needs to be excluded for JDK 11
-    //SEE: https://support.circleci.com/hc/en-us/articles/360047926852-Android-Builds-Fail-with-java-lang-ClassNotFoundException-jdk-internal-reflect-GeneratedSerializationConstructorAccessor1-
-    jacoco.excludes = ['jdk.internal.*']
-}
+//apply plugin: 'jacoco'
+//
+//// To include Robolectric tests in the Jacoco report, flag -> "includeNolocationClasses" is set to true
+//
+//tasks.withType(Test) {
+//    jacoco.includeNoLocationClasses = true
+//    //This needs to be excluded for JDK 11
+//    //SEE: https://support.circleci.com/hc/en-us/articles/360047926852-Android-Builds-Fail-with-java-lang-ClassNotFoundException-jdk-internal-reflect-GeneratedSerializationConstructorAccessor1-
+//    jacoco.excludes = ['jdk.internal.*']
+//}
 
 
 
