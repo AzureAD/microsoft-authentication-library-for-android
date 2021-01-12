@@ -54,6 +54,15 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
     @Test
     public void test_99563() {
         final TokenRequestLatch latch = new TokenRequestLatch(1);
+        final IAccount account = getAccount();
+
+        CodeMarkerManager.setEnableCodeMarker(true);
+
+        //Setting up scenario code. 100 -> Non Brokered, 200 -> Brokered
+        CodeMarkerManager.setPrefixScenarioCode("200");
+
+        final int numberOfOccurrenceOfTest = 10;
+        final String outputFilenamePrefix = "PerfDataTargetBrokerHost";
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
@@ -90,12 +99,6 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
         interactiveRequest.execute();
         latch.await(TokenRequestTimeout.SHORT);
 
-        final IAccount account = getAccount();
-
-        CodeMarkerManager.setEnableCodeMarker(true);
-        CodeMarkerManager.setPrefixScenarioCode("200");
-        final int numberOfOccurrenceOfTest = 10;
-        final String outputFilenamePrefix = "PerfDataTargetBrokerHost";
         for(int i = 0; i < numberOfOccurrenceOfTest; i++) {
             CodeMarkerManager.clearMarkers();
             final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
@@ -130,6 +133,7 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
                 }
             }
         }
+        CodeMarkerManager.clearMarkers();
         CodeMarkerManager.setEnableCodeMarker(false);
     }
 

@@ -55,6 +55,15 @@ public class TestCasePerf extends AbstractMsalUiTest {
     @Test
     public void test_99563() {
         final TokenRequestLatch latch = new TokenRequestLatch(1);
+        final IAccount account = getAccount();
+
+        CodeMarkerManager.setEnableCodeMarker(true);
+
+        //Setting up scenario code. 100 -> Non Brokered, 200 -> Brokered
+        CodeMarkerManager.setPrefixScenarioCode("100");
+
+        final int numberOfOccurrenceOfTest = 10;
+        final String outputFilenamePrefix = "PerfDataTarget";
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
@@ -91,12 +100,6 @@ public class TestCasePerf extends AbstractMsalUiTest {
         interactiveRequest.execute();
         latch.await(TokenRequestTimeout.SHORT);
 
-        final IAccount account = getAccount();
-
-        CodeMarkerManager.setEnableCodeMarker(true);
-        CodeMarkerManager.setPrefixScenarioCode("100");
-        final int numberOfOccurrenceOfTest = 10;
-        final String outputFilenamePrefix = "PerfDataTarget";
         for(int i = 0; i < numberOfOccurrenceOfTest; i++) {
             CodeMarkerManager.clearMarkers();
             final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
@@ -131,6 +134,7 @@ public class TestCasePerf extends AbstractMsalUiTest {
                 }
             }
         }
+        CodeMarkerManager.clearMarkers();
         CodeMarkerManager.setEnableCodeMarker(false);
     }
 
