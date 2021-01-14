@@ -31,15 +31,16 @@ import androidx.annotation.Nullable;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.internal.authscheme.BearerAuthenticationSchemeInternal;
+import com.microsoft.identity.common.internal.broker.BrokerData;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.logging.Logger;
 
+import java.util.Set;
+
 import static com.microsoft.identity.client.exception.MsalClientException.NOT_ELIGIBLE_TO_USE_BROKER;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.COMPANY_PORTAL_APP_PACKAGE_NAME;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
 
 /**
@@ -48,6 +49,25 @@ import static com.microsoft.identity.common.exception.ClientException.TOKEN_CACH
 public final class BrokerClientIdRefreshTokenAccessor {
 
     private static final String TAG = BrokerClientIdRefreshTokenAccessor.class.getSimpleName();
+
+    private static void throwIfNotValidBroker(final Context context) throws MsalClientException {
+        final BrokerValidator brokerValidator = new BrokerValidator(context);
+        final Set<BrokerData> validBrokers = brokerValidator.getValidBrokers();
+
+        for (final BrokerData brokerData : validBrokers) {
+            if (brokerData.packageName.equals(context.getPackageName())) {
+                if (!brokerValidator.verifySignature(context.getPackageName())) {
+                    throw new MsalClientException(NOT_ELIGIBLE_TO_USE_BROKER, "This can only be invoked by Broker apps with a valid signature hash.");
+                } else {
+                    //both package name and signature have matched...therefore this is a valid broker.
+                    return;
+                }
+            }
+        }
+
+        // package name not matched so this is not a valid broker.
+        throw new MsalClientException(NOT_ELIGIBLE_TO_USE_BROKER, "This can only be invoked by Broker apps.");
+    }
 
     /**
      * Returns a refresh token associated to Broker's client ID.
@@ -59,18 +79,12 @@ public final class BrokerClientIdRefreshTokenAccessor {
      * @return an RT, if there's any.
      * @throws MsalClientException if the calling app is not a broker app.
      */
-    public static @Nullable String get(@NonNull final Context context,
-                                       @NonNull final String accountObjectId) throws MsalClientException {
+    public static @Nullable
+    String get(@NonNull final Context context,
+               @NonNull final String accountObjectId) throws MsalClientException {
         final String methodName = "getBrokerRefreshToken";
 
-        if (!AZURE_AUTHENTICATOR_APP_PACKAGE_NAME.equals(context.getPackageName()) &&
-                !COMPANY_PORTAL_APP_PACKAGE_NAME.equals(context.getPackageName())) {
-            throw new MsalClientException(NOT_ELIGIBLE_TO_USE_BROKER, "This can only be invoked by Broker apps.");
-        }
-
-        if (!new BrokerValidator(context).verifySignature(context.getPackageName())) {
-            throw new MsalClientException(NOT_ELIGIBLE_TO_USE_BROKER, "This can only be invoked by Broker apps with a valid signature hash.");
-        }
+        throwIfNotValidBroker(context);
 
         final MsalOAuth2TokenCache tokenCache = MsalOAuth2TokenCache.create(context);
         final ICacheRecord cacheRecord = getCacheRecordForIdentifier(tokenCache, accountObjectId);
