@@ -20,7 +20,7 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.broker.usgov.fairfaxmigrated;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.usgov.arlington;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
@@ -47,6 +47,7 @@ import java.util.concurrent.CountDownLatch;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/948676
 public class TestCase948676 extends AbstractMsalBrokerTest {
 
+    @Test
     public void test_948676() throws InterruptedException {
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
@@ -97,7 +98,7 @@ public class TestCase948676 extends AbstractMsalBrokerTest {
     public LabUserQuery getLabUserQuery() {
         final LabUserQuery query = new LabUserQuery();
         query.userType = LabConstants.UserType.CLOUD;
-        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT_MIGRATED;
+        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT;
         return query;
     }
 
