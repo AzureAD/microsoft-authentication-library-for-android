@@ -129,8 +129,8 @@ public class PublicClientApplicationConfigurationFactory {
 
     @WorkerThread
     @VisibleForTesting
-    private static PublicClientApplicationConfiguration loadConfiguration(final @NonNull InputStream configStream,
-                                                                          final boolean isDefaultConfiguration) {
+    static PublicClientApplicationConfiguration loadConfiguration(final @NonNull InputStream configStream,
+                                                                  final boolean isDefaultConfiguration) {
         byte[] buffer;
 
         try {

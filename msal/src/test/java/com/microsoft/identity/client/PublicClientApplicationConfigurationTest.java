@@ -11,6 +11,8 @@ import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAu
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
+
 public class PublicClientApplicationConfigurationTest {
 
     @Test
@@ -45,7 +47,7 @@ public class PublicClientApplicationConfigurationTest {
             + "}"
  + "]"
         + "}";
-        PublicClientApplicationConfiguration conf = gson.fromJson(config, PublicClientApplicationConfiguration.class);
+        PublicClientApplicationConfiguration conf = PublicClientApplicationConfigurationFactory.loadConfiguration(new ByteArrayInputStream(config.getBytes()), false);
     }
     @Test
     public void testRedirectUriValidationValid() {
