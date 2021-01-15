@@ -94,12 +94,12 @@ public class TestCasePerf extends AbstractMsalUiTest {
         latch.await(TokenRequestTimeout.SHORT);
 
         final IAccount account = getAccount();
-        CodeMarkerManager.setEnableCodeMarker(true);
+        CodeMarkerManager.getInstance().setEnableCodeMarker(true);
         //Setting up scenario code. 100 -> Non Brokered, 200 -> Brokered
-        CodeMarkerManager.setPrefixScenarioCode("100");
+        CodeMarkerManager.getInstance().setPrefixScenarioCode("100");
 
         for(int i = 0; i < numberOfOccurrenceOfTest; i++) {
-            CodeMarkerManager.clearMarkers();
+            CodeMarkerManager.getInstance().clearMarkers();
             final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
 
             final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
@@ -114,7 +114,7 @@ public class TestCasePerf extends AbstractMsalUiTest {
             silentLatch.await(TokenRequestTimeout.SILENT);
             try {
                 FileAppender fileAppender = new FileAppender(outputFilenamePrefix + i + ".txt", new SimpleTextFormatter());
-                fileAppender.append(CodeMarkerManager.getFileContent());
+                fileAppender.append(CodeMarkerManager.getInstance().getFileContent());
                 CommonUtils.copyFileToFolderInSdCard(
                         fileAppender.getLogFile(),
                         "automation"
@@ -132,8 +132,8 @@ public class TestCasePerf extends AbstractMsalUiTest {
                 }
             }
         }
-        CodeMarkerManager.clearMarkers();
-        CodeMarkerManager.setEnableCodeMarker(false);
+        CodeMarkerManager.getInstance().clearMarkers();
+        CodeMarkerManager.getInstance().setEnableCodeMarker(false);
     }
 
 
