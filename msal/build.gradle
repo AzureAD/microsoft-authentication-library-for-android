@@ -48,6 +48,7 @@ android {
         versionName getAppVersionName()
         project.archivesBaseName = "msal"
         project.version = android.defaultConfig.versionName
+        buildConfigField("String", "VERSION_NAME", "\"${versionName}\"")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
