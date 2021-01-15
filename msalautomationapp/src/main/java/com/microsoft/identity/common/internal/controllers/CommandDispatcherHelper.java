@@ -22,8 +22,14 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.common.internal.controllers;
 
+/**
+ * A utility to invoke and/or provide few functionalities related to the the flow of Acquiring token.
+ */
 public class CommandDispatcherHelper {
 
+    /**
+     * Clearing the cache of the Access token otherwise which is cleared after 30 seconds of acquire.
+     */
     public static void clear(){
         CommandDispatcher.clearCommandCache();
     }

@@ -20,7 +20,7 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.local;
+package com.microsoft.identity.client.msal.automationapp.testpass.perf;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
@@ -53,7 +53,7 @@ import java.util.Arrays;
 public class TestCasePerf extends AbstractMsalUiTest {
 
     @Test
-    public void test_99563() {
+    public void test_acquireTokenSilentlyWithoutBroker() {
         final TokenRequestLatch latch = new TokenRequestLatch(1);
         final int numberOfOccurrenceOfTest = 10;
         final String outputFilenamePrefix = "PerfDataTarget";
