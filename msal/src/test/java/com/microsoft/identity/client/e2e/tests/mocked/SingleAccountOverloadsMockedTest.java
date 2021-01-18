@@ -37,7 +37,7 @@ import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthorityForMockHttpResponse;
-import com.microsoft.identity.client.e2e.shadows.ShadowHttpRequestForMockedTest;
+import com.microsoft.identity.client.e2e.shadows.ShadowHttpClient;
 import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
 import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
@@ -47,6 +47,7 @@ import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.exception.ServiceException;
+import com.microsoft.identity.common.internal.net.HttpClient;
 import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
 import com.microsoft.identity.internal.testutils.MockHttpResponse;
 import com.microsoft.identity.internal.testutils.TestConstants;
@@ -71,21 +72,23 @@ import static org.junit.Assert.fail;
 @Config(shadows = {
         ShadowStorageHelper.class,
         ShadowAuthorityForMockHttpResponse.class,
-        ShadowHttpRequestForMockedTest.class,
         ShadowMsalUtils.class,
+        ShadowHttpClient.class,
         ShadowOpenIdProviderConfigurationClient.class
 })
 public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
 
     private SingleAccountPublicClientApplication mSingleAccountPCA;
-    private String mUsername = MOCK_PREFERRED_USERNAME_VALUE;
+    private final String mUsername = MOCK_PREFERRED_USERNAME_VALUE;
 
     @Before
     public void setup() {
         super.setup();
         TestUtils.clearCache(SingleAccountPublicClientApplication.SINGLE_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES);
         mSingleAccountPCA = (SingleAccountPublicClientApplication) mApplication;
-        MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenSuccessResponse());
+
+        MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenSuccessResponse(), HttpClient.HttpMethod.POST);
+        MockHttpResponse.setHttpResponse(MockServerResponse.getMockCloudDiscoveryResponse(), HttpClient.HttpMethod.GET);
     }
 
     @Test
