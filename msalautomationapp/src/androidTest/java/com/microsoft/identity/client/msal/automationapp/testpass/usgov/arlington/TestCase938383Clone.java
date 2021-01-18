@@ -20,7 +20,7 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.local;
+package com.microsoft.identity.client.msal.automationapp.testpass.usgov.arlington;
 
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
@@ -29,13 +29,13 @@ import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
+import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
+import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.common.internal.util.ThreadUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
@@ -43,17 +43,13 @@ import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 
-// Interactive auth with force_login and step-up MFA
-// https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99656
-@RetryOnFailure
-public class TestCase99656Clone extends AbstractMsalUiTest {
-
-    private final String TAG = TestCase99656Clone.class.getSimpleName();
+// Silent token acquisition with unexpired RT with USGov authority
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938383
+public class TestCase938383Clone extends AbstractMsalUiTest {
 
     @Test
-    public void test_99656() throws Throwable {
+    public void test_938383() throws Throwable {
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
@@ -61,18 +57,20 @@ public class TestCase99656Clone extends AbstractMsalUiTest {
 
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .loginHint(mLoginHint)
                 .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
+        // Start interactive token request in MSAL (should succeed)
         final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
+                ((IApp) mBrowser).handleFirstRun();
+
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
-                        .loginHint(mLoginHint)
+                        .loginHint(null)
                         .sessionExpected(false)
                         .consentPageExpected(false)
                         .speedBumpExpected(false)
@@ -81,64 +79,31 @@ public class TestCase99656Clone extends AbstractMsalUiTest {
                 new AadPromptHandler(promptHandlerParameters)
                         .handlePrompt(username, password);
             }
-        }, TokenRequestTimeout.MEDIUM);
+        },TokenRequestTimeout.MEDIUM);
 
         authResult.assertSuccess();
 
+        // change the time on the device
+        TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
+
         final IAccount account = getAccount();
 
-        final MsalAuthTestParams silentParams = MsalAuthTestParams.builder()
+        // start silent token request in MSAL
+        final MsalAuthTestParams authTestSilentParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
+                .scopes(Arrays.asList(mScopes))
                 .authority(account.getAuthority())
-                .forceRefresh(false)
-                .scopes(Arrays.asList(mScopes))
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-        final MsalAuthResult silentAuthResult = msalSdk.acquireTokenSilent(silentParams,TokenRequestTimeout.SILENT);
-        silentAuthResult.assertSuccess();
-
-        // second interactive request
-        // wait about a minute here to throttle usage of AUTO MFA account
-        ThreadUtils.sleepSafely(
-                (int) TimeUnit.MINUTES.toMillis(1),
-                TAG,
-                "Problem occurred while sleeping safely to throttle AUTO MFA requests."
-        );
-
-        final MsalAuthTestParams authTestParams2 = MsalAuthTestParams.builder()
-                .activity(mActivity)
-                .loginHint(mLoginHint)
-                .scopes(Arrays.asList(mScopes))
-                .promptParameter(Prompt.LOGIN)
-                .msalConfigResourceId(getConfigFileResourceId())
-                .build();
-
-        final MsalAuthResult authResult2 = msalSdk.acquireTokenInteractive(authTestParams2, new OnInteractionRequired() {
-            @Override
-            public void handleUserInteraction() {
-                final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                        .prompt(PromptParameter.LOGIN)
-                        .loginHint(mLoginHint)
-                        .sessionExpected(true)
-                        .consentPageExpected(false)
-                        .speedBumpExpected(false)
-                        .build();
-
-                new AadPromptHandler(promptHandlerParameters)
-                        .handlePrompt(username, password);
-            }
-        }, TokenRequestTimeout.MEDIUM);
-
-        authResult2.assertSuccess();
-
+        final MsalAuthResult authSilentResult = msalSdk.acquireTokenSilent(authTestSilentParams, TokenRequestTimeout.SILENT);
+        authSilentResult.assertSuccess();
     }
-
 
     @Override
     public LabUserQuery getLabUserQuery() {
         final LabUserQuery query = new LabUserQuery();
-        query.mfa = LabConstants.Mfa.AUTO_MFA_ON_ALL;
+        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT;
         return query;
     }
 
@@ -154,11 +119,11 @@ public class TestCase99656Clone extends AbstractMsalUiTest {
 
     @Override
     public String getAuthority() {
-        return mApplication.getConfiguration().getDefaultAuthority().toString();
+        return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
     }
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_webview;
+        return R.raw.msal_config_instance_aware_common;
     }
 }
