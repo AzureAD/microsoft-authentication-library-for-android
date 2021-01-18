@@ -123,11 +123,14 @@ public class TestCasePerf extends AbstractMsalUiTest {
                 e.printStackTrace();
             }
 
+            // If this is not the last iteration, then we need either to clear cache of access token manually or wait for 30 seconds.
             if(i < numberOfOccurrenceOfTest - 1) {
                 // CommandDispatcherHelper.clear();
                 try {
+                    // Sleep for 30 seconds so that the cache access token cache is cleared.
                     Thread.sleep(30000);
                 } catch (InterruptedException e) {
+                    throw new AssertionError("Interrupted while sleeping for 30 seconds so that old access token could have been out of chache");
                     e.printStackTrace();
                 }
             }
