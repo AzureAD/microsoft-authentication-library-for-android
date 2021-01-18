@@ -114,6 +114,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static com.microsoft.identity.client.PublicClientApplicationConfigurationFactory.initializeConfiguration;
+import static com.microsoft.identity.client.exception.MsalClientException.SAPCA_USE_WITH_MULTI_POLICY_B2C;
 import static com.microsoft.identity.client.exception.MsalClientException.UNKNOWN_ERROR;
 import static com.microsoft.identity.client.internal.CommandParametersAdapter.createGenerateShrCommandParameters;
 import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
@@ -902,6 +903,13 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             config.setRedirectUri(redirectUri);
         }
 
+        try {
+            validateAccountModeConfiguration(config);
+        } catch (final MsalClientException e) {
+            listener.onError(e);
+            return;
+        }
+
         final CommandParameters params = CommandParametersAdapter.createCommandParameters(config, config.getOAuth2TokenCache());
 
         final BaseController controller;
@@ -948,6 +956,22 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         );
 
         CommandDispatcher.submitSilent(command);
+    }
+
+    private static void validateAccountModeConfiguration(@NonNull final PublicClientApplicationConfiguration config) throws MsalClientException {
+        if (config.getAccountMode() == AccountMode.SINGLE
+                && null != config.getDefaultAuthority()
+                && config.getDefaultAuthority() instanceof AzureActiveDirectoryB2CAuthority) {
+            Logger.warn(
+                    TAG,
+                    "Warning! B2C applications should use MultipleAccountPublicClientApplication. "
+                            + "Use of SingleAccount mode with multiple IEF policies is unsupported."
+            );
+
+            if (config.getAuthorities().size() > 1) {
+                throw new MsalClientException(SAPCA_USE_WITH_MULTI_POLICY_B2C);
+            }
+        }
     }
 
     private static void createMultipleAccountPublicClientApplication(

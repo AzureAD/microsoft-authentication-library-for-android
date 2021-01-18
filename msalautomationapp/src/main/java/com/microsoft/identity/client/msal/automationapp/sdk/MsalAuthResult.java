@@ -20,17 +20,26 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
+package com.microsoft.identity.client.msal.automationapp.sdk;
 
-package com.microsoft.identity.client.msal.automationapp;
+import androidx.annotation.NonNull;
 
-import android.app.Activity;
-import android.os.Bundle;
+import com.microsoft.identity.client.IAuthenticationResult;
+import com.microsoft.identity.client.ui.automation.sdk.AuthResult;
 
-public class MainActivity extends Activity {
+import java.util.Map;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+// MSAL Result Class to handle asserting success or failure on execution of Automated Test Cases
+public class MsalAuthResult extends AuthResult {
+
+    private Map<String, ?> claims;
+
+    public MsalAuthResult(@NonNull final IAuthenticationResult authenticationResult) {
+        super(authenticationResult.getAccessToken(), authenticationResult.getAccount().getIdToken(), authenticationResult.getAccount().getId(), authenticationResult.getAccount().getUsername(), authenticationResult.getAccount().getAuthority());
+        this.claims = authenticationResult.getAccount().getClaims();
+    }
+
+    public MsalAuthResult(@NonNull final Exception exception) {
+        super(exception);
     }
 }
