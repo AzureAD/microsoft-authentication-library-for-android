@@ -131,7 +131,6 @@ public class TestCasePerf extends AbstractMsalUiTest {
                     Thread.sleep(30000);
                 } catch (InterruptedException e) {
                     throw new AssertionError("Interrupted while sleeping for 30 seconds so that old access token could have been out of chache");
-                    e.printStackTrace();
                 }
             }
         }

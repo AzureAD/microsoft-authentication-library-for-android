@@ -129,7 +129,7 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
                 try {
                     Thread.sleep(30000);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    throw new AssertionError("Interrupted while sleeping for 30 seconds so that old access token could have been out of chache");
                 }
             }
         }
