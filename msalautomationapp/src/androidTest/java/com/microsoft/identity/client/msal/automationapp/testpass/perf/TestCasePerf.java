@@ -47,6 +47,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 // Silent Auth with force_refresh
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99563
@@ -120,7 +121,7 @@ public class TestCasePerf extends AbstractMsalUiTest {
                         "automation"
                 );
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new AssertionError("IOException while writing Perf data file");
             }
 
             // If this is not the last iteration, then we need either to clear cache of access token manually or wait for 30 seconds.
@@ -128,7 +129,7 @@ public class TestCasePerf extends AbstractMsalUiTest {
                 // CommandDispatcherHelper.clear();
                 try {
                     // Sleep for 30 seconds so that the cache access token cache is cleared.
-                    Thread.sleep(30000);
+                    Thread.sleep(TimeUnit.SECONDS.toMillis(30));
                 } catch (InterruptedException e) {
                     throw new AssertionError("Interrupted while sleeping for 30 seconds so that old access token could have been out of chache");
                 }
