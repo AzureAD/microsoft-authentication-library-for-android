@@ -159,7 +159,7 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
         };
     }
 
-    private IAccount getAccount(@NonNull final Activity activity,
+    public IAccount getAccount(@NonNull final Activity activity,
                                 final int msalConfigResourceId,
                                 @NonNull final String username) {
         final IPublicClientApplication pca = setupPCA(

@@ -86,11 +86,12 @@ public class TestCase1116094Clone extends AbstractMsalUiTest {
 
         final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
 
-        final IAccount account = getAccount();
+        final IAccount account = msalSdk.getAccount(mActivity,getConfigFileResourceId(),username);
 
         // start silent token request in MSAL
         final MsalAuthTestParams authTestSilentParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
+                .loginHint(username)
                 .scopes(Arrays.asList(mScopes))
                 .authority(account.getAuthority())
                 .msalConfigResourceId(getConfigFileResourceId())

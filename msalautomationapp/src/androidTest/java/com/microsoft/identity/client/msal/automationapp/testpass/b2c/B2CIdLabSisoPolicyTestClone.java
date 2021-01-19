@@ -107,11 +107,12 @@ public class B2CIdLabSisoPolicyTestClone extends AbstractB2CTest {
 
         // ------ do silent request ------
 
-        IAccount account = getAccount();
+        IAccount account = msalSdk.getAccount(mActivity,getConfigFileResourceId(),username);
 
         final MsalAuthTestParams authTestSilentParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .authority(account.getAuthority())
+                .loginHint(username)
                 .forceRefresh(false)
                 .scopes(Arrays.asList(mScopes))
                 .msalConfigResourceId(getConfigFileResourceId())
@@ -122,11 +123,12 @@ public class B2CIdLabSisoPolicyTestClone extends AbstractB2CTest {
 
         // ------ do force refresh silent request ------
 
-        account = getAccount();
+        account = msalSdk.getAccount(mActivity,getConfigFileResourceId(),account.getUsername());
 
         final MsalAuthTestParams silentForceParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .authority(account.getAuthority())
+                .loginHint(username)
                 .forceRefresh(true)
                 .scopes(Arrays.asList(mScopes))
                 .msalConfigResourceId(getConfigFileResourceId())

@@ -83,11 +83,12 @@ public class TestCase1116117Clone extends AbstractMsalUiTest {
         // change the time on the device
         TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
 
-        final IAccount account = getAccount();
+        final IAccount account = msalSdk.getAccount(mActivity,getConfigFileResourceId(),username);
 
         // start silent token request in MSAL
         final MsalAuthTestParams authTestSilentParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
+                .loginHint(username)
                 .scopes(Arrays.asList(mScopes))
                 .authority(account.getAuthority())
                 .msalConfigResourceId(getConfigFileResourceId())

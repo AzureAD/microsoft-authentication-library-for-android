@@ -130,13 +130,14 @@ public class TestCase796050Clone extends AbstractMsalBrokerTest {
 
         // SILENT REQUEST - start a acquireTokenSilent request in MSAL with the Account 2
 
-        final IAccount account = getAccount();
+        final IAccount account = msalSdk.getAccount(mActivity,getConfigFileResourceId(),username2);
 
         // Make sure we have the most recent account aka Account 2
         Assert.assertEquals(username2, account.getUsername());
 
         final MsalAuthTestParams silentParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
+                .loginHint(username2)
                 .authority(account.getAuthority())
                 .forceRefresh(true)
                 .scopes(Arrays.asList(mScopes))

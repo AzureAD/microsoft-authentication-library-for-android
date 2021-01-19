@@ -79,10 +79,11 @@ public class TestCase99563Clone extends AbstractMsalUiTest {
 
         authResult.assertSuccess();
 
-        final IAccount account = getAccount();
+        final IAccount account = msalSdk.getAccount(mActivity,getConfigFileResourceId(),username);
 
         final MsalAuthTestParams silentParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
+                .loginHint(username)
                 .authority(account.getAuthority())
                 .forceRefresh(true)
                 .scopes(Arrays.asList(mScopes))

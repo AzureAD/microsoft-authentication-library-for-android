@@ -51,16 +51,6 @@ public class TestCase850455Clone extends AbstractMsalBrokerTest {
 
     @Test
     public void test_850455() throws Throwable {
-        final TokenRequestLatch latch = new TokenRequestLatch(1);
-
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(mLoginHint)
-                .withResource(mScopes[0])
-                .withCallback(successfulInteractiveCallback(latch))
-                .withPrompt(Prompt.SELECT_ACCOUNT)
-                .build();
-
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
@@ -69,8 +59,8 @@ public class TestCase850455Clone extends AbstractMsalBrokerTest {
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(mLoginHint)
-                .scopes(Arrays.asList(mScopes))
-                .promptParameter(Prompt.LOGIN)
+                .resource(mScopes[0])
+                .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
@@ -96,11 +86,12 @@ public class TestCase850455Clone extends AbstractMsalBrokerTest {
 
         // SILENT REQUEST
 
-        final IAccount account = getAccount();
+        final IAccount account = msalSdk.getAccount(mActivity,getConfigFileResourceId(),username);
 
         final MsalAuthTestParams silentParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .authority(account.getAuthority())
+                .loginHint(username)
                 .forceRefresh(true)
                 .resource(mScopes[0])
                 .msalConfigResourceId(getConfigFileResourceId())
