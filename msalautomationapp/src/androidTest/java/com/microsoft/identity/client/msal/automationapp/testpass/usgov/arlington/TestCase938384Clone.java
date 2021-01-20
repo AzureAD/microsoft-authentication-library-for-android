@@ -57,6 +57,7 @@ public class TestCase938384Clone extends AbstractMsalUiTest {
                 .activity(mActivity)
                 .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
+                .authority(getAuthority())
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 

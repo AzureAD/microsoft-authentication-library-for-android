@@ -83,11 +83,12 @@ public class TestCase832430Clone extends AbstractMsalBrokerTest {
 
         authResult.assertSuccess();
 
-        final IAccount account = getAccount();
+        IAccount account = msalSdk.getAccount(mActivity,getConfigFileResourceId(),username);
 
         //acquiring token silently
         final MsalAuthTestParams silentParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
+                .loginHint(username)
                 .authority(account.getAuthority())
                 .resource(mScopes[0])
                 .msalConfigResourceId(getConfigFileResourceId())
@@ -104,6 +105,7 @@ public class TestCase832430Clone extends AbstractMsalBrokerTest {
         // acquiring token silently after expiring AT
         final MsalAuthTestParams refreshTokenParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
+                .loginHint(username)
                 .authority(account.getAuthority())
                 .resource(mScopes[0])
                 .msalConfigResourceId(getConfigFileResourceId())

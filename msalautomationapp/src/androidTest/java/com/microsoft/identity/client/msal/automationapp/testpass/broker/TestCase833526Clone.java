@@ -98,9 +98,6 @@ public class TestCase833526Clone extends AbstractMsalBrokerTest {
         final IMdmAgent mdmAgent = (IMdmAgent) mBroker;
         mdmAgent.enrollDevice(username, password);
 
-        // SECOND REQUEST WITH LOGIN HINT
-        final TokenRequestLatch latchTryAcquireAgain = new TokenRequestLatch(1);
-
         // try another interactive token request in MSAL
         // we should not see enroll page and request should succeed as device is already enrolled
         final MsalAuthTestParams tryAcquireAgainParams = MsalAuthTestParams.builder()
@@ -111,6 +108,7 @@ public class TestCase833526Clone extends AbstractMsalBrokerTest {
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
+        // SECOND REQUEST WITH LOGIN HINT
         final MsalAuthResult tryAcquireAgainResult = msalSdk.acquireTokenInteractive(tryAcquireAgainParams, new OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {

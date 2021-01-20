@@ -93,7 +93,7 @@ public class TestCase940421Clone extends AbstractMsalBrokerTest {
                 new AadPromptHandler(promptHandlerParameters)
                         .handlePrompt(username, password);
             }
-        }, TokenRequestTimeout.MEDIUM);
+        }, TokenRequestTimeout.LONG);
 
         authResult.assertSuccess();
     }

@@ -32,7 +32,7 @@ import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
@@ -76,7 +76,7 @@ public class TestCase938368Clone extends AbstractMsalUiTest {
                         .isFederated(true)
                         .build();
 
-                new AadPromptHandler(promptHandlerParameters)
+                new MicrosoftStsPromptHandler(promptHandlerParameters)
                         .handlePrompt(username, password);
             }
         },TokenRequestTimeout.MEDIUM);
