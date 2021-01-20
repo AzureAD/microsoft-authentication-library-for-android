@@ -62,4 +62,12 @@
     <string name="claims">Claims</string>
     <string name="status">Status:</string>
     <string name="pop_client_claims">PoP client claims</string>
+    <string name="enter_number">Enter Number</string>
+    <string name="first_number">First Number:</string>
+    <string name="second_number">Second Number:</string>
+    <string name="add">Add</string>
+    <string name="subtract">Subtract</string>
+    <string name="divide">Divide</string>
+    <string name="multiply">Multiply</string>
+    <string name="result">Result</string>
 </resources>

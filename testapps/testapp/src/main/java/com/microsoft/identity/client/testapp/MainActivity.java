@@ -207,6 +207,11 @@ public class MainActivity extends AppCompatActivity
             final Bundle bundle = new Bundle();
             bundle.putString(LogFragment.LOG_MSG, logs);
             fragment.setArguments(bundle);
+        } else if(menuItemId == R.id.nav_calculator) {
+            if(getCurrentFragment() instanceof CalculatorFragment) {
+                return  false;
+            }
+            fragment = new CalculatorFragment();
         } else {
             fragment = null;
         }

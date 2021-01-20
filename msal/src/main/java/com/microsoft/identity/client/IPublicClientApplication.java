@@ -35,6 +35,8 @@ import java.util.List;
 
 public interface IPublicClientApplication {
 
+    void calculate(@NonNull final CalculationParameters calculationParameters, @NonNull final String publicApiId);
+
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
      * Default value for {@link Prompt} is {@link Prompt#SELECT_ACCOUNT}.

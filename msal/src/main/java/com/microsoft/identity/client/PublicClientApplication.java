@@ -68,6 +68,7 @@ import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManage
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.cache.SchemaUtil;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
+import com.microsoft.identity.common.internal.commands.CalculationCommand;
 import com.microsoft.identity.common.internal.commands.CommandCallback;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommandCallback;
@@ -75,6 +76,7 @@ import com.microsoft.identity.common.internal.commands.GenerateShrCommand;
 import com.microsoft.identity.common.internal.commands.GetDeviceModeCommand;
 import com.microsoft.identity.common.internal.commands.InteractiveTokenCommand;
 import com.microsoft.identity.common.internal.commands.SilentTokenCommand;
+import com.microsoft.identity.common.internal.commands.parameters.CalculationCommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.CommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.DeviceCodeFlowCommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.GenerateShrCommandParameters;
@@ -328,7 +330,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     /**
-     * {@link PublicClientApplication#create(Context, String, String, ApplicationCreatedListener)}
+     * {@link PublicClientApplication#create(Context, String, String, String, ApplicationCreatedListener)}
      * allows the client id and authority to be passed instead of providing them through metadata.
      *
      * @param context     Application's {@link Context}. The sdk requires the application context to
@@ -1504,6 +1506,38 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     public void acquireToken(@NonNull final AcquireTokenParameters acquireTokenParameters) {
         acquireTokenInternal(acquireTokenParameters, PublicApiId.PCA_ACQUIRE_TOKEN_WITH_PARAMETERS);
+    }
+
+    public void calculate(@NonNull final CalculationParameters calculationParameters, @NonNull final String publicApiId) {
+        sBackgroundExecutor.submit(new Runnable() {
+            @Override
+            public void run() {
+                final CalculationCommand command = new CalculationCommand(
+                        CalculationCommandParameters.builder()
+                                .first(calculationParameters.getFirst())
+                                .second(calculationParameters.getSecond())
+                                .operator(calculationParameters.getOperator())
+                                .build(),
+                        new LocalMSALController(),
+                        calculationParameters.getCallback(),
+                        publicApiId
+                );
+
+                try {
+                    CommandDispatcher.submitSilent(command);
+                } catch (Exception exception) {
+
+                    final Handler handler = new Handler(Looper.getMainLooper());
+
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            calculationParameters.getCallback().onError(exception);
+                        }
+                    });
+                }
+            }
+        });
     }
 
     void acquireTokenInternal(@NonNull final AcquireTokenParameters acquireTokenParameters, @NonNull final String publicApiId) {
