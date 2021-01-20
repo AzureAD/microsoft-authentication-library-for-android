@@ -22,6 +22,11 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.usgov.arlington;
 
+import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+
+import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
@@ -39,9 +44,11 @@ import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Map;
 
 // Interactive token acquisition with instance_aware=true and with custom claims request requiring
 // device auth {"access_token":{"deviceid":{"essential":true}}}
@@ -96,8 +103,21 @@ public class TestCase940421Clone extends AbstractMsalBrokerTest {
         }, TokenRequestTimeout.LONG);
 
         authResult.assertSuccess();
+
+        // Assertion of Deviceid Claim in the ID Token claims
+        assertDeviceIdClaimSuccess(msalSdk.getAccount(mActivity,getConfigFileResourceId(),username));
     }
 
+    private void assertDeviceIdClaimSuccess(@NonNull final IAccount account) {
+        final Map<String, ?> claims = account.getClaims();
+        final String requestedClaim = "deviceid";
+        final String expectedValue = null;
+        Assert.assertTrue(claims.containsKey(requestedClaim));
+        if (!TextUtils.isEmpty(expectedValue)) {
+            final Object claimValue = claims.get(requestedClaim);
+            Assert.assertEquals(expectedValue, claimValue.toString());
+        }
+    }
 
     @Override
     public LabUserQuery getLabUserQuery() {

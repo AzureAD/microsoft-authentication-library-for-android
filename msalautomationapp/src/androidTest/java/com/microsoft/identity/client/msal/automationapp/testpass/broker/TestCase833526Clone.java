@@ -92,7 +92,7 @@ public class TestCase833526Clone extends AbstractMsalBrokerTest {
             }
         }, TokenRequestTimeout.MEDIUM);
 
-        authResult.assertSuccess();
+        authResult.assertFailure();
 
         // enroll device with CP
         final IMdmAgent mdmAgent = (IMdmAgent) mBroker;
