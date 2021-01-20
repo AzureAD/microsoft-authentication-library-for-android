@@ -10,6 +10,7 @@ import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.AuthenticationResult;
+import com.microsoft.identity.client.CalculationParameters;
 import com.microsoft.identity.client.HttpMethod;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
@@ -138,6 +139,8 @@ abstract class MsalWrapper {
     }
 
     abstract void acquireTokenAsyncInternal(@NonNull final AcquireTokenParameters parameters);
+
+    abstract void calculate(@NonNull final CalculationParameters parameters);
 
     public void acquireTokenSilent(@NonNull RequestOptions requestOptions,
                                    @NonNull INotifyOperationResultCallback<IAuthenticationResult> callback) {

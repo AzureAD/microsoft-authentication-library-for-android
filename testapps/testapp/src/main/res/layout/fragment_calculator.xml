@@ -45,6 +45,13 @@
 
     </TextView>
 
+    <TextView
+        android:id="@+id/error"
+        android:layout_width="match_parent"
+        android:layout_marginBottom="10dp"
+        android:textColor="#FF0000"
+        android:layout_height="wrap_content"/>
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_weight="1"
@@ -58,7 +65,7 @@
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:textAppearance="?android:attr/textAppearanceInverse"
-            android:text="20"
+            android:text=""
             android:textSize="40sp"
             />
     </RelativeLayout>

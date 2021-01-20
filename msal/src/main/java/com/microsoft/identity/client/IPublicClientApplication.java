@@ -35,7 +35,7 @@ import java.util.List;
 
 public interface IPublicClientApplication {
 
-    void calculate(@NonNull final CalculationParameters calculationParameters, @NonNull final String publicApiId);
+    void calculate(@NonNull final CalculationParameters calculationParameters);
 
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.

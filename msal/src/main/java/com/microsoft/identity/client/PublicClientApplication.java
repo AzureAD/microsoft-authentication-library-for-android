@@ -1508,7 +1508,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         acquireTokenInternal(acquireTokenParameters, PublicApiId.PCA_ACQUIRE_TOKEN_WITH_PARAMETERS);
     }
 
-    public void calculate(@NonNull final CalculationParameters calculationParameters, @NonNull final String publicApiId) {
+    public void calculate(@NonNull final CalculationParameters calculationParameters) {
         sBackgroundExecutor.submit(new Runnable() {
             @Override
             public void run() {
@@ -1520,7 +1520,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                 .build(),
                         new LocalMSALController(),
                         calculationParameters.getCallback(),
-                        publicApiId
+                        PublicApiId.CALCULATOR
                 );
 
                 try {

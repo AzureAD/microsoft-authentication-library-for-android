@@ -70,4 +70,5 @@
     <string name="divide">Divide</string>
     <string name="multiply">Multiply</string>
     <string name="result">Result</string>
+    <string name="error_operation_cancelled">Error: Operation cancelled.</string>
 </resources>

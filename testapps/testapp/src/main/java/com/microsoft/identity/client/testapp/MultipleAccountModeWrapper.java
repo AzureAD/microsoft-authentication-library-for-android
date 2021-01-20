@@ -26,6 +26,7 @@ import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
+import com.microsoft.identity.client.CalculationParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
@@ -49,6 +50,11 @@ public class MultipleAccountModeWrapper extends MsalWrapper {
     @Override
     public String getMode() {
         return "Multiple Account";
+    }
+
+    @Override
+    void calculate(@NonNull CalculationParameters parameters) {
+        mApp.calculate(parameters);
     }
 
     @Override

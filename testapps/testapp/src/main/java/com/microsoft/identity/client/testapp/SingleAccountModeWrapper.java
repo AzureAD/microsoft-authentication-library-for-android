@@ -27,6 +27,7 @@ import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
+import com.microsoft.identity.client.CalculationParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
@@ -53,6 +54,11 @@ public class SingleAccountModeWrapper extends MsalWrapper {
         }
 
         return "Single Account - Non-shared device";
+    }
+
+    @Override
+    void calculate(@NonNull CalculationParameters parameters) {
+        mApp.calculate(parameters);
     }
 
     @Override
