@@ -8,7 +8,7 @@ MSAL Android divides public client applications into 2 sub-types:
 
 - Single Account Public Client Application - Which is intended to be used by applications that only expect one account to be in use at a time
   - For example: Line of business applications
-- Multiple Account Public Client Applications - Which is intended to be used by applications that expect their user to have multiple accounts and to want to use multiple accounts at the same time.
+- Multiple Account Public Client Applications - Which is intended to be used by B2C applications and any other application that expects a user to have multiple accounts and to want to use multiple accounts at the same time.
   - For example: Email clients
 
 ## Factory Methods
@@ -42,7 +42,6 @@ PublicClientApplication includes a number of static methods for constructing dif
 - [PublicClientApplication](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/msal/src/main/java/com/microsoft/identity/client/PublicClientApplication.java)
 - [SingleAccountPublicClientApplication](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/msal/src/main/java/com/microsoft/identity/client/SingleAccountPublicClientApplication.java)
 - [MultipleAccountPublicClientApplication](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/msal/src/main/java/com/microsoft/identity/client/MultipleAccountPublicClientApplication.java)
-
 
 
 

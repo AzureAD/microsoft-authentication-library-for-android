@@ -39,12 +39,10 @@ import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.ui.automation.ILabTest;
+import com.microsoft.identity.client.ui.automation.IRuleBasedTest;
 import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
 import com.microsoft.identity.client.ui.automation.browser.IBrowser;
-import com.microsoft.identity.client.ui.automation.rules.RemoveBrokersBeforeTestRule;
-import com.microsoft.identity.client.ui.automation.rules.ResetAutomaticTimeZoneTestRule;
-import com.microsoft.identity.client.ui.automation.rules.RetryTestRule;
-import com.microsoft.identity.client.ui.automation.rules.UiAutomatorTestRule;
+import com.microsoft.identity.client.ui.automation.rules.RulesHelper;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
 
@@ -52,7 +50,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
-import org.junit.rules.TestRule;
+import org.junit.rules.RuleChain;
 
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -64,7 +62,7 @@ import static org.junit.Assert.fail;
  * A base model for an E2E MSAL UI Test. This class will apply all the rules required for an MSAL
  * test and will get everything setup for use by child classes.
  */
-public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest {
+public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBasedTest {
 
     protected Context mContext;
     protected Activity mActivity;
@@ -76,20 +74,14 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest {
     protected String mLoginHint;
 
     @Rule(order = 0)
-    public TestRule retryRule = new RetryTestRule();
+    public RuleChain primaryRules = getPrimaryRules();
 
     @Rule(order = 1)
-    public final TestRule uiAutomatorTestRule = new UiAutomatorTestRule();
-
-    @Rule(order = 2)
-    public final TestRule resetAutomaticTimeRule = new ResetAutomaticTimeZoneTestRule();
-
-    @Rule(order = 3)
-    public final TestRule removeBrokersRule = new RemoveBrokersBeforeTestRule();
-
-    @Rule(order = 4)
     public ActivityTestRule<MainActivity> mActivityRule =
             new ActivityTestRule(MainActivity.class);
+
+    @Rule(order = 2)
+    public MsalLoggingRule msalLoggingRule = new MsalLoggingRule();
 
     @Before
     public void setup() {
@@ -318,5 +310,10 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest {
                 latch.countDown();
             }
         };
+    }
+
+    @Override
+    public RuleChain getPrimaryRules() {
+        return RulesHelper.getPrimaryRules(null);
     }
 }
