@@ -38,8 +38,9 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadP
 import com.microsoft.identity.client.ui.automation.logging.appender.FileAppender;
 import com.microsoft.identity.client.ui.automation.logging.formatter.SimpleTextFormatter;
 import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
-import com.microsoft.identity.common.CodeMarkerConstants;
+import com.microsoft.identity.common.PerfConstants;
 import com.microsoft.identity.common.CodeMarkerManager;
+import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
@@ -56,6 +57,7 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
 
     @Test
     public void test_acquireTokenSilentlyWithBroker() {
+        Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
         final TokenRequestLatch latch = new TokenRequestLatch(1);
 
         final int numberOfOccurrenceOfTest = 10;
@@ -99,7 +101,7 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
         final IAccount account = getAccount();
         CodeMarkerManager.getInstance().setEnableCodeMarker(true);
         //Setting up scenario code. 100 -> Non Brokered, 200 -> Brokered
-        CodeMarkerManager.getInstance().setPrefixScenarioCode(CodeMarkerConstants.SCENARIO_BROKERED_ACQUIRE_TOKEN_SILENTLY);
+        CodeMarkerManager.getInstance().setPrefixScenarioCode(PerfConstants.ScenarioConstants.SCENARIO_BROKERED_ACQUIRE_TOKEN_SILENTLY);
 
         for(int i = 0; i < numberOfOccurrenceOfTest; i++) {
             CodeMarkerManager.getInstance().clearMarkers();
