@@ -25,7 +25,7 @@
 
 apply plugin: 'com.android.application'
 
-def msalVersion = "2.+"
+def msalVersion = "2.0.6-RC4"
 
 if (project.hasProperty("distMsalVersion")) {
     msalVersion = distMsalVersion
