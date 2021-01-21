@@ -9,5 +9,10 @@
         "type": "AzureADMultipleOrgs"
       }
     }
-  ]
+  ],
+  "logging": {
+    "pii_enabled": false,
+    "log_level": "VERBOSE",
+    "logcat_enabled": false
+  }
 }
