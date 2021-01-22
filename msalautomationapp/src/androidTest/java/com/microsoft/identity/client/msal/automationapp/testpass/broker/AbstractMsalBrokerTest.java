@@ -81,6 +81,6 @@ public abstract class AbstractMsalBrokerTest extends AbstractMsalUiTest implemen
 
     @Override
     public RuleChain getPrimaryRules() {
-        return RulesHelper.getPrimaryRules(getBroker());
+        return RulesHelper.getPrimaryRules(getBroker(), mBrowserName);
     }
 }

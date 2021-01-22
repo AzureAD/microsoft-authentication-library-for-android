@@ -41,6 +41,7 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.ui.automation.ILabTest;
 import com.microsoft.identity.client.ui.automation.IRuleBasedTest;
 import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
+import com.microsoft.identity.client.ui.automation.browser.BrowserDuckDuckGo;
 import com.microsoft.identity.client.ui.automation.browser.IBrowser;
 import com.microsoft.identity.client.ui.automation.rules.RulesHelper;
 import com.microsoft.identity.common.internal.util.StringUtil;
@@ -70,8 +71,9 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
 
     protected String[] mScopes;
     protected IAccount mAccount;
-    protected IBrowser mBrowser;
+    protected IBrowser mBrowser = getBrowser();
     protected String mLoginHint;
+    protected String mBrowserName = mBrowser.BrowserName();
 
     @Rule(order = 0)
     public RuleChain primaryRules = getPrimaryRules();
@@ -87,7 +89,6 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
     public void setup() {
         loadLabUser();
         mScopes = getScopes();
-        mBrowser = getBrowser();
 
         // clear all cookies in the browser
         mBrowser.clear();
@@ -121,7 +122,7 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
 
     @Override
     public IBrowser getBrowser() {
-        return new BrowserChrome();
+        return new BrowserDuckDuckGo();
     }
 
     private void setupPCA() {
@@ -314,6 +315,6 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
 
     @Override
     public RuleChain getPrimaryRules() {
-        return RulesHelper.getPrimaryRules(null);
+        return RulesHelper.getPrimaryRules(null, mBrowserName);
     }
 }
