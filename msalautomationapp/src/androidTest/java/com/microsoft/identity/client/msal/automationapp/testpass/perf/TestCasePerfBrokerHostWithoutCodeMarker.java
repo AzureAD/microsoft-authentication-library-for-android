@@ -45,6 +45,7 @@ import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -56,6 +57,7 @@ import java.util.concurrent.TimeUnit;
 public class TestCasePerfBrokerHostWithoutCodeMarker extends AbstractMsalBrokerTest {
 
     @Test
+    @Ignore
     public void test_acquireTokenSilentlyWithBroker() {
         Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
         final TokenRequestLatch latch = new TokenRequestLatch(1);
