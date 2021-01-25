@@ -66,7 +66,7 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(mLoginHint)
-                .withResource(mScopes[0])
+                .withScopes(Arrays.asList(mScopes))
                 .withCallback(successfulInteractiveCallback(latch))
                 .withPrompt(Prompt.SELECT_ACCOUNT)
                 .build();
@@ -112,7 +112,7 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
                     .forAccount(account)
                     .fromAuthority(account.getAuthority())
                     .forceRefresh(true)
-                    .withResource(mScopes[0])
+                    .withScopes(Arrays.asList(mScopes))
                     .withCallback(successfulSilentCallback(silentLatch))
                     .build();
 
