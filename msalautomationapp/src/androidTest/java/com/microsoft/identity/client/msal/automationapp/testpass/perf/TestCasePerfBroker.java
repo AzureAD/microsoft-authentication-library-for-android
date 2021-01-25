@@ -49,14 +49,15 @@ import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-//Joined AcquireToken test with MSAL and Broker
-//https://identitydivision.visualstudio.com/DevEx/_workitems/edit/832430
-public class TestCaseCopyOf832430 extends AbstractMsalBrokerTest {
+//Perf test case with Joined AcquireToken test with MSAL and Broker
+//This test case is build over the test case number 832430
+public class TestCasePerfBroker extends AbstractMsalBrokerTest {
 
     @Test
     public void test_832430() throws InterruptedException {
 
-        final String outputFilenamePrefix = "PerfDataTargetBrokerHostCP";
+        final int numberOfOccurrenceOfTest = 10;
+        final String outputFilenamePrefix = "PerfDataTargetBrokerHostWR"; // With Resource
 
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
@@ -103,27 +104,41 @@ public class TestCaseCopyOf832430 extends AbstractMsalBrokerTest {
         //Setting up scenario code. 100 -> Non Brokered, 200 -> Brokered
         CodeMarkerManager.getInstance().setPrefixScenarioCode(PerfConstants.ScenarioConstants.SCENARIO_BROKERED_ACQUIRE_TOKEN_SILENTLY);
         //acquiring token silently
-        final CountDownLatch silentLatch = new CountDownLatch(1);
 
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .forAccount(account)
-                .fromAuthority(account.getAuthority())
-                .withResource(mScopes[0])
-                .withCallback(successfulSilentCallback(silentLatch))
-                .build();
+        for(int i = 0; i < numberOfOccurrenceOfTest; i++) {
+            CodeMarkerManager.getInstance().clearMarkers();
+            final CountDownLatch silentLatch = new CountDownLatch(1);
 
-        mApplication.acquireTokenSilentAsync(silentParameters);
-        silentLatch.await();
+            final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                    .forAccount(account)
+                    .fromAuthority(account.getAuthority())
+                    .withResource(mScopes[0])
+                    .withCallback(successfulSilentCallback(silentLatch))
+                    .build();
 
-        try {
-            FileAppender fileAppender = new FileAppender(outputFilenamePrefix + /*i +*/ "CP.txt", new SimpleTextFormatter());
-            fileAppender.append(CodeMarkerManager.getInstance().getFileContent());
-            CommonUtils.copyFileToFolderInSdCard(
-                    fileAppender.getLogFile(),
-                    "automation"
-            );
-        } catch (IOException e) {
-            throw new AssertionError("IOException while writing Perf data file");
+            mApplication.acquireTokenSilentAsync(silentParameters);
+            silentLatch.await();
+
+            try {
+                FileAppender fileAppender = new FileAppender(outputFilenamePrefix + i + ".txt", new SimpleTextFormatter());
+                fileAppender.append(CodeMarkerManager.getInstance().getFileContent());
+                CommonUtils.copyFileToFolderInSdCard(
+                        fileAppender.getLogFile(),
+                        "automation"
+                );
+            } catch (IOException e) {
+                throw new AssertionError("IOException while writing Perf data file");
+            }
+            // If this is not the last iteration, then we need either to clear cache of access token manually or wait for 30 seconds.
+            if (i < numberOfOccurrenceOfTest - 1) {
+                // CommandDispatcherHelper.clear();
+                try {
+                    // Sleep for 30 seconds so that the cache access token cache is cleared.
+                    Thread.sleep(TimeUnit.SECONDS.toMillis(30));
+                } catch (InterruptedException e) {
+                    throw new AssertionError("Interrupted while sleeping for 30 seconds so that old access token could have been out of chache");
+                }
+            }
         }
 
         CodeMarkerManager.getInstance().clearMarkers();
