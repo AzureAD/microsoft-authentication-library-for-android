@@ -22,14 +22,14 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.usgov.arlington;
 
-import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
-import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
-import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
+import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
+import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
+import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
-import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
@@ -47,45 +47,40 @@ import java.util.Arrays;
 public class TestCase940393 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_938447() {
+    public void test_938447() throws Throwable {
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
-        final TokenRequestLatch latch = new TokenRequestLatch(1);
+        final MsalSdk msalSdk = new MsalSdk();
 
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulInteractiveCallback(latch))
-                .withPrompt(Prompt.SELECT_ACCOUNT)
+        final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .scopes(Arrays.asList(mScopes))
+                .promptParameter(Prompt.SELECT_ACCOUNT)
+                .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
         // start interactive acquire token request in MSAL (should succeed)
-        final InteractiveRequest interactiveRequest = new InteractiveRequest(
-                mApplication,
-                parameters,
-                new OnInteractionRequired() {
-                    @Override
-                    public void handleUserInteraction() {
-                        final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                                .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHint(null)
-                                .sessionExpected(false)
-                                .consentPageExpected(false)
-                                .speedBumpExpected(false)
-                                .broker(mBroker)
-                                .expectingBrokerAccountChooserActivity(false)
-                                .expectingLoginPageAccountPicker(false)
-                                .build();
+        final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
+            @Override
+            public void handleUserInteraction() {
+                final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
+                        .prompt(PromptParameter.SELECT_ACCOUNT)
+                        .loginHint(null)
+                        .sessionExpected(false)
+                        .consentPageExpected(false)
+                        .speedBumpExpected(false)
+                        .broker(mBroker)
+                        .expectingBrokerAccountChooserActivity(false)
+                        .expectingLoginPageAccountPicker(false)
+                        .build();
 
-                        new AadPromptHandler(promptHandlerParameters)
-                                .handlePrompt(username, password);
-                    }
-                }
-        );
+                new AadPromptHandler(promptHandlerParameters)
+                        .handlePrompt(username, password);
+            }
+        }, TokenRequestTimeout.MEDIUM);
 
-        interactiveRequest.execute();
-        latch.await(TokenRequestTimeout.MEDIUM);
+        authResult.assertSuccess();
     }
 
 

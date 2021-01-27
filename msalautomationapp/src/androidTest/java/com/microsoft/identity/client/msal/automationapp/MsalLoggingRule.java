@@ -52,14 +52,16 @@ public class MsalLoggingRule implements TestRule {
             public void evaluate() throws Throwable {
                 final FileAppender msalLogFileAppender = turnOnMsalLogging(description);
 
-                base.evaluate();
+                try {
+                    base.evaluate();
+                } finally {
+                    msalLogFileAppender.closeWriter();
 
-                msalLogFileAppender.closeWriter();
-
-                CommonUtils.copyFileToFolderInSdCard(
-                        msalLogFileAppender.getLogFile(),
-                        LOG_FOLDER_NAME
-                );
+                    CommonUtils.copyFileToFolderInSdCard(
+                            msalLogFileAppender.getLogFile(),
+                            LOG_FOLDER_NAME
+                    );
+                }
             }
         };
     }
