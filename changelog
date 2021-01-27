@@ -1,5 +1,9 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
+vNext
+-----
+- Allow resetting MSAL external logger
+
 Version 2.0.6
 ----------
 - Warn if SAPCA used with B2C. Throw Exception if Multiple Policies are Configured (#1270)
