@@ -63,8 +63,6 @@ import static com.microsoft.identity.common.internal.logging.Logger.setAllowPii;
 public final class Logger {
     private static final Logger sINSTANCE = new Logger();
 
-    private ILoggerCallback mExternalLogger;
-
     /**
      * @return The single instance of {@link Logger}.
      */
@@ -138,7 +136,6 @@ public final class Logger {
             return;
         }
 
-        // If mExternalLogger is not set. Then implement the ILoggerCallback interface in common-core.
         final com.microsoft.identity.common.internal.logging.Logger logger =
                 com.microsoft.identity.common.internal.logging.Logger.getInstance();
 
@@ -147,19 +144,19 @@ public final class Logger {
             public void log(String tag, com.microsoft.identity.common.internal.logging.Logger.LogLevel logLevel, String message, boolean containsPII) {
                 switch (logLevel) {
                     case ERROR:
-                        mExternalLogger.log(tag, LogLevel.ERROR, message, containsPII);
+                        externalLogger.log(tag, LogLevel.ERROR, message, containsPII);
                         break;
 
                     case WARN:
-                        mExternalLogger.log(tag, LogLevel.WARNING, message, containsPII);
+                        externalLogger.log(tag, LogLevel.WARNING, message, containsPII);
                         break;
 
                     case VERBOSE:
-                        mExternalLogger.log(tag, LogLevel.VERBOSE, message, containsPII);
+                        externalLogger.log(tag, LogLevel.VERBOSE, message, containsPII);
                         break;
 
                     case INFO:
-                        mExternalLogger.log(tag, LogLevel.INFO, message, containsPII);
+                        externalLogger.log(tag, LogLevel.INFO, message, containsPII);
                         break;
 
                     default:
@@ -167,8 +164,6 @@ public final class Logger {
                 }
             }
         });
-
-        mExternalLogger = externalLogger;
     }
 
     /**
