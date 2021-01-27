@@ -138,10 +138,6 @@ public final class Logger {
             return;
         }
 
-        if (null != mExternalLogger) {
-            throw new IllegalStateException("External logger is already set, cannot be set again.");
-        }
-
         // If mExternalLogger is not set. Then implement the ILoggerCallback interface in common-core.
         final com.microsoft.identity.common.internal.logging.Logger logger =
                 com.microsoft.identity.common.internal.logging.Logger.getInstance();
