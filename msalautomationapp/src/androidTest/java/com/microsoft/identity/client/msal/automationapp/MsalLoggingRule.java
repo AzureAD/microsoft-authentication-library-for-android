@@ -30,12 +30,14 @@ import com.microsoft.identity.client.ui.automation.logging.LogLevel;
 import com.microsoft.identity.client.ui.automation.logging.appender.FileAppender;
 import com.microsoft.identity.client.ui.automation.logging.formatter.LogcatLikeFormatter;
 import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
+import com.microsoft.identity.common.internal.util.ThreadUtils;
 
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A Junit Rule to enable MSAL logging during automation and set external logger to dump these logs
@@ -44,6 +46,8 @@ import java.io.IOException;
 public class MsalLoggingRule implements TestRule {
 
     final static String LOG_FOLDER_NAME = "automation";
+
+    public static final String TAG = MsalLoggingRule.class.getSimpleName();
 
     @Override
     public Statement apply(final Statement base, final Description description) {
@@ -55,6 +59,19 @@ public class MsalLoggingRule implements TestRule {
                 try {
                     base.evaluate();
                 } finally {
+                    // MSAL (common) logger logs using a background thread, so even though the test is
+                    // finished at this point, we may still be receiving logs from the logger. If we
+                    // close the stream right now we might the lose the last bit of logs and we might
+                    // encounter an IoException when trying to write that last bit of logs to the file
+                    // as the stream was closed.
+                    // To mitigate it we would just sleep for a tiny bit of time to ensure that we grab
+                    // those last bit of logs, dump them to the file and then close the writer.
+                    ThreadUtils.sleepSafely(
+                            Math.toIntExact(TimeUnit.SECONDS.toMillis(1)),
+                            TAG,
+                            "Error while sleeping during saving logs."
+                    );
+
                     msalLogFileAppender.closeWriter();
 
                     CommonUtils.copyFileToFolderInSdCard(
@@ -83,7 +100,8 @@ public class MsalLoggingRule implements TestRule {
         return msalFileLogAppender;
     }
 
-    private LogLevel convertMsalLogLevelToInternalLogLevel(@NonNull final Logger.LogLevel logLevel) {
+    private LogLevel convertMsalLogLevelToInternalLogLevel(
+            @NonNull final Logger.LogLevel logLevel) {
         switch (logLevel) {
             case VERBOSE:
                 return LogLevel.VERBOSE;
