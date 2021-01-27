@@ -56,8 +56,9 @@ public class MsalLoggingRule implements TestRule {
             public void evaluate() throws Throwable {
                 final FileAppender msalLogFileAppender = turnOnMsalLogging(description);
 
-                base.evaluate();
-
+                try {
+                    base.evaluate();
+                } finally {
                 // MSAL (common) logger logs using a background thread, so even though the test is
                 // finished at this point, we may still be receiving logs from the logger. If we
                 // close the stream right now we might the lose the last bit of logs and we might
