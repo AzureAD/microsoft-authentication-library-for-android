@@ -78,6 +78,10 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
             acquireTokenParametersBuilder.withScopes(new ArrayList<>(authTestParams.getScopes()));
         }
 
+        if (authTestParams.getClaims() != null) {
+            acquireTokenParametersBuilder.withClaims(authTestParams.getClaims());
+        }
+
         final AcquireTokenParameters acquireTokenParameters = acquireTokenParametersBuilder.build();
 
         pca.acquireToken(acquireTokenParameters);
@@ -117,6 +121,10 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
             acquireTokenParametersBuilder.withResource(authTestParams.getResource());
         } else {
             acquireTokenParametersBuilder.withScopes(new ArrayList<>(authTestParams.getScopes()));
+        }
+
+        if (authTestParams.getClaims() != null) {
+            acquireTokenParametersBuilder.withClaims(authTestParams.getClaims());
         }
 
         final AcquireTokenSilentParameters acquireTokenParameters = acquireTokenParametersBuilder.build();
@@ -159,7 +167,7 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
         };
     }
 
-    private IAccount getAccount(@NonNull final Activity activity,
+    public IAccount getAccount(@NonNull final Activity activity,
                                 final int msalConfigResourceId,
                                 @NonNull final String username) {
         final IPublicClientApplication pca = setupPCA(
