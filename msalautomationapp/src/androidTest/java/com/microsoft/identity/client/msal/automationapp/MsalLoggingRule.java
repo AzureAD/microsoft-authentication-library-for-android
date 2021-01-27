@@ -59,25 +59,26 @@ public class MsalLoggingRule implements TestRule {
                 try {
                     base.evaluate();
                 } finally {
-                // MSAL (common) logger logs using a background thread, so even though the test is
-                // finished at this point, we may still be receiving logs from the logger. If we
-                // close the stream right now we might the lose the last bit of logs and we might
-                // encounter an IoException when trying to write that last bit of logs to the file
-                // as the stream was closed.
-                // To mitigate it we would just sleep for a tiny bit of time to ensure that we grab
-                // those last bit of logs, dump them to the file and then close the writer.
-                ThreadUtils.sleepSafely(
-                        Math.toIntExact(TimeUnit.SECONDS.toMillis(1)),
-                        TAG,
-                        "Error while sleeping during saving logs."
-                );
+                    // MSAL (common) logger logs using a background thread, so even though the test is
+                    // finished at this point, we may still be receiving logs from the logger. If we
+                    // close the stream right now we might the lose the last bit of logs and we might
+                    // encounter an IoException when trying to write that last bit of logs to the file
+                    // as the stream was closed.
+                    // To mitigate it we would just sleep for a tiny bit of time to ensure that we grab
+                    // those last bit of logs, dump them to the file and then close the writer.
+                    ThreadUtils.sleepSafely(
+                            Math.toIntExact(TimeUnit.SECONDS.toMillis(1)),
+                            TAG,
+                            "Error while sleeping during saving logs."
+                    );
 
-                msalLogFileAppender.closeWriter();
+                    msalLogFileAppender.closeWriter();
 
-                CommonUtils.copyFileToFolderInSdCard(
-                        msalLogFileAppender.getLogFile(),
-                        LOG_FOLDER_NAME
-                );
+                    CommonUtils.copyFileToFolderInSdCard(
+                            msalLogFileAppender.getLogFile(),
+                            LOG_FOLDER_NAME
+                    );
+                }
             }
         };
     }
@@ -99,7 +100,8 @@ public class MsalLoggingRule implements TestRule {
         return msalFileLogAppender;
     }
 
-    private LogLevel convertMsalLogLevelToInternalLogLevel(@NonNull final Logger.LogLevel logLevel) {
+    private LogLevel convertMsalLogLevelToInternalLogLevel(
+            @NonNull final Logger.LogLevel logLevel) {
         switch (logLevel) {
             case VERBOSE:
                 return LogLevel.VERBOSE;
