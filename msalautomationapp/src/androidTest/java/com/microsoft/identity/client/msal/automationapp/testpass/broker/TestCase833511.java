@@ -41,14 +41,10 @@ public class TestCase833511 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_833511() {
-        // pca should be in MULTIPLE account mode starting out
-        Assert.assertTrue(mApplication instanceof MultipleAccountPublicClientApplication);
-
-        // perform shared device registration
+        // perform shared device registration - should fail since the account is non-admin
         mBroker.performSharedDeviceRegistration(
                 mLoginHint, LabConfig.getCurrentLabConfig().getLabUserPassword(), false
         );
-
     }
 
     @Override
@@ -68,12 +64,14 @@ public class TestCase833511 extends AbstractMsalBrokerTest {
 
     @Override
     public LabUserQuery getLabUserQuery() {
-        return null;
+        final LabUserQuery query = new LabUserQuery();
+        query.userRole = LabConstants.UserRole.NONE; // non-admin account
+        return query;
     }
 
     @Override
     public String getTempUserType() {
-        return LabConstants.TempUserType.BASIC;
+        return null;
     }
 }
 
