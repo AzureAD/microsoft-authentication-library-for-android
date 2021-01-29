@@ -25,7 +25,6 @@ package com.microsoft.identity.client;
 import android.app.Activity;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 
 import com.microsoft.identity.client.exception.MsalException;
@@ -89,7 +88,8 @@ public interface IPublicClientApplication {
     /**
      * Perform the Device Code Flow (DCF) protocol to allow a device without input capability to authenticate and get a new access token.
      * Currently, flow is only supported in local MSAL. No Broker support.
-     * @param scopes the desired access scopes
+     *
+     * @param scopes   the desired access scopes
      * @param callback callback object used to communicate with the API throughout the protocol
      */
     void acquireTokenWithDeviceCode(@NonNull String[] scopes, @NonNull final DeviceCodeFlowCallback callback);
@@ -108,6 +108,59 @@ public interface IPublicClientApplication {
      * @return
      */
     boolean isSharedDevice();
+
+    /**
+     * Signs the provided {@link PoPAuthenticationScheme} parameters into a JWT on behalf of the
+     * provided {@link IAccount}.
+     * <p>
+     * Important: Use of this API requires setting the minimum_required_broker_protocol_version to
+     * "6.0" or higher.
+     *
+     * @param account       The account for whom signing shall occur.
+     * @param popParameters The input parameters.
+     * @return The resulting SHR.
+     */
+    @NonNull
+    String generateSignedHttpRequest(@NonNull final IAccount account,
+                                     @NonNull final PoPAuthenticationScheme popParameters
+    ) throws MsalException;
+
+    /**
+     * Signs the provided {@link PoPAuthenticationScheme} parameters into a JWT on behalf of the
+     * provided {@link IAccount}.
+     * <p>
+     * Important: Use of this API requires setting the minimum_required_broker_protocol_version to
+     * "6.0" or higher.
+     *
+     * @param account       The account for whom signing shall occur.
+     * @param popParameters The input parameters.
+     * @param callback      The callback object to receive the result (or error).
+     * @return The resulting SHR.
+     */
+    void generateSignedHttpRequest(@NonNull final IAccount account,
+                                   @NonNull final PoPAuthenticationScheme popParameters,
+                                   @NonNull final SignedHttpRequestRequestCallback callback
+    );
+
+    /**
+     * Callback used to receive the result of {@link #generateSignedHttpRequest(IAccount, PoPAuthenticationScheme)}.
+     */
+    interface SignedHttpRequestRequestCallback extends TaskCompletedCallbackWithError<String, MsalException> {
+
+        /**
+         * Called after signing of the supplied properties has finished.
+         *
+         * @param result The resulting SHR.
+         */
+        void onTaskCompleted(String result);
+
+        /**
+         * Called if an error occurs during signing.
+         *
+         * @param exception
+         */
+        void onError(MsalException exception);
+    }
 
     interface LoadAccountsCallback extends TaskCompletedCallbackWithError<List<IAccount>, MsalException> {
         /**
@@ -181,16 +234,16 @@ public interface IPublicClientApplication {
      * via {@link DeviceCodeFlowCallback#onTokenReceived(AuthenticationResult)}.
      * 3). Receiving an exception detailing what went wrong in the protocol
      * via {@link DeviceCodeFlowCallback#onError(MsalException)}.
-     *
+     * <p>
      * Refer to {@link PublicClientApplication#acquireTokenWithDeviceCode(String[], DeviceCodeFlowCallback)}.
      */
     interface DeviceCodeFlowCallback {
         /**
          * Invoked to display verification uri, user code, and instruction message during device code flow.
          *
-         * @param vUri verification uri
-         * @param userCode user code
-         * @param message instruction message
+         * @param vUri                  verification uri
+         * @param userCode              user code
+         * @param message               instruction message
          * @param sessionExpirationDate the expiration date of DCF session to be displayed to the user ONLY.
          *                              When the session expires, onError() will return an exception with DEVICE_CODE_FLOW_EXPIRED_TOKEN_ERROR_CODE.
          *                              Please rely on that exception for non-UX purposes.
