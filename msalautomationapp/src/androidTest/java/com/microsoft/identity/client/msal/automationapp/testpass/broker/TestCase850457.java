@@ -160,12 +160,6 @@ public class TestCase850457 extends AbstractMsalBrokerTest {
         return R.raw.msal_config_default;
     }
 
-    @NonNull
-    @Override
-    public ITestBroker getBroker() {
-        return new BrokerMicrosoftAuthenticator();
-    }
-
     @Override
     public LabUserQuery getLabUserQuery() {
         return null;
