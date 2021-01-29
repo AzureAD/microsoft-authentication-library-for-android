@@ -7,7 +7,6 @@ Microsoft Authentication Library (MSAL) for Android
 The MSAL library for Android gives your app the ability to use the [Microsoft Cloud](https://cloud.microsoft.com) by supporting [Microsoft Azure Active Directory](https://azure.microsoft.com/services/active-directory/) and [Microsoft accounts](https://account.microsoft.com) in a converged experience using industry standard OAuth2 and OpenID Connect. The library also supports [Azure AD B2C](https://azure.microsoft.com/services/active-directory-b2c/).
 
 [![Version Badge](https://img.shields.io/maven-central/v/com.microsoft.identity.client/msal.svg)](https://repo1.maven.org/maven2/com/microsoft/identity/client/msal/)
-[![Build Status](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-android.svg?branch=master)](https://travis-ci.org/AzureAD/microsoft-authentication-library-for-android)
 
 
 ## Introduction
@@ -15,6 +14,16 @@ The MSAL library for Android gives your app the ability to use the [Microsoft Cl
 ### What's new?
 
 > Looking for developers interested in providing early feedback on a x-platform implementation of MSAL written in C++ and Java, callable from Java, Kotlin and C++.  If you're interested please please contact shoatman@microsoft.com.
+
+***11/09/2020***
+ - Android changes for SDK30, see [the android developers notice](https://android-developers.googleblog.com/2020/07/preparing-your-build-for-package-visibility-in-android-11.html).
+
+***09/04/2020*** New updates with [MSAL 2.0.0](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v2.0.0)
+ - Add Device Code Flow Support (#1112)
+ - Introduces new AadAuthorityAudience enum to support new syntax for specifying cloud + audience
+ - Broker Content Provider Changes
+ - FOCI support for Local MSAL
+ - Added new Single Account Public Client Application API overloads
 
 ***02/12/2020*** New updates with [MSAL 1.3.0](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v1.3.0):
 

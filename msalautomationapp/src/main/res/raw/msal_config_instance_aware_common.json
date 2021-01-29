@@ -8,5 +8,10 @@
       "type": "AAD",
       "authority_url": "https://login.microsoftonline.com/common"
     }
-  ]
+  ],
+  "logging": {
+    "pii_enabled": false,
+    "log_level": "VERBOSE",
+    "logcat_enabled": false
+  }
 }

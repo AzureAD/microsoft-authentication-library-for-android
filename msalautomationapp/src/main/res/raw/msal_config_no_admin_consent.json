@@ -10,5 +10,10 @@
         "tenant_id": "f645ad92-e38d-4d1a-b510-d1b09a74a8ca"
       }
     }
-  ]
+  ],
+  "logging": {
+    "pii_enabled": false,
+    "log_level": "VERBOSE",
+    "logcat_enabled": false
+  }
 }

@@ -26,15 +26,16 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
 import android.text.method.ScrollingMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 /**
  * The Fragment used to display the result.
@@ -43,6 +44,7 @@ public class ResultFragment extends Fragment {
 
     static final String ACCESS_TOKEN = "access_token";
     static final String DISPLAYABLE = "displayable";
+    static final String STRING_DATA_TO_DISPLAY = "string_data_to_display";
     static String previousAccessToken = "";
 
     private TextView mTextView;
@@ -55,26 +57,31 @@ public class ResultFragment extends Fragment {
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_result, container, false);
-
         mTextView = view.findViewById(R.id.txt_result);
+
         final Bundle bundle = getArguments();
-        final String accessToken = (String) bundle.get(ACCESS_TOKEN);
-        final String displayable = (String) bundle.get(DISPLAYABLE);
 
         String output = "";
 
-        // Only display this when the app has acquired an access token at least once in this session.
-        if (previousAccessToken != null && !previousAccessToken.isEmpty()) {
-            final boolean isTokenChanged = !previousAccessToken.equalsIgnoreCase(accessToken);
-            output += "Is access token changed? " + ": " + isTokenChanged + '\n';
-        }
+        if (isDisplayingAccessTokenResult(bundle)) {
+            final String accessToken = (String) bundle.get(ACCESS_TOKEN);
+            final String displayable = (String) bundle.get(DISPLAYABLE);
 
-        output += ACCESS_TOKEN + ": " + accessToken + '\n' + DISPLAYABLE + ": " + displayable;
+            // Only display this when the app has acquired an access token at least once in this session.
+            if (previousAccessToken != null && !previousAccessToken.isEmpty()) {
+                final boolean isTokenChanged = !previousAccessToken.equalsIgnoreCase(accessToken);
+                output += "Is access token changed? " + ": " + isTokenChanged + '\n';
+            }
+
+            output += ACCESS_TOKEN + ": " + accessToken + '\n' + DISPLAYABLE + ": " + displayable;
+
+            previousAccessToken = accessToken;
+        } else {
+            output = bundle.getString(STRING_DATA_TO_DISPLAY);
+        }
 
         mTextView.setText(output);
         mTextView.setMovementMethod(new ScrollingMovementMethod());
-
-        previousAccessToken = accessToken;
 
         mCopyAuthResultButton = view.findViewById(R.id.btn_copyAuthResult);
         mCopyAuthResultButton.setOnClickListener(new View.OnClickListener() {
@@ -88,6 +95,10 @@ public class ResultFragment extends Fragment {
         });
 
         return view;
+    }
+
+    private boolean isDisplayingAccessTokenResult(@Nullable final Bundle bundle) {
+        return null != bundle && bundle.containsKey(ACCESS_TOKEN);
     }
 
     @Override
