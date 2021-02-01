@@ -1512,20 +1512,26 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         sBackgroundExecutor.submit(new Runnable() {
             @Override
             public void run() {
-                final CalculationCommand command = new CalculationCommand(
-                        CalculationCommandParameters.builder()
-                                .first(calculationParameters.getFirst())
-                                .second(calculationParameters.getSecond())
-                                .operator(calculationParameters.getOperator())
-                                .build(),
-                        new LocalMSALController(),
-                        calculationParameters.getCallback(),
-                        PublicApiId.CALCULATOR
-                );
+                final Authority authority = Authority.getAuthorityFromAuthorityUrl("https://login.microsoftonline.us/common");
 
                 try {
+                    final CalculationCommand command = new CalculationCommand(
+                            CalculationCommandParameters.builder()
+                                    .first(calculationParameters.getFirst())
+                                    .second(calculationParameters.getSecond())
+                                    .operator(calculationParameters.getOperator())
+                                    .build(),
+                            MSALControllerFactory.getDefaultController(
+                                    mPublicClientConfiguration.getAppContext(),
+                                    authority,
+                                    mPublicClientConfiguration
+                            ),
+                            calculationParameters.getCallback(),
+                            PublicApiId.CALCULATOR
+                    );
+
                     CommandDispatcher.submitSilent(command);
-                } catch (Exception exception) {
+                } catch (final Exception exception) {
 
                     final Handler handler = new Handler(Looper.getMainLooper());
 

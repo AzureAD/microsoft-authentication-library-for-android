@@ -68,8 +68,7 @@ public class CalculationParameters {
         }
 
 
-
-        public CalculationParameters build(){
+        public CalculationParameters build() {
             return new CalculationParameters(this);
         }
     }
