@@ -27,7 +27,6 @@ import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
-import com.microsoft.identity.client.e2e.shadows.ShadowHttpClient;
 import com.microsoft.identity.client.e2e.shadows.ShadowMockAuthority;
 import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
@@ -39,10 +38,11 @@ import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
 import com.microsoft.identity.common.internal.eststelemetry.SchemaConstants;
 import com.microsoft.identity.common.internal.net.HttpClient;
 import com.microsoft.identity.common.internal.net.HttpResponse;
-import com.microsoft.identity.internal.testutils.MockHttpRequestInterceptor;
-import com.microsoft.identity.internal.testutils.MockHttpResponse;
+import com.microsoft.identity.internal.testutils.HttpRequestInterceptor;
+import com.microsoft.identity.internal.testutils.MockHttpClient;
 import com.microsoft.identity.internal.testutils.TestConstants;
 import com.microsoft.identity.internal.testutils.mocks.MockServerResponse;
+import com.microsoft.identity.internal.testutils.shadows.ShadowHttpClient;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -51,7 +51,6 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -99,9 +98,12 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
     }
 
     private void mockWithResponse(final HttpResponse httpResponse) {
-        MockHttpResponse.setInterceptor(new MockHttpRequestInterceptor() {
+        MockHttpClient.setInterceptor(new HttpRequestInterceptor() {
             @Override
-            public HttpResponse method(@NonNull HttpClient.HttpMethod httpMethod, @NonNull URL requestUrl, @NonNull Map<String, String> requestHeaders, @Nullable byte[] requestContent) throws IOException {
+            public HttpResponse intercept(@NonNull HttpClient.HttpMethod httpMethod,
+                                          @NonNull URL requestUrl,
+                                          @NonNull Map<String, String> requestHeaders,
+                                          @Nullable byte[] requestContent) {
                 final String correlationId = requestHeaders.get("client-request-id");
 
                 AcquireTokenMockedTelemetryTest.addCorrelationId(correlationId);

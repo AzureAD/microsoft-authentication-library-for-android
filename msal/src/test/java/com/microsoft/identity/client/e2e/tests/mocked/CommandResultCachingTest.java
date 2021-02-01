@@ -27,7 +27,7 @@ import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthority;
-import com.microsoft.identity.client.e2e.shadows.ShadowHttpClient;
+import com.microsoft.identity.internal.testutils.shadows.ShadowHttpClient;
 import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;

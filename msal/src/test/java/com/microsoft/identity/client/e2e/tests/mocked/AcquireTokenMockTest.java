@@ -34,7 +34,7 @@ import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.RoboTestCacheHelper;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
-import com.microsoft.identity.client.e2e.shadows.ShadowHttpClient;
+import com.microsoft.identity.internal.testutils.shadows.ShadowHttpClient;
 import com.microsoft.identity.client.e2e.shadows.ShadowMockAuthority;
 import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
@@ -51,8 +51,8 @@ import com.microsoft.identity.common.internal.net.HttpClient;
 import com.microsoft.identity.common.internal.net.HttpResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResponse;
 import com.microsoft.identity.common.internal.util.StringUtil;
-import com.microsoft.identity.internal.testutils.MockHttpRequestInterceptor;
-import com.microsoft.identity.internal.testutils.MockHttpResponse;
+import com.microsoft.identity.internal.testutils.HttpRequestInterceptor;
+import com.microsoft.identity.internal.testutils.MockHttpClient;
 import com.microsoft.identity.internal.testutils.TestConstants;
 import com.microsoft.identity.internal.testutils.TestUtils;
 import com.microsoft.identity.internal.testutils.mocks.MockTokenResponse;
@@ -99,9 +99,9 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
     @Before
     public void setup() {
         super.setup();
-        MockHttpResponse.setInterceptor(new MockHttpRequestInterceptor() {
+        MockHttpClient.setInterceptor(new HttpRequestInterceptor() {
             @Override
-            public HttpResponse method(@NonNull HttpClient.HttpMethod httpMethod, @NonNull URL requestUrl, @NonNull Map<String, String> requestHeaders, @Nullable byte[] requestContent) throws IOException {
+            public HttpResponse intercept(@NonNull HttpClient.HttpMethod httpMethod, @NonNull URL requestUrl, @NonNull Map<String, String> requestHeaders, @Nullable byte[] requestContent) throws IOException {
                 throw new IOException("Sending requests to server has been disabled for mocked unit tests");
             }
         }, HttpClient.HttpMethod.POST);
