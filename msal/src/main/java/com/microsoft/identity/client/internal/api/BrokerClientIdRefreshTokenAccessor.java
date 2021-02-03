@@ -47,14 +47,6 @@ public final class BrokerClientIdRefreshTokenAccessor {
 
     private static final String TAG = BrokerClientIdRefreshTokenAccessor.class.getSimpleName();
 
-    private static void throwIfNotValidBroker(final Context context) throws MsalClientException {
-        final BrokerValidator brokerValidator = new BrokerValidator(context);
-        if (!brokerValidator.isValidBrokerPackage(context.getPackageName())) {
-            // package name not matched so this is not a valid broker.
-            throw new MsalClientException(NOT_ELIGIBLE_TO_USE_BROKER, "This can only be invoked by Broker apps.");
-        }
-    }
-
     /**
      * Returns a refresh token associated to Broker's client ID.
      * Will throw an exception if The caller is not a valid Broker app.
@@ -114,5 +106,13 @@ public final class BrokerClientIdRefreshTokenAccessor {
                 localAccountRecord,
                 new BearerAuthenticationSchemeInternal() // Auth scheme is inconsequential - only using RT
         );
+    }
+
+    private static void throwIfNotValidBroker(final Context context) throws MsalClientException {
+        final BrokerValidator brokerValidator = new BrokerValidator(context);
+        if (!brokerValidator.isValidBrokerPackage(context.getPackageName())) {
+            // package name not matched so this is not a valid broker.
+            throw new MsalClientException(NOT_ELIGIBLE_TO_USE_BROKER, "This can only be invoked by Broker apps.");
+        }
     }
 }
