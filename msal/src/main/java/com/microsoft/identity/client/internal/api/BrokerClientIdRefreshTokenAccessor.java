@@ -31,14 +31,11 @@ import androidx.annotation.Nullable;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.internal.authscheme.BearerAuthenticationSchemeInternal;
-import com.microsoft.identity.common.internal.broker.BrokerData;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.logging.Logger;
-
-import java.util.Set;
 
 import static com.microsoft.identity.client.exception.MsalClientException.NOT_ELIGIBLE_TO_USE_BROKER;
 import static com.microsoft.identity.common.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
@@ -52,21 +49,10 @@ public final class BrokerClientIdRefreshTokenAccessor {
 
     private static void throwIfNotValidBroker(final Context context) throws MsalClientException {
         final BrokerValidator brokerValidator = new BrokerValidator(context);
-        final Set<BrokerData> validBrokers = brokerValidator.getValidBrokers();
-
-        for (final BrokerData brokerData : validBrokers) {
-            if (brokerData.packageName.equals(context.getPackageName())) {
-                if (!brokerValidator.verifySignature(context.getPackageName())) {
-                    throw new MsalClientException(NOT_ELIGIBLE_TO_USE_BROKER, "This can only be invoked by Broker apps with a valid signature hash.");
-                } else {
-                    //both package name and signature have matched...therefore this is a valid broker.
-                    return;
-                }
-            }
+        if (!brokerValidator.isValidBrokerPackage(context.getPackageName())) {
+            // package name not matched so this is not a valid broker.
+            throw new MsalClientException(NOT_ELIGIBLE_TO_USE_BROKER, "This can only be invoked by Broker apps.");
         }
-
-        // package name not matched so this is not a valid broker.
-        throw new MsalClientException(NOT_ELIGIBLE_TO_USE_BROKER, "This can only be invoked by Broker apps.");
     }
 
     /**
