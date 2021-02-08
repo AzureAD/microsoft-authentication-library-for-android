@@ -73,7 +73,8 @@ import static org.junit.Assert.fail;
         ShadowStorageHelper.class,
         ShadowAuthorityForMockHttpResponse.class,
         ShadowMsalUtils.class,
-        ShadowHttpClient.class, ShadowOpenIdProviderConfigurationClient.class
+        ShadowHttpClient.class, 
+        ShadowOpenIdProviderConfigurationClient.class
 })
 public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
 
