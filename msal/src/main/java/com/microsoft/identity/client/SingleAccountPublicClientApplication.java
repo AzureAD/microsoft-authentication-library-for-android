@@ -235,6 +235,19 @@ public class SingleAccountPublicClientApplication
                        @Nullable final String loginHint,
                        @NonNull final String[] scopes,
                        @NonNull final AuthenticationCallback callback) {
+        final boolean activityWasNull = null == activity;
+        final boolean loginHintWasNull = null == loginHint;
+        final boolean scopesWereNullOrEmpty = null == scopes || 0 == scopes.length;
+        final boolean callbackWasNull = null == callback;
+
+        com.microsoft.identity.common.internal.logging.Logger.info(
+                "Xamarin Debug",
+                "activityWasNull? [" + activityWasNull + "]\n"
+                        + "loginHintWasNull? [" + loginHintWasNull + "]\n"
+                        + "scopesWereNullOrEmpty? [" + scopesWereNullOrEmpty + "]\n"
+                        + "callbackWasNull? [" + callbackWasNull + "]"
+        );
+
         final IAccount persistedAccount = getPersistedCurrentAccount();
 
         if (persistedAccount != null) {
@@ -368,7 +381,7 @@ public class SingleAccountPublicClientApplication
 
     /**
      * Returns true if the account ID of both account matches (or both accounts are null).
-     * */
+     */
     private boolean isHomeAccountIdMatching(@Nullable final IAccount firstAccount, @Nullable final IAccount secondAccount) {
         final MultiTenantAccount firstMultiTenantAccount = firstAccount instanceof MultiTenantAccount ? (MultiTenantAccount) firstAccount : null;
         final MultiTenantAccount secondMultiTenantAccount = secondAccount instanceof MultiTenantAccount ? (MultiTenantAccount) secondAccount : null;
@@ -488,7 +501,7 @@ public class SingleAccountPublicClientApplication
      * @return a persisted MultiTenantAccount. This could be null.
      */
     private MultiTenantAccount getPersistedCurrentAccount() {
-        synchronized(SingleAccountPublicClientApplication.class) {
+        synchronized (SingleAccountPublicClientApplication.class) {
             final String currentAccountJsonString = sharedPreferencesFileManager.getString(CURRENT_ACCOUNT_SHARED_PREFERENCE_KEY);
 
             if (StringExtensions.isNullOrBlank(currentAccountJsonString)) {
@@ -507,7 +520,7 @@ public class SingleAccountPublicClientApplication
      *                     Please note that this layer will not verify if the list belongs to a single account or not.
      */
     private void persistCurrentAccount(@Nullable final List<ICacheRecord> cacheRecords) {
-        synchronized(SingleAccountPublicClientApplication.class) {
+        synchronized (SingleAccountPublicClientApplication.class) {
             if (cacheRecords == null || cacheRecords.size() == 0) {
                 sharedPreferencesFileManager.clear();
                 return;
@@ -584,7 +597,7 @@ public class SingleAccountPublicClientApplication
         if (persistedAccount != null) {
             // Nothing is provided.
             if (acquireTokenParameters.getAccount() == null &&
-                    StringExtensions.isNullOrBlank(acquireTokenParameters.getLoginHint())){
+                    StringExtensions.isNullOrBlank(acquireTokenParameters.getLoginHint())) {
                 acquireTokenParameters
                         .getCallback()
                         .onError(new MsalClientException(MsalClientException.CURRENT_ACCOUNT_MISMATCH,
@@ -604,7 +617,7 @@ public class SingleAccountPublicClientApplication
 
             // If login hint is provided, check if the login hint matches with the persisted account's.
             if (!StringExtensions.isNullOrBlank(acquireTokenParameters.getLoginHint()) &&
-                    !persistedAccount.getUsername().equalsIgnoreCase(acquireTokenParameters.getLoginHint())){
+                    !persistedAccount.getUsername().equalsIgnoreCase(acquireTokenParameters.getLoginHint())) {
                 acquireTokenParameters
                         .getCallback()
                         .onError(new MsalClientException(MsalClientException.CURRENT_ACCOUNT_MISMATCH,
