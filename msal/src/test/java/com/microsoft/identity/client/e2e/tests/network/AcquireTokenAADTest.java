@@ -72,16 +72,6 @@ public abstract class AcquireTokenAADTest extends AcquireTokenNetworkTest {
         }
     }
 
-    @Ignore
-    public static class AzureUsGovCloudMigratedUser extends AcquireTokenAADTest {
-        @Override
-        public LabUserQuery getLabUserQuery() {
-            final LabUserQuery query = new LabUserQuery();
-            query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT_MIGRATED;
-            return query;
-        }
-    }
-
     public static class AzureChinaCloudUser extends AcquireTokenAADTest {
         @Override
         public String getConfigFilePath() {
@@ -101,16 +91,6 @@ public abstract class AcquireTokenAADTest extends AcquireTokenNetworkTest {
         public LabUserQuery getLabUserQuery() {
             final LabUserQuery query = new LabUserQuery();
             query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_GERMANY_CLOUD;
-            return query;
-        }
-    }
-
-    @Ignore
-    public static class AzureGermanyCloudMigratedUser extends AcquireTokenAADTest {
-        @Override
-        public LabUserQuery getLabUserQuery() {
-            final LabUserQuery query = new LabUserQuery();
-            query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_GERMANY_CLOUD_MIGRATED;
             return query;
         }
     }
