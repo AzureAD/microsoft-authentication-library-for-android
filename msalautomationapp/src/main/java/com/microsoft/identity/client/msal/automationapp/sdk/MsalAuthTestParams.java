@@ -20,28 +20,23 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.internal.configuration;
+package com.microsoft.identity.client.msal.automationapp.sdk;
 
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParseException;
-import com.microsoft.identity.client.Logger;
+import com.microsoft.identity.client.Prompt;
+import com.microsoft.identity.client.ui.automation.sdk.AuthTestParams;
 
-import net.jcip.annotations.Immutable;
+import java.util.List;
 
-import java.lang.reflect.Type;
-import java.util.Locale;
+import lombok.Getter;
+import lombok.experimental.SuperBuilder;
 
-import static com.microsoft.identity.client.Logger.LogLevel;
+// MSAL Test Parameters Class which has all the parameters required for MSAL with or w/o Broker Automation TestCases
+@Getter
+@SuperBuilder
+public class MsalAuthTestParams extends AuthTestParams {
 
-@Immutable
-public class LogLevelDeserializer implements JsonDeserializer<Logger.LogLevel> {
-
-    @Override
-    public Logger.LogLevel deserialize(final JsonElement json,
-                                       final Type typeOfT,
-                                       final JsonDeserializationContext context) throws JsonParseException {
-        return LogLevel.valueOf(json.getAsString().toUpperCase(Locale.US));
-    }
+    private final Prompt promptParameter;
+    private final boolean forceRefresh;
+    private final int msalConfigResourceId;
+    private final List<String> scopes;
 }

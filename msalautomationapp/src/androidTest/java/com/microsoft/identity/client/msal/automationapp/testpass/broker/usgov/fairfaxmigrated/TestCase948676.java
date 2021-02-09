@@ -37,6 +37,7 @@ import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -46,7 +47,6 @@ import java.util.concurrent.CountDownLatch;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/948676
 public class TestCase948676 extends AbstractMsalBrokerTest {
 
-    @Test
     public void test_948676() throws InterruptedException {
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();

@@ -38,17 +38,16 @@ import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.concurrent.CountDownLatch;
 
 // Interactive token acquisition with instance_aware=true, no login hint, and cloud account,
 // and WW common authority
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1116091
 public class TestCase1116091 extends AbstractMsalUiTest {
 
-    @Test
     public void test_1116091() {
         final TokenRequestLatch latch = new TokenRequestLatch(1);
 

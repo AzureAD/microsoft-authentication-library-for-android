@@ -38,6 +38,7 @@ import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -48,7 +49,6 @@ import java.util.concurrent.CountDownLatch;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1116092
 public class TestCase1116092 extends AbstractMsalUiTest {
 
-    @Test
     public void test_1116092() {
         final TokenRequestLatch latch = new TokenRequestLatch(1);
 

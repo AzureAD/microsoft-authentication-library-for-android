@@ -1,12 +1,13 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
-v.Next
+Version 2.0.6
 ----------
+- Warn if SAPCA used with B2C. Throw Exception if Multiple Policies are Configured (#1270)
+- Picks up common@3.0.9
 
-Version 2.0.4
+Version 2.0.5
 ----------
 - Fix exception casting issue in CommandDispatcher (common #1121)
-
 
 Version 2.0.4
 ----------

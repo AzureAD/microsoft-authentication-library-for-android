@@ -20,28 +20,26 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.internal.configuration;
+package com.microsoft.identity.client.msal.automationapp.sdk;
 
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParseException;
-import com.microsoft.identity.client.Logger;
+import androidx.annotation.NonNull;
 
-import net.jcip.annotations.Immutable;
+import com.microsoft.identity.client.IAuthenticationResult;
+import com.microsoft.identity.client.ui.automation.sdk.AuthResult;
 
-import java.lang.reflect.Type;
-import java.util.Locale;
+import java.util.Map;
 
-import static com.microsoft.identity.client.Logger.LogLevel;
+// MSAL Result Class to handle asserting success or failure on execution of Automated Test Cases
+public class MsalAuthResult extends AuthResult {
 
-@Immutable
-public class LogLevelDeserializer implements JsonDeserializer<Logger.LogLevel> {
+    private Map<String, ?> claims;
 
-    @Override
-    public Logger.LogLevel deserialize(final JsonElement json,
-                                       final Type typeOfT,
-                                       final JsonDeserializationContext context) throws JsonParseException {
-        return LogLevel.valueOf(json.getAsString().toUpperCase(Locale.US));
+    public MsalAuthResult(@NonNull final IAuthenticationResult authenticationResult) {
+        super(authenticationResult.getAccessToken(), authenticationResult.getAccount().getIdToken(), authenticationResult.getAccount().getId(), authenticationResult.getAccount().getUsername(), authenticationResult.getAccount().getAuthority());
+        this.claims = authenticationResult.getAccount().getClaims();
+    }
+
+    public MsalAuthResult(@NonNull final Exception exception) {
+        super(exception);
     }
 }

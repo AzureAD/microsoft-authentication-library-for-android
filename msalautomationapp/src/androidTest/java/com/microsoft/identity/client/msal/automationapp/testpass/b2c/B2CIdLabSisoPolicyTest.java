@@ -46,7 +46,6 @@ import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
 
-@RunWith(Parameterized.class)
 public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
 
     final static B2CProvider[] b2CProviders = new B2CProvider[]{
@@ -72,7 +71,6 @@ public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
         return mB2cProvider;
     }
 
-    @Test
     public void testCanLoginWithLocalAndSocialAccounts() {
         final TokenRequestLatch latch = new TokenRequestLatch(1);
 
