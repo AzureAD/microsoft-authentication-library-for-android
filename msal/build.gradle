@@ -219,11 +219,13 @@ task javadoc(type: Javadoc) {
 task javadocJar(type: Jar, dependsOn: javadoc) {
     from javadoc.destinationDir
     classifier 'javadoc'
+    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
 }
 
 task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
     classifier 'sources'
+    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
 }
 
 dependencies {
