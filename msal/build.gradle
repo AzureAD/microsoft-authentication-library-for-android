@@ -23,6 +23,22 @@ def bothTestType = "BothTest"
 
 android {
 
+    testOptions {
+        compileOptions {
+            // Flag to enable support for the new language APIs
+            coreLibraryDesugaringEnabled true
+            // Sets Java compatibility to Java 8
+            sourceCompatibility JavaVersion.VERSION_1_8
+            targetCompatibility JavaVersion.VERSION_1_8
+        }
+        dependencies {
+            coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
+        }
+        defaultConfig {
+            multiDexEnabled true
+        }
+    }
+
     /*
     //Commenting out until the next major version of common/msal/etc...
     compileOptions {
@@ -37,7 +53,6 @@ android {
     compileSdkVersion rootProject.ext.compileSdkVersion
 
     defaultConfig {
-        multiDexEnabled true
         minSdkVersion rootProject.ext.minSdkVersion
         if(project.getProperties().get("robolectricSdkVersion")){
             println "Using command line parameter robolectricSdkVersion for target sdk version"
