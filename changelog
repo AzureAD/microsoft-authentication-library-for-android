@@ -1,5 +1,8 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
+vNext
+- [MINOR] Changes to Broker Validation to allow setting whether to trust debug brokers (prod brokers are always trusted).
+
 Version 2.0.6
 ----------
 - Warn if SAPCA used with B2C. Throw Exception if Multiple Policies are Configured (#1270)
