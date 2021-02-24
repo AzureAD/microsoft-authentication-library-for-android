@@ -26,6 +26,7 @@ import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
+import com.microsoft.identity.internal.testutils.MockHttpClient;
 import com.microsoft.identity.internal.testutils.TestUtils;
 
 import org.junit.After;
@@ -41,10 +42,12 @@ import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushSchedul
 public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAbstractTest implements IAcquireTokenTest {
 
     protected String[] mScopes;
+    protected MockHttpClient mockHttpClient;
 
     @Before
     public void setup() {
         mScopes = getScopes();
+        mockHttpClient = MockHttpClient.install();
         super.setup();
     }
 
@@ -53,6 +56,8 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
         AcquireTokenTestHelper.setAccount(null);
         // remove everything from cache after test ends
         TestUtils.clearCache(SHARED_PREFERENCES_NAME);
+
+        mockHttpClient.uninstall();
     }
 
     public void performInteractiveAcquireTokenCall(final String username) {

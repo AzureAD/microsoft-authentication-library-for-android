@@ -37,6 +37,7 @@ import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthorityForMockHttpResponse;
+import com.microsoft.identity.internal.testutils.HttpRequestMatcher;
 import com.microsoft.identity.internal.testutils.shadows.ShadowHttpClient;
 import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
@@ -55,6 +56,7 @@ import com.microsoft.identity.internal.testutils.TestUtils;
 import com.microsoft.identity.internal.testutils.mocks.MockServerResponse;
 import com.microsoft.identity.internal.testutils.mocks.MockTokenCreator;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -65,7 +67,9 @@ import org.robolectric.annotation.Config;
 import edu.emory.mathcs.backport.java.util.Arrays;
 
 import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
+import static com.microsoft.identity.internal.testutils.mocks.MockTokenCreator.CLOUD_DISCOVERY_ENDPOINT_REGEX;
 import static com.microsoft.identity.internal.testutils.mocks.MockTokenCreator.MOCK_PREFERRED_USERNAME_VALUE;
+import static com.microsoft.identity.internal.testutils.mocks.MockTokenCreator.MOCK_TOKEN_URL_REGEX;
 import static org.junit.Assert.fail;
 
 @RunWith(RobolectricTestRunner.class)
@@ -73,7 +77,7 @@ import static org.junit.Assert.fail;
         ShadowStorageHelper.class,
         ShadowAuthorityForMockHttpResponse.class,
         ShadowMsalUtils.class,
-        ShadowHttpClient.class, 
+        ShadowHttpClient.class,
         ShadowOpenIdProviderConfigurationClient.class
 })
 public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
@@ -86,10 +90,20 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
         super.setup();
         TestUtils.clearCache(SingleAccountPublicClientApplication.SINGLE_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES);
         mSingleAccountPCA = (SingleAccountPublicClientApplication) mApplication;
-
-        MockHttpClient.reset();
-        MockHttpClient.setHttpResponse(MockServerResponse.getMockTokenSuccessResponse(), HttpClient.HttpMethod.POST, MockTokenCreator.MOCK_TOKEN_URL_REGEX);
-        MockHttpClient.setHttpResponse(MockServerResponse.getMockCloudDiscoveryResponse(), HttpClient.HttpMethod.GET, MockTokenCreator.CLOUD_DISCOVERY_ENDPOINT_REGEX);
+        mockHttpClient.intercept(
+                HttpRequestMatcher.builder()
+                        .method(m -> m.equals(HttpClient.HttpMethod.POST))
+                        .url(u -> u.toString().matches(MOCK_TOKEN_URL_REGEX))
+                        .build(),
+                MockServerResponse.getMockTokenSuccessResponse()
+        );
+        mockHttpClient.intercept(
+                HttpRequestMatcher.builder()
+                        .method(m -> m.equals(HttpClient.HttpMethod.GET))
+                        .url(u -> u.toString().matches(CLOUD_DISCOVERY_ENDPOINT_REGEX))
+                        .build(),
+                MockServerResponse.getMockCloudDiscoveryResponse()
+        );
     }
 
     @Test

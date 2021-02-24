@@ -28,6 +28,7 @@ import androidx.annotation.Nullable;
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.AuthenticationCallback;
+import com.microsoft.identity.client.HttpMethod;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IPublicClientApplication;
@@ -57,6 +58,7 @@ import com.microsoft.identity.internal.testutils.TestConstants;
 import com.microsoft.identity.internal.testutils.TestUtils;
 import com.microsoft.identity.internal.testutils.mocks.MockTokenResponse;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -99,13 +101,13 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
     @Before
     public void setup() {
         super.setup();
-        MockHttpClient.setInterceptor(new HttpRequestInterceptor() {
-            @Override
-            public HttpResponse intercept(@NonNull HttpClient.HttpMethod httpMethod, @NonNull URL requestUrl, @NonNull Map<String, String> requestHeaders, @Nullable byte[] requestContent) throws IOException {
-                throw new IOException("Sending requests to server has been disabled for mocked unit tests");
-            }
-        }, HttpClient.HttpMethod.POST);
+        mockHttpClient.intercept(
+                HttpClient.HttpMethod.POST,
+                (httpMethod, requestUrl, requestHeaders, requestContent) -> {
+                    throw new IOException("Sending requests to server has been disabled for mocked unit tests");
+                });
     }
+
 
     @Test
     public void testAcquireTokenSuccess() {
@@ -528,5 +530,4 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
         final IAccount account = performGetAccount(application, loginHint);
         return account;
     }
-
 }
