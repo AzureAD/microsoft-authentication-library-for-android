@@ -1,3 +1,26 @@
+// Copyright (c) Microsoft Corporation.
+// All rights reserved.
+//
+// This code is licensed under the MIT License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files(the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions :
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
 package com.microsoft.identity.client.e2e.tests.mocked;
 
 import android.content.SharedPreferences;
@@ -10,6 +33,7 @@ import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.MultiTenantAccount;
+import com.microsoft.identity.client.RoboTestCacheHelper;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthorityForMockHttpResponse;
 import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
@@ -19,14 +43,18 @@ import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.AsyncResult;
+import com.microsoft.identity.common.exception.ClientException;
+import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.net.HttpClient;
 import com.microsoft.identity.common.internal.net.HttpResponse;
+import com.microsoft.identity.common.internal.providers.oauth2.TokenResponse;
 import com.microsoft.identity.common.internal.result.ResultFuture;
 import com.microsoft.identity.internal.testutils.MockHttpClient;
 import com.microsoft.identity.internal.testutils.TestConstants;
 import com.microsoft.identity.internal.testutils.TestUtils;
 import com.microsoft.identity.internal.testutils.mocks.MockServerResponse;
 import com.microsoft.identity.internal.testutils.mocks.MockTokenCreator;
+import com.microsoft.identity.internal.testutils.mocks.MockTokenResponse;
 import com.microsoft.identity.internal.testutils.shadows.ShadowHttpClient;
 
 import org.junit.Before;
@@ -45,7 +73,12 @@ import java.util.UUID;
 import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.getAccount;
 import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
 import static com.microsoft.identity.internal.testutils.TestUtils.getSharedPreferences;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 @RunWith(ParameterizedRobolectricTestRunner.class)
 @Config(shadows = {
@@ -168,14 +201,20 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
             final AsyncResult<List<IAccount>> result = future.get();
 
             if (result.getSuccess()) {
-                assertEquals(1, result.getResult().size());
+                assertEquals("number of accounts", 1, result.getResult().size());
                 MultiTenantAccount account = (MultiTenantAccount) result.getResult().get(0);
-                assertEquals(expectedTenantProfilesCount , account.getTenantProfiles().size());
+                assertEquals("number of tenant profiles", expectedTenantProfilesCount , account.getTenantProfiles().size());
                 assertTrue(testCaseData.homeAccountId.contains(account.getId()));
                 if(homeAccountSignedIn) {
-                    //TODO: Verify if it is ok to not have claims for the root account object
-                    assertNotNull(account.getClaims());
-                    assertNotEquals(0, account.getClaims().size());
+                    assertNotNull("account.getClaims()", account.getClaims());
+                    assertNotEquals("claims count",0, account.getClaims().size());
+                    verifyAccountDetails(testCaseData.userAccountsData.get(0), account);
+                }
+
+                int tenantProfileIndexStart = homeAccountSignedIn? 1: 0;
+                int tenantProfileIndexEnd = homeAccountSignedIn? expectedTenantProfilesCount: expectedTenantProfilesCount -1;
+                for(int i = tenantProfileIndexStart; i <= tenantProfileIndexEnd; i++){
+                    verifyAccountDetails(testCaseData.userAccountsData.get(i), account.getTenantProfiles().get(testCaseData.userAccountsData.get(i).tenantId));
                 }
             } else {
                 fail(result.getException().getMessage());
@@ -185,10 +224,29 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
         }
     }
 
+    private void verifyAccountDetails(UserAccountData expectedUserAccountData, IAccount account) {
+        assertEquals("account.getTenantId()", expectedUserAccountData.tenantId, account.getTenantId());
+        assertEquals("account.getId()", expectedUserAccountData.localAccountId, account.getId());
+        assertEquals("account.getAuthority()", expectedUserAccountData.cloud, account.getAuthority());
+        assertEquals("iss claim", expectedUserAccountData.cloud, account.getClaims().get("iss"));
+        assertEquals("tid claim", expectedUserAccountData.tenantId, account.getClaims().get("tid"));
+        assertEquals("oid claim", expectedUserAccountData.localAccountId, account.getClaims().get("oid"));
+    }
+
     @Test
     public void testRemoveAccountRemovesAllCredentialsFromMultipleCloudsWithSameHomeAccountId()
     {
         // arrange
+        // add mock record in cache which has different home account id than the account to be removed
+        ICacheRecord cacheRecord = null;
+        final TokenResponse tokenResponse = MockTokenResponse.getMockSuccessTokenResponse();
+
+        try {
+            cacheRecord = RoboTestCacheHelper.saveTokens(tokenResponse, mMultipleAccountPCA);
+        } catch (ClientException e) {
+            fail("Unable to save tokens to cache: " + e.getMessage());
+        }
+
         final ResultFuture<Boolean> future = new ResultFuture<>();
 
         // act
@@ -214,9 +272,10 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
         SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFERENCES_NAME);
         final Map<String, ?> cacheValues = sharedPreferences.getAll();
         for (String key: cacheValues.keySet()) {
-            assertFalse(key.contains(testCaseData.homeAccountId));
+            assertFalse("Cache record found for homeAccountId of removed account", key.contains(testCaseData.homeAccountId));
+            assertTrue("Cache record found for other homeAccountId", key.contains(cacheRecord.getAccount().getHomeAccountId()));
         }
-        assertEquals(0, cacheValues.size());
+        assertEquals("Cache Values count", 4, cacheValues.size());
     }
 
     @Test
@@ -252,8 +311,8 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
         IAuthenticationResult authenticationResult = null;
         try {
             authenticationResult = future.get();
-            assertNotNull(authenticationResult);
-            assertEquals(testCaseData.userAccountsData.get(testCaseData.userAccountsData.size() -1).getFakeAccessToken(), authenticationResult.getAccessToken());
+            assertNotNull("authenticationResult from acquireTokeSilent call", authenticationResult);
+            assertEquals("accessToken value", testCaseData.userAccountsData.get(testCaseData.userAccountsData.size() -1).getFakeAccessToken(), authenticationResult.getAccessToken());
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -306,8 +365,8 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
         IAuthenticationResult authenticationResult = null;
         try {
             authenticationResult = future.get();
-            assertNotNull(authenticationResult);
-            assertEquals(testCaseData.userAccountsData.get(0).getFakeAccessToken(), authenticationResult.getAccessToken());
+            assertNotNull("authenticationResult from acquireTokeSilent call", authenticationResult);
+            assertEquals("accessToken value", testCaseData.userAccountsData.get(0).getFakeAccessToken(), authenticationResult.getAccessToken());
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -360,8 +419,8 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
         IAuthenticationResult authenticationResult = null;
         try {
             authenticationResult = future.get();
-            assertNotNull(authenticationResult);
-            assertEquals(testCaseData.userAccountsData.get(0).getFakeAccessToken(), authenticationResult.getAccessToken());
+            assertNotNull("authenticationResult from acquireTokeSilent call", authenticationResult);
+            assertEquals("accessToken value", testCaseData.userAccountsData.get(0).getFakeAccessToken(), authenticationResult.getAccessToken());
         } catch (Exception e) {
             fail(e.getMessage());
         }
