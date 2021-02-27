@@ -2,7 +2,7 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 V.Next
 ----------
 
-Version 2.0.7
+Version 2.0.8
 ----------
 - [MINOR] Changes to Broker Validation to allow setting whether to trust debug brokers (prod brokers are always trusted).
 
