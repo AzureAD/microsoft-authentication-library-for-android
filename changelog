@@ -1,6 +1,7 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
 vNext
+- [PATCH] Add extra '/' in the example intent filter (#1323)
 - [MINOR] Changes to Broker Validation to allow setting whether to trust debug brokers (prod brokers are always trusted).
 
 Version 2.0.6
