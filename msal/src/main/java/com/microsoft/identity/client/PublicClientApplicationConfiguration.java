@@ -49,6 +49,7 @@ import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.telemetry.TelemetryConfiguration;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 import com.microsoft.identity.common.internal.ui.browser.BrowserDescriptor;
+import com.microsoft.identity.common.internal.util.SignUtil;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -491,7 +492,8 @@ public class PublicClientApplicationConfiguration {
         final String packageName = mAppContext.getPackageName();
         try {
             final PackageInfo info = mAppContext.getPackageManager().getPackageInfo(packageName, PackageManager.GET_SIGNATURES);
-            for (final Signature signature : info.signatures) {
+            Signature [] signatures = SignUtil.getSignatures(info);
+            for (final Signature signature : signatures) {
                 final MessageDigest messageDigest = MessageDigest.getInstance("SHA");
                 messageDigest.update(signature.toByteArray());
                 final String signatureHash = Base64.encodeToString(messageDigest.digest(), Base64.NO_WRAP);
