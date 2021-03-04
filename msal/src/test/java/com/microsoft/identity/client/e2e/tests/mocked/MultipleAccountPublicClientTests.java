@@ -100,71 +100,91 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
     @ParameterizedRobolectricTestRunner.Parameters(name = "{0}")
     public static Iterable<Object[]> getTestDataForInteractiveAcquireTokenCallToSetupCache() {
         final String userName = "testUser@multipleAccountPCATests.onmicrosoft.com";
-        final String uid = UUID.randomUUID().toString();
-        final String utid = UUID.randomUUID().toString();
+        final String homeCloud = "https://login.microsoftonline.com";
+        final String foreignCloud = "https://login.microsoftonline.us";
+        final String foreignCloud2 = "https://login.microsoftonline.de";
+        final String uid = randomUuidString();
+        final String utid = randomUuidString();
+
         return Arrays.asList(
-                new Object[]{
-                    "Cache setup by performing acquireToken requests for Home account and 1 Guest account in Foreign cloud",
-                    new TestCaseData(
-                        userName,
-                        uid + "." + utid,
-                        new ArrayList<UserAccountData>(Arrays.asList(
-                            new UserAccountData("https://login.microsoftonline.com", uid, utid),
-                            new UserAccountData("https://login.microsoftonline.us", UUID.randomUUID().toString(), UUID.randomUUID().toString())
-                        ))
+            new Object[]{
+                "User signed into Home tenant and 1 Guest tenant in Foreign cloud",
+                new TestCaseData(
+                    userName,
+                    uid + "." + utid,
+                    new ArrayList<UserAccountData>(Arrays.asList(
+                        new UserAccountData(homeCloud, uid, utid),
+                        new UserAccountData(foreignCloud, randomUuidString(), randomUuidString())
+                    ))
+            )},
+            new Object[]{
+                "User signed into Home tenant and Guest tenants in 2 separate Foreign clouds",
+                new TestCaseData(
+                    userName,
+                    uid + "." + utid,
+                    new ArrayList<>(Arrays.asList(
+                        new UserAccountData(homeCloud, uid, utid),
+                        new UserAccountData(foreignCloud, randomUuidString(), randomUuidString()),
+                        new UserAccountData(foreignCloud2, randomUuidString(), randomUuidString())
+                    ))
+            )},
+            new Object[]{
+                "User signed into Home tenant and 2 Guest tenants in Foreign cloud ",
+                new TestCaseData(
+                    userName,
+                    uid + "." + utid,
+                    new ArrayList<>(Arrays.asList(
+                        new UserAccountData(homeCloud, uid, utid),
+                        new UserAccountData(foreignCloud, randomUuidString(), randomUuidString()),
+                        new UserAccountData(foreignCloud, randomUuidString(), randomUuidString())
+                    ))
+            )},
+            new Object[]{
+                "User signed into 2 Guest tenants in 1 Foreign cloud ",
+                new TestCaseData(
+                    userName,
+                    uid + "." + utid,
+                    new ArrayList<>(Arrays.asList(
+                        new UserAccountData(foreignCloud, randomUuidString(), randomUuidString()),
+                        new UserAccountData(foreignCloud, randomUuidString(), randomUuidString())
+                    ))
                 )},
-                new Object[]{
-                    "Cache setup by performing acquireToken requests for Home account and 2 Guest accounts in 2 separate Foreign cloud ",
-                    new TestCaseData(
-                        userName,
-                        uid + "." + utid,
-                        new ArrayList<>(Arrays.asList(
-                            new UserAccountData("https://login.microsoftonline.com", uid, utid),
-                            new UserAccountData("https://login.microsoftonline.de", UUID.randomUUID().toString(), UUID.randomUUID().toString()),
-                            new UserAccountData("https://login.microsoftonline.us", UUID.randomUUID().toString(), UUID.randomUUID().toString())
-                        ))
+            new Object[]{
+                "User signed into Home tenant ",
+                new TestCaseData(
+                    userName,
+                    uid + "." + utid,
+                    new ArrayList<>(Arrays.asList(
+                        new UserAccountData(homeCloud, uid, utid)
+                    ))
                 )},
-                new Object[]{
-                    "Cache setup by performing acquireToken requests for Home account and 2 Guest accounts in 1 Foreign cloud ",
-                    new TestCaseData(
-                        userName,
-                        uid + "." + utid,
-                        new ArrayList<>(Arrays.asList(
-                            new UserAccountData("https://login.microsoftonline.com", uid, utid),
-                            new UserAccountData("https://login.microsoftonline.us", UUID.randomUUID().toString(), UUID.randomUUID().toString()),
-                            new UserAccountData("https://login.microsoftonline.us", UUID.randomUUID().toString(), UUID.randomUUID().toString())
-                        ))
+            new Object[]{
+                "User signed into Home tenant and 1 guest tenant in home cloud ",
+                new TestCaseData(
+                    userName,
+                    uid + "." + utid,
+                    new ArrayList<>(Arrays.asList(
+                        new UserAccountData(homeCloud, uid, utid),
+                        new UserAccountData(homeCloud, randomUuidString(), randomUuidString())
+                    ))
                 )},
-                new Object[]{
-                    "Cache setup by performing acquireToken requests for 2 Guest accounts in 1 Foreign cloud ",
-                    new TestCaseData(
-                            userName,
-                            uid + "." + utid,
-                            new ArrayList<>(Arrays.asList(
-                                    new UserAccountData("https://login.microsoftonline.us", UUID.randomUUID().toString(), UUID.randomUUID().toString()),
-                                    new UserAccountData("https://login.microsoftonline.us", UUID.randomUUID().toString(), UUID.randomUUID().toString())
-                            ))
-                    )},
-                new Object[]{
-                    "Cache setup by performing acquireToken requests for Home account ",
-                    new TestCaseData(
-                            userName,
-                            uid + "." + utid,
-                            new ArrayList<>(Arrays.asList(
-                                    new UserAccountData("https://login.microsoftonline.com", uid, utid)
-                            ))
-                    )},
-                new Object[]{
-                        "Cache setup by performing acquireToken requests for Home account and 1 guest tenant in home cloud ",
-                        new TestCaseData(
-                                userName,
-                                uid + "." + utid,
-                                new ArrayList<>(Arrays.asList(
-                                        new UserAccountData("https://login.microsoftonline.com", uid, utid),
-                                        new UserAccountData("https://login.microsoftonline.com", UUID.randomUUID().toString(), UUID.randomUUID().toString())
-                                ))
-                        )}
+            new Object[]{
+                "User signed into multiple tenants in home cloud and foreign cloud",
+                new TestCaseData(
+                    userName,
+                    uid + "." + utid,
+                    new ArrayList<>(Arrays.asList(
+                        new UserAccountData(homeCloud, uid, utid),
+                        new UserAccountData(homeCloud, randomUuidString(), randomUuidString()),
+                        new UserAccountData(foreignCloud, randomUuidString(), randomUuidString()),
+                        new UserAccountData(foreignCloud, randomUuidString(), randomUuidString())
+                    ))
+                )}
         );
+    }
+
+    private static String randomUuidString() {
+        return UUID.randomUUID().toString();
     }
 
     @Before
@@ -195,14 +215,16 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
         RoboTestUtils.flushScheduler();
 
         // assert
-        int expectedTenantProfilesCount = homeAccountSignedIn ? testCaseData.userAccountsData.size() - 1 : testCaseData.userAccountsData.size();
+        int expectedTenantProfilesCount = homeAccountSignedIn ?
+                testCaseData.userAccountsData.size() - 1 : testCaseData.userAccountsData.size();
         try {
             final AsyncResult<List<IAccount>> result = future.get();
 
             if (result.getSuccess()) {
                 assertEquals("number of accounts", 1, result.getResult().size());
                 MultiTenantAccount account = (MultiTenantAccount) result.getResult().get(0);
-                assertEquals("number of tenant profiles", expectedTenantProfilesCount , account.getTenantProfiles().size());
+                assertEquals("number of tenant profiles",
+                        expectedTenantProfilesCount , account.getTenantProfiles().size());
                 assertTrue(testCaseData.homeAccountId.contains(account.getId()));
                 if(homeAccountSignedIn) {
                     assertNotNull("account.getClaims()", account.getClaims());
@@ -211,9 +233,12 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
                 }
 
                 int tenantProfileIndexStart = homeAccountSignedIn? 1: 0;
-                int tenantProfileIndexEnd = homeAccountSignedIn? expectedTenantProfilesCount: expectedTenantProfilesCount -1;
+                int tenantProfileIndexEnd = homeAccountSignedIn?
+                        expectedTenantProfilesCount: expectedTenantProfilesCount -1;
                 for(int i = tenantProfileIndexStart; i <= tenantProfileIndexEnd; i++) {
-                    verifyAccountDetails(testCaseData.userAccountsData.get(i), account.getTenantProfiles().get(testCaseData.userAccountsData.get(i).tenantId));
+                    verifyAccountDetails(
+                            testCaseData.userAccountsData.get(i),
+                            account.getTenantProfiles().get(testCaseData.userAccountsData.get(i).tenantId));
                 }
             } else {
                 fail(result.getException().getMessage());
@@ -249,17 +274,19 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
 
         // act
         try {
-            mMultipleAccountPCA.removeAccount(getAccount(), new IMultipleAccountPublicClientApplication.RemoveAccountCallback() {
-                @Override
-                public void onRemoved() {
-                    future.setResult(true);
-                }
+            mMultipleAccountPCA.removeAccount(
+                getAccount(),
+                new IMultipleAccountPublicClientApplication.RemoveAccountCallback() {
+                    @Override
+                    public void onRemoved() {
+                        future.setResult(true);
+                    }
 
-                @Override
-                public void onError(@NonNull MsalException exception) {
-                    future.setException(exception);
-                }
-            });
+                    @Override
+                    public void onError(@NonNull MsalException exception) {
+                        future.setException(exception);
+                    }
+                });
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -270,8 +297,10 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
         SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFERENCES_NAME);
         final Map<String, ?> cacheValues = sharedPreferences.getAll();
         for (String key: cacheValues.keySet()) {
-            assertFalse("Cache record found for homeAccountId of removed account", key.contains(testCaseData.homeAccountId));
-            assertTrue("Cache record found for other homeAccountId", key.contains(cacheRecord.getAccount().getHomeAccountId()));
+            assertFalse("Cache record found for homeAccountId of removed account",
+                    key.contains(testCaseData.homeAccountId));
+            assertTrue("Cache record found for other homeAccountId",
+                    key.contains(cacheRecord.getAccount().getHomeAccountId()));
         }
         assertEquals("Cache Values count", 4, cacheValues.size());
     }
@@ -280,13 +309,15 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
     public void testAcquireTokenReturnsAccessTokenForCrossCloudAccount() {
         // arrange
         final ResultFuture<IAuthenticationResult> future = new ResultFuture<>();
-
+        final UserAccountData lastSignedInAccount =
+                testCaseData.userAccountsData.get(testCaseData.userAccountsData.size() -1);
         // act
         try {
             mMultipleAccountPCA.acquireTokenSilentAsync
                     (getScopes(),
                     getAccount(),
-                    testCaseData.userAccountsData.get(testCaseData.userAccountsData.size() -1).cloud + "/" + testCaseData.userAccountsData.get(testCaseData.userAccountsData.size() -1).tenantId,
+                    lastSignedInAccount.cloud +
+                            "/" + lastSignedInAccount.tenantId,
                     new SilentAuthenticationCallback() {
                         @Override
                         public void onSuccess(IAuthenticationResult authenticationResult) {
@@ -308,8 +339,10 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
         IAuthenticationResult authenticationResult = null;
         try {
             authenticationResult = future.get();
-            assertNotNull("authenticationResult from acquireTokeSilent call", authenticationResult);
-            assertEquals("accessToken value", testCaseData.userAccountsData.get(testCaseData.userAccountsData.size() -1).getFakeAccessToken(), authenticationResult.getAccessToken());
+            assertNotNull("authenticationResult from acquireTokeSilent call",
+                    authenticationResult);
+            assertEquals("accessToken value",
+                    lastSignedInAccount.getFakeAccessToken(), authenticationResult.getAccessToken());
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -319,14 +352,16 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
     public void testAcquireTokenReturnsAccessTokenForCrossCloudAccountRetrievedUsingGetAccount() {
         // arrange
         final IAccount[] accountUnderTest = { null };
-        mMultipleAccountPCA.getAccount(testCaseData.homeAccountId, new IMultipleAccountPublicClientApplication.GetAccountCallback() {
-            @Override
-            public void onTaskCompleted(IAccount result) {
-                accountUnderTest[0] = result;
-            }
+        mMultipleAccountPCA.getAccount(
+            testCaseData.homeAccountId,
+            new IMultipleAccountPublicClientApplication.GetAccountCallback() {
+                @Override
+                public void onTaskCompleted(IAccount result) {
+                    accountUnderTest[0] = result;
+                }
 
-            @Override
-            public void onError(MsalException exception) {
+                @Override
+                public void onError(MsalException exception) {
                 fail(exception.getMessage());
             }
         });
@@ -339,7 +374,8 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
             mMultipleAccountPCA.acquireTokenSilentAsync
                     (getScopes(),
                             accountUnderTest[0],
-                            testCaseData.userAccountsData.get(0).cloud + "/" + testCaseData.userAccountsData.get(0).tenantId,
+                            testCaseData.userAccountsData.get(0).cloud +
+                                    "/" + testCaseData.userAccountsData.get(0).tenantId,
                             new SilentAuthenticationCallback() {
                                 @Override
                                 public void onSuccess(IAuthenticationResult authenticationResult) {
@@ -362,7 +398,8 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
         try {
             authenticationResult = future.get();
             assertNotNull("authenticationResult from acquireTokeSilent call", authenticationResult);
-            assertEquals("accessToken value", testCaseData.userAccountsData.get(0).getFakeAccessToken(), authenticationResult.getAccessToken());
+            assertEquals("accessToken value",
+                    testCaseData.userAccountsData.get(0).getFakeAccessToken(), authenticationResult.getAccessToken());
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -392,7 +429,8 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
             mMultipleAccountPCA.acquireTokenSilentAsync
                     (getScopes(),
                             accountsUnderTest.get(0),
-                            testCaseData.userAccountsData.get(0).cloud + "/" + testCaseData.userAccountsData.get(0).tenantId,
+                            testCaseData.userAccountsData.get(0).cloud +
+                                    "/" + testCaseData.userAccountsData.get(0).tenantId,
                             new SilentAuthenticationCallback() {
                                 @Override
                                 public void onSuccess(IAuthenticationResult authenticationResult) {
@@ -415,7 +453,8 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
         try {
             authenticationResult = future.get();
             assertNotNull("authenticationResult from acquireTokeSilent call", authenticationResult);
-            assertEquals("accessToken value", testCaseData.userAccountsData.get(0).getFakeAccessToken(), authenticationResult.getAccessToken());
+            assertEquals("accessToken value",
+                    testCaseData.userAccountsData.get(0).getFakeAccessToken(), authenticationResult.getAccessToken());
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -424,7 +463,10 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
     private void performInteractiveAcquireTokenWithMockResponsesToSetupCache() {
         TestUtils.clearCache(SHARED_PREFERENCES_NAME);
         MockHttpClient.reset();
-        MockHttpClient.setHttpResponse(MockServerResponse.getMockCloudDiscoveryResponse(), HttpClient.HttpMethod.GET, MockTokenCreator.CLOUD_DISCOVERY_ENDPOINT_REGEX);
+        MockHttpClient.setHttpResponse(
+                MockServerResponse.getMockCloudDiscoveryResponse(),
+                HttpClient.HttpMethod.GET,
+                MockTokenCreator.CLOUD_DISCOVERY_ENDPOINT_REGEX);
         for (UserAccountData userData: testCaseData.userAccountsData) {
             HttpResponse mockResponseForHomeTenant = MockServerResponse.getMockTokenSuccessResponse(
                     userData.localAccountId,
@@ -432,7 +474,9 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
                     userData.cloud,
                     testCaseData.getRawClientInfo(),
                     userData.getFakeAccessToken());
-            MockHttpClient.setHttpResponse(mockResponseForHomeTenant, HttpClient.HttpMethod.POST, userData.cloud + "/.*");
+            MockHttpClient.setHttpResponse(mockResponseForHomeTenant,
+                    HttpClient.HttpMethod.POST,
+                    userData.cloud + "/.*");
             performInteractiveAcquireTokenCall(testCaseData.userName, userData.cloud + "/organizations");
             if(testCaseData.homeAccountId.equals(userData.localAccountId + "." + userData.tenantId)){
                 homeAccountSignedIn = true;
@@ -460,7 +504,8 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
         public final String homeAccountId;
         public final ArrayList<UserAccountData> userAccountsData;
 
-        public TestCaseData(final String userName, String homeAccountId, ArrayList<UserAccountData> userAccountsData) {
+        public TestCaseData(
+                final String userName, String homeAccountId, ArrayList<UserAccountData> userAccountsData) {
             this.userName = userName;
             this.homeAccountId = homeAccountId;
             this.userAccountsData = userAccountsData;
