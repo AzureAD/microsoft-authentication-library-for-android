@@ -175,8 +175,7 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
     }
 
     @Test
-    public void testGetAccountsReturnsSingleAccountObjectForAccountRecordsFromMultipleCloudsWithSameHomeAccountId()
-    {
+    public void testGetAccountsReturnsSingleAccountObjectForAccountRecordsFromMultipleCloudsWithSameHomeAccountId() {
         // arrange
         final ResultFuture<AsyncResult<List<IAccount>>> future = new ResultFuture<>();
 
@@ -213,7 +212,7 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
 
                 int tenantProfileIndexStart = homeAccountSignedIn? 1: 0;
                 int tenantProfileIndexEnd = homeAccountSignedIn? expectedTenantProfilesCount: expectedTenantProfilesCount -1;
-                for(int i = tenantProfileIndexStart; i <= tenantProfileIndexEnd; i++){
+                for(int i = tenantProfileIndexStart; i <= tenantProfileIndexEnd; i++) {
                     verifyAccountDetails(testCaseData.userAccountsData.get(i), account.getTenantProfiles().get(testCaseData.userAccountsData.get(i).tenantId));
                 }
             } else {
@@ -234,8 +233,7 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
     }
 
     @Test
-    public void testRemoveAccountRemovesAllCredentialsFromMultipleCloudsWithSameHomeAccountId()
-    {
+    public void testRemoveAccountRemovesAllCredentialsFromMultipleCloudsWithSameHomeAccountId() {
         // arrange
         // add mock record in cache which has different home account id than the account to be removed
         ICacheRecord cacheRecord = null;
@@ -279,8 +277,7 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
     }
 
     @Test
-    public void testAcquireTokenReturnsAccessTokenForCrossCloudAccount()
-    {
+    public void testAcquireTokenReturnsAccessTokenForCrossCloudAccount() {
         // arrange
         final ResultFuture<IAuthenticationResult> future = new ResultFuture<>();
 
@@ -319,10 +316,9 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
     }
 
     @Test
-    public void testAcquireTokenReturnsAccessTokenForCrossCloudAccountRetrievedUsingGetAccount()
-    {
+    public void testAcquireTokenReturnsAccessTokenForCrossCloudAccountRetrievedUsingGetAccount() {
         // arrange
-        final IAccount[] accountUnderTest = {null};
+        final IAccount[] accountUnderTest = { null };
         mMultipleAccountPCA.getAccount(testCaseData.homeAccountId, new IMultipleAccountPublicClientApplication.GetAccountCallback() {
             @Override
             public void onTaskCompleted(IAccount result) {
@@ -373,8 +369,7 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
     }
 
     @Test
-    public void testAcquireTokenReturnsAccessTokenForCrossCloudAccountRetrievedUsingGetAccounts()
-    {
+    public void testAcquireTokenReturnsAccessTokenForCrossCloudAccountRetrievedUsingGetAccounts() {
         // arrange
         final List<IAccount> accountsUnderTest = new ArrayList<>();
         mMultipleAccountPCA.getAccounts(new IPublicClientApplication.LoadAccountsCallback() {
@@ -481,8 +476,7 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
 
     }
 
-    private static class UserAccountData
-    {
+    private static class UserAccountData {
         public final String cloud;
         public final String localAccountId;
 
@@ -493,8 +487,7 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
             this.localAccountId = localAccountId;
             this.tenantId = tenantId;
         }
-        public String getFakeAccessToken()
-        {
+        public String getFakeAccessToken() {
             return "access_Token:" + cloud + "/" + tenantId + "/" + localAccountId;
         }
     }
