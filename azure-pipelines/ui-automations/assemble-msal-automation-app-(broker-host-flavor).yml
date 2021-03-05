@@ -1,0 +1,68 @@
+# 'Allow scripts to access the OAuth token' was selected in pipeline.  Add the following YAML to any steps requiring access:
+#       env:
+#           MY_ACCESS_TOKEN: $(System.AccessToken)
+# Variable 'android:serverUrl' was defined in the Variables tab
+# Variable 'ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME' was defined in the Variables tab
+# Variable 'gcloud_project_id' was defined in the Variables tab
+# Variable 'mvnAccessToken' was defined in the Variables tab
+# Variable 'test_repo_branch' was defined in the Variables tab
+# Variable 'test_repo_dir' was defined in the Variables tab
+variables:
+- name: BuildParameters.cmdLineArgs
+  value: /F:$(Build.SourcesDirectory)+"\adal\src\" /T:9 /O:\"PoliCheck.xml\"
+- name: BuildParameters.inputType
+  value: Basic
+name: $(date:yyyyMMdd)$(rev:.r)
+resources:
+  repositories:
+  - repository: self
+    type: git
+    ref: dev
+jobs:
+- job: Phase_1
+  displayName: Phase 1
+  cancelTimeoutInMinutes: 1
+  pool:
+    name: Hosted Windows 2019 with VS2019
+  steps:
+  - checkout: self
+    clean: true
+    submodules: recursive
+    persistCredentials: True
+  - task: CredScan@2
+    name: CredScan_1
+    displayName: Run CredScan
+    inputs:
+      toolVersionV2: LatestPreRelease
+      debugMode: false
+      folderSuppression: false
+  - task: PoliCheck@1
+    name: PoliCheck_2
+    displayName: Run PoliCheck
+    inputs:
+      inputType: $(BuildParameters.inputType)
+      cmdLineArgs: $(BuildParameters.cmdLineArgs)
+      importEx: 0
+      optionsFC: 1
+      optionsXS: 1
+      optionsSEV: 1|2
+      optionsPE: 1|2|3|4
+  - task: PublishSecurityAnalysisLogs@2
+    name: PublishSecurityAnalysisLogs15
+    displayName: Publish Security Analysis Logs
+  - task: Gradle@1
+    name: Gradle1
+    displayName: Assemble MSAL Automation App
+    inputs:
+      tasks: clean msalautomationapp:assembleLocalBrokerHost
+      publishJUnitResults: false
+      jdkArchitecture: x86
+      sqAnalysisBreakBuildIfQualityGateFailed: false
+  - task: PublishBuildArtifacts@1
+    displayName: Publish MSAL Automation App
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/msalautomationapp/build/outputs/apk/localBrokerHost/debug/msalautomationapp-local-BrokerHost-debug.apk
+      ArtifactName: MsalAutomationAppBrokerHostLocalDebug
+  - task: ComponentGovernanceComponentDetection@0
+    displayName: Component Detection
+...

@@ -1,0 +1,402 @@
+# 'Allow scripts to access the OAuth token' was selected in pipeline.  Add the following YAML to any steps requiring access:
+#       env:
+#           MY_ACCESS_TOKEN: $(System.AccessToken)
+# Variable 'android:serverUrl' was defined in the Variables tab
+# Variable 'baseBuildID' was defined in the Variables tab
+# Variable 'ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME' was defined in the Variables tab
+# Variable 'gcloud_project_id' was defined in the Variables tab
+# Variable 'mvnAccessToken' was defined in the Variables tab
+# Variable 'test_repo_branch' was defined in the Variables tab
+# Variable 'test_repo_dir' was defined in the Variables tab
+# Variable 'testAPI' was defined in the Variables tab
+# Variable 'testDevice' was defined in the Variables tab
+# Cron Schedules have been converted using UTC Time Zone and may need to be updated for your location
+variables:
+- name: BuildParameters.cmdLineArgs
+  value: /F:$(Build.SourcesDirectory)+"\adal\src\" /T:9 /O:\"PoliCheck.xml\"
+- name: BuildParameters.inputType
+  value: Basic
+schedules:
+- cron: 0 5 * * 1,2,3,4,5
+  branches:
+    include:
+    - neagarw/perfAcquireTokenTest
+name: $(date:yyyyMMdd)$(rev:.r)
+resources:
+  repositories:
+  - repository: self
+    type: git
+    ref: neagarw/perfAcquireTokenTest
+jobs:
+- job: Phase_1
+  displayName: Phase 1
+  cancelTimeoutInMinutes: 1
+  pool:
+    name: Hosted Windows 2019 with VS2019
+  steps:
+  - checkout: self
+    clean: true
+    submodules: recursive
+    persistCredentials: True
+  - task: DownloadSecureFile@1
+    name: perfRunnable
+    displayName: Download Perf runnable package
+    inputs:
+      secureFile: efe578d6-dec4-4d9f-a2ee-717d41848362
+      retryCount: 5
+  - task: PowerShell@2
+    displayName: create basefiles directory for baseline run
+    condition: succeededOrFailed()
+    inputs:
+      targetType: inline
+      script: >-
+        md $(Build.SourcesDirectory)\basefiles
+
+
+        dir $(Build.SourcesDirectory)\
+  - task: PowerShell@2
+    displayName: create basefiles directory for latest run
+    condition: succeededOrFailed()
+    continueOnError: True
+    inputs:
+      targetType: inline
+      script: >-
+        md $(Build.SourcesDirectory)\basefiles2
+
+
+        dir $(Build.SourcesDirectory)\
+  - task: DownloadSecureFile@1
+    name: perfBase
+    displayName: Download Perf Base files from secure files
+    enabled: False
+    inputs:
+      secureFile: fadb6db9-d63d-4ee1-9f40-e2a22bf5cb71
+      retryCount: 5
+  - task: DownloadPipelineArtifact@2
+    displayName: Download Base files from baseline run
+    inputs:
+      source: specific
+      project: a7934fdd-dcde-4492-a406-7fad6ac00e17
+      pipeline: 1254
+      runVersion: specific
+      runId: $(baseBuildID)
+      artifact: Perf
+      patterns: targetfiles/PerfData*.txt
+      path: $(Build.SourcesDirectory)\basefiles
+  - task: DownloadPipelineArtifact@2
+    name: latestRun
+    displayName: Download Base file(s) from latest run
+    condition: succeededOrFailed()
+    inputs:
+      source: specific
+      project: a7934fdd-dcde-4492-a406-7fad6ac00e17
+      pipeline: 1254
+      runId: $(baseBuildID)
+      allowPartiallySucceededBuilds: true
+      allowFailedBuilds: true
+      artifact: Perf
+      patterns: targetfiles/PerfData*.txt
+      path: $(Build.SourcesDirectory)\basefiles2
+  - task: PowerShell@2
+    displayName: Move base files of baseline run
+    condition: succeededOrFailed()
+    inputs:
+      targetType: inline
+      script: >-
+        mv $(Build.SourcesDirectory)\basefiles\targetfiles\*.* $(Build.SourcesDirectory)\basefiles\
+
+
+        rd $(Build.SourcesDirectory)\basefiles\targetfiles\
+  - task: PowerShell@2
+    displayName: DIR
+    condition: succeededOrFailed()
+    inputs:
+      targetType: inline
+      script: >-
+        pwd
+
+
+
+        dir $(Build.SourcesDirectory)\basefiles\
+  - task: unzip@0
+    displayName: UnZip Perf runnables
+    inputs:
+      pathToZipFile: $(perfRunnable.secureFilePath)
+      pathToZipFolder: $(Build.SourcesDirectory)
+  - task: unzip@0
+    displayName: UnZip Perf base files from secure files
+    enabled: False
+    inputs:
+      pathToZipFile: $(perfBase.secureFilePath)
+      pathToZipFolder: $(Build.SourcesDirectory)\basefiles
+  - task: CredScan@2
+    name: CredScan_1
+    displayName: Run CredScan
+    inputs:
+      toolVersionV2: LatestPreRelease
+      debugMode: false
+      folderSuppression: false
+  - task: PoliCheck@1
+    name: PoliCheck_2
+    displayName: Run PoliCheck
+    inputs:
+      inputType: $(BuildParameters.inputType)
+      cmdLineArgs: $(BuildParameters.cmdLineArgs)
+      importEx: 0
+      optionsFC: 1
+      optionsXS: 1
+      optionsSEV: 1|2
+      optionsPE: 1|2|3|4
+  - task: PublishSecurityAnalysisLogs@2
+    name: PublishSecurityAnalysisLogs15
+    displayName: Publish Security Analysis Logs
+  - task: CmdLine@1
+    displayName: Set MVN Access Token in Environment
+    inputs:
+      filename: echo
+      arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN]$(mvnAccessToken)'
+  - task: AzureKeyVault@1
+    name: secret
+    displayName: 'Azure Key Vault: Download Secret for Automation'
+    inputs:
+      ConnectedServiceName: 52f0b8f0-fbe7-4c1b-8169-25886eb6bab4
+      KeyVaultName: ADALTestInfo
+      SecretsFilter: AndroidAutomationRunnerAppSecret
+  - task: DownloadBuildArtifacts@0
+    displayName: Download Broker Host APK
+    inputs:
+      buildType: specific
+      project: a7934fdd-dcde-4492-a406-7fad6ac00e17
+      definition: 1195
+      buildVersionToDownload: latestFromBranch
+      branchName: refs/heads/dev
+      buildId: 646500
+      artifactName: BrokerHostDebug
+  - task: DownloadSecureFile@1
+    name: azureSampleApk
+    displayName: Download Azure Sample Debug APK
+    inputs:
+      secureFile: 960465ec-c668-4926-a723-32c6c952d643
+      retryCount: 5
+  - task: DownloadSecureFile@1
+    name: firebaseKey
+    displayName: Download Firebase Service Account Key File
+    inputs:
+      secureFile: b4ed35b0-bb20-4830-8a21-2297e3de7fa1
+      retryCount: 5
+  - task: PowerShell@2
+    displayName: Uninstall gcloud
+    inputs:
+      targetType: inline
+      script: >+
+        gcloud -v
+
+
+        $sdkRoot = gcloud info --format='value(installation.sdk_root)'
+
+        $sdkConfig = gcloud info --format='value(config.paths.global_config_dir)'
+
+
+        $sdkRoot
+
+        $sdkConfig
+
+
+        Remove-Item $sdkRoot -Recurse -Force
+
+        Remove-Item $sdkConfig -Recurse -Force
+
+
+  - task: PowerShell@2
+    displayName: Install Google Cloud
+    inputs:
+      targetType: inline
+      script: >-
+        Write-Output "Downloading gcloud sdk with version 320.0.0"
+
+
+        $downloadLink = "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-320.0.0-windows-x86-bundled-python.zip"
+
+
+        Write-Output "Using download link: $downloadLink"
+
+
+        $dest = "$env:Temp\GoogleCloudSDKInstaller.zip"
+
+        (New-Object Net.WebClient).DownloadFile($downloadLink, $dest)
+
+
+        Write-Output "Extracting gcloud archive on machine...."
+
+
+        Expand-Archive -Path $dest -DestinationPath .\gcloud-extracted
+
+
+        Write-Output "Finished extracting gcloud archive on machine...."
+
+        Write-Output "Install gcloud sdk on machine in quiet mode...."
+
+        .\gcloud-extracted\google-cloud-sdk\install.bat -q
+
+
+        $baseDir = pwd
+
+        $gcloudDir = "$baseDir\gcloud-extracted\google-cloud-sdk\bin"
+
+        Write-Output "gcloud bin dir: $gcloudDir"
+
+        Write-Output "path: $env:path"
+
+        Write-Output "Setting gcloud to path"
+
+        Write-Host "##vso[task.setvariable variable=PATH;]${env:PATH};$gcloudDir";
+  - task: PowerShell@2
+    displayName: Google Cloud Init
+    inputs:
+      targetType: inline
+      script: >-
+        Write-Output "path: $env:path"
+
+        gcloud auth activate-service-account --key-file $(firebaseKey.secureFilePath)
+
+        gcloud init
+
+        gcloud version
+
+        gcloud config set project $(gcloud_project_id)
+
+        gcloud firebase test android models list
+  - task: Gradle@1
+    name: Gradle1
+    displayName: Assemble MSAL Automation App
+    inputs:
+      tasks: clean msalautomationapp:assembleLocalBrokerHost -PlabSecret=$(AndroidAutomationRunnerAppSecret) -PpreferPreInstalledApks
+      publishJUnitResults: false
+      jdkArchitecture: x86
+      sqAnalysisBreakBuildIfQualityGateFailed: false
+  - task: Gradle@1
+    displayName: Assemble MSAL Automation App Instrumented Tests
+    inputs:
+      tasks: msalautomationapp:assembleLocalBrokerHostDebugAndroidTest -PlabSecret=$(AndroidAutomationRunnerAppSecret) -PpreferPreInstalledApks
+      publishJUnitResults: false
+      jdkArchitecture: x86
+      sqAnalysisBreakBuildIfQualityGateFailed: false
+  - task: PowerShell@2
+    displayName: Run UI Automation on Firebase
+    inputs:
+      targetType: inline
+      script: >-
+        $baseApkPath = "$(Build.SourcesDirectory)\msalautomationapp\build\outputs\apk"
+
+        $appApk = "$baseApkPath\localBrokerHost\debug\msalautomationapp-local-BrokerHost-debug.apk"
+
+        $testApk = "$baseApkPath\androidTest\localBrokerHost\debug\msalautomationapp-local-BrokerHost-debug-androidTest.apk"
+
+        $brokerHostApk = "$(System.ArtifactsDirectory)\BrokerHostDebug\brokerHost-local-debug.apk"
+
+        $azureSampleApk = "$(azureSampleApk.secureFilePath)"
+
+        $appApk
+
+        $testApk
+
+        $brokerHostApk
+
+        $azureSampleApk
+
+        gcloud firebase test android run --type instrumentation --app $appApk --test $testApk --device model=$(testDevice),version=$(testAPI) --timeout 45m --additional-apks $brokerHostApk,$azureSampleApk --results-dir msal-BrokerHost-$(Build.BuildId)-$(Build.BuildNumber) --directories-to-pull "/sdcard" --use-orchestrator --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.perf"
+  - task: PowerShell@2
+    displayName: Download Test Result File
+    condition: succeededOrFailed()
+    inputs:
+      targetType: inline
+      script: gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/msal-BrokerHost-$(Build.BuildId)-$(Build.BuildNumber)/walleye-28-en-portrait/test_result_1.xml $(Build.SourcesDirectory)
+  - task: PowerShell@2
+    displayName: Download CodeMarker File, generate and send report
+    condition: succeededOrFailed()
+    inputs:
+      targetType: inline
+      script: >-
+        md $(Build.SourcesDirectory)\targetfiles
+
+        gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/msal-BrokerHost-$(Build.BuildId)-$(Build.BuildNumber)/walleye-28-en-portrait/artifacts/PerfDataTarget*.txt $(Build.SourcesDirectory)\targetfiles\
+
+
+
+        $(Build.SourcesDirectory)\PerfIdentity.exe .\basefiles\ .\targetfiles\ BaseRun-$(baseBuildID) $(Build.BuildId) $(testDevice) API$(testAPI) MSALTestApp idlab1@msidlab4.onmicrosoft.com Aase@619 Neerav.Agarwal@microsoft.com,androididentity@microsoft.com
+  - task: CopyFiles@2
+    displayName: Copy artifact files
+    condition: succeededOrFailed()
+    continueOnError: True
+    inputs:
+      SourceFolder: $(Build.SourcesDirectory)
+      Contents: >-
+        PerfDataBase*.txt
+
+        PerfDataTarget*.txt
+
+        *.csv
+
+        *.html
+      TargetFolder: $(Build.SourcesDirectory)\artifacts
+      CleanTargetFolder: true
+  - task: CopyFiles@2
+    displayName: Copy base files of base run
+    condition: succeededOrFailed()
+    continueOnError: True
+    inputs:
+      SourceFolder: $(Build.SourcesDirectory)\basefiles
+      Contents: PerfData*.txt
+      TargetFolder: $(Build.SourcesDirectory)\artifacts\basefilesBaseRun
+      CleanTargetFolder: true
+  - task: PowerShell@2
+    displayName: Move base files of latest run
+    condition: succeededOrFailed()
+    inputs:
+      targetType: inline
+      script: >-
+        mv $(Build.SourcesDirectory)\basefiles2\targetfiles\*.* $(Build.SourcesDirectory)\basefiles2\
+
+
+        rd $(Build.SourcesDirectory)\basefiles2\targetfiles\
+  - task: PowerShell@2
+    displayName: Generate and send report for latest run
+    condition: succeededOrFailed()
+    inputs:
+      targetType: inline
+      script: $(Build.SourcesDirectory)\PerfIdentity.exe .\basefiles2\ .\targetfiles\ LastRun-$(latestRun.BuildNumber) $(Build.BuildId) $(testDevice) API$(testAPI) MSALTestApp idlab1@msidlab4.onmicrosoft.com Aase@619 Neerav.Agarwal@microsoft.com,androididentity@microsoft.com
+  - task: CopyFiles@2
+    displayName: Copy base files of latest run
+    condition: succeededOrFailed()
+    continueOnError: True
+    inputs:
+      SourceFolder: $(Build.SourcesDirectory)\basefiles2
+      Contents: PerfData*.txt
+      TargetFolder: $(Build.SourcesDirectory)\artifacts\basefilesLastRun
+      CleanTargetFolder: true
+  - task: CopyFiles@2
+    displayName: Copy target files
+    condition: succeededOrFailed()
+    continueOnError: True
+    inputs:
+      SourceFolder: $(Build.SourcesDirectory)\targetfiles
+      Contents: PerfData*.txt
+      TargetFolder: $(Build.SourcesDirectory)\artifacts\targetfiles
+      CleanTargetFolder: true
+  - task: PublishPipelineArtifact@1
+    displayName: Publish Perf results
+    condition: succeededOrFailed()
+    continueOnError: True
+    inputs:
+      path: $(Build.SourcesDirectory)\artifacts
+      artifactName: Perf
+  - task: PublishTestResults@2
+    displayName: Publish Test Results to ADO
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFiles: '*test_result*.xml'
+      searchFolder: $(Build.SourcesDirectory)
+      testRunTitle: 'MSAL UI Automation - Build # $(Build.BuildNumber)'
+  - task: ComponentGovernanceComponentDetection@0
+    displayName: Component Detection
+...

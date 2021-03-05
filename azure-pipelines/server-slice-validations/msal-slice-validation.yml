@@ -1,0 +1,263 @@
+# 'Allow scripts to access the OAuth token' was selected in pipeline.  Add the following YAML to any steps requiring access:
+#       env:
+#           MY_ACCESS_TOKEN: $(System.AccessToken)
+# Variable 'android:serverUrl' was defined in the Variables tab
+# Variable 'CONNECTOR_APP_ID' was defined in the Variables tab
+# Variable 'CONNECTOR_APP_SECRET' was defined in the Variables tab
+# Variable 'ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME' was defined in the Variables tab
+# Variable 'mvnAccessToken' was defined in the Variables tab
+# Variable 'slice' was defined in the Variables tab
+# Variable 'su' was defined in the Variables tab
+# Variable 'test_repo_branch' was defined in the Variables tab
+# Variable 'test_repo_dir' was defined in the Variables tab
+# Variable 'writeTestResultsToCsv' was defined in the Variables tab
+variables:
+- name: BuildParameters.cmdLineArgs
+  value: /F:$(Build.SourcesDirectory)+"\adal\src\" /T:9 /O:\"PoliCheck.xml\"
+- name: BuildParameters.inputType
+  value: Basic
+name: $(date:yyyyMMdd)$(rev:.r)
+resources:
+  repositories:
+  - repository: self
+    type: git
+    ref: master-test
+jobs:
+- job: Phase_1
+  displayName: Phase 1
+  cancelTimeoutInMinutes: 1
+  pool:
+    name: Hosted Windows 2019 with VS2019
+  steps:
+  - checkout: self
+    clean: true
+    submodules: recursive
+    persistCredentials: True
+  - task: CredScan@2
+    name: CredScan_1
+    displayName: Run CredScan
+    inputs:
+      toolVersionV2: LatestPreRelease
+      debugMode: false
+      folderSuppression: false
+  - task: PoliCheck@1
+    name: PoliCheck_2
+    displayName: Run PoliCheck
+    inputs:
+      inputType: $(BuildParameters.inputType)
+      cmdLineArgs: $(BuildParameters.cmdLineArgs)
+      importEx: 0
+      optionsFC: 1
+      optionsXS: 1
+      optionsSEV: 1|2
+      optionsPE: 1|2|3|4
+  - task: PublishSecurityAnalysisLogs@2
+    name: PublishSecurityAnalysisLogs15
+    displayName: Publish Security Analysis Logs
+  - task: CmdLine@1
+    displayName: Set MVN Access Token in Environment
+    inputs:
+      filename: echo
+      arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN]$(mvnAccessToken)'
+  - task: AzureKeyVault@1
+    displayName: 'Azure Key Vault: Download Cert for Automation'
+    inputs:
+      ConnectedServiceName: 52f0b8f0-fbe7-4c1b-8169-25886eb6bab4
+      KeyVaultName: ADALTestInfo
+      SecretsFilter: AndroidAutomationRunner
+  - task: PowerShell@2
+    displayName: Install Automation Cert
+    inputs:
+      targetType: inline
+      script: >
+        $kvSecretBytes = [System.Convert]::FromBase64String('$(AndroidAutomationRunner)')
+
+        $certCollection = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2Collection
+
+        $certCollection.Import($kvSecretBytes, $null, [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable)
+
+
+        $protectedCertificateBytes = $certCollection.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Pkcs12)
+
+        $pfxPath = '$(Build.SourcesDirectory)' + "\TestCert.pfx"
+
+        [System.IO.File]::WriteAllBytes($pfxPath, $protectedCertificateBytes)
+
+
+        Import-PfxCertificate -FilePath $pfxPath -CertStoreLocation Cert:\CurrentUser\My
+  - task: Gradle@1
+    name: Gradle1
+    displayName: Assemble Release
+    inputs:
+      tasks: clean msal:assembleLocal
+      publishJUnitResults: false
+      jdkArchitecture: x86
+      sqAnalysisBreakBuildIfQualityGateFailed: false
+  - task: Gradle@2
+    displayName: Run Unit tests
+    inputs:
+      tasks: msal:testLocalDebugUnitTest --tests com.microsoft.identity.client.e2e.tests.network.* -Plabtest -Pslice=$(slice) -Pdc=$(su) -PwriteTestResultsToCsv=$(writeTestResultsToCsv) -PbuildId=$(Build.BuildNumber) -ProbolectricSdkVersion=28
+  - task: CmdLine@2
+    displayName: Install Kusto Ingest SDK
+    condition: succeededOrFailed()
+    inputs:
+      script: pip install azure-kusto-ingest==1.0.3
+  - task: PythonScript@0
+    displayName: Upload Results
+    condition: succeededOrFailed()
+    inputs:
+      scriptSource: inline
+      script: >-
+        # Copyright (c) Microsoft Corporation.
+
+        # Licensed under the MIT License
+
+        import io
+
+        import sys
+
+        import os
+
+        from pathlib import Path
+
+
+        from azure.kusto.data import KustoConnectionStringBuilder
+
+        from azure.kusto.ingest import (
+            KustoIngestClient,
+            IngestionProperties,
+            FileDescriptor,
+            BlobDescriptor,
+            StreamDescriptor,
+            DataFormat,
+            ReportLevel,
+            IngestionMappingType,
+            KustoStreamingIngestClient,
+        )
+
+
+        ##################################################################
+
+        ##                              AUTH                            ##
+
+        ##################################################################
+
+        cluster = "https://ingest-estswus2.kusto.windows.net"
+
+
+        if (len(sys.argv) < 3):
+             print("missing either client-id or client secret")
+             sys.exit(2)
+
+        # In case you want to authenticate with AAD application.
+
+        client_id = sys.argv[1]
+
+        client_secret = sys.argv[2]
+
+
+        if not client_id:
+             print("client-id not provided")
+             sys.exit(2)
+
+        if not client_secret:
+             print("client-secret not provided")
+             sys.exit(2)
+
+        # read more at https://docs.microsoft.com/en-us/onedrive/find-your-office-365-tenant-id
+
+        authority_id = "72f988bf-86f1-41af-91ab-2d7cd011db47"
+
+
+        kcsb = KustoConnectionStringBuilder.with_aad_application_key_authentication(cluster, client_id, client_secret, authority_id)
+
+
+        # The authentication method will be taken from the chosen KustoConnectionStringBuilder.
+
+        client = KustoIngestClient(kcsb)
+
+
+        ##################################################################
+
+        ##                        INGESTION                             ##
+
+        ##################################################################
+
+
+        # there are a lot of useful properties, make sure to go over docs and check them out
+
+        ingestion_props = IngestionProperties(
+            database="ESTS",
+            table="ClientTestTable",
+            data_format=DataFormat.CSV,
+            # in case status update for success are also required
+            report_level=ReportLevel.FailuresAndSuccesses,
+            # in case a mapping is required
+            ingestion_mapping_reference="AndroidMapping",
+            ingestion_mapping_type=IngestionMappingType.CSV,
+            flush_immediately=True
+        )
+
+
+        # ingest from file
+
+        # file_descriptor = FileDescriptor("{filename}.csv", 3333)  # 3333 is the raw size of the data in bytes.
+
+        # client.ingest_from_file(file_descriptor, ingestion_properties=ingestion_props)
+
+        path = str(Path.home())
+
+        filename = path + "\\test-results.csv"
+
+        client.ingest_from_file(filename, ingestion_properties=ingestion_props)
+
+
+        ##################################################################
+
+        ##                        INGESTION STATUS                      ##
+
+        ##################################################################
+
+
+        # if status updates are required, something like this can be done
+
+        import pprint
+
+        import time
+
+        from azure.kusto.ingest.status import KustoIngestStatusQueues
+
+
+        qs = KustoIngestStatusQueues(client)
+
+
+        MAX_BACKOFF = 180
+
+
+        backoff = 1
+
+        while qs.success.is_empty() and qs.failure.is_empty():
+             ################### NOTICE ####################
+             # in order to get success status updates,
+             # make sure ingestion properties set the
+             # reportLevel=ReportLevel.FailuresAndSuccesses.
+             time.sleep(backoff)
+             backoff = min(backoff * 2, MAX_BACKOFF)
+             print("No new messages. backing off for {} seconds".format(backoff))
+
+
+        success_messages = qs.success.pop(10)
+
+        failure_messages = qs.failure.pop(10)
+
+
+        pprint.pprint("SUCCESS : {}".format(success_messages))
+
+        pprint.pprint("FAILURE : {}".format(failure_messages))
+
+
+        os.remove(filename)
+      arguments: $(CONNECTOR_APP_ID) $(CONNECTOR_APP_SECRET)
+  - task: ComponentGovernanceComponentDetection@0
+    displayName: Component Detection
+...
