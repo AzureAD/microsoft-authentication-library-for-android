@@ -12,11 +12,6 @@
 # Variable 'testEmailAccountPassword' was defined in the Variables tab
 # Variable 'testEmailAccountPassword2' was defined in the Variables tab
 # Variable 'toEmailAccount' was defined in the Variables tab
-variables:
-- name: BuildParameters.cmdLineArgs
-  value: /F:$(Build.SourcesDirectory)+"\adal\src\" /T:9 /O:\"PoliCheck.xml\"
-- name: BuildParameters.inputType
-  value: Basic
 name: $(date:yyyyMMdd)$(rev:.r)
 resources:
   repositories:
@@ -56,27 +51,9 @@ jobs:
 
 
         $(sendEmail.secureFilePath) $(idlabEmailAccount) $(idlabEmailAccountPassword) $(toEmailAccount)
-  - task: CredScan@2
-    name: CredScan_1
-    displayName: Run CredScan
-    inputs:
-      toolVersionV2: LatestPreRelease
-      debugMode: false
-      folderSuppression: false
-  - task: PoliCheck@1
-    name: PoliCheck_2
-    displayName: Run PoliCheck
-    inputs:
-      inputType: $(BuildParameters.inputType)
-      cmdLineArgs: $(BuildParameters.cmdLineArgs)
-      importEx: 0
-      optionsFC: 1
-      optionsXS: 1
-      optionsSEV: 1|2
-      optionsPE: 1|2|3|4
-  - task: PublishSecurityAnalysisLogs@2
-    name: PublishSecurityAnalysisLogs15
-    displayName: Publish Security Analysis Logs
+  - template: ../templates/steps/credscan-policheck.yml
+    parameters:
+      policheck-cmdlineargs-dir: adal
   - task: CmdLine@1
     displayName: Set MVN Access Token in Environment
     inputs:

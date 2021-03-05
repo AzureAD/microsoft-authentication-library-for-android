@@ -5,11 +5,6 @@
 # Variable 'msalVersion' was defined in the Variables tab
 # Variable 'test_repo_branch' was defined in the Variables tab
 # Variable 'test_repo_dir' was defined in the Variables tab
-variables:
-- name: BuildParameters.cmdLineArgs
-  value: /F:$(Build.SourcesDirectory)+"\common\src\" /T:9 /O:\"PoliCheck.xml\"
-- name: BuildParameters.inputType
-  value: Basic
 name: $(date:yyyyMMdd)$(rev:.r)
 resources:
   repositories:
@@ -27,26 +22,9 @@ jobs:
     clean: true
     submodules: recursive
     persistCredentials: True
-  - task: CredScan@2
-    name: CredScan_1
-    displayName: Run CredScan
-    inputs:
-      debugMode: false
-      folderSuppression: false
-  - task: PoliCheck@1
-    name: PoliCheck_2
-    displayName: Run PoliCheck
-    inputs:
-      inputType: $(BuildParameters.inputType)
-      cmdLineArgs: $(BuildParameters.cmdLineArgs)
-      importEx: 0
-      optionsFC: 1
-      optionsXS: 1
-      optionsSEV: 1|2
-      optionsPE: 1|2|3|4
-  - task: PublishSecurityAnalysisLogs@2
-    name: PublishSecurityAnalysisLogs15
-    displayName: Publish Security Analysis Logs
+  - template: ../templates/steps/credscan-policheck.yml
+    parameters:
+      policheck-cmdlineargs-dir: common
   - task: Gradle@1
     name: Gradle1
     displayName: Assemble Dist Release
