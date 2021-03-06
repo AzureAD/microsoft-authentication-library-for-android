@@ -106,6 +106,29 @@ public final class PublicClientApplicationTest {
         AndroidTestUtil.removeAllTokens(mAppContext);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testConfigValidationFailsOnEmptyRedirect() throws MsalException, InterruptedException {
+        final Context context = new PublicClientApplicationTest.MockContext(mAppContext);
+        mockPackageManagerWithDefaultFlag(context);
+        mockHasCustomTabRedirect(context);
+
+        final IMultipleAccountPublicClientApplication app = PublicClientApplication.createMultipleAccountPublicClientApplication(
+                context,
+                R.raw.test_pcaconfig_empty_redirect
+        );
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testConfigValidationFailsOnEmptyClientId() throws MsalException, InterruptedException {
+        final Context context = new PublicClientApplicationTest.MockContext(mAppContext);
+        mockPackageManagerWithDefaultFlag(context);
+        mockHasCustomTabRedirect(context);
+
+        final IMultipleAccountPublicClientApplication app = PublicClientApplication.createMultipleAccountPublicClientApplication(
+                context,
+                R.raw.test_pcaconfig_empty_clientid
+        );
+    }
 
     @Test
     public void testSingleAccountConstructor() {
