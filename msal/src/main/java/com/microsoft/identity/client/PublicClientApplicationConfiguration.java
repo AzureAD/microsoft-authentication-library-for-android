@@ -27,6 +27,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.net.Uri;
+import android.text.TextUtils;
 import android.util.Base64;
 
 import androidx.annotation.NonNull;
@@ -474,8 +475,8 @@ public class PublicClientApplicationConfiguration {
         }
     }
 
-    private void nullConfigurationCheck(String configKey, String configValue) {
-        if (configValue == null) {
+    private static void nullConfigurationCheck(String configKey, String configValue) {
+        if (TextUtils.isEmpty(configValue)) {
             throw new IllegalArgumentException(configKey + " cannot be null.  Invalid configuration.");
         }
     }
@@ -555,8 +556,8 @@ public class PublicClientApplicationConfiguration {
             // This means that the app is still using the legacy local-only MSAL Redirect uri (already removed from the new portal).
             // If this is the case, we can assume that the user doesn't need Broker support.
             Logger.warn(TAG, "The app is still using legacy MSAL redirect uri. Switch to MSAL local auth."
-                + "  For brokered auth, the redirect URI is expected to conform to 'msauth://<authority>/.*' where the authority in "
-                + "that uri is the package name of the app. This package name is listed as 'applicationId' in the build.gradle file.");
+                    + "  For brokered auth, the redirect URI is expected to conform to 'msauth://<authority>/.*' where the authority in "
+                    + "that uri is the package name of the app. This package name is listed as 'applicationId' in the build.gradle file.");
             mUseBroker = false;
             return;
         }
