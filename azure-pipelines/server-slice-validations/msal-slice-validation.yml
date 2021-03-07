@@ -31,37 +31,7 @@ jobs:
   - template: ../templates/steps/credscan-policheck.yml
     parameters:
       policheck-cmdlineargs-dir: adal
-  - task: CmdLine@1
-    displayName: Set MVN Access Token in Environment
-    inputs:
-      filename: echo
-      arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN]$(mvnAccessToken)'
-  - task: AzureKeyVault@1
-    displayName: 'Azure Key Vault: Download Cert for Automation'
-    inputs:
-      ConnectedServiceName: 52f0b8f0-fbe7-4c1b-8169-25886eb6bab4
-      KeyVaultName: ADALTestInfo
-      SecretsFilter: AndroidAutomationRunner
-  - task: PowerShell@2
-    displayName: Install Automation Cert
-    inputs:
-      targetType: inline
-      script: >
-        $kvSecretBytes = [System.Convert]::FromBase64String('$(AndroidAutomationRunner)')
-
-        $certCollection = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2Collection
-
-        $certCollection.Import($kvSecretBytes, $null, [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable)
-
-
-        $protectedCertificateBytes = $certCollection.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Pkcs12)
-
-        $pfxPath = '$(Build.SourcesDirectory)' + "\TestCert.pfx"
-
-        [System.IO.File]::WriteAllBytes($pfxPath, $protectedCertificateBytes)
-
-
-        Import-PfxCertificate -FilePath $pfxPath -CertStoreLocation Cert:\CurrentUser\My
+  - template: ../templates/steps/automation-cert.yml
   - task: Gradle@1
     name: Gradle1
     displayName: Assemble Release
