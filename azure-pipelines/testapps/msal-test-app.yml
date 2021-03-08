@@ -34,7 +34,7 @@ jobs:
     persistCredentials: True
   - template: ../templates/steps/credscan-policheck.yml
     parameters:
-      policheck-cmdlineargs-dir: adal
+      policheckCmdLineArgsDir: adal
   - task: PowerShell@2
     displayName: Lowercase build variant
     inputs:
@@ -69,7 +69,7 @@ jobs:
         Write-Host "##vso[task.setvariable variable=AssembleTask;]$assembleTask"
   - template: ../templates/steps/automation-cert.yml
     parameters:
-      env-vsts-mvn-at: ENV_VSTS_MVN_ANDROID_MSAL_USERNAME
+      envVstsMvnAt: ENV_VSTS_MVN_ANDROID_MSAL_USERNAME
   - task: Gradle@1
     name: Gradle1
     displayName: Assemble MSAL Test App

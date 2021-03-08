@@ -30,7 +30,7 @@ jobs:
     persistCredentials: True
   - template: ../templates/steps/credscan-policheck.yml
     parameters:
-      policheck-cmdlineargs-dir: adal
+      policheckCmdLineArgsDir: adal
   - template: ../templates/steps/automation-cert.yml
   - task: Gradle@1
     name: Gradle1

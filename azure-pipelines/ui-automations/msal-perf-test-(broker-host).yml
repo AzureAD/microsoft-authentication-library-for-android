@@ -126,7 +126,7 @@ jobs:
       pathToZipFolder: $(Build.SourcesDirectory)\basefiles
   - template: ../templates/steps/credscan-policheck.yml
     parameters:
-      policheck-cmdlineargs-dir: adal
+      policheckCmdLineArgsDir: adal
   - task: CmdLine@1
     displayName: Set MVN Access Token in Environment
     inputs:

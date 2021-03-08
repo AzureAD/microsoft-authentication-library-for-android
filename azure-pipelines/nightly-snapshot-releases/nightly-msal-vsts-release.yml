@@ -32,7 +32,7 @@ jobs:
     persistCredentials: True
   - template: ../templates/steps/credscan-policheck.yml
     parameters:
-      policheck-cmdlineargs-dir: adal
+      policheckCmdLineArgsDir: adal
   - task: TSAUpload@1
     displayName: TSA Upload
     enabled: False
@@ -55,7 +55,7 @@ jobs:
       uploadTSLint: false
   - template: ../templates/steps/automation-cert.yml
     parameters:
-      env-vsts-mvn-at: ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN
+      envVstsMvnAt: ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN
   - task: Gradle@2
     displayName: Snapshot version update
     inputs:

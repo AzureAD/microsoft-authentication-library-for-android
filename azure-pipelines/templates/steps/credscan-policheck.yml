@@ -1,7 +1,7 @@
 # File: credscan-policheck.yml
 
 parameters:
-- name: policheck-cmdlineargs-dir
+- name: policheckCmdLineArgsDir
 
 steps:
 - task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
@@ -15,7 +15,7 @@ steps:
   displayName: Run PoliCheck
   inputs:
     inputType: Basic
-    cmdLineArgs: /F:$(Build.SourcesDirectory)+"\${{ parameters.policheck-cmdlineargs-dir }}\src\" /T:9 /O:\"PoliCheck.xml\"
+    cmdLineArgs: /F:$(Build.SourcesDirectory)+"\${{ parameters.policheckCmdLineArgsDir }}\src\" /T:9 /O:\"PoliCheck.xml\"
     importEx: 0
     optionsFC: 1
     optionsXS: 1

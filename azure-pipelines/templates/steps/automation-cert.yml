@@ -1,7 +1,7 @@
 # File: automation-cert.yml
 
 parameters:
-- name: env-vsts-mvn-at
+- name: envVstsMvnAt
   default: ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN
 
 steps:
@@ -9,11 +9,11 @@ steps:
   displayName: Set MVN Access Token in Environment
   inputs:
     filename: echo
-    arguments: '##vso[task.setvariable variable=${{ parameters.env-vsts-mvn-at }}]$(mvnAccessToken)'
+    arguments: '##vso[task.setvariable variable=${{ parameters.envVstsMvnAt }}]$(mvnAccessToken)'
 - task: AzureKeyVault@1
   displayName: 'Azure Key Vault: Download Cert for Automation'
   inputs:
-    ConnectedServiceName: 52f0b8f0-fbe7-4c1b-8169-25886eb6bab4
+    ConnectedServiceName: 9a9308ae-59b4-475f-b49c-3e828c508d8b
     KeyVaultName: ADALTestInfo
     SecretsFilter: AndroidAutomationRunner
 - task: PowerShell@2
