@@ -24,6 +24,7 @@
 package com.microsoft.identity.client.e2e.tests.mocked;
 
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.util.Base64;
 
 import androidx.annotation.NonNull;
@@ -64,6 +65,7 @@ import org.robolectric.ParameterizedRobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -87,9 +89,9 @@ import static org.junit.Assert.fail;
         ShadowMsalUtils.class,
         ShadowHttpClient.class,
         ShadowOpenIdProviderConfigurationClient.class
-}, sdk = 28)
+}, sdk = {Build.VERSION_CODES.N})
 public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
-    private TestCaseData testCaseData;
+    private final TestCaseData testCaseData;
     private IMultipleAccountPublicClientApplication mMultipleAccountPCA;
     private boolean homeAccountSignedIn = false;
 
@@ -107,79 +109,79 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
         final String utid = randomUuidString();
 
         return Arrays.asList(
-            new Object[]{
-                "User signed into Home tenant and 1 Guest tenant in Foreign cloud",
-                new TestCaseData(
-                    userName,
-                    uid + "." + utid,
-                    new ArrayList<UserAccountData>(Arrays.asList(
-                        new UserAccountData(homeCloud, uid, utid),
-                        new UserAccountData(foreignCloud, randomUuidString(), randomUuidString())
-                    ))
-            )},
-            new Object[]{
-                "User signed into Home tenant and Guest tenants in 2 separate Foreign clouds",
-                new TestCaseData(
-                    userName,
-                    uid + "." + utid,
-                    new ArrayList<>(Arrays.asList(
-                        new UserAccountData(homeCloud, uid, utid),
-                        new UserAccountData(foreignCloud, randomUuidString(), randomUuidString()),
-                        new UserAccountData(foreignCloud2, randomUuidString(), randomUuidString())
-                    ))
-            )},
-            new Object[]{
-                "User signed into Home tenant and 2 Guest tenants in Foreign cloud ",
-                new TestCaseData(
-                    userName,
-                    uid + "." + utid,
-                    new ArrayList<>(Arrays.asList(
-                        new UserAccountData(homeCloud, uid, utid),
-                        new UserAccountData(foreignCloud, randomUuidString(), randomUuidString()),
-                        new UserAccountData(foreignCloud, randomUuidString(), randomUuidString())
-                    ))
-            )},
-            new Object[]{
-                "User signed into 2 Guest tenants in 1 Foreign cloud ",
-                new TestCaseData(
-                    userName,
-                    uid + "." + utid,
-                    new ArrayList<>(Arrays.asList(
-                        new UserAccountData(foreignCloud, randomUuidString(), randomUuidString()),
-                        new UserAccountData(foreignCloud, randomUuidString(), randomUuidString())
-                    ))
-                )},
-            new Object[]{
-                "User signed into Home tenant ",
-                new TestCaseData(
-                    userName,
-                    uid + "." + utid,
-                    new ArrayList<>(Arrays.asList(
-                        new UserAccountData(homeCloud, uid, utid)
-                    ))
-                )},
-            new Object[]{
-                "User signed into Home tenant and 1 guest tenant in home cloud ",
-                new TestCaseData(
-                    userName,
-                    uid + "." + utid,
-                    new ArrayList<>(Arrays.asList(
-                        new UserAccountData(homeCloud, uid, utid),
-                        new UserAccountData(homeCloud, randomUuidString(), randomUuidString())
-                    ))
-                )},
-            new Object[]{
-                "User signed into multiple tenants in home cloud and foreign cloud",
-                new TestCaseData(
-                    userName,
-                    uid + "." + utid,
-                    new ArrayList<>(Arrays.asList(
-                        new UserAccountData(homeCloud, uid, utid),
-                        new UserAccountData(homeCloud, randomUuidString(), randomUuidString()),
-                        new UserAccountData(foreignCloud, randomUuidString(), randomUuidString()),
-                        new UserAccountData(foreignCloud, randomUuidString(), randomUuidString())
-                    ))
-                )}
+                new Object[]{
+                        "User signed into Home tenant and 1 Guest tenant in Foreign cloud",
+                        new TestCaseData(
+                                userName,
+                                uid + "." + utid,
+                                new ArrayList<UserAccountData>(Arrays.asList(
+                                        new UserAccountData(homeCloud, uid, utid),
+                                        new UserAccountData(foreignCloud, randomUuidString(), randomUuidString())
+                                ))
+                        )},
+                new Object[]{
+                        "User signed into Home tenant and Guest tenants in 2 separate Foreign clouds",
+                        new TestCaseData(
+                                userName,
+                                uid + "." + utid,
+                                new ArrayList<>(Arrays.asList(
+                                        new UserAccountData(homeCloud, uid, utid),
+                                        new UserAccountData(foreignCloud, randomUuidString(), randomUuidString()),
+                                        new UserAccountData(foreignCloud2, randomUuidString(), randomUuidString())
+                                ))
+                        )},
+                new Object[]{
+                        "User signed into Home tenant and 2 Guest tenants in Foreign cloud ",
+                        new TestCaseData(
+                                userName,
+                                uid + "." + utid,
+                                new ArrayList<>(Arrays.asList(
+                                        new UserAccountData(homeCloud, uid, utid),
+                                        new UserAccountData(foreignCloud, randomUuidString(), randomUuidString()),
+                                        new UserAccountData(foreignCloud, randomUuidString(), randomUuidString())
+                                ))
+                        )},
+                new Object[]{
+                        "User signed into 2 Guest tenants in 1 Foreign cloud ",
+                        new TestCaseData(
+                                userName,
+                                uid + "." + utid,
+                                new ArrayList<>(Arrays.asList(
+                                        new UserAccountData(foreignCloud, randomUuidString(), randomUuidString()),
+                                        new UserAccountData(foreignCloud, randomUuidString(), randomUuidString())
+                                ))
+                        )},
+                new Object[]{
+                        "User signed into Home tenant ",
+                        new TestCaseData(
+                                userName,
+                                uid + "." + utid,
+                                new ArrayList<>(Arrays.asList(
+                                        new UserAccountData(homeCloud, uid, utid)
+                                ))
+                        )},
+                new Object[]{
+                        "User signed into Home tenant and 1 guest tenant in home cloud ",
+                        new TestCaseData(
+                                userName,
+                                uid + "." + utid,
+                                new ArrayList<>(Arrays.asList(
+                                        new UserAccountData(homeCloud, uid, utid),
+                                        new UserAccountData(homeCloud, randomUuidString(), randomUuidString())
+                                ))
+                        )},
+                new Object[]{
+                        "User signed into multiple tenants in home cloud and foreign cloud",
+                        new TestCaseData(
+                                userName,
+                                uid + "." + utid,
+                                new ArrayList<>(Arrays.asList(
+                                        new UserAccountData(homeCloud, uid, utid),
+                                        new UserAccountData(homeCloud, randomUuidString(), randomUuidString()),
+                                        new UserAccountData(foreignCloud, randomUuidString(), randomUuidString()),
+                                        new UserAccountData(foreignCloud, randomUuidString(), randomUuidString())
+                                ))
+                        )}
         );
     }
 
@@ -224,18 +226,18 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
                 assertEquals("number of accounts", 1, result.getResult().size());
                 MultiTenantAccount account = (MultiTenantAccount) result.getResult().get(0);
                 assertEquals("number of tenant profiles",
-                        expectedTenantProfilesCount , account.getTenantProfiles().size());
+                        expectedTenantProfilesCount, account.getTenantProfiles().size());
                 assertTrue(testCaseData.homeAccountId.contains(account.getId()));
-                if(homeAccountSignedIn) {
+                if (homeAccountSignedIn) {
                     assertNotNull("account.getClaims()", account.getClaims());
-                    assertNotEquals("claims count",0, account.getClaims().size());
+                    assertNotEquals("claims count", 0, account.getClaims().size());
                     verifyAccountDetails(testCaseData.userAccountsData.get(0), account);
                 }
 
-                int tenantProfileIndexStart = homeAccountSignedIn? 1: 0;
-                int tenantProfileIndexEnd = homeAccountSignedIn?
-                        expectedTenantProfilesCount: expectedTenantProfilesCount -1;
-                for(int i = tenantProfileIndexStart; i <= tenantProfileIndexEnd; i++) {
+                int tenantProfileIndexStart = homeAccountSignedIn ? 1 : 0;
+                int tenantProfileIndexEnd = homeAccountSignedIn ?
+                        expectedTenantProfilesCount : expectedTenantProfilesCount - 1;
+                for (int i = tenantProfileIndexStart; i <= tenantProfileIndexEnd; i++) {
                     verifyAccountDetails(
                             testCaseData.userAccountsData.get(i),
                             account.getTenantProfiles().get(testCaseData.userAccountsData.get(i).tenantId));
@@ -275,18 +277,18 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
         // act
         try {
             mMultipleAccountPCA.removeAccount(
-                getAccount(),
-                new IMultipleAccountPublicClientApplication.RemoveAccountCallback() {
-                    @Override
-                    public void onRemoved() {
-                        future.setResult(true);
-                    }
+                    getAccount(),
+                    new IMultipleAccountPublicClientApplication.RemoveAccountCallback() {
+                        @Override
+                        public void onRemoved() {
+                            future.setResult(true);
+                        }
 
-                    @Override
-                    public void onError(@NonNull MsalException exception) {
-                        future.setException(exception);
-                    }
-                });
+                        @Override
+                        public void onError(@NonNull MsalException exception) {
+                            future.setException(exception);
+                        }
+                    });
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -294,9 +296,9 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
         RoboTestUtils.flushScheduler();
 
         // assert
-        SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFERENCES_NAME);
+        final SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFERENCES_NAME);
         final Map<String, ?> cacheValues = sharedPreferences.getAll();
-        for (String key: cacheValues.keySet()) {
+        for (String key : cacheValues.keySet()) {
             assertFalse("Cache record found for homeAccountId of removed account",
                     key.contains(testCaseData.homeAccountId));
             assertTrue("Cache record found for other homeAccountId",
@@ -310,11 +312,11 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
         // arrange
         final ResultFuture<IAuthenticationResult> future = new ResultFuture<>();
         final UserAccountData lastSignedInAccount =
-                testCaseData.userAccountsData.get(testCaseData.userAccountsData.size() -1);
+                testCaseData.userAccountsData.get(testCaseData.userAccountsData.size() - 1);
         // act
         try {
-            mMultipleAccountPCA.acquireTokenSilentAsync
-                    (getScopes(),
+            mMultipleAccountPCA.acquireTokenSilentAsync(
+                    getScopes(),
                     getAccount(),
                     lastSignedInAccount.cloud +
                             "/" + lastSignedInAccount.tenantId,
@@ -351,20 +353,20 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
     @Test
     public void testAcquireTokenReturnsAccessTokenForCrossCloudAccountRetrievedUsingGetAccount() {
         // arrange
-        final IAccount[] accountUnderTest = { null };
+        final IAccount[] accountUnderTest = {null};
         mMultipleAccountPCA.getAccount(
-            testCaseData.homeAccountId,
-            new IMultipleAccountPublicClientApplication.GetAccountCallback() {
-                @Override
-                public void onTaskCompleted(IAccount result) {
-                    accountUnderTest[0] = result;
-                }
+                testCaseData.homeAccountId,
+                new IMultipleAccountPublicClientApplication.GetAccountCallback() {
+                    @Override
+                    public void onTaskCompleted(IAccount result) {
+                        accountUnderTest[0] = result;
+                    }
 
-                @Override
-                public void onError(MsalException exception) {
-                fail(exception.getMessage());
-            }
-        });
+                    @Override
+                    public void onError(MsalException exception) {
+                        fail(exception.getMessage());
+                    }
+                });
 
         RoboTestUtils.flushScheduler();
 
@@ -467,7 +469,7 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
                 MockServerResponse.getMockCloudDiscoveryResponse(),
                 HttpClient.HttpMethod.GET,
                 MockTokenCreator.CLOUD_DISCOVERY_ENDPOINT_REGEX);
-        for (UserAccountData userData: testCaseData.userAccountsData) {
+        for (UserAccountData userData : testCaseData.userAccountsData) {
             HttpResponse mockResponseForHomeTenant = MockServerResponse.getMockTokenSuccessResponse(
                     userData.localAccountId,
                     userData.tenantId,
@@ -478,7 +480,7 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
                     HttpClient.HttpMethod.POST,
                     userData.cloud + "/.*");
             performInteractiveAcquireTokenCall(testCaseData.userName, userData.cloud + "/organizations");
-            if(testCaseData.homeAccountId.equals(userData.localAccountId + "." + userData.tenantId)){
+            if (testCaseData.homeAccountId.equals(userData.localAccountId + "." + userData.tenantId)) {
                 homeAccountSignedIn = true;
             }
         }
@@ -510,28 +512,28 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
             this.homeAccountId = homeAccountId;
             this.userAccountsData = userAccountsData;
         }
+
         public String getRawClientInfo() {
             final String uid = homeAccountId.split("\\.")[0];
             final String utid = homeAccountId.split("\\.")[1];
             final String claims = "{\"uid\":\"" + uid + "\",\"utid\":\"" + utid + "\"}";
 
             return new String(Base64.encode(claims.getBytes(
-                    Charset.forName("UTF-8")), Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE));
+                    StandardCharsets.UTF_8), Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE));
         }
-
     }
 
     private static class UserAccountData {
         public final String cloud;
         public final String localAccountId;
-
         public final String tenantId;
 
-        public UserAccountData(final String cloud, final String localAccountId, final String tenantId){
+        public UserAccountData(final String cloud, final String localAccountId, final String tenantId) {
             this.cloud = cloud;
             this.localAccountId = localAccountId;
             this.tenantId = tenantId;
         }
+
         public String getFakeAccessToken() {
             return "access_Token:" + cloud + "/" + tenantId + "/" + localAccountId;
         }
