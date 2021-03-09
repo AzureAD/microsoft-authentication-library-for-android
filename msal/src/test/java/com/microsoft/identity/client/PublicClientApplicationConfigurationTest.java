@@ -22,6 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.isBrokerRedirectUri;
@@ -43,5 +44,35 @@ public class PublicClientApplicationConfigurationTest {
     @Test
     public void testRedirectUriValidationWrongPackage() {
         assertFalse(isBrokerRedirectUri("msauth://myPackageName/foo.bar/baz", "notMyPackageName"));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testNullRedirectThrows() {
+        final PublicClientApplicationConfiguration config = new PublicClientApplicationConfiguration();
+        config.setRedirectUri(null);
+        config.validateConfiguration();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testEmptyStringRedirectThrows() {
+        final PublicClientApplicationConfiguration config = new PublicClientApplicationConfiguration();
+        config.setRedirectUri("");
+        config.validateConfiguration();
+    }
+
+    @Test
+    @Ignore // Ignore test due to mocking gaps http://g.co/androidstudio/not-mocked
+    public void testValidRedirect() {
+        final PublicClientApplicationConfiguration config = new PublicClientApplicationConfiguration();
+        config.setRedirectUri("msauth://authority");
+        config.validateConfiguration();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    @Ignore // Ignore test due to mocking gaps http://g.co/androidstudio/not-mocked
+    public void testStringLiteralNullRedirectThrows() {
+        final PublicClientApplicationConfiguration config = new PublicClientApplicationConfiguration();
+        config.setRedirectUri("null");
+        config.validateConfiguration();
     }
 }
