@@ -74,11 +74,13 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.USE_BROKER;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEB_VIEW_ZOOM_CONTROLS_ENABLED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEB_VIEW_ZOOM_ENABLED;
+import static com.microsoft.identity.client.exception.MsalClientException.APP_MANIFEST_VALIDATION_ERROR;
 
 public class PublicClientApplicationConfiguration {
     private static final String TAG = PublicClientApplicationConfiguration.class.getSimpleName();
 
     private static final String BROKER_REDIRECT_URI_SCHEME_AND_SEPARATOR = "msauth://";
+    public static final String INVALID_REDIRECT_MSG = "Invalid, null, or malformed redirect_uri supplied";
 
     public static final class SerializedNames {
         static final String CLIENT_ID = "client_id";
@@ -439,7 +441,7 @@ public class PublicClientApplicationConfiguration {
     }
 
     void validateConfiguration() {
-        nullConfigurationCheck(REDIRECT_URI, mRedirectUri);
+        validateRedirectUri(mRedirectUri);
         nullConfigurationCheck(CLIENT_ID, mClientId);
         checkDefaultAuthoritySpecified();
 
@@ -464,6 +466,27 @@ public class PublicClientApplicationConfiguration {
                 validateAzureActiveDirectoryAuthority((AzureActiveDirectoryAuthority) authority);
             }
         }
+    }
+
+    private void validateRedirectUri(@NonNull final String redirectUri) {
+        final boolean isInvalid = TextUtils.isEmpty(redirectUri) || !hasSchemeAndAuthority(redirectUri);
+
+        if (isInvalid) {
+            throw new IllegalArgumentException(INVALID_REDIRECT_MSG);
+        }
+    }
+
+    private boolean hasSchemeAndAuthority(@NonNull final String redirectUri) {
+        try {
+            final Uri parsedRedirectUri = Uri.parse(redirectUri);
+            final boolean hasScheme = !TextUtils.isEmpty(parsedRedirectUri.getScheme());
+            final boolean hasAuthority = !TextUtils.isEmpty(parsedRedirectUri.getAuthority());
+            return hasScheme && hasAuthority;
+        } catch (final NullPointerException e) {
+            Logger.errorPII(TAG, INVALID_REDIRECT_MSG, e);
+        }
+
+        return false;
     }
 
     private void validateAzureActiveDirectoryAuthority(@NonNull final AzureActiveDirectoryAuthority azureActiveDirectoryAuthority) {
@@ -530,7 +553,7 @@ public class PublicClientApplicationConfiguration {
                 && !hasCustomTabRedirectActivity) {
             final Uri redirectUri = Uri.parse(mRedirectUri);
             throw new MsalClientException(
-                    MsalClientException.APP_MANIFEST_VALIDATION_ERROR,
+                    APP_MANIFEST_VALIDATION_ERROR,
                     "Intent filter for: " +
                             BrowserTabActivity.class.getSimpleName() +
                             " is missing. " +
