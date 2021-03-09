@@ -477,7 +477,7 @@ public class PublicClientApplicationConfiguration {
     }
 
     private static void nullConfigurationCheck(String configKey, String configValue) {
-        if (TextUtils.isEmpty(configValue)) {
+        if (TextUtils.isEmpty(configValue) || "null".equals(configKey)) {
             throw new IllegalArgumentException(configKey + " cannot be null.  Invalid configuration.");
         }
     }
@@ -521,15 +521,6 @@ public class PublicClientApplicationConfiguration {
 
     @SuppressWarnings("PMD")
     public void checkIntentFilterAddedToAppManifestForBrokerFlow() throws MsalClientException {
-        if (TextUtils.isEmpty(mRedirectUri) || "null".equals(mRedirectUri)) {
-            // The redirect_uri should not be null at this point; if it is, there has been some
-            // error in initialization
-            throw new MsalClientException(
-                    APP_MANIFEST_VALIDATION_ERROR,
-                    "Provided configuration is missing redirect_uri: value may not be null."
-            );
-        }
-
         final boolean hasCustomTabRedirectActivity = MsalUtils.hasCustomTabRedirectActivity(
                 mAppContext,
                 mRedirectUri
