@@ -5,6 +5,7 @@ vNext
 Version 2.0.8
 ----------
 - [MINOR] Changes to Broker Validation to allow setting whether to trust debug brokers (prod brokers are always trusted).
+- Picks up common@3.1.2
 
 Version 2.0.6
 ----------
