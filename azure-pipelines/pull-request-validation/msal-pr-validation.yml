@@ -45,7 +45,7 @@ jobs:
     parameters:
       policheckCmdLineArgsDir: adal
   - template: azure-pipelines/templates/steps/automation-cert.yml@common
-                     - task: JavaToolInstaller@0
+  - task: JavaToolInstaller@0
     displayName: Use Java 8
     inputs:
       jdkArchitectureOption: x64
