@@ -80,6 +80,7 @@ public class PublicClientApplicationConfiguration {
     private static final String TAG = PublicClientApplicationConfiguration.class.getSimpleName();
 
     private static final String BROKER_REDIRECT_URI_SCHEME_AND_SEPARATOR = "msauth://";
+    public static final String INVALID_REDIRECT_MSG = "Invalid, null, or malformed redirect_uri supplied";
 
     public static final class SerializedNames {
         static final String CLIENT_ID = "client_id";
@@ -440,7 +441,7 @@ public class PublicClientApplicationConfiguration {
     }
 
     void validateConfiguration() {
-        nullConfigurationCheck(REDIRECT_URI, mRedirectUri);
+        validateRedirectUri(mRedirectUri);
         nullConfigurationCheck(CLIENT_ID, mClientId);
         checkDefaultAuthoritySpecified();
 
@@ -465,6 +466,27 @@ public class PublicClientApplicationConfiguration {
                 validateAzureActiveDirectoryAuthority((AzureActiveDirectoryAuthority) authority);
             }
         }
+    }
+
+    private void validateRedirectUri(@NonNull final String redirectUri) {
+        final boolean isInvalid = TextUtils.isEmpty(redirectUri) || !isValidRedirectUri(redirectUri);
+
+        if (isInvalid) {
+            throw new IllegalArgumentException(INVALID_REDIRECT_MSG);
+        }
+    }
+
+    private boolean isValidRedirectUri(@NonNull final String redirectUri) {
+        try {
+            final Uri parsedRedirectUri = Uri.parse(redirectUri);
+            final boolean hasScheme = !TextUtils.isEmpty(parsedRedirectUri.getScheme());
+            final boolean hasAuthority = !TextUtils.isEmpty(parsedRedirectUri.getAuthority());
+            return hasScheme && hasAuthority;
+        } catch (final NullPointerException e) {
+            Logger.errorPII(TAG, INVALID_REDIRECT_MSG, e);
+        }
+
+        return false;
     }
 
     private void validateAzureActiveDirectoryAuthority(@NonNull final AzureActiveDirectoryAuthority azureActiveDirectoryAuthority) {
