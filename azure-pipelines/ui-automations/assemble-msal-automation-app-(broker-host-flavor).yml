@@ -13,6 +13,11 @@ resources:
   - repository: self
     type: git
     ref: dev
+  - repository: common
+    type: github
+    name: AzureAD/microsoft-authentication-library-common-for-android
+    ref: refs/heads/pedroro/IDDP-pipelines
+    endpoint: ANDROID_GITHUB
 jobs:
 - job: Phase_1
   displayName: Phase 1
@@ -24,7 +29,7 @@ jobs:
     clean: true
     submodules: recursive
     persistCredentials: True
-  - template: ../templates/steps/credscan-policheck.yml
+  - template: azure-pipelines/templates/steps/credscan-policheck.yml@common
     parameters:
       policheckCmdLineArgsDir: adal
   - task: Gradle@1
