@@ -22,8 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import com.microsoft.identity.client.exception.MsalClientException;
-
 import org.junit.Test;
 
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.isBrokerRedirectUri;
@@ -45,26 +43,5 @@ public class PublicClientApplicationConfigurationTest {
     @Test
     public void testRedirectUriValidationWrongPackage() {
         assertFalse(isBrokerRedirectUri("msauth://myPackageName/foo.bar/baz", "notMyPackageName"));
-    }
-
-    @Test(expected = MsalClientException.class)
-    public void testNullRedirectUriThrows() throws MsalClientException {
-        final PublicClientApplicationConfiguration config = new PublicClientApplicationConfiguration();
-        config.setRedirectUri(null);
-        config.checkIntentFilterAddedToAppManifestForBrokerFlow();
-    }
-
-    @Test(expected = MsalClientException.class)
-    public void testEmptyRedirectUriThrows() throws MsalClientException {
-        final PublicClientApplicationConfiguration config = new PublicClientApplicationConfiguration();
-        config.setRedirectUri("");
-        config.checkIntentFilterAddedToAppManifestForBrokerFlow();
-    }
-
-    @Test(expected = MsalClientException.class)
-    public void testStringValueOfNullThrows() throws MsalClientException {
-        final PublicClientApplicationConfiguration config = new PublicClientApplicationConfiguration();
-        config.setRedirectUri("null");
-        config.checkIntentFilterAddedToAppManifestForBrokerFlow();
     }
 }
