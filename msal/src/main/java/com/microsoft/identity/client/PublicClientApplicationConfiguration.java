@@ -469,14 +469,14 @@ public class PublicClientApplicationConfiguration {
     }
 
     private void validateRedirectUri(@NonNull final String redirectUri) {
-        final boolean isInvalid = TextUtils.isEmpty(redirectUri) || !isValidRedirectUri(redirectUri);
+        final boolean isInvalid = TextUtils.isEmpty(redirectUri) || !hasSchemeAndAuthority(redirectUri);
 
         if (isInvalid) {
             throw new IllegalArgumentException(INVALID_REDIRECT_MSG);
         }
     }
 
-    private boolean isValidRedirectUri(@NonNull final String redirectUri) {
+    private boolean hasSchemeAndAuthority(@NonNull final String redirectUri) {
         try {
             final Uri parsedRedirectUri = Uri.parse(redirectUri);
             final boolean hasScheme = !TextUtils.isEmpty(parsedRedirectUri.getScheme());
