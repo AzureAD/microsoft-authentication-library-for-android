@@ -103,8 +103,15 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
         super.setup();
         mockHttpClient.intercept(
                 HttpClient.HttpMethod.POST,
-                (httpMethod, requestUrl, requestHeaders, requestContent) -> {
-                    throw new IOException("Sending requests to server has been disabled for mocked unit tests");
+                new HttpRequestInterceptor() {
+                    @Override
+                    public HttpResponse intercept(
+                            @NonNull HttpClient.HttpMethod httpMethod,
+                            @NonNull URL requestUrl,
+                            @NonNull Map<String, String> requestHeaders,
+                            @Nullable byte[] requestContent) throws IOException {
+                        throw new IOException("Sending requests to server has been disabled for mocked unit tests");
+                    }
                 });
     }
 

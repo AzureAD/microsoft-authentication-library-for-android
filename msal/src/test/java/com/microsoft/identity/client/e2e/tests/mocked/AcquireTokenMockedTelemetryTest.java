@@ -22,6 +22,9 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.mocked;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.e2e.shadows.ShadowMockAuthority;
@@ -35,6 +38,7 @@ import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
 import com.microsoft.identity.common.internal.eststelemetry.SchemaConstants;
 import com.microsoft.identity.common.internal.net.HttpClient;
 import com.microsoft.identity.common.internal.net.HttpResponse;
+import com.microsoft.identity.internal.testutils.HttpRequestInterceptor;
 import com.microsoft.identity.internal.testutils.HttpRequestMatcher;
 import com.microsoft.identity.internal.testutils.MockHttpClient;
 import com.microsoft.identity.internal.testutils.TestConstants;
@@ -49,6 +53,8 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -71,7 +77,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
     private static Map<String, String> sTelemetryHeaders;
     private static List<String> sCorrelationIdList = new ArrayList<>();
     private final HttpRequestMatcher postRequestMatcher = HttpRequestMatcher.builder()
-            .method(m -> m.compareTo(HttpClient.HttpMethod.POST) == 0)
+            .isPOST()
             .build();
 
     @Override
@@ -99,14 +105,21 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
 
     private void mockWithResponse(final HttpResponse httpResponse) {
         mockHttpClient.intercept(postRequestMatcher,
-                (httpMethod, requestUrl, requestHeaders, requestContent) -> {
-                    final String correlationId = requestHeaders.get("client-request-id");
+                new HttpRequestInterceptor() {
+                    @Override
+                    public HttpResponse intercept(
+                            @NonNull HttpClient.HttpMethod httpMethod,
+                            @NonNull URL requestUrl,
+                            @NonNull Map<String, String> requestHeaders,
+                            @Nullable byte[] requestContent) throws IOException {
+                        final String correlationId = requestHeaders.get("client-request-id");
 
-                    AcquireTokenMockedTelemetryTest.addCorrelationId(correlationId);
+                        AcquireTokenMockedTelemetryTest.addCorrelationId(correlationId);
 
-                    AcquireTokenMockedTelemetryTest.setTelemetryHeaders(requestHeaders);
+                        AcquireTokenMockedTelemetryTest.setTelemetryHeaders(requestHeaders);
 
-                    return httpResponse;
+                        return httpResponse;
+                    }
                 });
     }
 

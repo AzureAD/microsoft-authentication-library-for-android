@@ -37,8 +37,6 @@ import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthorityForMockHttpResponse;
-import com.microsoft.identity.internal.testutils.HttpRequestMatcher;
-import com.microsoft.identity.internal.testutils.shadows.ShadowHttpClient;
 import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
 import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
 import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
@@ -50,13 +48,13 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.net.HttpClient;
 import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
-import com.microsoft.identity.internal.testutils.MockHttpClient;
+import com.microsoft.identity.internal.testutils.HttpRequestMatcher;
 import com.microsoft.identity.internal.testutils.TestConstants;
 import com.microsoft.identity.internal.testutils.TestUtils;
 import com.microsoft.identity.internal.testutils.mocks.MockServerResponse;
 import com.microsoft.identity.internal.testutils.mocks.MockTokenCreator;
+import com.microsoft.identity.internal.testutils.shadows.ShadowHttpClient;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,7 +62,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import edu.emory.mathcs.backport.java.util.Arrays;
+import java.util.Arrays;
 
 import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
 import static com.microsoft.identity.internal.testutils.mocks.MockTokenCreator.CLOUD_DISCOVERY_ENDPOINT_REGEX;
@@ -92,15 +90,15 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
         mSingleAccountPCA = (SingleAccountPublicClientApplication) mApplication;
         mockHttpClient.intercept(
                 HttpRequestMatcher.builder()
-                        .method(m -> m.equals(HttpClient.HttpMethod.POST))
-                        .url(u -> u.toString().matches(MOCK_TOKEN_URL_REGEX))
+                        .isPOST()
+                        .urlPattern(MOCK_TOKEN_URL_REGEX)
                         .build(),
                 MockServerResponse.getMockTokenSuccessResponse()
         );
         mockHttpClient.intercept(
                 HttpRequestMatcher.builder()
-                        .method(m -> m.equals(HttpClient.HttpMethod.GET))
-                        .url(u -> u.toString().matches(CLOUD_DISCOVERY_ENDPOINT_REGEX))
+                        .isGET()
+                        .urlPattern(CLOUD_DISCOVERY_ENDPOINT_REGEX)
                         .build(),
                 MockServerResponse.getMockCloudDiscoveryResponse()
         );
