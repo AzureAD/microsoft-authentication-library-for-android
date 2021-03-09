@@ -74,6 +74,7 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.USE_BROKER;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEB_VIEW_ZOOM_CONTROLS_ENABLED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEB_VIEW_ZOOM_ENABLED;
+import static com.microsoft.identity.client.exception.MsalClientException.APP_MANIFEST_VALIDATION_ERROR;
 
 public class PublicClientApplicationConfiguration {
     private static final String TAG = PublicClientApplicationConfiguration.class.getSimpleName();
@@ -520,6 +521,15 @@ public class PublicClientApplicationConfiguration {
 
     @SuppressWarnings("PMD")
     public void checkIntentFilterAddedToAppManifestForBrokerFlow() throws MsalClientException {
+        if (TextUtils.isEmpty(mRedirectUri) || "null".equals(mRedirectUri)) {
+            // The redirect_uri should not be null at this point; if it is, there has been some
+            // error in initialization
+            throw new MsalClientException(
+                    APP_MANIFEST_VALIDATION_ERROR,
+                    "Provided configuration is missing redirect_uri: value may not be null."
+            );
+        }
+
         final boolean hasCustomTabRedirectActivity = MsalUtils.hasCustomTabRedirectActivity(
                 mAppContext,
                 mRedirectUri
@@ -530,7 +540,7 @@ public class PublicClientApplicationConfiguration {
                 && !hasCustomTabRedirectActivity) {
             final Uri redirectUri = Uri.parse(mRedirectUri);
             throw new MsalClientException(
-                    MsalClientException.APP_MANIFEST_VALIDATION_ERROR,
+                    APP_MANIFEST_VALIDATION_ERROR,
                     "Intent filter for: " +
                             BrowserTabActivity.class.getSimpleName() +
                             " is missing. " +
