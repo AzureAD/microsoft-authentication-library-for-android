@@ -499,7 +499,7 @@ public class PublicClientApplicationConfiguration {
     }
 
     private static void nullConfigurationCheck(String configKey, String configValue) {
-        if (TextUtils.isEmpty(configValue) || "null".equals(configKey)) {
+        if (TextUtils.isEmpty(configValue)) {
             throw new IllegalArgumentException(configKey + " cannot be null.  Invalid configuration.");
         }
     }
