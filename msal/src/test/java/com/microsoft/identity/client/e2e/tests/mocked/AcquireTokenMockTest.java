@@ -35,6 +35,7 @@ import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.RoboTestCacheHelper;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
+import com.microsoft.identity.internal.testutils.HttpRequestMatcher;
 import com.microsoft.identity.internal.testutils.shadows.ShadowHttpClient;
 import com.microsoft.identity.client.e2e.shadows.ShadowMockAuthority;
 import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
@@ -102,8 +103,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
     public void setup() {
         super.setup();
         mockHttpClient.intercept(
-                HttpClient.HttpMethod.POST,
-                new HttpRequestInterceptor() {
+                HttpRequestMatcher.builder().isPOST().build(), new HttpRequestInterceptor() {
                     @Override
                     public HttpResponse intercept(
                             @NonNull HttpClient.HttpMethod httpMethod,
