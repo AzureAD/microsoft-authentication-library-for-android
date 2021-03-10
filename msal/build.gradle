@@ -23,18 +23,18 @@ def bothTestType = "BothTest"
 
 android {
 
-    testOptions {
-        compileOptions {
-            // Flag to enable support for the new language APIs
-            coreLibraryDesugaringEnabled true
-            // Sets Java compatibility to Java 8
-            sourceCompatibility JavaVersion.VERSION_1_8
-            targetCompatibility JavaVersion.VERSION_1_8
-        }
-        dependencies {
-            coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
-        }
-    }
+//    testOptions {
+//        compileOptions {
+//            // Flag to enable support for the new language APIs
+//            coreLibraryDesugaringEnabled true
+//            // Sets Java compatibility to Java 8
+//            sourceCompatibility JavaVersion.VERSION_1_8
+//            targetCompatibility JavaVersion.VERSION_1_8
+//        }
+//        dependencies {
+//            coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
+//        }
+//    }
 
     /*
     //Commenting out until the next major version of common/msal/etc...
@@ -274,9 +274,9 @@ dependencies {
         transitive = false
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.0.9', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.1.2', changing: true)
 
-    distApi("com.microsoft.identity:common:3.0.9") {
+    distApi("com.microsoft.identity:common:3.1.2") {
         transitive = false
     }
 }
