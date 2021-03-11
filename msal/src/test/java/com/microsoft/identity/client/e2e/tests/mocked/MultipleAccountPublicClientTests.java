@@ -23,7 +23,6 @@
 
 package com.microsoft.identity.client.e2e.tests.mocked;
 
-import android.content.SharedPreferences;
 import android.os.Build;
 import android.util.Base64;
 
@@ -34,47 +33,39 @@ import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.MultiTenantAccount;
-import com.microsoft.identity.client.RoboTestCacheHelper;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthorityForMockHttpResponse;
 import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
-import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
 import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.internal.AsyncResult;
-import com.microsoft.identity.common.exception.ClientException;
-import com.microsoft.identity.common.internal.cache.ICacheRecord;
-import com.microsoft.identity.common.internal.net.HttpClient;
+import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
+import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.net.HttpResponse;
-import com.microsoft.identity.common.internal.providers.oauth2.TokenResponse;
-import com.microsoft.identity.common.internal.result.ResultFuture;
+import com.microsoft.identity.internal.testutils.HttpRequestMatcher;
 import com.microsoft.identity.internal.testutils.MockHttpClient;
 import com.microsoft.identity.internal.testutils.TestConstants;
-import com.microsoft.identity.internal.testutils.TestUtils;
 import com.microsoft.identity.internal.testutils.mocks.MockServerResponse;
-import com.microsoft.identity.internal.testutils.mocks.MockTokenCreator;
-import com.microsoft.identity.internal.testutils.mocks.MockTokenResponse;
 import com.microsoft.identity.internal.testutils.shadows.ShadowHttpClient;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.ParameterizedRobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.getAccount;
 import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
-import static com.microsoft.identity.internal.testutils.TestUtils.getSharedPreferences;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -88,15 +79,15 @@ import static org.junit.Assert.fail;
         ShadowAuthorityForMockHttpResponse.class,
         ShadowMsalUtils.class,
         ShadowHttpClient.class,
-        ShadowOpenIdProviderConfigurationClient.class
 }, sdk = {Build.VERSION_CODES.N})
 public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
-    private final TestCaseData testCaseData;
+    private final TestCaseData mTestCaseData;
+    private final MockHttpClient mMockHttpClient = MockHttpClient.install();
     private IMultipleAccountPublicClientApplication mMultipleAccountPCA;
-    private boolean homeAccountSignedIn = false;
+    private boolean mHomeAccountSignedIn = false;
 
     public MultipleAccountPublicClientTests(final String name, final TestCaseData testCaseData) {
-        this.testCaseData = testCaseData;
+        this.mTestCaseData = testCaseData;
     }
 
     @ParameterizedRobolectricTestRunner.Parameters(name = "{0}")
@@ -196,54 +187,59 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
         performInteractiveAcquireTokenWithMockResponsesToSetupCache();
     }
 
+    @After
+    public void cleanup() {
+        super.cleanup();
+        SharedPreferencesFileManager.getSharedPreferences(
+                mContext, SHARED_PREFERENCES_NAME, -1, new StorageHelper(mContext))
+                .clear();
+    }
+
     @Test
     public void testGetAccountsReturnsSingleAccountObjectForAccountRecordsFromMultipleCloudsWithSameHomeAccountId() {
         // arrange
-        final ResultFuture<AsyncResult<List<IAccount>>> future = new ResultFuture<>();
+        final List<IAccount> accounts = new ArrayList<>();
+        int expectedTenantProfilesCount = mHomeAccountSignedIn ?
+                mTestCaseData.userAccountsData.size() - 1 : mTestCaseData.userAccountsData.size();
 
         // act
         mMultipleAccountPCA.getAccounts(new IPublicClientApplication.LoadAccountsCallback() {
             @Override
             public void onTaskCompleted(List<IAccount> result) {
-                future.setResult(new AsyncResult<List<IAccount>>(result, null));
+                accounts.addAll(result);
             }
 
             @Override
             public void onError(MsalException exception) {
-                future.setResult(new AsyncResult<List<IAccount>>(null, exception));
+                fail("Failure in getAccounts : " + exception.getMessage());
             }
         });
 
         RoboTestUtils.flushScheduler();
 
         // assert
-        int expectedTenantProfilesCount = homeAccountSignedIn ?
-                testCaseData.userAccountsData.size() - 1 : testCaseData.userAccountsData.size();
         try {
-            final AsyncResult<List<IAccount>> result = future.get();
+            assertEquals("Verify getAccounts return only 1 account", 1, accounts.size());
 
-            if (result.getSuccess()) {
-                assertEquals("number of accounts", 1, result.getResult().size());
-                MultiTenantAccount account = (MultiTenantAccount) result.getResult().get(0);
-                assertEquals("number of tenant profiles",
-                        expectedTenantProfilesCount, account.getTenantProfiles().size());
-                assertTrue(testCaseData.homeAccountId.contains(account.getId()));
-                if (homeAccountSignedIn) {
-                    assertNotNull("account.getClaims()", account.getClaims());
-                    assertNotEquals("claims count", 0, account.getClaims().size());
-                    verifyAccountDetails(testCaseData.userAccountsData.get(0), account);
-                }
+            MultiTenantAccount account = (MultiTenantAccount) accounts.get(0);
+            assertEquals("Verify count of tenant profiles matches guest accounts",
+                    expectedTenantProfilesCount, account.getTenantProfiles().size());
+            assertTrue(mTestCaseData.homeAccountId.contains(account.getId()));
 
-                int tenantProfileIndexStart = homeAccountSignedIn ? 1 : 0;
-                int tenantProfileIndexEnd = homeAccountSignedIn ?
-                        expectedTenantProfilesCount : expectedTenantProfilesCount - 1;
-                for (int i = tenantProfileIndexStart; i <= tenantProfileIndexEnd; i++) {
-                    verifyAccountDetails(
-                            testCaseData.userAccountsData.get(i),
-                            account.getTenantProfiles().get(testCaseData.userAccountsData.get(i).tenantId));
-                }
-            } else {
-                fail(result.getException().getMessage());
+            if (mHomeAccountSignedIn) {
+                assertNotNull("Verify root account has claims", account.getClaims());
+                assertNotEquals("Verify root account claims count is not 0",
+                        0, account.getClaims().size());
+                verifyAccountDetails(mTestCaseData.userAccountsData.get(0), account);
+            }
+
+            int tenantProfileIndexStart = mHomeAccountSignedIn ? 1 : 0;
+            int tenantProfileIndexEnd = mHomeAccountSignedIn ?
+                    expectedTenantProfilesCount : expectedTenantProfilesCount - 1;
+            for (int i = tenantProfileIndexStart; i <= tenantProfileIndexEnd; i++) {
+                verifyAccountDetails(
+                        mTestCaseData.userAccountsData.get(i),
+                        account.getTenantProfiles().get(mTestCaseData.userAccountsData.get(i).tenantId));
             }
         } catch (final Exception e) {
             fail(e.getMessage());
@@ -251,42 +247,44 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
     }
 
     private void verifyAccountDetails(UserAccountData expectedUserAccountData, IAccount account) {
-        assertEquals("account.getTenantId()", expectedUserAccountData.tenantId, account.getTenantId());
-        assertEquals("account.getId()", expectedUserAccountData.localAccountId, account.getId());
-        assertEquals("account.getAuthority()", expectedUserAccountData.cloud, account.getAuthority());
-        assertEquals("iss claim", expectedUserAccountData.cloud, account.getClaims().get("iss"));
-        assertEquals("tid claim", expectedUserAccountData.tenantId, account.getClaims().get("tid"));
-        assertEquals("oid claim", expectedUserAccountData.localAccountId, account.getClaims().get("oid"));
+        assertEquals("TenantProfile: verify tenantId", expectedUserAccountData.tenantId, account.getTenantId());
+        assertEquals("TenantProfile: verify id", expectedUserAccountData.localAccountId, account.getId());
+        assertEquals("TenantProfile: verify authority", expectedUserAccountData.authority, account.getAuthority());
+        assertEquals("TenantProfile: verify iss claim", expectedUserAccountData.authority, account.getClaims().get("iss"));
+        assertEquals("TenantProfile: verify tid claim", expectedUserAccountData.tenantId, account.getClaims().get("tid"));
+        assertEquals("TenantProfile: verify oid claim", expectedUserAccountData.localAccountId, account.getClaims().get("oid"));
     }
 
     @Test
     public void testRemoveAccountRemovesAllCredentialsFromMultipleCloudsWithSameHomeAccountId() {
         // arrange
-        // add mock record in cache which has different home account id than the account to be removed
-        ICacheRecord cacheRecord = null;
-        final TokenResponse tokenResponse = MockTokenResponse.getMockSuccessTokenResponse();
+        final IAccount accountToRemove = getAccount();
 
-        try {
-            cacheRecord = RoboTestCacheHelper.saveTokens(tokenResponse, mMultipleAccountPCA);
-        } catch (ClientException e) {
-            fail("Unable to save tokens to cache: " + e.getMessage());
-        }
+        // Perform acquire token for another user, to check later that cache records for this user
+        // are not removed as part of removeAccount call for accountToRemove
+        final String uid = randomUuidString();
+        final String utid = randomUuidString();
+        final String claims = "{\"uid\":\"" + uid + "\",\"utid\":\"" + utid + "\"}";
 
-        final ResultFuture<Boolean> future = new ResultFuture<>();
+        final String clientInfo = new String(Base64.encode(claims.getBytes(), Base64.NO_PADDING));
+        final UserAccountData otherUserData = new UserAccountData("https://login.microsoftonline.com", uid, utid);
+        setupMockedHttpClientResponse(otherUserData, clientInfo);
+        performInteractiveAcquireTokenCall("usr2@test.com", otherUserData.authority + "/organizations");
+        mMockHttpClient.uninstall();
+        final IAccount accountNotToRemove = getAccount();
 
         // act
         try {
             mMultipleAccountPCA.removeAccount(
-                    getAccount(),
+                    accountToRemove,
                     new IMultipleAccountPublicClientApplication.RemoveAccountCallback() {
                         @Override
                         public void onRemoved() {
-                            future.setResult(true);
                         }
 
                         @Override
                         public void onError(@NonNull MsalException exception) {
-                            future.setException(exception);
+                            fail("Failure in removeAccount: " + exception.getMessage());
                         }
                     });
         } catch (Exception e) {
@@ -296,119 +294,107 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
         RoboTestUtils.flushScheduler();
 
         // assert
-        final SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFERENCES_NAME);
+        final SharedPreferencesFileManager sharedPreferences = SharedPreferencesFileManager.getSharedPreferences(
+                mContext, SHARED_PREFERENCES_NAME, -1, new StorageHelper(mContext));
         final Map<String, ?> cacheValues = sharedPreferences.getAll();
+
+        assertEquals("Verify number of Cache records (AT, RT, IdToken, AccountRecord) for non removed account",
+                4, cacheValues.size());
+
         for (String key : cacheValues.keySet()) {
-            assertFalse("Cache record found for homeAccountId of removed account",
-                    key.contains(testCaseData.homeAccountId));
-            assertTrue("Cache record found for other homeAccountId",
-                    key.contains(cacheRecord.getAccount().getHomeAccountId()));
+            assertFalse("Verify cache record not found for homeAccountId of removed account",
+                    key.contains(mTestCaseData.homeAccountId));
+            assertTrue("Verify cache record found for account that was not removed",
+                    key.contains(accountNotToRemove.getId()));
         }
-        assertEquals("Cache Values count", 4, cacheValues.size());
     }
 
     @Test
-    public void testAcquireTokenReturnsAccessTokenForCrossCloudAccount() {
+    public void testAcquireTokenSilentReturnsAccessTokenForCrossCloudAccount() {
         // arrange
-        final ResultFuture<IAuthenticationResult> future = new ResultFuture<>();
         final UserAccountData lastSignedInAccount =
-                testCaseData.userAccountsData.get(testCaseData.userAccountsData.size() - 1);
-        // act
+                mTestCaseData.userAccountsData.get(mTestCaseData.userAccountsData.size() - 1);
+
+        final SilentAuthenticationCallback silentAuthenticationCallback = new SilentAuthenticationCallback() {
+            @Override
+            public void onSuccess(IAuthenticationResult authenticationResult) {
+                // verify access token value from the authentication result matches the expected
+                // access token as set in the test case data
+                assertEquals("Verify accessToken value from authenticationResult matches mocked access token",
+                        lastSignedInAccount.getFakeAccessToken(), authenticationResult.getAccessToken());
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                fail(exception.getMessage());
+            }
+        };
+
+        // act and assert
         try {
             mMultipleAccountPCA.acquireTokenSilentAsync(
                     getScopes(),
                     getAccount(),
-                    lastSignedInAccount.cloud +
+                    lastSignedInAccount.authority +
                             "/" + lastSignedInAccount.tenantId,
-                    new SilentAuthenticationCallback() {
-                        @Override
-                        public void onSuccess(IAuthenticationResult authenticationResult) {
-                            future.setResult(authenticationResult);
-                        }
-
-                        @Override
-                        public void onError(MsalException exception) {
-                            future.setException(exception);
-                        }
-                    });
+                    silentAuthenticationCallback);
         } catch (Exception e) {
             fail(e.getMessage());
         }
 
         RoboTestUtils.flushScheduler();
-
-        // assert
-        IAuthenticationResult authenticationResult = null;
-        try {
-            authenticationResult = future.get();
-            assertNotNull("authenticationResult from acquireTokeSilent call",
-                    authenticationResult);
-            assertEquals("accessToken value",
-                    lastSignedInAccount.getFakeAccessToken(), authenticationResult.getAccessToken());
-        } catch (Exception e) {
-            fail(e.getMessage());
-        }
     }
 
     @Test
-    public void testAcquireTokenReturnsAccessTokenForCrossCloudAccountRetrievedUsingGetAccount() {
+    public void testAcquireTokenSilentReturnsAccessTokenForCrossCloudAccountRetrievedUsingGetAccount() {
         // arrange
-        final IAccount[] accountUnderTest = {null};
-        mMultipleAccountPCA.getAccount(
-                testCaseData.homeAccountId,
-                new IMultipleAccountPublicClientApplication.GetAccountCallback() {
-                    @Override
-                    public void onTaskCompleted(IAccount result) {
-                        accountUnderTest[0] = result;
-                    }
+        IAccount[] accountUnderTest = {null};
+        mMultipleAccountPCA.getAccount(mTestCaseData.homeAccountId, new IMultipleAccountPublicClientApplication.GetAccountCallback() {
+            @Override
+            public void onTaskCompleted(IAccount result) {
+                accountUnderTest[0] = result;
+            }
 
-                    @Override
-                    public void onError(MsalException exception) {
-                        fail(exception.getMessage());
-                    }
-                });
+            @Override
+            public void onError(MsalException exception) {
+                fail(exception.getMessage());
+            }
+        });
 
         RoboTestUtils.flushScheduler();
 
-        // act
-        final ResultFuture<IAuthenticationResult> future = new ResultFuture<>();
-        try {
-            mMultipleAccountPCA.acquireTokenSilentAsync
-                    (getScopes(),
-                            accountUnderTest[0],
-                            testCaseData.userAccountsData.get(0).cloud +
-                                    "/" + testCaseData.userAccountsData.get(0).tenantId,
-                            new SilentAuthenticationCallback() {
-                                @Override
-                                public void onSuccess(IAuthenticationResult authenticationResult) {
-                                    future.setResult(authenticationResult);
-                                }
+        final SilentAuthenticationCallback silentAuthenticationCallback = new SilentAuthenticationCallback() {
+            @Override
+            public void onSuccess(IAuthenticationResult authenticationResult) {
+                // verify access token value from the authentication result matches the expected
+                // access token as set in the test case data
+                assertEquals("Verify accessToken value from authenticationResult matches mocked access token",
+                        mTestCaseData.userAccountsData.get(0).getFakeAccessToken(), authenticationResult.getAccessToken());
+            }
 
-                                @Override
-                                public void onError(MsalException exception) {
-                                    future.setException(exception);
-                                }
-                            });
+            @Override
+            public void onError(MsalException exception) {
+                fail(exception.getMessage());
+            }
+        };
+
+        // act and assert
+        try {
+            mMultipleAccountPCA.acquireTokenSilentAsync(
+                    getScopes(),
+                    accountUnderTest[0],
+                    mTestCaseData.userAccountsData.get(0).authority +
+                            "/" + mTestCaseData.userAccountsData.get(0).tenantId,
+                    silentAuthenticationCallback);
         } catch (Exception e) {
             fail(e.getMessage());
         }
 
         RoboTestUtils.flushScheduler();
-
-        // assert
-        IAuthenticationResult authenticationResult = null;
-        try {
-            authenticationResult = future.get();
-            assertNotNull("authenticationResult from acquireTokeSilent call", authenticationResult);
-            assertEquals("accessToken value",
-                    testCaseData.userAccountsData.get(0).getFakeAccessToken(), authenticationResult.getAccessToken());
-        } catch (Exception e) {
-            fail(e.getMessage());
-        }
     }
 
     @Test
-    public void testAcquireTokenReturnsAccessTokenForCrossCloudAccountRetrievedUsingGetAccounts() {
+    public void testAcquireTokenSilentReturnsAccessTokenForCrossCloudAccountRetrievedUsingGetAccounts() {
         // arrange
         final List<IAccount> accountsUnderTest = new ArrayList<>();
         mMultipleAccountPCA.getAccounts(new IPublicClientApplication.LoadAccountsCallback() {
@@ -425,65 +411,60 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
 
         RoboTestUtils.flushScheduler();
 
-        // act
-        final ResultFuture<IAuthenticationResult> future = new ResultFuture<>();
-        try {
-            mMultipleAccountPCA.acquireTokenSilentAsync
-                    (getScopes(),
-                            accountsUnderTest.get(0),
-                            testCaseData.userAccountsData.get(0).cloud +
-                                    "/" + testCaseData.userAccountsData.get(0).tenantId,
-                            new SilentAuthenticationCallback() {
-                                @Override
-                                public void onSuccess(IAuthenticationResult authenticationResult) {
-                                    future.setResult(authenticationResult);
-                                }
+        final SilentAuthenticationCallback silentAuthenticationCallback = new SilentAuthenticationCallback() {
+            @Override
+            public void onSuccess(IAuthenticationResult authenticationResult) {
+                // verify access token value from the authentication result matches the expected
+                // access token as set in the test case data
+                assertEquals("Verify accessToken value from authenticationResult matches mocked access token",
+                        mTestCaseData.userAccountsData.get(0).getFakeAccessToken(), authenticationResult.getAccessToken());
+            }
 
-                                @Override
-                                public void onError(MsalException exception) {
-                                    future.setException(exception);
-                                }
-                            });
+            @Override
+            public void onError(MsalException exception) {
+                fail(exception.getMessage());
+            }
+        };
+
+        // act and assert
+        try {
+            mMultipleAccountPCA.acquireTokenSilentAsync(
+                    getScopes(),
+                    accountsUnderTest.get(0),
+                    mTestCaseData.userAccountsData.get(0).authority +
+                            "/" + mTestCaseData.userAccountsData.get(0).tenantId,
+                    silentAuthenticationCallback);
         } catch (Exception e) {
             fail(e.getMessage());
         }
 
         RoboTestUtils.flushScheduler();
-
-        // assert
-        IAuthenticationResult authenticationResult = null;
-        try {
-            authenticationResult = future.get();
-            assertNotNull("authenticationResult from acquireTokeSilent call", authenticationResult);
-            assertEquals("accessToken value",
-                    testCaseData.userAccountsData.get(0).getFakeAccessToken(), authenticationResult.getAccessToken());
-        } catch (Exception e) {
-            fail(e.getMessage());
-        }
     }
 
     private void performInteractiveAcquireTokenWithMockResponsesToSetupCache() {
-        TestUtils.clearCache(SHARED_PREFERENCES_NAME);
-        MockHttpClient.reset();
-        MockHttpClient.setHttpResponse(
-                MockServerResponse.getMockCloudDiscoveryResponse(),
-                HttpClient.HttpMethod.GET,
-                MockTokenCreator.CLOUD_DISCOVERY_ENDPOINT_REGEX);
-        for (UserAccountData userData : testCaseData.userAccountsData) {
-            HttpResponse mockResponseForHomeTenant = MockServerResponse.getMockTokenSuccessResponse(
-                    userData.localAccountId,
-                    userData.tenantId,
-                    userData.cloud,
-                    testCaseData.getRawClientInfo(),
-                    userData.getFakeAccessToken());
-            MockHttpClient.setHttpResponse(mockResponseForHomeTenant,
-                    HttpClient.HttpMethod.POST,
-                    userData.cloud + "/.*");
-            performInteractiveAcquireTokenCall(testCaseData.userName, userData.cloud + "/organizations");
-            if (testCaseData.homeAccountId.equals(userData.localAccountId + "." + userData.tenantId)) {
-                homeAccountSignedIn = true;
+        for (UserAccountData userData : mTestCaseData.userAccountsData) {
+            setupMockedHttpClientResponse(userData, mTestCaseData.getRawClientInfo());
+            performInteractiveAcquireTokenCall(mTestCaseData.userName, userData.authority + "/organizations");
+            mMockHttpClient.uninstall();
+            if (mTestCaseData.homeAccountId.equals(userData.localAccountId + "." + userData.tenantId)) {
+                mHomeAccountSignedIn = true;
             }
         }
+    }
+
+    private void setupMockedHttpClientResponse(final UserAccountData userData, final String clientInfo) {
+        final HttpResponse mockResponseForHomeTenant = MockServerResponse.getMockTokenSuccessResponse(
+                userData.localAccountId,
+                userData.tenantId,
+                userData.authority,
+                clientInfo,
+                userData.getFakeAccessToken());
+        final HttpRequestMatcher tokenRequestMatcher =
+                HttpRequestMatcher.builder()
+                        .urlPattern(userData.getUrlPatternMatchingAuthority())
+                        .isPOST()
+                        .build();
+        mMockHttpClient.intercept(tokenRequestMatcher, mockResponseForHomeTenant);
     }
 
     @Override
@@ -507,7 +488,7 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
         public final ArrayList<UserAccountData> userAccountsData;
 
         public TestCaseData(
-                final String userName, String homeAccountId, ArrayList<UserAccountData> userAccountsData) {
+                final String userName, final String homeAccountId, final ArrayList<UserAccountData> userAccountsData) {
             this.userName = userName;
             this.homeAccountId = homeAccountId;
             this.userAccountsData = userAccountsData;
@@ -524,18 +505,24 @@ public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
     }
 
     private static class UserAccountData {
-        public final String cloud;
+        public final String authority;
         public final String localAccountId;
         public final String tenantId;
 
-        public UserAccountData(final String cloud, final String localAccountId, final String tenantId) {
-            this.cloud = cloud;
+        public UserAccountData(final String authority, final String localAccountId, final String tenantId) {
+            this.authority = authority;
             this.localAccountId = localAccountId;
             this.tenantId = tenantId;
         }
 
         public String getFakeAccessToken() {
-            return "access_Token:" + cloud + "/" + tenantId + "/" + localAccountId;
+            return "access_Token:" + authority + "/" + tenantId + "/" + localAccountId;
+        }
+
+        public Pattern getUrlPatternMatchingAuthority() {
+            final String authorityPattern = "^" + authority.replace("/", "\\/") + "\\/.*";
+            final Pattern pattern = Pattern.compile(authorityPattern);
+            return pattern;
         }
     }
 }
