@@ -230,7 +230,6 @@
                 android:layout_weight="1"
                 android:ems="10"
                 android:inputType="textPersonName"
-                android:text="@string/default_query"
                 android:visibility="visible" />
         </LinearLayout>
 
@@ -256,8 +255,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:ems="10"
-                android:inputType="textPersonName"
-                android:text="@string/default_options" />
+                android:inputType="textPersonName" />
         </LinearLayout>
 
         <LinearLayout
