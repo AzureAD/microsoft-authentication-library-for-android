@@ -31,6 +31,7 @@ import android.net.NetworkInfo;
 import android.util.Base64;
 
 import com.microsoft.identity.client.internal.MsalUtils;
+import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -260,15 +261,11 @@ public final class AndroidTestUtil {
     }
 
     static void removeAllTokens(final Context appContext) {
-        final SharedPreferences accessTokenSharedPreference = getAccessTokenSharedPreference(appContext);
-        final SharedPreferences.Editor accessTokenSharedPreferenceEditor = accessTokenSharedPreference.edit();
-        accessTokenSharedPreferenceEditor.clear();
-        accessTokenSharedPreferenceEditor.apply();
+        final SharedPreferencesFileManager accessTokenSharedPreference = getAccessTokenSharedPreference(appContext);
+        accessTokenSharedPreference.clear();
 
-        final SharedPreferences refreshTokenSharedPreference = getRefreshTokenSharedPreference(appContext);
-        final SharedPreferences.Editor refreshTokenSharedPreferenceEditor = refreshTokenSharedPreference.edit();
-        refreshTokenSharedPreferenceEditor.clear();
-        refreshTokenSharedPreferenceEditor.apply();
+        final SharedPreferencesFileManager refreshTokenSharedPreference = getRefreshTokenSharedPreference(appContext);
+        refreshTokenSharedPreference.clear();
     }
 
     static String getRawIdToken(final String displaybleId, final String uniqueId, final String tenantId) {
@@ -285,14 +282,14 @@ public final class AndroidTestUtil {
         );
     }
 
-    static SharedPreferences getAccessTokenSharedPreference(final Context appContext) {
-        return appContext.getSharedPreferences(ACCESS_TOKEN_SHARED_PREFERENCE,
-                Activity.MODE_PRIVATE);
+    static SharedPreferencesFileManager getAccessTokenSharedPreference(final Context appContext) {
+        return SharedPreferencesFileManager.getSharedPreferences(appContext, ACCESS_TOKEN_SHARED_PREFERENCE,
+                Activity.MODE_PRIVATE, null);
     }
 
-    static SharedPreferences getRefreshTokenSharedPreference(final Context appContext) {
-        return appContext.getSharedPreferences(REFRESH_TOKEN_SHARED_PREFERENCE,
-                Activity.MODE_PRIVATE);
+    static SharedPreferencesFileManager getRefreshTokenSharedPreference(final Context appContext) {
+        return SharedPreferencesFileManager.getSharedPreferences(appContext, REFRESH_TOKEN_SHARED_PREFERENCE,
+                Activity.MODE_PRIVATE, null);
     }
 
     static String getSuccessTenantDiscoveryResponse(final String authorizeEndpoint, final String tokenEndpoint) {
