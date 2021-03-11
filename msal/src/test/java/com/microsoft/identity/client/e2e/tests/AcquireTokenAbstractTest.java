@@ -42,12 +42,11 @@ import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushSchedul
 public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAbstractTest implements IAcquireTokenTest {
 
     protected String[] mScopes;
-    protected MockHttpClient mockHttpClient;
+    protected final MockHttpClient mockHttpClient = MockHttpClient.install();
 
     @Before
     public void setup() {
         mScopes = getScopes();
-        mockHttpClient = MockHttpClient.install();
         super.setup();
     }
 
