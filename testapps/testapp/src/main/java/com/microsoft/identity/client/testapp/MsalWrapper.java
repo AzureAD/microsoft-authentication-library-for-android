@@ -2,7 +2,9 @@ package com.microsoft.identity.client.testapp;
 
 import android.app.Activity;
 import android.content.Context;
+import android.text.TextUtils;
 import android.util.Log;
+import android.util.Pair;
 
 import androidx.annotation.NonNull;
 
@@ -28,6 +30,7 @@ import com.microsoft.identity.client.exception.MsalUiRequiredException;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -193,8 +196,28 @@ abstract class MsalWrapper {
                 return null;
             }
         }
+        if (!TextUtils.isEmpty(requestOptions.getExtraQueryString())) {
+            List<Pair<String, String>> queryParams = getPairs(requestOptions.getExtraQueryString());
+            builder.withAuthorizationQueryStringParameters(queryParams);
+        }
+        if (!TextUtils.isEmpty(requestOptions.getExtraOptionsString())) {
+            List<Pair<String, String>> extraOptions = getPairs(requestOptions.getExtraOptionsString());
+            builder.withExtraOptions(extraOptions);
+        }
 
         return builder;
+    }
+
+    private List<Pair<String, String>> getPairs(String pairString) {
+        List<Pair<String, String>> extraOptions = new ArrayList<Pair<String, String>>();
+        String[] params = pairString.split("&");
+        for (String s : params) {
+            if (!TextUtils.isEmpty(s)) {
+                final String[] split = s.split("=");
+                extraOptions.add(new Pair<String, String>(split[0], split.length > 1 && split[1] == null ? split[1] : ""));
+            }
+        }
+        return extraOptions;
     }
 
     abstract void acquireTokenSilentAsyncInternal(@NonNull final AcquireTokenSilentParameters parameters);

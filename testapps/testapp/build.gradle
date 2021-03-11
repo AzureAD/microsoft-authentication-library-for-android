@@ -94,6 +94,8 @@ android {
 }
 
 dependencies {
+    //implementation 'org.projectlombok:lombok'
+
 
 // Commented out becuase we haven't supported this in MSAL yet. Having this on could be misleading.
 //  coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
@@ -105,4 +107,6 @@ dependencies {
     implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
     implementation "androidx.legacy:legacy-support-v4:$rootProject.ext.legacySupportV4Version"
     implementation "com.google.android.material:material:$rootProject.ext.materialVersion"
+    compileOnly "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
+    annotationProcessor "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
 }

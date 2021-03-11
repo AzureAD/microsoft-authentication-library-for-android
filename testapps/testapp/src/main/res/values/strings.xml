@@ -53,6 +53,10 @@
     <string name="btn_removeUser">Remove User</string>
     <string name="config_file_text">Config File</string>
     <string name="auth_scheme_text">Auth Scheme</string>
+    <string name="default_query">query params</string>
+    <string name="query_params">Extra Param</string>
+    <string name="default_options">option pairs</string>
+    <string name="extra_options">Extra Options</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>

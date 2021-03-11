@@ -26,6 +26,13 @@ import com.microsoft.identity.client.HttpMethod;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
 
+import lombok.Builder;
+import lombok.Getter;
+import lombok.experimental.Accessors;
+
+@Builder
+@Accessors(prefix = "m")
+@Getter
 class RequestOptions {
 
     final Constants.ConfigFile mConfigFile;
@@ -42,6 +49,8 @@ class RequestOptions {
     final HttpMethod mPopHttpMethod;
     final String mPopResourceUrl;
     final String mPoPClientClaims;
+    final String mExtraQueryString;
+    final String mExtraOptionsString;
 
     RequestOptions(final Constants.ConfigFile configFile,
                    final String loginHint,
@@ -56,7 +65,9 @@ class RequestOptions {
                    final Constants.AuthScheme authScheme,
                    final HttpMethod popHttpMethod,
                    final String popResourceUrl,
-                   final String popClientClaims) {
+                   final String popClientClaims,
+                   final String extraQueryString,
+                   final String extraOptionsString) {
         mConfigFile = configFile;
         mLoginHint = loginHint;
         mAccount = account;
@@ -71,6 +82,8 @@ class RequestOptions {
         mPopHttpMethod = popHttpMethod;
         mPopResourceUrl = popResourceUrl;
         mPoPClientClaims = popClientClaims;
+        mExtraQueryString = extraQueryString;
+        mExtraOptionsString = extraOptionsString;
     }
 
     Constants.ConfigFile getConfigFile() {

@@ -24,7 +24,8 @@
   -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:visibility="visible">
 
     <LinearLayout
         android:id="@+id/activity_main"
@@ -107,7 +108,7 @@
         <LinearLayout
             android:id="@+id/pop_section"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="161dp"
             android:orientation="vertical">
 
             <LinearLayout
@@ -203,6 +204,60 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="7"
                 android:textSize="12sp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/param_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:visibility="visible">
+
+            <TextView
+                android:id="@+id/extraQuery"
+                android:layout_width="63dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/query_params" />
+
+            <EditText
+                android:id="@+id/editQueryParams"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ems="10"
+                android:inputType="textPersonName"
+                android:text="@string/default_query"
+                android:visibility="visible" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/options_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:visibility="visible">
+
+            <TextView
+                android:id="@+id/extraOption"
+                android:layout_width="61dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/extra_options" />
+
+            <EditText
+                android:id="@+id/editExtraOptions"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ems="10"
+                android:inputType="textPersonName"
+                android:text="@string/default_options" />
         </LinearLayout>
 
         <LinearLayout

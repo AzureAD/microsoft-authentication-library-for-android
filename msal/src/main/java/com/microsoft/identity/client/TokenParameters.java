@@ -23,6 +23,7 @@
 package com.microsoft.identity.client;
 
 import android.text.TextUtils;
+import android.util.Pair;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -41,6 +42,7 @@ import java.util.UUID;
  */
 public abstract class TokenParameters {
 
+    private List<Pair<String, String>> mExtraQueryStringParameters;
     private List<String> mScopes;
     private IAccount mAccount;
     private String mAuthority;
@@ -48,6 +50,7 @@ public abstract class TokenParameters {
     private AccountRecord mAccountRecord;
     private AuthenticationScheme mAuthenticationScheme;
     private String mCorrelationId;
+    private List<Pair<String, String>> mExtraOptions;
 
     protected TokenParameters(@NonNull final TokenParameters.Builder builder) {
         mAccount = builder.mAccount;
@@ -56,6 +59,8 @@ public abstract class TokenParameters {
         mScopes = builder.mScopes;
         mAuthenticationScheme = builder.mAuthenticationScheme;
         mCorrelationId = builder.mCorrelationId;
+        mExtraQueryStringParameters = builder.mExtraQueryStringParameters;
+        mExtraOptions = builder.mExtraOptions;
     }
 
     /**
@@ -155,12 +160,33 @@ public abstract class TokenParameters {
     }
 
     /**
+     * If you've been instructed to pass additional query string parameters to the authorization endpoint.  You can get these here.
+     * Otherwise... would recommend not touching.
+     *
+     * @return
+     */
+    public List<Pair<String, String>> getExtraQueryStringParameters() {
+        return mExtraQueryStringParameters;
+    }
+
+    /**
+     * If you have been instructed that the client requires extra parameters, supply them here.
+     *
+     * @return the extra parameters.
+     */
+    public List<Pair<String, String>> getExtraOptions() {
+        return mExtraOptions;
+    }
+
+    /**
      * TokenParameters builder
      *
      * @param <B>
      */
     public static abstract class Builder<B extends TokenParameters.Builder<B>> {
 
+        public List<Pair<String, String>> mExtraOptions;
+        private List<Pair<String, String>> mExtraQueryStringParameters;
         private List<String> mScopes;
         private IAccount mAccount;
         private String mAuthority;
@@ -184,6 +210,18 @@ public abstract class TokenParameters {
 
             return self();
         }
+
+        public B withExtraOptions(List<Pair<String, String>> options) {
+            mExtraOptions = options == null ? options : new ArrayList<Pair<String, String>>(options);
+            return self();
+        }
+
+        public B withAuthorizationQueryStringParameters(
+                List<Pair<String, String>> parameters) {
+            mExtraQueryStringParameters = parameters;
+            return self();
+        }
+
 
         public B forAccount(IAccount account) {
             mAccount = account;

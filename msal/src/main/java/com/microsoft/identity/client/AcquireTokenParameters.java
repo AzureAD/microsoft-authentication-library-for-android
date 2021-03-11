@@ -40,7 +40,6 @@ public class AcquireTokenParameters extends TokenParameters {
     private String mLoginHint;
     private Prompt mPrompt;
     private List<String> mExtraScopesToConsent;
-    private List<Pair<String, String>> mExtraQueryStringParameters;
     private AuthenticationCallback mCallback;
 
     public AcquireTokenParameters(AcquireTokenParameters.Builder builder) {
@@ -50,7 +49,6 @@ public class AcquireTokenParameters extends TokenParameters {
         mLoginHint = builder.mLoginHint;
         mPrompt = builder.mPrompt;
         mExtraScopesToConsent = builder.mExtraScopesToConsent;
-        mExtraQueryStringParameters = builder.mExtraQueryStringParameters;
         mCallback = builder.mCallback;
     }
 
@@ -106,16 +104,6 @@ public class AcquireTokenParameters extends TokenParameters {
     }
 
     /**
-     * If you've been instructed to pass additional query string parameters to the authorization endpoint.  You can get these here.
-     * Otherwise... would recommend not touching.
-     *
-     * @return
-     */
-    public List<Pair<String, String>> getExtraQueryStringParameters() {
-        return mExtraQueryStringParameters;
-    }
-
-    /**
      * The Non-null {@link AuthenticationCallback} to receive the result back.
      * 1) If user cancels the flow by pressing the device back button, the result will be sent
      * back via {@link AuthenticationCallback#onCancel()}.
@@ -137,7 +125,6 @@ public class AcquireTokenParameters extends TokenParameters {
         private String mLoginHint;
         private Prompt mPrompt;
         private List<String> mExtraScopesToConsent;
-        private List<Pair<String, String>> mExtraQueryStringParameters;
         private AuthenticationCallback mCallback;
 
         public AcquireTokenParameters.Builder startAuthorizationFromActivity(final Activity activity) {
@@ -165,11 +152,6 @@ public class AcquireTokenParameters extends TokenParameters {
             return self();
         }
 
-        public AcquireTokenParameters.Builder withAuthorizationQueryStringParameters(
-                List<Pair<String, String>> parameters) {
-            mExtraQueryStringParameters = parameters;
-            return self();
-        }
 
         public AcquireTokenParameters.Builder withCallback(
                 final AuthenticationCallback authenticationCallback) {

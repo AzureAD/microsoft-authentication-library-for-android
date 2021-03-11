@@ -87,9 +87,13 @@ public class AcquireTokenFragment extends Fragment {
     private Spinner mPopHttpMethod;
     private EditText mPopResourceUrl;
     private EditText mPopClientClaims;
+    private EditText mExtraQueryParams;
+    private EditText mExtraOptions;
 
     private LinearLayout mPopSection;
     private LinearLayout mLoginHintSection;
+    private LinearLayout mExtraParamsSection;
+    private LinearLayout mExtraOptionsSection;
 
     private OnFragmentInteractionListener mOnFragmentInteractionListener;
     private MsalWrapper mMsalWrapper;
@@ -130,9 +134,15 @@ public class AcquireTokenFragment extends Fragment {
         mPopHttpMethod = view.findViewById(R.id.pop_http_method);
         mPopResourceUrl = view.findViewById(R.id.pop_resource_url);
         mPopClientClaims = view.findViewById(R.id.pop_client_claims);
+        mExtraQueryParams = view.findViewById(R.id.editQueryParams);
+        mExtraOptions = view.findViewById(R.id.editExtraOptions);
 
         mPopSection = view.findViewById(R.id.pop_section);
         mLoginHintSection = view.findViewById(R.id.login_hint_section);
+        mExtraParamsSection = view.findViewById(R.id.param_section);
+        mExtraParamsSection.setVisibility(View.VISIBLE);
+        mExtraOptionsSection = view.findViewById(R.id.options_section);
+        mExtraOptionsSection = view.findViewById(R.id.param_section);
 
         bindSelectAccountSpinner(mSelectAccount, null);
         mSelectAccount.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -441,6 +451,8 @@ public class AcquireTokenFragment extends Fragment {
                 : HttpMethod.valueOf(httpMethodTextFromSpinner);
         final String popResourceUrl = mPopResourceUrl.getText().toString();
         final String popClientClaimsTxt = mPopClientClaims.getText().toString();
+        final String extraQueryParamsTxt = mExtraQueryParams.getText().toString();
+        final String extraOptionsTxt = mExtraQueryParams.getText().toString();
 
         return new RequestOptions(
                 configFile,
@@ -456,7 +468,9 @@ public class AcquireTokenFragment extends Fragment {
                 authScheme,
                 popHttpMethod,
                 popResourceUrl,
-                popClientClaimsTxt
+                popClientClaimsTxt,
+                extraQueryParamsTxt,
+                extraOptionsTxt
         );
     }
 

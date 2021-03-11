@@ -142,6 +142,7 @@ public class CommandParametersAdapter {
                 .isWebViewZoomEnabled(configuration.isWebViewZoomEnabled())
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .correlationId(parameters.getCorrelationId())
+                .extraOptions(parameters.getExtraOptions())
                 .build();
 
         return commandParameters;
