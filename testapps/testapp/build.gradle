@@ -94,8 +94,6 @@ android {
 }
 
 dependencies {
-    //implementation 'org.projectlombok:lombok'
-
 
 // Commented out becuase we haven't supported this in MSAL yet. Having this on could be misleading.
 //  coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
