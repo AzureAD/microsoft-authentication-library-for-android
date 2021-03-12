@@ -41,6 +41,7 @@ public class AcquireTokenParameters extends TokenParameters {
     private Prompt mPrompt;
     private List<String> mExtraScopesToConsent;
     private AuthenticationCallback mCallback;
+    private List<Pair<String, String>> mExtraQueryStringParameters;
 
     public AcquireTokenParameters(AcquireTokenParameters.Builder builder) {
         super(builder);
@@ -50,6 +51,7 @@ public class AcquireTokenParameters extends TokenParameters {
         mPrompt = builder.mPrompt;
         mExtraScopesToConsent = builder.mExtraScopesToConsent;
         mCallback = builder.mCallback;
+        mExtraQueryStringParameters = builder.mExtraQueryStringParameters;
     }
 
     /**
@@ -118,6 +120,16 @@ public class AcquireTokenParameters extends TokenParameters {
         return mCallback;
     }
 
+    /**
+     * If you've been instructed to pass additional query string parameters to the authorization endpoint.  You can get these here.
+     * Otherwise... would recommend not touching.
+     *
+     * @return the list of query parameters to add to the authorize call.
+     */
+    public List<Pair<String, String>> getExtraQueryStringParameters() {
+        return mExtraQueryStringParameters;
+    }
+
     public static class Builder extends TokenParameters.Builder<AcquireTokenParameters.Builder> {
 
         private Activity mActivity;
@@ -126,6 +138,13 @@ public class AcquireTokenParameters extends TokenParameters {
         private Prompt mPrompt;
         private List<String> mExtraScopesToConsent;
         private AuthenticationCallback mCallback;
+        private List<Pair<String, String>> mExtraQueryStringParameters;
+
+        public Builder withAuthorizationQueryStringParameters(
+                List<Pair<String, String>> parameters) {
+            mExtraQueryStringParameters = parameters;
+            return self();
+        }
 
         public AcquireTokenParameters.Builder startAuthorizationFromActivity(final Activity activity) {
             mActivity = activity;

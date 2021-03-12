@@ -22,6 +22,10 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import android.util.Pair;
+
+import java.util.List;
+
 public class AcquireTokenSilentParameters extends TokenParameters {
     private boolean mForceRefresh;
     private SilentAuthenticationCallback mCallback;

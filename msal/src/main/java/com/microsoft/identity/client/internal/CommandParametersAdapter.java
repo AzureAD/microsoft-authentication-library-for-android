@@ -183,6 +183,7 @@ public class CommandParametersAdapter {
                 .redirectUri(configuration.getRedirectUri())
                 .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
                 .sdkType(SdkType.MSAL)
+                .extraOptions(parameters.getExtraOptions())
                 .sdkVersion(PublicClientApplication.getSdkVersion())
                 .authority(authority)
                 .claimsRequestJson(claimsRequestJson)
