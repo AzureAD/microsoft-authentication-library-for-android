@@ -452,7 +452,7 @@ public class AcquireTokenFragment extends Fragment {
         final String popResourceUrl = mPopResourceUrl.getText().toString();
         final String popClientClaimsTxt = mPopClientClaims.getText().toString();
         final String extraQueryParamsTxt = mExtraQueryParams.getText().toString();
-        final String extraOptionsTxt = mExtraQueryParams.getText().toString();
+        final String extraOptionsTxt = mExtraOptions.getText().toString();
 
         return new RequestOptions(
                 configFile,

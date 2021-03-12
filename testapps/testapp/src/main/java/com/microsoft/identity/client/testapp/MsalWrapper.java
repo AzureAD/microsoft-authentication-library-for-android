@@ -115,6 +115,15 @@ abstract class MsalWrapper {
                 .withPrompt(requestOptions.getPrompt())
                 .withCallback(getAuthenticationCallback(callback));
 
+        if (!TextUtils.isEmpty(requestOptions.getExtraQueryString())) {
+            builder.withAuthorizationQueryStringParameters(getPairs(requestOptions.getExtraQueryString()));
+        }
+
+        if (!TextUtils.isEmpty(requestOptions.getExtraOptionsString())) {
+            builder.withExtraOptions(getPairs(requestOptions.getExtraOptionsString()));
+        }
+
+
         if (requestOptions.getAuthority() != null && !requestOptions.getAuthority().isEmpty()) {
             builder.fromAuthority(requestOptions.getAuthority());
         }
@@ -214,7 +223,7 @@ abstract class MsalWrapper {
         for (String s : params) {
             if (!TextUtils.isEmpty(s)) {
                 final String[] split = s.split("=");
-                extraOptions.add(new Pair<String, String>(split[0], split.length > 1 && split[1] == null ? split[1] : ""));
+                extraOptions.add(new Pair<String, String>(split[0], split.length > 1 && split[1] != null ? split[1] : ""));
             }
         }
         return extraOptions;
