@@ -348,7 +348,7 @@ public class CrossCloudGuestAccountTest extends AcquireTokenAbstractTest {
     @Test
     public void testAcquireTokenSilentReturnsAccessTokenForCrossCloudAccountRetrievedUsingGetAccount() {
         // arrange
-        IAccount[] accountUnderTest = {null};
+        final IAccount[] accountUnderTest = {null};
         mMultipleAccountPCA.getAccount(mTestCaseData.homeAccountId, new IMultipleAccountPublicClientApplication.GetAccountCallback() {
             @Override
             public void onTaskCompleted(IAccount result) {
