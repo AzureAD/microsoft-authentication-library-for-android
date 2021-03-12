@@ -40,7 +40,7 @@ jobs:
       publishJUnitResults: false
       jdkArchitecture: x86
       sqAnalysisBreakBuildIfQualityGateFailed: false
-  - task: PublishBuildArtifacts@1
+  - task: PublishPipelineArtifact@1
     displayName: Publish MSAL Automation App
     inputs:
       PathtoPublish: $(Build.SourcesDirectory)/msalautomationapp/build/outputs/apk/localBrokerHost/debug/msalautomationapp-local-BrokerHost-debug.apk

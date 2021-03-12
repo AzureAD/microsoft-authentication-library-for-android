@@ -44,7 +44,7 @@ jobs:
       ConnectedServiceName: 52f0b8f0-fbe7-4c1b-8169-25886eb6bab4
       KeyVaultName: ADALTestInfo
       SecretsFilter: AndroidAutomationRunnerAppSecret
-  - task: DownloadBuildArtifacts@0
+  - task: DownloadPipelineArtifact@2
     displayName: Download Broker Host APK
     inputs:
       buildType: specific

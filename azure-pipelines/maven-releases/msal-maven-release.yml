@@ -64,8 +64,8 @@ jobs:
       SourceFolder: msal\build\publications\msal\
       Contents: '**/*.xml'
       TargetFolder: $(build.artifactstagingdirectory)
-  - task: PublishBuildArtifacts@1
-    name: PublishBuildArtifacts1
+  - task: PublishPipelineArtifact@1
+    name: PublishPipelineArtifact1
     displayName: 'Publish Artifact: Build Outputs'
     inputs:
       ArtifactName: build_outputs
@@ -79,7 +79,7 @@ jobs:
   - checkout: self
     clean: true
     submodules: recursive
-  - task: DownloadBuildArtifacts@0
+  - task: DownloadPipelineArtifact@2
     displayName: Download Build Artifacts
     inputs:
       artifactName: build_outputs

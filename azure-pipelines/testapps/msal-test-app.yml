@@ -83,7 +83,7 @@ jobs:
       publishJUnitResults: false
       jdkArchitecture: x86
       sqAnalysisBreakBuildIfQualityGateFailed: false
-  - task: PublishBuildArtifacts@1
+  - task: PublishPipelineArtifact@1
     displayName: Publish MSAL Test App APK
     inputs:
       PathtoPublish: $(Build.SourcesDirectory)/testapps/testapp/build/outputs/apk/$(msalFlavor)/$(buildType)/testapp-$(msalFlavor)-$(buildType).apk

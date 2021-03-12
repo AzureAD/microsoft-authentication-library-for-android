@@ -89,8 +89,8 @@ jobs:
     inputs:
       SourceFolder: msal\build\
       TargetFolder: $(build.artifactstagingdirectory)
-  - task: PublishBuildArtifacts@1
-    name: PublishBuildArtifacts1
+  - task: PublishPipelineArtifact@1
+    name: PublishPipelineArtifact1
     displayName: 'Publish Artifact: Common Release'
     inputs:
       ArtifactName: CommonRelease

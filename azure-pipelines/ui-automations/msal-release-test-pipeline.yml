@@ -51,7 +51,7 @@ jobs:
     inputs:
       secureFile: b4ed35b0-bb20-4830-8a21-2297e3de7fa1
       retryCount: 5
-  - task: DownloadBuildArtifacts@0
+  - task: DownloadPipelineArtifact@2
     displayName: Download Azure Sample
     inputs:
       buildType: specific
