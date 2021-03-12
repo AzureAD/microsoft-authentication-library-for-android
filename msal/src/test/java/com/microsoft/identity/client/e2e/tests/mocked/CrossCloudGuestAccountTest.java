@@ -80,13 +80,13 @@ import static org.junit.Assert.fail;
         ShadowMsalUtils.class,
         ShadowHttpClient.class,
 }, sdk = {Build.VERSION_CODES.N})
-public class MultipleAccountPublicClientTests extends AcquireTokenAbstractTest {
+public class CrossCloudGuestAccountTest extends AcquireTokenAbstractTest {
     private final TestCaseData mTestCaseData;
     private final MockHttpClient mMockHttpClient = MockHttpClient.install();
     private IMultipleAccountPublicClientApplication mMultipleAccountPCA;
     private boolean mHomeAccountSignedIn = false;
 
-    public MultipleAccountPublicClientTests(final String name, final TestCaseData testCaseData) {
+    public CrossCloudGuestAccountTest(final String name, final TestCaseData testCaseData) {
         this.mTestCaseData = testCaseData;
     }
 
