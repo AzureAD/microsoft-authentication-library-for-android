@@ -491,7 +491,7 @@ public class PublicClientApplicationConfiguration {
     private void verifyRedirectUriWithAppSignature() throws MsalClientException {
         final String packageName = mAppContext.getPackageName();
         try {
-            final PackageInfo info = mAppContext.getPackageManager().getPackageInfo(packageName, PackageManager.GET_SIGNATURES);
+            final PackageInfo info = SignUtil.getPackageInfo(mAppContext, packageName);
             Signature [] signatures = SignUtil.getSignatures(info);
             for (final Signature signature : signatures) {
                 final MessageDigest messageDigest = MessageDigest.getInstance("SHA");

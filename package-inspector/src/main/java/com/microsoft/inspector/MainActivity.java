@@ -127,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
                     );
                     final PackageInfo packageInfo = mPackageManager.getPackageInfo(
                             clickedAppInfo.packageName,
-                            PackageManager.GET_SIGNATURES
+                            getPackageManagerFlag()
                     );
 
                     String packageSigningSha = "";
@@ -220,5 +220,13 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return packageInfo.signatures;
+    }
+
+    private int getPackageManagerFlag() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            return PackageManager.GET_SIGNING_CERTIFICATES;
+        }
+
+        return PackageManager.GET_SIGNATURES;
     }
 }
