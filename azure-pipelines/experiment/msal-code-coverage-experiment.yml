@@ -38,7 +38,7 @@ jobs:
     name: generateReport
     displayName: Download Email Script secure file
     inputs:
-      secureFile: ef6e868b-e669-488e-ba56-842088c3e7da
+      secureFile: generateReport.exe
       retryCount: 5
   - template: azure-pipelines/templates/steps/credscan-policheck.yml@common
     parameters:

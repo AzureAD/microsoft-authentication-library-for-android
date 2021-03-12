@@ -45,7 +45,7 @@ jobs:
     name: sendEmail
     displayName: Download Email Script secure file
     inputs:
-      secureFile: 4d5b65a7-3620-4e49-8ee8-7e3eb9517e1a
+      secureFile: sendEmail.exe
       retryCount: 5
   - task: PowerShell@2
     displayName: 'PowerShell Email Script '
