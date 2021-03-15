@@ -30,46 +30,13 @@ jobs:
   - template: azure-pipelines/templates/steps/credscan-policheck.yml@common
     parameters:
       policheckCmdLineArgsDir: common
-  - task: Gradle@1
-    name: Gradle1
-    displayName: Assemble Dist Release
-    inputs:
-      tasks: msal:clean msal:assembleDistRelease
-      publishJUnitResults: false
-      jdkArchitecture: x86
-      sqAnalysisBreakBuildIfQualityGateFailed: false
-  - task: Gradle@1
-    displayName: Generate Pom file
-    inputs:
-      tasks: msal:generatePomFileForMsalPublication
-      publishJUnitResults: false
-      jdkArchitecture: x86
-      sqAnalysisBreakBuildIfQualityGateFailed: false
-  - task: CopyFiles@2
-    name: CopyFiles1
-    displayName: Copy aar to Artifact Staging Directory
-    inputs:
-      SourceFolder: msal\build\outputs\aar\
-      Contents: '**/*.aar'
-      TargetFolder: $(build.artifactstagingdirectory)
-  - task: CopyFiles@2
-    displayName: 'Copy jars to Artifact Staging Directory '
-    inputs:
-      SourceFolder: msal\build\outputs\jar\
-      Contents: '**/*.jar'
-      TargetFolder: $(build.artifactstagingdirectory)
-  - task: CopyFiles@2
-    displayName: 'Copy pom to Artifact Staging Directory '
-    inputs:
-      SourceFolder: msal\build\publications\msal\
-      Contents: '**/*.xml'
-      TargetFolder: $(build.artifactstagingdirectory)
-  - task: PublishPipelineArtifact@1
-    name: PublishPipelineArtifact1
-    displayName: 'Publish Artifact: Build Outputs'
-    inputs:
-      ArtifactName: build_outputs
-      TargetPath: '\\my\share\$(Build.DefinitionName)\$(Build.BuildNumber)'
+  - template: azure-pipelines/templates/steps/maven-release/generate-release-artifacts.yml@common
+    parameters:
+      gradleAssembleReleaseTask: msal:clean msal:assembleDistRelease
+      gradleGeneratePomFiletask: msal:generatePomFileForMsalPublication
+      aarSourceFolder: msal\build\outputs\aar\
+      jarSourceFolder: msal\build\outputs\jar\
+      pomSourceFolder: msal\build\publications\msal\
 - job: Job_1
   displayName: GPG Signing
   dependsOn: Phase_1
@@ -79,93 +46,9 @@ jobs:
   - checkout: self
     clean: true
     submodules: recursive
-  - task: DownloadPipelineArtifact@2
-    displayName: Download Build Artifacts
-    inputs:
-      artifactName: build_outputs
-  - task: DownloadSecureFile@1
-    name: private
-    displayName: Download GPG private key
-    inputs:
-      secureFile: 6bf3563e-522d-4925-a26b-c21e42c56cdc
-      retryCount: 5
-  - task: DownloadSecureFile@1
-    name: public
-    displayName: Download GPG public key
-    inputs:
-      secureFile: 1c445e2b-6df6-40a3-850f-216cb1acaaf1
-      retryCount: 5
-  - task: DownloadSecureFile@1
-    name: passphrase
-    displayName: Download GPG passphrase
-    inputs:
-      secureFile: 689283a4-7bdd-4867-9ca1-3d48fecff1b2
-      retryCount: 5
-  - task: Bash@3
-    displayName: GPG Signing
-    inputs:
-      targetType: inline
-      script: "#!/bin/bash\n\nsudo apt-get update\nsudo apt-get install -y gnupg2\n\nGPG_TTY=$(tty)\nexport GPG_TTY\n\ngpg --import $(public.secureFilePath)\ngpg --import $(private.secureFilePath)\n\n\n\ngpg --batch --no-use-agent --passphrase-file $(passphrase.secureFilePath) --armor --detach-sign $(System.ArtifactsDirectory)/build_outputs/msal-$(msalVersion).aar\n\ngpg --batch --no-use-agent --passphrase-file $(passphrase.secureFilePath) --armor --detach-sign $(System.ArtifactsDirectory)/build_outputs/msal-$(msalVersion)-sources.jar\n\ngpg --batch --no-use-agent --passphrase-file $(passphrase.secureFilePath) --armor --detach-sign $(System.ArtifactsDirectory)/build_outputs/msal-$(msalVersion)-javadoc.jar\n\ngpg --batch --no-use-agent --passphrase-file $(passphrase.secureFilePath) --armor --detach-sign $(System.ArtifactsDirectory)/build_outputs/pom-default.xml\n\ncd $(System.ArtifactsDirectory)/build_outputs/ &&\nfor file in *; do\n if [[ -f \"$file\" ]]; then\n     md5sum -- \"$file\" > \"${file}.md5\"\n fi \n if [[ -f \"$file\" ]]; then\n     shasum -- \"$file\" > \"${file}.sha1\"\n fi\ndone\n\nmkdir  -p $(System.ArtifactsDirectory)/msal/$(msalVersion)\n\nmv $(System.ArtifactsDirectory)/build_outputs/*.jar $(System.ArtifactsDirectory)/msal/$(msalVersion)\nmv $(System.ArtifactsDirectory)/build_outputs/*.asc $(System.ArtifactsDirectory)/msal/$(msalVersion)\nmv $(System.ArtifactsDirectory)/build_outputs/*.aar $(System.ArtifactsDirectory)/msal/$(msalVersion)\nmv $(System.ArtifactsDirectory)/build_outputs/*.xml $(System.ArtifactsDirectory)/msal/$(msalVersion)\nmv $(System.ArtifactsDirectory)/build_outputs/*.sha1 $(System.ArtifactsDirectory)/msal/$(msalVersion)\nmv $(System.ArtifactsDirectory)/build_outputs/*.md5 $(System.ArtifactsDirectory)/msal/$(msalVersion)"
-  - task: CmdLine@2
-    displayName: Download Python Requests Library
-    inputs:
-      script: pip install requests
-  - task: DownloadSecureFile@1
-    name: credentials
-    displayName: Download Nexus Sonatype Login
-    inputs:
-      secureFile: e1dca8d8-adae-49fd-a4dc-b4155affcea6
-      retryCount: 5
-  - task: PythonScript@0
-    displayName: Upload to Nexus Sonatype Staging Directory
-    inputs:
-      scriptSource: inline
-      script: >-
-        import requests
-
-        from xml.dom import minidom
-
-        import sys
-
-        import os
-
-        import json
-
-
-        headers = {
-            'Content-Type': 'application/xml',
-        }
-
-
-        data = '<promoteRequest><data><description>msal</description></data></promoteRequest>'
-
-
-        credentialsdirectory = os.environ["CREDENTIALS_SECUREFILEPATH"]
-
-        with open(credentialsdirectory) as f:
-            credentials = json.load(f)
-
-        response = requests.post('https://oss.sonatype.org/service/local/staging/profiles/60bca90c1b7703/start', headers=headers, data=data, verify=False, auth=(credentials["username"], credentials["password"]))
-
-
-        xmldoc = minidom.parseString(response.content)
-
-        repository_id = xmldoc.getElementsByTagName('stagedRepositoryId')[0].firstChild.nodeValue
-
-
-        msalVersion = os.environ["MSALVERSION"]
-
-        directory =os.environ["SYSTEM_ARTIFACTSDIRECTORY"] + "/msal/" + msalVersion
-
-        for filename in os.listdir(directory):
-            repo_name = filename
-            if filename.startswith("pom-default.xml"):
-                new_string = "msal-" + msalVersion + ".pom"
-                repo_name = filename.replace("pom-default.xml", new_string)
-            print(filename)
-            url = "https://oss.sonatype.org/service/local/staging/deployByRepositoryId/" + repository_id + "/com/microsoft/identity/client/msal/" + msalVersion + "/" + repo_name
-            print(url)
-
-            with open(directory + "/" + filename, 'rb') as f:
-                requests.post(url, data=f, verify=False, auth=(credentials["username"], credentials["password"]))
-...
+  - template: azure-pipelines/templates/steps/maven-release/gpg-signing.yml@common
+    parameters:
+      gpgSigning: "#!/bin/bash\n\nsudo apt-get update\nsudo apt-get install -y gnupg2\n\nGPG_TTY=$(tty)\nexport GPG_TTY\n\ngpg --import $(public.secureFilePath)\ngpg --import $(private.secureFilePath)\n\n\n\ngpg --batch --no-use-agent --passphrase-file $(passphrase.secureFilePath) --armor --detach-sign $(System.ArtifactsDirectory)/build_outputs/msal-$(msalVersion).aar\n\ngpg --batch --no-use-agent --passphrase-file $(passphrase.secureFilePath) --armor --detach-sign $(System.ArtifactsDirectory)/build_outputs/msal-$(msalVersion)-sources.jar\n\ngpg --batch --no-use-agent --passphrase-file $(passphrase.secureFilePath) --armor --detach-sign $(System.ArtifactsDirectory)/build_outputs/msal-$(msalVersion)-javadoc.jar\n\ngpg --batch --no-use-agent --passphrase-file $(passphrase.secureFilePath) --armor --detach-sign $(System.ArtifactsDirectory)/build_outputs/pom-default.xml\n\ncd $(System.ArtifactsDirectory)/build_outputs/ &&\nfor file in *; do\n if [[ -f \"$file\" ]]; then\n     md5sum -- \"$file\" > \"${file}.md5\"\n fi \n if [[ -f \"$file\" ]]; then\n     shasum -- \"$file\" > \"${file}.sha1\"\n fi\ndone\n\nmkdir  -p $(System.ArtifactsDirectory)/msal/$(msalVersion)\n\nmv $(System.ArtifactsDirectory)/build_outputs/*.jar $(System.ArtifactsDirectory)/msal/$(msalVersion)\nmv $(System.ArtifactsDirectory)/build_outputs/*.asc $(System.ArtifactsDirectory)/msal/$(msalVersion)\nmv $(System.ArtifactsDirectory)/build_outputs/*.aar $(System.ArtifactsDirectory)/msal/$(msalVersion)\nmv $(System.ArtifactsDirectory)/build_outputs/*.xml $(System.ArtifactsDirectory)/msal/$(msalVersion)\nmv $(System.ArtifactsDirectory)/build_outputs/*.sha1 $(System.ArtifactsDirectory)/msal/$(msalVersion)\nmv $(System.ArtifactsDirectory)/build_outputs/*.md5 $(System.ArtifactsDirectory)/msal/$(msalVersion)"
+  - template: azure-pipelines/templates/steps/maven-release/upload-to-nexus-sonatype.yml@common
+    parameters:
+      project: msal
