@@ -18,7 +18,7 @@ resources:
   - repository: common
     type: github
     name: AzureAD/microsoft-authentication-library-common-for-android
-    ref: refs/heads/pedroro/IDDP-pipelines
+    ref: dev
     endpoint: ANDROID_GITHUB
 jobs:
 - job: Phase_1
