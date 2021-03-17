@@ -42,7 +42,8 @@ jobs:
       specificBuildWithTriggering: true
       artifactName: AzureSampleExternalRelease
   - template: azure-pipelines/templates/steps/ui-automation/gcloud.yml@common
-  #arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN]$(mvnAccessToken)'
+    parameters:
+      envVstsMvnAt: ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN
   - task: PowerShell@2
     displayName: Generate Assemble Task Name for MSAL automation app
     inputs:
