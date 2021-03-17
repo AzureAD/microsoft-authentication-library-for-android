@@ -132,18 +132,6 @@ jobs:
   - template: azure-pipelines/templates/steps/credscan-policheck.yml@common
     parameters:
       policheckCmdLineArgsDir: adal
-  - task: CmdLine@1
-    displayName: Set MVN Access Token in Environment
-    inputs:
-      filename: echo
-      arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN]$(mvnAccessToken)'
-  - task: AzureKeyVault@1
-    name: secret
-    displayName: 'Azure Key Vault: Download Secret for Automation'
-    inputs:
-      ConnectedServiceName: 52f0b8f0-fbe7-4c1b-8169-25886eb6bab4
-      KeyVaultName: ADALTestInfo
-      SecretsFilter: AndroidAutomationRunnerAppSecret
   - task: DownloadPipelineArtifact@2
     displayName: Download Broker Host APK
     inputs:
@@ -160,94 +148,7 @@ jobs:
     inputs:
       secureFile: 960465ec-c668-4926-a723-32c6c952d643
       retryCount: 5
-  - task: DownloadSecureFile@1
-    name: firebaseKey
-    displayName: Download Firebase Service Account Key File
-    inputs:
-      secureFile: b4ed35b0-bb20-4830-8a21-2297e3de7fa1
-      retryCount: 5
-  - task: PowerShell@2
-    displayName: Uninstall gcloud
-    inputs:
-      targetType: inline
-      script: >+
-        gcloud -v
-
-
-        $sdkRoot = gcloud info --format='value(installation.sdk_root)'
-
-        $sdkConfig = gcloud info --format='value(config.paths.global_config_dir)'
-
-
-        $sdkRoot
-
-        $sdkConfig
-
-
-        Remove-Item $sdkRoot -Recurse -Force
-
-        Remove-Item $sdkConfig -Recurse -Force
-
-
-  - task: PowerShell@2
-    displayName: Install Google Cloud
-    inputs:
-      targetType: inline
-      script: >-
-        Write-Output "Downloading gcloud sdk with version 320.0.0"
-
-
-        $downloadLink = "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-320.0.0-windows-x86-bundled-python.zip"
-
-
-        Write-Output "Using download link: $downloadLink"
-
-
-        $dest = "$env:Temp\GoogleCloudSDKInstaller.zip"
-
-        (New-Object Net.WebClient).DownloadFile($downloadLink, $dest)
-
-
-        Write-Output "Extracting gcloud archive on machine...."
-
-
-        Expand-Archive -Path $dest -DestinationPath .\gcloud-extracted
-
-
-        Write-Output "Finished extracting gcloud archive on machine...."
-
-        Write-Output "Install gcloud sdk on machine in quiet mode...."
-
-        .\gcloud-extracted\google-cloud-sdk\install.bat -q
-
-
-        $baseDir = pwd
-
-        $gcloudDir = "$baseDir\gcloud-extracted\google-cloud-sdk\bin"
-
-        Write-Output "gcloud bin dir: $gcloudDir"
-
-        Write-Output "path: $env:path"
-
-        Write-Output "Setting gcloud to path"
-
-        Write-Host "##vso[task.setvariable variable=PATH;]${env:PATH};$gcloudDir";
-  - task: PowerShell@2
-    displayName: Google Cloud Init
-    inputs:
-      targetType: inline
-      script: >-
-        Write-Output "path: $env:path"
-
-        gcloud auth activate-service-account --key-file $(firebaseKey.secureFilePath)
-
-        gcloud init
-
-        gcloud version
-
-        gcloud config set project $(gcloud_project_id)
-
-        gcloud firebase test android models list
+  - template: azure-pipelines/templates/steps/ui-automation/gcloud.yml@common
   - task: Gradle@1
     name: Gradle1
     displayName: Assemble MSAL Automation App
