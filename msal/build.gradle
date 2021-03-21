@@ -271,14 +271,16 @@ dependencies {
     androidTestImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
     // 'local' flavor dependencies
     localApi(project(":common")) {
-        transitive = false
+        transitive = true
     }
 
+    /*
     snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.1.2', changing: true)
 
     distApi("com.microsoft.identity:common:3.1.2") {
         transitive = false
     }
+    */
 }
 
 def configDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')
