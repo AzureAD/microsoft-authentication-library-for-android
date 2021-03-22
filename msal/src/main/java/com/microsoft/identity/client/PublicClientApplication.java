@@ -2175,9 +2175,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             // Create the SharedPreferencesFileManager for the legacy accounts/credentials
             final IStorageHelper storageHelper = new StorageHelper(mPublicClientConfiguration.getAppContext());
             final ISharedPreferencesFileManager sharedPreferencesFileManager =
-                    new SharedPreferencesFileManager(
+                    SharedPreferencesFileManager.getSharedPreferences(
                             mPublicClientConfiguration.getAppContext(),
                             "com.microsoft.aad.adal.cache",
+                            Context.MODE_PRIVATE,
                             storageHelper
                     );
 
