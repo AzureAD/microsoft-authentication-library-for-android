@@ -395,7 +395,7 @@ public class PublicClientApplicationConfiguration {
     private void checkManifestPermissions(){
         if(this.handleNullTaskAffinity){
             final PackageManager packageManager = mAppContext.getPackageManager();
-            int reorderTasksGranted = packageManager.checkPermission(Manifest.permission.REORDER_TASKS, mAppContext.getPackageName());
+            final int reorderTasksGranted = packageManager.checkPermission(Manifest.permission.REORDER_TASKS, mAppContext.getPackageName());
             if(reorderTasksGranted != PackageManager.PERMISSION_GRANTED) {
                 throw new IllegalStateException("You requested that we handle null taskAffinity but your manifest does not include the REORDER_TASKS permission");
             }
