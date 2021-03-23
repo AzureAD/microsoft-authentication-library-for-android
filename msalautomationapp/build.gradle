@@ -51,7 +51,7 @@ android {
         versionCode 1
         versionName "1.0"
 
-        testInstrumentationRunner "com.microsoft.identity.client.ui.automation.runner.IdentityTestRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         // The following argument makes the Android Test Orchestrator run its
         // "pm clear" command after each test invocation. This command ensures
