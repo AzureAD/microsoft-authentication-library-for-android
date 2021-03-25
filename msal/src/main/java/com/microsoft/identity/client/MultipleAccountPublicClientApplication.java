@@ -366,6 +366,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         // The broker strips these properties out of this object to hit the cache
         // Refactor this out...
         final AccountRecord requestAccountRecord = new AccountRecord();
+        requestAccountRecord.setEnvironment(multiTenantAccount.getEnvironment());
         requestAccountRecord.setHomeAccountId(multiTenantAccount.getHomeAccountId());
 
         final RemoveAccountCommandParameters params = CommandParametersAdapter
