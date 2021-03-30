@@ -32,7 +32,7 @@ jobs:
   - template: azure-pipelines/templates/steps/credscan-policheck.yml@common
     parameters:
       policheckCmdLineArgsDir: adal
-  - task: DownloadPipelineArtifact@2
+  - task: DownloadBuildArtifacts@2
     displayName: Download Broker Host APK
     inputs:
       buildType: specific

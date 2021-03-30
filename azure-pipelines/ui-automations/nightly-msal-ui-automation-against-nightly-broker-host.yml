@@ -46,7 +46,7 @@ jobs:
       definition: 1195
       buildVersionToDownload: latestFromBranch
       branchName: refs/heads/dev
-      arti  actName: BrokerHostDebug
+      artifactName: BrokerHostDebug
   - task: DownloadSecureFile@1
     name: azureSampleApk
     displayName: Download Azure Sample Debug APK
