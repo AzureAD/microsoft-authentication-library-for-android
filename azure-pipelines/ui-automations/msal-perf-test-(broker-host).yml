@@ -42,7 +42,7 @@ jobs:
     name: perfRunnable
     displayName: Download Perf runnable package
     inputs:
-      secureFile: efe578d6-dec4-4d9f-a2ee-717d41848362
+      secureFile: PerfRunnables22.zip
       retryCount: 5
   - task: PowerShell@2
     displayName: create basefiles directory for baseline run
@@ -146,7 +146,7 @@ jobs:
     name: azureSampleApk
     displayName: Download Azure Sample Debug APK
     inputs:
-      secureFile: 960465ec-c668-4926-a723-32c6c952d643
+      secureFile: AzureSampleDebug.apk
       retryCount: 5
   - template: azure-pipelines/templates/steps/ui-automation/gcloud.yml@common
   - task: Gradle@1
