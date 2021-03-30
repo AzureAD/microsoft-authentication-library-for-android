@@ -36,7 +36,7 @@ jobs:
     displayName: Download Broker Host APK
     inputs:
       buildType: specific
-      project: a7934fdd-dcde-4492-a406-7fad6ac00e17
+      project: IDDP
       definition: 1195
       buildVersionToDownload: latestFromBranch
       branchName: refs/heads/dev
