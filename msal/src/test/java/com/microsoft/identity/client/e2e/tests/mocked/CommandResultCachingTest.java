@@ -72,7 +72,6 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
      * verifies that two different commands result in 2 cache entries
      */
     @Test
-    @Ignore
     public void testAcquireTokenCache2DifferentRequests() throws InterruptedException {
         final String username = "fake@test.com";
 
@@ -118,7 +117,6 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
      * Second silent request is expected to be retrieved from the cache.
      */
     @Test
-    @Ignore
     public void testAcquireTokenCache2IdenticalRequests() throws InterruptedException {
         final String username = "fake@test.com";
 
@@ -150,7 +148,6 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
     /**
      * Second silent request is expected to fail with a duplicate command exception
      */
-    @Ignore
     @Test
     public void testAcquireTokenCache2IdenticalRequestsConcurrent() {
         final String username = "fake@test.com";
@@ -193,7 +190,6 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
      * NOTE: This runs a bit longer
      */
     @Test
-    @Ignore
     public void testAcquireTokenExceedCacheMaxItems() throws InterruptedException {
         final String username = "fake@test.com";
 
