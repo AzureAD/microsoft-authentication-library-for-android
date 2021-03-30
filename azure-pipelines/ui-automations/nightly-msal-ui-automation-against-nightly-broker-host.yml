@@ -38,7 +38,7 @@ jobs:
   - template: azure-pipelines/templates/steps/credscan-policheck.yml@common
     parameters:
       policheckCmdLineArgsDir: adal
-  - task: DownloadPipelineArtifact@2
+  - task: DownloadBuildArtifacts@2
     displayName: Download Broker Host APK
     inputs:
       buildType: specific
@@ -46,7 +46,7 @@ jobs:
       definition: 1195
       buildVersionToDownload: latestFromBranch
       branchName: refs/heads/dev
-      artifactName: BrokerHostDebug
+      arti  actName: BrokerHostDebug
   - task: DownloadSecureFile@1
     name: azureSampleApk
     displayName: Download Azure Sample Debug APK
@@ -54,7 +54,7 @@ jobs:
     inputs:
       secureFile: AzureSampleDebug.apk
       retryCount: 5
-  - task: DownloadPipelineArtifact@2
+  - task: DownloadBuildArtifacts@2
     displayName: Download Azure Sample Local Debug
     inputs:
       buildType: specific
