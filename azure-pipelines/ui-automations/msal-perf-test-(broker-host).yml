@@ -146,7 +146,7 @@ jobs:
     name: azureSampleApk
     displayName: Download Azure Sample Debug APK
     inputs:
-      secureFile: AzureSampleDebug.apk
+      secureFile: azureSampleDebug.apk
       retryCount: 5
   - template: azure-pipelines/templates/steps/ui-automation/gcloud.yml@common
   - task: Gradle@1
