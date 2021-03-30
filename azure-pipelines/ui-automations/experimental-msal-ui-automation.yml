@@ -46,7 +46,7 @@ jobs:
     displayName: Download Azure Sample Debug APK
     enabled: False
     inputs:
-      secureFile: azureSampleDebug.apk
+      secureFile: AzSampleDebug.apk
       retryCount: 5
   - task: DownloadBuildArtifacts@0
     displayName: Download Azure Sample Local Debug
