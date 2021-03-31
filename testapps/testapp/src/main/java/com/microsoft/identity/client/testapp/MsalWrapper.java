@@ -80,7 +80,7 @@ abstract class MsalWrapper {
         builder.withOtherScopesToAuthorize(
                 Arrays.asList(
                         requestOptions
-                                .getExtraScopesToConsent()
+                                .getExtraScope()
                                 .toLowerCase()
                                 .split(" ")
                 )
@@ -171,7 +171,7 @@ abstract class MsalWrapper {
                                                                                         @NonNull INotifyOperationResultCallback<IAuthenticationResult> callback) {
         final AcquireTokenSilentParameters.Builder builder = new AcquireTokenSilentParameters.Builder();
         builder.forAccount(requestOptions.getAccount())
-                .forceRefresh(requestOptions.forceRefresh())
+                .forceRefresh(requestOptions.isForceRefresh())
                 .withCallback(getAuthenticationCallback(callback));
 
         if (requestOptions.getAuthority() != null && !requestOptions.getAuthority().isEmpty()) {
@@ -240,28 +240,31 @@ abstract class MsalWrapper {
 
             @Override
             public void onError(MsalException exception) {
+                String message = "CorrelationID: " + exception.getCorrelationId() + "\n";
                 // Check the exception type.
                 if (exception instanceof MsalClientException) {
                     // This means errors happened in the sdk itself, could be network, Json parse, etc. Check MsalError.java
                     // for detailed list of the errors.
-                    callback.showMessage("MsalClientException.\n" + exception.getMessage());
+                    message += "MsalClientException.\n" + exception.getMessage();
                 } else if (exception instanceof MsalServiceException) {
                     // This means something is wrong when the sdk is communication to the service, mostly likely it's the client
                     // configuration.
-                    callback.showMessage("MsalServiceException.\n" + exception.getMessage());
+                    message += "MsalServiceException.\n" + exception.getMessage();
                 } else if (exception instanceof MsalArgumentException) {
-                    callback.showMessage("MsalArgumentException.\n" + exception.getMessage());
+                    message += "MsalArgumentException.\n" + exception.getMessage();
                 } else if (exception instanceof MsalUiRequiredException) {
                     // This explicitly indicates that developer needs to prompt the user, it could be refresh token is expired, revoked
                     // or user changes the password; or it could be that no token was found in the token cache.
-                    callback.showMessage("MsalUiRequiredException.\n" + exception.getMessage());
+                    message += "MsalUiRequiredException.\n" + exception.getMessage();
                 } else if (exception instanceof MsalDeclinedScopeException) {
                     // Declined scope implies that not all scopes requested have been granted.
                     // Developer can either continue with Authentication by calling acquireTokenSilent
-                    callback.showMessage("MsalDeclinedScopeException.\n" +
+                    message += "MsalDeclinedScopeException.\n" +
                             "Granted Scope:" + ((MsalDeclinedScopeException) exception).getGrantedScopes() + "\n" +
-                            "Declined Scope:" + ((MsalDeclinedScopeException) exception).getDeclinedScopes());
+                            "Declined Scope:" + ((MsalDeclinedScopeException) exception).getDeclinedScopes();
                 }
+
+                callback.showMessage(message);
             }
 
             @Override
@@ -296,12 +299,12 @@ abstract class MsalWrapper {
             Log.d(
                     MsalWrapper.class.getSimpleName() + ":generateSHR",
                     "Account: " + currentAccount.getUsername()
-                    + "\n"
-                    + "HttpMethod: " + popHttpMethod
-                    + "\n"
-                    + "Resource URL: " + resourceUrl
-                    + "\n"
-                    + "Client Claims: " + clientClaims
+                            + "\n"
+                            + "HttpMethod: " + popHttpMethod
+                            + "\n"
+                            + "Resource URL: " + resourceUrl
+                            + "\n"
+                            + "Client Claims: " + clientClaims
             );
 
             generateSignedHttpRequestInternal(

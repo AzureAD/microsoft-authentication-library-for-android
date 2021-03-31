@@ -28,6 +28,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,6 +53,7 @@ import com.microsoft.identity.client.PublicClientApplication;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static com.microsoft.identity.client.testapp.R.id.enablePII;
 
@@ -269,16 +271,16 @@ public class AcquireTokenFragment extends Fragment {
         final INotifyOperationResultCallback<String> generateShrCallback =
                 new INotifyOperationResultCallback<String>() {
 
-            @Override
-            public void onSuccess(String result) {
-                mOnFragmentInteractionListener.onGetStringResult(result);
-            }
+                    @Override
+                    public void onSuccess(String result) {
+                        mOnFragmentInteractionListener.onGetStringResult(result);
+                    }
 
-            @Override
-            public void showMessage(String message) {
-                AcquireTokenFragment.this.showMessage(message);
-            }
-        };
+                    @Override
+                    public void showMessage(String message) {
+                        AcquireTokenFragment.this.showMessage(message);
+                    }
+                };
 
         mGenerateSHR.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -461,7 +463,7 @@ public class AcquireTokenFragment extends Fragment {
     }
 
     private void loadMsalApplicationFromRequestParameters(final RequestOptions requestOptions) {
-        boolean enablePiiLogging = requestOptions.mEnablePII;
+        boolean enablePiiLogging = requestOptions.isEnablePII();
         // The sample app is having the PII enable setting on the MainActivity. Ideally, app should decide to enable Pii or not,
         // if it's enabled, it should be set when the application is onCreate.
         Logger.getInstance().setEnableLogcatLog(enablePiiLogging);

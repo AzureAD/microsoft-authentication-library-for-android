@@ -42,6 +42,7 @@ import androidx.fragment.app.Fragment;
  */
 public class ResultFragment extends Fragment {
 
+    public static final String CORRELATION_ID = "correlation_id";
     static final String ACCESS_TOKEN = "access_token";
     static final String DISPLAYABLE = "displayable";
     static final String STRING_DATA_TO_DISPLAY = "string_data_to_display";
@@ -73,12 +74,16 @@ public class ResultFragment extends Fragment {
                 output += "Is access token changed? " + ": " + isTokenChanged + '\n';
             }
 
-            output += ACCESS_TOKEN + ": " + accessToken + '\n' + DISPLAYABLE + ": " + displayable;
+            output += ACCESS_TOKEN + ": " + accessToken + '\n'
+                    + DISPLAYABLE + ": " + displayable;
 
             previousAccessToken = accessToken;
         } else {
             output = bundle.getString(STRING_DATA_TO_DISPLAY);
         }
+
+        final String correlationId = (String) bundle.get(CORRELATION_ID);
+        output = CORRELATION_ID + ": " + correlationId + '\n' + output;
 
         mTextView.setText(output);
         mTextView.setMovementMethod(new ScrollingMovementMethod());

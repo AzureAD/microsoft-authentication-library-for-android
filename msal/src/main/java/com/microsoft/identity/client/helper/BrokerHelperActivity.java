@@ -29,7 +29,7 @@ public class BrokerHelperActivity extends Activity {
             "        <category android:name=\"android.intent.category.BROWSABLE\" />\n" +
             "        <data\n" +
             "            android:host=\"%s\"\n" +
-            "            android:path=\"%s\"\n" +
+            "            android:path=\"/%s\"\n" +
             "            android:scheme=\"msauth\" />\n" +
             "    </intent-filter>\n" +
             "</activity>";

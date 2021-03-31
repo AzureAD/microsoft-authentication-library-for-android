@@ -265,6 +265,7 @@ class AccountAdapter {
                             null,
                             getIdToken(guestRecord)
                     );
+                    profile.setEnvironment(guestRecord.getAccount().getEnvironment());
                     tenantProfiles.put(guestRecord.getAccount().getRealm(), profile);
                 }
             }
