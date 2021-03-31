@@ -10,7 +10,6 @@ public class RoboTestUtils {
 
     public static void flushScheduler() {
         // wait until all runnable(s) have finished executing
-        ThreadUtils.sleepSafely(1, "RoboTestUtils:flushScheduler", "Interrupted");
         while (!RuntimeEnvironment.getMasterScheduler().advanceToLastPostedRunnable()) ;
     }
 
