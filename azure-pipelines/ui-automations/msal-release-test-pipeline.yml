@@ -33,7 +33,7 @@ jobs:
   - template: azure-pipelines/templates/steps/credscan-policheck.yml@common
     parameters:
       policheckCmdLineArgsDir: adal
-  - task: DownloadPipelineArtifact@2
+  - task: DownloadBuildArtifacts@0
     displayName: Download Azure Sample
     inputs:
       buildType: specific
