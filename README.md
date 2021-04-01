@@ -1,8 +1,8 @@
 Microsoft Authentication Library (MSAL) for Android
 ==============================================
 
-| [Getting Started](https://docs.microsoft.com/azure/active-directory/develop/quickstart-v2-android) | [Sample Code](https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki/MSAL-Code-Samples)| [Library Reference](http://javadoc.io/doc/com.microsoft.identity.client/msal) | [Support](README.md#community-help-and-support) | [Overview](https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki) | [Feedback](randomlink.link) | [Mailing List](randomlink.link)
-| --- | --- | --- | --- | --- | --- | --- |
+| [Getting Started](https://docs.microsoft.com/azure/active-directory/develop/quickstart-v2-android) | [Sample Code](https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki/MSAL-Code-Samples)| [Library Reference](http://javadoc.io/doc/com.microsoft.identity.client/msal) | [Support](README.md#community-help-and-support) | [Overview](https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki) | [Feedback](https://forms.office.com/r/3J8pAAqAcj)
+| --- | --- | --- | --- | --- | --- | --- | --- |
 
 The MSAL library for Android gives your app the ability to use the [Microsoft Cloud](https://cloud.microsoft.com) by supporting [Microsoft Azure Active Directory](https://azure.microsoft.com/services/active-directory/) and [Microsoft accounts](https://account.microsoft.com) in a converged experience using industry standard OAuth2 and OpenID Connect. The library also supports [Azure AD B2C](https://azure.microsoft.com/services/active-directory-b2c/).
 
@@ -231,10 +231,7 @@ We use [StackOverflow](http://stackoverflow.com/questions/tagged/msal) with the 
 If you find and bug or have a feature request, please raise the issue on [GitHub Issues](../../issues).
 
 ## Submit Feedback
-We'd like to get your thoughts on this MSAL library. Please complete [this short survey](randomlink.link).
-
-## Mailing List
-Want to get updates on this library? [Subscribe to our mailinglist to get insights into all updates for this library.](randomlink.link)
+We'd like your thoughts on this library. Please complete [this short survey](https://forms.office.com/r/3J8pAAqAcj).
 
 ## Contribute
 
