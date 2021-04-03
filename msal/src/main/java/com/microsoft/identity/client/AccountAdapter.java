@@ -31,6 +31,7 @@ import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.util.StringUtil;
+import com.microsoft.identity.common.logging.Logger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -367,7 +368,7 @@ class AccountAdapter {
                     realm
             );
         } else {
-            com.microsoft.identity.common.internal.logging.Logger.warn(
+            Logger.warn(
                     TAG,
                     "homeAccountIdentifier was null or empty -- invalid criteria"
             );
