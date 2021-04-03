@@ -48,6 +48,7 @@ import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
 import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
 import com.microsoft.identity.common.internal.result.ResultFuture;
+import com.microsoft.identity.common.logging.Logger;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -217,10 +218,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
             public void onMigrationFinished(int numberOfAccountsMigrated) {
                 final String methodName = ":getAccount";
 
-                com.microsoft.identity.common.internal.logging.Logger.verbose(
-                        TAG + methodName,
-                        "Get account with the identifier."
-                );
+                Logger.verbose(TAG + methodName, "Get account with the identifier.");
 
                 try {
                     final CommandParameters params = CommandParametersAdapter.createCommandParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
@@ -235,9 +233,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                                 @Override
                                 public void onTaskCompleted(final List<ICacheRecord> result) {
                                     if (null == result || result.size() == 0) {
-                                        com.microsoft.identity.common.internal.logging.Logger.verbose(
-                                                TAG + methodName,
-                                                "No account found.");
+                                        Logger.verbose(TAG + methodName, "No account found.");
                                         callback.onTaskCompleted(null);
                                     } else {
                                         // First, transform the result into IAccount + TenantProfile form
@@ -271,11 +267,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
                                 @Override
                                 public void onError(final BaseException exception) {
-                                    com.microsoft.identity.common.internal.logging.Logger.error(
-                                            TAG + methodName,
-                                            exception.getMessage(),
-                                            exception
-                                    );
+                                    Logger.error(TAG + methodName, exception.getMessage(), exception);
                                     callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(exception));
                                 }
 
@@ -289,11 +281,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
                     CommandDispatcher.submitSilent(loadAccountCommand);
                 } catch (final MsalClientException e) {
-                    com.microsoft.identity.common.internal.logging.Logger.error(
-                            TAG + methodName,
-                            e.getMessage(),
-                            e
-                    );
+                    Logger.error(TAG + methodName, e.getMessage(), e);
                     callback.onError(e);
                 }
             }
@@ -304,7 +292,6 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
     @Override
     public IAccount getAccount(@NonNull String identifier) throws InterruptedException, MsalException {
-
         throwOnMainThread("getAccount");
 
         final ResultFuture<AsyncResult<IAccount>> future = new ResultFuture<>();
@@ -353,9 +340,9 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
         //create the parameter
         if (null == multiTenantAccount) {
-            com.microsoft.identity.common.internal.logging.Logger.warn(
-                    TAG,
-                    "Requisite IAccount or IAccount fields were null. Insufficient criteria to remove IAccount."
+            Logger.warn(TAG,
+                    "Requisite IAccount or IAccount fields were null. " +
+                            "Insufficient criteria to remove IAccount."
             );
 
             callback.onError(new MsalClientException(MsalClientException.INVALID_PARAMETER));
@@ -412,7 +399,6 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
     @Override
     public boolean removeAccount(@Nullable IAccount account) throws MsalException, InterruptedException {
-
         final ResultFuture<AsyncResult<Boolean>> future = new ResultFuture();
         removeAccountInternal(account,
                 new RemoveAccountCallback() {
