@@ -24,7 +24,6 @@ package com.microsoft.identity.client;
 
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.adal.internal.tokensharing.ITokenShareInternal;
-import com.microsoft.identity.common.adal.internal.tokensharing.ITokenShareResultInternal;
 
 /**
  * Interface defining necessary methods for TokenShareLibrary (TSL) integration.
