@@ -368,10 +368,7 @@ class AccountAdapter {
                     realm
             );
         } else {
-            Logger.warn(
-                    TAG,
-                    "homeAccountIdentifier was null or empty -- invalid criteria"
-            );
+            Logger.warn(TAG, "homeAccountIdentifier was null or empty -- invalid criteria");
             accountToReturn = null;
         }
 
