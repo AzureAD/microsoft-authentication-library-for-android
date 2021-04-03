@@ -53,7 +53,7 @@ android {
         multiDexEnabled true
         minSdkVersion rootProject.ext.minSdkVersion
         if(project.getProperties().get("robolectricSdkVersion")){
-            println "Using command line parameter robolectricSdkVersion for target sdk version"
+            println "Using command line parameter robolectricSdkVersion for target sdk version " + project.getProperties().get("robolectricSdkVersion")
             targetSdkVersion project.getProperties().get("robolectricSdkVersion")
         }else{
             targetSdkVersion rootProject.ext.targetSdkVersion
