@@ -25,11 +25,6 @@ resources:
   - repository: self
     type: git
     ref: dev
-  - repository: common
-    type: github
-    name: AzureAD/microsoft-authentication-library-common-for-android
-    ref: pedroro/IDDP-pipelines
-    endpoint: github.com_android_service_connection
 jobs:
 - job: Phase_1
   displayName: Phase 1
@@ -41,10 +36,6 @@ jobs:
     clean: true
     submodules: recursive
     persistCredentials: True
-  - template: azure-pipelines/templates/steps/credscan-policheck.yml@common
-    parameters:
-      policheckCmdLineArgsDir: adal
-  - template: azure-pipelines/templates/steps/automation-cert.yml@common
   - task: JavaToolInstaller@0
     displayName: Use Java 8
     inputs:
