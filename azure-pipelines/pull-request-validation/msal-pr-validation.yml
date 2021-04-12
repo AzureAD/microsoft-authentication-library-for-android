@@ -50,6 +50,12 @@ jobs:
     inputs:
       jdkArchitectureOption: x64
       jdkSourceOption: PreInstalled
+  - task: SpotBugs@1
+    inputs:
+      inputType: 'guardianGlob'
+      targetClassGlob: '**.jar;-|.gdn\**;'
+      ruleset: 'sdlRecommemded'
+      effort: 'max'
   - task: Gradle@2
     name: Gradle1
     displayName: Assemble Release
