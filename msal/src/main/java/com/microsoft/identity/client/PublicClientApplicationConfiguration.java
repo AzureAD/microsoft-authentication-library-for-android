@@ -543,32 +543,34 @@ public class PublicClientApplicationConfiguration {
 
     @SuppressWarnings("PMD")
     public void checkIntentFilterAddedToAppManifestForBrokerFlow() throws MsalClientException {
-        final boolean hasCustomTabRedirectActivity = MsalUtils.hasCustomTabRedirectActivity(
-                mAppContext,
-                mRedirectUri
-        );
-
         if ((getAuthorizationAgent() == AuthorizationAgent.DEFAULT
-                || getAuthorizationAgent() == AuthorizationAgent.BROWSER)
-                && !hasCustomTabRedirectActivity) {
-            final Uri redirectUri = Uri.parse(mRedirectUri);
-            throw new MsalClientException(
-                    APP_MANIFEST_VALIDATION_ERROR,
-                    "Intent filter for: " +
-                            BrowserTabActivity.class.getSimpleName() +
-                            " is missing. " +
-                            " Please make sure you have the following activity in your AndroidManifest.xml \n\n" +
-                            "<activity android:name=\"com.microsoft.identity.client.BrowserTabActivity\">" + "\n" +
-                            "\t" + "<intent-filter>" + "\n" +
-                            "\t\t" + "<action android:name=\"android.intent.action.VIEW\" />" + "\n" +
-                            "\t\t" + "<category android:name=\"android.intent.category.DEFAULT\" />" + "\n" +
-                            "\t\t" + "<category android:name=\"android.intent.category.BROWSABLE\" />" + "\n" +
-                            "\t\t" + "<data" + "\n" +
-                            "\t\t\t" + "android:host=\"" + redirectUri.getHost() + "\"" + "\n" +
-                            "\t\t\t" + "android:path=\"" + redirectUri.getPath() + "\"" + "\n" +
-                            "\t\t\t" + "android:scheme=\"" + redirectUri.getScheme() + "\" />" + "\n" +
-                            "\t" + "</intent-filter>" + "\n" +
-                            "</activity>" + "\n");
+                || getAuthorizationAgent() == AuthorizationAgent.BROWSER)) {
+
+            final boolean hasCustomTabRedirectActivity = MsalUtils.validateCustomTabRedirectActivity(
+                    mAppContext,
+                    mRedirectUri
+            );
+
+            if (!hasCustomTabRedirectActivity) {
+                final Uri redirectUri = Uri.parse(mRedirectUri);
+                throw new MsalClientException(
+                        APP_MANIFEST_VALIDATION_ERROR,
+                        "Intent filter for: " +
+                                BrowserTabActivity.class.getSimpleName() +
+                                " is missing. " +
+                                " Please make sure you have the following activity in your AndroidManifest.xml \n\n" +
+                                "<activity android:name=\"com.microsoft.identity.client.BrowserTabActivity\">" + "\n" +
+                                "\t" + "<intent-filter>" + "\n" +
+                                "\t\t" + "<action android:name=\"android.intent.action.VIEW\" />" + "\n" +
+                                "\t\t" + "<category android:name=\"android.intent.category.DEFAULT\" />" + "\n" +
+                                "\t\t" + "<category android:name=\"android.intent.category.BROWSABLE\" />" + "\n" +
+                                "\t\t" + "<data" + "\n" +
+                                "\t\t\t" + "android:host=\"" + redirectUri.getHost() + "\"" + "\n" +
+                                "\t\t\t" + "android:path=\"" + redirectUri.getPath() + "\"" + "\n" +
+                                "\t\t\t" + "android:scheme=\"" + redirectUri.getScheme() + "\" />" + "\n" +
+                                "\t" + "</intent-filter>" + "\n" +
+                                "</activity>" + "\n");
+            }
         }
 
         if (!mUseBroker) {

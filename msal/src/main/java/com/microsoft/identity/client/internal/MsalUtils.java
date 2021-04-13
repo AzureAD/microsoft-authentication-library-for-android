@@ -42,6 +42,8 @@ import androidx.browser.customtabs.CustomTabsService;
 
 import com.microsoft.identity.client.BrowserTabActivity;
 import com.microsoft.identity.client.exception.MsalArgumentException;
+import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.common.logging.Logger;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -123,6 +125,7 @@ public final class MsalUtils {
 
     /**
      * Throws MsalArgumentException if the argument is null or empty
+     *
      * @param o
      * @param argName
      * @throws MsalArgumentException
@@ -234,8 +237,26 @@ public final class MsalUtils {
      * @param url
      * @return
      */
+    @Deprecated
     public static boolean hasCustomTabRedirectActivity(@NonNull final Context context,
                                                        @NonNull final String url) {
+        try {
+            return validateCustomTabRedirectActivity(context, url);
+        } catch (final MsalClientException e) {
+            return false;
+        }
+    }
+
+    /**
+     * validateCustomTabRedirectActivity - Ensures that the developer has properly configured their
+     * AndroidManifest to expose the BrowserTabActivity.
+     *
+     * @param context
+     * @param url
+     * @return
+     */
+    public static boolean validateCustomTabRedirectActivity(@NonNull final Context context,
+                                                            @NonNull final String url) throws MsalClientException {
         final PackageManager packageManager = context.getPackageManager();
 
         if (packageManager == null) {
@@ -259,12 +280,19 @@ public final class MsalUtils {
         for (final ResolveInfo info : resolveInfoList) {
             final ActivityInfo activityInfo = info.activityInfo;
 
-            if (activityInfo.name.equals(BrowserTabActivity.class.getName())) {
+            if (activityInfo.name.equals(BrowserTabActivity.class.getName()) &&
+                    activityInfo.packageName.equals(context.getPackageName())) {
                 hasActivity = true;
             } else {
                 // another application is listening for this url scheme, don't open
                 // Custom Tab for security reasons
-                return false;
+                Logger.warn(TAG, "Another application is listening for the URL scheme. " +
+                        "This app's package name is " + activityInfo.packageName);
+                throw new MsalClientException(
+                        MsalClientException.MULTIPLE_APPS_LISTENING_CUSTOM_URL_SCHEME,
+                        "More than one app is listening for the URL scheme defined for BrowserTabActivity in the AndroidManifest." +
+                                " The package name of this other app is: " + activityInfo.packageName
+                );
             }
         }
 
