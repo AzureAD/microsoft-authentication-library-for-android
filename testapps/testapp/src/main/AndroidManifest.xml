@@ -42,6 +42,9 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
+        <!-- taskAffinity is set equal to empty string.  This translated to "null" taskAffinity at runtime.
+            null task affinity may be used when creating multi-window apps-->
+        <!-- https://developer.android.com/guide/topics/manifest/activity-element#aff -->
         <activity
             android:name="com.microsoft.identity.client.testapp.MainActivity"
             android:theme="@style/AppTheme.NoActionBar"
