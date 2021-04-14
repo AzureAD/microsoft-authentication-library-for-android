@@ -28,9 +28,14 @@ import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.common.internal.util.ObjectUtils;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
 import org.junit.Assert;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintWriter;
 
 import static junit.framework.Assert.fail;
 
@@ -116,7 +121,14 @@ public class AcquireTokenTestHelper {
 
             @Override
             public void onError(MsalException exception) {
-                Assert.assertEquals(errorCode, exception.getErrorCode());
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                PrintWriter writer = new PrintWriter(stream);
+                if (!ObjectUtils.equals(errorCode, exception.getErrorCode())) {
+                    exception.printStackTrace(writer);
+                }
+                Assert.assertEquals("Unexpected exception: " + exception.getMessage() +
+                        "\nStack Trace:\n" + new String(stream.toByteArray()),
+                        errorCode, exception.getErrorCode());
             }
 
             @Override
