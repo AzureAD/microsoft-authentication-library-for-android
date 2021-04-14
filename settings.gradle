@@ -1,4 +1,5 @@
 pluginManagement {
+    // Note: Since our plugin references the android plugin we need to include google() and mavenCentral() here.
     repositories {
         google()
         mavenCentral()
