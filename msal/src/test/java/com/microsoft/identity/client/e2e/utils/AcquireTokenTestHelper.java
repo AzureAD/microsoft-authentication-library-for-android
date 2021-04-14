@@ -123,12 +123,17 @@ public class AcquireTokenTestHelper {
             public void onError(MsalException exception) {
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
                 PrintWriter writer = new PrintWriter(stream);
-                if (!ObjectUtils.equals(errorCode, exception.getErrorCode())) {
-                    exception.printStackTrace(writer);
+                try {
+                    if (!ObjectUtils.equals(errorCode, exception.getErrorCode())) {
+                        exception.printStackTrace(writer);
+                        writer.flush();
+                    }
+                    Assert.assertEquals("Unexpected exception: " + exception.getMessage() +
+                                    "\nStack Trace:\n" + new String(stream.toByteArray()),
+                            errorCode, exception.getErrorCode());
+                } finally {
+                    writer.close();
                 }
-                Assert.assertEquals("Unexpected exception: " + exception.getMessage() +
-                        "\nStack Trace:\n" + new String(stream.toByteArray()),
-                        errorCode, exception.getErrorCode());
             }
 
             @Override
