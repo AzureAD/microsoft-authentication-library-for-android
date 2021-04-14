@@ -132,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
 
                     String packageSigningSha = "";
 
-                    Signature [] signatures = getSignatures(packageInfo);
+                    final Signature [] signatures = getSignatures(packageInfo);
                     if (null != signatures
                             && signatures.length > 0) {
                         final Signature signature = signatures[0];
@@ -205,7 +205,7 @@ public class MainActivity extends AppCompatActivity {
         return mPkgAuthenticators.containsKey(pkgName);
     }
 
-    private Signature[] getSignatures(PackageInfo packageInfo) {
+    private Signature[] getSignatures(@Nullable final PackageInfo packageInfo) {
         if (packageInfo == null) return null;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -222,7 +222,7 @@ public class MainActivity extends AppCompatActivity {
         return packageInfo.signatures;
     }
 
-    private int getPackageManagerFlag() {
+    private static int getPackageManagerFlag() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             return PackageManager.GET_SIGNING_CERTIFICATES;
         }
