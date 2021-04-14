@@ -22,7 +22,6 @@ def androidTestType = "AndroidTest"
 def bothTestType = "BothTest"
 
 android {
-
 //    testOptions {
 //        compileOptions {
 //            // Flag to enable support for the new language APIs
@@ -143,7 +142,9 @@ android {
                 // example: ./gradlew testLocalDebugUnitTest -Plabtest
                 exclude 'com/microsoft/identity/client/e2e/tests/network'
             }
-
+            testLogging {
+                exceptionFormat = "full"
+            }
         }
     }
 }
