@@ -6,7 +6,6 @@ pluginManagement {
          gradlePluginPortal()
      }
  }
-
 include ':msal', ':common', ':keyvault', ':labapi', ':testutils', ':pop-benchmarker',
         ':package-inspector', ':msalautomationapp', ':uiautomationutilities'
 project(':common').projectDir = new File('common/common')

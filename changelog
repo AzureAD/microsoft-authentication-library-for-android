@@ -4,6 +4,7 @@ vNext
 - [PATCH] Better PublicClientApplicationConfiguration validation to fail when empty string is passed (#1324)
 - [PATCH] Improve redirect_uri validation of PCA manifest (#1327)
 - [PATCH] Fixes deprecated PackageInfo.signatures and PackageManager.GET_SIGNATURES (#1321)
+- [MINOR] Added support for handling null taskAffinity.  Add configuration to enable this new feature.  "handle_null_taskaffinity" which is a boolean (#1342)
 
 Version 2.0.8
 ----------
