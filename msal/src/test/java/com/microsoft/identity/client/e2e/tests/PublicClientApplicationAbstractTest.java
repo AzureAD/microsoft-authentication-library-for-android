@@ -78,5 +78,4 @@ public abstract class PublicClientApplicationAbstractTest implements IPublicClie
 
         flushScheduler();
     }
-
 }
