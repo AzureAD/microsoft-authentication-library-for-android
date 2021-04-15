@@ -36,7 +36,9 @@ import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelpe
 import org.junit.Before;
 import org.mockito.Mockito;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.PrintWriter;
 
 import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
 import static org.junit.Assert.fail;
@@ -77,6 +79,19 @@ public abstract class PublicClientApplicationAbstractTest implements IPublicClie
         });
 
         flushScheduler();
+    }
+
+    public static String getExceptionStackTrace (Exception exception){
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        PrintWriter writer = new PrintWriter(stream);
+        try {
+            exception.printStackTrace(writer);
+            writer.flush();
+        } finally {
+            writer.close();
+        }
+
+        return new String(stream.toByteArray());
     }
 
 }

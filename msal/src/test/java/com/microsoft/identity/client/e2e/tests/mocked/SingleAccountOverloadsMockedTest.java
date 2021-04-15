@@ -46,7 +46,6 @@ import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.exception.ServiceException;
-import com.microsoft.identity.common.internal.net.HttpClient;
 import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
 import com.microsoft.identity.internal.testutils.HttpRequestMatcher;
 import com.microsoft.identity.internal.testutils.TestConstants;
@@ -370,7 +369,7 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
 
             @Override
             public void onError(MsalException exception) {
-                fail(exception.getMessage());
+                fail("Unexpected exception: " + exception.getMessage() + "\nStack Trace:\n" + getExceptionStackTrace(exception));
             }
         };
     }

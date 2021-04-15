@@ -28,12 +28,10 @@ import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.common.internal.util.ObjectUtils;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
 import org.junit.Assert;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 
@@ -61,7 +59,8 @@ public class AcquireTokenTestHelper {
 
             @Override
             public void onError(MsalException exception) {
-                fail(exception.getMessage());
+                fail("Unexpected exception: " + exception.getMessage() +
+                        "\nStack Trace:\n" + getExceptionStackTrace(exception));
             }
 
             @Override
@@ -82,12 +81,14 @@ public class AcquireTokenTestHelper {
 
             @Override
             public void onError(MsalException exception) {
-                Assert.assertEquals(MsalClientException.DUPLICATE_COMMAND, exception.getErrorCode());
+                Assert.assertEquals("Unexpected exception: " + exception.getMessage() +
+                        "\nStack Trace:\n" + getExceptionStackTrace(exception),
+                        MsalClientException.DUPLICATE_COMMAND, exception.getErrorCode());
             }
 
             @Override
             public void onCancel() {
-                fail("No expected to receive cancel");
+                fail("Not expected to receive cancel");
             }
         };
 
@@ -99,13 +100,14 @@ public class AcquireTokenTestHelper {
         SilentAuthenticationCallback callback = new SilentAuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
-                Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
+                Assert.assertTrue("Received a success result with an empty access token", !StringUtil.isEmpty(authenticationResult.getAccessToken()));
                 sAccount = authenticationResult.getAccount();
             }
 
             @Override
             public void onError(MsalException exception) {
-                fail(exception.getMessage());
+                fail("Unexpected exception: " + exception.getMessage() +
+                        "\nStack Trace:\n" + getExceptionStackTrace(exception));
             }
         };
 
@@ -121,19 +123,9 @@ public class AcquireTokenTestHelper {
 
             @Override
             public void onError(MsalException exception) {
-                ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                PrintWriter writer = new PrintWriter(stream);
-                try {
-                    if (!ObjectUtils.equals(errorCode, exception.getErrorCode())) {
-                        exception.printStackTrace(writer);
-                        writer.flush();
-                    }
-                    Assert.assertEquals("Unexpected exception: " + exception.getMessage() +
-                                    "\nStack Trace:\n" + new String(stream.toByteArray()),
+                Assert.assertEquals("Unexpected exception: " + exception.getMessage() +
+                                    "\nStack Trace:\n" + getExceptionStackTrace(exception),
                             errorCode, exception.getErrorCode());
-                } finally {
-                    writer.close();
-                }
             }
 
             @Override
@@ -154,11 +146,26 @@ public class AcquireTokenTestHelper {
 
             @Override
             public void onError(MsalException exception) {
-                Assert.assertEquals(errorCode, exception.getErrorCode());
+                Assert.assertEquals("Unexpected exception: " + exception.getMessage() +
+                        "\nStack Trace:\n" + getExceptionStackTrace(exception),
+                        errorCode, exception.getErrorCode());
             }
         };
 
         return callback;
+    }
+
+    private static String getExceptionStackTrace(Exception exception) {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        PrintWriter writer = new PrintWriter(stream);
+        try {
+            exception.printStackTrace(writer);
+            writer.flush();
+        } finally {
+            writer.close();
+        }
+
+        return new String(stream.toByteArray());
     }
 
 }
