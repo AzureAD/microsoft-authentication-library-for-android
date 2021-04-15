@@ -51,6 +51,7 @@ import com.microsoft.identity.common.internal.telemetry.TelemetryConfiguration;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 import com.microsoft.identity.common.internal.ui.browser.BrowserDescriptor;
 import com.microsoft.identity.common.logging.Logger;
+import com.microsoft.identity.common.internal.broker.PackageHelper;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -534,8 +535,9 @@ public class PublicClientApplicationConfiguration {
     private void verifyRedirectUriWithAppSignature() throws MsalClientException {
         final String packageName = mAppContext.getPackageName();
         try {
-            final PackageInfo info = mAppContext.getPackageManager().getPackageInfo(packageName, PackageManager.GET_SIGNATURES);
-            for (final Signature signature : info.signatures) {
+            final PackageInfo info = PackageHelper.getPackageInfo(mAppContext.getPackageManager(), packageName);
+            Signature [] signatures = PackageHelper.getSignatures(info);
+            for (final Signature signature : signatures) {
                 final MessageDigest messageDigest = MessageDigest.getInstance("SHA");
                 messageDigest.update(signature.toByteArray());
                 final String signatureHash = Base64.encodeToString(messageDigest.digest(), Base64.NO_WRAP);

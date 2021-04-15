@@ -30,6 +30,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Base64;
 import android.view.Menu;
@@ -126,15 +127,15 @@ public class MainActivity extends AppCompatActivity {
                     );
                     final PackageInfo packageInfo = mPackageManager.getPackageInfo(
                             clickedAppInfo.packageName,
-                            PackageManager.GET_SIGNATURES
+                            getPackageManagerFlag()
                     );
 
                     String packageSigningSha = "";
 
-                    if (null != packageInfo
-                            && null != packageInfo.signatures
-                            && packageInfo.signatures.length > 0) {
-                        final Signature signature = packageInfo.signatures[0];
+                    final Signature [] signatures = getSignatures(packageInfo);
+                    if (null != signatures
+                            && signatures.length > 0) {
+                        final Signature signature = signatures[0];
                         final MessageDigest digest = MessageDigest.getInstance("SHA");
                         digest.update(signature.toByteArray());
                         packageSigningSha = Base64.encodeToString(digest.digest(), Base64.NO_WRAP);
@@ -202,5 +203,30 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean isAnAuthenticatorApp(@NonNull final String pkgName) {
         return mPkgAuthenticators.containsKey(pkgName);
+    }
+
+    private Signature[] getSignatures(@Nullable final PackageInfo packageInfo) {
+        if (packageInfo == null) return null;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            if (packageInfo.signingInfo == null) {
+                return null;
+            }
+            if (packageInfo.signingInfo.hasMultipleSigners()) {
+                return packageInfo.signingInfo.getApkContentsSigners();
+            } else {
+                return packageInfo.signingInfo.getSigningCertificateHistory();
+            }
+        }
+
+        return packageInfo.signatures;
+    }
+
+    private static int getPackageManagerFlag() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            return PackageManager.GET_SIGNING_CERTIFICATES;
+        }
+
+        return PackageManager.GET_SIGNATURES;
     }
 }
