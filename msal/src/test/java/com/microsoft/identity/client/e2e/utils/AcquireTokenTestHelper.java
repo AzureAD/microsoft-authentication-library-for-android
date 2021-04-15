@@ -119,7 +119,9 @@ public class AcquireTokenTestHelper {
 
             @Override
             public void onError(MsalException exception) {
-                throw new AssertionError(exception);
+                if (!ObjectUtils.equals(errorCode, exception.getErrorCode())) {
+                    throw new AssertionError(exception);
+                }
             }
 
             @Override
