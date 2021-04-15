@@ -28,12 +28,10 @@ import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.common.internal.util.ObjectUtils;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
 import org.junit.Assert;
-
-import java.io.ByteArrayOutputStream;
-import java.io.PrintWriter;
 
 import static junit.framework.Assert.fail;
 
@@ -59,8 +57,7 @@ public class AcquireTokenTestHelper {
 
             @Override
             public void onError(MsalException exception) {
-                fail("Unexpected exception: " + exception.getMessage() +
-                        "\nStack Trace:\n" + getExceptionStackTrace(exception));
+                throw new AssertionError(exception);
             }
 
             @Override
@@ -81,9 +78,9 @@ public class AcquireTokenTestHelper {
 
             @Override
             public void onError(MsalException exception) {
-                Assert.assertEquals("Unexpected exception: " + exception.getMessage() +
-                        "\nStack Trace:\n" + getExceptionStackTrace(exception),
-                        MsalClientException.DUPLICATE_COMMAND, exception.getErrorCode());
+                if (!ObjectUtils.equals(MsalClientException.DUPLICATE_COMMAND, exception.getErrorCode())) {
+                    throw new AssertionError(exception);
+                }
             }
 
             @Override
@@ -106,8 +103,7 @@ public class AcquireTokenTestHelper {
 
             @Override
             public void onError(MsalException exception) {
-                fail("Unexpected exception: " + exception.getMessage() +
-                        "\nStack Trace:\n" + getExceptionStackTrace(exception));
+                throw new AssertionError(exception);
             }
         };
 
@@ -123,9 +119,7 @@ public class AcquireTokenTestHelper {
 
             @Override
             public void onError(MsalException exception) {
-                Assert.assertEquals("Unexpected exception: " + exception.getMessage() +
-                                    "\nStack Trace:\n" + getExceptionStackTrace(exception),
-                            errorCode, exception.getErrorCode());
+                throw new AssertionError(exception);
             }
 
             @Override
@@ -146,26 +140,13 @@ public class AcquireTokenTestHelper {
 
             @Override
             public void onError(MsalException exception) {
-                Assert.assertEquals("Unexpected exception: " + exception.getMessage() +
-                        "\nStack Trace:\n" + getExceptionStackTrace(exception),
-                        errorCode, exception.getErrorCode());
+                if (!ObjectUtils.equals(errorCode, exception.getErrorCode())) {
+                    throw new AssertionError(exception);
+                }
             }
         };
 
         return callback;
-    }
-
-    private static String getExceptionStackTrace(Exception exception) {
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        PrintWriter writer = new PrintWriter(stream);
-        try {
-            exception.printStackTrace(writer);
-            writer.flush();
-        } finally {
-            writer.close();
-        }
-
-        return new String(stream.toByteArray());
     }
 
 }

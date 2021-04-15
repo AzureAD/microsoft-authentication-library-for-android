@@ -66,8 +66,7 @@ public class SingleAccountAcquireTokenMockTest extends AcquireTokenMockTest {
 
             @Override
             public void onError(@NonNull MsalException exception) {
-                fail("Interpreting an exception as no accounts found.  Unexpected exception: " + exception.getMessage() +
-                        "\nStack Trace:\n" + getExceptionStackTrace(exception));
+                throw new AssertionError("Interpreting an exception as no accounts found.", exception);
             }
         });
         flushScheduler();

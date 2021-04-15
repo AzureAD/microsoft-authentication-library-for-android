@@ -369,7 +369,7 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
 
             @Override
             public void onError(MsalException exception) {
-                fail("Unexpected exception: " + exception.getMessage() + "\nStack Trace:\n" + getExceptionStackTrace(exception));
+                throw new AssertionError(exception);
             }
         };
     }
