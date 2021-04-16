@@ -22,6 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -50,6 +51,7 @@ import com.microsoft.identity.common.internal.telemetry.TelemetryConfiguration;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 import com.microsoft.identity.common.internal.ui.browser.BrowserDescriptor;
 import com.microsoft.identity.common.logging.Logger;
+import com.microsoft.identity.common.internal.broker.PackageHelper;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -64,6 +66,7 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.CLIENT_CAPABILITIES;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.CLIENT_ID;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.ENVIRONMENT;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.HANDLE_TASKS_WITH_NULL_TASKAFFINITY;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.HTTP;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.LOGGING;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.MULTIPLE_CLOUDS_SUPPORTED;
@@ -100,6 +103,7 @@ public class PublicClientApplicationConfiguration {
         static final String WEB_VIEW_ZOOM_CONTROLS_ENABLED = "web_view_zoom_controls_enabled";
         static final String WEB_VIEW_ZOOM_ENABLED = "web_view_zoom_enabled";
         static final String POWER_OPT_CHECK_FOR_NETWORK_REQUEST_ENABLED = "power_opt_check_for_network_req_enabled";
+        static final String HANDLE_TASKS_WITH_NULL_TASKAFFINITY = "handle_null_taskaffinity";
 
     }
 
@@ -153,6 +157,9 @@ public class PublicClientApplicationConfiguration {
 
     @SerializedName(POWER_OPT_CHECK_FOR_NETWORK_REQUEST_ENABLED)
     private Boolean powerOptCheckEnabled;
+
+    @SerializedName(HANDLE_TASKS_WITH_NULL_TASKAFFINITY)
+    private Boolean handleNullTaskAffinity;
 
     transient private OAuth2TokenCache mOAuth2TokenCache;
 
@@ -367,6 +374,8 @@ public class PublicClientApplicationConfiguration {
         this.powerOptCheckEnabled = powerOptCheckEnabled;
     }
 
+    public Boolean isHandleNullTaskAffinityEnabled(){return handleNullTaskAffinity;}
+
     public Authority getDefaultAuthority() {
         if (mAuthorities != null) {
             if (mAuthorities.size() > 1) {
@@ -381,6 +390,16 @@ public class PublicClientApplicationConfiguration {
             }
         } else {
             return null;
+        }
+    }
+
+    private void checkManifestPermissions(){
+        if(this.handleNullTaskAffinity){
+            final PackageManager packageManager = mAppContext.getPackageManager();
+            final int reorderTasksGranted = packageManager.checkPermission(Manifest.permission.REORDER_TASKS, mAppContext.getPackageName());
+            if(reorderTasksGranted != PackageManager.PERMISSION_GRANTED) {
+                throw new IllegalStateException("You requested that we handle null taskAffinity but your manifest does not include the REORDER_TASKS permission");
+            }
         }
     }
 
@@ -438,12 +457,14 @@ public class PublicClientApplicationConfiguration {
         this.webViewZoomControlsEnabled = config.webViewZoomControlsEnabled == null || config.webViewZoomControlsEnabled;
         this.webViewZoomEnabled = config.webViewZoomEnabled == null || config.webViewZoomEnabled;
         this.powerOptCheckEnabled = config.powerOptCheckEnabled == null || config.powerOptCheckEnabled;
+        this.handleNullTaskAffinity = config.handleNullTaskAffinity == null || config.handleNullTaskAffinity;
     }
 
     void validateConfiguration() {
         validateRedirectUri(mRedirectUri);
         nullConfigurationCheck(CLIENT_ID, mClientId);
         checkDefaultAuthoritySpecified();
+        checkManifestPermissions();
 
         // Only validate the browser safe list configuration
         // when the authorization agent is set either DEFAULT or BROWSER.
@@ -514,8 +535,9 @@ public class PublicClientApplicationConfiguration {
     private void verifyRedirectUriWithAppSignature() throws MsalClientException {
         final String packageName = mAppContext.getPackageName();
         try {
-            final PackageInfo info = mAppContext.getPackageManager().getPackageInfo(packageName, PackageManager.GET_SIGNATURES);
-            for (final Signature signature : info.signatures) {
+            final PackageInfo info = PackageHelper.getPackageInfo(mAppContext.getPackageManager(), packageName);
+            Signature [] signatures = PackageHelper.getSignatures(info);
+            for (final Signature signature : signatures) {
                 final MessageDigest messageDigest = MessageDigest.getInstance("SHA");
                 messageDigest.update(signature.toByteArray());
                 final String signatureHash = Base64.encodeToString(messageDigest.digest(), Base64.NO_WRAP);

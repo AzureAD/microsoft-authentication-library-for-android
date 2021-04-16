@@ -140,6 +140,7 @@ public class CommandParametersAdapter {
                 .prompt(getPromptParameter(parameters))
                 .isWebViewZoomControlsEnabled(configuration.isWebViewZoomControlsEnabled())
                 .isWebViewZoomEnabled(configuration.isWebViewZoomEnabled())
+                .handleNullTaskAffinity(configuration.isHandleNullTaskAffinityEnabled())
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .correlationId(parameters.getCorrelationId())
                 .build();
