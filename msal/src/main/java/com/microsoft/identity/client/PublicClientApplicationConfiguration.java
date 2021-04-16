@@ -552,7 +552,8 @@ public class PublicClientApplicationConfiguration {
             );
 
             if (!hasCustomTabRedirectActivity) {
-                final Uri redirectUri = Uri.parse(mRedirectUri);
+                final Uri redirectUri = Uri.parse(mRedirectUri); 
+                
                 throw new MsalClientException(
                         APP_MANIFEST_VALIDATION_ERROR,
                         "Intent filter for: " +
