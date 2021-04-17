@@ -22,8 +22,6 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.mocked;
 
-import android.os.Build;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -98,7 +96,6 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
         return AAD_MOCK_AUTHORITY;
     }
 
-    @Config(sdk = {Build.VERSION_CODES.O_MR1})
     @Before
     public void setup() {
         super.setup();
@@ -115,7 +112,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 });
     }
 
-    @Config(sdk = {Build.VERSION_CODES.O_MR1})
+
     @Test
     public void testAcquireTokenSuccess() {
         final String username = "fake@test.com";
