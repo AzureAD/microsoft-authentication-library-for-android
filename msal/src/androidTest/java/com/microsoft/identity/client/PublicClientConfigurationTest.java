@@ -283,9 +283,8 @@ public class PublicClientConfigurationTest {
      * Verify that unknown authority type results in exception
      */
     @Test(expected = IllegalArgumentException.class)
-    @Ignore
     public void testUnknownAuthorityException() {
-        final PublicClientApplicationConfiguration b2cConfig = loadConfig(R.raw.test_pcaconfig_unknown);
+        final PublicClientApplicationConfiguration b2cConfig = loadConfigAndMerge(R.raw.test_pcaconfig_unknown);
         b2cConfig.validateConfiguration();
     }
 
