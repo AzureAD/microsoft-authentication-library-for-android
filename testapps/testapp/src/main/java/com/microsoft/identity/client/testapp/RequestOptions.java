@@ -26,106 +26,28 @@ import com.microsoft.identity.client.HttpMethod;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
 
+import java.util.UUID;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.experimental.Accessors;
+
+@Getter
+@Accessors(prefix = "m")
+@AllArgsConstructor
 class RequestOptions {
-
-    final Constants.ConfigFile mConfigFile;
-    final String mLoginHint;
-    final IAccount mAccount;
-    final Prompt mPrompt;
-    final String mScope;
-    final String mExtraScope;
-    final String mClaims;
-    final boolean mEnablePII;
-    final boolean mForceRefresh;
-    final String mAuthority;
-    final Constants.AuthScheme mAuthScheme;
-    final HttpMethod mPopHttpMethod;
-    final String mPopResourceUrl;
-    final String mPoPClientClaims;
-
-    RequestOptions(final Constants.ConfigFile configFile,
-                   final String loginHint,
-                   final IAccount account,
-                   final Prompt prompt,
-                   final String scope,
-                   final String extraScope,
-                   final String claims,
-                   final boolean enablePII,
-                   final boolean forceRefresh,
-                   final String authority,
-                   final Constants.AuthScheme authScheme,
-                   final HttpMethod popHttpMethod,
-                   final String popResourceUrl,
-                   final String popClientClaims) {
-        mConfigFile = configFile;
-        mLoginHint = loginHint;
-        mAccount = account;
-        mPrompt = prompt;
-        mScope = scope;
-        mExtraScope = extraScope;
-        mClaims = claims;
-        mEnablePII = enablePII;
-        mForceRefresh = forceRefresh;
-        mAuthority = authority;
-        mAuthScheme = authScheme;
-        mPopHttpMethod = popHttpMethod;
-        mPopResourceUrl = popResourceUrl;
-        mPoPClientClaims = popClientClaims;
-    }
-
-    Constants.ConfigFile getConfigFile() {
-        return mConfigFile;
-    }
-
-    String getLoginHint() {
-        return mLoginHint;
-    }
-
-    IAccount getAccount() {
-        return mAccount;
-    }
-
-    Prompt getPrompt() {
-        return mPrompt;
-    }
-
-    String getScopes() {
-        return mScope;
-    }
-
-    String getExtraScopesToConsent() {
-        return mExtraScope;
-    }
-
-    String getClaims() {
-        return mClaims;
-    }
-
-    boolean enablePiiLogging() {
-        return mEnablePII;
-    }
-
-    boolean forceRefresh() {
-        return mForceRefresh;
-    }
-
-    String getAuthority() {
-        return mAuthority;
-    }
-
-    Constants.AuthScheme getAuthScheme() {
-        return mAuthScheme;
-    }
-
-    HttpMethod getPopHttpMethod() {
-        return mPopHttpMethod;
-    }
-
-    String getPopResourceUrl() {
-        return mPopResourceUrl;
-    }
-
-    String getPoPClientClaims() {
-        return mPoPClientClaims;
-    }
+    private final Constants.ConfigFile mConfigFile;
+    private final String mLoginHint;
+    private final IAccount mAccount;
+    private final Prompt mPrompt;
+    private final String mScopes;
+    private final String mExtraScope;
+    private final String mClaims;
+    private final boolean mEnablePII;
+    private final boolean mForceRefresh;
+    private final String mAuthority;
+    private final Constants.AuthScheme mAuthScheme;
+    private final HttpMethod mPopHttpMethod;
+    private final String mPopResourceUrl;
+    private final String mPoPClientClaims;
 }
