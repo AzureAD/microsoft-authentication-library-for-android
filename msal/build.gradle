@@ -22,7 +22,6 @@ def androidTestType = "AndroidTest"
 def bothTestType = "BothTest"
 
 android {
-
 //    testOptions {
 //        compileOptions {
 //            // Flag to enable support for the new language APIs
@@ -53,7 +52,7 @@ android {
         multiDexEnabled true
         minSdkVersion rootProject.ext.minSdkVersion
         if(project.getProperties().get("robolectricSdkVersion")){
-            println "Using command line parameter robolectricSdkVersion for target sdk version"
+            println "Using command line parameter robolectricSdkVersion for target sdk version " + project.getProperties().get("robolectricSdkVersion")
             targetSdkVersion project.getProperties().get("robolectricSdkVersion")
         }else{
             targetSdkVersion rootProject.ext.targetSdkVersion
@@ -143,7 +142,9 @@ android {
                 // example: ./gradlew testLocalDebugUnitTest -Plabtest
                 exclude 'com/microsoft/identity/client/e2e/tests/network'
             }
-
+            testLogging {
+                exceptionFormat = "full"
+            }
         }
     }
 }
@@ -279,6 +280,7 @@ dependencies {
     distApi("com.microsoft.identity:common:3.3.1") {
         transitive = false
     }
+
 }
 
 def configDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')

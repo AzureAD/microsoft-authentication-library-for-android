@@ -59,7 +59,6 @@ import com.microsoft.identity.internal.testutils.shadows.ShadowHttpClient;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -287,7 +286,6 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
     }
 
     @Test
-    @Ignore // flaky test.
     public void testAcquireTokenSilentFailureEmptyCache() {
         final IAccount account = loadAccountForTest(mApplication);
         TestUtils.clearCache(SHARED_PREFERENCES_NAME);
@@ -320,7 +318,6 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
     }
 
     @Test
-    @Ignore // flaky test ignored for now, needs investigation
     public void testAcquireTokenSilentFailureNoAccount() {
         String noAccountErrorCode;
 
