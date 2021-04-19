@@ -294,7 +294,7 @@ public class PublicClientConfigurationTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void testUnknownAudienceException() {
-        final PublicClientApplicationConfiguration configWithInvalidAudience = loadConfig(R.raw.test_pcaconfig_unknown_audience);
+        final PublicClientApplicationConfiguration configWithInvalidAudience = loadConfigAndMerge(R.raw.test_pcaconfig_unknown_audience);
         assertNotNull(configWithInvalidAudience);
         assertFalse(configWithInvalidAudience.getAuthorities().isEmpty());
 
@@ -390,6 +390,10 @@ public class PublicClientConfigurationTest {
 
     private PublicClientApplicationConfiguration loadConfig(final int resourceId) {
         return PublicClientApplicationConfigurationFactory.loadConfiguration(mContext, resourceId);
+    }
+
+    private PublicClientApplicationConfiguration loadConfigAndMerge(final int resourceId) {
+        return PublicClientApplicationConfigurationFactory.initializeConfiguration(mContext, resourceId);
     }
 
     private PublicClientApplicationConfiguration loadConfig(final File file) {
