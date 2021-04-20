@@ -180,7 +180,7 @@ public class PublicClientApplicationConfigurationFactory {
                         new AzureActiveDirectoryAudienceDeserializer()
                 )
                 .registerTypeAdapter(
-                        Logger.LogLevel.class,
+                        com.microsoft.identity.client.Logger.LogLevel.class,
                         new LogLevelDeserializer()
                 )
                 .create();
