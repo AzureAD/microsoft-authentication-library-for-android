@@ -30,7 +30,7 @@ import androidx.annotation.Nullable;
 import com.microsoft.identity.common.internal.authscheme.TokenAuthenticationScheme;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.AccessTokenRecord;
-import com.microsoft.identity.common.internal.logging.Logger;
+import com.microsoft.identity.common.logging.Logger;
 
 import java.util.Date;
 import java.util.List;

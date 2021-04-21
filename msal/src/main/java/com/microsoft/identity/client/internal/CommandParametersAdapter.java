@@ -30,12 +30,12 @@ import com.microsoft.identity.common.internal.commands.parameters.InteractiveTok
 import com.microsoft.identity.common.internal.commands.parameters.RemoveAccountCommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.SilentTokenCommandParameters;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
-import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.providers.oauth2.OpenIdConnectPromptParameter;
 import com.microsoft.identity.common.internal.request.SdkType;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 import com.microsoft.identity.common.internal.util.StringUtil;
+import com.microsoft.identity.common.logging.Logger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -140,6 +140,7 @@ public class CommandParametersAdapter {
                 .prompt(getPromptParameter(parameters))
                 .isWebViewZoomControlsEnabled(configuration.isWebViewZoomControlsEnabled())
                 .isWebViewZoomEnabled(configuration.isWebViewZoomEnabled())
+                .handleNullTaskAffinity(configuration.isHandleNullTaskAffinityEnabled())
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .correlationId(parameters.getCorrelationId())
                 .build();
