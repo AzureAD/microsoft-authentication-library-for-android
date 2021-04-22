@@ -11,7 +11,7 @@
             android:name="com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity"
             android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize|screenLayout"
             android:exported="false"
-            android:launchMode="singleTask" />
+            android:launchMode="standard" />
 
         <!-- Helper activity for displaying current broker redirect URI configuration -->
         <activity
