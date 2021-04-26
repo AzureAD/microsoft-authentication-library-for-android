@@ -38,6 +38,7 @@ import com.google.gson.annotations.SerializedName;
 import com.microsoft.identity.client.configuration.AccountMode;
 import com.microsoft.identity.client.configuration.HttpConfiguration;
 import com.microsoft.identity.client.configuration.LoggerConfiguration;
+import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
@@ -46,12 +47,11 @@ import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAu
 import com.microsoft.identity.common.internal.authorities.Environment;
 import com.microsoft.identity.common.internal.authorities.UnknownAudience;
 import com.microsoft.identity.common.internal.authorities.UnknownAuthority;
+import com.microsoft.identity.common.internal.broker.PackageHelper;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.telemetry.TelemetryConfiguration;
 import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
 import com.microsoft.identity.common.internal.ui.browser.BrowserDescriptor;
-import com.microsoft.identity.common.logging.Logger;
-import com.microsoft.identity.common.internal.broker.PackageHelper;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -454,10 +454,10 @@ public class PublicClientApplicationConfiguration {
         this.mClientCapabilities = config.mClientCapabilities == null ? this.mClientCapabilities : config.mClientCapabilities;
         this.mIsSharedDevice = config.mIsSharedDevice == true ? this.mIsSharedDevice : config.mIsSharedDevice;
         this.mLoggerConfiguration = config.mLoggerConfiguration == null ? this.mLoggerConfiguration : config.mLoggerConfiguration;
-        this.webViewZoomControlsEnabled = config.webViewZoomControlsEnabled == null || config.webViewZoomControlsEnabled;
-        this.webViewZoomEnabled = config.webViewZoomEnabled == null || config.webViewZoomEnabled;
-        this.powerOptCheckEnabled = config.powerOptCheckEnabled == null || config.powerOptCheckEnabled;
-        this.handleNullTaskAffinity = config.handleNullTaskAffinity == null || config.handleNullTaskAffinity;
+        this.webViewZoomControlsEnabled = config.webViewZoomControlsEnabled == null ? this.webViewZoomControlsEnabled : config.webViewZoomControlsEnabled;
+        this.webViewZoomEnabled = config.webViewZoomEnabled == null ? this.webViewZoomEnabled : config.webViewZoomEnabled;
+        this.powerOptCheckEnabled = config.powerOptCheckEnabled == null ? this.powerOptCheckEnabled : config.powerOptCheckEnabled;
+        this.handleNullTaskAffinity = config.handleNullTaskAffinity == null ? this.handleNullTaskAffinity : config.handleNullTaskAffinity;
     }
 
     void validateConfiguration() {
