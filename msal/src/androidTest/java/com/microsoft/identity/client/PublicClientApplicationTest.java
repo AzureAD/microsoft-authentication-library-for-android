@@ -374,6 +374,7 @@ public final class PublicClientApplicationTest {
         final ResolveInfo mockedResolveInfo1 = Mockito.mock(ResolveInfo.class);
         final ActivityInfo mockedActivityInfo1 = Mockito.mock(ActivityInfo.class);
         mockedActivityInfo1.name = BrowserTabActivity.class.getName();
+        mockedActivityInfo1.packageName = context.getPackageName();
         mockedResolveInfo1.activityInfo = mockedActivityInfo1;
         resolveInfos.add(mockedResolveInfo1);
     }
