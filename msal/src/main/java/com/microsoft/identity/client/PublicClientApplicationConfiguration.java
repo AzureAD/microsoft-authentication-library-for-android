@@ -607,8 +607,10 @@ public class PublicClientApplicationConfiguration {
             } else {
                 // another application is listening for this url scheme, don't open
                 // Custom Tab for security reasons
-                com.microsoft.identity.common.logging.Logger.warn(TAG + methodName, "Another application is listening for the URL scheme. " +
-                        "This app's package name is " + activityInfo.packageName);
+                com.microsoft.identity.common.logging.Logger.warn(
+                        TAG + methodName,
+                        String.format("Another application %s is listening for the URL scheme %s", activityInfo.packageName, url)
+                );
                 throw new MsalClientException(
                         MsalClientException.MULTIPLE_APPS_LISTENING_CUSTOM_URL_SCHEME,
                         "More than one app is listening for the URL scheme defined for BrowserTabActivity in the AndroidManifest." +
