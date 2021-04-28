@@ -398,7 +398,7 @@ public class PublicClientApplicationConfiguration {
     }
 
     private void checkManifestPermissions() {
-        if (this.handleNullTaskAffinity) {
+        if (this.handleNullTaskAffinity != null && this.handleNullTaskAffinity) {
             final PackageManager packageManager = mAppContext.getPackageManager();
             final int reorderTasksGranted = packageManager.checkPermission(Manifest.permission.REORDER_TASKS, mAppContext.getPackageName());
             if (reorderTasksGranted != PackageManager.PERMISSION_GRANTED) {
