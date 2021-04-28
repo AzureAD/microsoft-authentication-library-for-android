@@ -577,6 +577,7 @@ public class PublicClientApplicationConfiguration {
      */
     private static boolean validateCustomTabRedirectActivity(@NonNull final Context context,
                                                              @NonNull final String url) throws MsalClientException {
+        final String methodName = ":validateCustomTabRedirectActivity";
         final PackageManager packageManager = context.getPackageManager();
 
         if (packageManager == null) {
@@ -606,7 +607,7 @@ public class PublicClientApplicationConfiguration {
             } else {
                 // another application is listening for this url scheme, don't open
                 // Custom Tab for security reasons
-                com.microsoft.identity.common.logging.Logger.warn(TAG, "Another application is listening for the URL scheme. " +
+                com.microsoft.identity.common.logging.Logger.warn(TAG + methodName, "Another application is listening for the URL scheme. " +
                         "This app's package name is " + activityInfo.packageName);
                 throw new MsalClientException(
                         MsalClientException.MULTIPLE_APPS_LISTENING_CUSTOM_URL_SCHEME,
