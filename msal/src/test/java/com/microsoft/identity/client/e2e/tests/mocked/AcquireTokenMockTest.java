@@ -35,7 +35,7 @@ import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.RoboTestCacheHelper;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
 import com.microsoft.identity.client.e2e.shadows.ShadowMockAuthority;
-import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
+import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
 import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.e2e.shadows.ShadowStrategyResultServerError;
@@ -80,7 +80,7 @@ import static org.junit.Assert.fail;
         ShadowStorageHelper.class,
         ShadowMockAuthority.class,
         ShadowHttpClient.class,
-        ShadowMsalUtils.class,
+        ShadowPublicClientApplicationConfiguration.class,
         ShadowOpenIdProviderConfigurationClient.class
 })
 public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {

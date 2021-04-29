@@ -28,7 +28,7 @@ import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthority;
 import com.microsoft.identity.internal.testutils.shadows.ShadowHttpClient;
-import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
+import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
@@ -53,7 +53,7 @@ import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USE
 
 @Ignore
 @RunWith(RobolectricTestRunner.class)
-@Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowHttpClient.class, ShadowMsalUtils.class})
+@Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowHttpClient.class, ShadowPublicClientApplicationConfiguration.class})
 public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
 
     @Before
