@@ -30,7 +30,7 @@ import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowDeviceCodeFlowCommandAuthError;
 import com.microsoft.identity.client.e2e.shadows.ShadowDeviceCodeFlowCommandSuccessful;
 import com.microsoft.identity.client.e2e.shadows.ShadowDeviceCodeFlowCommandTokenError;
-import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
+import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest;
 import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.client.exception.MsalException;
@@ -49,7 +49,6 @@ import com.microsoft.identity.common.internal.providers.oauth2.TokenResult;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -66,7 +65,7 @@ import static com.microsoft.identity.internal.testutils.TestConstants.Configurat
  * of the protocol. Will be extended to test individual aspects of the flow.
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(shadows = {ShadowMsalUtils.class})
+@Config(shadows = {ShadowPublicClientApplicationConfiguration.class})
 public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
     private boolean mUserCodeReceived;

@@ -37,7 +37,7 @@ import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthorityForMockHttpResponse;
-import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
+import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
 import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
@@ -73,7 +73,7 @@ import static org.junit.Assert.fail;
 @Config(shadows = {
         ShadowStorageHelper.class,
         ShadowAuthorityForMockHttpResponse.class,
-        ShadowMsalUtils.class,
+        ShadowPublicClientApplicationConfiguration.class,
         ShadowHttpClient.class,
         ShadowOpenIdProviderConfigurationClient.class
 })
