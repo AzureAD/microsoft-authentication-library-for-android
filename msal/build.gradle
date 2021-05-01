@@ -288,7 +288,8 @@ dependencies {
     androidTestImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
     // 'local' flavor dependencies
     localApi(project(":common")) {
-        transitive = false
+        transitive = true
+        exclude module: "jcip-annotations"
     }
 
     snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.3.1', changing: true)
