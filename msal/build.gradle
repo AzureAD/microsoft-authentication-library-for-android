@@ -294,6 +294,7 @@ dependencies {
 
     snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.3.1', changing: true)
 
+    //TODO: we will have to change transitive to true once common4j is published
     distApi("com.microsoft.identity:common:3.3.1") {
         transitive = false
     }
