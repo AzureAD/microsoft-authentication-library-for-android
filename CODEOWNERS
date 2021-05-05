@@ -1,0 +1,4 @@
+# Each line is a file pattern followed by one or more owners.
+# Reference: https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/about-code-owners
+
+*    @AzureAD/androididentity
