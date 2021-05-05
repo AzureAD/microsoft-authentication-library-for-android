@@ -1,271 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<BugCollection version="4.2.1" sequence="0" timestamp="1619590976549" analysisTimestamp="1619590976577" release="2.0.10">
-  <Project projectName="msal (spotbugsLocalDebug)">
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\AadAuthorityAudience.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\Account.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\AccountAdapter$1$1.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\AccountAdapter$1.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\AccountAdapter$CacheRecordFilter.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\AccountAdapter$GuestAccountFilter.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\AccountAdapter$HomeAccountFilter.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\AccountAdapter.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\AcquireTokenParameters$Builder.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\AcquireTokenParameters.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\AcquireTokenSilentParameters$Builder.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\AcquireTokenSilentParameters.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\AuthenticationCallback.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\AuthenticationResult.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\AuthenticationResultAdapter.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\AuthenticationScheme.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\AzureCloudInstance.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\BearerAuthenticationScheme.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\BrowserTabActivity.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\claims\ClaimsRequest.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\claims\ClaimsRequestDeserializer.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\claims\ClaimsRequestSerializer.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\claims\RequestClaimAdditionalInformationSerializer.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\claims\RequestedClaim.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\claims\RequestedClaimAdditionalInformation$SerializedNames.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\claims\RequestedClaimAdditionalInformation.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\claims\WWWAuthenticateHeader.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\ClientInfo$ClientInfoClaim.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\ClientInfo.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\configuration\AccountMode.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\configuration\HttpConfiguration.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\configuration\LoggerConfiguration$SerializedNames.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\configuration\LoggerConfiguration.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\Constants$MsalErrorMessage.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\Constants$MsalInternalError.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\Constants$UIResponse.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\Constants.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\CurrentAccountResult.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\exception\MsalArgumentException.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\exception\MsalClientException.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\exception\MsalDeclinedScopeException.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\exception\MsalException.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\exception\MsalIntuneAppProtectionPolicyRequiredException.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\exception\MsalServiceException.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\exception\MsalUiRequiredException.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\exception\MsalUserCancelException.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\helper\BrokerHelperActivity.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\HttpMethod.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\IAccount.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\IAuthenticationResult.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\IClaimable.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\ICurrentAccountResult.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\ILoggerCallback.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\IMsalEventReceiver.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\IMultipleAccountPublicClientApplication$GetAccountCallback.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\IMultipleAccountPublicClientApplication$RemoveAccountCallback.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\IMultipleAccountPublicClientApplication.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\IMultiTenantAccount.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\internal\api\BrokerClientIdRefreshTokenAccessor.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\internal\AsyncResult.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\internal\CommandParametersAdapter.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\internal\configuration\LogLevelDeserializer.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\internal\controllers\MSALControllerFactory.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\internal\controllers\MsalExceptionAdapter.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\internal\IntuneAcquireTokenParameters$1.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\internal\IntuneAcquireTokenParameters$Builder.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\internal\IntuneAcquireTokenParameters.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\internal\MsalUtils.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\IPublicClientApplication$ApplicationCreatedListener.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\IPublicClientApplication$DeviceCodeFlowCallback.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\IPublicClientApplication$IMultipleAccountApplicationCreatedListener.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\IPublicClientApplication$ISingleAccountApplicationCreatedListener.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\IPublicClientApplication$LoadAccountsCallback.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\IPublicClientApplication$SignedHttpRequestRequestCallback.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\IPublicClientApplication.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\ISingleAccountPublicClientApplication$CurrentAccountCallback.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\ISingleAccountPublicClientApplication$SignOutCallback.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\ISingleAccountPublicClientApplication.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\ITenantProfile.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\ITokenShare.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\Logger$1.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\Logger$2.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\Logger$LogLevel.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\Logger.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\MsalChromeCustomTabManager$MsalCustomTabsServiceConnection.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\MsalChromeCustomTabManager.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\MultipleAccountPublicClientApplication$1$1.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\MultipleAccountPublicClientApplication$1.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\MultipleAccountPublicClientApplication$2.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\MultipleAccountPublicClientApplication$3$1.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\MultipleAccountPublicClientApplication$3.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\MultipleAccountPublicClientApplication$4.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\MultipleAccountPublicClientApplication$5.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\MultipleAccountPublicClientApplication$6.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\MultipleAccountPublicClientApplication.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\MultiTenantAccount.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PoPAuthenticationScheme$1.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PoPAuthenticationScheme$Builder.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PoPAuthenticationScheme.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\Prompt$1.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\Prompt.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplication$1.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplication$10.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplication$11.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplication$12.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplication$13.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplication$14$1.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplication$14.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplication$15$1.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplication$15.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplication$16.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplication$17.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplication$18.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplication$19.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplication$2.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplication$20.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplication$21.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplication$22.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplication$23.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplication$3.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplication$4.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplication$5.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplication$6.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplication$7.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplication$8.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplication$9.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplication$AccountMatcher.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplication$BrokerDeviceModeCallback.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplication$NONNULL_CONSTANTS.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplication.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplicationConfiguration$SerializedNames.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplicationConfiguration.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\PublicClientApplicationConfigurationFactory.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\SilentAuthenticationCallback.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\SingleAccountPublicClientApplication$1$1.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\SingleAccountPublicClientApplication$1.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\SingleAccountPublicClientApplication$2.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\SingleAccountPublicClientApplication$3.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\SingleAccountPublicClientApplication$4.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\SingleAccountPublicClientApplication$5.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\SingleAccountPublicClientApplication.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\TenantProfile.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\TokenParameters$Builder$1.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\TokenParameters$Builder.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\TokenParameters.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\TokenParametersAdapter.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\TokenShareResult$TokenShareExportFormat.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\TokenShareResult.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\client\WebViewSelection.class</Jar>
-    <Jar>C:\temp\android_auth\msal\intermediates\javac\localDebug\classes\com\microsoft\identity\msal\BuildConfig.class</Jar>
-    <AuxClasspathEntry>C:\temp\android_auth\msal\intermediates\compile_r_class_jar\localDebug\R.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\b6fbbdadfcff642127829062bce22562\appcompat-1.0.2-api.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\3658c0f0705bb2e38e851f278ccc95f8\browser-1.0.0-api.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\0be1db90cc4ed622b4eef576769e0d0c\jetified-gson-2.8.5.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\234b7560de0f7ee089e2873186f07be2\jetified-nimbus-jose-jwt-8.2.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\be6c6301159f0ceed84e44e98562c597\constraintlayout-1.1.3-api.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\temp\android_auth\common\intermediates\compile_library_classes_jar\debug\classes.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\8c150e30907e6dae2c2a9bca9443bae6\fragment-1.0.0-api.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\4f78b4f6a9fb7c6065f246996696ff27\vectordrawable-animated-1.0.0-api.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\b4b9506259b648e8109855c85f3dcc75\legacy-support-core-ui-1.0.0-api.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\622e53bef4f8fe9cff905125ac61052f\legacy-support-core-utils-1.0.0-api.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\cb520bc74f618d7be842ce71df0c5e61\vectordrawable-1.0.1-api.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\5e08622419ed1605050fa716115e7d33\loader-1.0.0-api.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\eb1de95c0f5b68b4bc41cd3d3794679c\viewpager-1.0.0-api.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\0a7ba8174468507f33d71ee85225c357\coordinatorlayout-1.0.0-api.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\c42b32c8b15c0579c8ade9d7d2b9d20c\drawerlayout-1.0.0-api.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\8fbea45693e7635204bfb20253baac55\slidingpanelayout-1.0.0-api.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\af886af89c1af0663e1c46c8f477b1c4\customview-1.0.0-api.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\ed9b8d9b1281ee23dad104dd8b6566aa\swiperefreshlayout-1.0.0-api.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\84fd3e1e6408da28cda8e7629da6888c\asynclayoutinflater-1.0.0-api.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\2bad1479abbd61012b9d72ed513ebc30\core-1.0.1-api.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\32d5c4bf2d9b7c1802ce7a4b4f9e7939\versionedparcelable-1.0.0-api.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\modules-2\files-2.1\androidx.collection\collection\1.0.0\42858b26cafdaa69b6149f45dfc2894007bc2c7a\collection-1.0.0.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\dd7111b0c304bf06aa3737c7ecf22ca6\cursoradapter-1.0.0-api.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\3a2a1cbb2c152987555e069f9c4587ab\interpolator-1.0.0-api.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\e7a9cb8a96a44e1b8eb52eeed514eb2a\lifecycle-runtime-2.0.0-api.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\f25ea3d00f93d73b032fad59a09c589d\documentfile-1.0.0-api.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\f1be33305c76518e765a1e100093883b\localbroadcastmanager-1.0.0-api.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\81e2b7d442e237fa5fd4ea960f6af57b\print-1.0.0-api.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\a43f2fb1cb2284e4571386f696e7fe33\lifecycle-viewmodel-2.0.0-api.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\5893ee98db7ffaf6a695b4acbb0307db\lifecycle-livedata-2.0.0-api.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\82a275448afe721f066f64a30fb49b28\lifecycle-livedata-core-2.0.0-api.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\modules-2\files-2.1\androidx.lifecycle\lifecycle-common\2.0.0\e070ffae07452331bc5684734fce6831d531785c\lifecycle-common-2.0.0.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\8e465c8da06d0b5b8d711faa34fa9901\core-runtime-2.0.0-api.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\modules-2\files-2.1\androidx.arch.core\core-common\2.0.0\bb21b9a11761451b51624ac428d1f1bb5deeac38\core-common-2.0.0.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\modules-2\files-2.1\androidx.annotation\annotation\1.0.0\45599f2cd5965ac05a1488fa2a5c0cdd7c499ead\annotation-1.0.0.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\e3031b118234e7de28698e2087df160f\jetified-jcip-annotations-1.0-1.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\28d97182fb80f482740d0d3942e6af53\jetified-json-smart-2.3.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\transforms-2\files-2.1\e1addd37c49901f97bc19741f3386a45\jetified-accessors-smart-1.2.jar</AuxClasspathEntry>
-    <AuxClasspathEntry>C:\Users\amgusain\.gradle\caches\modules-2\files-2.1\androidx.constraintlayout\constraintlayout-solver\1.1.3\54abe9ffb22cc9019b0b6fcc10f185cc4e67b34e\constraintlayout-solver-1.1.3.jar</AuxClasspathEntry>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\AadAuthorityAudience.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\Account.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\AccountAdapter.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\AcquireTokenParameters.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\AcquireTokenSilentParameters.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\AuthenticationCallback.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\AuthenticationResult.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\AuthenticationResultAdapter.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\AuthenticationScheme.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\AzureCloudInstance.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\BearerAuthenticationScheme.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\BrowserTabActivity.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\claims\ClaimsRequest.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\claims\ClaimsRequestDeserializer.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\claims\ClaimsRequestSerializer.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\claims\RequestClaimAdditionalInformationSerializer.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\claims\RequestedClaim.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\claims\RequestedClaimAdditionalInformation.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\claims\WWWAuthenticateHeader.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\ClientInfo.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\configuration\AccountMode.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\configuration\HttpConfiguration.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\configuration\LoggerConfiguration.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\Constants.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\CurrentAccountResult.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\exception\MsalArgumentException.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\exception\MsalClientException.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\exception\MsalDeclinedScopeException.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\exception\MsalException.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\exception\MsalIntuneAppProtectionPolicyRequiredException.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\exception\MsalServiceException.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\exception\MsalUiRequiredException.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\exception\MsalUserCancelException.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\helper\BrokerHelperActivity.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\HttpMethod.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\IAccount.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\IAuthenticationResult.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\IClaimable.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\ICurrentAccountResult.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\ILoggerCallback.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\IMsalEventReceiver.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\IMultipleAccountPublicClientApplication.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\IMultiTenantAccount.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\internal\api\BrokerClientIdRefreshTokenAccessor.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\internal\AsyncResult.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\internal\CommandParametersAdapter.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\internal\configuration\LogLevelDeserializer.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\internal\controllers\MSALControllerFactory.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\internal\controllers\MsalExceptionAdapter.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\internal\IntuneAcquireTokenParameters.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\internal\MsalUtils.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\IPublicClientApplication.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\ISingleAccountPublicClientApplication.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\ITenantProfile.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\ITokenShare.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\Logger.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\MsalChromeCustomTabManager.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\MultipleAccountPublicClientApplication.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\MultiTenantAccount.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\package-info.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\PoPAuthenticationScheme.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\Prompt.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\PublicClientApplication.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\PublicClientApplicationConfiguration.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\PublicClientApplicationConfigurationFactory.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\SilentAuthenticationCallback.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\SingleAccountPublicClientApplication.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\TenantProfile.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\TokenParameters.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\TokenParametersAdapter.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\TokenShareResult.java</SrcDir>
-    <SrcDir>C:\android-complete\msal\msal\src\main\java\com\microsoft\identity\client\WebViewSelection.java</SrcDir>
-    <SrcDir>C:\temp\android_auth\msal\generated\source\buildConfig\local\debug\com\microsoft\identity\msal\BuildConfig.java</SrcDir>
-  </Project>
+<BugCollection version="4.2.2" sequence="0" timestamp="1620242182605" analysisTimestamp="1620242182630" release="2.0.10">
   <BugInstance type="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE" priority="2" rank="13" abbrev="NP" category="STYLE" instanceHash="4d2eeebf89c007fa30178c4c191a3d68" instanceOccurrenceNum="0" instanceOccurrenceMax="0" cweid="476">
     <ShortMessage>Possible null pointer dereference due to return value of called method</ShortMessage>
     <LongMessage>Possible null pointer dereference in com.microsoft.identity.client.Account.getAuthority() due to return value of called method</LongMessage>
@@ -592,6 +327,30 @@
       <Message>Known null at TenantProfile.java:[line 44]</Message>
     </SourceLine>
   </BugInstance>
+  <BugInstance type="VA_FORMAT_STRING_USES_NEWLINE" priority="2" rank="20" abbrev="FS" category="BAD_PRACTICE" instanceHash="96a7af0f6e55ddb582803056baf068ca" instanceOccurrenceNum="0" instanceOccurrenceMax="0">
+    <ShortMessage>Format string should use %n rather than \n</ShortMessage>
+    <LongMessage>Format string should use %n rather than \n in com.microsoft.identity.client.helper.BrokerHelperActivity.onCreate(Bundle)</LongMessage>
+    <Class classname="com.microsoft.identity.client.helper.BrokerHelperActivity" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.helper.BrokerHelperActivity" start="23" end="79" sourcefile="BrokerHelperActivity.java" sourcepath="com/microsoft/identity/client/helper/BrokerHelperActivity.java">
+        <Message>At BrokerHelperActivity.java:[lines 23-79]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.identity.client.helper.BrokerHelperActivity</Message>
+    </Class>
+    <Method classname="com.microsoft.identity.client.helper.BrokerHelperActivity" name="onCreate" signature="(Landroid/os/Bundle;)V" isStatic="false" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.helper.BrokerHelperActivity" start="48" end="60" startBytecode="0" endBytecode="232" sourcefile="BrokerHelperActivity.java" sourcepath="com/microsoft/identity/client/helper/BrokerHelperActivity.java"/>
+      <Message>In method com.microsoft.identity.client.helper.BrokerHelperActivity.onCreate(Bundle)</Message>
+    </Method>
+    <Method classname="java.lang.String" name="format" signature="(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;" isStatic="true" role="METHOD_CALLED">
+      <SourceLine classname="java.lang.String" start="2940" end="2940" startBytecode="0" endBytecode="39" sourcefile="String.java" sourcepath="java/lang/String.java"/>
+      <Message>Called method String.format(String, Object[])</Message>
+    </Method>
+    <String value="&lt;activity android:name=&quot;com.microsoft.identity.client.BrowserTabActivity&quot;&gt;\n    &lt;intent-filter&gt;\n        &lt;action android:name=&quot;android.intent.action.VIEW&quot; /&gt;\n        &lt;category android:name=&quot;android.intent.category.DEFAULT&quot; /&gt;\n        &lt;category android:name=&quot;android.intent.category.BROWSABLE&quot; /&gt;\n        &lt;data\n            android:host=&quot;%s&quot;\n            android:path=&quot;/%s&quot;\n            android:scheme=&quot;msauth&quot; /&gt;\n    &lt;/intent-filter&gt;\n&lt;/activity&gt;" role="STRING_FORMAT_STRING">
+      <Message>Format string &quot;&lt;activity android:name=&quot;com.microsoft.identity.client.BrowserTabActivity&quot;&gt;\n    &lt;intent-filter&gt;\n        &lt;action android:name=&quot;android.intent.action.VIEW&quot; /&gt;\n        &lt;category android:name=&quot;android.intent.category.DEFAULT&quot; /&gt;\n        &lt;category android:name=&quot;android.intent.category.BROWSABLE&quot; /&gt;\n        &lt;data\n            android:host=&quot;%s&quot;\n            android:path=&quot;/%s&quot;\n            android:scheme=&quot;msauth&quot; /&gt;\n    &lt;/intent-filter&gt;\n&lt;/activity&gt;&quot;</Message>
+    </String>
+    <SourceLine classname="com.microsoft.identity.client.helper.BrokerHelperActivity" primary="true" start="58" end="58" startBytecode="123" endBytecode="123" sourcefile="BrokerHelperActivity.java" sourcepath="com/microsoft/identity/client/helper/BrokerHelperActivity.java">
+      <Message>At BrokerHelperActivity.java:[line 58]</Message>
+    </SourceLine>
+  </BugInstance>
   <BugInstance type="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE" priority="2" rank="13" abbrev="NP" category="STYLE" instanceHash="551f7233e6bf79d85b7c773354abb0fa" instanceOccurrenceNum="0" instanceOccurrenceMax="1" cweid="476">
     <ShortMessage>Possible null pointer dereference due to return value of called method</ShortMessage>
     <LongMessage>Possible null pointer dereference in com.microsoft.identity.client.internal.CommandParametersAdapter.getUsername(IAccount) due to return value of called method</LongMessage>
@@ -638,6 +397,9 @@
       <Message>Known null at CommandParametersAdapter.java:[line 296]</Message>
     </SourceLine>
   </BugInstance>
+  <BugCategory category="BAD_PRACTICE">
+    <Description>Bad practice</Description>
+  </BugCategory>
   <BugCategory category="CORRECTNESS">
     <Description>Correctness</Description>
   </BugCategory>
@@ -660,6 +422,17 @@ of the parameter or the annotation is wrong.
 </p>
 
     ]]></Details>
+  </BugPattern>
+  <BugPattern type="VA_FORMAT_STRING_USES_NEWLINE" abbrev="FS" category="BAD_PRACTICE">
+    <ShortDescription>Format string should use %n rather than \n</ShortDescription>
+    <Details><![CDATA[
+
+<p>
+This format string includes a newline character (\n). In format strings, it is generally
+ preferable to use %n, which will produce the platform-specific line separator.
+</p>
+
+     ]]></Details>
   </BugPattern>
   <BugPattern type="NP_NONNULL_PARAM_VIOLATION" abbrev="NP" category="CORRECTNESS">
     <ShortDescription>Method call passes null to a non-null parameter</ShortDescription>
@@ -758,7 +531,52 @@ an indication of some misunderstanding or some other logic error.
   <BugCode abbrev="IS" cweid="366">
     <Description>Inconsistent synchronization</Description>
   </BugCode>
-  <Errors errors="0" missingClasses="28">
+  <BugCode abbrev="FS">
+    <Description>Format string problem</Description>
+  </BugCode>
+  <Errors errors="1" missingClasses="28">
+    <Error>
+      <ErrorMessage>Unable to read filter: C:\android-complete\msal\config\spotbugs\baseline.xml : Failing reading C:\android-complete\msal\config\spotbugs\baseline.xml</ErrorMessage>
+      <Exception>org.dom4j.DocumentException: Failing reading C:\android-complete\msal\config\spotbugs\baseline.xml</Exception>
+      <StackTrace>edu.umd.cs.findbugs.SortedBugCollection.readXML(SortedBugCollection.java:279)</StackTrace>
+      <StackTrace>edu.umd.cs.findbugs.SortedBugCollection.readXML(SortedBugCollection.java:260)</StackTrace>
+      <StackTrace>edu.umd.cs.findbugs.ExcludingHashesBugReporter.addToExcludedInstanceHashes(ExcludingHashesBugReporter.java:57)</StackTrace>
+      <StackTrace>edu.umd.cs.findbugs.ExcludingHashesBugReporter.&lt;init&gt;(ExcludingHashesBugReporter.java:44)</StackTrace>
+      <StackTrace>edu.umd.cs.findbugs.FindBugs.configureBaselineFilter(FindBugs.java:488)</StackTrace>
+      <StackTrace>edu.umd.cs.findbugs.FindBugs2.excludeBaselineBugs(FindBugs2.java:409)</StackTrace>
+      <StackTrace>edu.umd.cs.findbugs.FindBugs2.configureFilters(FindBugs2.java:516)</StackTrace>
+      <StackTrace>edu.umd.cs.findbugs.FindBugs2.setUserPreferences(FindBugs2.java:505)</StackTrace>
+      <StackTrace>edu.umd.cs.findbugs.TextUICommandLine.configureEngine(TextUICommandLine.java:683)</StackTrace>
+      <StackTrace>edu.umd.cs.findbugs.FindBugs.processCommandLine(FindBugs.java:359)</StackTrace>
+      <StackTrace>com.github.spotbugs.snom.internal.SpotBugsRunnerForWorker$SpotBugsExecutor.execute(SpotBugsRunnerForWorker.java:96)</StackTrace>
+      <StackTrace>org.gradle.workers.internal.DefaultWorkerServer.execute(DefaultWorkerServer.java:63)</StackTrace>
+      <StackTrace>org.gradle.workers.internal.AbstractClassLoaderWorker$1.create(AbstractClassLoaderWorker.java:49)</StackTrace>
+      <StackTrace>org.gradle.workers.internal.AbstractClassLoaderWorker$1.create(AbstractClassLoaderWorker.java:43)</StackTrace>
+      <StackTrace>org.gradle.internal.classloader.ClassLoaderUtils.executeInClassloader(ClassLoaderUtils.java:97)</StackTrace>
+      <StackTrace>org.gradle.workers.internal.AbstractClassLoaderWorker.executeInClassLoader(AbstractClassLoaderWorker.java:43)</StackTrace>
+      <StackTrace>org.gradle.workers.internal.IsolatedClassloaderWorker.run(IsolatedClassloaderWorker.java:49)</StackTrace>
+      <StackTrace>org.gradle.workers.internal.IsolatedClassloaderWorker.run(IsolatedClassloaderWorker.java:30)</StackTrace>
+      <StackTrace>org.gradle.workers.internal.WorkerDaemonServer.run(WorkerDaemonServer.java:85)</StackTrace>
+      <StackTrace>org.gradle.workers.internal.WorkerDaemonServer.run(WorkerDaemonServer.java:55)</StackTrace>
+      <StackTrace>org.gradle.process.internal.worker.request.WorkerAction$1.call(WorkerAction.java:138)</StackTrace>
+      <StackTrace>org.gradle.process.internal.worker.child.WorkerLogEventListener.withWorkerLoggingProtocol(WorkerLogEventListener.java:41)</StackTrace>
+      <StackTrace>org.gradle.process.internal.worker.request.WorkerAction.run(WorkerAction.java:135)</StackTrace>
+      <StackTrace>sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)</StackTrace>
+      <StackTrace>sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)</StackTrace>
+      <StackTrace>sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)</StackTrace>
+      <StackTrace>java.lang.reflect.Method.invoke(Method.java:498)</StackTrace>
+      <StackTrace>org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)</StackTrace>
+      <StackTrace>org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)</StackTrace>
+      <StackTrace>org.gradle.internal.remote.internal.hub.MessageHubBackedObjectConnection$DispatchWrapper.dispatch(MessageHubBackedObjectConnection.java:182)</StackTrace>
+      <StackTrace>org.gradle.internal.remote.internal.hub.MessageHubBackedObjectConnection$DispatchWrapper.dispatch(MessageHubBackedObjectConnection.java:164)</StackTrace>
+      <StackTrace>org.gradle.internal.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:414)</StackTrace>
+      <StackTrace>org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)</StackTrace>
+      <StackTrace>org.gradle.internal.concurrent.ManagedExecutorImpl$1.run(ManagedExecutorImpl.java:48)</StackTrace>
+      <StackTrace>java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)</StackTrace>
+      <StackTrace>java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)</StackTrace>
+      <StackTrace>org.gradle.internal.concurrent.ThreadFactoryImpl$ManagedThreadRunnable.run(ThreadFactoryImpl.java:56)</StackTrace>
+      <StackTrace>java.lang.Thread.run(Thread.java:748)</StackTrace>
+    </Error>
     <MissingClass>android.accounts.AccountManager</MissingClass>
     <MissingClass>android.accounts.AuthenticatorDescription</MissingClass>
     <MissingClass>android.app.Activity</MissingClass>
@@ -788,7 +606,7 @@ an indication of some misunderstanding or some other logic error.
     <MissingClass>org.json.JSONException</MissingClass>
     <MissingClass>org.json.JSONObject</MissingClass>
   </Errors>
-  <FindBugsSummary timestamp="Tue, 27 Apr 2021 23:22:56 -0700" total_classes="150" referenced_classes="407" total_bugs="16" total_size="3918" num_packages="10" java_version="1.8.0-25" vm_version="25.71-b00" cpu_seconds="4.02" clock_seconds="2.01" peak_mbytes="585.50" alloc_mbytes="492.00" gc_seconds="0.12" priority_2="10" priority_1="6">
+  <FindBugsSummary timestamp="Wed, 5 May 2021 12:16:22 -0700" total_classes="150" referenced_classes="407" total_bugs="17" total_size="3942" num_packages="10" java_version="1.8.0-25" vm_version="25.71-b00" cpu_seconds="19.69" clock_seconds="2.48" peak_mbytes="320.42" alloc_mbytes="455.50" gc_seconds="0.05" priority_2="11" priority_1="6">
     <FileStats path="com/microsoft/identity/client/AadAuthorityAudience.java" bugCount="0" size="21"/>
     <FileStats path="com/microsoft/identity/client/Account.java" bugCount="2" size="61" bugHash="56aed016a6e256a1ac45e11d82f90b19"/>
     <FileStats path="com/microsoft/identity/client/AccountAdapter.java" bugCount="2" size="151" bugHash="149248fb693ede58dc8db5dbd3534698"/>
@@ -824,7 +642,7 @@ an indication of some misunderstanding or some other logic error.
     <FileStats path="com/microsoft/identity/client/PoPAuthenticationScheme.java" bugCount="0" size="55"/>
     <FileStats path="com/microsoft/identity/client/Prompt.java" bugCount="0" size="32"/>
     <FileStats path="com/microsoft/identity/client/PublicClientApplication.java" bugCount="5" size="900" bugHash="0bc4bd58932bfb65606f7d10b9fe1f44"/>
-    <FileStats path="com/microsoft/identity/client/PublicClientApplicationConfiguration.java" bugCount="0" size="254"/>
+    <FileStats path="com/microsoft/identity/client/PublicClientApplicationConfiguration.java" bugCount="0" size="277"/>
     <FileStats path="com/microsoft/identity/client/PublicClientApplicationConfigurationFactory.java" bugCount="2" size="63" bugHash="5bf9fe9487157b1718be612c3cde7140"/>
     <FileStats path="com/microsoft/identity/client/SilentAuthenticationCallback.java" bugCount="0" size="3"/>
     <FileStats path="com/microsoft/identity/client/SingleAccountPublicClientApplication.java" bugCount="0" size="300"/>
@@ -844,14 +662,14 @@ an indication of some misunderstanding or some other logic error.
     <FileStats path="com/microsoft/identity/client/configuration/HttpConfiguration.java" bugCount="0" size="15"/>
     <FileStats path="com/microsoft/identity/client/configuration/LoggerConfiguration.java" bugCount="0" size="18"/>
     <FileStats path="com/microsoft/identity/client/exception/MsalArgumentException.java" bugCount="0" size="27"/>
-    <FileStats path="com/microsoft/identity/client/exception/MsalClientException.java" bugCount="0" size="40"/>
+    <FileStats path="com/microsoft/identity/client/exception/MsalClientException.java" bugCount="0" size="41"/>
     <FileStats path="com/microsoft/identity/client/exception/MsalDeclinedScopeException.java" bugCount="0" size="16"/>
     <FileStats path="com/microsoft/identity/client/exception/MsalException.java" bugCount="0" size="19"/>
     <FileStats path="com/microsoft/identity/client/exception/MsalIntuneAppProtectionPolicyRequiredException.java" bugCount="0" size="20"/>
     <FileStats path="com/microsoft/identity/client/exception/MsalServiceException.java" bugCount="0" size="21"/>
     <FileStats path="com/microsoft/identity/client/exception/MsalUiRequiredException.java" bugCount="0" size="13"/>
     <FileStats path="com/microsoft/identity/client/exception/MsalUserCancelException.java" bugCount="0" size="4"/>
-    <FileStats path="com/microsoft/identity/client/helper/BrokerHelperActivity.java" bugCount="0" size="36"/>
+    <FileStats path="com/microsoft/identity/client/helper/BrokerHelperActivity.java" bugCount="1" size="36" bugHash="a56e5cbfb2b22a8c02d71e7fdc6e0fc3"/>
     <FileStats path="com/microsoft/identity/client/internal/AsyncResult.java" bugCount="0" size="14"/>
     <FileStats path="com/microsoft/identity/client/internal/CommandParametersAdapter.java" bugCount="2" size="233" bugHash="54d6a0642f8c84df01fb863f9895a508"/>
     <FileStats path="com/microsoft/identity/client/internal/IntuneAcquireTokenParameters.java" bugCount="0" size="27"/>
@@ -861,7 +679,7 @@ an indication of some misunderstanding or some other logic error.
     <FileStats path="com/microsoft/identity/client/internal/controllers/MSALControllerFactory.java" bugCount="0" size="51"/>
     <FileStats path="com/microsoft/identity/client/internal/controllers/MsalExceptionAdapter.java" bugCount="0" size="34"/>
     <FileStats path="com/microsoft/identity/msal/BuildConfig.java" bugCount="0" size="10"/>
-    <PackageStats package="com.microsoft.identity.client" total_bugs="14" total_types="118" total_size="2852" priority_2="8" priority_1="6">
+    <PackageStats package="com.microsoft.identity.client" total_bugs="14" total_types="118" total_size="2875" priority_2="8" priority_1="6">
       <ClassStats class="com.microsoft.identity.client.AadAuthorityAudience" sourceFile="AadAuthorityAudience.java" interface="false" size="21" bugs="0"/>
       <ClassStats class="com.microsoft.identity.client.Account" sourceFile="Account.java" interface="false" size="61" bugs="2" priority_2="2"/>
       <ClassStats class="com.microsoft.identity.client.AccountAdapter" sourceFile="AccountAdapter.java" interface="false" size="96" bugs="2" priority_2="2"/>
@@ -961,7 +779,7 @@ an indication of some misunderstanding or some other logic error.
       <ClassStats class="com.microsoft.identity.client.PublicClientApplication$AccountMatcher" sourceFile="PublicClientApplication.java" interface="false" size="18" bugs="0"/>
       <ClassStats class="com.microsoft.identity.client.PublicClientApplication$BrokerDeviceModeCallback" sourceFile="PublicClientApplication.java" interface="true" size="3" bugs="0"/>
       <ClassStats class="com.microsoft.identity.client.PublicClientApplication$NONNULL_CONSTANTS" sourceFile="PublicClientApplication.java" interface="false" size="14" bugs="0"/>
-      <ClassStats class="com.microsoft.identity.client.PublicClientApplicationConfiguration" sourceFile="PublicClientApplicationConfiguration.java" interface="false" size="233" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplicationConfiguration" sourceFile="PublicClientApplicationConfiguration.java" interface="false" size="256" bugs="0"/>
       <ClassStats class="com.microsoft.identity.client.PublicClientApplicationConfiguration$SerializedNames" sourceFile="PublicClientApplicationConfiguration.java" interface="false" size="21" bugs="0"/>
       <ClassStats class="com.microsoft.identity.client.PublicClientApplicationConfigurationFactory" sourceFile="PublicClientApplicationConfigurationFactory.java" interface="false" size="63" bugs="2" priority_2="1" priority_1="1"/>
       <ClassStats class="com.microsoft.identity.client.SilentAuthenticationCallback" sourceFile="SilentAuthenticationCallback.java" interface="true" size="3" bugs="0"/>
@@ -997,9 +815,9 @@ an indication of some misunderstanding or some other logic error.
       <ClassStats class="com.microsoft.identity.client.configuration.LoggerConfiguration" sourceFile="LoggerConfiguration.java" interface="false" size="12" bugs="0"/>
       <ClassStats class="com.microsoft.identity.client.configuration.LoggerConfiguration$SerializedNames" sourceFile="LoggerConfiguration.java" interface="false" size="6" bugs="0"/>
     </PackageStats>
-    <PackageStats package="com.microsoft.identity.client.exception" total_bugs="0" total_types="8" total_size="160">
+    <PackageStats package="com.microsoft.identity.client.exception" total_bugs="0" total_types="8" total_size="161">
       <ClassStats class="com.microsoft.identity.client.exception.MsalArgumentException" sourceFile="MsalArgumentException.java" interface="false" size="27" bugs="0"/>
-      <ClassStats class="com.microsoft.identity.client.exception.MsalClientException" sourceFile="MsalClientException.java" interface="false" size="40" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.exception.MsalClientException" sourceFile="MsalClientException.java" interface="false" size="41" bugs="0"/>
       <ClassStats class="com.microsoft.identity.client.exception.MsalDeclinedScopeException" sourceFile="MsalDeclinedScopeException.java" interface="false" size="16" bugs="0"/>
       <ClassStats class="com.microsoft.identity.client.exception.MsalException" sourceFile="MsalException.java" interface="false" size="19" bugs="0"/>
       <ClassStats class="com.microsoft.identity.client.exception.MsalIntuneAppProtectionPolicyRequiredException" sourceFile="MsalIntuneAppProtectionPolicyRequiredException.java" interface="false" size="20" bugs="0"/>
@@ -1007,8 +825,8 @@ an indication of some misunderstanding or some other logic error.
       <ClassStats class="com.microsoft.identity.client.exception.MsalUiRequiredException" sourceFile="MsalUiRequiredException.java" interface="false" size="13" bugs="0"/>
       <ClassStats class="com.microsoft.identity.client.exception.MsalUserCancelException" sourceFile="MsalUserCancelException.java" interface="false" size="4" bugs="0"/>
     </PackageStats>
-    <PackageStats package="com.microsoft.identity.client.helper" total_bugs="0" total_types="1" total_size="36">
-      <ClassStats class="com.microsoft.identity.client.helper.BrokerHelperActivity" sourceFile="BrokerHelperActivity.java" interface="false" size="36" bugs="0"/>
+    <PackageStats package="com.microsoft.identity.client.helper" total_bugs="1" total_types="1" total_size="36" priority_2="1">
+      <ClassStats class="com.microsoft.identity.client.helper.BrokerHelperActivity" sourceFile="BrokerHelperActivity.java" interface="false" size="36" bugs="1" priority_2="1"/>
     </PackageStats>
     <PackageStats package="com.microsoft.identity.client.internal" total_bugs="2" total_types="6" total_size="458" priority_2="2">
       <ClassStats class="com.microsoft.identity.client.internal.AsyncResult" sourceFile="AsyncResult.java" interface="false" size="14" bugs="0"/>
@@ -1032,28 +850,44 @@ an indication of some misunderstanding or some other logic error.
       <ClassStats class="com.microsoft.identity.msal.BuildConfig" sourceFile="BuildConfig.java" interface="false" size="10" bugs="0"/>
     </PackageStats>
     <FindBugsProfile>
-      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.ClassInfoAnalysisEngine" totalMilliseconds="229" invocations="1518" avgMicrosecondsPerInvocation="151" maxMicrosecondsPerInvocation="95144" standardDeviationMicrosecondsPerInvocation="2445"/>
-      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.ClassDataAnalysisEngine" totalMilliseconds="201" invocations="1527" avgMicrosecondsPerInvocation="131" maxMicrosecondsPerInvocation="1179" standardDeviationMicrosecondsPerInvocation="255"/>
-      <ClassProfile name="edu.umd.cs.findbugs.detect.FindNoSideEffectMethods" totalMilliseconds="52" invocations="407" avgMicrosecondsPerInvocation="129" maxMicrosecondsPerInvocation="2399" standardDeviationMicrosecondsPerInvocation="260"/>
-      <ClassProfile name="edu.umd.cs.findbugs.detect.FieldItemSummary" totalMilliseconds="52" invocations="407" avgMicrosecondsPerInvocation="128" maxMicrosecondsPerInvocation="2268" standardDeviationMicrosecondsPerInvocation="271"/>
-      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.IsNullValueDataflowFactory" totalMilliseconds="44" invocations="701" avgMicrosecondsPerInvocation="64" maxMicrosecondsPerInvocation="3664" standardDeviationMicrosecondsPerInvocation="165"/>
-      <ClassProfile name="edu.umd.cs.findbugs.ba.npe.NullDerefAndRedundantComparisonFinder" totalMilliseconds="43" invocations="661" avgMicrosecondsPerInvocation="65" maxMicrosecondsPerInvocation="1152" standardDeviationMicrosecondsPerInvocation="106"/>
-      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.UnconditionalValueDerefDataflowFactory" totalMilliseconds="42" invocations="693" avgMicrosecondsPerInvocation="60" maxMicrosecondsPerInvocation="5079" standardDeviationMicrosecondsPerInvocation="267"/>
-      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.TypeDataflowFactory" totalMilliseconds="33" invocations="723" avgMicrosecondsPerInvocation="46" maxMicrosecondsPerInvocation="826" standardDeviationMicrosecondsPerInvocation="72"/>
-      <ClassProfile name="edu.umd.cs.findbugs.OpcodeStack$JumpInfoFactory" totalMilliseconds="30" invocations="1107" avgMicrosecondsPerInvocation="27" maxMicrosecondsPerInvocation="899" standardDeviationMicrosecondsPerInvocation="48"/>
-      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.ValueNumberDataflowFactory" totalMilliseconds="28" invocations="727" avgMicrosecondsPerInvocation="39" maxMicrosecondsPerInvocation="624" standardDeviationMicrosecondsPerInvocation="61"/>
-      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.CFGFactory" totalMilliseconds="24" invocations="701" avgMicrosecondsPerInvocation="34" maxMicrosecondsPerInvocation="359" standardDeviationMicrosecondsPerInvocation="38"/>
-      <ClassProfile name="edu.umd.cs.findbugs.detect.FindRefComparison$SpecialTypeAnalysis" totalMilliseconds="23" invocations="556" avgMicrosecondsPerInvocation="42" maxMicrosecondsPerInvocation="690" standardDeviationMicrosecondsPerInvocation="65"/>
-      <ClassProfile name="edu.umd.cs.findbugs.classfile.impl.ZipCodeBaseFactory" totalMilliseconds="19" invocations="56" avgMicrosecondsPerInvocation="342" maxMicrosecondsPerInvocation="551" standardDeviationMicrosecondsPerInvocation="164"/>
-      <ClassProfile name="edu.umd.cs.findbugs.detect.NoteDirectlyRelevantTypeQualifiers" totalMilliseconds="18" invocations="407" avgMicrosecondsPerInvocation="46" maxMicrosecondsPerInvocation="681" standardDeviationMicrosecondsPerInvocation="83"/>
-      <ClassProfile name="edu.umd.cs.findbugs.util.TopologicalSort" totalMilliseconds="18" invocations="1391" avgMicrosecondsPerInvocation="13" maxMicrosecondsPerInvocation="408" standardDeviationMicrosecondsPerInvocation="26"/>
-      <ClassProfile name="edu.umd.cs.findbugs.detect.OverridingEqualsNotSymmetrical" totalMilliseconds="17" invocations="407" avgMicrosecondsPerInvocation="42" maxMicrosecondsPerInvocation="6613" standardDeviationMicrosecondsPerInvocation="328"/>
-      <ClassProfile name="edu.umd.cs.findbugs.detect.CalledMethods" totalMilliseconds="15" invocations="407" avgMicrosecondsPerInvocation="37" maxMicrosecondsPerInvocation="606" standardDeviationMicrosecondsPerInvocation="73"/>
-      <ClassProfile name="edu.umd.cs.findbugs.detect.BuildObligationPolicyDatabase" totalMilliseconds="14" invocations="407" avgMicrosecondsPerInvocation="34" maxMicrosecondsPerInvocation="574" standardDeviationMicrosecondsPerInvocation="54"/>
-      <ClassProfile name="edu.umd.cs.findbugs.detect.BuildStringPassthruGraph" totalMilliseconds="12" invocations="407" avgMicrosecondsPerInvocation="30" maxMicrosecondsPerInvocation="824" standardDeviationMicrosecondsPerInvocation="68"/>
-      <ClassProfile name="edu.umd.cs.findbugs.detect.FindBadCast2" totalMilliseconds="11" invocations="150" avgMicrosecondsPerInvocation="79" maxMicrosecondsPerInvocation="5296" standardDeviationMicrosecondsPerInvocation="455"/>
-      <ClassProfile name="edu.umd.cs.findbugs.detect.UnreadFields" totalMilliseconds="11" invocations="150" avgMicrosecondsPerInvocation="79" maxMicrosecondsPerInvocation="1186" standardDeviationMicrosecondsPerInvocation="132"/>
-      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.JavaClassAnalysisEngine" totalMilliseconds="11" invocations="538" avgMicrosecondsPerInvocation="20" maxMicrosecondsPerInvocation="204" standardDeviationMicrosecondsPerInvocation="26"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.ClassInfoAnalysisEngine" totalMilliseconds="200" invocations="1519" avgMicrosecondsPerInvocation="131" maxMicrosecondsPerInvocation="8242" standardDeviationMicrosecondsPerInvocation="386"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.ClassDataAnalysisEngine" totalMilliseconds="172" invocations="1528" avgMicrosecondsPerInvocation="113" maxMicrosecondsPerInvocation="1120" standardDeviationMicrosecondsPerInvocation="150"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindNoSideEffectMethods" totalMilliseconds="106" invocations="407" avgMicrosecondsPerInvocation="261" maxMicrosecondsPerInvocation="11918" standardDeviationMicrosecondsPerInvocation="804"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FieldItemSummary" totalMilliseconds="91" invocations="407" avgMicrosecondsPerInvocation="225" maxMicrosecondsPerInvocation="4255" standardDeviationMicrosecondsPerInvocation="487"/>
+      <ClassProfile name="edu.umd.cs.findbugs.ba.npe.NullDerefAndRedundantComparisonFinder" totalMilliseconds="88" invocations="662" avgMicrosecondsPerInvocation="133" maxMicrosecondsPerInvocation="5950" standardDeviationMicrosecondsPerInvocation="296"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.IsNullValueDataflowFactory" totalMilliseconds="88" invocations="702" avgMicrosecondsPerInvocation="125" maxMicrosecondsPerInvocation="2088" standardDeviationMicrosecondsPerInvocation="207"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.TypeDataflowFactory" totalMilliseconds="67" invocations="724" avgMicrosecondsPerInvocation="93" maxMicrosecondsPerInvocation="1472" standardDeviationMicrosecondsPerInvocation="150"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.UnconditionalValueDerefDataflowFactory" totalMilliseconds="65" invocations="694" avgMicrosecondsPerInvocation="93" maxMicrosecondsPerInvocation="6925" standardDeviationMicrosecondsPerInvocation="343"/>
+      <ClassProfile name="edu.umd.cs.findbugs.OpcodeStack$JumpInfoFactory" totalMilliseconds="56" invocations="1106" avgMicrosecondsPerInvocation="50" maxMicrosecondsPerInvocation="1856" standardDeviationMicrosecondsPerInvocation="101"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.ValueNumberDataflowFactory" totalMilliseconds="55" invocations="728" avgMicrosecondsPerInvocation="76" maxMicrosecondsPerInvocation="1252" standardDeviationMicrosecondsPerInvocation="127"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.CFGFactory" totalMilliseconds="53" invocations="702" avgMicrosecondsPerInvocation="76" maxMicrosecondsPerInvocation="653" standardDeviationMicrosecondsPerInvocation="77"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindRefComparison$SpecialTypeAnalysis" totalMilliseconds="48" invocations="557" avgMicrosecondsPerInvocation="87" maxMicrosecondsPerInvocation="1178" standardDeviationMicrosecondsPerInvocation="132"/>
+      <ClassProfile name="edu.umd.cs.findbugs.util.TopologicalSort" totalMilliseconds="34" invocations="1391" avgMicrosecondsPerInvocation="24" maxMicrosecondsPerInvocation="866" standardDeviationMicrosecondsPerInvocation="50"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.NoteDirectlyRelevantTypeQualifiers" totalMilliseconds="31" invocations="407" avgMicrosecondsPerInvocation="78" maxMicrosecondsPerInvocation="1790" standardDeviationMicrosecondsPerInvocation="147"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.UnreadFields" totalMilliseconds="28" invocations="150" avgMicrosecondsPerInvocation="188" maxMicrosecondsPerInvocation="4403" standardDeviationMicrosecondsPerInvocation="397"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.CalledMethods" totalMilliseconds="22" invocations="407" avgMicrosecondsPerInvocation="55" maxMicrosecondsPerInvocation="1215" standardDeviationMicrosecondsPerInvocation="113"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.BuildStringPassthruGraph" totalMilliseconds="21" invocations="407" avgMicrosecondsPerInvocation="53" maxMicrosecondsPerInvocation="2815" standardDeviationMicrosecondsPerInvocation="170"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindBadCast2" totalMilliseconds="21" invocations="150" avgMicrosecondsPerInvocation="143" maxMicrosecondsPerInvocation="8149" standardDeviationMicrosecondsPerInvocation="712"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.BuildObligationPolicyDatabase" totalMilliseconds="21" invocations="407" avgMicrosecondsPerInvocation="52" maxMicrosecondsPerInvocation="1209" standardDeviationMicrosecondsPerInvocation="87"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindInconsistentSync2" totalMilliseconds="19" invocations="150" avgMicrosecondsPerInvocation="127" maxMicrosecondsPerInvocation="2196" standardDeviationMicrosecondsPerInvocation="224"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.impl.ZipCodeBaseFactory" totalMilliseconds="18" invocations="54" avgMicrosecondsPerInvocation="337" maxMicrosecondsPerInvocation="642" standardDeviationMicrosecondsPerInvocation="156"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FunctionsThatMightBeMistakenForProcedures" totalMilliseconds="18" invocations="407" avgMicrosecondsPerInvocation="44" maxMicrosecondsPerInvocation="1229" standardDeviationMicrosecondsPerInvocation="95"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.LoadOfKnownNullValue" totalMilliseconds="18" invocations="150" avgMicrosecondsPerInvocation="120" maxMicrosecondsPerInvocation="2140" standardDeviationMicrosecondsPerInvocation="258"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.DumbMethods" totalMilliseconds="17" invocations="150" avgMicrosecondsPerInvocation="117" maxMicrosecondsPerInvocation="1682" standardDeviationMicrosecondsPerInvocation="202"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.ConstantDataflowFactory" totalMilliseconds="17" invocations="702" avgMicrosecondsPerInvocation="24" maxMicrosecondsPerInvocation="378" standardDeviationMicrosecondsPerInvocation="37"/>
+      <ClassProfile name="edu.umd.cs.findbugs.ba.npe.TypeQualifierNullnessAnnotationDatabase" totalMilliseconds="17" invocations="9746" avgMicrosecondsPerInvocation="1" maxMicrosecondsPerInvocation="176" standardDeviationMicrosecondsPerInvocation="5"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.OverridingEqualsNotSymmetrical" totalMilliseconds="16" invocations="407" avgMicrosecondsPerInvocation="41" maxMicrosecondsPerInvocation="425" standardDeviationMicrosecondsPerInvocation="65"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FormatStringChecker" totalMilliseconds="16" invocations="150" avgMicrosecondsPerInvocation="107" maxMicrosecondsPerInvocation="8231" standardDeviationMicrosecondsPerInvocation="674"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.MethodGenFactory" totalMilliseconds="15" invocations="785" avgMicrosecondsPerInvocation="20" maxMicrosecondsPerInvocation="116" standardDeviationMicrosecondsPerInvocation="15"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.JavaClassAnalysisEngine" totalMilliseconds="15" invocations="538" avgMicrosecondsPerInvocation="29" maxMicrosecondsPerInvocation="341" standardDeviationMicrosecondsPerInvocation="34"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindNullDeref$CheckCallSitesAndReturnInstructions" totalMilliseconds="15" invocations="662" avgMicrosecondsPerInvocation="23" maxMicrosecondsPerInvocation="261" standardDeviationMicrosecondsPerInvocation="29"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.RuntimeExceptionCapture" totalMilliseconds="14" invocations="150" avgMicrosecondsPerInvocation="97" maxMicrosecondsPerInvocation="1512" standardDeviationMicrosecondsPerInvocation="213"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindRefComparison" totalMilliseconds="13" invocations="150" avgMicrosecondsPerInvocation="91" maxMicrosecondsPerInvocation="1478" standardDeviationMicrosecondsPerInvocation="166"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.MethodReturnCheck" totalMilliseconds="13" invocations="150" avgMicrosecondsPerInvocation="87" maxMicrosecondsPerInvocation="1525" standardDeviationMicrosecondsPerInvocation="184"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.DefaultEncodingDetector" totalMilliseconds="12" invocations="150" avgMicrosecondsPerInvocation="83" maxMicrosecondsPerInvocation="2490" standardDeviationMicrosecondsPerInvocation="324"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindNullDeref" totalMilliseconds="11" invocations="150" avgMicrosecondsPerInvocation="79" maxMicrosecondsPerInvocation="1316" standardDeviationMicrosecondsPerInvocation="136"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindUselessObjects" totalMilliseconds="11" invocations="150" avgMicrosecondsPerInvocation="78" maxMicrosecondsPerInvocation="1140" standardDeviationMicrosecondsPerInvocation="141"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.SerializableIdiom" totalMilliseconds="11" invocations="150" avgMicrosecondsPerInvocation="75" maxMicrosecondsPerInvocation="995" standardDeviationMicrosecondsPerInvocation="104"/>
     </FindBugsProfile>
   </FindBugsSummary>
   <ClassFeatures></ClassFeatures>
