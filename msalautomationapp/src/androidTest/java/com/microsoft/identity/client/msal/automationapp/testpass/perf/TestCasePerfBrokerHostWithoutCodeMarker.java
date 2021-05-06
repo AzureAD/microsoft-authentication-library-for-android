@@ -57,7 +57,6 @@ import java.util.concurrent.TimeUnit;
 public class TestCasePerfBrokerHostWithoutCodeMarker extends AbstractMsalBrokerTest {
 
     @Test
-    @Ignore
     public void test_acquireTokenSilentlyWithBroker() {
         Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
         final TokenRequestLatch latch = new TokenRequestLatch(1);

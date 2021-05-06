@@ -57,7 +57,6 @@ import java.util.concurrent.TimeUnit;
 public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
 
     @Test
-    @Ignore
     public void test_acquireTokenSilentlyWithBroker() {
         Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
         final TokenRequestLatch latch = new TokenRequestLatch(1);
@@ -105,7 +104,7 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
         //Setting up scenario code. 100 -> Non Brokered, 200 -> Brokered
         CodeMarkerManager.getInstance().setPrefixScenarioCode(PerfConstants.ScenarioConstants.SCENARIO_BROKERED_ACQUIRE_TOKEN_SILENTLY);
 
-        for(int i = 0; i < numberOfOccurrenceOfTest; i++) {
+        for (int i = 0; i < numberOfOccurrenceOfTest; i++) {
             CodeMarkerManager.getInstance().clearMarkers();
             final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
 
@@ -131,7 +130,7 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
             }
 
             // If this is not the last iteration, then we need either to clear cache of access token manually or wait for 30 seconds.
-            if(i < numberOfOccurrenceOfTest - 1) {
+            if (i < numberOfOccurrenceOfTest - 1) {
                 // CommandDispatcherHelper.clear();
                 try {
                     // Sleep for 30 seconds so that the cache access token cache is cleared.

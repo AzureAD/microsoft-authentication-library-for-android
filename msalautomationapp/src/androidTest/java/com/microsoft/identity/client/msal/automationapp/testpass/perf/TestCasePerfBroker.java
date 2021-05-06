@@ -30,7 +30,7 @@ import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
-import com.microsoft.identity.client.ui.automation.TestContext;
+import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
@@ -46,7 +46,6 @@ import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 //Perf test case with Joined AcquireToken test with MSAL and Broker
@@ -63,7 +62,7 @@ public class TestCasePerfBroker extends AbstractMsalBrokerTest {
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
         //acquiring token
-        final CountDownLatch latch = new CountDownLatch(1);
+        final TokenRequestLatch latch = new TokenRequestLatch(1);
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
@@ -107,7 +106,7 @@ public class TestCasePerfBroker extends AbstractMsalBrokerTest {
 
         for(int i = 0; i < numberOfOccurrenceOfTest; i++) {
             CodeMarkerManager.getInstance().clearMarkers();
-            final CountDownLatch silentLatch = new CountDownLatch(1);
+            final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
 
             final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                     .forAccount(account)
@@ -136,7 +135,7 @@ public class TestCasePerfBroker extends AbstractMsalBrokerTest {
                     // Sleep for 30 seconds so that the cache access token cache is cleared.
                     Thread.sleep(TimeUnit.SECONDS.toMillis(30));
                 } catch (InterruptedException e) {
-                    throw new AssertionError("Interrupted while sleeping for 30 seconds so that old access token could have been out of chache");
+                    throw new AssertionError("Interrupted while sleeping for 30 seconds so that old access token could have been out of cache");
                 }
             }
         }
