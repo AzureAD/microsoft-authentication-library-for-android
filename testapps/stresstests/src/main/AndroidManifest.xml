@@ -2,6 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.microsoft.identity.client.stresstests">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
+    <uses-permission android:name="android.permission.USE_CREDENTIALS" />
+    <uses-permission android:name="android.permission.REORDER_TASKS" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -17,6 +24,23 @@
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.microsoft.identity.client.BrowserTabActivity"
+            android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!-- To Test PPE:  msal7cc2dd84-bb0f-4711-8fca-4c7d01249f56 -->
+                <!-- To Test Sovereign: msalcb7faed4-b8c0-49ee-b421-f5ed16894c83 -->
+                <data
+                    android:host="${applicationId}"
+                    android:path="/1wIqXSqBj7w+h11ZifsnqwgyKrY="
+                    android:scheme="msauth" />
             </intent-filter>
         </activity>
     </application>

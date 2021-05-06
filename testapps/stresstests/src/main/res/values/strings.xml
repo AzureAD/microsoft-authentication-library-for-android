@@ -12,4 +12,14 @@
     <string name="menu_gallery">Gallery</string>
     <string name="menu_slideshow">Slideshow</string>
     <string name="menu_acquire_token_silent">Acquire Token Silent</string>
+    <string name="start">Start</string>
+    <string name="tests">Tests</string>
+    <string name="stop">Stop</string>
+    <string name="results">Results</string>
+    <string name="time_remaining">Time Remaining:</string>
+    <string name="num_threads">Num Threads:</string>
+    <string name="time_elapsed">Time Elapsed:</string>
+    <string name="running">Running...</string>
+    <string name="retry">Retry</string>
+    <string name="time_limit">"Time Limit: "</string>
 </resources>
