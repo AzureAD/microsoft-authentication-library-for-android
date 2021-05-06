@@ -1,0 +1,80 @@
+apply plugin: 'com.android.application'
+
+def msalVersion = "2.+"
+
+if (project.hasProperty("distMsalVersion")) {
+    msalVersion = distMsalVersion
+}
+
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    defaultConfig {
+        multiDexEnabled true
+        applicationId "com.msft.identity.client.sample"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0"
+    }
+
+    signingConfigs {
+        debug {
+            storeFile file('./debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+
+        release {
+            storeFile file('./debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    lintOptions {
+        abortOnError false
+    }
+    flavorDimensions 'main'
+    productFlavors {
+        local {
+            applicationIdSuffix '.local'
+            versionNameSuffix '-local'
+            resValue('string', 'application_name', 'msal-stresstests-local')
+        }
+
+        dist {
+            applicationIdSuffix '.local'
+            versionNameSuffix '-dist'
+            resValue('string', 'application_name', 'msal-strestests-dist')
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    implementation 'androidx.navigation:navigation-fragment:2.3.5'
+    implementation 'androidx.navigation:navigation-ui:2.3.5'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.3.1'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1'
+
+    localImplementation project(':msal')
+    distImplementation "com.microsoft.identity.client:msal:${msalVersion}"
+    implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
+    implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
+    implementation "androidx.legacy:legacy-support-v4:$rootProject.ext.legacySupportV4Version"
+    implementation "com.google.android.material:material:$rootProject.ext.materialVersion"
+
+    compileOnly "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
+    annotationProcessor "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
+}
