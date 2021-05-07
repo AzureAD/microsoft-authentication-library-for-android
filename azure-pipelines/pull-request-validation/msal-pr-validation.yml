@@ -41,12 +41,6 @@ jobs:
     inputs:
       jdkArchitectureOption: x64
       jdkSourceOption: PreInstalled
-  - task: SpotBugs@1
-    inputs:
-      inputType: 'guardianGlob'
-      targetClassGlob: '**.jar;-|.gdn\**;'
-      ruleset: 'sdlRecommemded'
-      effort: 'max'
   - task: Gradle@2
     name: Gradle1
     displayName: Assemble Release
@@ -57,6 +51,12 @@ jobs:
       jdkVersion: $(BuildParameters.jdkVersion)
       jdkArchitecture: $(BuildParameters.jdkArchitecture)
       sqGradlePluginVersion: 2.0.1
+  - task: SpotBugs@1
+    inputs:
+      inputType: 'spotBugsSyntax'
+      targetClassPaths: '$(Build.SourcesDirectory)'
+      ruleset: 'sdlRecommemded'
+      effort: 'max'
   - task: Gradle@2
     displayName: Run Unit tests
     inputs:
