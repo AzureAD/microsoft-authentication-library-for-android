@@ -2,10 +2,10 @@ package com.microsoft.identity.client.stresstests;
 
 public class Util {
 
-    public static String timeString(int seconds) {
-        int hours = seconds / (3600);
-        int min = (seconds / 60) % 60;
-        int sec = seconds % 60;
+    public static String timeString(long seconds) {
+        long hours = seconds / (3600);
+        long min = (seconds / 60) % 60;
+        long sec = seconds % 60;
 
         StringBuilder stringBuilder = new StringBuilder();
         if (hours > 0) {
