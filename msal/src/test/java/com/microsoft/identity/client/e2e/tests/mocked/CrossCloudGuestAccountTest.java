@@ -35,14 +35,14 @@ import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.MultiTenantAccount;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthorityForMockHttpResponse;
-import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
+import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
-import com.microsoft.identity.common.internal.net.HttpResponse;
+import com.microsoft.identity.common.java.net.HttpResponse;
 import com.microsoft.identity.internal.testutils.HttpRequestMatcher;
 import com.microsoft.identity.internal.testutils.MockHttpClient;
 import com.microsoft.identity.internal.testutils.TestConstants;
@@ -77,7 +77,7 @@ import static org.junit.Assert.fail;
 @Config(shadows = {
         ShadowStorageHelper.class,
         ShadowAuthorityForMockHttpResponse.class,
-        ShadowMsalUtils.class,
+        ShadowPublicClientApplicationConfiguration.class,
         ShadowHttpClient.class,
 }, sdk = {Build.VERSION_CODES.N})
 public class CrossCloudGuestAccountTest extends AcquireTokenAbstractTest {

@@ -35,7 +35,7 @@ import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.RoboTestCacheHelper;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
 import com.microsoft.identity.client.e2e.shadows.ShadowMockAuthority;
-import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
+import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
 import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.e2e.shadows.ShadowStrategyResultServerError;
@@ -46,8 +46,8 @@ import com.microsoft.identity.client.e2e.utils.ErrorCodes;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
-import com.microsoft.identity.common.internal.net.HttpClient;
-import com.microsoft.identity.common.internal.net.HttpResponse;
+import com.microsoft.identity.common.java.net.HttpClient;
+import com.microsoft.identity.common.java.net.HttpResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResponse;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.internal.testutils.HttpRequestInterceptor;
@@ -59,7 +59,6 @@ import com.microsoft.identity.internal.testutils.shadows.ShadowHttpClient;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -81,7 +80,7 @@ import static org.junit.Assert.fail;
         ShadowStorageHelper.class,
         ShadowMockAuthority.class,
         ShadowHttpClient.class,
-        ShadowMsalUtils.class,
+        ShadowPublicClientApplicationConfiguration.class,
         ShadowOpenIdProviderConfigurationClient.class
 })
 public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
@@ -287,7 +286,6 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
     }
 
     @Test
-    @Ignore // flaky test.
     public void testAcquireTokenSilentFailureEmptyCache() {
         final IAccount account = loadAccountForTest(mApplication);
         TestUtils.clearCache(SHARED_PREFERENCES_NAME);
@@ -320,7 +318,6 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
     }
 
     @Test
-    @Ignore // flaky test ignored for now, needs investigation
     public void testAcquireTokenSilentFailureNoAccount() {
         String noAccountErrorCode;
 
