@@ -32,6 +32,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimerTask;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutionException;
@@ -67,10 +68,12 @@ public abstract class StressTestsFragment<T, S> extends Fragment {
 
     private ExecutorService executorService;
     private Thread executorThread;
+    private Handler handler;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        handler = new Handler(Looper.getMainLooper());
         return inflater.inflate(R.layout.fragment_base, container, false);
     }
 
@@ -176,7 +179,7 @@ public abstract class StressTestsFragment<T, S> extends Fragment {
             @Override
             public void run() {
                 try {
-                    mainContent.post(new Runnable() {
+                    handler.post(new Runnable() {
                         @Override
                         public void run() {
                             startButton.setEnabled(false);
@@ -185,9 +188,9 @@ public abstract class StressTestsFragment<T, S> extends Fragment {
                         }
                     });
 
-                    final AsyncResult<T> response = prepareAsync();
+                    final AsyncResult<T> prerequisites = prepareAsync();
 
-                    if (response.isSuccess()) {
+                    if (prerequisites.isSuccess()) {
                         final BlockingQueue<Runnable> blockingQueue = new ArrayBlockingQueue<>(getNumberOfThreads());
                         final RejectedExecutionHandler rejectedExecutionHandler = new ThreadPoolExecutor.CallerRunsPolicy();
                         executorService = new ThreadPoolExecutor(1, getNumberOfThreads(), 0L, TimeUnit.MILLISECONDS, blockingQueue, rejectedExecutionHandler);
@@ -200,10 +203,16 @@ public abstract class StressTestsFragment<T, S> extends Fragment {
                                 @SneakyThrows
                                 @Override
                                 public void run() {
-                                    runAsync(response.getResult());
+                                    AsyncResult<S> result = runAsync(prerequisites.getResult());
+                                    if (result.isSuccess()) {
+                                        printOutput("Execution success");
+                                    } else {
+                                        printOutput("Execution failed");
+                                    }
                                 }
                             });
                             Thread.sleep(50);
+                            updateTimer(startTime);
                         }
                         executorService.shutdown();
                         stopExecution();
@@ -226,12 +235,15 @@ public abstract class StressTestsFragment<T, S> extends Fragment {
     }
 
     private void stopExecution() {
-        mainContent.post(new Runnable() {
+        handler.post(new Runnable() {
             @Override
             public void run() {
                 startButton.setEnabled(true);
                 progressView.setVisibility(View.GONE);
                 stopButton.setEnabled(false);
+
+                timeElapsedTextView.setText("--");
+                timeRemainingTextView.setText("--");
             }
         });
     }
@@ -305,10 +317,24 @@ public abstract class StressTestsFragment<T, S> extends Fragment {
         });
     }
 
+
+    private void updateTimer(final long startTime) {
+        final long timeElapsed = System.currentTimeMillis() - startTime;
+        final long timeRemaining = (getTimeLimit() * 60 * 1000) - timeElapsed;
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                timeElapsedTextView.setText(Util.timeString(timeElapsed / 1000));
+                timeRemainingTextView.setText(Util.timeString(timeRemaining / 1000));
+            }
+        });
+    }
+
     public synchronized void printOutput(final String text) {
         final String currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(new Date());
 
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
+        handler.post(new Runnable() {
             @Override
             public void run() {
                 resultsTextView.append(String.format("%s: %s\n", currentTime, text));
