@@ -17,6 +17,10 @@ Version 2.0.8
 - [MINOR] Changes to Broker Validation to allow setting whether to trust debug brokers (prod brokers are always trusted) (#1274)
 - Picks up common@3.1.2
 
+vNext
+-----
+- Allow resetting MSAL external logger
+
 Version 2.0.6
 ----------
 - Warn if SAPCA used with B2C. Throw Exception if Multiple Policies are Configured (#1270)

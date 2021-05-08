@@ -63,8 +63,6 @@ import static com.microsoft.identity.common.internal.logging.Logger.setAllowPii;
 public final class Logger {
     private static final Logger sINSTANCE = new Logger();
 
-    private ILoggerCallback mExternalLogger;
-
     /**
      * @return The single instance of {@link Logger}.
      */
@@ -127,22 +125,16 @@ public final class Logger {
 
     /**
      * Set the custom logger. Configures external logging to configure a callback that
-     * the sdk will use to pass each log message. Overriding the logger callback is not allowed.
+     * the sdk will use to pass each log message.
      *
      * @param externalLogger The reference to the {@link ILoggerCallback} that can
      *                       output the logs to the designated places.
-     * @throws IllegalStateException if external logger is already set, and the caller is trying to set it again.
      */
     public synchronized void setExternalLogger(final ILoggerCallback externalLogger) {
         if (externalLogger == null) {
             return;
         }
 
-        if (null != mExternalLogger) {
-            throw new IllegalStateException("External logger is already set, cannot be set again.");
-        }
-
-        // If mExternalLogger is not set. Then implement the ILoggerCallback interface in common-core.
         final com.microsoft.identity.common.internal.logging.Logger logger =
                 com.microsoft.identity.common.internal.logging.Logger.getInstance();
 
@@ -151,19 +143,19 @@ public final class Logger {
             public void log(String tag, com.microsoft.identity.common.internal.logging.Logger.LogLevel logLevel, String message, boolean containsPII) {
                 switch (logLevel) {
                     case ERROR:
-                        mExternalLogger.log(tag, LogLevel.ERROR, message, containsPII);
+                        externalLogger.log(tag, LogLevel.ERROR, message, containsPII);
                         break;
 
                     case WARN:
-                        mExternalLogger.log(tag, LogLevel.WARNING, message, containsPII);
+                        externalLogger.log(tag, LogLevel.WARNING, message, containsPII);
                         break;
 
                     case VERBOSE:
-                        mExternalLogger.log(tag, LogLevel.VERBOSE, message, containsPII);
+                        externalLogger.log(tag, LogLevel.VERBOSE, message, containsPII);
                         break;
 
                     case INFO:
-                        mExternalLogger.log(tag, LogLevel.INFO, message, containsPII);
+                        externalLogger.log(tag, LogLevel.INFO, message, containsPII);
                         break;
 
                     default:
@@ -171,8 +163,6 @@ public final class Logger {
                 }
             }
         });
-
-        mExternalLogger = externalLogger;
     }
 
     /**
