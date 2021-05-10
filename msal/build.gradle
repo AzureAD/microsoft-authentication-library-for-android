@@ -1,5 +1,5 @@
 plugins {
-    id 'com.microsoft.identity.buildsystem' version '0.0.1'
+    id 'com.microsoft.identity.buildsystem' version '0.1.0'
     id 'com.android.library'
     id 'pmd'
     id 'checkstyle'
@@ -292,10 +292,9 @@ dependencies {
         exclude module: "jcip-annotations"
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.3.1', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.4.3', changing: true)
 
-    //TODO: we will have to change transitive to true once common4j is published
-    distApi("com.microsoft.identity:common:3.3.1") {
+    distApi("com.microsoft.identity:common:3.4.3") {
         transitive = false
     }
 
