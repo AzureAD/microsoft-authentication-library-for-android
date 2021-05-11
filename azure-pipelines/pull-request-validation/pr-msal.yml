@@ -27,7 +27,7 @@ resources:
   - repository: common
     type: github
     name: AzureAD/microsoft-authentication-library-common-for-android
-    ref: dev
+    ref: pedroro/pipelines-pr
     endpoint: ANDROID_GITHUB
 
 jobs:
@@ -61,17 +61,9 @@ jobs:
       jdkArchitecture: $(BuildParameters.jdkArchitecture)
       sqGradlePluginVersion: 2.0.1
   - task: Gradle@2
-    displayName: 'Run Spotbugs'
-    inputs:
-      tasks: msal:spotbugsLocalDebug
-      publishJUnitResults: false
-  - task: PublishPipelineArtifact@1
-    displayName: 'Publish Artifact: SpotBugs'
-    inputs:
-      targetPath: '$(Build.SourcesDirectory)\msal\build\reports\'
-      ArtifactName: CodeAnalisysLogs
-    condition: failed()
-  - task: Gradle@2
+  - template: azure-pipelines/templates/steps/spot-bugs.yml@common
+    parameters:
+      project: msal
     displayName: Run Unit tests
     inputs:
       tasks: msal:testLocalDebugUnitTest -Plabtest -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}}
