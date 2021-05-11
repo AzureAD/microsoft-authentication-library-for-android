@@ -57,7 +57,7 @@ import java.util.concurrent.TimeUnit;
 public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_acquireTokenSilentlyWithBroker() {
+    public void test_acquireTokenSilentlyWithBrokerHost() {
         Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
         final TokenRequestLatch latch = new TokenRequestLatch(1);
 
@@ -67,11 +67,14 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(mLoginHint)
-                .withScopes(Arrays.asList(mScopes))
                 .withCallback(successfulInteractiveCallback(latch))
                 .withPrompt(Prompt.SELECT_ACCOUNT)
+                .withScopes(Arrays.asList(mScopes))
                 .build();
 
+
+        final String username = mLoginHint;
+        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
         final InteractiveRequest interactiveRequest = new InteractiveRequest(
                 mApplication,
@@ -79,9 +82,6 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
                 new OnInteractionRequired() {
                     @Override
                     public void handleUserInteraction() {
-                        final String username = mLoginHint;
-                        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
-
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.SELECT_ACCOUNT)
                                 .loginHint(mLoginHint)

@@ -53,7 +53,7 @@ import java.util.concurrent.TimeUnit;
 public class TestCasePerfBroker extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_832430() throws InterruptedException {
+    public void test_acquireTokenSilentlyWithBroker() throws InterruptedException {
 
         final int numberOfOccurrenceOfTest = 10;
         final String outputFilenamePrefix = "PerfDataTargetBrokerHostWR"; // With Resource
@@ -67,9 +67,9 @@ public class TestCasePerfBroker extends AbstractMsalBrokerTest {
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(mLoginHint)
-                .withResource(mScopes[0])
                 .withCallback(successfulInteractiveCallback(latch))
                 .withPrompt(Prompt.SELECT_ACCOUNT)
+                .withResource(mScopes[0])
                 .build();
 
         final InteractiveRequest interactiveRequest = new InteractiveRequest(
