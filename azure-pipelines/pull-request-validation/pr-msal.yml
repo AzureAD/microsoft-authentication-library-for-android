@@ -61,6 +61,17 @@ jobs:
       jdkArchitecture: $(BuildParameters.jdkArchitecture)
       sqGradlePluginVersion: 2.0.1
   - task: Gradle@2
+    displayName: 'Run Spotbugs'
+    inputs:
+      tasks: spotbugsDebug
+      publishJUnitResults: false
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: SpotBugs'
+    inputs:
+      PathtoPublish: '$(Build.SourcesDirectory)\msal\build\reports\spotbugs\'
+      ArtifactName: SpotBugs
+    condition: failed()
+  - task: Gradle@2
     displayName: Run Unit tests
     inputs:
       tasks: msal:testLocalDebugUnitTest -Plabtest -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}}
