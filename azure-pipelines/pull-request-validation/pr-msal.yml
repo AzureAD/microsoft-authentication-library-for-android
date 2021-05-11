@@ -60,10 +60,10 @@ jobs:
       jdkVersion: $(BuildParameters.jdkVersion)
       jdkArchitecture: $(BuildParameters.jdkArchitecture)
       sqGradlePluginVersion: 2.0.1
-  - task: Gradle@2
   - template: azure-pipelines/templates/steps/spot-bugs.yml@common
     parameters:
       project: msal
+  - task: Gradle@2
     displayName: Run Unit tests
     inputs:
       tasks: msal:testLocalDebugUnitTest -Plabtest -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}}
