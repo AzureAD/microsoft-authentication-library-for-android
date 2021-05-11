@@ -63,7 +63,7 @@ jobs:
   - task: Gradle@2
     displayName: 'Run Spotbugs'
     inputs:
-      tasks: spotbugsDebug
+      tasks: msal:spotbugsDebug
       publishJUnitResults: false
   - task: PublishBuildArtifacts@1
     displayName: 'Publish Artifact: SpotBugs'
