@@ -65,10 +65,10 @@ jobs:
     inputs:
       tasks: msal:spotbugsDebug
       publishJUnitResults: false
-  - task: PublishBuildArtifacts@1
+  - task: PublishPipelineArtifact@1
     displayName: 'Publish Artifact: SpotBugs'
     inputs:
-      PathtoPublish: '$(Build.SourcesDirectory)\msal\build\reports\spotbugs\'
+      targetPath: '$(Build.SourcesDirectory)\msal\build\reports\spotbugs\'
       ArtifactName: SpotBugs
     condition: failed()
   - task: Gradle@2
