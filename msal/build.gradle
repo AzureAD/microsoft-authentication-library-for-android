@@ -289,7 +289,7 @@ dependencies {
     // 'local' flavor dependencies
     localApi(project(":common")) {
         transitive = true
-        exclude module: "jcip-annotations"
+//        exclude module: "jcip-annotations"
     }
 
     snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.4.3', changing: true)
