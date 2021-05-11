@@ -63,13 +63,13 @@ jobs:
   - task: Gradle@2
     displayName: 'Run Spotbugs'
     inputs:
-      tasks: msal:spotbugsDebug
+      tasks: msal:spotbugsLocalDebug
       publishJUnitResults: false
   - task: PublishPipelineArtifact@1
     displayName: 'Publish Artifact: SpotBugs'
     inputs:
-      targetPath: '$(Build.SourcesDirectory)\msal\build\reports\spotbugs\'
-      ArtifactName: SpotBugs
+      targetPath: '$(Build.SourcesDirectory)\msal\build\reports\'
+      ArtifactName: CodeAnalisysLogs
     condition: failed()
   - task: Gradle@2
     displayName: Run Unit tests
