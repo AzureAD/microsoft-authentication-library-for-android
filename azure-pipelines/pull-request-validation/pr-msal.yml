@@ -68,8 +68,8 @@ jobs:
   - task: PublishBuildArtifacts@1
     displayName: 'Publish Artifact: SpotBugs'
     inputs:
-      PathtoPublish: '$(Build.SourcesDirectory)\msal\build\reports\spotbugs\'
-      ArtifactName: SpotBugs
+      PathtoPublish: '$(Build.SourcesDirectory)\msal\build\reports\'
+      ArtifactName: CodeAnalysisLogs
     condition: failed()
   - task: Gradle@2
     displayName: Run Unit tests
