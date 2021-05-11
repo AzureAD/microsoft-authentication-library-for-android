@@ -27,7 +27,7 @@ resources:
   - repository: common
     type: github
     name: AzureAD/microsoft-authentication-library-common-for-android
-    ref: pedroro/pipelines-pr
+    ref: dev
     endpoint: ANDROID_GITHUB
 
 jobs:
@@ -60,7 +60,7 @@ jobs:
       jdkVersion: $(BuildParameters.jdkVersion)
       jdkArchitecture: $(BuildParameters.jdkArchitecture)
       sqGradlePluginVersion: 2.0.1
-  - template: azure-pipelines/templates/steps/spot-bugs.yml@common
+  - template: azure-pipelines/templates/steps/spotbugs.yml@common
     parameters:
       project: msal
   - task: Gradle@2
