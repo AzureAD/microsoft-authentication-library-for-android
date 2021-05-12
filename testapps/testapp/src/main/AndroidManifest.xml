@@ -52,7 +52,7 @@
             android:name="com.microsoft.identity.client.testapp.MainActivity"
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="stateHidden"
-            android:taskAffinity="com.microsoft.identity.client.testapp">
+            android:taskAffinity="">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
@@ -61,7 +61,6 @@
 
         <activity
             android:name="com.microsoft.identity.client.BrowserTabActivity"
-            android:taskAffinity="com.microsoft.identity.client.testapp"
             >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />

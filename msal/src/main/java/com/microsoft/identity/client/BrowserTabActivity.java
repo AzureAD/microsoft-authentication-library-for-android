@@ -23,13 +23,21 @@
 package com.microsoft.identity.client;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.widget.Toast;
 
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
 import com.microsoft.identity.common.internal.providers.oauth2.BrowserAuthorizationFragment;
 import com.microsoft.identity.common.internal.util.StringUtil;
-import com.microsoft.identity.common.logging.Logger;
+
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.AuthorizationIntentAction.REDIRECT_RETURNED_ACTION;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.AuthorizationIntentAction.DESTROY_REDIRECT_RECEIVING_ACTIVITY;
+
 
 /**
  * MSAL activity class (needs to be public in order to be discoverable by the os) to get the browser redirect with auth code from authorize
@@ -55,7 +63,10 @@ import com.microsoft.identity.common.logging.Logger;
  * </pre>
  */
 public final class BrowserTabActivity extends Activity {
-    private static final String TAG = BrowserTabActivity.class.getSimpleName();
+    //private static final String TAG = BrowserTabActivity.class.getSimpleName();
+    private static final int REDIRECT_RECEIVED_CODE = 2;
+    private BroadcastReceiver mCloseBroadcastReceiver;
+
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -63,14 +74,45 @@ public final class BrowserTabActivity extends Activity {
         if (savedInstanceState == null
                 && getIntent() != null
                 && !StringUtil.isEmpty(getIntent().getDataString())) {
+            //Leaving this for now to set static response URI value
             final Intent responseIntent = BrowserAuthorizationFragment.createCustomTabResponseIntent(this, getIntent().getDataString());
+
             if (responseIntent != null) {
-                startActivity(responseIntent);
+                startActivityForResult(responseIntent, REDIRECT_RECEIVED_CODE);
             } else {
-                Logger.warn(TAG, "Received NULL response intent. Unable to complete authorization.");
+                //LoggerTAG, "Received NULL response intent. Unable to complete authorization.");
                 Toast.makeText(getApplicationContext(), "Unable to complete authorization as there is no interactive call in progress. This can be due to closing the app while the authorization was in process.", Toast.LENGTH_LONG).show();
             }
-            finish();
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode == RESULT_CANCELED) {
+            // We weren't able to open CustomTabActivity from the back stack. Send a broadcast
+            // instead.
+            Intent broadcast = new Intent(REDIRECT_RETURNED_ACTION);
+            LocalBroadcastManager.getInstance(this).sendBroadcast(broadcast);
+
+            // Wait for the custom tab to be removed from the back stack before finishing.
+            mCloseBroadcastReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    BrowserTabActivity.this.finish();
+                }
+            };
+            LocalBroadcastManager.getInstance(this).registerReceiver(
+                    mCloseBroadcastReceiver,
+                    new IntentFilter(DESTROY_REDIRECT_RECEIVING_ACTIVITY)
+            );
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mCloseBroadcastReceiver);
+        super.onDestroy();
     }
 }

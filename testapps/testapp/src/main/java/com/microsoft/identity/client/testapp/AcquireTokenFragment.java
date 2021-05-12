@@ -26,8 +26,10 @@ import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.UserManager;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -238,7 +240,14 @@ public class AcquireTokenFragment extends Fragment {
         mBrokerHelper.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                PublicClientApplication.showExpectedMsalRedirectUriInfo(activity);
+                //PublicClientApplication.showExpectedMsalRedirectUriInfo(activity);
+
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                    UserManager userManager = (UserManager)getContext().getSystemService(Context.USER_SERVICE);
+                    userManager.isManagedProfile();
+                }
+
+
             }
         });
 
