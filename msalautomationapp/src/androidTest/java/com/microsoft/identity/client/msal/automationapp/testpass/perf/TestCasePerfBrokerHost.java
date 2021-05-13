@@ -57,7 +57,7 @@ import java.util.concurrent.TimeUnit;
 public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_acquireTokenSilentlyWithBroker() {
+    public void test_acquireTokenSilentlyWithBroker() throws InterruptedException {
         Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
         final TokenRequestLatch latch = new TokenRequestLatch(1);
 
@@ -113,13 +113,12 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
             final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                     .forAccount(account)
                     .fromAuthority(account.getAuthority())
-                    .forceRefresh(true)
-                    .withScopes(Arrays.asList(mScopes))
+                    .withResource(mScopes[0])
                     .withCallback(successfulSilentCallback(silentLatch))
                     .build();
 
             mApplication.acquireTokenSilentAsync(silentParameters);
-            silentLatch.await(TokenRequestTimeout.SILENT);
+            silentLatch.await();
             try {
                 FileAppender fileAppender = new FileAppender(outputFilenamePrefix + i + ".txt", new SimpleTextFormatter());
                 fileAppender.append(CodeMarkerManager.getInstance().getFileContent());
@@ -151,6 +150,7 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
     public LabUserQuery getLabUserQuery() {
         final LabUserQuery query = new LabUserQuery();
         query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CLOUD;
+        query.protectionPolicy = LabConstants.ProtectionPolicy.MAM_CA;
         return query;
     }
 
@@ -161,7 +161,7 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
 
     @Override
     public String[] getScopes() {
-        return new String[]{"User.read"};
+        return new String[]{"00000003-0000-0ff1-ce00-000000000000"};
     }
 
     @Override
@@ -171,6 +171,6 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_webview;
+        return R.raw.msal_config_default;
     }
 }
