@@ -20,6 +20,7 @@ trigger:
     include:
     - dev
     - master
+    - release/*
   batch: True
 
 resources:
