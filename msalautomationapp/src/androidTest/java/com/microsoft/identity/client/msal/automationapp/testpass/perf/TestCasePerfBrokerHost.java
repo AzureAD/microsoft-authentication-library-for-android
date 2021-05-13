@@ -87,6 +87,9 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
+                                .broker(mBroker)
+                                .expectingBrokerAccountChooserActivity(false)
+                                .registerPageExpected(true)
                                 .build();
 
                         new AadPromptHandler(promptHandlerParameters)
