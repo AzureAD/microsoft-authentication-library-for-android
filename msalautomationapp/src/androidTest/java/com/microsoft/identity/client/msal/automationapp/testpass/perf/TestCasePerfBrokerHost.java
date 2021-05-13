@@ -89,7 +89,7 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
 
-                                // .broker(mBroker)
+                                .broker(mBroker)
                                 // .expectingBrokerAccountChooserActivity(false)
                                 // .registerPageExpected(true)
 
@@ -121,7 +121,7 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
                     // .forceRefresh(true)
                     // .withScopes(Arrays.asList(mScopes))
                     .withResource(mScopes[0])
-                    
+
                     .build();
 
             mApplication.acquireTokenSilentAsync(silentParameters);
