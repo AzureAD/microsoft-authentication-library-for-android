@@ -69,6 +69,7 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
                 .withLoginHint(mLoginHint)
                 .withCallback(successfulInteractiveCallback(latch))
                 .withPrompt(Prompt.SELECT_ACCOUNT)
+                // .withScopes(Arrays.asList(mScopes))
                 .withResource(mScopes[0])
                 .build();
 
@@ -87,9 +88,11 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
-                                .broker(mBroker)
-                                .expectingBrokerAccountChooserActivity(false)
-                                .registerPageExpected(true)
+
+                                // .broker(mBroker)
+                                // .expectingBrokerAccountChooserActivity(false)
+                                // .registerPageExpected(true)
+
                                 .build();
 
                         new AadPromptHandler(promptHandlerParameters)
@@ -113,12 +116,18 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
             final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                     .forAccount(account)
                     .fromAuthority(account.getAuthority())
-                    .withResource(mScopes[0])
                     .withCallback(successfulSilentCallback(silentLatch))
+
+                    // .forceRefresh(true)
+                    // .withScopes(Arrays.asList(mScopes))
+                    .withResource(mScopes[0])
+                    
                     .build();
 
             mApplication.acquireTokenSilentAsync(silentParameters);
             silentLatch.await();
+            // silentLatch.await(TokenRequestTimeout.SILENT);
+
             try {
                 FileAppender fileAppender = new FileAppender(outputFilenamePrefix + i + ".txt", new SimpleTextFormatter());
                 fileAppender.append(CodeMarkerManager.getInstance().getFileContent());
