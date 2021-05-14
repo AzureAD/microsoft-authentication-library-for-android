@@ -34,7 +34,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class StartActivity extends AppCompatActivity {
 
-    //private static final String TAG = MainActivity.class.getSimpleName();
+    //private static final String TAG = StartActivity.class.getSimpleName();
     private Button mStartTaskButton;
 
 
