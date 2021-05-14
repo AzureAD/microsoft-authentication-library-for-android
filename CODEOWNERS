@@ -18,5 +18,15 @@
 # Build
 *.gradle                                                                            @shoatman @AdamBJohnsonx @shahzaibj
 
+# Docs
+/docs                                                                               @iambmelt @AdamBJohnsonx 
+
+# PackageInspector
+/package-inspector                                                                  @iambmelt @shahzaibj 
+
 # Pipelines
 /azure-pipelines/                                                                   @shoatman @shahzaibj @p3dr0rv
+
+# PoP Benchmarker
+/pop-benchmarker                                                                    @iambmelt @AdamBJohnsonx 
+
