@@ -24,15 +24,14 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
 import androidx.test.uiautomator.UiObject;
 
-import com.microsoft.identity.client.AcquireTokenParameters;
-import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
-import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
-import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
+import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
+import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
+import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TestContext;
-import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
+import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
@@ -56,7 +55,7 @@ import java.util.Arrays;
 public class TestCase796050 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_796050() {
+    public void test_796050() throws Throwable {
 
         // already created test user
         final String username1 = mLoginHint;
@@ -73,50 +72,45 @@ public class TestCase796050 extends AbstractMsalBrokerTest {
                 username1, password1
         );
 
-        final TokenRequestLatch latch = new TokenRequestLatch(1);
+        final MsalSdk msalSdk = new MsalSdk();
 
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulInteractiveCallback(latch))
-                .withPrompt(Prompt.SELECT_ACCOUNT)
+        final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .scopes(Arrays.asList(mScopes))
+                .promptParameter(Prompt.SELECT_ACCOUNT)
+                .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
         // Start interactive token request in MSAL (without login hint)
-        final InteractiveRequest interactiveRequest = new InteractiveRequest(
-                mApplication,
-                parameters,
-                new OnInteractionRequired() {
-                    @Override
-                    public void handleUserInteraction() {
-                        // Account Chooser Activity should be displayed by broker after calling
-                        // acquire token. In Account Choose Activity, click on "Add another account"
-                        // When a username is not provided to the below method, it clicks on
-                        // "Add another account"
-                        mBroker.handleAccountPicker(null);
+        final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
+            @Override
+            public void handleUserInteraction() {
+                // Account Chooser Activity should be displayed by broker after calling
+                // acquire token. In Account Choose Activity, click on "Add another account"
+                // When a username is not provided to the below method, it clicks on
+                // "Add another account"
+                mBroker.handleAccountPicker(null);
 
-                        final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                                .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHint(null)
-                                .sessionExpected(false)
-                                .consentPageExpected(false)
-                                .speedBumpExpected(false)
-                                // already in webview as we handled account picker above
-                                // and this would behave the same as no broker
-                                .broker(null)
-                                .build();
+                final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
+                        .prompt(PromptParameter.SELECT_ACCOUNT)
+                        .loginHint(null)
+                        .sessionExpected(false)
+                        .consentPageExpected(false)
+                        .speedBumpExpected(false)
+                        // already in webview as we handled account picker above
+                        // and this would behave the same as no broker
+                        .broker(null)
+                        .build();
 
-                        // In the WebView AAD login page, login with credentials for the other
-                        // account aka Account 2 that we created earlier
-                        new AadPromptHandler(promptHandlerParameters)
-                                .handlePrompt(username2, password2);
+                // In the WebView AAD login page, login with credentials for the other
+                // account aka Account 2 that we created earlier
+                new AadPromptHandler(promptHandlerParameters)
+                        .handlePrompt(username2, password2);
 
-                    }
-                }
-        );
+            }
+        }, TokenRequestTimeout.MEDIUM);
 
-        interactiveRequest.execute();
-        latch.await(TokenRequestTimeout.MEDIUM);
+        authResult.assertSuccess();
 
         if (mBroker instanceof BrokerMicrosoftAuthenticator) {
             // Assert Authenticator Account screen has both accounts
@@ -136,24 +130,24 @@ public class TestCase796050 extends AbstractMsalBrokerTest {
 
         // SILENT REQUEST - start a acquireTokenSilent request in MSAL with the Account 2
 
-        final IAccount account = getAccount();
+        final IAccount account = msalSdk.getAccount(mActivity,getConfigFileResourceId(),username2);
 
         // Make sure we have the most recent account aka Account 2
         Assert.assertEquals(username2, account.getUsername());
 
-        final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
-
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .forAccount(account)
-                .fromAuthority(account.getAuthority())
+        final MsalAuthTestParams silentParams = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .loginHint(username2)
+                .authority(account.getAuthority())
                 .forceRefresh(true)
-                .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulSilentCallback(silentLatch))
+                .scopes(Arrays.asList(mScopes))
+                .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
+
         // get a token silently
-        mApplication.acquireTokenSilentAsync(silentParameters);
-        silentLatch.await(TokenRequestTimeout.SILENT);
+        final MsalAuthResult silentAuthResult = msalSdk.acquireTokenSilent(silentParams, TokenRequestTimeout.SILENT);
+        silentAuthResult.assertSuccess();
     }
 
 

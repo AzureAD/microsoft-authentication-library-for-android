@@ -27,8 +27,8 @@ import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthority;
-import com.microsoft.identity.client.e2e.shadows.ShadowHttpRequest;
-import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
+import com.microsoft.identity.internal.testutils.shadows.ShadowHttpClient;
+import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
@@ -53,7 +53,7 @@ import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USE
 
 @Ignore
 @RunWith(RobolectricTestRunner.class)
-@Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowHttpRequest.class, ShadowMsalUtils.class})
+@Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowHttpClient.class, ShadowPublicClientApplicationConfiguration.class})
 public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
 
     @Before
@@ -72,7 +72,6 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
      * verifies that two different commands result in 2 cache entries
      */
     @Test
-    @Ignore
     public void testAcquireTokenCache2DifferentRequests() throws InterruptedException {
         final String username = "fake@test.com";
 
@@ -118,7 +117,6 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
      * Second silent request is expected to be retrieved from the cache.
      */
     @Test
-    @Ignore
     public void testAcquireTokenCache2IdenticalRequests() throws InterruptedException {
         final String username = "fake@test.com";
 
@@ -150,7 +148,6 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
     /**
      * Second silent request is expected to fail with a duplicate command exception
      */
-    @Ignore
     @Test
     public void testAcquireTokenCache2IdenticalRequestsConcurrent() {
         final String username = "fake@test.com";
@@ -193,7 +190,6 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
      * NOTE: This runs a bit longer
      */
     @Test
-    @Ignore
     public void testAcquireTokenExceedCacheMaxItems() throws InterruptedException {
         final String username = "fake@test.com";
 

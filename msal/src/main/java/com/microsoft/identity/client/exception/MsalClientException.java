@@ -23,6 +23,7 @@
 
 package com.microsoft.identity.client.exception;
 
+import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
 
@@ -188,6 +189,12 @@ public final class MsalClientException extends MsalException {
     public static final String APP_MANIFEST_VALIDATION_ERROR = "app_manifest_validation_error";
 
     /**
+     * More than one app is listening for the custom URL scheme determined by the Redirect URI in
+     * the AndroidManifest.
+     */
+    public static final String MULTIPLE_APPS_LISTENING_CUSTOM_URL_SCHEME = "multiple_apps_listening_url_scheme";
+
+    /**
      * Developer error. The redirect URI in the configuration file doesn't match with the one generated with package name and signature hash.
      */
     public static final String REDIRECT_URI_VALIDATION_ERROR = "redirect_uri_validation_error";
@@ -197,6 +204,12 @@ public final class MsalClientException extends MsalException {
      * for preview.
      */
     static final String ADFS_AUTHORITY_VALIDATION_FAILED = "adfs_authority_validation_failed";
+
+    /**
+     * Configuration error. SingleAccount apps cannot be used with multiple B2C policies, as each policy creates a separate Account.
+     */
+    public static final String SAPCA_USE_WITH_MULTI_POLICY_B2C = "SingleAccountPublicClientApplication cannot be used with multiple B2C policies.";
+
     public MsalClientException(final String errorCode) {
         super(errorCode);
     }

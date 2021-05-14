@@ -85,6 +85,7 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
 
     @Before
     public void setup() {
+        mActivity = mActivityRule.getActivity();
         loadLabUser();
         mScopes = getScopes();
         mBrowser = getBrowser();
@@ -93,7 +94,6 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
         mBrowser.clear();
 
         mContext = ApplicationProvider.getApplicationContext();
-        mActivity = mActivityRule.getActivity();
         setupPCA();
     }
 

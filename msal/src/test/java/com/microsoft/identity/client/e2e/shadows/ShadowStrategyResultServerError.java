@@ -22,8 +22,8 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.shadows;
 
-import com.microsoft.identity.common.internal.net.HttpResponse;
-import com.microsoft.identity.common.internal.net.ObjectMapper;
+import com.microsoft.identity.common.java.net.HttpResponse;
+import com.microsoft.identity.common.java.util.ObjectMapper;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenErrorResponse;
 import com.microsoft.identity.internal.testutils.strategies.MockTestStrategy;
 

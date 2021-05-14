@@ -187,6 +187,7 @@ public class MainActivity extends AppCompatActivity
             fragment = new ResultFragment();
             final Bundle bundle = new Bundle();
             if (mAuthResult != null) {
+                bundle.putString(ResultFragment.CORRELATION_ID, mAuthResult.getCorrelationId().toString());
                 bundle.putString(ResultFragment.ACCESS_TOKEN, mAuthResult.getAccessToken());
                 bundle.putString(
                         ResultFragment.DISPLAYABLE,

@@ -12,9 +12,18 @@ if (project.hasProperty("distMsalVersion")) {
 
 android {
 
+    compileOptions {
+        // Flag to enable support for the new language APIs
+        coreLibraryDesugaringEnabled true
+        // Sets Java compatibility to Java 8
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
     final String BROKER_HOST = "BrokerHost"
     final String BROKER_MICROSOFT_AUTHENTICATOR = "BrokerMicrosoftAuthenticator"
     final String BROKER_COMPANY_PORTAL = "BrokerCompanyPortal"
+    final String AUTO_BROKER = "AutoBroker"
     final String SELECTED_BROKER = "SELECTED_BROKER"
 
     signingConfigs {
@@ -35,6 +44,7 @@ android {
     compileSdkVersion rootProject.ext.compileSdkVersion
 
     defaultConfig {
+        multiDexEnabled true
         applicationId "com.msft.identity.client.sample"
         minSdkVersion rootProject.ext.automationAppMinSDKVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
@@ -52,6 +62,7 @@ android {
         buildConfigField("String", BROKER_MICROSOFT_AUTHENTICATOR, "\"$BROKER_MICROSOFT_AUTHENTICATOR\"")
         buildConfigField("String", BROKER_COMPANY_PORTAL, "\"$BROKER_COMPANY_PORTAL\"")
         buildConfigField("String", BROKER_HOST, "\"$BROKER_HOST\"")
+        buildConfigField("String", AUTO_BROKER, "\"$AUTO_BROKER\"")
     }
 
     testOptions {
@@ -111,6 +122,11 @@ android {
             dimension "broker"
             buildConfigField("String", SELECTED_BROKER, "\"$BROKER_HOST\"")
         }
+
+        AutoBroker {
+            dimension "broker"
+            buildConfigField("String", SELECTED_BROKER, "\"$AUTO_BROKER\"")
+        }
     }
 
     variantFilter { variant ->
@@ -131,6 +147,11 @@ android {
             // Gradle ignores any variants that satisfy the conditions above.
             setIgnore(true)
         }
+
+        if (flavorName.contains("local") && flavorName.contains("AutoBroker")) {
+            // Gradle ignores any variants that satisfy the conditions above.
+            setIgnore(true)
+        }
     }
 
     sourceSets {
@@ -140,7 +161,7 @@ android {
         }
 
         androidTest {
-            manifest.srcFile 'src/main/AndroidManifest.xml'
+            manifest.srcFile 'src/androidTest/AndroidManifest.xml'
             res.srcDirs = ['src/main/res']
         }
     }
@@ -158,7 +179,7 @@ ext.createCoverageTask = { buildVariant, testType ->
     def androidTestFile = "outputs/code_coverage/${buildVariant}AndroidTest/connected/*.ec"
 
     // Task to generate coverage report for particular build variant, that depends on additional tasks(androidTestTask)
-    task "${buildVariant}Msal${testType}CoverageReport" (type:JacocoReport, dependsOn: [androidTestTask]) {
+    task "${buildVariant}Msal${testType}CoverageReport"(type: JacocoReport, dependsOn: [androidTestTask]) {
         group = "Code Coverage MsalAutomation"
         description = "Generate Msal Coverage Reports(${testType}) on the ${buildVariant.capitalize()}"
 
@@ -180,8 +201,8 @@ ext.createCoverageTask = { buildVariant, testType ->
                 "${projectDir}/../common/common/src/main/java",
         ]
         def additionalJavaClasses = [
-                fileTree( dir: "${buildDir}/../${commonFilePath}/intermediates/javac/${commonBuild}/classes", excludes: fileFilter),
-                fileTree( dir: "${buildDir}/../${msalFilePath}/intermediates/javac/${msalBuild}/classes", excludes: fileFilter)
+                fileTree(dir: "${buildDir}/../${commonFilePath}/intermediates/javac/${commonBuild}/classes", excludes: fileFilter),
+                fileTree(dir: "${buildDir}/../${msalFilePath}/intermediates/javac/${msalBuild}/classes", excludes: fileFilter)
         ]
 
         //Include all those directories for source files and additional source files defined above
@@ -201,6 +222,9 @@ ext.createCoverageTask = { buildVariant, testType ->
 }
 
 dependencies {
+
+    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
+
     // Compile Dependency
     localImplementation project(':msal')
     distImplementation "com.microsoft.identity.client:msal:${msalVersion}"
@@ -214,11 +238,16 @@ dependencies {
     // Set this dependency to use JUnit 4 rules
     androidTestImplementation "androidx.test:rules:$rootProject.rulesVersion"
     androidTestImplementation "androidx.test.uiautomator:uiautomator:$rootProject.ext.uiAutomatorVersion"
-    androidTestImplementation(project(":testutils")) {
+    compileOnly "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
+    annotationProcessor "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
+
+    implementation(project(":testutils")) {
         exclude module: 'common'
+        exclude module: 'appcompat'
     }
-    androidTestImplementation(project(":uiautomationutilities")) {
+    implementation(project(":uiautomationutilities")) {
         exclude module: 'common'
+        exclude module: 'appcompat'
     }
     androidTestImplementation "androidx.test:runner:$rootProject.ext.androidxTestRunnerVersion"
     androidTestUtil "androidx.test:orchestrator:$rootProject.ext.androidxTestOrchestratorVersion"

@@ -1,0 +1,32 @@
+# Each line is a file pattern followed by one or more owners.
+# Reference: https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/about-code-owners
+
+# Repo Code Owners
+#--------------------
+
+*       @AdamBJohnsonx @iambmelt @rpdome @shahzaibj @shoatman
+
+
+# Area Owners
+#---------------------
+
+# Automation
+/msalautomationapp/                                                                 @shahzaibj @rpdome
+/msal/src/test/                                                                     @shahzaibj @rpdome
+/msal/src/androidTest/                                                              @shahzaibj @rpdome
+
+# Build
+*.gradle                                                                            @shoatman @AdamBJohnsonx @shahzaibj
+
+# Docs
+/docs                                                                               @iambmelt @AdamBJohnsonx 
+
+# PackageInspector
+/package-inspector                                                                  @iambmelt @shahzaibj 
+
+# Pipelines
+/azure-pipelines/                                                                   @shoatman @shahzaibj @p3dr0rv
+
+# PoP Benchmarker
+/pop-benchmarker                                                                    @iambmelt @AdamBJohnsonx 
+
