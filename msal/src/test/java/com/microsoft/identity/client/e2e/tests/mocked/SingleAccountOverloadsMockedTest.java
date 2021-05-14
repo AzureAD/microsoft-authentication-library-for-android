@@ -37,7 +37,7 @@ import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthorityForMockHttpResponse;
-import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
+import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
 import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
@@ -46,7 +46,6 @@ import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.exception.ServiceException;
-import com.microsoft.identity.common.internal.net.HttpClient;
 import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
 import com.microsoft.identity.internal.testutils.HttpRequestMatcher;
 import com.microsoft.identity.internal.testutils.TestConstants;
@@ -74,7 +73,7 @@ import static org.junit.Assert.fail;
 @Config(shadows = {
         ShadowStorageHelper.class,
         ShadowAuthorityForMockHttpResponse.class,
-        ShadowMsalUtils.class,
+        ShadowPublicClientApplicationConfiguration.class,
         ShadowHttpClient.class,
         ShadowOpenIdProviderConfigurationClient.class
 })
@@ -370,7 +369,7 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
 
             @Override
             public void onError(MsalException exception) {
-                fail(exception.getMessage());
+                throw new AssertionError(exception);
             }
         };
     }

@@ -66,7 +66,7 @@ public class ShadowDeviceCodeFlowCommandSuccessful {
         // Create parameters for dummy authentication result
         final CacheRecord.CacheRecordBuilder recordBuilder = CacheRecord.builder();
         final AccountRecord accountRecord = new AccountRecord();
-        recordBuilder.mAccount(accountRecord);
+        recordBuilder.account(accountRecord);
         accountRecord.setHomeAccountId("abcd");
         accountRecord.setLocalAccountId("abcd");
         final List<ICacheRecord> cacheRecordList = new ArrayList<>();

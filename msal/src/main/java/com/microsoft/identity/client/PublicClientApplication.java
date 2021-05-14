@@ -86,7 +86,6 @@ import com.microsoft.identity.common.internal.controllers.ExceptionAdapter;
 import com.microsoft.identity.common.internal.controllers.LocalMSALController;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
-import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.migration.AdalMigrationAdapter;
 import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
 import com.microsoft.identity.common.internal.migration.TokenMigrationUtility;
@@ -100,6 +99,7 @@ import com.microsoft.identity.common.internal.result.GenerateShrResult;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.ResultFuture;
+import com.microsoft.identity.common.logging.Logger;
 import com.microsoft.identity.msal.BuildConfig;
 
 import java.io.File;
@@ -1083,10 +1083,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         // Init HTTP cache
         HttpCache.initialize(context.getCacheDir());
 
-        com.microsoft.identity.common.internal.logging.Logger.info(
-                TAG + methodName,
-                "Create new public client application."
-        );
+        Logger.info(TAG + methodName, "Create new public client application.");
     }
 
     private void initializeLoggerSettings(@Nullable final LoggerConfiguration loggerConfig) {
@@ -1147,15 +1144,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     private void setupTelemetry(@NonNull final Context context,
                                 @NonNull final PublicClientApplicationConfiguration developerConfig) {
         if (null != developerConfig.getTelemetryConfiguration()) {
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
-                    TAG,
-                    "Telemetry configuration is set. Telemetry is enabled."
-            );
+            Logger.verbose(TAG, "Telemetry configuration is set. Telemetry is enabled.");
         } else {
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
-                    TAG,
-                    "Telemetry configuration is null. Telemetry is disabled."
-            );
+            Logger.verbose(TAG, "Telemetry configuration is null. Telemetry is disabled.");
         }
 
         new com.microsoft.identity.common.internal.telemetry.Telemetry.Builder()
