@@ -37,6 +37,8 @@ import com.microsoft.identity.common.internal.authorities.AuthorityDeserializer;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudienceDeserializer;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
+import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
+import com.microsoft.identity.common.internal.controllers.CommandDispatcherConfiguration;
 import com.microsoft.identity.msal.R;
 import com.microsoft.identity.common.logging.Logger;
 
@@ -50,6 +52,7 @@ import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullAr
 
 public class PublicClientApplicationConfigurationFactory {
     private static final String TAG = PublicClientApplicationConfigurationFactory.class.getSimpleName();
+    private static final int DEFAULT_MAX_THREAD_POOL_INTERACTIVE_CONCURRENT = 5;
 
     /**
      * Initializes a default PublicClientApplicationConfiguration object.
@@ -91,6 +94,14 @@ public class PublicClientApplicationConfigurationFactory {
             config.validateConfiguration();
         }
 
+        //Configure dispatcher if required
+        if(config.concurrentAuthorizationRequests()){
+            CommandDispatcherConfiguration dispatcherConfiguration = CommandDispatcherConfiguration.builder()
+                    .maxTheadPoolInteractive(DEFAULT_MAX_THREAD_POOL_INTERACTIVE_CONCURRENT)
+                    .build();
+
+            CommandDispatcher.configureCommandDispatcher(dispatcherConfiguration);
+        }
         config.setOAuth2TokenCache(MsalOAuth2TokenCache.create(context));
         return config;
     }

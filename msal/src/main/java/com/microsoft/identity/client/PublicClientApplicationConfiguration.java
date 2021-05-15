@@ -63,10 +63,12 @@ import javax.crypto.SecretKey;
 
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.ACCOUNT_MODE;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORITIES;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORIZATION_IN_CURRENT_TASK;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORIZATION_USER_AGENT;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.BROWSER_SAFE_LIST;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.CLIENT_CAPABILITIES;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.CLIENT_ID;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.CONCURRENT_AUTHORIZATION_REQUESTS;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.ENVIRONMENT;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.HANDLE_TASKS_WITH_NULL_TASKAFFINITY;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.HTTP;
@@ -106,6 +108,8 @@ public class PublicClientApplicationConfiguration {
         static final String WEB_VIEW_ZOOM_ENABLED = "web_view_zoom_enabled";
         static final String POWER_OPT_CHECK_FOR_NETWORK_REQUEST_ENABLED = "power_opt_check_for_network_req_enabled";
         static final String HANDLE_TASKS_WITH_NULL_TASKAFFINITY = "handle_null_taskaffinity";
+        static final String AUTHORIZATION_IN_CURRENT_TASK = "authorization_in_current_task";
+        static final String CONCURRENT_AUTHORIZATION_REQUESTS = "concurrent_authorization_requests";
 
     }
 
@@ -162,6 +166,12 @@ public class PublicClientApplicationConfiguration {
 
     @SerializedName(HANDLE_TASKS_WITH_NULL_TASKAFFINITY)
     private Boolean handleNullTaskAffinity;
+
+    @SerializedName(AUTHORIZATION_IN_CURRENT_TASK)
+    private Boolean authorizationInCurrentTask;
+
+    @SerializedName(CONCURRENT_AUTHORIZATION_REQUESTS)
+    private Boolean concurrentAuthorizationRequests;
 
     transient private OAuth2TokenCache mOAuth2TokenCache;
 
@@ -380,6 +390,14 @@ public class PublicClientApplicationConfiguration {
         return handleNullTaskAffinity;
     }
 
+    public Boolean authorizationInCurrentTask() {
+        return authorizationInCurrentTask;
+    }
+
+    public Boolean concurrentAuthorizationRequests() {
+        return concurrentAuthorizationRequests;
+    }
+
     public Authority getDefaultAuthority() {
         if (mAuthorities != null) {
             if (mAuthorities.size() > 1) {
@@ -462,6 +480,8 @@ public class PublicClientApplicationConfiguration {
         this.webViewZoomEnabled = config.webViewZoomEnabled == null ? this.webViewZoomEnabled : config.webViewZoomEnabled;
         this.powerOptCheckEnabled = config.powerOptCheckEnabled == null ? this.powerOptCheckEnabled : config.powerOptCheckEnabled;
         this.handleNullTaskAffinity = config.handleNullTaskAffinity == null ? this.handleNullTaskAffinity : config.handleNullTaskAffinity;
+        this.authorizationInCurrentTask = config.authorizationInCurrentTask == null ? this.authorizationInCurrentTask : config.authorizationInCurrentTask;
+        this.concurrentAuthorizationRequests = config.concurrentAuthorizationRequests == null ? this.concurrentAuthorizationRequests : config.concurrentAuthorizationRequests;
     }
 
     void validateConfiguration() {
