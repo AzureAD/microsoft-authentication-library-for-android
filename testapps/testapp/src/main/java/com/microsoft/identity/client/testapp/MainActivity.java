@@ -63,6 +63,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -193,7 +194,25 @@ public class MainActivity extends AppCompatActivity
                         ResultFragment.DISPLAYABLE,
                         mAuthResult.getAccount().getUsername()
                 );
-            } else if (null != mStringResult) {
+                bundle.putString(ResultFragment.AUTHORITY, mAuthResult.getAccount().getAuthority());
+                bundle.putString(ResultFragment.ACCOUNT_TENANT_ID, mAuthResult.getAccount().getTenantId());
+                final StringBuilder claims = new StringBuilder();
+
+                final Map<String, ?> claims1 = mAuthResult.getAccount().getClaims();
+                if (claims1 != null) {
+                    for (Map.Entry<String, ?> e : claims1.entrySet()) {
+                        claims.append(e.getKey() + " -> " + String.valueOf(e.getValue()));
+                    }
+                } else {
+                    claims.append("NONE!");
+                }
+                bundle.putString(ResultFragment.CLAIMS, claims1.toString());
+                bundle.putString(ResultFragment.ACCOUNT_TENANT, mAuthResult.getAccount().getTenantId());
+                bundle.putString(ResultFragment.ACCOUNT_ID, mAuthResult.getAccount().getId());
+                bundle.putString(ResultFragment.AUTH_SCHEME, mAuthResult.getAuthenticationScheme());
+                bundle.putString(ResultFragment.TENANT, mAuthResult.getTenantId());
+            }
+            if (null != mStringResult) {
                 bundle.putString(ResultFragment.STRING_DATA_TO_DISPLAY, mStringResult);
             }
 
