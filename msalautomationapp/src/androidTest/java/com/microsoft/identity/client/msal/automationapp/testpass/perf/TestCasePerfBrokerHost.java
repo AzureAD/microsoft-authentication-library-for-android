@@ -111,7 +111,6 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
             final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                     .forAccount(account)
                     .fromAuthority(account.getAuthority())
-                    .forceRefresh(true)
                     .withScopes(Arrays.asList(mScopes))
                     .withCallback(successfulSilentCallback(silentLatch))
                     .build();
