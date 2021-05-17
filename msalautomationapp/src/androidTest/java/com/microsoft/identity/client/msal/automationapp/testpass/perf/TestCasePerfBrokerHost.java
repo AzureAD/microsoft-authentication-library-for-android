@@ -69,8 +69,8 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
                 .withLoginHint(mLoginHint)
                 .withCallback(successfulInteractiveCallback(latch))
                 .withPrompt(Prompt.SELECT_ACCOUNT)
-                // .withScopes(Arrays.asList(mScopes))
-                .withResource(mScopes[0])
+                .withScopes(Arrays.asList(mScopes))
+                // .withResource(mScopes[0])
                 .build();
 
         final InteractiveRequest interactiveRequest = new InteractiveRequest(
@@ -89,7 +89,7 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
 
-                                .broker(mBroker)
+                                // .broker(mBroker)
                                 // .expectingBrokerAccountChooserActivity(false)
                                 // .registerPageExpected(true)
 
@@ -118,15 +118,15 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
                     .fromAuthority(account.getAuthority())
                     .withCallback(successfulSilentCallback(silentLatch))
 
-                    // .forceRefresh(true)
-                    // .withScopes(Arrays.asList(mScopes))
-                    .withResource(mScopes[0])
+                    .forceRefresh(true)
+                    .withScopes(Arrays.asList(mScopes))
+                    // .withResource(mScopes[0])
 
                     .build();
 
             mApplication.acquireTokenSilentAsync(silentParameters);
-            silentLatch.await();
-            // silentLatch.await(TokenRequestTimeout.SILENT);
+            // silentLatch.await();
+            silentLatch.await(TokenRequestTimeout.LONG);
 
             try {
                 FileAppender fileAppender = new FileAppender(outputFilenamePrefix + i + ".txt", new SimpleTextFormatter());
