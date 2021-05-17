@@ -26,10 +26,10 @@ import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
+import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
@@ -40,7 +40,6 @@ import com.microsoft.identity.client.ui.automation.logging.formatter.SimpleTextF
 import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
 import com.microsoft.identity.common.PerfConstants;
 import com.microsoft.identity.common.CodeMarkerManager;
-import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
@@ -53,23 +52,22 @@ import java.util.concurrent.TimeUnit;
 
 // Silent Auth with force_refresh
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99563
-public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
+public class TestCasePerf extends AbstractMsalUiTest {
 
     @Test
-    public void test_acquireTokenSilentlyWithBroker() {
-        Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
+    public void test_acquireTokenSilentlyWithoutBroker() {
         final TokenRequestLatch latch = new TokenRequestLatch(1);
-
         final int numberOfOccurrenceOfTest = 10;
-        final String outputFilenamePrefix = "PerfDataTargetBrokerHost";
+        final String outputFilenamePrefix = "PerfDataTarget";
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(mLoginHint)
+                .withScopes(Arrays.asList(mScopes))
                 .withCallback(successfulInteractiveCallback(latch))
                 .withPrompt(Prompt.SELECT_ACCOUNT)
-                .withScopes(Arrays.asList(mScopes))
                 .build();
+
 
         final InteractiveRequest interactiveRequest = new InteractiveRequest(
                 mApplication,
@@ -100,23 +98,22 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
         final IAccount account = getAccount();
         CodeMarkerManager.getInstance().setEnableCodeMarker(true);
         //Setting up scenario code. 100 -> Non Brokered, 200 -> Brokered
-        CodeMarkerManager.getInstance().setPrefixScenarioCode(PerfConstants.ScenarioConstants.SCENARIO_BROKERED_ACQUIRE_TOKEN_SILENTLY);
+        CodeMarkerManager.getInstance().setPrefixScenarioCode(PerfConstants.ScenarioConstants.SCENARIO_NON_BROKERED_ACQUIRE_TOKEN_SILENTLY);
 
-        for (int i = 0; i < numberOfOccurrenceOfTest; i++) {
+        for(int i = 0; i < numberOfOccurrenceOfTest; i++) {
             CodeMarkerManager.getInstance().clearMarkers();
             final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
 
             final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                     .forAccount(account)
                     .fromAuthority(account.getAuthority())
-                    .withCallback(successfulSilentCallback(silentLatch))
+                    .forceRefresh(true)
                     .withScopes(Arrays.asList(mScopes))
+                    .withCallback(successfulSilentCallback(silentLatch))
                     .build();
 
             mApplication.acquireTokenSilentAsync(silentParameters);
-            // silentLatch.await();
             silentLatch.await(TokenRequestTimeout.SILENT);
-
             try {
                 FileAppender fileAppender = new FileAppender(outputFilenamePrefix + i + ".txt", new SimpleTextFormatter());
                 fileAppender.append(CodeMarkerManager.getInstance().getFileContent());
@@ -129,7 +126,7 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
             }
 
             // If this is not the last iteration, then we need either to clear cache of access token manually or wait for 30 seconds.
-            if (i < numberOfOccurrenceOfTest - 1) {
+            if(i < numberOfOccurrenceOfTest - 1) {
                 // CommandDispatcherHelper.clear();
                 try {
                     // Sleep for 30 seconds so that the cache access token cache is cleared.
