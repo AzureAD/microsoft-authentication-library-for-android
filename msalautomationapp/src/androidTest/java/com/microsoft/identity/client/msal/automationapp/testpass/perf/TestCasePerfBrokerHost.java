@@ -118,7 +118,7 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
                     .fromAuthority(account.getAuthority())
                     .withCallback(successfulSilentCallback(silentLatch))
 
-                    .forceRefresh(true)
+                    // .forceRefresh(true)
                     .withScopes(Arrays.asList(mScopes))
                     // .withResource(mScopes[0])
 
@@ -126,7 +126,7 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
 
             mApplication.acquireTokenSilentAsync(silentParameters);
             // silentLatch.await();
-            silentLatch.await(TokenRequestTimeout.LONG);
+            silentLatch.await(TokenRequestTimeout.SILENT);
 
             try {
                 FileAppender fileAppender = new FileAppender(outputFilenamePrefix + i + ".txt", new SimpleTextFormatter());
@@ -159,7 +159,7 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
     public LabUserQuery getLabUserQuery() {
         final LabUserQuery query = new LabUserQuery();
         query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CLOUD;
-        query.protectionPolicy = LabConstants.ProtectionPolicy.MAM_CA;
+        // query.protectionPolicy = LabConstants.ProtectionPolicy.MAM_CA;
         return query;
     }
 
@@ -170,7 +170,7 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
 
     @Override
     public String[] getScopes() {
-        return new String[]{"00000003-0000-0ff1-ce00-000000000000"};
+        return new String[]{"User.read"};
     }
 
     @Override
@@ -180,6 +180,6 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_default;
+        return R.raw.msal_config_webview;
     }
 }
