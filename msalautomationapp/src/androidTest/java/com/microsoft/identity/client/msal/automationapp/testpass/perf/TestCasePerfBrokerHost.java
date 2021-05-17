@@ -114,7 +114,6 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
                     .build();
 
             mApplication.acquireTokenSilentAsync(silentParameters);
-            // silentLatch.await();
             silentLatch.await(TokenRequestTimeout.SILENT);
 
             try {
