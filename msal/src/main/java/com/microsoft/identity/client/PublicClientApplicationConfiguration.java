@@ -621,7 +621,7 @@ public class PublicClientApplicationConfiguration {
         for (final ResolveInfo info : resolveInfoList) {
             final ActivityInfo activityInfo = info.activityInfo;
 
-            if (activityInfo.name.equals(BrowserTabActivity.class.getName()) &&
+            if ((activityInfo.name.equals(BrowserTabActivity.class.getName()) || (activityInfo.name.equals((CurrentTaskBrowserTabActivity.class.getName())))) &&
                     activityInfo.packageName.equals(context.getPackageName())) {
                 hasActivity = true;
             } else {

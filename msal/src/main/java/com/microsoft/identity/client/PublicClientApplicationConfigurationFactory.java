@@ -37,6 +37,7 @@ import com.microsoft.identity.common.internal.authorities.AuthorityDeserializer;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudienceDeserializer;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
+import com.microsoft.identity.common.internal.configuration.MsalConfiguration;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherConfiguration;
 import com.microsoft.identity.msal.R;
@@ -102,6 +103,12 @@ public class PublicClientApplicationConfigurationFactory {
 
             CommandDispatcher.configureCommandDispatcher(dispatcherConfiguration);
         }
+
+        if(config.authorizationInCurrentTask()){
+            MsalConfiguration msalConfiguration = MsalConfiguration.builder().authorizationInCurrentTask((true)).build();
+            MsalConfiguration.intializeMsalConfiguration(msalConfiguration);
+        }
+
         config.setOAuth2TokenCache(MsalOAuth2TokenCache.create(context));
         return config;
     }
