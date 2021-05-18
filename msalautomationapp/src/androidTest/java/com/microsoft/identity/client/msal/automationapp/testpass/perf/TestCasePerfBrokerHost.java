@@ -73,15 +73,15 @@ public class TestCasePerfBrokerHost extends AbstractMsalBrokerTest {
                 .build();
 
 
-        final String username = mLoginHint;
-        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
-
         final InteractiveRequest interactiveRequest = new InteractiveRequest(
                 mApplication,
                 parameters,
                 new OnInteractionRequired() {
                     @Override
                     public void handleUserInteraction() {
+                        final String username = mLoginHint;
+                        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.SELECT_ACCOUNT)
                                 .loginHint(mLoginHint)
