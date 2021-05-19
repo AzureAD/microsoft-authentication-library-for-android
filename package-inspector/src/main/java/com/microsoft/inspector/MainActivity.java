@@ -58,6 +58,7 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static final String ACCOUNT_AFFINITY_SUFFIX = "**";
     private ListView mListView;
     private PackageManager mPackageManager;
     private List<ApplicationInfo> mApplications;
@@ -100,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (null != filterText && !filterText.isEmpty()) {
             // iterate over the package names, remove those who don't contain the filter text
-            for(Iterator<String> nameItr = packageNames.iterator(); nameItr.hasNext();) {
+            for (Iterator<String> nameItr = packageNames.iterator(); nameItr.hasNext(); ) {
                 final String pkgName = nameItr.next();
 
                 if (!pkgName.toLowerCase().contains(filterText.toLowerCase())) {
@@ -121,8 +122,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
                 try {
+                    String pkgName = packageNames.get(position);
+
+                    if (pkgName.endsWith(ACCOUNT_AFFINITY_SUFFIX)) {
+                        pkgName = pkgName.replace(ACCOUNT_AFFINITY_SUFFIX, "");
+                    }
+
                     final ApplicationInfo clickedAppInfo = mPackageManager.getApplicationInfo(
-                            packageNames.get(position),
+                            pkgName,
                             PackageManager.GET_META_DATA
                     );
                     final PackageInfo packageInfo = mPackageManager.getPackageInfo(
@@ -132,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
 
                     String packageSigningSha = "";
 
-                    final Signature [] signatures = getSignatures(packageInfo);
+                    final Signature[] signatures = getSignatures(packageInfo);
                     if (null != signatures
                             && signatures.length > 0) {
                         final Signature signature = signatures[0];
@@ -143,12 +150,12 @@ public class MainActivity extends AppCompatActivity {
 
                     String msg = "Certificate hash:\n" + packageSigningSha;
 
-                    if (isAnAuthenticatorApp(clickedAppInfo.packageName)) {
-                        msg += "\n\n" + getAuthenticatorAppMetadata(clickedAppInfo.packageName);
+                    if (isAnAuthenticatorApp(pkgName)) {
+                        msg += "\n\n" + getAuthenticatorAppMetadata(pkgName);
                     }
 
                     new AlertDialog.Builder(MainActivity.this)
-                            .setTitle(clickedAppInfo.packageName)
+                            .setTitle(pkgName)
                             .setMessage(msg)
                             .setPositiveButton(
                                     MainActivity.this.getString(R.string.dismiss),
