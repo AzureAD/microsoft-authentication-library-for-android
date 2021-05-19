@@ -28,16 +28,21 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.util.Base64;
 import android.widget.Toast;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.microsoft.identity.common.internal.providers.oauth2.BrowserAuthorizationFragment;
+import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.internal.providers.oauth2.AndroidTaskStateGenerator;
 import com.microsoft.identity.common.internal.providers.oauth2.CurrentTaskBrowserAuthorizationFragment;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.AuthorizationIntentAction.REDIRECT_RETURNED_ACTION;
+import java.nio.charset.Charset;
+import java.util.HashMap;
+
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.AuthorizationIntentAction.DESTROY_REDIRECT_RECEIVING_ACTIVITY;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.AuthorizationIntentAction.REDIRECT_RETURNED_ACTION;
 
 
 /**
@@ -64,18 +69,33 @@ import static com.microsoft.identity.common.adal.internal.AuthenticationConstant
  * </pre>
  */
 public final class CurrentTaskBrowserTabActivity extends Activity {
+    private static final String TAG = CurrentTaskBrowserTabActivity.class.getSimpleName();
     private static final int REDIRECT_RECEIVED_CODE = 2;
     private BroadcastReceiver mCloseBroadcastReceiver;
+    private int mTaskIdResponseFor;
 
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        final String response = getIntent().getDataString();
+        final HashMap<String, String> urlParameters = StringUtil.isEmpty(response) ? null : StringExtensions.getUrlParameters(response);
+        if(urlParameters != null){
+            if(urlParameters.containsKey("state")) {
+                mTaskIdResponseFor = AndroidTaskStateGenerator.getTaskFromState(decodeState(urlParameters.get("state")));
+            }else{
+                IllegalStateException ex = new IllegalStateException("Did not receive a task id in the authorization response.");
+                com.microsoft.identity.common.logging.Logger.error(TAG, "Did not receive task id in the authorization response", ex);
+                throw ex;
+            }
+        }
+
         if (savedInstanceState == null
                 && getIntent() != null
                 && !StringUtil.isEmpty(getIntent().getDataString())) {
             //Leaving this for now to set static response URI value
-            final Intent responseIntent = CurrentTaskBrowserAuthorizationFragment.createCustomTabResponseIntent(this, getIntent().getDataString());
+            final Intent responseIntent = CurrentTaskBrowserAuthorizationFragment.createCustomTabResponseIntent(this, response);
 
             if (responseIntent != null) {
                 startActivityForResult(responseIntent, REDIRECT_RECEIVED_CODE);
@@ -114,5 +134,15 @@ public final class CurrentTaskBrowserTabActivity extends Activity {
     protected void onDestroy() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mCloseBroadcastReceiver);
         super.onDestroy();
+    }
+
+    private String decodeState(final String encodedState) {
+        if (StringUtil.isEmpty(encodedState)) {
+            Logger.warn(TAG, "Decode state failed because the input state is empty.");
+            return null;
+        }
+
+        final byte[] stateBytes = Base64.decode(encodedState, Base64.NO_PADDING | Base64.URL_SAFE);
+        return new String(stateBytes, Charset.defaultCharset());
     }
 }
