@@ -4,6 +4,9 @@
 # Variable: 'msalVersion' was defined in the Variables tab
 name: $(date:yyyyMMdd)$(rev:.r)
 
+variables:
+- group: android-build-variables
+
 trigger: none
 pr: none
 
