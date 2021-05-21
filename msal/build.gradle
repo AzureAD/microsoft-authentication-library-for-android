@@ -280,10 +280,7 @@ dependencies {
     testImplementation "org.mockito:mockito-inline:$rootProject.ext.mockitoCoreVersion"
     testImplementation ("org.robolectric:robolectric:$rootProject.ext.robolectricVersion")
     testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"
-    implementation(project(":testutils")) {
-        // MSAL has direct dependency on common
-        exclude module: 'common'
-    }
+    testImplementation project(':testutils')
     // instrumentation test dependencies
     androidTestImplementation "androidx.test.ext:junit:$rootProject.ext.androidxJunitVersion"
     // Set this dependency to use JUnit 4 rules
@@ -294,11 +291,11 @@ dependencies {
         transitive = true
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: 'pedroro-test-package', changing: true)
-
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.4.3', changing: true)
+-
     //TODO: we will have to change transitive to true once common4j is published
-    distApi("com.microsoft.identity:common:pedroro-test-package") {
-        transitive = true
+    distApi("com.microsoft.identity:common:3.4.3") {
+        transitive = false
     }
 
 }
