@@ -294,11 +294,11 @@ dependencies {
         transitive = true
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.4.3', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: 'pedroro-test-package', changing: true)
 
     //TODO: we will have to change transitive to true once common4j is published
-    distApi("com.microsoft.identity:common:3.4.3") {
-        transitive = false
+    distApi("com.microsoft.identity:common:pedroro-test-package") {
+        transitive = true
     }
 
 }
