@@ -4,8 +4,8 @@
 # Variable: 'msalVersion' was defined in the Variables tab
 name: $(date:yyyyMMdd)$(rev:.r)
 
-variables:
-- group: android-build-variables
+#variables:
+#- group: android-build-variables
 
 trigger: none
 pr: none
@@ -27,6 +27,7 @@ jobs:
     project: msal
     projectVersion: $(msalVersion)
     checkoutSubmodules: recursive
+    EnvVstsMvnAndroidAccessTokenVar: ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN
     gradleAssembleReleaseTask: msal:clean msal:assembleDistRelease
     gradleGeneratePomFiletask: msal:generatePomFileForMsalPublication
     aarSourceFolder: msal\build\outputs\aar
