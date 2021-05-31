@@ -75,6 +75,7 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEB_VIEW_ZOOM_CONTROLS_ENABLED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEB_VIEW_ZOOM_ENABLED;
 import static com.microsoft.identity.client.exception.MsalClientException.APP_MANIFEST_VALIDATION_ERROR;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORIZATION_IN_CURRENT_TASK;
 
 public class PublicClientApplicationConfiguration {
     private static final String TAG = PublicClientApplicationConfiguration.class.getSimpleName();
@@ -100,6 +101,8 @@ public class PublicClientApplicationConfiguration {
         static final String WEB_VIEW_ZOOM_CONTROLS_ENABLED = "web_view_zoom_controls_enabled";
         static final String WEB_VIEW_ZOOM_ENABLED = "web_view_zoom_enabled";
         static final String POWER_OPT_CHECK_FOR_NETWORK_REQUEST_ENABLED = "power_opt_check_for_network_req_enabled";
+        static final String AUTHORIZATION_IN_CURRENT_TASK = "authorization_in_current_task";
+
 
     }
 
@@ -153,6 +156,9 @@ public class PublicClientApplicationConfiguration {
 
     @SerializedName(POWER_OPT_CHECK_FOR_NETWORK_REQUEST_ENABLED)
     private Boolean powerOptCheckEnabled;
+
+    @SerializedName(AUTHORIZATION_IN_CURRENT_TASK)
+    private Boolean authorizationInCurrentTask;
 
     transient private OAuth2TokenCache mOAuth2TokenCache;
 
@@ -367,6 +373,10 @@ public class PublicClientApplicationConfiguration {
         this.powerOptCheckEnabled = powerOptCheckEnabled;
     }
 
+    public Boolean authorizationInCurrentTask() {
+        return authorizationInCurrentTask;
+    }
+
     public Authority getDefaultAuthority() {
         if (mAuthorities != null) {
             if (mAuthorities.size() > 1) {
@@ -435,9 +445,10 @@ public class PublicClientApplicationConfiguration {
         this.mClientCapabilities = config.mClientCapabilities == null ? this.mClientCapabilities : config.mClientCapabilities;
         this.mIsSharedDevice = config.mIsSharedDevice == true ? this.mIsSharedDevice : config.mIsSharedDevice;
         this.mLoggerConfiguration = config.mLoggerConfiguration == null ? this.mLoggerConfiguration : config.mLoggerConfiguration;
-        this.webViewZoomControlsEnabled = config.webViewZoomControlsEnabled == null || config.webViewZoomControlsEnabled;
-        this.webViewZoomEnabled = config.webViewZoomEnabled == null || config.webViewZoomEnabled;
-        this.powerOptCheckEnabled = config.powerOptCheckEnabled == null || config.powerOptCheckEnabled;
+        this.webViewZoomControlsEnabled = config.webViewZoomControlsEnabled == null ? this.webViewZoomControlsEnabled : config.webViewZoomControlsEnabled;
+        this.webViewZoomEnabled = config.webViewZoomEnabled == null ? this.webViewZoomEnabled : config.webViewZoomEnabled;
+        this.powerOptCheckEnabled = config.powerOptCheckEnabled == null ? this.powerOptCheckEnabled : config.powerOptCheckEnabled;
+        this.authorizationInCurrentTask = config.authorizationInCurrentTask == null ? this.authorizationInCurrentTask : config.authorizationInCurrentTask;
     }
 
     void validateConfiguration() {

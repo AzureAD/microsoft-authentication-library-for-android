@@ -41,6 +41,7 @@ import androidx.annotation.Nullable;
 import androidx.browser.customtabs.CustomTabsService;
 
 import com.microsoft.identity.client.BrowserTabActivity;
+import com.microsoft.identity.client.CurrentTaskBrowserTabActivity;
 import com.microsoft.identity.client.exception.MsalArgumentException;
 
 import org.json.JSONException;
@@ -259,7 +260,8 @@ public final class MsalUtils {
         for (final ResolveInfo info : resolveInfoList) {
             final ActivityInfo activityInfo = info.activityInfo;
 
-            if (activityInfo.name.equals(BrowserTabActivity.class.getName())) {
+            if (activityInfo.name.equals(BrowserTabActivity.class.getName()) ||
+                    activityInfo.name.equals(CurrentTaskBrowserTabActivity.class.getName())) {
                 hasActivity = true;
             } else {
                 // another application is listening for this url scheme, don't open

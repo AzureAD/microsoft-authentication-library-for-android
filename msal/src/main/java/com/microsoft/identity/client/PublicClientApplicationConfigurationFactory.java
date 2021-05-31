@@ -38,6 +38,7 @@ import com.microsoft.identity.common.internal.authorities.AuthorityDeserializer;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudienceDeserializer;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
+import com.microsoft.identity.common.internal.configuration.LibraryConfiguration;
 import com.microsoft.identity.msal.R;
 
 import java.io.File;
@@ -89,6 +90,11 @@ public class PublicClientApplicationConfigurationFactory {
         if (developerConfig != null) {
             config.mergeConfiguration(developerConfig);
             config.validateConfiguration();
+        }
+
+        if(config.authorizationInCurrentTask()){
+            LibraryConfiguration libraryConfiguration = LibraryConfiguration.builder().authorizationInCurrentTask((true)).build();
+            LibraryConfiguration.intializeLibraryConfiguration(libraryConfiguration);
         }
 
         config.setOAuth2TokenCache(MsalOAuth2TokenCache.create(context));
