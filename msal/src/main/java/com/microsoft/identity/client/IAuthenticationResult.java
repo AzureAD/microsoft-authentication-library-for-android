@@ -57,7 +57,8 @@ public interface IAuthenticationResult {
     /**
      * @return The expiration time of the access token returned in the Token property.
      * This value is calculated based on current UTC time measured locally and the value expiresIn returned from the
-     * service.
+     * service. Please note that if the authentication scheme is 'pop', this value reflects the expiry of the 
+     * 'inner' token returned by AAD and does not indicate the expiry of the signed pop JWT ('outer' token).
      */
     @NonNull
     Date getExpiresOn();
