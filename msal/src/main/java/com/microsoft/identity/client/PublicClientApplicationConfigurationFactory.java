@@ -92,10 +92,9 @@ public class PublicClientApplicationConfigurationFactory {
             config.validateConfiguration();
         }
 
-        if(config.authorizationInCurrentTask()){
-            LibraryConfiguration libraryConfiguration = LibraryConfiguration.builder().authorizationInCurrentTask((true)).build();
-            LibraryConfiguration.intializeLibraryConfiguration(libraryConfiguration);
-        }
+        //Initialize internal library configuration
+        final LibraryConfiguration libraryConfiguration = LibraryConfiguration.builder().authorizationInCurrentTask((config.authorizationInCurrentTask())).build();
+        LibraryConfiguration.intializeLibraryConfiguration(libraryConfiguration);
 
         config.setOAuth2TokenCache(MsalOAuth2TokenCache.create(context));
         return config;

@@ -32,14 +32,11 @@ import android.widget.Toast;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.internal.providers.oauth2.CurrentTaskBrowserAuthorizationFragment;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.common.logging.Logger;
 
-import java.util.HashMap;
-
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.AuthorizationIntentAction.DESTROY_REDIRECT_RECEIVING_ACTIVITY;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.AuthorizationIntentAction.DESTROY_REDIRECT_RECEIVING_ACTIVITY_ACTION;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.AuthorizationIntentAction.REDIRECT_RETURNED_ACTION;
 
 
@@ -51,8 +48,8 @@ import static com.microsoft.identity.common.adal.internal.AuthenticationConstant
  * When the AuthorizationAgent is launched, and we're redirected back with the redirect
  * uri (the redirect must be unique across apps on a device), the os will fire an intent with the redirect,
  * and the CurrentTaskBrowserTabActivity will be launched.
- *
- * Only use this if you've configured MSAL to use currenntTaskForAuthorizationActivities
+ * <p>
+ * Only use this if you've configured MSAL to use authorization_in_current_task
  * <pre>
  * &lt;intent-filter&gt;
  *     &lt;action android:name="android.intent.action.VIEW" /&gt;
@@ -80,18 +77,6 @@ public final class CurrentTaskBrowserTabActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         final String response = getIntent().getDataString();
-        final HashMap<String, String> urlParameters = StringUtil.isEmpty(response) ? null : StringExtensions.getUrlParameters(response);
-        if(urlParameters != null){
-            /*
-            if(urlParameters.containsKey("state")) {
-                mTaskIdResponseFor = AndroidTaskStateGenerator.getTaskFromState(decodeState(urlParameters.get("state")));
-            }else{
-                IllegalStateException ex = new IllegalStateException("Did not receive a task id in the authorization response.");
-                com.microsoft.identity.common.logging.Logger.error(TAG, "Did not receive task id in the authorization response", ex);
-                throw ex;
-            }
-             */
-        }
 
         if (savedInstanceState == null
                 && getIntent() != null
@@ -102,7 +87,7 @@ public final class CurrentTaskBrowserTabActivity extends Activity {
             if (responseIntent != null) {
                 startActivityForResult(responseIntent, REDIRECT_RECEIVED_CODE);
             } else {
-                Logger.warn(TAG,"Received NULL response intent. Unable to complete authorization.");
+                Logger.warn(TAG, "Received NULL response intent. Unable to complete authorization.");
                 Toast.makeText(getApplicationContext(), "Unable to complete authorization as there is no interactive call in progress. This can be due to closing the app while the authorization was in process.", Toast.LENGTH_LONG).show();
             }
         }
@@ -127,7 +112,7 @@ public final class CurrentTaskBrowserTabActivity extends Activity {
             };
             LocalBroadcastManager.getInstance(this).registerReceiver(
                     mCloseBroadcastReceiver,
-                    new IntentFilter(DESTROY_REDIRECT_RECEIVING_ACTIVITY)
+                    new IntentFilter(DESTROY_REDIRECT_RECEIVING_ACTIVITY_ACTION)
             );
         }
     }

@@ -45,6 +45,7 @@ import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAu
 import com.microsoft.identity.common.internal.authorities.Environment;
 import com.microsoft.identity.common.internal.authorities.UnknownAudience;
 import com.microsoft.identity.common.internal.authorities.UnknownAuthority;
+import com.microsoft.identity.common.internal.configuration.LibraryConfiguration;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.telemetry.TelemetryConfiguration;
@@ -157,8 +158,12 @@ public class PublicClientApplicationConfiguration {
     @SerializedName(POWER_OPT_CHECK_FOR_NETWORK_REQUEST_ENABLED)
     private Boolean powerOptCheckEnabled;
 
+    /**
+     * Controls whether authorization activites are opened/created in the current task.
+     * Current default as of MSAL 2.0.12 is to use a new task
+     */
     @SerializedName(AUTHORIZATION_IN_CURRENT_TASK)
-    private Boolean authorizationInCurrentTask;
+    private Boolean isAuthorizationInCurrentTask;
 
     transient private OAuth2TokenCache mOAuth2TokenCache;
 
@@ -374,7 +379,7 @@ public class PublicClientApplicationConfiguration {
     }
 
     public Boolean authorizationInCurrentTask() {
-        return authorizationInCurrentTask;
+        return isAuthorizationInCurrentTask;
     }
 
     public Authority getDefaultAuthority() {
@@ -448,7 +453,7 @@ public class PublicClientApplicationConfiguration {
         this.webViewZoomControlsEnabled = config.webViewZoomControlsEnabled == null ? this.webViewZoomControlsEnabled : config.webViewZoomControlsEnabled;
         this.webViewZoomEnabled = config.webViewZoomEnabled == null ? this.webViewZoomEnabled : config.webViewZoomEnabled;
         this.powerOptCheckEnabled = config.powerOptCheckEnabled == null ? this.powerOptCheckEnabled : config.powerOptCheckEnabled;
-        this.authorizationInCurrentTask = config.authorizationInCurrentTask == null ? this.authorizationInCurrentTask : config.authorizationInCurrentTask;
+        this.isAuthorizationInCurrentTask = config.isAuthorizationInCurrentTask == null ? this.isAuthorizationInCurrentTask : config.isAuthorizationInCurrentTask;
     }
 
     void validateConfiguration() {
@@ -563,13 +568,19 @@ public class PublicClientApplicationConfiguration {
                 || getAuthorizationAgent() == AuthorizationAgent.BROWSER)
                 && !hasCustomTabRedirectActivity) {
             final Uri redirectUri = Uri.parse(mRedirectUri);
+            String activityClassName = BrowserTabActivity.class.getSimpleName();
+
+            if(LibraryConfiguration.getInstance().isAuthorizationInCurrentTask()){
+                activityClassName = CurrentTaskBrowserTabActivity.class.getSimpleName();
+            }
+
             throw new MsalClientException(
                     APP_MANIFEST_VALIDATION_ERROR,
                     "Intent filter for: " +
-                            BrowserTabActivity.class.getSimpleName() +
+                            activityClassName +
                             " is missing. " +
                             " Please make sure you have the following activity in your AndroidManifest.xml \n\n" +
-                            "<activity android:name=\"com.microsoft.identity.client.BrowserTabActivity\">" + "\n" +
+                            "<activity android:name=\"com.microsoft.identity.client." + activityClassName + "\">" + "\n" +
                             "\t" + "<intent-filter>" + "\n" +
                             "\t\t" + "<action android:name=\"android.intent.action.VIEW\" />" + "\n" +
                             "\t\t" + "<category android:name=\"android.intent.category.DEFAULT\" />" + "\n" +
