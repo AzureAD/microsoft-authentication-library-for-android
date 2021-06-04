@@ -136,7 +136,6 @@ public class CrossCloudGuestAccountTests {
 
         // Acquire token silently
         MsalAuthResult acquireTokenSilentResult = msalSdk.acquireTokenSilent(acquireTokenAuthParams, TokenRequestTimeout.SHORT);
-        //Assert.assertEquals("accessToken is same", acquireTokenSilentResult.getAccessToken(), acquireTokenResult.getAccessToken());
         Assert.assertFalse("Verify accessToken is not empty", TextUtils.isEmpty(acquireTokenSilentResult.getAccessToken()));
     }
 

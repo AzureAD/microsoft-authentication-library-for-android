@@ -22,25 +22,17 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.crosscloud;
 
-import android.app.Activity;
-
-import androidx.test.rule.ActivityTestRule;
-
-import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
-import com.microsoft.identity.client.msal.automationapp.MainActivity;
-import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
-import com.microsoft.identity.client.ui.automation.rules.RulesHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.RuleChain;
 
+// Acquire token for cross cloud guest account (with broker)
+// https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1420494
 public class TestCase1420494 extends AbstractMsalBrokerTest {
 
     @Before
@@ -55,7 +47,7 @@ public class TestCase1420494 extends AbstractMsalBrokerTest {
     }
 
     /**
-     * Tests Acquiring token for Cross cloud Guest account via Broker
+     * Tests Acquiring token for Cross cloud Guest account via Broker.
      */
     @Test
     public void test_1420494() throws Throwable {

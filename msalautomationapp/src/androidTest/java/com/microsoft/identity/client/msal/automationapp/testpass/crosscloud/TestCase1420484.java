@@ -31,6 +31,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+// Acquiring token for cross cloud guest account (Msal Only)
+// https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1420484
 public class TestCase1420484 extends AbstractMsalUiTest {
 
     @Before
@@ -45,7 +47,7 @@ public class TestCase1420484 extends AbstractMsalUiTest {
     }
 
     /**
-     * Tests Acquiring token for Cross cloud Guest account without broker
+     * Tests Acquiring token for Cross cloud Guest account without broker.
      */
     @Test
     public void test_1420484() throws Throwable {
