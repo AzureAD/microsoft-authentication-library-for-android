@@ -22,28 +22,50 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.crosscloud;
 
-import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
-import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
+import android.text.TextUtils;
+
+import com.microsoft.identity.client.Prompt;
+import com.microsoft.identity.client.msal.automationapp.AbstractGuestAccountMsalUiTest;
+import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
+import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
+import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
+import com.microsoft.identity.client.ui.automation.TestContext;
+import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.app.IApp;
+import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
+import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
+import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
+import com.microsoft.identity.internal.testutils.labutils.LabGuestAccountHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
-import org.junit.After;
-import org.junit.Before;
+import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+
+import java.util.Arrays;
+import java.util.Collection;
 
 // Acquiring token for cross cloud guest account (Msal Only)
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1420484
-public class TestCase1420484 extends AbstractMsalUiTest {
+@RunWith(Parameterized.class)
+public class TestCase1420484 extends AbstractGuestAccountMsalUiTest {
 
-    @Before
-    public void setup() {
-        mActivity = mActivityRule.getActivity();
-        mBrowser = new BrowserChrome();
+    private final String mGuestHomeAzureEnvironment;
+
+    public TestCase1420484(final String name, final String guestHomeAzureEnvironment) {
+        mGuestHomeAzureEnvironment = guestHomeAzureEnvironment;
     }
 
-    @After
-    public void cleanup() {
-        mBrowser.clear();
+    @Parameterized.Parameters(name = "{0}")
+    public static Collection guestHomeAzureEnvironment() {
+        return Arrays.asList(new Object[][]{
+                {"AZURE_US_GOV", LabConstants.GuestHomeAzureEnvironment.AZURE_US_GOV},
+                {"AZURE_CHINA_CLOUD", LabConstants.GuestHomeAzureEnvironment.AZURE_CHINA_CLOUD},
+        });
     }
 
     /**
@@ -51,43 +73,62 @@ public class TestCase1420484 extends AbstractMsalUiTest {
      */
     @Test
     public void test_1420484() throws Throwable {
-        CrossCloudGuestAccountTests.testAcquireToken(
-                mActivity,
-                mBrowser,
-                LabConstants.GuestHomeAzureEnvironment.AZURE_US_GOV,
-                null);
+        final String userName = mGuestUser.getHomeUpn();
+        final String password = LabGuestAccountHelper.getPasswordForGuestUser(mGuestUser);
 
-        mBrowser.clear();
+        // Handler for Interactive auth call
+        OnInteractionRequired interactionHandler = () -> {
+            PromptHandlerParameters promptHandlerParameters = null;
+            ((IApp) mBrowser).handleFirstRun();
+            promptHandlerParameters = PromptHandlerParameters.builder()
+                    .prompt(PromptParameter.SELECT_ACCOUNT)
+                    .loginHint(userName)
+                    .staySignedInPageExpected(true)
+                    .speedBumpExpected(true)
+                    .build();
+            AadPromptHandler promptHandler = new AadPromptHandler(promptHandlerParameters);
+            promptHandler.handlePrompt(userName, password);
+        };
 
-        CrossCloudGuestAccountTests.testAcquireToken(
-                mActivity,
-                mBrowser,
-                LabConstants.GuestHomeAzureEnvironment.AZURE_CHINA_CLOUD,
-                null);
-    }
+        MsalAuthTestParams acquireTokenAuthParams = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .loginHint(userName)
+                .scopes(Arrays.asList(getScopes()))
+                .promptParameter(Prompt.SELECT_ACCOUNT)
+                .authority(getAuthority())
+                .msalConfigResourceId(getConfigFileResourceId())
+                .build();
 
-    @Override
-    public String[] getScopes() {
-        return null;
-    }
+        final MsalSdk msalSdk = new MsalSdk();
+        // Acquire token interactively
+        MsalAuthResult acquireTokenResult = msalSdk.acquireTokenInteractive(acquireTokenAuthParams, interactionHandler, TokenRequestTimeout.SHORT);
+        Assert.assertFalse("Verify accessToken is not empty", TextUtils.isEmpty(acquireTokenResult.getAccessToken()));
 
-    @Override
-    public int getConfigFileResourceId() {
-        return 0;
-    }
+        // change the time on the device
+        TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
 
-    @Override
-    public String getAuthority() {
-        return null;
+        // Acquire token silently
+        MsalAuthResult acquireTokenSilentResult = msalSdk.acquireTokenSilent(acquireTokenAuthParams, TokenRequestTimeout.SHORT);
+        Assert.assertFalse("Verify accessToken is not empty", TextUtils.isEmpty(acquireTokenSilentResult.getAccessToken()));
     }
 
     @Override
     public LabUserQuery getLabUserQuery() {
-        return null;
+        final LabUserQuery query = new LabUserQuery();
+        query.userType = LabConstants.UserType.GUEST;
+        query.guestHomeAzureEnvironment = mGuestHomeAzureEnvironment;
+        query.guestHomedIn = LabConstants.GuestHomedIn.HOST_AZURE_AD;
+        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CLOUD;
+        return query;
     }
 
     @Override
-    public String getTempUserType() {
-        return null;
+    public String[] getScopes() {
+        return new String[]{"https://graph.windows.net/.default"};
+    }
+
+    @Override
+    public String getAuthority() {
+        return LabConfig.getCurrentLabConfig().getAuthority() + mGuestUser.getGuestLabTenants().get(0);
     }
 }
