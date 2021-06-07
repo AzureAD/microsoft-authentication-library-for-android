@@ -64,7 +64,7 @@ jobs:
   - task: Gradle@2
     displayName: Run Unit tests
     inputs:
-      tasks: testLocalDebugUnitTest -Plabtest -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -i
+      tasks: testLocalDebugUnitTest -Plabtest -ProbolectricSdkVersion=${variables.robolectricSdkVersion} -i
       javaHomeSelection: $(BuildParameters.javaHomeSelection)
       jdkVersion: 1.11
   - task: ComponentGovernanceComponentDetection@0
