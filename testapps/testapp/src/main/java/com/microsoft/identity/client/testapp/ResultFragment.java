@@ -43,9 +43,16 @@ import androidx.fragment.app.Fragment;
 public class ResultFragment extends Fragment {
 
     public static final String CORRELATION_ID = "correlation_id";
+    public static final String ACCOUNT_TENANT_ID = "account_tenant_id" ;
     static final String ACCESS_TOKEN = "access_token";
     static final String DISPLAYABLE = "displayable";
     static final String STRING_DATA_TO_DISPLAY = "string_data_to_display";
+    public static final String TENANT = "tenant";
+    public static final String AUTH_SCHEME = "auth_scheme";
+    public static final String ACCOUNT_ID = "account_id";
+    public static final String ACCOUNT_TENANT = "account_tenant";
+    public static final String AUTHORITY = "authority";
+    public static final String CLAIMS = "account_claims";
     static String previousAccessToken = "";
 
     private TextView mTextView;
@@ -72,6 +79,12 @@ public class ResultFragment extends Fragment {
             if (previousAccessToken != null && !previousAccessToken.isEmpty()) {
                 final boolean isTokenChanged = !previousAccessToken.equalsIgnoreCase(accessToken);
                 output += "Is access token changed? " + ": " + isTokenChanged + '\n';
+            }
+
+            for (String key: bundle.keySet()) {
+                if (!ACCESS_TOKEN.equals(key) && !DISPLAYABLE.equals(key)) {
+                    output += key + ": " + bundle.getString(key) + "\n";
+                }
             }
 
             output += ACCESS_TOKEN + ": " + accessToken + '\n'
