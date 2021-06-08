@@ -35,7 +35,6 @@ import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequ
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabGuestAccountHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
@@ -76,19 +75,19 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
         final String password = LabGuestAccountHelper.getPasswordForGuestUser(mGuestUser);
 
         // Handler for Interactive auth call
-        OnInteractionRequired interactionHandler = () -> {
-            PromptHandlerParameters promptHandlerParameters = null;
-            promptHandlerParameters = PromptHandlerParameters.builder()
+        final OnInteractionRequired interactionHandler = () -> {
+            final PromptHandlerParameters promptHandlerParameters =
+                    PromptHandlerParameters.builder()
                     .prompt(PromptParameter.SELECT_ACCOUNT)
                     .loginHint(userName)
                     .staySignedInPageExpected(true)
                     .broker(mBroker)
                     .build();
-            AadPromptHandler promptHandler = new AadPromptHandler(promptHandlerParameters);
+            final AadPromptHandler promptHandler = new AadPromptHandler(promptHandlerParameters);
             promptHandler.handlePrompt(userName, password);
         };
 
-        MsalAuthTestParams acquireTokenAuthParams = MsalAuthTestParams.builder()
+        final MsalAuthTestParams acquireTokenAuthParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(userName)
                 .scopes(Arrays.asList(getScopes()))
@@ -99,7 +98,7 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
 
         final MsalSdk msalSdk = new MsalSdk();
         // Acquire token interactively
-        MsalAuthResult acquireTokenResult = msalSdk.acquireTokenInteractive(acquireTokenAuthParams, interactionHandler, TokenRequestTimeout.SHORT);
+        final MsalAuthResult acquireTokenResult = msalSdk.acquireTokenInteractive(acquireTokenAuthParams, interactionHandler, TokenRequestTimeout.SHORT);
         Assert.assertFalse("Verify accessToken is not empty", TextUtils.isEmpty(acquireTokenResult.getAccessToken()));
 
         // change the time on the device
@@ -108,6 +107,8 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
         // Acquire token silently
         MsalAuthResult acquireTokenSilentResult = msalSdk.acquireTokenSilent(acquireTokenAuthParams, TokenRequestTimeout.SHORT);
         Assert.assertFalse("Verify accessToken is not empty", TextUtils.isEmpty(acquireTokenSilentResult.getAccessToken()));
+
+        Assert.assertNotEquals("Silent request gets new access token", acquireTokenSilentResult.getAccessToken(), acquireTokenResult.getAccessToken());
     }
 
     @Override
@@ -127,7 +128,7 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
 
     @Override
     public String getAuthority() {
-        return LabConfig.getCurrentLabConfig().getAuthority() + mGuestUser.getGuestLabTenants().get(0);
+        return "https://login.microsoftonline.com/" + mGuestUser.getGuestLabTenants().get(0);
     }
 }
 
