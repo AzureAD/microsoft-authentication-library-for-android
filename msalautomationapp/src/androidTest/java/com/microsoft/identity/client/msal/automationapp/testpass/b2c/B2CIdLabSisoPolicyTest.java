@@ -39,10 +39,14 @@ import com.microsoft.identity.client.ui.automation.interaction.b2c.B2CProvider;
 import com.microsoft.identity.client.ui.automation.interaction.b2c.IdLabB2cSisoPolicyPromptHandler;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
 
+@RunWith(Parameterized.class)
 public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
 
     final static B2CProvider[] b2CProviders = new B2CProvider[]{
@@ -68,6 +72,7 @@ public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
         return mB2cProvider;
     }
 
+    @Test
     public void testCanLoginWithLocalAndSocialAccounts() throws Throwable {
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
@@ -107,11 +112,10 @@ public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
 
         // ------ do silent request ------
 
-        IAccount account = msalSdk.getAccount(mActivity,getConfigFileResourceId(),username);
 
         final MsalAuthTestParams authTestSilentParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .authority(account.getAuthority())
+                .authority(getAuthority())
                 .loginHint(username)
                 .forceRefresh(false)
                 .scopes(Arrays.asList(mScopes))
@@ -123,11 +127,10 @@ public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
 
         // ------ do force refresh silent request ------
 
-        account = msalSdk.getAccount(mActivity,getConfigFileResourceId(),account.getUsername());
 
         final MsalAuthTestParams silentForceParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .authority(account.getAuthority())
+                .authority(getAuthority())
                 .loginHint(username)
                 .forceRefresh(true)
                 .scopes(Arrays.asList(mScopes))

@@ -45,8 +45,11 @@ import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.sdk.ResultFuture;
 import com.microsoft.identity.client.ui.automation.sdk.IAuthSdk;
+import com.microsoft.identity.common.internal.authorities.Authority;
+import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A Sdk wrapper for Microsoft Authentication Library (MSAL) which implements
@@ -175,6 +178,13 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
                 msalConfigResourceId
         );
 
+        //Handle accounts for AAD B2C
+        final Authority authority = pca.getConfiguration().getDefaultAuthority();
+        if( authority instanceof AzureActiveDirectoryB2CAuthority){
+            final String policyName = ((AzureActiveDirectoryB2CAuthority) authority).getB2CPolicyName();
+            return getAccountForPolicyName((MultipleAccountPublicClientApplication) pca, policyName);
+        }
+
         if (pca instanceof SingleAccountPublicClientApplication) {
             return getAccountForSingleAccountPca((SingleAccountPublicClientApplication) pca);
         } else if (pca instanceof MultipleAccountPublicClientApplication) {
@@ -232,5 +242,22 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
         } catch (final Exception exception) {
             throw new AssertionError(exception);
         }
+    }
+
+    private IAccount getAccountForPolicyName(@NonNull final MultipleAccountPublicClientApplication pca, @NonNull final String policyName)
+    {
+        try {
+            List<IAccount> accounts = pca.getAccounts();
+            for(IAccount account : accounts)
+            {
+                if (account.getClaims().get("tfp").equals(policyName))
+                {
+                    return account;
+                }
+            }
+        } catch (final Exception exception) {
+            throw new AssertionError(exception);
+        }
+        return null;
     }
 }
