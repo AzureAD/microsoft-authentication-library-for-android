@@ -1,0 +1,67 @@
+# File: azure-pipelines\vsts-releases\msal-vsts-release.yml
+# Description: Publish msal to maven central (sonatype)
+# https://search.maven.org/search?q=g:com.microsoft.identity.client
+# Variable: 'ENV_VSTS_MVN_ANDROID_MSAL_USERNAME' was defined in the Variables tab
+# Variable: 'mvnAccessToken' was defined in the Variables tab
+# https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate
+name: $(date:yyyyMMdd)$(rev:.r)
+
+trigger: none
+pr: none
+
+resources:
+  repositories:
+  - repository: self
+    type: git
+    ref: master
+  - repository: common
+    type: github
+    name: AzureAD/microsoft-authentication-library-common-for-android
+    ref: dev
+    endpoint: ANDROID_GITHUB
+
+jobs:
+- job: Phase_1
+  displayName: Phase 1
+  cancelTimeoutInMinutes: 1
+  pool:
+    name: Hosted Windows 2019 with VS2019
+  steps:
+  - checkout: self
+    clean: true
+    submodules: recursive
+    persistCredentials: True
+  - task: CmdLine@1
+    displayName: Set MVN Access Token in Environment
+    inputs:
+      filename: echo
+      arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN]$(mvnAccessToken)'
+  - template: azure-pipelines/templates/steps/credscan-policheck.yml@common
+    parameters:
+      policheckCmdLineArgsDir: msal
+  - task: Gradle@1
+    name: Gradle1
+    displayName: Assemble Release
+    inputs:
+      tasks: clean msal:assembleDistRelease
+      publishJUnitResults: false
+      jdkArchitecture: x86
+      sqAnalysisBreakBuildIfQualityGateFailed: false
+  - task: Gradle@2
+    displayName: Publish
+    inputs:
+      tasks: msal:publish
+      publishJUnitResults: false
+  - task: CopyFiles@2
+    name: CopyFiles1
+    displayName: Copy Files to Artifact Staging Directory
+    inputs:
+      SourceFolder: msal\build\
+      TargetFolder: $(build.artifactstagingdirectory)
+  - task: PublishPipelineArtifact@1
+    name: PublishPipelineArtifact1
+    displayName: 'Publish Artifact: msal Release'
+    inputs:
+      ArtifactName: msalRelease
+      TargetPath: $(Build.ArtifactStagingDirectory)
+...
