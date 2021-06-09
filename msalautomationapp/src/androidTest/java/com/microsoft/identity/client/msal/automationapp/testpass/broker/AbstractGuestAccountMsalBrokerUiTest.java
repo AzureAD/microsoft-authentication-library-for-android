@@ -15,7 +15,7 @@
 //
 //  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 //  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE
 //  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
@@ -24,35 +24,29 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
 import androidx.annotation.NonNull;
 
-import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
+import com.microsoft.identity.client.msal.automationapp.AbstractGuestAccountMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.BrokerTestHelper;
-import com.microsoft.identity.client.ui.automation.IBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.rules.RulesHelper;
 
 import org.junit.rules.RuleChain;
 
-/**
- * An MSAL test model that would leverage an {@link ITestBroker} installed on the device.
- */
-public abstract class AbstractMsalBrokerTest extends AbstractMsalUiTest implements IBrokerTest {
-
+public abstract class AbstractGuestAccountMsalBrokerUiTest extends AbstractGuestAccountMsalUiTest {
     protected ITestBroker mBroker = getBroker();
 
-    @NonNull
     @Override
-    public ITestBroker getBroker() {
+    public RuleChain getPrimaryRules() {
+        return RulesHelper.getPrimaryRules(getBroker());
+    }
+
+    @NonNull
+    private ITestBroker getBroker() {
         // only initialize once....so calling getBroker from anywhere returns the same instance
         if (mBroker == null) {
             final SupportedBrokers supportedBrokersAnnotation = getClass().getAnnotation(SupportedBrokers.class);
             mBroker = BrokerTestHelper.createBrokerFromFlavor(supportedBrokersAnnotation);
         }
         return mBroker;
-    }
-
-    @Override
-    public RuleChain getPrimaryRules() {
-        return RulesHelper.getPrimaryRules(getBroker());
     }
 }
