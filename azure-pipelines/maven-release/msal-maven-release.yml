@@ -28,7 +28,7 @@ jobs:
     projectVersion: $(msalVersion)
     checkoutSubmodules: recursive
     envVstsMvnAndroidAccessTokenVar: ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN
-    gradleAssembleReleaseTask: msal:clean msal:assembleRelease
+    gradleAssembleReleaseTask: msal:clean msal:assembleDistRelease
     gradleGeneratePomFiletask: msal:generatePomFileForMsalPublication
     aarSourceFolder: msal\build\outputs\aar
     jarSourceFolder: msal\build\outputs\jar
