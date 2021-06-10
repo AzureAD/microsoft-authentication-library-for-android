@@ -177,7 +177,7 @@ public class AcquireTokenTestsFragment extends StressTestsFragment<IAccount, IAu
 
     @Override
     public int getNumberOfThreads() {
-        return 10;
+        return 1;
     }
 
     @Override
