@@ -1,6 +1,11 @@
 package com.microsoft.identity.client.stresstests.fragments;
 
+import android.app.ActivityManager;
+import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.CpuUsageInfo;
+import android.os.Debug;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -19,8 +24,8 @@ import androidx.fragment.app.Fragment;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.stresstests.INotifyOperationResultCallback;
 import com.microsoft.identity.client.stresstests.AsyncResult;
+import com.microsoft.identity.client.stresstests.INotifyOperationResultCallback;
 import com.microsoft.identity.client.stresstests.R;
 import com.microsoft.identity.client.stresstests.Util;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
@@ -32,7 +37,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-import java.util.TimerTask;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutionException;
@@ -203,7 +207,19 @@ public abstract class StressTestsFragment<T, S> extends Fragment {
                                 @SneakyThrows
                                 @Override
                                 public void run() {
+                                    int pid = android.os.Process.myPid();
+                                    ActivityManager activityManager = (ActivityManager) getContext().getSystemService(Context.ACTIVITY_SERVICE);
+                                    Debug.MemoryInfo memoryInfo = activityManager.getProcessMemoryInfo(new int[]{ pid })[0];
+
+                                    long totalMemory = memoryInfo.getTotalPrivateDirty();
+
+                                    if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                                        totalMemory += memoryInfo.getTotalPrivateClean();
+                                    }
+
+
                                     AsyncResult<S> result = runAsync(prerequisites.getResult());
+
                                     if (result.isSuccess()) {
                                         printOutput("Execution success");
                                     } else {
@@ -338,6 +354,10 @@ public abstract class StressTestsFragment<T, S> extends Fragment {
             @Override
             public void run() {
                 resultsTextView.append(String.format("%s: %s\n", currentTime, text));
+                final int length = resultsTextView.getText().length();
+                if (length > 1000) {
+                    resultsTextView.setText(resultsTextView.getText().subSequence(length - 1000, length));
+                }
                 resultsScrollView.fullScroll(View.FOCUS_DOWN);
             }
         });
