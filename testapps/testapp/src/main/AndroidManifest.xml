@@ -51,7 +51,7 @@
         </activity>
 
         <activity
-            android:name="com.microsoft.identity.client.BrowserTabActivity"
+            android:name="com.microsoft.identity.client.CurrentTaskBrowserTabActivity"
             android:launchMode="singleTask" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
