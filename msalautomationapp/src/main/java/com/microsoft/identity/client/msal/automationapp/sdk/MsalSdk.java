@@ -108,11 +108,24 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
 
         final ResultFuture<IAuthenticationResult, Exception> future = new ResultFuture<>();
 
-        final IAccount account = getAccount(
+        IAccount account = getAccount(
                 authTestParams.getActivity(),
                 authTestParams.getMsalConfigResourceId(),
                 authTestParams.getLoginHint()
         );
+
+        // Handle accounts for AAD B2C
+        final String authTestParamAuthority = authTestParams.getAuthority();
+        Authority authority = null;
+        try {
+            authority = Authority.getAuthorityFromAuthorityUrl(authTestParamAuthority);
+        } catch (IllegalArgumentException e) {
+            authority = null != authority ? authority : pca.getConfiguration().getDefaultAuthority();
+        }
+        if( authority instanceof AzureActiveDirectoryB2CAuthority){
+            final String policyName = ((AzureActiveDirectoryB2CAuthority) authority).getB2CPolicyName();
+            account = getAccountForPolicyName((MultipleAccountPublicClientApplication) pca, policyName);
+        }
 
         final AcquireTokenSilentParameters.Builder acquireTokenParametersBuilder = new AcquireTokenSilentParameters.Builder()
                 .forAccount(account)
@@ -177,13 +190,6 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
                 activity,
                 msalConfigResourceId
         );
-
-        //Handle accounts for AAD B2C
-        final Authority authority = pca.getConfiguration().getDefaultAuthority();
-        if( authority instanceof AzureActiveDirectoryB2CAuthority){
-            final String policyName = ((AzureActiveDirectoryB2CAuthority) authority).getB2CPolicyName();
-            return getAccountForPolicyName((MultipleAccountPublicClientApplication) pca, policyName);
-        }
 
         if (pca instanceof SingleAccountPublicClientApplication) {
             return getAccountForSingleAccountPca((SingleAccountPublicClientApplication) pca);
