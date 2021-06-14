@@ -27,6 +27,7 @@ jobs:
       - name: Create comment
         uses: peter-evans/create-or-update-comment@v1
         with:
+          issue-number: ${{ github.event.pull_request.number }}
           body: |
             /AzurePipelines run (Nightly) Local MSAL UI Automation against BrokerHost
           reactions: 'hooray'
