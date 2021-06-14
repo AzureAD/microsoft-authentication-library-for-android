@@ -31,6 +31,11 @@ import com.microsoft.identity.client.stresstests.Util;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
 import com.microsoft.identity.common.internal.result.ResultFuture;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -44,6 +49,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -73,6 +79,8 @@ public abstract class StressTestsFragment<T, S> extends Fragment {
     private ExecutorService executorService;
     private Thread executorThread;
     private Handler handler;
+    private static int sLastCpuCoreCount = -1;
+
 
     @Nullable
     @Override
@@ -182,6 +190,7 @@ public abstract class StressTestsFragment<T, S> extends Fragment {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
+                Debug.startNativeTracing();
                 try {
                     handler.post(new Runnable() {
                         @Override
@@ -209,14 +218,19 @@ public abstract class StressTestsFragment<T, S> extends Fragment {
                                 public void run() {
                                     int pid = android.os.Process.myPid();
                                     ActivityManager activityManager = (ActivityManager) getContext().getSystemService(Context.ACTIVITY_SERVICE);
-                                    Debug.MemoryInfo memoryInfo = activityManager.getProcessMemoryInfo(new int[]{ pid })[0];
+                                    Debug.MemoryInfo memoryInfo = activityManager.getProcessMemoryInfo(new int[]{pid})[0];
 
                                     long totalMemory = memoryInfo.getTotalPrivateDirty();
 
-                                    if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                                         totalMemory += memoryInfo.getTotalPrivateClean();
                                     }
 
+                                    final int[] cpus = new int[calcCpuCoreCount()];
+
+                                    for (int i = 0; i < cpus.length; i++) {
+                                        cpus[i] = takeCurrentCpuFreq(i);
+                                    }
 
                                     AsyncResult<S> result = runAsync(prerequisites.getResult());
 
@@ -234,6 +248,7 @@ public abstract class StressTestsFragment<T, S> extends Fragment {
                         stopExecution();
 
                         printOutput("All tests done!");
+                        Debug.stopNativeTracing();
                     } else {
                         stopExecution();
                     }
@@ -248,6 +263,55 @@ public abstract class StressTestsFragment<T, S> extends Fragment {
         thread.start();
 
         return thread;
+    }
+
+    private static int readIntegerFile(String filePath) {
+
+        try {
+            final BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(new FileInputStream(filePath)), 1000);
+            final String line = reader.readLine();
+            reader.close();
+
+            return Integer.parseInt(line);
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private static int takeCurrentCpuFreq(int coreIndex) {
+        return readIntegerFile("/sys/devices/system/cpu/cpu" + coreIndex + "/cpufreq/scaling_cur_freq");
+    }
+
+    public static int calcCpuCoreCount() {
+
+        if (sLastCpuCoreCount >= 1) {
+            return sLastCpuCoreCount;
+        }
+
+        try {
+            // Get directory containing CPU info
+            final File dir = new File("/sys/devices/system/cpu/");
+            // Filter to only list the devices we care about
+            final File[] files = dir.listFiles(new FileFilter() {
+
+                public boolean accept(File pathname) {
+                    //Check if filename is "cpu", followed by a single digit number
+                    if (Pattern.matches("cpu[0-9]", pathname.getName())) {
+                        return true;
+                    }
+                    return false;
+                }
+            });
+
+            // Return the number of cores (virtual CPU devices)
+            sLastCpuCoreCount = files.length;
+
+        } catch (Exception e) {
+            sLastCpuCoreCount = Runtime.getRuntime().availableProcessors();
+        }
+
+        return sLastCpuCoreCount;
     }
 
     private void stopExecution() {
