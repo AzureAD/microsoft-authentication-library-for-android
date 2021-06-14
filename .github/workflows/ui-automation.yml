@@ -25,8 +25,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Create comment
-          uses: peter-evans/create-or-update-comment@v1
-          with:
-            body: |
-              /AzurePipelines run (Nightly) Local MSAL UI Automation against BrokerHost
-            reactions: 'hooray'
+        uses: peter-evans/create-or-update-comment@v1
+        with:
+          body: |
+            /AzurePipelines run (Nightly) Local MSAL UI Automation against BrokerHost
+          reactions: 'hooray'
