@@ -42,6 +42,8 @@ import androidx.browser.customtabs.CustomTabsService;
 
 import com.microsoft.identity.client.BrowserTabActivity;
 import com.microsoft.identity.client.exception.MsalArgumentException;
+import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.common.logging.Logger;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -123,6 +125,7 @@ public final class MsalUtils {
 
     /**
      * Throws MsalArgumentException if the argument is null or empty
+     *
      * @param o
      * @param argName
      * @throws MsalArgumentException
@@ -227,13 +230,14 @@ public final class MsalUtils {
     }
 
     /**
-     * hasCustomTabRedirectActivity - Ensures that the developer has properly configured their
+     * Ensures that the developer has properly configured their
      * AndroidManifest to expose the BrowserTabActivity.
      *
-     * @param context
-     * @param url
-     * @return
+     * @param context the context of the application
+     * @param url     the redirect uri of the app
+     * @return a boolean indicating if BrowserTabActivity is configured or not
      */
+    @Deprecated
     public static boolean hasCustomTabRedirectActivity(@NonNull final Context context,
                                                        @NonNull final String url) {
         final PackageManager packageManager = context.getPackageManager();

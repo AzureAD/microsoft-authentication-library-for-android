@@ -30,14 +30,15 @@ import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowDeviceCodeFlowCommandAuthError;
 import com.microsoft.identity.client.e2e.shadows.ShadowDeviceCodeFlowCommandSuccessful;
 import com.microsoft.identity.client.e2e.shadows.ShadowDeviceCodeFlowCommandTokenError;
-import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
+import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest;
 import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.exception.ErrorStrings;
+import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationErrorResponse;
-import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
+import com.microsoft.identity.common.java.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationResponse;
 import com.microsoft.identity.common.internal.providers.microsoft.microsoftsts.MicrosoftStsTokenRequest;
 import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationResult;
@@ -64,7 +65,7 @@ import static com.microsoft.identity.internal.testutils.TestConstants.Configurat
  * of the protocol. Will be extended to test individual aspects of the flow.
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(shadows = {ShadowMsalUtils.class})
+@Config(shadows = {ShadowPublicClientApplicationConfiguration.class})
 public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
     private boolean mUserCodeReceived;
@@ -181,7 +182,9 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
     public void testDeviceCodeFlowTokenInvalidRequest() throws IOException, ClientException {
         final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
         final PublicClientApplicationConfiguration config = mApplication.getConfiguration();
-        final OAuth2Strategy strategy = config.getDefaultAuthority().createOAuth2Strategy(strategyParameters);
+        final Authority defaultAuthority = config.getDefaultAuthority();
+        Assert.assertNotNull("Default authority should not be null", defaultAuthority);
+        final OAuth2Strategy strategy = defaultAuthority.createOAuth2Strategy(strategyParameters);
 
         final MicrosoftStsTokenRequest tokenRequest = createMockTokenRequest();
 
@@ -195,7 +198,10 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
     public void testDeviceCodeFlowTokenExpiredToken() throws IOException, ClientException {
         final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
         final PublicClientApplicationConfiguration config = mApplication.getConfiguration();
-        final OAuth2Strategy strategy = config.getDefaultAuthority().createOAuth2Strategy(strategyParameters);
+        final Authority defaultAuthority = config.getDefaultAuthority();
+        Assert.assertNotNull("Default authority should not be null", defaultAuthority);
+        final OAuth2Strategy strategy = defaultAuthority.createOAuth2Strategy(strategyParameters);
+        Assert.assertNotNull("Strategy should not be null", strategy);
 
         final MicrosoftStsTokenRequest tokenRequest = createMockTokenRequest();
 

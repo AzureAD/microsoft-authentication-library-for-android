@@ -20,7 +20,6 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-
 package com.microsoft.identity.client;
 
 import android.content.Context;
@@ -39,6 +38,7 @@ import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAu
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudienceDeserializer;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.msal.R;
+import com.microsoft.identity.common.logging.Logger;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -98,10 +98,7 @@ public class PublicClientApplicationConfigurationFactory {
     @WorkerThread
     private static PublicClientApplicationConfiguration loadDefaultConfiguration(@NonNull final Context context) {
         final String methodName = ":loadDefaultConfiguration";
-        com.microsoft.identity.common.internal.logging.Logger.verbose(
-                TAG + methodName,
-                "Loading default configuration"
-        );
+        Logger.verbose(TAG + methodName, "Loading default configuration");
         final PublicClientApplicationConfiguration config = loadConfiguration(context, R.raw.msal_default_config);
         config.setAppContext(context);
 
@@ -146,14 +143,14 @@ public class PublicClientApplicationConfigurationFactory {
                 configStream.close();
             } catch (IOException e) {
                 if (isDefaultConfiguration) {
-                    com.microsoft.identity.common.internal.logging.Logger.warn(
-                            TAG + "loadConfiguration",
-                            "Unable to close default configuration file. This can cause memory leak."
+                    Logger.warn(TAG + "loadConfiguration",
+                            "Unable to close default configuration file. " +
+                                    "This can cause memory leak."
                     );
                 } else {
-                    com.microsoft.identity.common.internal.logging.Logger.warn(
-                            TAG + "loadConfiguration",
-                            "Unable to close provided configuration file. This can cause memory leak."
+                    Logger.warn(TAG + "loadConfiguration",
+                            "Unable to close provided configuration file. " +
+                                    "This can cause memory leak."
                     );
                 }
             }
@@ -183,7 +180,7 @@ public class PublicClientApplicationConfigurationFactory {
                         new AzureActiveDirectoryAudienceDeserializer()
                 )
                 .registerTypeAdapter(
-                        Logger.LogLevel.class,
+                        com.microsoft.identity.client.Logger.LogLevel.class,
                         new LogLevelDeserializer()
                 )
                 .create();

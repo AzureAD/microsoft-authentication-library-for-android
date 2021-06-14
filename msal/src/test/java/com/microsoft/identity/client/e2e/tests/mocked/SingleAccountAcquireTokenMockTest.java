@@ -66,7 +66,7 @@ public class SingleAccountAcquireTokenMockTest extends AcquireTokenMockTest {
 
             @Override
             public void onError(@NonNull MsalException exception) {
-                fail("No current account found.");
+                throw new AssertionError("Interpreting an exception as no accounts found.", exception);
             }
         });
         flushScheduler();

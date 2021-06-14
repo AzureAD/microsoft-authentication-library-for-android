@@ -22,6 +22,9 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.mocked;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.AuthenticationCallback;
@@ -31,9 +34,8 @@ import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.RoboTestCacheHelper;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
-import com.microsoft.identity.client.e2e.shadows.ShadowHttpRequest;
 import com.microsoft.identity.client.e2e.shadows.ShadowMockAuthority;
-import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
+import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
 import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.e2e.shadows.ShadowStrategyResultServerError;
@@ -44,20 +46,28 @@ import com.microsoft.identity.client.e2e.utils.ErrorCodes;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
+import com.microsoft.identity.common.java.net.HttpClient;
+import com.microsoft.identity.common.java.net.HttpResponse;
 import com.microsoft.identity.common.internal.providers.oauth2.TokenResponse;
 import com.microsoft.identity.common.internal.util.StringUtil;
+import com.microsoft.identity.internal.testutils.HttpRequestInterceptor;
+import com.microsoft.identity.internal.testutils.HttpRequestMatcher;
 import com.microsoft.identity.internal.testutils.TestConstants;
 import com.microsoft.identity.internal.testutils.TestUtils;
 import com.microsoft.identity.internal.testutils.mocks.MockTokenResponse;
+import com.microsoft.identity.internal.testutils.shadows.ShadowHttpClient;
 
 import org.junit.Assert;
-import org.junit.Ignore;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.UUID;
 
 import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
@@ -69,8 +79,8 @@ import static org.junit.Assert.fail;
 @Config(shadows = {
         ShadowStorageHelper.class,
         ShadowMockAuthority.class,
-        ShadowHttpRequest.class,
-        ShadowMsalUtils.class,
+        ShadowHttpClient.class,
+        ShadowPublicClientApplicationConfiguration.class,
         ShadowOpenIdProviderConfigurationClient.class
 })
 public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
@@ -84,6 +94,23 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
     public String getAuthority() {
         return AAD_MOCK_AUTHORITY;
     }
+
+    @Before
+    public void setup() {
+        super.setup();
+        mockHttpClient.intercept(
+                HttpRequestMatcher.builder().isPOST().build(), new HttpRequestInterceptor() {
+                    @Override
+                    public HttpResponse intercept(
+                            @NonNull HttpClient.HttpMethod httpMethod,
+                            @NonNull URL requestUrl,
+                            @NonNull Map<String, String> requestHeaders,
+                            @Nullable byte[] requestContent) throws IOException {
+                        throw new IOException("Sending requests to server has been disabled for mocked unit tests");
+                    }
+                });
+    }
+
 
     @Test
     public void testAcquireTokenSuccess() {
@@ -291,7 +318,6 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
     }
 
     @Test
-    @Ignore // flaky test ignored for now, needs investigation
     public void testAcquireTokenSilentFailureNoAccount() {
         String noAccountErrorCode;
 
@@ -506,5 +532,4 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
         final IAccount account = performGetAccount(application, loginHint);
         return account;
     }
-
 }

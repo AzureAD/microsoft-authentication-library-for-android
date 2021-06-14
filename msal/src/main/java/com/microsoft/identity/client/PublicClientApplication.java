@@ -86,7 +86,6 @@ import com.microsoft.identity.common.internal.controllers.ExceptionAdapter;
 import com.microsoft.identity.common.internal.controllers.LocalMSALController;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
-import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.migration.AdalMigrationAdapter;
 import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
 import com.microsoft.identity.common.internal.migration.TokenMigrationUtility;
@@ -100,6 +99,7 @@ import com.microsoft.identity.common.internal.result.GenerateShrResult;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.ResultFuture;
+import com.microsoft.identity.common.logging.Logger;
 import com.microsoft.identity.msal.BuildConfig;
 
 import java.io.File;
@@ -114,6 +114,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static com.microsoft.identity.client.PublicClientApplicationConfigurationFactory.initializeConfiguration;
+import static com.microsoft.identity.client.exception.MsalClientException.SAPCA_USE_WITH_MULTI_POLICY_B2C;
 import static com.microsoft.identity.client.exception.MsalClientException.UNKNOWN_ERROR;
 import static com.microsoft.identity.client.internal.CommandParametersAdapter.createGenerateShrCommandParameters;
 import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
@@ -902,6 +903,13 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             config.setRedirectUri(redirectUri);
         }
 
+        try {
+            validateAccountModeConfiguration(config);
+        } catch (final MsalClientException e) {
+            listener.onError(e);
+            return;
+        }
+
         final CommandParameters params = CommandParametersAdapter.createCommandParameters(config, config.getOAuth2TokenCache());
 
         final BaseController controller;
@@ -948,6 +956,22 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         );
 
         CommandDispatcher.submitSilent(command);
+    }
+
+    private static void validateAccountModeConfiguration(@NonNull final PublicClientApplicationConfiguration config) throws MsalClientException {
+        if (config.getAccountMode() == AccountMode.SINGLE
+                && null != config.getDefaultAuthority()
+                && config.getDefaultAuthority() instanceof AzureActiveDirectoryB2CAuthority) {
+            Logger.warn(
+                    TAG,
+                    "Warning! B2C applications should use MultipleAccountPublicClientApplication. "
+                            + "Use of SingleAccount mode with multiple IEF policies is unsupported."
+            );
+
+            if (config.getAuthorities().size() > 1) {
+                throw new MsalClientException(SAPCA_USE_WITH_MULTI_POLICY_B2C);
+            }
+        }
     }
 
     private static void createMultipleAccountPublicClientApplication(
@@ -1059,10 +1083,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         // Init HTTP cache
         HttpCache.initialize(context.getCacheDir());
 
-        com.microsoft.identity.common.internal.logging.Logger.info(
-                TAG + methodName,
-                "Create new public client application."
-        );
+        Logger.info(TAG + methodName, "Create new public client application.");
     }
 
     private void initializeLoggerSettings(@Nullable final LoggerConfiguration loggerConfig) {
@@ -1123,15 +1144,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     private void setupTelemetry(@NonNull final Context context,
                                 @NonNull final PublicClientApplicationConfiguration developerConfig) {
         if (null != developerConfig.getTelemetryConfiguration()) {
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
-                    TAG,
-                    "Telemetry configuration is set. Telemetry is enabled."
-            );
+            Logger.verbose(TAG, "Telemetry configuration is set. Telemetry is enabled.");
         } else {
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
-                    TAG,
-                    "Telemetry configuration is null. Telemetry is disabled."
-            );
+            Logger.verbose(TAG, "Telemetry configuration is null. Telemetry is disabled.");
         }
 
         new com.microsoft.identity.common.internal.telemetry.Telemetry.Builder()

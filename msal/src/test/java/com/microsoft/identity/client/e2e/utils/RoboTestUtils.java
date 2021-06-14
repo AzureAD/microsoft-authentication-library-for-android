@@ -2,6 +2,8 @@ package com.microsoft.identity.client.e2e.utils;
 
 import androidx.annotation.NonNull;
 
+import com.microsoft.identity.common.internal.util.ThreadUtils;
+
 import org.robolectric.RuntimeEnvironment;
 
 public class RoboTestUtils {
@@ -12,12 +14,7 @@ public class RoboTestUtils {
     }
 
     public static void flushSchedulerWithDelay(@NonNull final long sleepTime) {
-        try {
-            // just wait a little for runnable(s) to enter the queue
-            Thread.sleep(sleepTime);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        ThreadUtils.sleepSafely((int) sleepTime, "RoboTestUtils:flushSchedulerWithDelay", "Interrupted");
 
         // if there are no runnable(s) after the delay, then we can just return
         if (RuntimeEnvironment.getMasterScheduler().size() == 0) {

@@ -28,6 +28,7 @@ import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.common.internal.util.ObjectUtils;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
 import org.junit.Assert;
@@ -56,7 +57,7 @@ public class AcquireTokenTestHelper {
 
             @Override
             public void onError(MsalException exception) {
-                fail(exception.getMessage());
+                throw new AssertionError(exception);
             }
 
             @Override
@@ -77,12 +78,14 @@ public class AcquireTokenTestHelper {
 
             @Override
             public void onError(MsalException exception) {
-                Assert.assertEquals(MsalClientException.DUPLICATE_COMMAND, exception.getErrorCode());
+                if (!ObjectUtils.equals(MsalClientException.DUPLICATE_COMMAND, exception.getErrorCode())) {
+                    throw new AssertionError(exception);
+                }
             }
 
             @Override
             public void onCancel() {
-                fail("No expected to receive cancel");
+                fail("Not expected to receive cancel");
             }
         };
 
@@ -94,13 +97,13 @@ public class AcquireTokenTestHelper {
         SilentAuthenticationCallback callback = new SilentAuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
-                Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
+                Assert.assertTrue("Received a success result with an empty access token", !StringUtil.isEmpty(authenticationResult.getAccessToken()));
                 sAccount = authenticationResult.getAccount();
             }
 
             @Override
             public void onError(MsalException exception) {
-                fail(exception.getMessage());
+                throw new AssertionError(exception);
             }
         };
 
@@ -116,7 +119,9 @@ public class AcquireTokenTestHelper {
 
             @Override
             public void onError(MsalException exception) {
-                Assert.assertEquals(errorCode, exception.getErrorCode());
+                if (!ObjectUtils.equals(errorCode, exception.getErrorCode())) {
+                    throw new AssertionError(exception);
+                }
             }
 
             @Override
@@ -137,7 +142,9 @@ public class AcquireTokenTestHelper {
 
             @Override
             public void onError(MsalException exception) {
-                Assert.assertEquals(errorCode, exception.getErrorCode());
+                if (!ObjectUtils.equals(errorCode, exception.getErrorCode())) {
+                    throw new AssertionError(exception);
+                }
             }
         };
 

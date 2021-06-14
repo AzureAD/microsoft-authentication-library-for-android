@@ -3,7 +3,7 @@ package com.microsoft.identity.client.e2e.tests.network;
 import com.microsoft.identity.client.MultiTenantAccount;
 import com.microsoft.identity.client.e2e.rules.NetworkTestsRuleChain;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthority;
-import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
+import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
@@ -25,7 +25,7 @@ import static com.microsoft.identity.internal.testutils.TestConstants.Configurat
 import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowMsalUtils.class})
+@Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowPublicClientApplicationConfiguration.class})
 public class GuestAccountAcquireTokenNetworkTests extends AcquireTokenAbstractTest {
 
     @Rule

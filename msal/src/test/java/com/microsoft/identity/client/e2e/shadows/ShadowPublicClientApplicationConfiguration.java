@@ -22,25 +22,21 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.shadows;
 
-import com.microsoft.identity.common.internal.net.HttpRequest;
-import com.microsoft.identity.common.internal.net.HttpResponse;
-import com.microsoft.identity.internal.testutils.MockHttpResponse;
+import android.content.Context;
+
+import androidx.annotation.NonNull;
+
+import com.microsoft.identity.client.PublicClientApplicationConfiguration;
+import com.microsoft.identity.client.internal.MsalUtils;
 
 import org.robolectric.annotation.Implements;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.Map;
+@Implements(PublicClientApplicationConfiguration.class)
+public class ShadowPublicClientApplicationConfiguration {
 
-@Implements(HttpRequest.class)
-public class ShadowHttpRequestForMockedTest {
-
-    // mocking this to avoid accidentally sending malformed requests to the server
-    // and to return the response defined during the test by MockHttpResponse
-    public static HttpResponse sendPost(final URL requestUrl, final Map<String, String> requestHeaders,
-                                        final byte[] requestContent, final String requestContentType)
-            throws IOException {
-        // return the response that was declared to be used
-        return MockHttpResponse.getHttpResponse();
+    // mocking this to assume we have custom tab redirect activity during tests
+    public static boolean validateCustomTabRedirectActivity(@NonNull final Context context,
+                                                       @NonNull final String url) {
+        return true;
     }
 }

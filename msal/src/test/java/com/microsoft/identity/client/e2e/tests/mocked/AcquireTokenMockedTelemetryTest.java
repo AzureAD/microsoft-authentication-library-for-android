@@ -22,30 +22,37 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.mocked;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
-import com.microsoft.identity.client.e2e.shadows.ShadowHttpRequestForTelemetry;
 import com.microsoft.identity.client.e2e.shadows.ShadowMockAuthority;
-import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
+import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
 import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper;
 import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
-import com.microsoft.identity.common.internal.eststelemetry.SchemaConstants;
-import com.microsoft.identity.internal.testutils.MockHttpResponse;
+import com.microsoft.identity.common.java.eststelemetry.SchemaConstants;
+import com.microsoft.identity.common.java.net.HttpClient;
+import com.microsoft.identity.common.java.net.HttpResponse;
+import com.microsoft.identity.internal.testutils.HttpRequestInterceptor;
+import com.microsoft.identity.internal.testutils.HttpRequestMatcher;
 import com.microsoft.identity.internal.testutils.TestConstants;
 import com.microsoft.identity.internal.testutils.mocks.MockServerResponse;
+import com.microsoft.identity.internal.testutils.shadows.ShadowHttpClient;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -59,14 +66,17 @@ import static com.microsoft.identity.internal.testutils.TestConstants.Configurat
 @Config(shadows = {
         ShadowStorageHelper.class,
         ShadowMockAuthority.class,
-        ShadowHttpRequestForTelemetry.class,
-        ShadowMsalUtils.class,
+        ShadowPublicClientApplicationConfiguration.class,
+        ShadowHttpClient.class,
         ShadowOpenIdProviderConfigurationClient.class
 })
 public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
 
     private static Map<String, String> sTelemetryHeaders;
     private static List<String> sCorrelationIdList = new ArrayList<>();
+    private final HttpRequestMatcher postRequestMatcher = HttpRequestMatcher.builder()
+            .isPOST()
+            .build();
 
     @Override
     public String[] getScopes() {
@@ -89,6 +99,26 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
 
     public static void addCorrelationId(final String correlationId) {
         sCorrelationIdList.add(correlationId);
+    }
+
+    private void mockWithResponse(final HttpResponse httpResponse) {
+        mockHttpClient.intercept(postRequestMatcher,
+                new HttpRequestInterceptor() {
+                    @Override
+                    public HttpResponse intercept(
+                            @NonNull HttpClient.HttpMethod httpMethod,
+                            @NonNull URL requestUrl,
+                            @NonNull Map<String, String> requestHeaders,
+                            @Nullable byte[] requestContent) throws IOException {
+                        final String correlationId = requestHeaders.get("client-request-id");
+
+                        AcquireTokenMockedTelemetryTest.addCorrelationId(correlationId);
+
+                        AcquireTokenMockedTelemetryTest.setTelemetryHeaders(requestHeaders);
+
+                        return httpResponse;
+                    }
+                });
     }
 
     @Before
@@ -115,7 +145,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
 
         int networkRequestIndex = 0;
 
-        MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenSuccessResponse());
+        mockWithResponse(MockServerResponse.getMockTokenSuccessResponse());
         mApplication.acquireToken(parameters);
         flushScheduler();
 
@@ -135,14 +165,14 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
                 .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
                 .build();
 
-        MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenSuccessResponse());
+        mockWithResponse(MockServerResponse.getMockTokenSuccessResponse());
         mApplication.acquireTokenSilentAsync(silentParameters);
         flushScheduler();
 
         CommandDispatcherHelper.clear();
 
         // successful silent request - served from cache
-        MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenSuccessResponse());
+        mockWithResponse(MockServerResponse.getMockTokenSuccessResponse());
         mApplication.acquireTokenSilentAsync(silentParameters);
         flushScheduler();
 
@@ -159,7 +189,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
 
         networkRequestIndex++;
 
-        MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenFailureInvalidGrantResponse());
+        mockWithResponse(MockServerResponse.getMockTokenFailureInvalidGrantResponse());
         mApplication.acquireTokenSilentAsync(silentParametersForceRefreshInvalidGrant);
         flushScheduler();
 
@@ -181,7 +211,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
 
         networkRequestIndex++;
 
-        MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenFailureInvalidScopeResponse());
+        mockWithResponse(MockServerResponse.getMockTokenFailureInvalidScopeResponse());
         mApplication.acquireTokenSilentAsync(silentParametersForceRefreshInvalidScope);
         flushScheduler();
 
@@ -204,7 +234,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
 
         networkRequestIndex++;
 
-        MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenFailureServiceUnavailable());
+        mockWithResponse(MockServerResponse.getMockTokenFailureServiceUnavailable());
         mApplication.acquireToken(parametersServiceUnavailable);
         flushScheduler();
 
@@ -220,7 +250,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
 
         networkRequestIndex++;
 
-        MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenSuccessResponse());
+        mockWithResponse(MockServerResponse.getMockTokenSuccessResponse());
         mApplication.acquireToken(parameters);
         flushScheduler();
 
@@ -246,7 +276,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
                 .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
                 .build();
 
-        MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenSuccessResponse());
+        mockWithResponse(MockServerResponse.getMockTokenSuccessResponse());
         mApplication.acquireTokenSilentAsync(silentParametersForceRefreshSuccessful);
         flushScheduler();
 
@@ -260,7 +290,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         // failed interactive request - service unavailable
         for (int i = 0; i < 50; i++) {
             networkRequestIndex++;
-            MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenFailureServiceUnavailable());
+            mockWithResponse(MockServerResponse.getMockTokenFailureServiceUnavailable());
             mApplication.acquireToken(parametersServiceUnavailable);
             flushScheduler();
             CommandDispatcherHelper.clear();
@@ -273,7 +303,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         // failed interactive request - service unavailable - do another 50 requests
         for (int i = 0; i < 50; i++) {
             networkRequestIndex++;
-            MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenFailureServiceUnavailable());
+            mockWithResponse(MockServerResponse.getMockTokenFailureServiceUnavailable());
             mApplication.acquireToken(parametersServiceUnavailable);
             flushScheduler();
             CommandDispatcherHelper.clear();
@@ -285,7 +315,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         Assert.assertTrue(actualLastHeader.length() > 3000 && actualLastHeader.length() < 4096);
 
         // do successful interactive request
-        MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenSuccessResponse());
+        mockWithResponse(MockServerResponse.getMockTokenSuccessResponse());
         mApplication.acquireToken(parameters);
         flushScheduler();
 
@@ -299,7 +329,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         CommandDispatcherHelper.clear();
 
         // do another successful interactive request
-        MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenSuccessResponse());
+        mockWithResponse(MockServerResponse.getMockTokenSuccessResponse());
         mApplication.acquireToken(parameters);
         flushScheduler();
 
@@ -310,7 +340,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         CommandDispatcherHelper.clear();
 
         // do another successful interactive request
-        MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenSuccessResponse());
+        mockWithResponse(MockServerResponse.getMockTokenSuccessResponse());
         mApplication.acquireToken(parameters);
         flushScheduler();
 

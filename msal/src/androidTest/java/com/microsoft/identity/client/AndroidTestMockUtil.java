@@ -23,7 +23,7 @@
 
 package com.microsoft.identity.client;
 
-import com.microsoft.identity.common.internal.net.HttpUrlConnectionFactory;
+import com.microsoft.identity.common.java.net.HttpUrlConnectionFactory;
 
 import org.mockito.Mockito;
 

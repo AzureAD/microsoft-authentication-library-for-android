@@ -262,7 +262,7 @@ public class PublicClientConfigurationTest {
         assertEquals(1, config.getAuthorities().size());
         final Authority authority = config.getAuthorities().get(0);
         final AzureActiveDirectoryAuthority azureActiveDirectoryAuthority = (AzureActiveDirectoryAuthority) authority;
-        assertNotNull(azureActiveDirectoryAuthority.mSlice.getDC());
+        assertNotNull(azureActiveDirectoryAuthority.mSlice.getDataCenter());
         assertNotNull(azureActiveDirectoryAuthority.mSlice.getSlice());
     }
 
@@ -283,9 +283,8 @@ public class PublicClientConfigurationTest {
      * Verify that unknown authority type results in exception
      */
     @Test(expected = IllegalArgumentException.class)
-    @Ignore
     public void testUnknownAuthorityException() {
-        final PublicClientApplicationConfiguration b2cConfig = loadConfig(R.raw.test_pcaconfig_unknown);
+        final PublicClientApplicationConfiguration b2cConfig = loadConfigAndMerge(R.raw.test_pcaconfig_unknown);
         b2cConfig.validateConfiguration();
     }
 
@@ -294,7 +293,7 @@ public class PublicClientConfigurationTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void testUnknownAudienceException() {
-        final PublicClientApplicationConfiguration configWithInvalidAudience = loadConfig(R.raw.test_pcaconfig_unknown_audience);
+        final PublicClientApplicationConfiguration configWithInvalidAudience = loadConfigAndMerge(R.raw.test_pcaconfig_unknown_audience);
         assertNotNull(configWithInvalidAudience);
         assertFalse(configWithInvalidAudience.getAuthorities().isEmpty());
 
@@ -390,6 +389,10 @@ public class PublicClientConfigurationTest {
 
     private PublicClientApplicationConfiguration loadConfig(final int resourceId) {
         return PublicClientApplicationConfigurationFactory.loadConfiguration(mContext, resourceId);
+    }
+
+    private PublicClientApplicationConfiguration loadConfigAndMerge(final int resourceId) {
+        return PublicClientApplicationConfigurationFactory.initializeConfiguration(mContext, resourceId);
     }
 
     private PublicClientApplicationConfiguration loadConfig(final File file) {

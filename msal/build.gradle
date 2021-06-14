@@ -1,16 +1,36 @@
-apply plugin: 'com.android.library'
-apply plugin: 'checkstyle'
-apply plugin: 'pmd'
-apply plugin: 'maven'
-apply plugin: 'maven-publish'
-apply from: 'versioning/version_tasks.gradle'
-group = 'com.microsoft.identity.client'
-apply plugin: 'jacoco'
-
-// To include Robolectric tests in the Jacoco report, flag -> "includeNolocationClasses" is set to true
-tasks.withType(Test) {
-    jacoco.includeNoLocationClasses = true
+plugins {
+    id 'com.microsoft.identity.buildsystem' version '0.1.0'
+    id 'com.android.library'
+    id 'pmd'
+    id 'checkstyle'
+    id 'maven'
+    id 'maven-publish'
 }
+
+apply from: 'versioning/version_tasks.gradle'
+
+group = 'com.microsoft.identity.client'
+
+def desugarCode = false
+
+if(project.hasProperty("sugar")){
+    desugarCode = sugar.toBoolean()
+}
+
+buildSystem {
+    desugar = desugarCode
+}
+
+//apply plugin: 'jacoco'
+//
+//// To include Robolectric tests in the Jacoco report, flag -> "includeNolocationClasses" is set to true
+//
+//tasks.withType(Test) {
+//    jacoco.includeNoLocationClasses = true
+//    //This needs to be excluded for JDK 11
+//    //SEE: https://support.circleci.com/hc/en-us/articles/360047926852-Android-Builds-Fail-with-java-lang-ClassNotFoundException-jdk-internal-reflect-GeneratedSerializationConstructorAccessor1-
+//    jacoco.excludes = ['jdk.internal.*']
+//}
 
 //Constants:- used to generate Coverage report task
 def unitTestType = "UnitTest"
@@ -18,12 +38,41 @@ def androidTestType = "AndroidTest"
 def bothTestType = "BothTest"
 
 android {
+//    testOptions {
+//        compileOptions {
+//            // Flag to enable support for the new language APIs
+//            coreLibraryDesugaringEnabled true
+//            // Sets Java compatibility to Java 8
+//            sourceCompatibility JavaVersion.VERSION_1_8
+//            targetCompatibility JavaVersion.VERSION_1_8
+//        }
+//        dependencies {
+//            coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
+//        }
+//    }
+
+    /*
+    //Commenting out until the next major version of common/msal/etc...
+    compileOptions {
+        // Flag to enable support for the new language APIs
+        coreLibraryDesugaringEnabled true
+        // Sets Java compatibility to Java 8
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    */
+
     compileSdkVersion rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
 
     defaultConfig {
+        multiDexEnabled true
         minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
+        if(project.getProperties().get("robolectricSdkVersion")){
+            println "Using command line parameter robolectricSdkVersion for target sdk version " + project.getProperties().get("robolectricSdkVersion")
+            targetSdkVersion project.getProperties().get("robolectricSdkVersion")
+        }else{
+            targetSdkVersion rootProject.ext.targetSdkVersion
+        }
         versionCode getAppVersionCode()
         versionName getAppVersionName()
         project.archivesBaseName = "msal"
@@ -34,14 +83,16 @@ android {
     buildTypes {
         // testCoverageEnabled flag is set to true to get coverage reports for Android Tests
         debug {
-            testCoverageEnabled true
+//            testCoverageEnabled true
             debuggable true
+            buildConfigField("String", "VERSION_NAME", "\"${versionName}\"")
         }
         release {
-            testCoverageEnabled true
+//            testCoverageEnabled true
             minifyEnabled false
             debuggable false
             consumerProguardFiles 'consumer-rules.pro'
+            buildConfigField("String", "VERSION_NAME", "\"${versionName}\"")
         }
     }
 
@@ -93,10 +144,10 @@ android {
         }
 
         // create separate code coverage tasks(for unitTests, androidTests and both Tests) for every build variant
-        def buildVariant = variant.name
-        createCoverageTask(buildVariant, unitTestType)
-        createCoverageTask(buildVariant, androidTestType)
-        createCoverageTask(buildVariant, bothTestType)
+//        def buildVariant = variant.name
+//        createCoverageTask(buildVariant, unitTestType)
+//        createCoverageTask(buildVariant, androidTestType)
+//        createCoverageTask(buildVariant, bothTestType)
     }
 
     testOptions {
@@ -107,71 +158,77 @@ android {
                 // example: ./gradlew testLocalDebugUnitTest -Plabtest
                 exclude 'com/microsoft/identity/client/e2e/tests/network'
             }
-
+            testLogging {
+                exceptionFormat = "full"
+            }
         }
     }
 }
 
-ext.createCoverageTask = { buildVariant, testType ->
-    // Code coverage task depends on additional task to run all unit tests and android tests
-    def unitTestTask = "test${buildVariant.capitalize()}UnitTest"
-    def androidTestTask = "connected${buildVariant.capitalize()}AndroidTest"
 
-    // Output of those additional tasks are stored in .exec file for unit tests and .ec file for android tests
-    def unitTestFile = "jacoco/${unitTestTask}.exec"
-    def androidTestFile = "outputs/code_coverage/${buildVariant}AndroidTest/connected/*.ec"
+//ext.createCoverageTask = { buildVariant, testType ->
+//    // Code coverage task depends on additional task to run all unit tests and android tests
+//    def unitTestTask = "test${buildVariant.capitalize()}UnitTest"
+//    def androidTestTask = "connected${buildVariant.capitalize()}AndroidTest"
+//
+//    // Output of those additional tasks are stored in .exec file for unit tests and .ec file for android tests
+//    def unitTestFile = "jacoco/${unitTestTask}.exec"
+//    def androidTestFile = "outputs/code_coverage/${buildVariant}AndroidTest/connected/*.ec"
+//
+//    // Include Task and corresponding output file of tests, according to testType
+//    def taskList, executionFiles
+//    if (testType.matches(bothTestType)) {
+//        taskList = [unitTestTask, androidTestTask]
+//        executionFiles = [unitTestFile, androidTestFile]
+//    } else if (testType.matches(unitTestType)){
+//        taskList = [unitTestTask]
+//        executionFiles = [unitTestFile]
+//    } else {
+//        taskList = [androidTestTask]
+//        executionFiles = [androidTestFile]
+//    }
+//
+//    // Task to generate coverage report for particular build variant, that depends on additional tasks depending on testType
+//    task "${buildVariant}Msal${testType}CoverageReport" (type:JacocoReport, dependsOn: taskList) {
+//        group = "Code Coverage"
+//        description = "Generate Msal Coverage Reports(${testType}) on the ${buildVariant.capitalize()}"
+//
+//        def commonBuild = buildVariant.matches("(.*)Debug(.*)") ? "debug" : "release"
+//        def commonFilePath = buildDir.absolutePath.matches("(.*)android_auth(.*)") ? "common" : "../common/common/build";
+//
+//
+//        def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test.*']
+//
+//        // Include source files(of msal) in which code coverage needs to be found, after filtering out some set of files
+//        def coverageSourceDirs = "${projectDir}/src/main/java";
+//        def javaClasses = fileTree(
+//                dir: "${buildDir}/intermediates/javac/${buildVariant}/classes",
+//                excludes: fileFilter
+//        )
+//
+//        // Include additional source files(as msal depends on common) in code coverage report
+//        def additionalCoverageSourceDirs = "${projectDir}/../common/common/src/main/java"
+//        def additionalJavaClasses = fileTree(
+//                dir: "${buildDir}/../${commonFilePath}/intermediates/javac/${commonBuild}/classes",
+//                excludes: fileFilter
+//        )
+//
+//        //Include all those directories for source files and additional source files defined above
+//        sourceDirectories.from = files([coverageSourceDirs])
+//        additionalSourceDirs.from = files(additionalCoverageSourceDirs)
+//        additionalClassDirs.from = files([additionalJavaClasses])
+//        classDirectories.from = files([javaClasses])
+//
+//        //Code coverage report is generated based on the the output files of additional tasks(unitTestTask, androidTestTask or both)
+//        executionData.from = fileTree(dir: "$buildDir", includes: executionFiles)
+//
+//        // html reports are auto-generated without enabling flag, so enabling xml flag
+//        reports {
+//            xml.enabled = true
+//        }
+//    }
+//}
 
-    // Include Task and corresponding output file of tests, according to testType
-    def taskList, executionFiles
-    if (testType.matches(bothTestType)) {
-        taskList = [unitTestTask, androidTestTask]
-        executionFiles = [unitTestFile, androidTestFile]
-    } else if (testType.matches(unitTestType)){
-        taskList = [unitTestTask]
-        executionFiles = [unitTestFile]
-    } else {
-        taskList = [androidTestTask]
-        executionFiles = [androidTestFile]
-    }
-
-    // Task to generate coverage report for particular build variant, that depends on additional tasks depending on testType
-    task "${buildVariant}Msal${testType}CoverageReport" (type:JacocoReport, dependsOn: taskList) {
-        group = "Code Coverage"
-        description = "Generate Msal Coverage Reports(${testType}) on the ${buildVariant.capitalize()}"
-
-        def commonBuild = buildVariant.matches("(.*)Debug(.*)") ? "debug" : "release"
-        def commonFilePath = buildDir.absolutePath.matches("(.*)android_auth(.*)") ? "common" : "../common/common/build";
-        def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test.*']
-
-        // Include source files(of msal) in which code coverage needs to be found, after filtering out some set of files
-        def coverageSourceDirs = "${projectDir}/src/main/java";
-        def javaClasses = fileTree(
-                dir: "${buildDir}/intermediates/javac/${buildVariant}/classes",
-                excludes: fileFilter
-        )
-
-        // Include additional source files(as msal depends on common) in code coverage report
-        def additionalCoverageSourceDirs = "${projectDir}/../common/common/src/main/java"
-        def additionalJavaClasses = fileTree(
-                dir: "${buildDir}/../${commonFilePath}/intermediates/javac/${commonBuild}/classes",
-                excludes: fileFilter
-        )
-
-        //Include all those directories for source files and additional source files defined above
-        sourceDirectories.from = files([coverageSourceDirs])
-        additionalSourceDirs.from = files(additionalCoverageSourceDirs)
-        additionalClassDirs.from = files([additionalJavaClasses])
-        classDirectories.from = files([javaClasses])
-
-        //Code coverage report is generated based on the the output files of additional tasks(unitTestTask, androidTestTask or both)
-        executionData.from = fileTree(dir: "$buildDir", includes: executionFiles)
-
-        // html reports are auto-generated without enabling flag, so enabling xml flag
-        reports {
-            xml.enabled = true
-        }
-    }
-}
 
 // Task to generate javadoc
 task javadoc(type: Javadoc) {
@@ -192,14 +249,22 @@ task javadoc(type: Javadoc) {
 task javadocJar(type: Jar, dependsOn: javadoc) {
     from javadoc.destinationDir
     classifier 'javadoc'
+    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
 }
 
 task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
     classifier 'sources'
+    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
 }
 
 dependencies {
+
+    //Please leave this in... desugaring is currently disabled by default; however it's required for running some tests
+    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
+
+    def mockito_version = 'latest.release'
+
     implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
     implementation "androidx.browser:browser:$rootProject.ext.browserVersion"
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
@@ -210,9 +275,12 @@ dependencies {
 
     // test dependencies
     testImplementation "junit:junit:$rootProject.ext.junitVersion"
-    // TODO the below dependency should be mockito-core but the MockMaker isn't working...
-    testImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
+    //mockito-inline was introduced in mockito 2.7.6
+    //see: https://javadoc.io/static/org.mockito/mockito-core/3.6.28/org/mockito/Mockito.html#0.1
+    testImplementation "org.mockito:mockito-inline:$rootProject.ext.mockitoCoreVersion"
     testImplementation ("org.robolectric:robolectric:$rootProject.ext.robolectricVersion")
+    // For mockito!
+    testImplementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
     testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"
     testImplementation project(':testutils')
     // instrumentation test dependencies
@@ -222,14 +290,16 @@ dependencies {
     androidTestImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
     // 'local' flavor dependencies
     localApi(project(":common")) {
+        transitive = true
+    }
+
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.4.3', changing: true)
+
+    //TODO: we will have to change transitive to true once common4j is published
+    distApi("com.microsoft.identity:common:3.4.3") {
         transitive = false
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.0.6', changing: true)
-
-    distApi("com.microsoft.identity:common:3.0.6") {
-        transitive = false
-    }
 }
 
 def configDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')

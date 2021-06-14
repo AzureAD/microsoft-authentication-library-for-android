@@ -96,8 +96,10 @@ public class AcquireTokenParameters extends TokenParameters {
     }
 
     /**
-     * These are additional scopes that you would like the user to authorize the use of, while getting consent
-     * for the first set of scopes
+     * These are additional scopes (of other resources) that you would like the user to authorize up front.
+     * (MSAL's {@link TokenParameters#getScopes()} parameter should only contain scopes for a single resource
+     *
+     * https://docs.microsoft.com/bs-latn-ba/azure/active-directory/develop/msal-net-user-gets-consent-for-multiple-resources
      *
      * @return
      */

@@ -30,6 +30,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Base64;
 import android.view.Menu;
@@ -57,6 +58,7 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static final String ACCOUNT_AFFINITY_SUFFIX = "**";
     private ListView mListView;
     private PackageManager mPackageManager;
     private List<ApplicationInfo> mApplications;
@@ -99,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (null != filterText && !filterText.isEmpty()) {
             // iterate over the package names, remove those who don't contain the filter text
-            for(Iterator<String> nameItr = packageNames.iterator(); nameItr.hasNext();) {
+            for (Iterator<String> nameItr = packageNames.iterator(); nameItr.hasNext(); ) {
                 final String pkgName = nameItr.next();
 
                 if (!pkgName.toLowerCase().contains(filterText.toLowerCase())) {
@@ -120,21 +122,27 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
                 try {
+                    String pkgName = packageNames.get(position);
+
+                    if (pkgName.endsWith(ACCOUNT_AFFINITY_SUFFIX)) {
+                        pkgName = pkgName.replace(ACCOUNT_AFFINITY_SUFFIX, "");
+                    }
+
                     final ApplicationInfo clickedAppInfo = mPackageManager.getApplicationInfo(
-                            packageNames.get(position),
+                            pkgName,
                             PackageManager.GET_META_DATA
                     );
                     final PackageInfo packageInfo = mPackageManager.getPackageInfo(
                             clickedAppInfo.packageName,
-                            PackageManager.GET_SIGNATURES
+                            getPackageManagerFlag()
                     );
 
                     String packageSigningSha = "";
 
-                    if (null != packageInfo
-                            && null != packageInfo.signatures
-                            && packageInfo.signatures.length > 0) {
-                        final Signature signature = packageInfo.signatures[0];
+                    final Signature[] signatures = getSignatures(packageInfo);
+                    if (null != signatures
+                            && signatures.length > 0) {
+                        final Signature signature = signatures[0];
                         final MessageDigest digest = MessageDigest.getInstance("SHA");
                         digest.update(signature.toByteArray());
                         packageSigningSha = Base64.encodeToString(digest.digest(), Base64.NO_WRAP);
@@ -142,12 +150,12 @@ public class MainActivity extends AppCompatActivity {
 
                     String msg = "Certificate hash:\n" + packageSigningSha;
 
-                    if (isAnAuthenticatorApp(clickedAppInfo.packageName)) {
-                        msg += "\n\n" + getAuthenticatorAppMetadata(clickedAppInfo.packageName);
+                    if (isAnAuthenticatorApp(pkgName)) {
+                        msg += "\n\n" + getAuthenticatorAppMetadata(pkgName);
                     }
 
                     new AlertDialog.Builder(MainActivity.this)
-                            .setTitle(clickedAppInfo.packageName)
+                            .setTitle(pkgName)
                             .setMessage(msg)
                             .setPositiveButton(
                                     MainActivity.this.getString(R.string.dismiss),
@@ -202,5 +210,30 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean isAnAuthenticatorApp(@NonNull final String pkgName) {
         return mPkgAuthenticators.containsKey(pkgName);
+    }
+
+    private Signature[] getSignatures(@Nullable final PackageInfo packageInfo) {
+        if (packageInfo == null) return null;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            if (packageInfo.signingInfo == null) {
+                return null;
+            }
+            if (packageInfo.signingInfo.hasMultipleSigners()) {
+                return packageInfo.signingInfo.getApkContentsSigners();
+            } else {
+                return packageInfo.signingInfo.getSigningCertificateHistory();
+            }
+        }
+
+        return packageInfo.signatures;
+    }
+
+    private static int getPackageManagerFlag() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            return PackageManager.GET_SIGNING_CERTIFICATES;
+        }
+
+        return PackageManager.GET_SIGNATURES;
     }
 }

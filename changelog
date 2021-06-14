@@ -1,7 +1,37 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
-v.Next
+vNext
 ----------
+- [PATCH] Better messaging clarity around redirect URI (#1265).
+- [PATCH] Fixes deprecated PackageInfo.signatures and PackageManager.GET_SIGNATURES (#1321)
+- [MINOR] Added support for handling null taskAffinity.  Add configuration to enable this new feature.  "handle_null_taskaffinity" which is a boolean (#1342)
+- [PATCH] Log and throw exception if there are other apps listening for the redirect URL scheme defined in Android Manifest (#1357)
+- [PATCH] Update Nimbus dependency version (#1382)
+
+Version 2.0.12
+----------
+- Picks up common@3.4.3
+
+Version 2.0.10
+----------
+- [PATCH] Add extra '/' in the example intent filter (#1323)
+- [PATCH] Better PublicClientApplicationConfiguration validation to fail when empty string is passed (#1324)
+- [PATCH] Improve redirect_uri validation of PCA manifest (#1327)
+- Picks up common@3.3.1
+
+Version 2.0.8
+----------
+- [MINOR] Changes to Broker Validation to allow setting whether to trust debug brokers (prod brokers are always trusted) (#1274)
+- Picks up common@3.1.2
+
+Version 2.0.6
+----------
+- Warn if SAPCA used with B2C. Throw Exception if Multiple Policies are Configured (#1270)
+- Picks up common@3.0.9
+
+Version 2.0.5
+----------
+- Fix exception casting issue in CommandDispatcher (common #1121)
 
 Version 2.0.4
 ----------

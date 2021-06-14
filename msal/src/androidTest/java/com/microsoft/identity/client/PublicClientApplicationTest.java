@@ -41,7 +41,7 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
-import com.microsoft.identity.common.internal.net.HttpUrlConnectionFactory;
+import com.microsoft.identity.common.java.net.HttpUrlConnectionFactory;
 import com.microsoft.identity.msal.test.R;
 
 import org.junit.After;
@@ -106,6 +106,29 @@ public final class PublicClientApplicationTest {
         AndroidTestUtil.removeAllTokens(mAppContext);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testConfigValidationFailsOnEmptyRedirect() throws MsalException, InterruptedException {
+        final Context context = new PublicClientApplicationTest.MockContext(mAppContext);
+        mockPackageManagerWithDefaultFlag(context);
+        mockHasCustomTabRedirect(context);
+
+        final IMultipleAccountPublicClientApplication app = PublicClientApplication.createMultipleAccountPublicClientApplication(
+                context,
+                R.raw.test_pcaconfig_empty_redirect
+        );
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testConfigValidationFailsOnEmptyClientId() throws MsalException, InterruptedException {
+        final Context context = new PublicClientApplicationTest.MockContext(mAppContext);
+        mockPackageManagerWithDefaultFlag(context);
+        mockHasCustomTabRedirect(context);
+
+        final IMultipleAccountPublicClientApplication app = PublicClientApplication.createMultipleAccountPublicClientApplication(
+                context,
+                R.raw.test_pcaconfig_empty_clientid
+        );
+    }
 
     @Test
     public void testSingleAccountConstructor() {
@@ -114,7 +137,10 @@ public final class PublicClientApplicationTest {
         mockHasCustomTabRedirect(context);
 
         try {
-            ISingleAccountPublicClientApplication app = PublicClientApplication.createSingleAccountPublicClientApplication(context, R.raw.test_msal_config_single_account);
+            final ISingleAccountPublicClientApplication app = PublicClientApplication.createSingleAccountPublicClientApplication(
+                    context,
+                    R.raw.test_msal_config_single_account
+            );
             Assert.assertTrue(app instanceof ISingleAccountPublicClientApplication);
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -130,7 +156,10 @@ public final class PublicClientApplicationTest {
         mockHasCustomTabRedirect(context);
 
         try {
-            IMultipleAccountPublicClientApplication app = PublicClientApplication.createMultipleAccountPublicClientApplication(context, R.raw.test_msal_config_multiple_account);
+            final IMultipleAccountPublicClientApplication app = PublicClientApplication.createMultipleAccountPublicClientApplication(
+                    context,
+                    R.raw.test_msal_config_multiple_account
+            );
             Assert.assertTrue(app instanceof IMultipleAccountPublicClientApplication);
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -145,17 +174,20 @@ public final class PublicClientApplicationTest {
         mockPackageManagerWithDefaultFlag(context);
         mockHasCustomTabRedirect(context);
 
-        PublicClientApplication.createMultipleAccountPublicClientApplication(context, R.raw.test_msal_config_multiple_account, new PublicClientApplication.IMultipleAccountApplicationCreatedListener() {
-            @Override
-            public void onCreated(IMultipleAccountPublicClientApplication application) {
-                Assert.assertTrue(application instanceof IMultipleAccountPublicClientApplication);
-            }
+        PublicClientApplication.createMultipleAccountPublicClientApplication(
+                context,
+                R.raw.test_msal_config_multiple_account,
+                new PublicClientApplication.IMultipleAccountApplicationCreatedListener() {
+                    @Override
+                    public void onCreated(IMultipleAccountPublicClientApplication application) {
+                        Assert.assertTrue(application instanceof IMultipleAccountPublicClientApplication);
+                    }
 
-            @Override
-            public void onError(MsalException exception) {
-                Assert.assertTrue(false);
-            }
-        });
+                    @Override
+                    public void onError(MsalException exception) {
+                        Assert.assertTrue(false);
+                    }
+                });
     }
 
     @Test
@@ -164,17 +196,20 @@ public final class PublicClientApplicationTest {
         mockPackageManagerWithDefaultFlag(context);
         mockHasCustomTabRedirect(context);
 
-        PublicClientApplication.createMultipleAccountPublicClientApplication(context, R.raw.test_msal_config_single_account, new PublicClientApplication.IMultipleAccountApplicationCreatedListener() {
-            @Override
-            public void onCreated(IMultipleAccountPublicClientApplication application) {
-                Assert.assertTrue(false);
-            }
+        PublicClientApplication.createMultipleAccountPublicClientApplication(
+                context,
+                R.raw.test_msal_config_single_account,
+                new PublicClientApplication.IMultipleAccountApplicationCreatedListener() {
+                    @Override
+                    public void onCreated(IMultipleAccountPublicClientApplication application) {
+                        Assert.assertTrue(false);
+                    }
 
-            @Override
-            public void onError(MsalException exception) {
-                Assert.assertTrue("Expecting error.", true);
-            }
-        });
+                    @Override
+                    public void onError(MsalException exception) {
+                        Assert.assertTrue("Expecting error.", true);
+                    }
+                });
     }
 
     @Test
@@ -183,16 +218,19 @@ public final class PublicClientApplicationTest {
         mockPackageManagerWithDefaultFlag(context);
         mockHasCustomTabRedirect(context);
 
-        PublicClientApplication.createSingleAccountPublicClientApplication(context, R.raw.test_msal_config_single_account, new PublicClientApplication.ISingleAccountApplicationCreatedListener() {
-            @Override
-            public void onCreated(ISingleAccountPublicClientApplication application) {
-                Assert.assertTrue(application instanceof ISingleAccountPublicClientApplication);
-            }
+        PublicClientApplication.createSingleAccountPublicClientApplication(
+                context,
+                R.raw.test_msal_config_single_account,
+                new PublicClientApplication.ISingleAccountApplicationCreatedListener() {
+                    @Override
+                    public void onCreated(ISingleAccountPublicClientApplication application) {
+                        Assert.assertTrue(application instanceof ISingleAccountPublicClientApplication);
+                    }
 
-            @Override
-            public void onError(MsalException exception) {
-            }
-        });
+                    @Override
+                    public void onError(MsalException exception) {
+                    }
+                });
     }
 
     @Test
@@ -201,23 +239,25 @@ public final class PublicClientApplicationTest {
         mockPackageManagerWithDefaultFlag(context);
         mockHasCustomTabRedirect(context);
 
-        PublicClientApplication.createSingleAccountPublicClientApplication(context, R.raw.test_msal_config_multiple_account, new PublicClientApplication.ISingleAccountApplicationCreatedListener() {
-            @Override
-            public void onCreated(ISingleAccountPublicClientApplication application) {
-                Assert.assertTrue(false);
-            }
+        PublicClientApplication.createSingleAccountPublicClientApplication(
+                context,
+                R.raw.test_msal_config_multiple_account,
+                new PublicClientApplication.ISingleAccountApplicationCreatedListener() {
+                    @Override
+                    public void onCreated(ISingleAccountPublicClientApplication application) {
+                        Assert.assertTrue(false);
+                    }
 
-            @Override
-            public void onError(MsalException exception) {
-                Assert.assertTrue("Expecting error.", true);
-            }
-        });
+                    @Override
+                    public void onError(MsalException exception) {
+                        Assert.assertTrue("Expecting error.", true);
+                    }
+                });
     }
 
     /**
      * Verify correct exception is thrown if callback is not provided.
      */
-    @Ignore
     @Test(expected = IllegalArgumentException.class)
     public void testCallBackEmpty() throws PackageManager.NameNotFoundException, MsalClientException {
         final Context context = new MockContext(mAppContext);
@@ -250,57 +290,6 @@ public final class PublicClientApplicationTest {
         new PublicClientApplication(config);
     }
 
-    @Test
-    @Ignore
-    public void testUnknownAuthorityException() throws PackageManager.NameNotFoundException, IOException,
-            InterruptedException {
-        //TODO: to be replaced with Robolectric
-
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    @Ignore
-    public void testAcquireTokenInteractiveScopeWithEmptyString() throws PackageManager.NameNotFoundException, IOException,
-            InterruptedException {
-        //TODO: to be replaced with Robolectric
-    }
-
-    @Test
-    @Ignore
-    public void testClientInfoNotReturned() throws PackageManager.NameNotFoundException, IOException,
-            InterruptedException {
-        //TODO: to be replaced with Robolectric
-    }
-
-    /**
-     * Verify {@link PublicClientApplication#acquireToken(Activity, String[], String, UiBehavior, List, String[],
-     * String, AuthenticationCallback)}. Also check if authority is set on the manifest, we read the authority
-     * from manifest meta-data.
-     * <p>
-     * NOTE: Ignoring until we've updated the code to do authority validation per the new design.  Currently setting an authority other than the default will fail.
-     */
-    @Test
-    @Ignore
-    public void testAuthoritySetInManifestGetTokenFailed() {
-        //TODO: to be replaced with Robolectric
-    }
-
-    /**
-     * Verify {@link PublicClientApplication#acquireToken(Activity, String[], String, UiBehavior, List, String[], String, AuthenticationCallback)}.
-     */
-    // TODO: suppress the test. The purpose is that the API call will eventually send back the cancel to caller.
-    @Ignore
-    @Test
-    public void testGetTokenWithExtraQueryParam()
-            throws PackageManager.NameNotFoundException, IOException, InterruptedException {
-        //TODO: to be replaced with Robolectric
-    }
-
-    @Test
-    @Ignore
-    public void testB2cAuthorityNotInTrustedList() throws PackageManager.NameNotFoundException, IOException, InterruptedException {
-        //TODO: to be replaced with Robolectric
-    }
 
     @Test
     public void testSecretKeysAreSet() throws NoSuchAlgorithmException, InvalidKeySpecException, MsalClientException {
@@ -385,6 +374,7 @@ public final class PublicClientApplicationTest {
         final ResolveInfo mockedResolveInfo1 = Mockito.mock(ResolveInfo.class);
         final ActivityInfo mockedActivityInfo1 = Mockito.mock(ActivityInfo.class);
         mockedActivityInfo1.name = BrowserTabActivity.class.getName();
+        mockedActivityInfo1.packageName = context.getPackageName();
         mockedResolveInfo1.activityInfo = mockedActivityInfo1;
         resolveInfos.add(mockedResolveInfo1);
     }

@@ -37,8 +37,7 @@ import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthorityForMockHttpResponse;
-import com.microsoft.identity.client.e2e.shadows.ShadowHttpRequestForMockedTest;
-import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
+import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
 import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
@@ -48,11 +47,12 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.exception.ServiceException;
 import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
-import com.microsoft.identity.internal.testutils.MockHttpResponse;
+import com.microsoft.identity.internal.testutils.HttpRequestMatcher;
 import com.microsoft.identity.internal.testutils.TestConstants;
 import com.microsoft.identity.internal.testutils.TestUtils;
 import com.microsoft.identity.internal.testutils.mocks.MockServerResponse;
 import com.microsoft.identity.internal.testutils.mocks.MockTokenCreator;
+import com.microsoft.identity.internal.testutils.shadows.ShadowHttpClient;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -61,31 +61,46 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import edu.emory.mathcs.backport.java.util.Arrays;
+import java.util.Arrays;
 
 import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
+import static com.microsoft.identity.internal.testutils.mocks.MockTokenCreator.CLOUD_DISCOVERY_ENDPOINT_REGEX;
 import static com.microsoft.identity.internal.testutils.mocks.MockTokenCreator.MOCK_PREFERRED_USERNAME_VALUE;
+import static com.microsoft.identity.internal.testutils.mocks.MockTokenCreator.MOCK_TOKEN_URL_REGEX;
 import static org.junit.Assert.fail;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {
         ShadowStorageHelper.class,
         ShadowAuthorityForMockHttpResponse.class,
-        ShadowHttpRequestForMockedTest.class,
-        ShadowMsalUtils.class,
+        ShadowPublicClientApplicationConfiguration.class,
+        ShadowHttpClient.class,
         ShadowOpenIdProviderConfigurationClient.class
 })
 public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
 
     private SingleAccountPublicClientApplication mSingleAccountPCA;
-    private String mUsername = MOCK_PREFERRED_USERNAME_VALUE;
+    private final String mUsername = MOCK_PREFERRED_USERNAME_VALUE;
 
     @Before
     public void setup() {
         super.setup();
         TestUtils.clearCache(SingleAccountPublicClientApplication.SINGLE_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES);
         mSingleAccountPCA = (SingleAccountPublicClientApplication) mApplication;
-        MockHttpResponse.setHttpResponse(MockServerResponse.getMockTokenSuccessResponse());
+        mockHttpClient.intercept(
+                HttpRequestMatcher.builder()
+                        .isPOST()
+                        .urlPattern(MOCK_TOKEN_URL_REGEX)
+                        .build(),
+                MockServerResponse.getMockTokenSuccessResponse()
+        );
+        mockHttpClient.intercept(
+                HttpRequestMatcher.builder()
+                        .isGET()
+                        .urlPattern(CLOUD_DISCOVERY_ENDPOINT_REGEX)
+                        .build(),
+                MockServerResponse.getMockCloudDiscoveryResponse()
+        );
     }
 
     @Test
@@ -354,7 +369,7 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
 
             @Override
             public void onError(MsalException exception) {
-                fail(exception.getMessage());
+                throw new AssertionError(exception);
             }
         };
     }

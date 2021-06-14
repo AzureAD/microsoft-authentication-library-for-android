@@ -22,28 +22,24 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
-import androidx.annotation.NonNull;
-
-import com.microsoft.identity.client.AcquireTokenParameters;
-import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
-import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
-import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
+import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
+import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
+import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TestContext;
-import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
-import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
+import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 
 import org.junit.Test;
 
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 //Joined AcquireToken test with MSAL and Broker
@@ -51,78 +47,72 @@ import java.util.concurrent.TimeUnit;
 public class TestCase832430 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_832430() throws InterruptedException {
+    public void test_832430() throws Throwable {
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
-        //acquiring token
-        final CountDownLatch latch = new CountDownLatch(1);
+        final MsalSdk msalSdk = new MsalSdk();
 
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(mLoginHint)
-                .withResource(mScopes[0])
-                .withCallback(successfulInteractiveCallback(latch))
-                .withPrompt(Prompt.SELECT_ACCOUNT)
+        //acquiring token
+        final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .loginHint(mLoginHint)
+                .resource(mScopes[0])
+                .promptParameter(Prompt.SELECT_ACCOUNT)
+                .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-        final InteractiveRequest interactiveRequest = new InteractiveRequest(
-                mApplication,
-                parameters,
-                new OnInteractionRequired() {
-                    @Override
-                    public void handleUserInteraction() {
-                        final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                                .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHint(mLoginHint)
-                                .sessionExpected(false)
-                                .consentPageExpected(false)
-                                .speedBumpExpected(false)
-                                .broker(mBroker)
-                                .expectingBrokerAccountChooserActivity(false)
-                                .registerPageExpected(true)
-                                .build();
+        final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
+            @Override
+            public void handleUserInteraction() {
+                final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
+                        .prompt(PromptParameter.SELECT_ACCOUNT)
+                        .loginHint(mLoginHint)
+                        .sessionExpected(false)
+                        .consentPageExpected(false)
+                        .speedBumpExpected(false)
+                        .broker(mBroker)
+                        .expectingBrokerAccountChooserActivity(false)
+                        .registerPageExpected(true)
+                        .build();
 
-                        new AadPromptHandler(promptHandlerParameters)
-                                .handlePrompt(username, password);
-                    }
-                }
-        );
+                new AadPromptHandler(promptHandlerParameters)
+                        .handlePrompt(username, password);
+            }
+        }, TokenRequestTimeout.MEDIUM);
 
-        interactiveRequest.execute();
-        latch.await();
+        authResult.assertSuccess();
 
-        final IAccount account = getAccount();
+        IAccount account = msalSdk.getAccount(mActivity,getConfigFileResourceId(),username);
 
         //acquiring token silently
-        final CountDownLatch silentLatch = new CountDownLatch(1);
-
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .forAccount(account)
-                .fromAuthority(account.getAuthority())
-                .withResource(mScopes[0])
-                .withCallback(successfulSilentCallback(silentLatch))
+        final MsalAuthTestParams silentParams = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .loginHint(username)
+                .authority(account.getAuthority())
+                .resource(mScopes[0])
+                .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-        mApplication.acquireTokenSilentAsync(silentParameters);
-        silentLatch.await();
+
+        final MsalAuthResult silentAuthResult = msalSdk.acquireTokenSilent(silentParams, TokenRequestTimeout.MEDIUM);
+        silentAuthResult.assertSuccess();
 
         //forwarding time 1 day
         TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
         Thread.sleep(TimeUnit.SECONDS.toMillis(30));
 
         // acquiring token silently after expiring AT
-        final CountDownLatch refreshTokenLatch = new CountDownLatch(1);
-
-        final AcquireTokenSilentParameters refreshTokenParameters = new AcquireTokenSilentParameters.Builder()
-                .forAccount(account)
-                .fromAuthority(account.getAuthority())
-                .withResource(mScopes[0])
-                .withCallback(successfulSilentCallback(refreshTokenLatch))
+        final MsalAuthTestParams refreshTokenParams = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .loginHint(username)
+                .authority(account.getAuthority())
+                .resource(mScopes[0])
+                .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-        mApplication.acquireTokenSilentAsync(refreshTokenParameters);
-        refreshTokenLatch.await();
+        final MsalAuthResult refreshTokenAuthResult = msalSdk.acquireTokenSilent(refreshTokenParams, TokenRequestTimeout.MEDIUM);
+        refreshTokenAuthResult.assertSuccess();
     }
 
     @Override

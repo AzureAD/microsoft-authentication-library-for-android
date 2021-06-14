@@ -25,11 +25,9 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
-import com.microsoft.identity.client.msal.automationapp.BuildConfig;
+import com.microsoft.identity.client.msal.automationapp.BrokerTestHelper;
 import com.microsoft.identity.client.ui.automation.IBrokerTest;
-import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
-import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
-import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
+import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.rules.RulesHelper;
 
@@ -46,20 +44,11 @@ public abstract class AbstractMsalBrokerTest extends AbstractMsalUiTest implemen
     @Override
     public ITestBroker getBroker() {
         // only initialize once....so calling getBroker from anywhere returns the same instance
-        if (mBroker != null) {
-            return mBroker;
+        if (mBroker == null) {
+            final SupportedBrokers supportedBrokersAnnotation = getClass().getAnnotation(SupportedBrokers.class);
+            mBroker = BrokerTestHelper.createBrokerFromFlavor(supportedBrokersAnnotation);
         }
-
-        switch (BuildConfig.SELECTED_BROKER) {
-            case BuildConfig.BrokerHost:
-                return new BrokerHost();
-            case BuildConfig.BrokerMicrosoftAuthenticator:
-                return new BrokerMicrosoftAuthenticator();
-            case BuildConfig.BrokerCompanyPortal:
-                return new BrokerCompanyPortal();
-            default:
-                throw new UnsupportedOperationException("Unsupported broker :(");
-        }
+        return mBroker;
     }
 
     @Override

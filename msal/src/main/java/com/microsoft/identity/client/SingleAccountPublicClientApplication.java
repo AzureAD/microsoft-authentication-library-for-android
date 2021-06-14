@@ -52,6 +52,7 @@ import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.ResultFuture;
+import com.microsoft.identity.common.logging.Logger;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -535,7 +536,7 @@ public class SingleAccountPublicClientApplication
         final List<IAccount> account = AccountAdapter.adapt(cacheRecords);
 
         if (account.size() != 1) {
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
+            Logger.verbose(
                     TAG + methodName,
                     "Returned cacheRecords were adapted into multiple IAccount. " +
                             "This is unexpected in Single account mode." +
