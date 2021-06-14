@@ -25,11 +25,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Azure Pipelines Action
-          uses: Azure/pipelines@v1
-          with:
-            # Fullyqualified URL to the Azure DevOps organization along with project name(eg, https://dev.azure.com/organization/project-name or https://server.example.com:8080/tfs/DefaultCollection/project-name)
-            azure-devops-project-url: 'https://dev.azure.com/IdentityDivision/IDDP'
-            # Name of the Azure Pipline to be triggered
-            azure-pipeline-name: '(Nightly) Local MSAL UI Automation against BrokerHost'
-            # Paste personal access token of the user as value of secret variable:AZURE_DEVOPS_TOKEN
-            azure-devops-token: '${{ secrets.IDDP_PIPELINE }}'
+        uses: Azure/pipelines@v1
+        with:
+          # Fullyqualified URL to the Azure DevOps organization along with project name(eg, https://dev.azure.com/organization/project-name or https://server.example.com:8080/tfs/DefaultCollection/project-name)
+          azure-devops-project-url: 'https://dev.azure.com/IdentityDivision/IDDP'
+          # Name of the Azure Pipline to be triggered
+          azure-pipeline-name: '(Nightly) Local MSAL UI Automation against BrokerHost'
+          # Paste personal access token of the user as value of secret variable:AZURE_DEVOPS_TOKEN
+          azure-devops-token: '${{ secrets.IDDP_PIPELINE }}'
