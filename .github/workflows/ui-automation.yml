@@ -18,6 +18,7 @@ on:
 #      - 'scripts'
 #      - 'testapps'
 
+
 # Jobs run in parallel by default.  Use "needs:" to indicate dependencies run sequentially
 jobs:
   run-ui-automation:
