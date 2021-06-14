@@ -183,6 +183,6 @@ public class AcquireTokenTestsFragment extends StressTestsFragment<IAccount, IAu
     @Override
     public int getTimeLimit() {
         // Run these tests for 6 hours.
-        return 6 * 60;
+        return 1;
     }
 }
