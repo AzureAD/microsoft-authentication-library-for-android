@@ -271,6 +271,7 @@ dependencies {
     implementation ("com.nimbusds:nimbus-jose-jwt:$rootProject.ext.nimbusVersion") {
         exclude module: 'asm'
     }
+    implementation "cz.msebera.android:httpclient:$rootProject.ext.mseberaApacheHttpClientVersion"
     implementation "androidx.constraintlayout:constraintlayout:$rootProject.ext.constraintLayoutVersion"
 
     // test dependencies
@@ -279,8 +280,6 @@ dependencies {
     //see: https://javadoc.io/static/org.mockito/mockito-core/3.6.28/org/mockito/Mockito.html#0.1
     testImplementation "org.mockito:mockito-inline:$rootProject.ext.mockitoCoreVersion"
     testImplementation ("org.robolectric:robolectric:$rootProject.ext.robolectricVersion")
-    // For mockito!
-    testImplementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
     testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"
     testImplementation project(':testutils')
     // instrumentation test dependencies
