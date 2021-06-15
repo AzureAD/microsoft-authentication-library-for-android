@@ -31,6 +31,8 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 
+import javax.net.ssl.HttpsURLConnection;
+
 /**
  * Util class for mocking.
  */
@@ -40,7 +42,7 @@ public final class AndroidTestMockUtil {
     }
 
     static HttpURLConnection getMockedConnectionWithSuccessResponse(final String message) throws IOException {
-        final HttpURLConnection mockedHttpUrlConnection = getCommonHttpUrlConnection();
+        final HttpsURLConnection mockedHttpUrlConnection = getCommonHttpsUrlConnection();
 
         Mockito.when(mockedHttpUrlConnection.getInputStream()).thenReturn(AndroidTestUtil.createInputStream(message));
         Mockito.when(mockedHttpUrlConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
@@ -48,9 +50,9 @@ public final class AndroidTestMockUtil {
         return mockedHttpUrlConnection;
     }
 
-    static HttpURLConnection getMockedConnectionWithFailureResponse(final int statusCode, final String errorMessage)
+    static HttpsURLConnection getMockedConnectionWithFailureResponse(final int statusCode, final String errorMessage)
             throws IOException {
-        final HttpURLConnection mockedHttpUrlConnection = getCommonHttpUrlConnection();
+        final HttpsURLConnection mockedHttpUrlConnection = getCommonHttpsUrlConnection();
 
         Mockito.when(mockedHttpUrlConnection.getInputStream()).thenThrow(IOException.class);
         Mockito.when(mockedHttpUrlConnection.getErrorStream()).thenReturn(AndroidTestUtil.createInputStream(errorMessage));
@@ -59,15 +61,15 @@ public final class AndroidTestMockUtil {
         return mockedHttpUrlConnection;
     }
 
-    static HttpURLConnection getMockedConnectionWithSocketTimeout() throws IOException {
-        final HttpURLConnection mockedUrlConnection = getCommonHttpUrlConnection();
+    static HttpsURLConnection getMockedConnectionWithSocketTimeout() throws IOException {
+        final HttpsURLConnection mockedUrlConnection = getCommonHttpsUrlConnection();
 
         Mockito.when(mockedUrlConnection.getInputStream()).thenThrow(SocketTimeoutException.class);
         return mockedUrlConnection;
     }
 
-    static HttpURLConnection getCommonHttpUrlConnection() throws IOException {
-        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+    static HttpsURLConnection getCommonHttpsUrlConnection() throws IOException {
+        final HttpsURLConnection mockedConnection = Mockito.mock(HttpsURLConnection.class);
         Mockito.doNothing().when(mockedConnection).setConnectTimeout(Mockito.anyInt());
         Mockito.doNothing().when(mockedConnection).setDoInput(Mockito.anyBoolean());
         return mockedConnection;
