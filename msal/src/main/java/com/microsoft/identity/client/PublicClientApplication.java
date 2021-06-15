@@ -89,7 +89,7 @@ import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
 import com.microsoft.identity.common.internal.migration.AdalMigrationAdapter;
 import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
 import com.microsoft.identity.common.internal.migration.TokenMigrationUtility;
-import com.microsoft.identity.common.internal.net.HttpRequest;
+import com.microsoft.identity.common.java.net.HttpRequest;
 import com.microsoft.identity.common.internal.net.cache.HttpCache;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
@@ -98,7 +98,7 @@ import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.result.GenerateShrResult;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
-import com.microsoft.identity.common.internal.result.ResultFuture;
+import com.microsoft.identity.common.java.util.ResultFuture;
 import com.microsoft.identity.common.logging.Logger;
 import com.microsoft.identity.msal.BuildConfig;
 
@@ -1069,7 +1069,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getEnvironment());
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
 
-        initializeHttpSettings(mPublicClientConfiguration.getHttpConfiguration());
         initializeLoggerSettings(mPublicClientConfiguration.getLoggerConfiguration());
 
         initializeTokenSharingLibrary();
@@ -1100,32 +1099,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
             logger.setEnablePII(configPiiState);
             logger.setEnableLogcatLog(configLogcatState);
-        }
-    }
-
-    private void initializeHttpSettings(@Nullable final HttpConfiguration httpConfiguration) {
-        final String methodName = ":initializeHttpSettings";
-
-        if (null == httpConfiguration) {
-            Logger.info(
-                    TAG + methodName,
-                    "HttpConfiguration not provided - using defaults."
-            );
-
-            return;
-        }
-
-        final int readTimeout = httpConfiguration.getReadTimeout();
-        final int connectTimeout = httpConfiguration.getConnectTimeout();
-
-        // Configured values must be >= 0
-
-        if (readTimeout >= 0) {
-            HttpRequest.READ_TIMEOUT = readTimeout;
-        }
-
-        if (connectTimeout >= 0) {
-            HttpRequest.CONNECT_TIMEOUT = connectTimeout;
         }
     }
 
