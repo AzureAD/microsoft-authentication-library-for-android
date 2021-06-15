@@ -41,7 +41,7 @@ ext {
     rulesVersion = "1.2.0"
     robolectricVersion = "4.3.1"
     uiAutomatorVersion = "2.2.0"
-    msebraApacheHttpClientVersion = "4.5.8"
+    mseberaApacheHttpClientVersion = "4.5.8"
 
     // TODO: adal automation test app.
     supportLibraryVersion = "27.1.+"
