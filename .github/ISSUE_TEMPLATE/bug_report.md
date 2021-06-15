@@ -19,6 +19,10 @@ Is your app live and in production or is this a development issue? Provide a cle
 **Stacktrace**
 If a crash occurs, include the stacktrace.
 
+** Logs **
+Please follow the steps below to collect logs
+https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki/Logs-Collection
+
 **To Reproduce**
 Steps to reproduce the behavior:
 
