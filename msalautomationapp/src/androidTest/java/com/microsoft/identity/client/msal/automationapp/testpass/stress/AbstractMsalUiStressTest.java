@@ -22,18 +22,22 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.stress;
 
-import android.os.Debug;
-
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
+import com.microsoft.identity.client.ui.automation.logging.appender.FileAppender;
+import com.microsoft.identity.client.ui.automation.logging.formatter.LogcatLikeFormatter;
+import com.microsoft.identity.client.ui.automation.performance.DeviceMonitor;
+import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
 import org.junit.Before;
 
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -42,6 +46,9 @@ import java.util.concurrent.TimeUnit;
 
 public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest {
 
+    // Sets the interval duration in seconds to which the device performance will be monitored.
+    private static final long DEVICE_MONITOR_INTERVAL = TimeUnit.SECONDS.toMillis(1);
+    private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
     private Exception executionException;
 
     @Override
@@ -62,7 +69,7 @@ public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest 
 
         final ExecutorService executorService = new ThreadPoolExecutor(
                 1,
-                getNumberOfThreads(),
+                getNumberOfThreads() + 1,
                 0L,
                 TimeUnit.MILLISECONDS,
                 blockingQueue,
@@ -72,6 +79,9 @@ public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest 
 
         final long startTime = System.currentTimeMillis();
         final long timeLimit = TimeUnit.MINUTES.toMillis(getTimeLimit());
+
+        // use the execution thread pool to collect device stats
+        executorService.submit(getPerformanceStatsCollector());
 
 
         while (System.currentTimeMillis() - startTime < timeLimit && executionException == null) {
@@ -92,10 +102,49 @@ public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest 
 
         executorService.shutdown();
 
-        Debug.stopNativeTracing();
 
         if (executionException != null) {
             throw executionException;
+        }
+    }
+
+    private Runnable getPerformanceStatsCollector() {
+        writeFile(String.format("%d\n%d", getNumberOfThreads(), getTimeLimit()));
+
+        return new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    while (true) {
+                        String line = String.format(
+                                "%s,%s,%s,%s,%s",
+                                new SimpleDateFormat(DATE_FORMAT).format(new Date()),
+                                DeviceMonitor.getCpuUsage(),
+                                DeviceMonitor.getMemoryUsage(),
+                                DeviceMonitor.getNetworkTrafficInfo().getDiffBytesReceived(),
+                                DeviceMonitor.getNetworkTrafficInfo().getDiffBytesSent()
+                        );
+
+                        System.out.println("Result: " + line);
+                        writeFile(line);
+
+                        TimeUnit.MILLISECONDS.sleep(DEVICE_MONITOR_INTERVAL);
+                    }
+                } catch (Exception ex) {
+                    executionException = ex;
+                }
+            }
+        };
+    }
+
+    private synchronized void writeFile(final String output) {
+        try {
+            final FileAppender fileAppender = new FileAppender(getOutputFileName(), new LogcatLikeFormatter());
+            fileAppender.append(output);
+
+            CommonUtils.copyFileToFolderInSdCard(fileAppender.getLogFile(), "automation");
+        } catch (IOException e) {
+            executionException = e;
         }
     }
 
@@ -160,5 +209,13 @@ public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest 
      * @return the time limit in minutes
      */
     public abstract long getTimeLimit();
+
+
+    /**
+     * Return the output file name
+     *
+     * @return the name of the output file
+     */
+    public abstract String getOutputFileName();
 
 }

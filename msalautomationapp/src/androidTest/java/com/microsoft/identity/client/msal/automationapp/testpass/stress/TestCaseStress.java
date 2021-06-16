@@ -34,9 +34,6 @@ import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.client.ui.automation.performance.DeviceMonitor;
-import com.microsoft.identity.client.ui.automation.performance.NetworkUsageMonitor;
-import com.microsoft.identity.client.ui.automation.performance.ProcessInfo;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 
 import org.junit.Test;
@@ -47,11 +44,7 @@ public class TestCaseStress extends AbstractMsalUiStressTest<IAccount, IAuthenti
 
     @Test
     public void test_acquireTokenSilentlyWithCachedTokens() throws Exception {
-        Long memoryUsage = DeviceMonitor.getMemoryUsage();
-        String cpuUsage = DeviceMonitor.getCpuUsage();
-        NetworkUsageMonitor.TrafficInfo trafficInfo = DeviceMonitor.getNetworkTrafficInfo();
-
-        System.out.println(memoryUsage);
+        run();
     }
 
     @Override
@@ -117,7 +110,11 @@ public class TestCaseStress extends AbstractMsalUiStressTest<IAccount, IAuthenti
 
     @Override
     public long getTimeLimit() {
-//        return TimeUnit.HOURS.toMinutes(1);
         return 1;
+    }
+
+    @Override
+    public String getOutputFileName() {
+        return "StressTestsAcquireTokenSilent.txt";
     }
 }
