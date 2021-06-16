@@ -54,13 +54,11 @@ public class TestCasePerfBrokered extends AbstractMsalBrokerTest {
 
     @Test
     public void test_acquireTokenSilentlyWithBroker() throws InterruptedException {
-
+        CodeMarkerManager codeMarkerManager = CodeMarkerManager.getInstance();
         final int numberOfOccurrenceOfTest = 10;
         final String outputFilenamePrefix = "PerfDataTargetBrokerHostWR"; // With Resource
-
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
-
         //acquiring token
         final TokenRequestLatch latch = new TokenRequestLatch(1);
 
@@ -99,13 +97,13 @@ public class TestCasePerfBrokered extends AbstractMsalBrokerTest {
         latch.await();
 
         final IAccount account = getAccount();
-        CodeMarkerManager.getInstance().setEnableCodeMarker(true);
+        codeMarkerManager.setEnableCodeMarker(true);
         //Setting up scenario code. 100 -> Non Brokered, 200 -> Brokered
-        CodeMarkerManager.getInstance().setPrefixScenarioCode(PerfConstants.ScenarioConstants.SCENARIO_BROKERED_ACQUIRE_TOKEN_SILENTLY);
+        codeMarkerManager.setPrefixScenarioCode(PerfConstants.ScenarioConstants.SCENARIO_BROKERED_ACQUIRE_TOKEN_SILENTLY);
         //acquiring token silently
 
         for(int i = 0; i < numberOfOccurrenceOfTest; i++) {
-            CodeMarkerManager.getInstance().clearMarkers();
+            codeMarkerManager.clearMarkers();
             final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
 
             final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
@@ -120,7 +118,7 @@ public class TestCasePerfBrokered extends AbstractMsalBrokerTest {
 
             try {
                 FileAppender fileAppender = new FileAppender(outputFilenamePrefix + i + ".txt", new SimpleTextFormatter());
-                fileAppender.append(CodeMarkerManager.getInstance().getFileContent());
+                fileAppender.append(codeMarkerManager.getFileContent());
                 CommonUtils.copyFileToFolderInSdCard(
                         fileAppender.getLogFile(),
                         "automation"
@@ -140,8 +138,8 @@ public class TestCasePerfBrokered extends AbstractMsalBrokerTest {
             }
         }
 
-        CodeMarkerManager.getInstance().clearMarkers();
-        CodeMarkerManager.getInstance().setEnableCodeMarker(false);
+        codeMarkerManager.clearMarkers();
+        codeMarkerManager.setEnableCodeMarker(false);
     }
 
     @Override

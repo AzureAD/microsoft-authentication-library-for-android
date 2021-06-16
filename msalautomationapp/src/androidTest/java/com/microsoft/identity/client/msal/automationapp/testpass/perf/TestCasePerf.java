@@ -56,6 +56,7 @@ public class TestCasePerf extends AbstractMsalUiTest {
 
     @Test
     public void test_acquireTokenSilentlyWithoutBroker() {
+        CodeMarkerManager codeMarkerManager = CodeMarkerManager.getInstance();
         final TokenRequestLatch latch = new TokenRequestLatch(1);
         final int numberOfOccurrenceOfTest = 10;
         final String outputFilenamePrefix = "PerfDataTarget";
@@ -96,12 +97,12 @@ public class TestCasePerf extends AbstractMsalUiTest {
         latch.await(TokenRequestTimeout.SHORT);
 
         final IAccount account = getAccount();
-        CodeMarkerManager.getInstance().setEnableCodeMarker(true);
+        codeMarkerManager.setEnableCodeMarker(true);
         //Setting up scenario code. 100 -> Non Brokered, 200 -> Brokered
-        CodeMarkerManager.getInstance().setPrefixScenarioCode(PerfConstants.ScenarioConstants.SCENARIO_NON_BROKERED_ACQUIRE_TOKEN_SILENTLY);
+        codeMarkerManager.setPrefixScenarioCode(PerfConstants.ScenarioConstants.SCENARIO_NON_BROKERED_ACQUIRE_TOKEN_SILENTLY);
 
         for(int i = 0; i < numberOfOccurrenceOfTest; i++) {
-            CodeMarkerManager.getInstance().clearMarkers();
+            codeMarkerManager.clearMarkers();
             final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
 
             final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
@@ -116,7 +117,7 @@ public class TestCasePerf extends AbstractMsalUiTest {
             silentLatch.await(TokenRequestTimeout.SILENT);
             try {
                 FileAppender fileAppender = new FileAppender(outputFilenamePrefix + i + ".txt", new SimpleTextFormatter());
-                fileAppender.append(CodeMarkerManager.getInstance().getFileContent());
+                fileAppender.append(codeMarkerManager.getFileContent());
                 CommonUtils.copyFileToFolderInSdCard(
                         fileAppender.getLogFile(),
                         "automation"
@@ -136,8 +137,8 @@ public class TestCasePerf extends AbstractMsalUiTest {
                 }
             }
         }
-        CodeMarkerManager.getInstance().clearMarkers();
-        CodeMarkerManager.getInstance().setEnableCodeMarker(false);
+        codeMarkerManager.clearMarkers();
+        codeMarkerManager.setEnableCodeMarker(false);
     }
 
 
