@@ -249,7 +249,7 @@ public abstract class TokenParameters {
                 );
             } else {
                 mScopes = new ArrayList<String>() {{
-                    add(resource.toLowerCase(Locale.ROOT).trim() + "/.default");
+                    add(resource.trim() + "/.default");
                 }};
             }
 
