@@ -209,7 +209,7 @@ public abstract class StressTestsFragment<T, S> extends Fragment {
                         executorService = new ThreadPoolExecutor(1, getNumberOfThreads(), 0L, TimeUnit.MILLISECONDS, blockingQueue, rejectedExecutionHandler);
 
                         final long startTime = System.currentTimeMillis();
-                        final long timeLimit = getTimeLimit() * 60 * 1000;
+                        final long timeLimit = TimeUnit.MINUTES.toMillis(getTimeLimit());
 
                         while (System.currentTimeMillis() - startTime < timeLimit) {
                             executorService.submit(new Runnable() {
