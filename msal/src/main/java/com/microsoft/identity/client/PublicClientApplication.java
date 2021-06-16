@@ -29,7 +29,7 @@ import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
-import android.util.Pair;
+import com.microsoft.identity.common.java.util.ported.Pair;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;

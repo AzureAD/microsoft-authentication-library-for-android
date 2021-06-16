@@ -24,7 +24,7 @@
 package com.microsoft.identity.client;
 
 import android.app.Activity;
-import android.util.Pair;
+import com.microsoft.identity.common.java.util.ported.Pair;
 
 import androidx.fragment.app.Fragment;
 
