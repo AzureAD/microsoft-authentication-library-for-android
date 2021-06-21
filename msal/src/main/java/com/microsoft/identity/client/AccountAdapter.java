@@ -215,8 +215,8 @@ class AccountAdapter {
 
             // Set the home oid & home tid of the root, even though we don't have the IdToken...
             // hooray for client_info
-            emptyRoot.setId(StringUtil.getTenantInfo(entry.getKey()).first);
-            emptyRoot.setTenantId(StringUtil.getTenantInfo(entry.getKey()).second);
+            emptyRoot.setId(StringUtil.getTenantInfo(entry.getKey()).key);
+            emptyRoot.setTenantId(StringUtil.getTenantInfo(entry.getKey()).value);
             emptyRoot.setEnvironment( // Look ahead into our CacheRecords to determine the environment
                     entry
                             .getValue()
@@ -300,7 +300,7 @@ class AccountAdapter {
                             homeCacheRecord
                                     .getAccount()
                                     .getHomeAccountId()
-                    ).second
+                    ).value
             );
 
             // Set the environment...

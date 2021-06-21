@@ -24,7 +24,7 @@
 package com.microsoft.identity.client;
 
 import android.app.Activity;
-import com.microsoft.identity.common.java.util.ported.Pair;
+import com.microsoft.identity.common.java.util.ported.KeyValuePair;
 
 import androidx.fragment.app.Fragment;
 
@@ -40,7 +40,7 @@ public class AcquireTokenParameters extends TokenParameters {
     private String mLoginHint;
     private Prompt mPrompt;
     private List<String> mExtraScopesToConsent;
-    private List<Pair<String, String>> mExtraQueryStringParameters;
+    private List<KeyValuePair<String, String>> mExtraQueryStringParameters;
     private AuthenticationCallback mCallback;
 
     public AcquireTokenParameters(AcquireTokenParameters.Builder builder) {
@@ -113,7 +113,7 @@ public class AcquireTokenParameters extends TokenParameters {
      *
      * @return
      */
-    public List<Pair<String, String>> getExtraQueryStringParameters() {
+    public List<KeyValuePair<String, String>> getExtraQueryStringParameters() {
         return mExtraQueryStringParameters;
     }
 
@@ -139,7 +139,7 @@ public class AcquireTokenParameters extends TokenParameters {
         private String mLoginHint;
         private Prompt mPrompt;
         private List<String> mExtraScopesToConsent;
-        private List<Pair<String, String>> mExtraQueryStringParameters;
+        private List<KeyValuePair<String, String>> mExtraQueryStringParameters;
         private AuthenticationCallback mCallback;
 
         public AcquireTokenParameters.Builder startAuthorizationFromActivity(final Activity activity) {
@@ -168,7 +168,7 @@ public class AcquireTokenParameters extends TokenParameters {
         }
 
         public AcquireTokenParameters.Builder withAuthorizationQueryStringParameters(
-                List<Pair<String, String>> parameters) {
+                List<KeyValuePair<String, String>> parameters) {
             mExtraQueryStringParameters = parameters;
             return self();
         }

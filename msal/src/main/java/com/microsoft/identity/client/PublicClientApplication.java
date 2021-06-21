@@ -29,7 +29,7 @@ import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
-import com.microsoft.identity.common.java.util.ported.Pair;
+import com.microsoft.identity.common.java.util.ported.KeyValuePair;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -1408,7 +1408,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             @NonNull final String[] scopes,
             @Nullable final IAccount account,
             @Nullable final Prompt uiBehavior,
-            @Nullable final List<Pair<String, String>> extraQueryParameters,
+            @Nullable final List<KeyValuePair<String, String>> extraQueryParameters,
             @Nullable final String[] extraScopesToConsent,
             @Nullable final String authority,
             @NonNull final AuthenticationCallback callback,
