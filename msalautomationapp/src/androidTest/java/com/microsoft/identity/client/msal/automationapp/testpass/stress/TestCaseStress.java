@@ -39,8 +39,16 @@ import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class TestCaseStress extends AbstractMsalUiStressTest<IAccount, IAuthenticationResult> {
+
+    private String accessToken = null;
+    private Date expiresAt = null;
 
     @Test
     public void test_acquireTokenSilentlyWithCachedTokens() throws Exception {
@@ -49,6 +57,14 @@ public class TestCaseStress extends AbstractMsalUiStressTest<IAccount, IAuthenti
 
     @Override
     public void assertResult(IAuthenticationResult result) {
+        assertNotNull(result);
+
+        if (accessToken == null || expiresAt.before(new Date())) {
+            accessToken = result.getAccessToken();
+            expiresAt = result.getExpiresOn();
+        }
+
+        assertEquals(accessToken, result.getAccessToken());
     }
 
     @Override
@@ -110,7 +126,7 @@ public class TestCaseStress extends AbstractMsalUiStressTest<IAccount, IAuthenti
 
     @Override
     public long getTimeLimit() {
-        return 1;
+        return TimeUnit.HOURS.toMinutes(6);
     }
 
     @Override

@@ -32,6 +32,8 @@ import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
 import org.junit.Before;
+import org.junit.Rule;
+import org.junit.rules.Timeout;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -45,6 +47,9 @@ import java.util.concurrent.TimeUnit;
 
 
 public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest {
+
+    @Rule
+    public Timeout timeout = Timeout.seconds((getTimeLimit() + 1) * 60);
 
     // Sets the interval duration in seconds to which the device performance will be monitored.
     private static final long DEVICE_MONITOR_INTERVAL = TimeUnit.SECONDS.toMillis(1);
