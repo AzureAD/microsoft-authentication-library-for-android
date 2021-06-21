@@ -4,7 +4,6 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.CpuUsageInfo;
 import android.os.Debug;
 import android.os.Handler;
 import android.os.Looper;
@@ -29,7 +28,7 @@ import com.microsoft.identity.client.stresstests.INotifyOperationResultCallback;
 import com.microsoft.identity.client.stresstests.R;
 import com.microsoft.identity.client.stresstests.Util;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
-import com.microsoft.identity.common.internal.result.ResultFuture;
+import com.microsoft.identity.common.java.util.ResultFuture;
 
 import java.io.BufferedReader;
 import java.io.File;
