@@ -19,7 +19,7 @@ import com.microsoft.identity.client.SilentAuthenticationCallback;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.stresstests.INotifyOperationResultCallback;
 import com.microsoft.identity.client.stresstests.R;
-import com.microsoft.identity.common.internal.result.ResultFuture;
+import com.microsoft.identity.common.java.util.ResultFuture;
 
 import java.util.Arrays;
 import java.util.List;
