@@ -81,12 +81,20 @@
                         android:layout_weight="1"
                         android:text="@string/time_limit" />
 
-                    <TextView
-                        android:id="@+id/timeLimitTextView"
+                    <EditText
+                        android:id="@+id/timeLimitEditText"
                         android:layout_width="0dp"
+                        android:selectAllOnFocus="true"
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="20dp"
-                        android:layout_weight="2" />
+                        android:layout_weight="2"
+                        android:inputType="number" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/minutes" />
 
                 </LinearLayout>
 
@@ -169,12 +177,15 @@
                         android:layout_weight="1"
                         android:text="@string/num_threads" />
 
-                    <TextView
-                        android:id="@+id/numThreadsTextView"
+                    <EditText
+                        android:id="@+id/numThreadsEditText"
                         android:layout_width="0dp"
+                        android:maxLength="2"
                         android:layout_height="wrap_content"
+                        android:selectAllOnFocus="true"
                         android:layout_marginLeft="20dp"
-                        android:layout_weight="2" />
+                        android:layout_weight="2"
+                        android:inputType="number" />
 
                 </LinearLayout>
 
@@ -214,6 +225,12 @@
                     android:text="@string/stop" />
 
                 <Button
+                    android:id="@+id/pauseTestsButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/pause" />
+
+                <Button
                     android:id="@+id/startTestsButton"
                     style="@style/Widget.AppCompat.Button.Colored"
                     android:layout_width="wrap_content"
@@ -239,6 +256,7 @@
                 <TextView
                     android:id="@+id/resultsTextView"
                     android:layout_width="match_parent"
+                    android:focusable="false"
                     android:layout_height="wrap_content" />
             </ScrollView>
 

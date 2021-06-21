@@ -22,4 +22,7 @@
     <string name="running">Running...</string>
     <string name="retry">Retry</string>
     <string name="time_limit">"Time Limit: "</string>
+    <string name="minutes">Minutes</string>
+    <string name="pause">Pause</string>
+    <string name="continue_button_text">Continue</string>
 </resources>
