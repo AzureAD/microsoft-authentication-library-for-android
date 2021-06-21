@@ -27,8 +27,8 @@ import android.app.Activity;
 
 import androidx.fragment.app.Fragment;
 
-import java.util.AbstractMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Encapsulates the parameters passed to the acquireToken methods of PublicClientApplication
@@ -40,7 +40,7 @@ public class AcquireTokenParameters extends TokenParameters {
     private String mLoginHint;
     private Prompt mPrompt;
     private List<String> mExtraScopesToConsent;
-    private List<AbstractMap.SimpleEntry<String, String>> mExtraQueryStringParameters;
+    private List<Map.Entry<String, String>> mExtraQueryStringParameters;
     private AuthenticationCallback mCallback;
 
     public AcquireTokenParameters(AcquireTokenParameters.Builder builder) {
@@ -113,7 +113,7 @@ public class AcquireTokenParameters extends TokenParameters {
      *
      * @return
      */
-    public List<AbstractMap.SimpleEntry<String, String>> getExtraQueryStringParameters() {
+    public List<Map.Entry<String, String>> getExtraQueryStringParameters() {
         return mExtraQueryStringParameters;
     }
 
@@ -139,7 +139,7 @@ public class AcquireTokenParameters extends TokenParameters {
         private String mLoginHint;
         private Prompt mPrompt;
         private List<String> mExtraScopesToConsent;
-        private List<AbstractMap.SimpleEntry<String, String>> mExtraQueryStringParameters;
+        private List<Map.Entry<String, String>> mExtraQueryStringParameters;
         private AuthenticationCallback mCallback;
 
         public AcquireTokenParameters.Builder startAuthorizationFromActivity(final Activity activity) {
@@ -168,7 +168,7 @@ public class AcquireTokenParameters extends TokenParameters {
         }
 
         public AcquireTokenParameters.Builder withAuthorizationQueryStringParameters(
-                List<AbstractMap.SimpleEntry<String, String>> parameters) {
+                List<Map.Entry<String, String>> parameters) {
             mExtraQueryStringParameters = parameters;
             return self();
         }

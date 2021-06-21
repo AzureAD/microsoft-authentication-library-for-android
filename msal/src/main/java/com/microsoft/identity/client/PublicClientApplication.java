@@ -100,7 +100,6 @@ import com.microsoft.identity.common.logging.Logger;
 import com.microsoft.identity.msal.BuildConfig;
 
 import java.io.File;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -1408,7 +1407,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             @NonNull final String[] scopes,
             @Nullable final IAccount account,
             @Nullable final Prompt uiBehavior,
-            @Nullable final List<AbstractMap.SimpleEntry<String, String>> extraQueryParameters,
+            @Nullable final List<Map.Entry<String, String>> extraQueryParameters,
             @Nullable final String[] extraScopesToConsent,
             @Nullable final String authority,
             @NonNull final AuthenticationCallback callback,
