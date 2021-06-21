@@ -1,17 +1,17 @@
 package com.microsoft.identity.client.stresstests.fragments;
 
-import android.app.ActivityManager;
-import android.content.Context;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Debug;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -30,11 +30,6 @@ import com.microsoft.identity.client.stresstests.Util;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
 import com.microsoft.identity.common.java.util.ResultFuture;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -48,7 +43,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -66,11 +60,10 @@ public abstract class StressTestsFragment<T, S> extends Fragment {
             titleTextView,
             timeRemainingTextView,
             timeElapsedTextView,
-            numThreadsTextView,
             resultsTextView,
-            errorTextView,
-            timeLimitTextView;
-    private Button startButton, stopButton, retryButton;
+            errorTextView;
+    private EditText timeLimitEditText, numThreadsEditText;
+    private Button startButton, stopButton, retryButton, pauseButton;
     private View progressView, mainContent, layoutError;
     private ProgressBar loadingContent;
     private ScrollView resultsScrollView;
@@ -78,7 +71,11 @@ public abstract class StressTestsFragment<T, S> extends Fragment {
     private ExecutorService executorService;
     private Thread executorThread;
     private Handler handler;
-    private static int sLastCpuCoreCount = -1;
+
+    private boolean testsRunning = false;
+    private long timeElapsed;
+
+    private static final int DELAY = 50;
 
 
     @Nullable
@@ -95,14 +92,15 @@ public abstract class StressTestsFragment<T, S> extends Fragment {
         titleTextView = view.findViewById(R.id.testsTitle);
         timeRemainingTextView = view.findViewById(R.id.timeRemainingTextView);
         timeElapsedTextView = view.findViewById(R.id.timeElapsedTextView);
-        numThreadsTextView = view.findViewById(R.id.numThreadsTextView);
+        numThreadsEditText = view.findViewById(R.id.numThreadsEditText);
         resultsTextView = view.findViewById(R.id.resultsTextView);
         errorTextView = view.findViewById(R.id.errorTextView);
-        timeLimitTextView = view.findViewById(R.id.timeLimitTextView);
+        timeLimitEditText = view.findViewById(R.id.timeLimitEditText);
 
         startButton = view.findViewById(R.id.startTestsButton);
         stopButton = view.findViewById(R.id.stopTestsButton);
         retryButton = view.findViewById(R.id.retryButton);
+        pauseButton = view.findViewById(R.id.pauseTestsButton);
 
         progressView = view.findViewById(R.id.layoutProgress);
         mainContent = view.findViewById(R.id.mainContent);
@@ -112,6 +110,27 @@ public abstract class StressTestsFragment<T, S> extends Fragment {
 
         resultsScrollView = view.findViewById(R.id.resultScrollView);
 
+
+        pauseButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (testsRunning) {
+                    testsRunning = false;
+                    pauseButton.setText(R.string.continue_button_text);
+
+                    printOutput("Tests paused.");
+
+                    progressView.setVisibility(View.INVISIBLE);
+                } else {
+                    testsRunning = true;
+                    pauseButton.setText(R.string.pause);
+
+                    printOutput("Tests resumed.");
+
+                    progressView.setVisibility(View.VISIBLE);
+                }
+            }
+        });
 
         retryButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -123,7 +142,14 @@ public abstract class StressTestsFragment<T, S> extends Fragment {
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                testsRunning = true;
                 executorThread = run();
+
+                progressView.setVisibility(View.VISIBLE);
+
+                pauseButton.setEnabled(true);
+                startButton.setEnabled(false);
+                stopButton.setEnabled(true);
             }
         });
 
@@ -134,6 +160,7 @@ public abstract class StressTestsFragment<T, S> extends Fragment {
                     executorService.shutdown();
                     executorThread.interrupt();
                     executorService = null;
+                    executorThread = null;
                 }
                 stopExecution();
             }
@@ -194,54 +221,42 @@ public abstract class StressTestsFragment<T, S> extends Fragment {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            startButton.setEnabled(false);
-                            progressView.setVisibility(View.VISIBLE);
-                            stopButton.setEnabled(true);
+                            numThreadsEditText.setEnabled(false);
+                            timeLimitEditText.setEnabled(false);
+
+                            testsRunning = true;
                         }
                     });
 
                     final AsyncResult<T> prerequisites = prepareAsync();
 
                     if (prerequisites.isSuccess()) {
-                        final BlockingQueue<Runnable> blockingQueue = new ArrayBlockingQueue<>(getNumberOfThreads());
+                        int timeLimitMinutes = Integer.parseInt(timeLimitEditText.getText().toString());
+                        int numOfThreads = Integer.parseInt(numThreadsEditText.getText().toString());
+
+                        final BlockingQueue<Runnable> blockingQueue = new ArrayBlockingQueue<>(numOfThreads);
                         final RejectedExecutionHandler rejectedExecutionHandler = new ThreadPoolExecutor.CallerRunsPolicy();
-                        executorService = new ThreadPoolExecutor(1, getNumberOfThreads(), 0L, TimeUnit.MILLISECONDS, blockingQueue, rejectedExecutionHandler);
+                        executorService = new ThreadPoolExecutor(1, numOfThreads, 0L, TimeUnit.MILLISECONDS, blockingQueue, rejectedExecutionHandler);
 
                         final long startTime = System.currentTimeMillis();
-                        final long timeLimit = TimeUnit.MINUTES.toMillis(getTimeLimit());
+                        final long timeLimit = TimeUnit.MINUTES.toMillis(timeLimitMinutes);
 
                         while (System.currentTimeMillis() - startTime < timeLimit) {
-                            executorService.submit(new Runnable() {
-                                @SneakyThrows
-                                @Override
-                                public void run() {
-                                    int pid = android.os.Process.myPid();
-                                    ActivityManager activityManager = (ActivityManager) getContext().getSystemService(Context.ACTIVITY_SERVICE);
-                                    Debug.MemoryInfo memoryInfo = activityManager.getProcessMemoryInfo(new int[]{pid})[0];
+                            if (executorService != null && testsRunning) {
+                                executorService.submit(new Runnable() {
+                                    @SneakyThrows
+                                    @Override
+                                    public void run() {
+                                        AsyncResult<S> result = runAsync(prerequisites.getResult());
 
-                                    long totalMemory = memoryInfo.getTotalPrivateDirty();
-
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                                        totalMemory += memoryInfo.getTotalPrivateClean();
+                                        if (!result.isSuccess()) {
+                                            printOutput("Execution failed: " + result.getResult());
+                                        }
                                     }
-
-                                    final int[] cpus = new int[calcCpuCoreCount()];
-
-                                    for (int i = 0; i < cpus.length; i++) {
-                                        cpus[i] = takeCurrentCpuFreq(i);
-                                    }
-
-                                    AsyncResult<S> result = runAsync(prerequisites.getResult());
-
-                                    if (result.isSuccess()) {
-                                        printOutput("Execution success");
-                                    } else {
-                                        printOutput("Execution failed");
-                                    }
-                                }
-                            });
-                            Thread.sleep(50);
-                            updateTimer(startTime);
+                                });
+                                updateTimer(startTime, timeLimitMinutes);
+                            }
+                            Thread.sleep(DELAY);
                         }
                         executorService.shutdown();
                         stopExecution();
@@ -264,54 +279,6 @@ public abstract class StressTestsFragment<T, S> extends Fragment {
         return thread;
     }
 
-    private static int readIntegerFile(String filePath) {
-
-        try {
-            final BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(new FileInputStream(filePath)), 1000);
-            final String line = reader.readLine();
-            reader.close();
-
-            return Integer.parseInt(line);
-        } catch (Exception e) {
-            return 0;
-        }
-    }
-
-    private static int takeCurrentCpuFreq(int coreIndex) {
-        return readIntegerFile("/sys/devices/system/cpu/cpu" + coreIndex + "/cpufreq/scaling_cur_freq");
-    }
-
-    public static int calcCpuCoreCount() {
-
-        if (sLastCpuCoreCount >= 1) {
-            return sLastCpuCoreCount;
-        }
-
-        try {
-            // Get directory containing CPU info
-            final File dir = new File("/sys/devices/system/cpu/");
-            // Filter to only list the devices we care about
-            final File[] files = dir.listFiles(new FileFilter() {
-
-                public boolean accept(File pathname) {
-                    //Check if filename is "cpu", followed by a single digit number
-                    if (Pattern.matches("cpu[0-9]", pathname.getName())) {
-                        return true;
-                    }
-                    return false;
-                }
-            });
-
-            // Return the number of cores (virtual CPU devices)
-            sLastCpuCoreCount = files.length;
-
-        } catch (Exception e) {
-            sLastCpuCoreCount = Runtime.getRuntime().availableProcessors();
-        }
-
-        return sLastCpuCoreCount;
-    }
 
     private void stopExecution() {
         handler.post(new Runnable() {
@@ -320,7 +287,12 @@ public abstract class StressTestsFragment<T, S> extends Fragment {
                 startButton.setEnabled(true);
                 progressView.setVisibility(View.GONE);
                 stopButton.setEnabled(false);
+                pauseButton.setEnabled(false);
 
+                pauseButton.setText(R.string.pause);
+
+                timeLimitEditText.setEnabled(true);
+                numThreadsEditText.setEnabled(true);
                 timeElapsedTextView.setText("--");
                 timeRemainingTextView.setText("--");
             }
@@ -345,11 +317,12 @@ public abstract class StressTestsFragment<T, S> extends Fragment {
 
                 progressView.setVisibility(View.GONE);
                 stopButton.setEnabled(false);
+                pauseButton.setEnabled(false);
 
-                timeLimitTextView.setText(Util.timeString(getTimeLimit() * 60));
+                timeLimitEditText.setText(String.valueOf(getTimeLimit() * 60));
                 timeElapsedTextView.setText("--");
                 timeRemainingTextView.setText("--");
-                numThreadsTextView.setText(String.valueOf(getNumberOfThreads()));
+                numThreadsEditText.setText(String.valueOf(getNumberOfThreads()));
             }
 
             @Override
@@ -362,6 +335,31 @@ public abstract class StressTestsFragment<T, S> extends Fragment {
             }
         });
 
+        TextWatcher inputChangeListener = getInputChangeListener();
+
+        numThreadsEditText.addTextChangedListener(inputChangeListener);
+        timeLimitEditText.addTextChangedListener(inputChangeListener);
+    }
+
+    private TextWatcher getInputChangeListener() {
+        return new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String numThreads = numThreadsEditText.getText().toString();
+                String timeLimit = timeLimitEditText.getText().toString();
+                startButton.setEnabled(!numThreads.isEmpty() && !timeLimit.isEmpty() && Integer.parseInt(numThreads) != 0 && Integer.parseInt(timeLimit) != 0);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        };
     }
 
 
@@ -397,9 +395,9 @@ public abstract class StressTestsFragment<T, S> extends Fragment {
     }
 
 
-    private void updateTimer(final long startTime) {
-        final long timeElapsed = System.currentTimeMillis() - startTime;
-        final long timeRemaining = (getTimeLimit() * 60 * 1000) - timeElapsed;
+    private void updateTimer(final long startTime, final long timeLimitMinutes) {
+        timeElapsed = timeElapsed + DELAY;
+        final long timeRemaining = TimeUnit.MINUTES.toMillis(timeLimitMinutes) - timeElapsed;
 
         handler.post(new Runnable() {
             @Override
