@@ -115,14 +115,13 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
         );
 
         // Handle accounts for AAD B2C
-        final String authTestParamAuthority = authTestParams.getAuthority();
         Authority authority = null;
         try {
-            authority = Authority.getAuthorityFromAuthorityUrl(authTestParamAuthority);
+            authority = Authority.getAuthorityFromAuthorityUrl(authTestParams.getAuthority());
         } catch (IllegalArgumentException e) {
-            authority = null != authority ? authority : pca.getConfiguration().getDefaultAuthority();
+            authority = pca.getConfiguration().getDefaultAuthority();
         }
-        if( authority instanceof AzureActiveDirectoryB2CAuthority){
+        if(authority instanceof AzureActiveDirectoryB2CAuthority){
             final String policyName = ((AzureActiveDirectoryB2CAuthority) authority).getB2CPolicyName();
             account = getAccountForPolicyName((MultipleAccountPublicClientApplication) pca, policyName);
         }
