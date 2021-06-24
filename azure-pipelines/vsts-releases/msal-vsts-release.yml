@@ -43,7 +43,7 @@ jobs:
     name: Gradle1
     displayName: Assemble Release
     inputs:
-      tasks: clean msal:assembleRelease
+      tasks: clean msal:assembleDistRelease
       publishJUnitResults: false
       jdkArchitecture: x86
       sqAnalysisBreakBuildIfQualityGateFailed: false
