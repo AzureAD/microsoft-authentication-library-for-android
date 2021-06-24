@@ -108,22 +108,24 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
 
         final ResultFuture<IAuthenticationResult, Exception> future = new ResultFuture<>();
 
-        IAccount account = getAccount(
-                authTestParams.getActivity(),
-                authTestParams.getMsalConfigResourceId(),
-                authTestParams.getLoginHint()
-        );
-
-        // Handle accounts for AAD B2C
-        Authority authority = null;
-        try {
+        final Authority authority;
+        if (authTestParams.getAuthority() != null) {
             authority = Authority.getAuthorityFromAuthorityUrl(authTestParams.getAuthority());
-        } catch (IllegalArgumentException e) {
+        } else {
             authority = pca.getConfiguration().getDefaultAuthority();
         }
-        if(authority instanceof AzureActiveDirectoryB2CAuthority){
+
+        final IAccount account;
+
+        if (authority instanceof AzureActiveDirectoryB2CAuthority) {
             final String policyName = ((AzureActiveDirectoryB2CAuthority) authority).getB2CPolicyName();
             account = getAccountForPolicyName((MultipleAccountPublicClientApplication) pca, policyName);
+        } else {
+            account = getAccount(
+                    authTestParams.getActivity(),
+                    authTestParams.getMsalConfigResourceId(),
+                    authTestParams.getLoginHint()
+            );
         }
 
         final AcquireTokenSilentParameters.Builder acquireTokenParametersBuilder = new AcquireTokenSilentParameters.Builder()
@@ -255,7 +257,7 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
             List<IAccount> accounts = pca.getAccounts();
             for(IAccount account : accounts)
             {
-                if (account.getClaims().get("tfp").equals(policyName))
+                if (policyName.equals(account.getClaims().get("tfp")))
                 {
                     return account;
                 }
