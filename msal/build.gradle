@@ -271,6 +271,7 @@ dependencies {
     implementation ("com.nimbusds:nimbus-jose-jwt:$rootProject.ext.nimbusVersion") {
         exclude module: 'asm'
     }
+    implementation "cz.msebera.android:httpclient:$rootProject.ext.mseberaApacheHttpClientVersion"
     implementation "androidx.constraintlayout:constraintlayout:$rootProject.ext.constraintLayoutVersion"
 
     // test dependencies

@@ -29,7 +29,6 @@ import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
-import android.util.Pair;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -38,7 +37,6 @@ import androidx.fragment.app.Fragment;
 
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.configuration.AccountMode;
-import com.microsoft.identity.client.configuration.HttpConfiguration;
 import com.microsoft.identity.client.configuration.LoggerConfiguration;
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
@@ -89,7 +87,6 @@ import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
 import com.microsoft.identity.common.internal.migration.AdalMigrationAdapter;
 import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
 import com.microsoft.identity.common.internal.migration.TokenMigrationUtility;
-import com.microsoft.identity.common.internal.net.HttpRequest;
 import com.microsoft.identity.common.internal.net.cache.HttpCache;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
@@ -98,7 +95,7 @@ import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.result.GenerateShrResult;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
-import com.microsoft.identity.common.internal.result.ResultFuture;
+import com.microsoft.identity.common.java.util.ResultFuture;
 import com.microsoft.identity.common.logging.Logger;
 import com.microsoft.identity.msal.BuildConfig;
 
@@ -1069,7 +1066,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getEnvironment());
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
 
-        initializeHttpSettings(mPublicClientConfiguration.getHttpConfiguration());
         initializeLoggerSettings(mPublicClientConfiguration.getLoggerConfiguration());
 
         initializeTokenSharingLibrary();
@@ -1100,32 +1096,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
             logger.setEnablePII(configPiiState);
             logger.setEnableLogcatLog(configLogcatState);
-        }
-    }
-
-    private void initializeHttpSettings(@Nullable final HttpConfiguration httpConfiguration) {
-        final String methodName = ":initializeHttpSettings";
-
-        if (null == httpConfiguration) {
-            Logger.info(
-                    TAG + methodName,
-                    "HttpConfiguration not provided - using defaults."
-            );
-
-            return;
-        }
-
-        final int readTimeout = httpConfiguration.getReadTimeout();
-        final int connectTimeout = httpConfiguration.getConnectTimeout();
-
-        // Configured values must be >= 0
-
-        if (readTimeout >= 0) {
-            HttpRequest.READ_TIMEOUT = readTimeout;
-        }
-
-        if (connectTimeout >= 0) {
-            HttpRequest.CONNECT_TIMEOUT = connectTimeout;
         }
     }
 
@@ -1437,7 +1407,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             @NonNull final String[] scopes,
             @Nullable final IAccount account,
             @Nullable final Prompt uiBehavior,
-            @Nullable final List<Pair<String, String>> extraQueryParameters,
+            @Nullable final List<Map.Entry<String, String>> extraQueryParameters,
             @Nullable final String[] extraScopesToConsent,
             @Nullable final String authority,
             @NonNull final AuthenticationCallback callback,
