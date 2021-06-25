@@ -101,7 +101,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
         mockHttpClient.intercept(
                 HttpRequestMatcher.builder().isPOST().build(), new HttpRequestInterceptor() {
                     @Override
-                    public HttpResponse intercept(
+                    public HttpResponse performIntercept(
                             @NonNull HttpClient.HttpMethod httpMethod,
                             @NonNull URL requestUrl,
                             @NonNull Map<String, String> requestHeaders,
