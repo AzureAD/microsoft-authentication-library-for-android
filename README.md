@@ -16,7 +16,7 @@ The MSAL library for Android gives your app the ability to use the [Microsoft Cl
 > Looking for developers interested in providing early feedback on a x-platform implementation of MSAL written in C++ and Java, callable from Java, Kotlin and C++.  If you're interested please please contact shoatman@microsoft.com.
 
 ***06/25/2021***
-- Silent requests inadvertently serialized in MSAL v2.0.8-v2.0.12, Common v3.1.2-v3.4.3. This will be fixed in an upcoming release, tentatively scheduled for next week.
+- Silent requests were inadvertently serialized in MSAL v2.0.8-v2.0.12, Common v3.1.2-v3.4.3. This will be fixed in an upcoming release, tentatively scheduled for next week.
 - In the meantime, please *do not use* the mentioned library versions, and *strongly* consider moving to 2.0.7. Details for the issue can be found [here](https://github.com/AzureAD/microsoft-authentication-library-common-for-android/issues/1438).
 
 ***11/09/2020***
