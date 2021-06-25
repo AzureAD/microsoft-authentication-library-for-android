@@ -114,23 +114,24 @@ public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest 
     }
 
     private Runnable getPerformanceStatsCollector() {
-        writeFile(String.format("%d\n%d", getNumberOfThreads(), getTimeLimit()));
-
         return new Runnable() {
             @Override
             public void run() {
                 try {
                     while (true) {
                         String line = String.format(
-                                "%s,%s,%s,%s,%s",
+                                "%s,%.2f,%d,%d,%d,%d,%d,%d,%s",
                                 new SimpleDateFormat(DATE_FORMAT).format(new Date()),
                                 DeviceMonitor.getCpuUsage(),
                                 DeviceMonitor.getMemoryUsage(),
                                 DeviceMonitor.getNetworkTrafficInfo().getDiffBytesReceived(),
-                                DeviceMonitor.getNetworkTrafficInfo().getDiffBytesSent()
+                                DeviceMonitor.getNetworkTrafficInfo().getDiffBytesSent(),
+                                getNumberOfThreads(),
+                                getTimeLimit(),
+                                DeviceMonitor.getTotalMemory(),
+                                DeviceMonitor.getDeviceName()
                         );
 
-                        System.out.println("Result: " + line);
                         writeFile(line);
 
                         TimeUnit.MILLISECONDS.sleep(DEVICE_MONITOR_INTERVAL);

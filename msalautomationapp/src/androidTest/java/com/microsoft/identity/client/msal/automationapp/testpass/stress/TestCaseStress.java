@@ -126,7 +126,7 @@ public class TestCaseStress extends AbstractMsalUiStressTest<IAccount, IAuthenti
 
     @Override
     public long getTimeLimit() {
-        return TimeUnit.HOURS.toMinutes(6);
+        return TimeUnit.HOURS.toMinutes(4);
     }
 
     @Override
