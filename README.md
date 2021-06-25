@@ -17,7 +17,7 @@ The MSAL library for Android gives your app the ability to use the [Microsoft Cl
 
 ***06/25/2021***
 - Silent requests were inadvertently serialized in MSAL v2.0.8-v2.0.12, Common v3.1.2-v3.4.3. This will be fixed in an upcoming release, tentatively scheduled for next week.
-- In the meantime, please *do not use* the mentioned library versions, and *strongly* consider moving to 2.0.7. Details for the issue can be found [here](https://github.com/AzureAD/microsoft-authentication-library-common-for-android/issues/1438).
+- In the meantime, please *do not use* the mentioned library versions, and *strongly* consider moving to 2.0.6. Details for the issue can be found [here](https://github.com/AzureAD/microsoft-authentication-library-common-for-android/issues/1438).
 
 ***11/09/2020***
  - Android changes for SDK30, see [the android developers notice](https://android-developers.googleblog.com/2020/07/preparing-your-build-for-package-visibility-in-android-11.html).
