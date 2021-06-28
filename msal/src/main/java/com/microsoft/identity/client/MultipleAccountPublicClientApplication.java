@@ -36,7 +36,7 @@ import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.CommandParametersAdapter;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
-import com.microsoft.identity.common.exception.BaseException;
+import com.microsoft.identity.common.java.exception.BaseException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.commands.CommandCallback;
 import com.microsoft.identity.common.internal.commands.LoadAccountCommand;
