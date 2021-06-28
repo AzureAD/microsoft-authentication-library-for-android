@@ -24,9 +24,7 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
     public void test_850457() throws Throwable {
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
-
         final MsalSdk msalSdk = new MsalSdk();
-
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
@@ -52,12 +50,9 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
                         .handlePrompt(username, password);
             }
         }, TokenRequestTimeout.MEDIUM);
-
         authResult1.assertSuccess();
 
         LabUserHelper.resetPassword(username);
-
-        // change the time on the device
         TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
 
         final MsalAuthResult authResult2 = msalSdk.acquireTokenInteractive(authTestParams, new com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired() {
