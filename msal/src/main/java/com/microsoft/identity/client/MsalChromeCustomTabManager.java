@@ -35,7 +35,7 @@ import androidx.browser.customtabs.CustomTabsSession;
 
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.internal.MsalUtils;
-import com.microsoft.identity.common.exception.ErrorStrings;
+import com.microsoft.identity.common.java.exception.ErrorStrings;
 import com.microsoft.identity.common.logging.Logger;
 
 import java.lang.ref.WeakReference;

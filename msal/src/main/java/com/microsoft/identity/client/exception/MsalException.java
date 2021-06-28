@@ -24,7 +24,7 @@
 package com.microsoft.identity.client.exception;
 
 import com.microsoft.identity.client.internal.MsalUtils;
-import com.microsoft.identity.common.exception.BaseException;
+import com.microsoft.identity.common.java.exception.BaseException;
 
 /**
  * {@link MsalException} thrown or sent back via callback, representing the detailed exception
