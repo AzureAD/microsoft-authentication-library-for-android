@@ -23,7 +23,7 @@
 
 package com.microsoft.identity.client.exception;
 
-import com.microsoft.identity.common.exception.ServiceException;
+import com.microsoft.identity.common.java.exception.ServiceException;
 
 /**
  * This exception class represents errors when communicating to the service, can be from the authorize or token endpoints.
