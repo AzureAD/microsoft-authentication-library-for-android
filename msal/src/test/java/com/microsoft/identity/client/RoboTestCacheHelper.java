@@ -22,7 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import com.microsoft.identity.common.exception.ClientException;
+import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.internal.authorities.AccountsInOneOrganization;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
