@@ -55,7 +55,7 @@ public class TestCasePerfBrokered extends AbstractMsalBrokerTest {
     @Test
     public void test_acquireTokenSilentlyWithBroker() throws InterruptedException {
         CodeMarkerManager codeMarkerManager = CodeMarkerManager.getInstance();
-        final int numberOfOccurrenceOfTest = 10;
+        final int numberOfOccurrenceOfTest = 1;
         final String outputFilenamePrefix = "PerfDataTargetBrokerHostWR"; // With Resource
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
@@ -146,6 +146,7 @@ public class TestCasePerfBrokered extends AbstractMsalBrokerTest {
     public LabUserQuery getLabUserQuery() {
         final LabUserQuery query = new LabUserQuery();
         query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CLOUD;
+        query.protectionPolicy = LabConstants.ProtectionPolicy.MAM_CA;
         return query;
     }
 
@@ -156,7 +157,7 @@ public class TestCasePerfBrokered extends AbstractMsalBrokerTest {
 
     @Override
     public String[] getScopes() {
-        return new String[]{"User.read"};
+        return new String[]{"00000003-0000-0ff1-ce00-000000000000"};
     }
 
     @Override
@@ -166,7 +167,7 @@ public class TestCasePerfBrokered extends AbstractMsalBrokerTest {
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_webview;
+        return R.raw.msal_config_default;
     }
 
 }
