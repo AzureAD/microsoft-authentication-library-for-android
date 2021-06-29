@@ -18,6 +18,8 @@ import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
 import org.junit.Test;
 
+// [MSAL] password reset for MAM_CA account
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1177440
 public class TestCase850457 extends AbstractMsalBrokerTest{
 
     @Test
