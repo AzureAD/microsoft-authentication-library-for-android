@@ -19,15 +19,5 @@ resources:
     endpoint: ANDROID_GITHUB
 
 jobs:
-- job: Phase_1
-  displayName: Phase 1
-  cancelTimeoutInMinutes: 1
-  pool:
-    name: Hosted Windows 2019 with VS2019
-  steps:
-  - checkout: self
-    clean: true
-    submodules: recursive
-    persistCredentials: True
-  - template: azure-pipelines/templates/steps/credscan-policheck.yml@common
+- template: azure-pipelines/templates/steps/credscan-policheck.yml@common
 ...

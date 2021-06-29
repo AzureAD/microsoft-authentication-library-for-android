@@ -1,5 +1,5 @@
 # File: azure-pipelines\vsts-releases\msal-vsts-release.yml
-# Description: Publish msal to maven central (sonatype)
+# Description: Publish msal to local feed
 # https://search.maven.org/search?q=g:com.microsoft.identity.client
 # Variable: 'ENV_VSTS_MVN_ANDROID_MSAL_USERNAME' was defined in the Variables tab
 # Variable: 'mvnAccessToken' was defined in the Variables tab
@@ -10,8 +10,8 @@ trigger: none
 pr: none
 
 jobs:
-- job: Phase_1
-  displayName: Phase 1
+- job: vsts_release
+  displayName: Publish msal to local feed
   cancelTimeoutInMinutes: 1
   pool:
     name: Hosted Windows 2019 with VS2019

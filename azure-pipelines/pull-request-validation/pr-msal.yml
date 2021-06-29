@@ -32,8 +32,8 @@ resources:
     endpoint: ANDROID_GITHUB
 
 jobs:
-- job: Phase_1
-  displayName: Phase 1
+- job: build_test
+  displayName: Build & Test
   cancelTimeoutInMinutes: 1
   pool:
     name: Hosted Windows 2019 with VS2019
