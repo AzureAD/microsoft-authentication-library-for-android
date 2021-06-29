@@ -262,7 +262,7 @@ public class PublicClientConfigurationTest {
         assertEquals(1, config.getAuthorities().size());
         final Authority authority = config.getAuthorities().get(0);
         final AzureActiveDirectoryAuthority azureActiveDirectoryAuthority = (AzureActiveDirectoryAuthority) authority;
-        assertNotNull(azureActiveDirectoryAuthority.mSlice.getDC());
+        assertNotNull(azureActiveDirectoryAuthority.mSlice.getDataCenter());
         assertNotNull(azureActiveDirectoryAuthority.mSlice.getSlice());
     }
 

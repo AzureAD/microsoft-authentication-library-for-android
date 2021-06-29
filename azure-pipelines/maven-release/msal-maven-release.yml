@@ -1,0 +1,39 @@
+# File: azure-pipelines\maven-release\msal-maven-release.yml
+# Description: Publish msal to internal feed
+# https://identitydivision.visualstudio.com/Engineering/_packaging?_a=package&feed=AndroidADAL&package=com.microsoft.identity.client%3Amsal&protocolType=maven
+# Variable: 'msalVersion' was defined in the Variables tab
+# Variable: 'ENV_VSTS_MVN_ANDROIDADMSAL_USERNAME' was defined in the Variables tab
+# Variable: 'mvnAccessToken' was defined in the Variables tab
+# https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate
+name: $(date:yyyyMMdd)$(rev:.r)
+
+trigger: none
+pr: none
+
+resources:
+  repositories:
+  - repository: self
+    type: git
+    ref: master
+  - repository: common
+    type: github
+    name: AzureAD/microsoft-authentication-library-common-for-android
+    ref: dev
+    endpoint: ANDROID_GITHUB
+
+jobs:
+- template: azure-pipelines/templates/steps/maven-release/maven-release-jobs.yml@common
+  parameters:
+    project: msal
+    projectVersion: $(msalVersion)
+    checkoutSubmodules: recursive
+    envVstsMvnAndroidAccessTokenVar: ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN
+    gradleAssembleReleaseTask: msal:clean msal:assembleDistRelease
+    gradleGeneratePomFiletask: msal:generatePomFileForMsalPublication
+    aarSourceFolder: msal\build\outputs\aar
+    jarSourceFolder: msal\build\outputs\jar
+    pomSourceFolder: msal\build\publications\msal
+    gpgAar: true
+    gpgSourcesJar: true
+    gpgJavadocJar: true
+    gpgJar: false

@@ -35,12 +35,16 @@ import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelpe
 
 import org.junit.Before;
 import org.mockito.Mockito;
+import org.robolectric.annotation.LooperMode;
 
 import java.io.File;
 
 import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
 import static org.junit.Assert.fail;
+import static org.robolectric.annotation.LooperMode.Mode.LEGACY;
 
+// TODO: move to "PAUSED". A work in RoboTestUtils will be needed though.
+@LooperMode(LEGACY)
 public abstract class PublicClientApplicationAbstractTest implements IPublicClientApplicationTest {
 
     protected final String SHARED_PREFERENCES_NAME = "com.microsoft.identity.client.account_credential_cache";
