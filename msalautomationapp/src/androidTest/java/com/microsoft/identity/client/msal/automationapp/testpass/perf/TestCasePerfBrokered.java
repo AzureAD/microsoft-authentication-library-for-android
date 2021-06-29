@@ -146,7 +146,6 @@ public class TestCasePerfBrokered extends AbstractMsalBrokerTest {
     public LabUserQuery getLabUserQuery() {
         final LabUserQuery query = new LabUserQuery();
         query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CLOUD;
-        query.protectionPolicy = LabConstants.ProtectionPolicy.MAM_CA;
         return query;
     }
 
@@ -157,7 +156,7 @@ public class TestCasePerfBrokered extends AbstractMsalBrokerTest {
 
     @Override
     public String[] getScopes() {
-        return new String[]{"00000003-0000-0ff1-ce00-000000000000"};
+        return new String[]{"User.read"};
     }
 
     @Override
