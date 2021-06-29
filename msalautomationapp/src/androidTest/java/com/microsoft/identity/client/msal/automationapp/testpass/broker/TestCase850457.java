@@ -95,7 +95,7 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
 
     @Override
     public String[] getScopes() {
-        return new String[]{"00000002-0000-0000-c000-000000000000"};
+        return new String[]{"User.read"};
     }
 
     @Override
