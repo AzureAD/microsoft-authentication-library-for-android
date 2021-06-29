@@ -166,7 +166,7 @@ public class TestCasePerfBrokered extends AbstractMsalBrokerTest {
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_default;
+        return R.raw.msal_config_webview;
     }
 
 }
