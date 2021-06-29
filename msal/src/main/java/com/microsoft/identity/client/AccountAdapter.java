@@ -25,7 +25,7 @@ package com.microsoft.identity.client;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.microsoft.identity.common.exception.ServiceException;
+import com.microsoft.identity.common.java.exception.ServiceException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
@@ -215,8 +215,8 @@ class AccountAdapter {
 
             // Set the home oid & home tid of the root, even though we don't have the IdToken...
             // hooray for client_info
-            emptyRoot.setId(StringUtil.getTenantInfo(entry.getKey()).first);
-            emptyRoot.setTenantId(StringUtil.getTenantInfo(entry.getKey()).second);
+            emptyRoot.setId(StringUtil.getTenantInfo(entry.getKey()).getKey());
+            emptyRoot.setTenantId(StringUtil.getTenantInfo(entry.getKey()).getValue());
             emptyRoot.setEnvironment( // Look ahead into our CacheRecords to determine the environment
                     entry
                             .getValue()
@@ -300,7 +300,7 @@ class AccountAdapter {
                             homeCacheRecord
                                     .getAccount()
                                     .getHomeAccountId()
-                    ).second
+                    ).getValue()
             );
 
             // Set the environment...
