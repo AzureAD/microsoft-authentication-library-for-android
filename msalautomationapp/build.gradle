@@ -143,11 +143,6 @@ android {
             setIgnore(true)
         }
 
-        if (flavorName.contains("local") && flavorName.contains("BrokerCompanyPortal") && buildType.contains("debug")) {
-            // Gradle ignores any variants that satisfy the conditions above.
-            setIgnore(true)
-        }
-
         if (flavorName.contains("local") && flavorName.contains("AutoBroker")) {
             // Gradle ignores any variants that satisfy the conditions above.
             setIgnore(true)
