@@ -32,8 +32,8 @@ import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.PoPAuthenticationScheme;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.common.exception.ClientException;
 import com.microsoft.identity.common.internal.ui.browser.BrowserSelector;
+import com.microsoft.identity.common.java.exception.ClientException;
 
 import java.util.ArrayList;
 import java.util.List;
