@@ -33,12 +33,14 @@ import android.content.pm.Signature;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Base64;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -148,15 +150,22 @@ public class MainActivity extends AppCompatActivity {
                         packageSigningSha = Base64.encodeToString(digest.digest(), Base64.NO_WRAP);
                     }
 
-                    String msg = "Certificate hash:\n" + packageSigningSha;
+                    String msg = packageSigningSha;
 
                     if (isAnAuthenticatorApp(pkgName)) {
                         msg += "\n\n" + getAuthenticatorAppMetadata(pkgName);
                     }
 
+                    LayoutInflater layoutInflater = LayoutInflater.from(MainActivity.this);
+
+                    View dialogView = layoutInflater.inflate(R.layout.dialog_layout, null, false);
+                    TextView hashTextView = dialogView.findViewById(R.id.certificateHashTextView);
+
+                    hashTextView.setText(msg);
+
                     new AlertDialog.Builder(MainActivity.this)
+                            .setView(dialogView)
                             .setTitle(pkgName)
-                            .setMessage(msg)
                             .setPositiveButton(
                                     MainActivity.this.getString(R.string.dismiss),
                                     new DialogInterface.OnClickListener() {
