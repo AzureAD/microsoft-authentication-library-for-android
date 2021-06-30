@@ -27,12 +27,13 @@ import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.ui.automation.logging.appender.FileAppender;
 import com.microsoft.identity.client.ui.automation.logging.formatter.LogcatLikeFormatter;
 import com.microsoft.identity.client.ui.automation.performance.DeviceMonitor;
+import com.microsoft.identity.client.ui.automation.rules.RulesHelper;
 import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
 import org.junit.Before;
-import org.junit.Rule;
+import org.junit.rules.RuleChain;
 import org.junit.rules.Timeout;
 
 import java.io.IOException;
@@ -47,9 +48,6 @@ import java.util.concurrent.TimeUnit;
 
 
 public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest {
-
-    @Rule
-    public Timeout timeout = Timeout.seconds((getTimeLimit() + 1) * 60);
 
     // Sets the interval duration in seconds to which the device performance will be monitored.
     private static final long DEVICE_MONITOR_INTERVAL = TimeUnit.SECONDS.toMillis(1);
@@ -183,6 +181,14 @@ public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest 
         return null;
     }
 
+    @Override
+    public RuleChain getPrimaryRules() {
+        // Use the time limit as the test timeout rule and add 5 more minutes for cleaning up of the tests
+        final Timeout timeout = new Timeout(getTimeLimit() + 5, TimeUnit.MINUTES);
+
+        return RulesHelper.getPrimaryRules(null, timeout);
+    }
+
     public abstract void assertResult(S result);
 
 
@@ -223,5 +229,6 @@ public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest 
      * @return the name of the output file
      */
     public abstract String getOutputFileName();
+
 
 }
