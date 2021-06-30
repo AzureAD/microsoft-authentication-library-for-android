@@ -156,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
                         msg += "\n\n" + getAuthenticatorAppMetadata(pkgName);
                     }
 
-                    LayoutInflater layoutInflater = (LayoutInflater) MainActivity.this.getSystemService(LAYOUT_INFLATER_SERVICE);
+                    LayoutInflater layoutInflater = LayoutInflater.from(MainActivity.this);
 
                     View dialogView = layoutInflater.inflate(R.layout.dialog_layout, null, false);
                     TextView hashTextView = dialogView.findViewById(R.id.certificateHashTextView);
