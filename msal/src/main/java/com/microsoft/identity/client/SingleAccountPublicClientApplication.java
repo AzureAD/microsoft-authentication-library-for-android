@@ -39,6 +39,8 @@ import com.microsoft.identity.common.AndroidCommonComponents;
 import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.adal.internal.util.JsonExtensions;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
+import com.microsoft.identity.common.crypto.AndroidSdkStorageEncryptionManager;
+import com.microsoft.identity.common.java.crypto.IStorageEncryptionManager;
 import com.microsoft.identity.common.java.exception.BaseException;
 import com.microsoft.identity.common.internal.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
@@ -102,8 +104,7 @@ public class SingleAccountPublicClientApplication
         sharedPreferencesFileManager = new SharedPreferencesFileManager(
                 context,
                 SINGLE_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
-                new AndroidCommonComponents(context).
-                        getStorageEncryptionManager(null)
+                new AndroidSdkStorageEncryptionManager(context, null)
         );
     }
 
