@@ -1,6 +1,6 @@
 package com.microsoft.identity.client.exception;
 
-import com.microsoft.identity.common.exception.ArgumentException;
+import com.microsoft.identity.common.java.exception.ArgumentException;
 
 public class MsalArgumentException extends MsalException {
 

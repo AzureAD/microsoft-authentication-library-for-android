@@ -24,7 +24,7 @@
 package com.microsoft.identity.client.exception;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.exception.ErrorStrings;
+import com.microsoft.identity.common.java.exception.ErrorStrings;
 
 /**
  * This exception indicates that UI is required for authentication to succeed.

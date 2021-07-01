@@ -105,7 +105,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         mockHttpClient.intercept(postRequestMatcher,
                 new HttpRequestInterceptor() {
                     @Override
-                    public HttpResponse intercept(
+                    public HttpResponse performIntercept(
                             @NonNull HttpClient.HttpMethod httpMethod,
                             @NonNull URL requestUrl,
                             @NonNull Map<String, String> requestHeaders,

@@ -25,7 +25,7 @@ package com.microsoft.identity.client.exception;
 import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
-import com.microsoft.identity.common.exception.ErrorStrings;
+import com.microsoft.identity.common.java.exception.ErrorStrings;
 
 import java.util.List;
 

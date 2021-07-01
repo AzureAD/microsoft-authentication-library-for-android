@@ -25,7 +25,7 @@ package com.microsoft.identity.client.exception;
 
 import androidx.annotation.NonNull;
 
-import com.microsoft.identity.common.exception.IntuneAppProtectionPolicyRequiredException;
+import com.microsoft.identity.common.java.exception.IntuneAppProtectionPolicyRequiredException;
 
 public class MsalIntuneAppProtectionPolicyRequiredException extends MsalServiceException {
 
