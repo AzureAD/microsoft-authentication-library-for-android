@@ -98,9 +98,10 @@ public class SingleAccountPublicClientApplication
     }
 
     private void initializeSharedPreferenceFileManager(@NonNull final Context context) {
-        sharedPreferencesFileManager = new SharedPreferencesFileManager(
+        sharedPreferencesFileManager = SharedPreferencesFileManager.getSharedPreferences(
                 context,
                 SINGLE_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
+                Context.MODE_PRIVATE,
                 new StorageHelper(context)
         );
     }
