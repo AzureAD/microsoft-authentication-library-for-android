@@ -55,7 +55,6 @@ import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.adal.internal.tokensharing.ITokenShareResultInternal;
 import com.microsoft.identity.common.adal.internal.tokensharing.TokenShareUtility;
 import com.microsoft.identity.common.crypto.AndroidSdkStorageEncryptionManager;
-import com.microsoft.identity.common.java.crypto.IStorageEncryptionManager;
 import com.microsoft.identity.common.java.exception.BaseException;
 import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.exception.ErrorStrings;
@@ -2137,13 +2136,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             callback.onMigrationFinished(0);
         } else {
             // Create the SharedPreferencesFileManager for the legacy accounts/credentials
-            final IStorageEncryptionManager storageEncryptionManager =
-                    new AndroidSdkStorageEncryptionManager(mPublicClientConfiguration.getAppContext(), null);
             final ISharedPreferencesFileManager sharedPreferencesFileManager =
                     new SharedPreferencesFileManager(
                             mPublicClientConfiguration.getAppContext(),
                             "com.microsoft.aad.adal.cache",
-                            storageEncryptionManager
+                            new AndroidSdkStorageEncryptionManager(
+                                    mPublicClientConfiguration.getAppContext(), null)
                     );
 
             // Load the old TokenCacheItems as key/value JSON
