@@ -22,7 +22,7 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.shadows;
 
-import com.microsoft.identity.common.crypto.AndroidSdkStorageEncryptionManager;
+import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager;
 import com.microsoft.identity.common.crypto.PredefinedKeyLoader;
 import com.microsoft.identity.common.java.crypto.key.AES256KeyLoader;
 
@@ -31,7 +31,7 @@ import org.robolectric.annotation.Implements;
 import java.util.ArrayList;
 import java.util.List;
 
-@Implements(AndroidSdkStorageEncryptionManager.class)
+@Implements(AndroidAuthSdkStorageEncryptionManager.class)
 public class ShadowAndroidSdkStorageEncryptionManager {
 
     final byte[] encryptionKey = new byte[]{22, 78, -69, -66, 84, -65, 119, -9, -34, -80, 60, 67, -12, -117, 86, -47, -84, -24, -18, 121, 70, 32, -110, 51, -93, -10, -93, -110, 124, -68, -42, -119};
