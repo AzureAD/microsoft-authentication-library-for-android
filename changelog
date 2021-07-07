@@ -1,4 +1,10 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
+Version 2.1.0
+----------
+- Picks up common@3.4.4
+- Adds preview support for authorization using current Android Task
+- Fixes resource URI casing issue.
+
 Version 2.0.12
 ----------
 - Picks up common@3.4.3
