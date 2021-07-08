@@ -57,7 +57,7 @@ public class AuthenticationResultTest {
 
         final CacheRecord.CacheRecordBuilder cacheRecord = CacheRecord.builder();
         cacheRecord.mAccount(accountRecord);
-        cacheRecord.mIdToken(idTokenRecord);
+        cacheRecord.idToken(idTokenRecord);
 
         cacheRecords.add(cacheRecord.build());
 
