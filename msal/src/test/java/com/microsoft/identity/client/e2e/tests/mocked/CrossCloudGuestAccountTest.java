@@ -36,11 +36,11 @@ import com.microsoft.identity.client.MultiTenantAccount;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthorityForMockHttpResponse;
 import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
-import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
+import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
+import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.java.net.HttpResponse;
 import com.microsoft.identity.internal.testutils.HttpRequestMatcher;
@@ -75,7 +75,7 @@ import static org.junit.Assert.fail;
 
 @RunWith(ParameterizedRobolectricTestRunner.class)
 @Config(shadows = {
-        ShadowStorageHelper.class,
+        ShadowAndroidSdkStorageEncryptionManager.class,
         ShadowAuthorityForMockHttpResponse.class,
         ShadowPublicClientApplicationConfiguration.class,
         ShadowHttpClient.class,
@@ -191,7 +191,7 @@ public class CrossCloudGuestAccountTest extends AcquireTokenAbstractTest {
     public void cleanup() {
         super.cleanup();
         SharedPreferencesFileManager.getSharedPreferences(
-                mContext, SHARED_PREFERENCES_NAME, -1, new StorageHelper(mContext))
+                mContext, SHARED_PREFERENCES_NAME, -1, null)
                 .clear();
     }
 
@@ -295,7 +295,8 @@ public class CrossCloudGuestAccountTest extends AcquireTokenAbstractTest {
 
         // assert
         final SharedPreferencesFileManager sharedPreferences = SharedPreferencesFileManager.getSharedPreferences(
-                mContext, SHARED_PREFERENCES_NAME, -1, new StorageHelper(mContext));
+                mContext, SHARED_PREFERENCES_NAME, -1,
+                new AndroidAuthSdkStorageEncryptionManager(mContext, null)); // Use encrypted storage for tests...
         final Map<String, ?> cacheValues = sharedPreferences.getAll();
 
         assertEquals("Verify number of Cache records (AT, RT, IdToken, AccountRecord) for non removed account",

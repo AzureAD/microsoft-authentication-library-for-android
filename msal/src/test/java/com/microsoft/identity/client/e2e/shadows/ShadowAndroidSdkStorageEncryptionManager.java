@@ -22,25 +22,28 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.shadows;
 
-import androidx.annotation.NonNull;
-
-import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
+import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager;
+import com.microsoft.identity.common.crypto.PredefinedKeyLoader;
+import com.microsoft.identity.common.java.crypto.key.AES256KeyLoader;
 
 import org.robolectric.annotation.Implements;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
+import java.util.ArrayList;
+import java.util.List;
 
-import javax.crypto.SecretKey;
+@Implements(AndroidAuthSdkStorageEncryptionManager.class)
+public class ShadowAndroidSdkStorageEncryptionManager {
 
-@Implements(StorageHelper.class)
-public class ShadowStorageHelper {
+    final byte[] encryptionKey = new byte[]{22, 78, -69, -66, 84, -65, 119, -9, -34, -80, 60, 67, -12, -117, 86, -47, -84, -24, -18, 121, 70, 32, -110, 51, -93, -10, -93, -110, 124, -68, -42, -119};
+    final AES256KeyLoader mUserDefinedKey = new PredefinedKeyLoader("MOCK_ALIAS", encryptionKey);
 
-    /**
-     * Fake saving key to key store as Android Key Store is not available in Robolectric
-     */
-    public void saveKeyStoreEncryptedKey(@NonNull SecretKey unencryptedKey) throws GeneralSecurityException, IOException {
-        return;
+    public  AES256KeyLoader getKeyLoaderForEncryption() {
+        return mUserDefinedKey;
     }
 
+    public List<AES256KeyLoader> getKeyLoaderForDecryption(byte[] cipherText) {
+        return new ArrayList<AES256KeyLoader>() {{
+            add(mUserDefinedKey);
+        }};
+    }
 }
