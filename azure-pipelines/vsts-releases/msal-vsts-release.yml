@@ -1,5 +1,5 @@
 # File: azure-pipelines\vsts-releases\msal-vsts-release.yml
-# Description: Publish msal to maven central (sonatype)
+# Description: Publish msal to internal feed
 # https://search.maven.org/search?q=g:com.microsoft.identity.client
 # Variable: 'ENV_VSTS_MVN_ANDROID_MSAL_USERNAME' was defined in the Variables tab
 # Variable: 'mvnAccessToken' was defined in the Variables tab
@@ -9,20 +9,9 @@ name: $(date:yyyyMMdd)$(rev:.r)
 trigger: none
 pr: none
 
-resources:
-  repositories:
-  - repository: self
-    type: git
-    ref: master
-  - repository: common
-    type: github
-    name: AzureAD/microsoft-authentication-library-common-for-android
-    ref: dev
-    endpoint: ANDROID_GITHUB
-
 jobs:
-- job: Phase_1
-  displayName: Phase 1
+- job: vsts_release
+  displayName: Publish msal to internal feed
   cancelTimeoutInMinutes: 1
   pool:
     name: Hosted Windows 2019 with VS2019
@@ -36,7 +25,6 @@ jobs:
     inputs:
       filename: echo
       arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN]$(mvnAccessToken)'
-  - template: azure-pipelines/templates/steps/credscan-policheck.yml@common
     parameters:
       policheckCmdLineArgsDir: msal
   - task: Gradle@1
