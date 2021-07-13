@@ -19,5 +19,5 @@ resources:
     endpoint: ANDROID_GITHUB
 
 jobs:
-- template: azure-pipelines/templates/steps/security-compliance-check@common
+- template: azure-pipelines/templates/steps/security-compliance-check.yml@common
 ...
