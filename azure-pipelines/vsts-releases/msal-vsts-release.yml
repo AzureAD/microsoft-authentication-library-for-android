@@ -1,5 +1,5 @@
 # File: azure-pipelines\vsts-releases\msal-vsts-release.yml
-# Description: Publish msal to local feed
+# Description: Publish msal to internal feed
 # https://search.maven.org/search?q=g:com.microsoft.identity.client
 # Variable: 'ENV_VSTS_MVN_ANDROID_MSAL_USERNAME' was defined in the Variables tab
 # Variable: 'mvnAccessToken' was defined in the Variables tab
@@ -11,7 +11,7 @@ pr: none
 
 jobs:
 - job: vsts_release
-  displayName: Publish msal to local feed
+  displayName: Publish msal to internal feed
   cancelTimeoutInMinutes: 1
   pool:
     name: Hosted Windows 2019 with VS2019
