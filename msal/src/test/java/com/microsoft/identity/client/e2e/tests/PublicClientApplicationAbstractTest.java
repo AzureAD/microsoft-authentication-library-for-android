@@ -31,7 +31,9 @@ import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.common.AndroidCommonComponents;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper;
+import com.microsoft.identity.common.java.interfaces.ICommonComponents;
 
 import org.junit.Before;
 import org.mockito.Mockito;
@@ -50,12 +52,14 @@ public abstract class PublicClientApplicationAbstractTest implements IPublicClie
     protected final String SHARED_PREFERENCES_NAME = "com.microsoft.identity.client.account_credential_cache";
 
     protected Context mContext;
+    protected ICommonComponents mComponents;
     protected Activity mActivity;
     protected IPublicClientApplication mApplication;
 
     @Before
     public void setup() {
         mContext = ApplicationProvider.getApplicationContext();
+        mComponents = new AndroidCommonComponents(mContext);
         mActivity = Mockito.mock(Activity.class);
         Mockito.when(mActivity.getApplicationContext()).thenReturn(mContext);
         setupPCA();

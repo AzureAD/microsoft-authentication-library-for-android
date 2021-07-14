@@ -31,6 +31,7 @@ import androidx.test.core.app.ApplicationProvider;
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
 import com.microsoft.identity.client.internal.CommandParametersAdapter;
+import com.microsoft.identity.common.AndroidCommonComponents;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialAdapter;
 import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
@@ -253,7 +254,7 @@ public class CommandParametersTest {
          * @param accountCredentialAdapter IAccountCredentialAdapter
          */
         public TestOAuth2TokenCache(Context context, IAccountCredentialCache accountCredentialCache, IAccountCredentialAdapter accountCredentialAdapter) {
-            super(context, accountCredentialCache, accountCredentialAdapter);
+            super(new AndroidCommonComponents(context), accountCredentialCache, accountCredentialAdapter);
         }
     }
 
