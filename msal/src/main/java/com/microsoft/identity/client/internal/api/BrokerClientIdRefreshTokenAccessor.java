@@ -32,9 +32,9 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.internal.authscheme.BearerAuthenticationSchemeInternal;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
-import com.microsoft.identity.common.internal.cache.ICacheRecord;
+import com.microsoft.identity.common.java.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
-import com.microsoft.identity.common.internal.dto.AccountRecord;
+import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.logging.Logger;
 
 import static com.microsoft.identity.client.exception.MsalClientException.NOT_ELIGIBLE_TO_USE_BROKER;
