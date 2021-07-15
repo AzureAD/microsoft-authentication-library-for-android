@@ -41,6 +41,7 @@ import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager;
+import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.java.net.HttpResponse;
 import com.microsoft.identity.internal.testutils.HttpRequestMatcher;
@@ -190,8 +191,7 @@ public class CrossCloudGuestAccountTest extends AcquireTokenAbstractTest {
     @After
     public void cleanup() {
         super.cleanup();
-        SharedPreferencesFileManager.getSharedPreferences(
-                mContext, SHARED_PREFERENCES_NAME, -1, null)
+        mComponents.getEncryptedFileStore(SHARED_PREFERENCES_NAME, mComponents.getStorageEncryptionManager(null))
                 .clear();
     }
 
@@ -294,9 +294,8 @@ public class CrossCloudGuestAccountTest extends AcquireTokenAbstractTest {
         RoboTestUtils.flushScheduler();
 
         // assert
-        final SharedPreferencesFileManager sharedPreferences = SharedPreferencesFileManager.getSharedPreferences(
-                mContext, SHARED_PREFERENCES_NAME, -1,
-                new AndroidAuthSdkStorageEncryptionManager(mContext, null)); // Use encrypted storage for tests...
+        final ISharedPreferencesFileManager sharedPreferences = mComponents.getEncryptedFileStore(SHARED_PREFERENCES_NAME,
+                mComponents.getStorageEncryptionManager(null));
         final Map<String, ?> cacheValues = sharedPreferences.getAll();
 
         assertEquals("Verify number of Cache records (AT, RT, IdToken, AccountRecord) for non removed account",
