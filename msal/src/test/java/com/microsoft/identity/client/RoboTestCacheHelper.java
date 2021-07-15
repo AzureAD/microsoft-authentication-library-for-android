@@ -27,8 +27,8 @@ import com.microsoft.identity.common.internal.authorities.AccountsInOneOrganizat
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.java.cache.ICacheRecord;
 import com.microsoft.identity.common.java.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
-import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
-import com.microsoft.identity.common.internal.providers.oauth2.OAuth2StrategyParameters;
+import com.microsoft.identity.common.java.providers.oauth2.OAuth2Strategy;
+import com.microsoft.identity.common.java.providers.oauth2.OAuth2StrategyParameters;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.java.providers.oauth2.TokenResponse;
 import com.microsoft.identity.internal.testutils.TestConstants;

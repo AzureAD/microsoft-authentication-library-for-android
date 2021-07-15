@@ -42,8 +42,8 @@ import com.microsoft.identity.common.java.providers.microsoft.microsoftsts.Micro
 import com.microsoft.identity.common.java.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationResponse;
 import com.microsoft.identity.common.java.providers.microsoft.microsoftsts.MicrosoftStsTokenRequest;
 import com.microsoft.identity.common.java.providers.oauth2.AuthorizationResult;
-import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
-import com.microsoft.identity.common.internal.providers.oauth2.OAuth2StrategyParameters;
+import com.microsoft.identity.common.java.providers.oauth2.OAuth2Strategy;
+import com.microsoft.identity.common.java.providers.oauth2.OAuth2StrategyParameters;
 import com.microsoft.identity.common.java.providers.oauth2.TokenRequest;
 import com.microsoft.identity.common.java.providers.oauth2.TokenResult;
 
