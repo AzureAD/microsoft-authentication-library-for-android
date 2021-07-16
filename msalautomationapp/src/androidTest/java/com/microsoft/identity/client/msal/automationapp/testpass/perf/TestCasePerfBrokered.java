@@ -37,8 +37,9 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadP
 import com.microsoft.identity.client.ui.automation.logging.appender.FileAppender;
 import com.microsoft.identity.client.ui.automation.logging.formatter.SimpleTextFormatter;
 import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
-import com.microsoft.identity.common.CodeMarkerManager;
-import com.microsoft.identity.common.PerfConstants;
+//import com.microsoft.identity.common.CodeMarkerManager;
+//import com.microsoft.identity.common.PerfConstants;
+import com.microsoft.identity.common.BaseAccount;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
@@ -54,92 +55,94 @@ public class TestCasePerfBrokered extends AbstractMsalBrokerTest {
 
     @Test
     public void test_acquireTokenSilentlyWithBroker() throws InterruptedException {
-        CodeMarkerManager codeMarkerManager = CodeMarkerManager.getInstance();
-        final int numberOfOccurrenceOfTest = 10;
-        final String outputFilenamePrefix = "PerfDataTargetBrokerHostWR"; // With Resource
-        final String username = mLoginHint;
-        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
-        //acquiring token
-        final TokenRequestLatch latch = new TokenRequestLatch(1);
+//        CodeMarkerManager codeMarkerManager = CodeMarkerManager.getInstance();
+//        final int numberOfOccurrenceOfTest = 10;
+//        final String outputFilenamePrefix = "PerfDataTargetBrokerHostWR"; // With Resource
+//        final String username = mLoginHint;
+//        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+//        //acquiring token
+//        final TokenRequestLatch latch = new TokenRequestLatch(1);
+//
+//        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+//                .startAuthorizationFromActivity(mActivity)
+//                .withLoginHint(mLoginHint)
+//                .withCallback(successfulInteractiveCallback(latch))
+//                .withPrompt(Prompt.SELECT_ACCOUNT)
+//                .withResource(mScopes[0])
+//                .build();
+//
+//        final InteractiveRequest interactiveRequest = new InteractiveRequest(
+//                mApplication,
+//                parameters,
+//                new OnInteractionRequired() {
+//                    @Override
+//                    public void handleUserInteraction() {
+//                        final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
+//                                .prompt(PromptParameter.SELECT_ACCOUNT)
+//                                .loginHint(mLoginHint)
+//                                .sessionExpected(false)
+//                                .consentPageExpected(false)
+//                                .speedBumpExpected(false)
+//                                .broker(mBroker)
+//                                .expectingBrokerAccountChooserActivity(false)
+//                                .registerPageExpected(true)
+//                                .build();
+//
+//                        new AadPromptHandler(promptHandlerParameters)
+//                                .handlePrompt(username, password);
+//                    }
+//                }
+//        );
+//
+//        interactiveRequest.execute();
+//        latch.await();
+//
+//        final IAccount account = getAccount();
+//        codeMarkerManager.setEnableCodeMarker(true);
+//        //Setting up scenario code. 100 -> Non Brokered, 200 -> Brokered
+//        codeMarkerManager.setPrefixScenarioCode(PerfConstants.ScenarioConstants.SCENARIO_BROKERED_ACQUIRE_TOKEN_SILENTLY);
+//        //acquiring token silently
+//
+//        for(int i = 0; i < numberOfOccurrenceOfTest; i++) {
+//            codeMarkerManager.clearMarkers();
+//            final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
+//
+//            final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+//                    .forAccount(account)
+//                    .fromAuthority(account.getAuthority())
+//                    .withResource(mScopes[0])
+//                    .withCallback(successfulSilentCallback(silentLatch))
+//                    .build();
+//
+//            mApplication.acquireTokenSilentAsync(silentParameters);
+//            silentLatch.await();
+//
+//            try {
+//                FileAppender fileAppender = new FileAppender(outputFilenamePrefix + i + ".txt", new SimpleTextFormatter());
+//                fileAppender.append(codeMarkerManager.getFileContent());
+//                CommonUtils.copyFileToFolderInSdCard(
+//                        fileAppender.getLogFile(),
+//                        "automation"
+//                );
+//            } catch (IOException e) {
+//                throw new AssertionError("IOException while writing Perf data file");
+//            }
+//            // If this is not the last iteration, then we need either to clear cache of access token manually or wait for 30 seconds.
+//            if (i < numberOfOccurrenceOfTest - 1) {
+//                // CommandDispatcherHelper.clear();
+//                try {
+//                    // Sleep for 30 seconds so that the cache access token cache is cleared.
+//                    Thread.sleep(TimeUnit.SECONDS.toMillis(30));
+//                } catch (InterruptedException e) {
+//                    throw new AssertionError("Interrupted while sleeping for 30 seconds so that old access token could have been out of cache");
+//                }
+//            }
+//        }
+//
+//        codeMarkerManager.clearMarkers();
+//        codeMarkerManager.setEnableCodeMarker(false);
 
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(mLoginHint)
-                .withCallback(successfulInteractiveCallback(latch))
-                .withPrompt(Prompt.SELECT_ACCOUNT)
-                .withResource(mScopes[0])
-                .build();
-
-        final InteractiveRequest interactiveRequest = new InteractiveRequest(
-                mApplication,
-                parameters,
-                new OnInteractionRequired() {
-                    @Override
-                    public void handleUserInteraction() {
-                        final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                                .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHint(mLoginHint)
-                                .sessionExpected(false)
-                                .consentPageExpected(false)
-                                .speedBumpExpected(false)
-                                .broker(mBroker)
-                                .expectingBrokerAccountChooserActivity(false)
-                                .registerPageExpected(true)
-                                .build();
-
-                        new AadPromptHandler(promptHandlerParameters)
-                                .handlePrompt(username, password);
-                    }
-                }
-        );
-
-        interactiveRequest.execute();
-        latch.await();
-
-        final IAccount account = getAccount();
-        codeMarkerManager.setEnableCodeMarker(true);
-        //Setting up scenario code. 100 -> Non Brokered, 200 -> Brokered
-        codeMarkerManager.setPrefixScenarioCode(PerfConstants.ScenarioConstants.SCENARIO_BROKERED_ACQUIRE_TOKEN_SILENTLY);
-        //acquiring token silently
-
-        for(int i = 0; i < numberOfOccurrenceOfTest; i++) {
-            codeMarkerManager.clearMarkers();
-            final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
-
-            final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                    .forAccount(account)
-                    .fromAuthority(account.getAuthority())
-                    .withResource(mScopes[0])
-                    .withCallback(successfulSilentCallback(silentLatch))
-                    .build();
-
-            mApplication.acquireTokenSilentAsync(silentParameters);
-            silentLatch.await();
-
-            try {
-                FileAppender fileAppender = new FileAppender(outputFilenamePrefix + i + ".txt", new SimpleTextFormatter());
-                fileAppender.append(codeMarkerManager.getFileContent());
-                CommonUtils.copyFileToFolderInSdCard(
-                        fileAppender.getLogFile(),
-                        "automation"
-                );
-            } catch (IOException e) {
-                throw new AssertionError("IOException while writing Perf data file");
-            }
-            // If this is not the last iteration, then we need either to clear cache of access token manually or wait for 30 seconds.
-            if (i < numberOfOccurrenceOfTest - 1) {
-                // CommandDispatcherHelper.clear();
-                try {
-                    // Sleep for 30 seconds so that the cache access token cache is cleared.
-                    Thread.sleep(TimeUnit.SECONDS.toMillis(30));
-                } catch (InterruptedException e) {
-                    throw new AssertionError("Interrupted while sleeping for 30 seconds so that old access token could have been out of cache");
-                }
-            }
-        }
-
-        codeMarkerManager.clearMarkers();
-        codeMarkerManager.setEnableCodeMarker(false);
+        assert true;
     }
 
     @Override
