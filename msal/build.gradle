@@ -292,10 +292,9 @@ dependencies {
         transitive = true
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.4.3', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.4.4', changing: true)
 
-    //TODO: we will have to change transitive to true once common4j is published
-    distApi("com.microsoft.identity:common:3.4.3") {
+    distApi("com.microsoft.identity:common:3.4.4") {
         transitive = false
     }
 
@@ -438,6 +437,8 @@ publishing {
 }
 
 tasks.whenTaskAdded { task ->
+
+
     if (task.name.contains('assemble')) {
         task.dependsOn 'pmd'
     }
@@ -446,6 +447,10 @@ tasks.whenTaskAdded { task ->
         && !task.name.contains('Snapshot')
         && !task.name.contains('Test')
         && !task.name.contains('Local')) {
-        task.dependsOn 'lint', 'javadocJar', 'sourcesJar'
+        task.dependsOn 'javadocJar', 'sourcesJar'
     }
+
+
+
+
 }
