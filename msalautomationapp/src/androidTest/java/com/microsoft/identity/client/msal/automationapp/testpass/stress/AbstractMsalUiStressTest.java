@@ -54,6 +54,9 @@ public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest 
     private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
     private Exception executionException;
 
+    private int testsPassed = 0;
+    private int testsFailed = 0;
+
     @Override
     @Before
     public void setup() {
@@ -94,7 +97,9 @@ public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest 
                     try {
                         S result = execute(prerequisites);
 
-                        assertResult(result);
+                        boolean passed = isTestPassed(result);
+
+                        updateTestPassRate(passed);
                     } catch (Exception ex) {
                         executionException = ex;
                     }
@@ -111,14 +116,23 @@ public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest 
         }
     }
 
+    private synchronized void updateTestPassRate(boolean passed) {
+        if (passed) {
+            testsPassed++;
+        } else {
+            testsFailed++;
+        }
+    }
+
     private Runnable getPerformanceStatsCollector() {
         return new Runnable() {
             @Override
             public void run() {
                 try {
                     while (true) {
+                        // time   cpu_usage   memory_usage   data_received   data_sent   num_threads   time_limit   tests_passed   tests_failed   device_memory   device_name
                         String line = String.format(
-                                "%s,%.2f,%d,%d,%d,%d,%d,%d,%s",
+                                "%s,%.2f,%d,%d,%d,%d,%d,%d,%d,%d,%s",
                                 new SimpleDateFormat(DATE_FORMAT).format(new Date()),
                                 DeviceMonitor.getCpuUsage(),
                                 DeviceMonitor.getMemoryUsage(),
@@ -126,6 +140,8 @@ public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest 
                                 DeviceMonitor.getNetworkTrafficInfo().getDiffBytesSent(),
                                 getNumberOfThreads(),
                                 getTimeLimit(),
+                                testsPassed,
+                                testsFailed,
                                 DeviceMonitor.getTotalMemory(),
                                 DeviceMonitor.getDeviceName()
                         );
@@ -189,7 +205,13 @@ public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest 
         return RulesHelper.getPrimaryRules(null, timeout);
     }
 
-    public abstract void assertResult(S result);
+    /**
+     * Assert that the test passed
+     *
+     * @param result the test result
+     * @return whether the test passed
+     */
+    public abstract boolean isTestPassed(S result);
 
 
     /**
