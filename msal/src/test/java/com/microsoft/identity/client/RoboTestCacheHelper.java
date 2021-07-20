@@ -22,6 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import com.microsoft.identity.common.AndroidCommonComponents;
 import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.internal.authorities.AccountsInOneOrganization;
 import com.microsoft.identity.common.internal.authorities.Authority;
@@ -48,8 +49,9 @@ public class RoboTestCacheHelper {
                 TestConstants.Authorities.AAD_MOCK_AUTHORITY,
                 TestConstants.Authorities.AAD_MOCK_AUTHORITY_TENANT)
         );
-        final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
-        strategyParameters.setContext(application.getConfiguration().getAppContext());
+        final OAuth2StrategyParameters strategyParameters = OAuth2StrategyParameters.builder()
+                .platformComponents(new AndroidCommonComponents(application.getConfiguration().getAppContext()))
+                .build();
         final OAuth2Strategy strategy = authority.createOAuth2Strategy(strategyParameters);
         final MicrosoftStsAuthorizationRequest mockAuthRequest = Mockito.mock(MicrosoftStsAuthorizationRequest.class);
         Mockito.when(mockAuthRequest.getAuthority()).thenReturn(authority.getAuthorityURL());
