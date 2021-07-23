@@ -25,7 +25,7 @@ package com.microsoft.identity.client;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
+import com.microsoft.identity.common.java.providers.oauth2.IDToken;
 
 import java.util.Collections;
 import java.util.HashMap;

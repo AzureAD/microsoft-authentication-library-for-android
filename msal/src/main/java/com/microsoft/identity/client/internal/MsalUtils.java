@@ -41,9 +41,11 @@ import androidx.annotation.Nullable;
 import androidx.browser.customtabs.CustomTabsService;
 
 import com.microsoft.identity.client.BrowserTabActivity;
+import com.microsoft.identity.client.CurrentTaskBrowserTabActivity;
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.logging.Logger;
+import com.microsoft.identity.common.internal.configuration.LibraryConfiguration;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -260,10 +262,19 @@ public final class MsalUtils {
         // resolve info list will never be null, if no matching activities are found, empty list will be returned.
         boolean hasActivity = false;
 
+
+        //Current default activity for use with authorization agent "DEFAULT" or "BROWSER"
+        String activityClassName = BrowserTabActivity.class.getName();
+
+        //If we're using authorization in current task... then we need to look for that activity
+        if(LibraryConfiguration.getInstance().isAuthorizationInCurrentTask()){
+            activityClassName = CurrentTaskBrowserTabActivity.class.getName();
+        }
+
         for (final ResolveInfo info : resolveInfoList) {
             final ActivityInfo activityInfo = info.activityInfo;
 
-            if (activityInfo.name.equals(BrowserTabActivity.class.getName())) {
+            if (activityInfo.name.equals(activityClassName))  {
                 hasActivity = true;
             } else {
                 // another application is listening for this url scheme, don't open
