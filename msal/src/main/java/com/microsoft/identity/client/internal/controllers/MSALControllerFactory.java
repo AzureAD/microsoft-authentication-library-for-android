@@ -46,6 +46,8 @@ import com.microsoft.identity.common.logging.Logger;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.microsoft.identity.common.java.AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+
 /**
  * Responsible for returning the correct controller depending on the type of request (Silent, Interactive), authority
  * app configuration, device state
@@ -189,7 +191,7 @@ public class MSALControllerFactory {
         //Verify the signature
         AuthenticatorDescription[] authenticators = accountManager.getAuthenticatorTypes();
         for (AuthenticatorDescription authenticator : authenticators) {
-            if (authenticator.type.equals(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE)
+            if (authenticator.type.equals(BROKER_ACCOUNT_TYPE)
                     && brokerValidator.verifySignature(authenticator.packageName)) {
                 return true;
             }
