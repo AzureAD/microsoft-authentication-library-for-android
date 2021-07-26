@@ -28,7 +28,6 @@ import android.content.Context;
 import androidx.test.core.app.ApplicationProvider;
 
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
-import com.microsoft.identity.internal.testutils.TestUtils;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -90,7 +89,10 @@ public class TokenParametersAuthorityTest {
     @Before
     public void setup() {
         mContext = ApplicationProvider.getApplicationContext();
-        mActivity = TestUtils.getMockActivity(mContext);
+        final Activity mockedActivity = Mockito.mock(Activity.class);
+        Mockito.when(mockedActivity.getApplicationContext()).thenReturn(mContext);
+
+        mActivity = mockedActivity;
     }
 
     @Test
