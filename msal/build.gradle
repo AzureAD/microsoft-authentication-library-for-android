@@ -1,10 +1,26 @@
-apply plugin: 'com.android.library'
-apply plugin: 'checkstyle'
-apply plugin: 'pmd'
-apply plugin: 'maven'
-apply plugin: 'maven-publish'
+plugins {
+ id 'com.microsoft.identity.buildsystem' version '0.1.0'
+ id 'com.android.library'
+ id 'checkstyle'
+ id 'pmd'
+ id 'maven'
+ id 'maven-publish'
+}
+
 apply from: 'versioning/version_tasks.gradle'
+
 group = 'com.microsoft.identity.client'
+
+def desugarCode = false
+
+if(project.hasProperty("sugar")){
+    desugarCode = sugar.toBoolean()
+}
+
+buildSystem {
+    desugar = desugarCode
+}
+
 //apply plugin: 'jacoco'
 //
 //// To include Robolectric tests in the Jacoco report, flag -> "includeNolocationClasses" is set to true
@@ -244,7 +260,7 @@ task sourcesJar(type: Jar) {
 dependencies {
 
     //Commenting out until the next major version of common/msal/etc...
-    //coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
+    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
 
     def mockito_version = 'latest.release'
 
