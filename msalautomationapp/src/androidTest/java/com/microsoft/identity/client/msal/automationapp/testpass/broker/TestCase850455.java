@@ -103,9 +103,7 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public String getTempUserType() {
-        return null;
-    }
+    public String getTempUserType() { return LabConstants.TempUserType.MAMCA; }
 
     @Override
     public String[] getScopes() {
