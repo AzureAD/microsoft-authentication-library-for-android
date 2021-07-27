@@ -37,12 +37,12 @@ import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.commands.parameters.InteractiveTokenCommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.SilentTokenCommandParameters;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
-import com.microsoft.identity.internal.testutils.TestUtils;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 
 import java.io.File;
@@ -62,7 +62,10 @@ public class CommandParametersTest {
     @Before
     public void setup() {
         mContext = ApplicationProvider.getApplicationContext();
-        mActivity = TestUtils.getMockActivity(mContext);
+        final Activity mockedActivity = Mockito.mock(Activity.class);
+        Mockito.when(mockedActivity.getApplicationContext()).thenReturn(mContext);
+
+        mActivity = mockedActivity;
     }
 
 
