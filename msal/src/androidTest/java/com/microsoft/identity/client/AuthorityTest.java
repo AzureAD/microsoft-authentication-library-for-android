@@ -4,9 +4,9 @@ import android.net.Uri;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import com.microsoft.identity.common.internal.authorities.Authority;
-import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
-import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
+import com.microsoft.identity.common.java.authorities.Authority;
+import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthority;
+import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryB2CAuthority;
 import com.microsoft.identity.common.java.providers.oauth2.OAuth2Strategy;
 import com.microsoft.identity.common.java.providers.oauth2.OAuth2StrategyParameters;
 
@@ -16,6 +16,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -104,20 +106,6 @@ public final class AuthorityTest {
         MockAuthority(final String authorityUrl, final String type) {
             super.mAuthorityUrl = authorityUrl;
             super.mAuthorityTypeString = type;
-        }
-
-        @Override
-        public Uri getAuthorityUri() {
-            return Uri.parse(super.mAuthorityUrl);
-        }
-
-        @Override
-        public URL getAuthorityURL() {
-            try {
-                return new URL(this.getAuthorityUri().toString());
-            } catch (MalformedURLException e) {
-                throw new IllegalArgumentException("Authority URL is not a URL.", e);
-            }
         }
 
         @Override

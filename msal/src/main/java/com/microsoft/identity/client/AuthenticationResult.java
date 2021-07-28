@@ -27,7 +27,7 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.microsoft.identity.common.internal.authscheme.TokenAuthenticationScheme;
+import com.microsoft.identity.common.java.authscheme.TokenAuthenticationScheme;
 import com.microsoft.identity.common.java.cache.ICacheRecord;
 import com.microsoft.identity.common.java.dto.AccessTokenRecord;
 import com.microsoft.identity.common.logging.Logger;

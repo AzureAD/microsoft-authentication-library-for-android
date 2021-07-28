@@ -1,9 +1,9 @@
 package com.microsoft.identity.client;
 
-import com.microsoft.identity.common.internal.authorities.AccountsInOneOrganization;
-import com.microsoft.identity.common.internal.authorities.AnyOrganizationalAccount;
-import com.microsoft.identity.common.internal.authorities.AnyPersonalAccount;
-import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience;
+import com.microsoft.identity.common.java.authorities.AccountsInOneOrganization;
+import com.microsoft.identity.common.java.authorities.AnyOrganizationalAccount;
+import com.microsoft.identity.common.java.authorities.AnyPersonalAccount;
+import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudience;
 
 import junit.framework.Assert;
 
