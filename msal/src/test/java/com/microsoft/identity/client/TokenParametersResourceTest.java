@@ -20,30 +20,31 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.e2e.shadows;
+package com.microsoft.identity.client;
 
-import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager;
-import com.microsoft.identity.common.java.crypto.key.PredefinedKeyLoader;
-import com.microsoft.identity.common.java.crypto.key.AES256KeyLoader;
 
-import org.robolectric.annotation.Implements;
+import android.util.Log;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.junit.Test;
 
-@Implements(AndroidAuthSdkStorageEncryptionManager.class)
-public class ShadowAndroidSdkStorageEncryptionManager {
+import static org.junit.Assert.assertEquals;
 
-    final byte[] encryptionKey = new byte[]{22, 78, -69, -66, 84, -65, 119, -9, -34, -80, 60, 67, -12, -117, 86, -47, -84, -24, -18, 121, 70, 32, -110, 51, -93, -10, -93, -110, 124, -68, -42, -119};
-    final AES256KeyLoader mUserDefinedKey = new PredefinedKeyLoader("MOCK_ALIAS", encryptionKey);
 
-    public  AES256KeyLoader getKeyLoaderForEncryption() {
-        return mUserDefinedKey;
-    }
+public class TokenParametersResourceTest {
 
-    public List<AES256KeyLoader> getKeyLoaderForDecryption(byte[] cipherText) {
-        return new ArrayList<AES256KeyLoader>() {{
-            add(mUserDefinedKey);
-        }};
+    public final static String RESOURCE_MIXED_CASE = "https://SomeAADApi.aadgraph.onmicrosoft.com";
+    public final static String RESOURCE_MIXED_CASE_DEFAULT_APPENDED = RESOURCE_MIXED_CASE + "/.default";
+
+    /**
+     * Verify that the casing of the provided resource is not altered by the building of the parameters.
+     * In addition verify that the /.default value was added to the reosource to convert it to a scope for the purposes of the v2 endpoint.
+     */
+    @Test
+    public void testVerifyScopeIsAsProvided() {
+
+        AcquireTokenParameters acquireTokenParameters = new AcquireTokenParameters.Builder().withResource(RESOURCE_MIXED_CASE).build();
+
+        assertEquals(RESOURCE_MIXED_CASE_DEFAULT_APPENDED, acquireTokenParameters.getScopes().get(0));
+
     }
 }
