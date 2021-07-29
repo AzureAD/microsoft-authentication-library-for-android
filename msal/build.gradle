@@ -3,7 +3,6 @@ plugins {
     id 'com.android.library'
     id 'pmd'
     id 'checkstyle'
-    id 'maven'
     id 'maven-publish'
 }
 
@@ -234,7 +233,7 @@ android {
 task javadoc(type: Javadoc) {
     failOnError false
     source = android.sourceSets.main.java.srcDirs
-    classpath += configurations.compile
+    classpath += configurations.implementation
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
 
     options.memberLevel = JavadocMemberLevel.PUBLIC

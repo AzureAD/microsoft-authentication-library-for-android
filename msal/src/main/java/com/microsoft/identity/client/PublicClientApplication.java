@@ -2134,7 +2134,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         } else {
             // Create the SharedPreferencesFileManager for the legacy accounts/credentials
             final ISharedPreferencesFileManager sharedPreferencesFileManager =
-                    new SharedPreferencesFileManager(
+                    SharedPreferencesFileManager.getSharedPreferences(
                             mPublicClientConfiguration.getAppContext(),
                             "com.microsoft.aad.adal.cache",
                             new AndroidAuthSdkStorageEncryptionManager(
