@@ -1,5 +1,5 @@
 plugins {
- id 'com.microsoft.identity.buildsystem' version '0.1.0'
+ id 'com.microsoft.identity.buildsystem' version '0.1.1'
  id 'com.android.library'
  id 'checkstyle'
  id 'pmd'
