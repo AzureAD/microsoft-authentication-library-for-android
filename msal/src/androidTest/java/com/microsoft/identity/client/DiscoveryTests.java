@@ -32,6 +32,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 
 @RunWith(AndroidJUnit4.class)
 public class DiscoveryTests {
@@ -57,10 +58,8 @@ public class DiscoveryTests {
     }
 
     @Test
-    public void testInstanceDiscovery() throws IOException {
+    public void testInstanceDiscovery() throws IOException, URISyntaxException {
         AndroidTestMockUtil.mockSuccessInstanceDiscoveryAPIVersion1_1();
         AzureActiveDirectory.performCloudDiscovery();
     }
-
-
 }
