@@ -58,7 +58,7 @@ public class DiscoveryTests {
     }
 
     @Test
-    public void testInstanceDiscovery() throws IOException, URISyntaxException {
+    public void testInstanceDiscovery() throws Exception {
         AndroidTestMockUtil.mockSuccessInstanceDiscoveryAPIVersion1_1();
         AzureActiveDirectory.performCloudDiscovery();
     }

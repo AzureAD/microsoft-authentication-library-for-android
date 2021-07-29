@@ -191,7 +191,7 @@ public class MSALControllerFactory {
         //Verify the signature
         AuthenticatorDescription[] authenticators = accountManager.getAuthenticatorTypes();
         for (AuthenticatorDescription authenticator : authenticators) {
-            if (authenticator.type.equals(BROKER_ACCOUNT_TYPE)
+            if (BROKER_ACCOUNT_TYPE.equals(authenticator.type)
                     && brokerValidator.verifySignature(authenticator.packageName)) {
                 return true;
             }
