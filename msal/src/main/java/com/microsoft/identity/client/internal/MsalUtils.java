@@ -461,27 +461,6 @@ public final class MsalUtils {
         return msg;
     }
 
-    /**
-     * create url from given endpoint. return null if format is not right.
-     *
-     * @param endpoint url as a string
-     * @return URL object for this string
-     */
-    public static URL getUrl(String endpoint) {
-        URL url = null;
-        try {
-            url = new URL(endpoint);
-        } catch (MalformedURLException e1) {
-            com.microsoft.identity.common.internal.logging.Logger.errorPII(
-                    TAG,
-                    "Url is invalid",
-                    e1
-            );
-        }
-
-        return url;
-    }
-
     public static String getUniqueUserIdentifier(final String uid, final String utid) {
         return base64UrlEncodeToString(uid) + "." + base64UrlEncodeToString(utid);
     }

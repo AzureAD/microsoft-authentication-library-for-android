@@ -30,7 +30,7 @@ import com.microsoft.identity.common.java.cache.ICacheRecord;
 import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.java.providers.oauth2.IDToken;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
-import com.microsoft.identity.common.internal.util.StringUtil;
+import com.microsoft.identity.common.java.util.StringUtil;
 import com.microsoft.identity.common.logging.Logger;
 
 import java.util.ArrayList;
@@ -360,7 +360,7 @@ class AccountAdapter {
                                             @Nullable final String realm) {
         final AccountRecord accountToReturn;
 
-        if (!StringUtil.isEmpty(homeAccountIdentifier)) {
+        if (!StringUtil.isNullOrEmpty(homeAccountIdentifier)) {
             accountToReturn = oAuth2TokenCache.getAccount(
                     null, // * wildcard
                     clientId,
