@@ -89,7 +89,7 @@ import com.microsoft.identity.common.internal.migration.TokenMigrationUtility;
 import com.microsoft.identity.common.internal.net.cache.HttpCache;
 import com.microsoft.identity.common.java.providers.microsoft.MicrosoftAccount;
 import com.microsoft.identity.common.java.providers.microsoft.MicrosoftRefreshToken;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
+import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.result.GenerateShrResult;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
