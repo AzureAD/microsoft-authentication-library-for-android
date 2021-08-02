@@ -24,12 +24,9 @@ package com.microsoft.identity.client.msal.automationapp.testpass.stress;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
-import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.PublicClientApplication;
-import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
@@ -38,7 +35,6 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerPara
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
-import com.microsoft.identity.internal.testutils.powerbi.PowerBi;
 
 import org.junit.Test;
 
@@ -51,59 +47,6 @@ public class TestCaseStress extends AbstractMsalUiStressTest<IAccount, IAuthenti
     private String accessToken = null;
     private Date expiresAt = null;
 
-    @Test
-    public void testDStuff() {
-        super.setup();
-
-        final TokenRequestLatch tokenRequestLatch = new TokenRequestLatch(1);
-
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(mLoginHint)
-                .withScopes(Arrays.asList(mScopes))
-                .withCallback(new AuthenticationCallback() {
-                    @Override
-                    public void onCancel() {
-                        tokenRequestLatch.countDown();
-                    }
-
-                    @Override
-                    public void onSuccess(IAuthenticationResult authenticationResult) {
-                        tokenRequestLatch.countDown();
-                    }
-
-                    @Override
-                    public void onError(MsalException exception) {
-                        tokenRequestLatch.countDown();
-                    }
-                })
-                .withPrompt(Prompt.SELECT_ACCOUNT)
-                .build();
-
-        final InteractiveRequest interactiveRequest = new InteractiveRequest(
-                mApplication,
-                parameters,
-                new OnInteractionRequired() {
-                    @Override
-                    public void handleUserInteraction() {
-                        final String username = mLoginHint;
-                        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
-
-                        final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                                .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHint(mLoginHint)
-                                .sessionExpected(false)
-                                .consentPageExpected(false)
-                                .speedBumpExpected(false)
-                                .build();
-
-                        new AadPromptHandler(promptHandlerParameters).handlePrompt(username, password);
-                    }
-                }
-        );
-
-        tokenRequestLatch.await(TokenRequestTimeout.SHORT);
-    }
 
     @Test
     public void test_acquireTokenSilentlyWithCachedTokens() throws Exception {
@@ -188,6 +131,6 @@ public class TestCaseStress extends AbstractMsalUiStressTest<IAccount, IAuthenti
 
     @Override
     public String getOutputFileName() {
-        return "StressTestsAcquireTokenSilent.txt";
+        return "StressTestsAcquireTokenSilent.csv";
     }
 }

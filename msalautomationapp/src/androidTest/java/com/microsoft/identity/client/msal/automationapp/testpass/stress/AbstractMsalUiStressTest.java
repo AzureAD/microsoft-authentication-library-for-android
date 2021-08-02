@@ -130,9 +130,9 @@ public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest 
             public void run() {
                 try {
                     while (true) {
-                        // time   cpu_usage   memory_usage   data_received   data_sent   num_threads   time_limit   tests_passed   tests_failed   device_memory   device_name
+                        // time   cpu_usage   memory_usage   data_received   data_sent   num_threads   time_limit   device_memory   device_name   tests_passed   tests_failed
                         String line = String.format(
-                                "%s,%.2f,%d,%d,%d,%d,%d,%d,%d,%d,%s",
+                                "%s,%.2f,%d,%d,%d,%d,%d,%d,%s,%d,%d",
                                 new SimpleDateFormat(DATE_FORMAT).format(new Date()),
                                 DeviceMonitor.getCpuUsage(),
                                 DeviceMonitor.getMemoryUsage(),
@@ -140,10 +140,10 @@ public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest 
                                 DeviceMonitor.getNetworkTrafficInfo().getDiffBytesSent(),
                                 getNumberOfThreads(),
                                 getTimeLimit(),
-                                testsPassed,
-                                testsFailed,
                                 DeviceMonitor.getTotalMemory(),
-                                DeviceMonitor.getDeviceName()
+                                DeviceMonitor.getDeviceName(),
+                                testsPassed,
+                                testsFailed
                         );
 
                         writeFile(line);
