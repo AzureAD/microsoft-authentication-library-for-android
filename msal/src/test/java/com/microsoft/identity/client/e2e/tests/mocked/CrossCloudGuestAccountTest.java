@@ -40,9 +40,7 @@ import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncrypti
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager;
-import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManager;
-import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
+import com.microsoft.identity.common.internal.cache.IKeyBasedStorage;
 import com.microsoft.identity.common.java.net.HttpResponse;
 import com.microsoft.identity.internal.testutils.HttpRequestMatcher;
 import com.microsoft.identity.internal.testutils.MockHttpClient;
@@ -294,7 +292,7 @@ public class CrossCloudGuestAccountTest extends AcquireTokenAbstractTest {
         RoboTestUtils.flushScheduler();
 
         // assert
-        final ISharedPreferencesFileManager sharedPreferences = mComponents.getEncryptedFileStore(SHARED_PREFERENCES_NAME,
+        final IKeyBasedStorage sharedPreferences = mComponents.getEncryptedFileStore(SHARED_PREFERENCES_NAME,
                 mComponents.getStorageEncryptionManager());
         final Map<String, ?> cacheValues = sharedPreferences.getAll();
 

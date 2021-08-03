@@ -61,7 +61,7 @@ import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAu
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
 import com.microsoft.identity.common.java.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
-import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManager;
+import com.microsoft.identity.common.internal.cache.IKeyBasedStorage;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.java.util.SchemaUtil;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
@@ -2133,7 +2133,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             callback.onMigrationFinished(0);
         } else {
             // Create the SharedPreferencesFileManager for the legacy accounts/credentials
-            final ISharedPreferencesFileManager sharedPreferencesFileManager =
+            final IKeyBasedStorage sharedPreferencesFileManager =
                     new SharedPreferencesFileManager(
                             mPublicClientConfiguration.getAppContext(),
                             "com.microsoft.aad.adal.cache",
