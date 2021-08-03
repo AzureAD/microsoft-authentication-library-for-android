@@ -948,7 +948,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                         // Should not be reached.
                     }
                 },
-                null
+                PublicApiId.PCA_GET_DEVICE_MODE
         );
 
         CommandDispatcher.submitSilent(command);
