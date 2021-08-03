@@ -107,9 +107,6 @@ public final class CurrentTaskBrowserTabActivity extends Activity {
             Intent broadcast = new Intent(REDIRECT_RETURNED_ACTION);
             LocalBroadcastManager.getInstance(this).sendBroadcast(broadcast);
 
-
-
-
             // Wait for the custom tab to be removed from the back stack before finishing.
             mCloseBroadcastReceiver = new BroadcastReceiver() {
                 @Override

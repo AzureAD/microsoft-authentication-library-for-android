@@ -68,6 +68,7 @@ public class AcquireTokenFragment extends Fragment {
     private EditText mScope;
     private EditText mExtraScope;
     private EditText mClaims;
+    private Button mAddDeviceIdClaimButton;
     private Switch mEnablePII;
     private Switch mForceRefresh;
     private Button mGetUsers;
@@ -111,6 +112,15 @@ public class AcquireTokenFragment extends Fragment {
         mScope = view.findViewById(R.id.scope);
         mExtraScope = view.findViewById(R.id.extraScope);
         mClaims = view.findViewById(R.id.claims);
+        mAddDeviceIdClaimButton = view.findViewById(R.id.btn_deviceIdClaim);
+        mAddDeviceIdClaimButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final String str = "{\"access_token\":{\"deviceid\":{\"essential\":true}}}";
+                mClaims.setText(str);
+            }
+        });
+
         mEnablePII = view.findViewById(enablePII);
         mForceRefresh = view.findViewById(R.id.forceRefresh);
         mSelectAccount = view.findViewById(R.id.select_user);

@@ -38,6 +38,7 @@ import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.commands.parameters.InteractiveTokenCommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.SilentTokenCommandParameters;
 import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
+import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.internal.testutils.TestUtils;
 
 import org.junit.Assert;
@@ -70,62 +71,62 @@ public class CommandParametersTest {
 
 
     @Test
-    public void testAcquireTokenSilentOperationWithClaimsWithCapabilities() {
+    public void testAcquireTokenSilentOperationWithClaimsWithCapabilities() throws ClientException {
         SilentTokenCommandParameters commandParameters = CommandParametersAdapter.createSilentTokenCommandParameters(getConfiguration(AAD_CP1_CONFIG_FILE), getCache(), getAcquireTokenSilentParametersWithClaims());
         Assert.assertEquals(true, commandParameters.isForceRefresh());
     }
 
     @Test
-    public void testAcquireTokenSilentOperationWithClaimsWithoutCapabilities() {
+    public void testAcquireTokenSilentOperationWithClaimsWithoutCapabilities() throws ClientException {
         SilentTokenCommandParameters commandParameters = CommandParametersAdapter.createSilentTokenCommandParameters(getConfiguration(AAD_NONE_CONFIG_FILE), getCache(), getAcquireTokenSilentParametersWithClaims());
         Assert.assertEquals(true, commandParameters.isForceRefresh());
     }
 
     @Test
-    public void testAcquireTokenSilentOperationWithoutClaimsWithCapabilities() {
+    public void testAcquireTokenSilentOperationWithoutClaimsWithCapabilities() throws ClientException {
         SilentTokenCommandParameters commandParameters = CommandParametersAdapter.createSilentTokenCommandParameters(getConfiguration(AAD_CP1_CONFIG_FILE), getCache(), getAcquireTokenSilentParametersWithoutClaims());
         Assert.assertEquals(false, commandParameters.isForceRefresh());
     }
 
     @Test
-    public void testAcquireTokenSilentOperationWithoutClaimsWithoutCapabilities() {
+    public void testAcquireTokenSilentOperationWithoutClaimsWithoutCapabilities() throws ClientException {
         SilentTokenCommandParameters commandParameters = CommandParametersAdapter.createSilentTokenCommandParameters(getConfiguration(AAD_NONE_CONFIG_FILE), getCache(), getAcquireTokenSilentParametersWithoutClaims());
 
         Assert.assertEquals(false, commandParameters.isForceRefresh());
     }
 
     @Test
-    public void testAcquireTokenOperationWithClaimsWithCapabilities() {
+    public void testAcquireTokenOperationWithClaimsWithCapabilities() throws ClientException {
         InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(getConfiguration(AAD_CP1_CONFIG_FILE), getCache(), getAcquireTokenParametersWithClaims());
         Assert.assertEquals(true, commandParameters.isForceRefresh());
     }
 
     @Test
-    public void testAcquireTokenOperationWithClaimsWithoutCapabilities() {
+    public void testAcquireTokenOperationWithClaimsWithoutCapabilities() throws ClientException {
         InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(getConfiguration(AAD_NONE_CONFIG_FILE), getCache(), getAcquireTokenParametersWithClaims());
         Assert.assertEquals(true, commandParameters.isForceRefresh());
     }
 
     @Test
-    public void testAcquireTokenOperationWithoutClaimsWithCapabilities() {
+    public void testAcquireTokenOperationWithoutClaimsWithCapabilities() throws ClientException {
         InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(getConfiguration(AAD_CP1_CONFIG_FILE), getCache(), getAcquireTokenParametersWithoutClaims());
         Assert.assertEquals(false, commandParameters.isForceRefresh());
     }
 
     @Test
-    public void testAcquireTokenOperationWithoutClaimsWithoutCapabilities() {
+    public void testAcquireTokenOperationWithoutClaimsWithoutCapabilities() throws ClientException {
         InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(getConfiguration(AAD_NONE_CONFIG_FILE), getCache(), getAcquireTokenParametersWithoutClaims());
         Assert.assertEquals(false, commandParameters.isForceRefresh());
     }
 
     @Test
-    public void testAcquireTokenOperationWithoutCorrelationId() {
+    public void testAcquireTokenOperationWithoutCorrelationId() throws ClientException {
         InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(getConfiguration(AAD_CP1_CONFIG_FILE), getCache(), getAcquireTokenParametersWithoutCorrelationId());
         Assert.assertNull(commandParameters.getCorrelationId());
     }
 
     @Test
-    public void testAcquireTokenOperationWithCorrelationId() {
+    public void testAcquireTokenOperationWithCorrelationId() throws ClientException {
         final UUID correlationId = UUID.randomUUID();
         InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(getConfiguration(AAD_NONE_CONFIG_FILE), getCache(), getAcquireTokenParametersWithCorrelationId(correlationId));
         Assert.assertNotNull(commandParameters.getCorrelationId());
@@ -133,13 +134,13 @@ public class CommandParametersTest {
     }
 
     @Test
-    public void testAcquireTokenSilentOperationWithoutCorrelationId() {
+    public void testAcquireTokenSilentOperationWithoutCorrelationId() throws ClientException {
         SilentTokenCommandParameters commandParameters = CommandParametersAdapter.createSilentTokenCommandParameters(getConfiguration(AAD_CP1_CONFIG_FILE), getCache(), getAcquireTokenSilentParametersWithoutCorrelationId());
         Assert.assertNull(commandParameters.getCorrelationId());
     }
 
     @Test
-    public void testAcquireTokenSilentOperationWithCorrelationId() {
+    public void testAcquireTokenSilentOperationWithCorrelationId() throws ClientException {
         final UUID correlationId = UUID.randomUUID();
         SilentTokenCommandParameters commandParameters = CommandParametersAdapter.createSilentTokenCommandParameters(getConfiguration(AAD_NONE_CONFIG_FILE), getCache(), getAcquireTokenSilentParametersWithCorrelationId(correlationId));
         Assert.assertNotNull(commandParameters.getCorrelationId());

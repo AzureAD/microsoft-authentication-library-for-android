@@ -16,12 +16,14 @@ import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
+import com.microsoft.identity.common.AndroidCommonComponents;
 import com.microsoft.identity.common.internal.authorities.Authority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
-import com.microsoft.identity.common.internal.authscheme.AbstractAuthenticationScheme;
+import com.microsoft.identity.common.java.authscheme.AbstractAuthenticationScheme;
 import com.microsoft.identity.common.internal.authscheme.AuthenticationSchemeFactory;
 import com.microsoft.identity.common.internal.authscheme.BearerAuthenticationSchemeInternal;
+import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.util.SchemaUtil;
 import com.microsoft.identity.common.internal.commands.parameters.CommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.DeviceCodeFlowCommandParameters;
@@ -95,10 +97,10 @@ public class CommandParametersAdapter {
     public static InteractiveTokenCommandParameters createInteractiveTokenCommandParameters(
             @NonNull final PublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
-            @NonNull final AcquireTokenParameters parameters) {
+            @NonNull final AcquireTokenParameters parameters) throws ClientException {
 
         final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
-                parameters.getActivity(),
+                new AndroidCommonComponents(parameters.getActivity()),
                 parameters.getAuthenticationScheme()
         );
 
@@ -151,7 +153,7 @@ public class CommandParametersAdapter {
     public static SilentTokenCommandParameters createSilentTokenCommandParameters(
             @NonNull final PublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
-            @NonNull final AcquireTokenSilentParameters parameters) {
+            @NonNull final AcquireTokenSilentParameters parameters) throws ClientException {
         final Authority authority = getAuthority(configuration, parameters);
 
         final ClaimsRequest claimsRequest = parameters.getClaimsRequest();
@@ -168,7 +170,7 @@ public class CommandParametersAdapter {
         final boolean forceRefresh = claimsRequest != null || parameters.getForceRefresh();
 
         final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
-                configuration.getAppContext(),
+                new AndroidCommonComponents(configuration.getAppContext()),
                 parameters.getAuthenticationScheme()
         );
 
