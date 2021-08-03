@@ -191,7 +191,7 @@ public class CrossCloudGuestAccountTest extends AcquireTokenAbstractTest {
     @After
     public void cleanup() {
         super.cleanup();
-        mComponents.getEncryptedFileStore(SHARED_PREFERENCES_NAME, mComponents.getStorageEncryptionManager(null))
+        mComponents.getEncryptedFileStore(SHARED_PREFERENCES_NAME, mComponents.getStorageEncryptionManager())
                 .clear();
     }
 
@@ -295,7 +295,7 @@ public class CrossCloudGuestAccountTest extends AcquireTokenAbstractTest {
 
         // assert
         final ISharedPreferencesFileManager sharedPreferences = mComponents.getEncryptedFileStore(SHARED_PREFERENCES_NAME,
-                mComponents.getStorageEncryptionManager(null));
+                mComponents.getStorageEncryptionManager());
         final Map<String, ?> cacheValues = sharedPreferences.getAll();
 
         assertEquals("Verify number of Cache records (AT, RT, IdToken, AccountRecord) for non removed account",
