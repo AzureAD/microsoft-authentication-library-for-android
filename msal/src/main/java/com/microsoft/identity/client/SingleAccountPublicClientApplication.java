@@ -98,7 +98,7 @@ public class SingleAccountPublicClientApplication
     }
 
     private void initializeSharedPreferenceFileManager(@NonNull final Context context) {
-        sharedPreferencesFileManager = SharedPreferencesFileManager.getSharedPreferences(
+        sharedPreferencesFileManager = new SharedPreferencesFileManager(
                 context,
                 SINGLE_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
                 new AndroidAuthSdkStorageEncryptionManager(context, null)
