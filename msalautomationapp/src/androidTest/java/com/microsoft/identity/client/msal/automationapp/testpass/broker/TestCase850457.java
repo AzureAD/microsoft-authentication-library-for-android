@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
+import android.os.Parcelable;
+
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
@@ -40,14 +42,17 @@ import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
 import org.junit.Test;
 
+import java.util.Arrays;
+
 // [MSAL] password reset for MAM_CA account
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1177440
+// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/850457
 public class TestCase850457 extends AbstractMsalBrokerTest{
 
     @Test
     public void test_850457() throws Throwable {
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+
         final MsalSdk msalSdk = new MsalSdk();
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
@@ -74,20 +79,29 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
                         .handlePrompt(username, password);
             }
         }, TokenRequestTimeout.MEDIUM);
+
         authResult1.assertSuccess();
 
         LabUserHelper.resetPassword(username);
+
         TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
 
-        final MsalAuthResult authResult2 = msalSdk.acquireTokenInteractive(authTestParams, new com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired() {
+        final MsalAuthTestParams msalAuthTestParams2 = MsalAuthTestParams.builder()
+                .loginHint(username)
+                .activity(mActivity)
+                .resource(mScopes[0])
+                .promptParameter(Prompt.SELECT_ACCOUNT)
+                .msalConfigResourceId(getConfigFileResourceId())
+                .build();
+
+        final MsalAuthResult authResult2 = msalSdk.acquireTokenInteractive(msalAuthTestParams2, new com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                         .prompt(PromptParameter.WHEN_REQUIRED)
                         .loginHint(mLoginHint)
-                        .sessionExpected(false)
+                        .sessionExpected(true)
                         .consentPageExpected(false)
-                        .passwordPageExpected(true)
                         .speedBumpExpected(false)
                         .broker(mBroker)
                         .expectingBrokerAccountChooserActivity(false)
@@ -105,20 +119,15 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
 
     @Override
     public LabUserQuery getLabUserQuery() {
-        final LabUserQuery query = new LabUserQuery();
-        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CLOUD;
-        query.protectionPolicy = LabConstants.ProtectionPolicy.MAM_CA;
-        return query;
-    }
-
-    @Override
-    public String getTempUserType() {
         return null;
     }
 
     @Override
+    public String getTempUserType() { return LabConstants.TempUserType.MAMCA; }
+
+    @Override
     public String[] getScopes() {
-        return new String[]{"User.read"};
+        return new String[]{"https://graph.windows.net"};
     }
 
     @Override
