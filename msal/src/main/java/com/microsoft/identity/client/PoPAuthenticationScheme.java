@@ -25,8 +25,8 @@ package com.microsoft.identity.client;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.microsoft.identity.common.internal.authscheme.IPoPAuthenticationSchemeParams;
-import com.microsoft.identity.common.internal.authscheme.PopAuthenticationSchemeInternal;
+import com.microsoft.identity.common.java.authscheme.IPoPAuthenticationSchemeParams;
+import com.microsoft.identity.common.java.authscheme.PopAuthenticationSchemeInternal;
 
 import java.net.URL;
 
