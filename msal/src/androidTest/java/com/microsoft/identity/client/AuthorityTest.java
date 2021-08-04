@@ -1,7 +1,5 @@
 package com.microsoft.identity.client;
 
-import android.net.Uri;
-
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.microsoft.identity.common.java.authorities.Authority;
@@ -15,10 +13,6 @@ import junit.framework.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -104,7 +98,7 @@ public final class AuthorityTest {
     private class MockAuthority extends Authority {
 
         MockAuthority(final String authorityUrl, final String type) {
-            super.mAuthorityUrl = authorityUrl;
+            super.mAuthorityUrlString = authorityUrl;
             super.mAuthorityTypeString = type;
         }
 
