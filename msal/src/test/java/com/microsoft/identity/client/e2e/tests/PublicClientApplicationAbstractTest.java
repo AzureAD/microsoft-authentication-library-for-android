@@ -22,6 +22,10 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests;
 
+import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
+import static org.junit.Assert.fail;
+import static org.robolectric.annotation.LooperMode.Mode.LEGACY;
+
 import android.app.Activity;
 import android.content.Context;
 
@@ -31,19 +35,15 @@ import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.common.AndroidCommonComponents;
+import com.microsoft.identity.common.AndroidPlatformComponents;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper;
-import com.microsoft.identity.common.java.interfaces.ICommonComponents;
+import com.microsoft.identity.common.java.interfaces.IPlatformComponents;
 
 import org.junit.Before;
 import org.mockito.Mockito;
 import org.robolectric.annotation.LooperMode;
 
 import java.io.File;
-
-import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
-import static org.junit.Assert.fail;
-import static org.robolectric.annotation.LooperMode.Mode.LEGACY;
 
 // TODO: move to "PAUSED". A work in RoboTestUtils will be needed though.
 @LooperMode(LEGACY)
@@ -52,14 +52,14 @@ public abstract class PublicClientApplicationAbstractTest implements IPublicClie
     protected final String SHARED_PREFERENCES_NAME = "com.microsoft.identity.client.account_credential_cache";
 
     protected Context mContext;
-    protected ICommonComponents mComponents;
+    protected IPlatformComponents mComponents;
     protected Activity mActivity;
     protected IPublicClientApplication mApplication;
 
     @Before
     public void setup() {
         mContext = ApplicationProvider.getApplicationContext();
-        mComponents = new AndroidCommonComponents(mContext);
+        mComponents = AndroidPlatformComponents.createFromContext(mContext);
         mActivity = Mockito.mock(Activity.class);
         Mockito.when(mActivity.getApplicationContext()).thenReturn(mContext);
         setupPCA();
