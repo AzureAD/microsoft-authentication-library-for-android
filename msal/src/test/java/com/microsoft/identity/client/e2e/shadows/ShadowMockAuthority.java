@@ -24,9 +24,9 @@ package com.microsoft.identity.client.e2e.shadows;
 
 import android.net.Uri;
 
-import com.microsoft.identity.common.internal.authorities.AccountsInOneOrganization;
-import com.microsoft.identity.common.internal.authorities.Authority;
-import com.microsoft.identity.common.internal.authorities.UnknownAuthority;
+import com.microsoft.identity.common.java.authorities.AccountsInOneOrganization;
+import com.microsoft.identity.common.java.authorities.Authority;
+import com.microsoft.identity.common.java.authorities.UnknownAuthority;
 import com.microsoft.identity.internal.testutils.TestConstants;
 import com.microsoft.identity.internal.testutils.authorities.AADTestAuthority;
 import com.microsoft.identity.internal.testutils.authorities.B2CTestAuthority;

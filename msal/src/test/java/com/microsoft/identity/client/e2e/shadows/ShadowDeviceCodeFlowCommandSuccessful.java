@@ -27,7 +27,7 @@ import com.microsoft.identity.common.java.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommandCallback;
 import com.microsoft.identity.common.java.dto.AccountRecord;
-import com.microsoft.identity.common.internal.request.SdkType;
+import com.microsoft.identity.common.java.request.SdkType;
 import com.microsoft.identity.common.internal.result.AcquireTokenResult;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;

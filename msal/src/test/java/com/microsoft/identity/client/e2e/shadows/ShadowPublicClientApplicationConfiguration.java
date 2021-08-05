@@ -36,7 +36,7 @@ public class ShadowPublicClientApplicationConfiguration {
 
     // mocking this to assume we have custom tab redirect activity during tests
     public static boolean validateCustomTabRedirectActivity(@NonNull final Context context,
-                                                       @NonNull final String url) {
+                                                            @NonNull final String url) {
         return true;
     }
 }
