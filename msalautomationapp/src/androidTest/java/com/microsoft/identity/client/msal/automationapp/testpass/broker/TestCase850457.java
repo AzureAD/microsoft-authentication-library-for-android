@@ -57,7 +57,7 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
-                .resource(mScopes[0])
+                .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
@@ -89,7 +89,7 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
         final MsalAuthTestParams msalAuthTestParams2 = MsalAuthTestParams.builder()
                 .loginHint(username)
                 .activity(mActivity)
-                .resource(mScopes[0])
+                .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
@@ -127,7 +127,7 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
 
     @Override
     public String[] getScopes() {
-        return new String[]{"https://graph.windows.net"};
+        return new String[]{"https://graph.windows.net/user.read"};
     }
 
     @Override
