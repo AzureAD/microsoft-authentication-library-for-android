@@ -105,6 +105,7 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
                         .speedBumpExpected(false)
                         .broker(mBroker)
                         .expectingBrokerAccountChooserActivity(false)
+                        .passwordPageExpected(true)
                         .build();
 
                 new AadPromptHandler(promptHandlerParameters)
