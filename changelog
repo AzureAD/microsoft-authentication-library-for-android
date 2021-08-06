@@ -7,6 +7,7 @@ vNext
 - [MINOR] Added support for handling null taskAffinity.  Add configuration to enable this new feature.  "handle_null_taskaffinity" which is a boolean (#1342)
 - [PATCH] Log and throw exception if there are other apps listening for the redirect URL scheme defined in Android Manifest (#1357)
 - [PATCH] Update Nimbus dependency version (#1382)
+- [PATCH] Add explicit dependency on androidx.localbroadcast manager and increment androidx.browser version to 1.3 (#1478)
 
 Version 2.1.0
 ----------
