@@ -53,7 +53,7 @@ public class TokenParametersAuthorityTest {
 
     private Context mContext;
     private Activity mActivity;
-    private final List SCOPES = Arrays.asList(USER_READ_SCOPE);
+    private final List<String> SCOPES = Arrays.asList(USER_READ_SCOPE);
 
     private AzureCloudInstance azureCloudInstance;
     private AadAuthorityAudience aadAuthorityAudience;

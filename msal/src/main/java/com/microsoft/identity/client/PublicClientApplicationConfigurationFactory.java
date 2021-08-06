@@ -32,6 +32,7 @@ import androidx.annotation.WorkerThread;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer;
+import com.microsoft.identity.common.AndroidPlatformComponents;
 import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.authorities.AuthorityDeserializer;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudience;
@@ -96,7 +97,7 @@ public class PublicClientApplicationConfigurationFactory {
         final LibraryConfiguration libraryConfiguration = LibraryConfiguration.builder().authorizationInCurrentTask((config.authorizationInCurrentTask())).build();
         LibraryConfiguration.intializeLibraryConfiguration(libraryConfiguration);
 
-        config.setOAuth2TokenCache(MsalOAuth2TokenCache.create(context));
+        config.setOAuth2TokenCache(MsalOAuth2TokenCache.create(AndroidPlatformComponents.createFromContext(context)));
         return config;
     }
 
