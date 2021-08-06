@@ -267,6 +267,7 @@ dependencies {
 
     implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
     implementation "androidx.browser:browser:$rootProject.ext.browserVersion"
+    implementation "androidx.localbroadcastmanager:localbroadcastmanager:$rootProject.ext.localBroadcastManagerVersion"
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
     implementation ("com.nimbusds:nimbus-jose-jwt:$rootProject.ext.nimbusVersion") {
         exclude module: 'asm'
