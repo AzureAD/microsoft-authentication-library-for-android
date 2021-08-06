@@ -26,7 +26,11 @@ import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.ui.automation.logging.appender.FileAppender;
 import com.microsoft.identity.client.ui.automation.logging.formatter.LogcatLikeFormatter;
+import com.microsoft.identity.client.ui.automation.performance.CPUMonitor;
 import com.microsoft.identity.client.ui.automation.performance.DeviceMonitor;
+import com.microsoft.identity.client.ui.automation.performance.MemoryMonitor;
+import com.microsoft.identity.client.ui.automation.performance.NetworkUsageMonitor;
+import com.microsoft.identity.client.ui.automation.performance.PerformanceProfile;
 import com.microsoft.identity.client.ui.automation.rules.RulesHelper;
 import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
@@ -62,6 +66,10 @@ public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest 
     public void setup() {
         super.setup();
         executionException = null;
+
+        DeviceMonitor.setProfiler(PerformanceProfile.CPU, new CPUMonitor());
+        DeviceMonitor.setProfiler(PerformanceProfile.MEMORY, new MemoryMonitor());
+        DeviceMonitor.setProfiler(PerformanceProfile.NETWORK, new NetworkUsageMonitor());
     }
 
     /**
