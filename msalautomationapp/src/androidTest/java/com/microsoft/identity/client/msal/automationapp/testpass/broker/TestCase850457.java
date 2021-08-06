@@ -90,7 +90,7 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
                 .loginHint(username)
                 .activity(mActivity)
                 .scopes(Arrays.asList(mScopes))
-                .promptParameter(Prompt.SELECT_ACCOUNT)
+                .promptParameter(Prompt.LOGIN)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
@@ -98,7 +98,7 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
             @Override
             public void handleUserInteraction() {
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                        .prompt(PromptParameter.WHEN_REQUIRED)
+                        .prompt(PromptParameter.LOGIN)
                         .loginHint(mLoginHint)
                         .sessionExpected(true)
                         .consentPageExpected(false)
