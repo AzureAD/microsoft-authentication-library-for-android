@@ -29,6 +29,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.common.AndroidPlatformComponents;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.java.authscheme.BearerAuthenticationSchemeInternal;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
@@ -64,7 +65,7 @@ public final class BrokerClientIdRefreshTokenAccessor {
 
         throwIfNotValidBroker(context);
 
-        final MsalOAuth2TokenCache tokenCache = MsalOAuth2TokenCache.create(context);
+        final MsalOAuth2TokenCache tokenCache = MsalOAuth2TokenCache.create(AndroidPlatformComponents.createFromContext(context));
         final ICacheRecord cacheRecord = getCacheRecordForIdentifier(tokenCache, accountObjectId);
 
         if (cacheRecord == null) {

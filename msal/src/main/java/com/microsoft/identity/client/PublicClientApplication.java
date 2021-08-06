@@ -49,6 +49,7 @@ import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.CommandParametersAdapter;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
+import com.microsoft.identity.common.AndroidPlatformComponents;
 import com.microsoft.identity.common.adal.internal.tokensharing.ITokenShareResultInternal;
 import com.microsoft.identity.common.adal.internal.tokensharing.TokenShareUtility;
 import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager;
@@ -61,7 +62,7 @@ import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthor
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryB2CAuthority;
 import com.microsoft.identity.common.java.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
-import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManager;
+import com.microsoft.identity.common.internal.cache.IMultiTypeNameValueStorage;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.java.util.SchemaUtil;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
@@ -1963,7 +1964,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     private OAuth2TokenCache<?, ?, ?> getOAuth2TokenCache() {
-        return MsalOAuth2TokenCache.create(mPublicClientConfiguration.getAppContext());
+        return MsalOAuth2TokenCache.create(AndroidPlatformComponents.createFromContext(mPublicClientConfiguration.getAppContext()));
     }
 
     protected class AccountMatcher {
@@ -2132,7 +2133,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             callback.onMigrationFinished(0);
         } else {
             // Create the SharedPreferencesFileManager for the legacy accounts/credentials
-            final ISharedPreferencesFileManager sharedPreferencesFileManager =
+            final IMultiTypeNameValueStorage sharedPreferencesFileManager =
                     new SharedPreferencesFileManager(
                             mPublicClientConfiguration.getAppContext(),
                             "com.microsoft.aad.adal.cache",
