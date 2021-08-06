@@ -3,7 +3,6 @@ plugins {
     id 'com.android.library'
     id 'pmd'
     id 'checkstyle'
-    id 'maven'
     id 'maven-publish'
 }
 
@@ -234,7 +233,7 @@ android {
 task javadoc(type: Javadoc) {
     failOnError false
     source = android.sourceSets.main.java.srcDirs
-    classpath += configurations.compile
+    classpath += configurations.implementation
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
 
     options.memberLevel = JavadocMemberLevel.PUBLIC
@@ -259,6 +258,7 @@ task sourcesJar(type: Jar) {
 }
 
 dependencies {
+    testImplementation project(path: ':common4j')
 
     //Please leave this in... desugaring is currently disabled by default; however it's required for running some tests
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"

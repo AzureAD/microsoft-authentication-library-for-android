@@ -66,6 +66,7 @@ import static com.microsoft.identity.internal.testutils.TestConstants.Configurat
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {ShadowPublicClientApplicationConfiguration.class})
+@SuppressWarnings("unchecked")
 public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
     private boolean mUserCodeReceived;

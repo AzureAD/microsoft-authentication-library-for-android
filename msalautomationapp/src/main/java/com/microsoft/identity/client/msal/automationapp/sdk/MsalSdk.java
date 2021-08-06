@@ -118,7 +118,8 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
         final IAccount account;
 
         if (authority instanceof AzureActiveDirectoryB2CAuthority) {
-            final String policyName = ((AzureActiveDirectoryB2CAuthority) authority).getB2CPolicyName();
+            final AzureActiveDirectoryB2CAuthority b2cAuthority = (AzureActiveDirectoryB2CAuthority) authority;
+            final String policyName = b2cAuthority.getB2CPolicyName();
             account = getAccountForPolicyName((MultipleAccountPublicClientApplication) pca, policyName);
         } else {
             account = getAccount(
