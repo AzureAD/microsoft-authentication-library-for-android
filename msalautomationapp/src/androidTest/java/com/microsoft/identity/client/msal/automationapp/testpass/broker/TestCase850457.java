@@ -43,6 +43,7 @@ import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 // [MSAL] password reset for MAM_CA account
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/850457
@@ -90,7 +91,7 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
                 .loginHint(username)
                 .activity(mActivity)
                 .scopes(Arrays.asList(mScopes))
-                .promptParameter(Prompt.LOGIN)
+                .promptParameter(Prompt.WHEN_REQUIRED)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
@@ -98,7 +99,7 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
             @Override
             public void handleUserInteraction() {
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                        .prompt(PromptParameter.LOGIN)
+                        .prompt(PromptParameter.WHEN_REQUIRED)
                         .loginHint(mLoginHint)
                         .sessionExpected(true)
                         .consentPageExpected(false)
