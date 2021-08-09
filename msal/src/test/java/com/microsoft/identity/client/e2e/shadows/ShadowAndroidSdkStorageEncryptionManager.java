@@ -22,21 +22,28 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.shadows;
 
-import android.content.Context;
-
-import androidx.annotation.NonNull;
-
-import com.microsoft.identity.client.PublicClientApplicationConfiguration;
-import com.microsoft.identity.client.internal.MsalUtils;
+import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager;
+import com.microsoft.identity.common.java.crypto.key.PredefinedKeyLoader;
+import com.microsoft.identity.common.java.crypto.key.AES256KeyLoader;
 
 import org.robolectric.annotation.Implements;
 
-@Implements(PublicClientApplicationConfiguration.class)
-public class ShadowPublicClientApplicationConfiguration {
+import java.util.ArrayList;
+import java.util.List;
 
-    // mocking this to assume we have custom tab redirect activity during tests
-    public static boolean validateCustomTabRedirectActivity(@NonNull final Context context,
-                                                            @NonNull final String url) {
-        return true;
+@Implements(AndroidAuthSdkStorageEncryptionManager.class)
+public class ShadowAndroidSdkStorageEncryptionManager {
+
+    final byte[] encryptionKey = new byte[]{22, 78, -69, -66, 84, -65, 119, -9, -34, -80, 60, 67, -12, -117, 86, -47, -84, -24, -18, 121, 70, 32, -110, 51, -93, -10, -93, -110, 124, -68, -42, -119};
+    final AES256KeyLoader mUserDefinedKey = new PredefinedKeyLoader("MOCK_ALIAS", encryptionKey);
+
+    public  AES256KeyLoader getKeyLoaderForEncryption() {
+        return mUserDefinedKey;
+    }
+
+    public List<AES256KeyLoader> getKeyLoaderForDecryption(byte[] cipherText) {
+        return new ArrayList<AES256KeyLoader>() {{
+            add(mUserDefinedKey);
+        }};
     }
 }

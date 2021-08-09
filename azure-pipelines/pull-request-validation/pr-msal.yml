@@ -32,8 +32,8 @@ resources:
     endpoint: ANDROID_GITHUB
 
 jobs:
-- job: Phase_1
-  displayName: Phase 1
+- job: build_test
+  displayName: Build & Test
   cancelTimeoutInMinutes: 1
   pool:
     name: Hosted Windows 2019 with VS2019
@@ -42,9 +42,6 @@ jobs:
     clean: true
     submodules: recursive
     persistCredentials: True
-  - template: azure-pipelines/templates/steps/credscan-policheck.yml@common
-    parameters:
-      policheckCmdLineArgsDir: msal
   - template: azure-pipelines/templates/steps/automation-cert.yml@common
   - task: JavaToolInstaller@0
     displayName: Use Java 8
@@ -70,6 +67,4 @@ jobs:
       tasks: msal:testLocalDebugUnitTest -Plabtest -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}}
       javaHomeSelection: $(BuildParameters.javaHomeSelection)
       jdkVersion: 1.11
-  - task: ComponentGovernanceComponentDetection@0
-    displayName: Component Detection
 ...

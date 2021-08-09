@@ -43,17 +43,18 @@ import com.microsoft.identity.client.configuration.HttpConfiguration;
 import com.microsoft.identity.client.configuration.LoggerConfiguration;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
-import com.microsoft.identity.common.internal.authorities.Authority;
-import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
-import com.microsoft.identity.common.internal.authorities.Environment;
+import com.microsoft.identity.common.java.authorities.Authority;
+import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthority;
+import com.microsoft.identity.common.java.authorities.Environment;
 import com.microsoft.identity.common.internal.authorities.UnknownAudience;
-import com.microsoft.identity.common.internal.authorities.UnknownAuthority;
+import com.microsoft.identity.common.java.authorities.UnknownAuthority;
 import com.microsoft.identity.common.internal.broker.PackageHelper;
+import com.microsoft.identity.common.internal.configuration.LibraryConfiguration;
 import com.microsoft.identity.common.internal.logging.Logger;
-import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
+import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.telemetry.TelemetryConfiguration;
-import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
-import com.microsoft.identity.common.internal.ui.browser.BrowserDescriptor;
+import com.microsoft.identity.common.java.ui.AuthorizationAgent;
+import com.microsoft.identity.common.java.ui.BrowserDescriptor;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -80,6 +81,7 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEB_VIEW_ZOOM_CONTROLS_ENABLED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEB_VIEW_ZOOM_ENABLED;
 import static com.microsoft.identity.client.exception.MsalClientException.APP_MANIFEST_VALIDATION_ERROR;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORIZATION_IN_CURRENT_TASK;
 
 public class PublicClientApplicationConfiguration {
     private static final String TAG = PublicClientApplicationConfiguration.class.getSimpleName();
@@ -106,7 +108,7 @@ public class PublicClientApplicationConfiguration {
         static final String WEB_VIEW_ZOOM_ENABLED = "web_view_zoom_enabled";
         static final String POWER_OPT_CHECK_FOR_NETWORK_REQUEST_ENABLED = "power_opt_check_for_network_req_enabled";
         static final String HANDLE_TASKS_WITH_NULL_TASKAFFINITY = "handle_null_taskaffinity";
-
+        static final String AUTHORIZATION_IN_CURRENT_TASK = "authorization_in_current_task";
     }
 
     @SerializedName(CLIENT_ID)
@@ -162,6 +164,13 @@ public class PublicClientApplicationConfiguration {
 
     @SerializedName(HANDLE_TASKS_WITH_NULL_TASKAFFINITY)
     private Boolean handleNullTaskAffinity;
+
+    /**
+     * Controls whether authorization activites are opened/created in the current task.
+     * Current default as of MSAL 2.0.12 is to use a new task
+     */
+    @SerializedName(AUTHORIZATION_IN_CURRENT_TASK)
+    private Boolean isAuthorizationInCurrentTask;
 
     transient private OAuth2TokenCache mOAuth2TokenCache;
 
@@ -380,6 +389,10 @@ public class PublicClientApplicationConfiguration {
         return handleNullTaskAffinity;
     }
 
+    public Boolean authorizationInCurrentTask() {
+        return isAuthorizationInCurrentTask;
+    }
+
     public Authority getDefaultAuthority() {
         if (mAuthorities != null) {
             if (mAuthorities.size() > 1) {
@@ -462,6 +475,7 @@ public class PublicClientApplicationConfiguration {
         this.webViewZoomEnabled = config.webViewZoomEnabled == null ? this.webViewZoomEnabled : config.webViewZoomEnabled;
         this.powerOptCheckEnabled = config.powerOptCheckEnabled == null ? this.powerOptCheckEnabled : config.powerOptCheckEnabled;
         this.handleNullTaskAffinity = config.handleNullTaskAffinity == null ? this.handleNullTaskAffinity : config.handleNullTaskAffinity;
+        this.isAuthorizationInCurrentTask = config.isAuthorizationInCurrentTask == null ? this.isAuthorizationInCurrentTask : config.isAuthorizationInCurrentTask;
     }
 
     void validateConfiguration() {
@@ -603,8 +617,14 @@ public class PublicClientApplicationConfiguration {
 
         for (final ResolveInfo info : resolveInfoList) {
             final ActivityInfo activityInfo = info.activityInfo;
+            String activityClassName = BrowserTabActivity.class.getName();
 
-            if (activityInfo.name.equals(BrowserTabActivity.class.getName()) &&
+            //If we're using authorization in current task... then we need to look for that activity
+            if(LibraryConfiguration.getInstance().isAuthorizationInCurrentTask()){
+                activityClassName = CurrentTaskBrowserTabActivity.class.getName();
+            }
+
+            if (activityInfo.name.equals(activityClassName) &&
                     activityInfo.packageName.equals(context.getPackageName())) {
                 hasActivity = true;
             } else {
@@ -636,15 +656,21 @@ public class PublicClientApplicationConfiguration {
             );
 
             if (!hasCustomTabRedirectActivity) {
+                String activityClassName = BrowserTabActivity.class.getSimpleName();
+
+                if (LibraryConfiguration.getInstance().isAuthorizationInCurrentTask()){
+                    activityClassName = CurrentTaskBrowserTabActivity.class.getSimpleName();
+                }
+
                 final Uri redirectUri = Uri.parse(mRedirectUri);
 
                 throw new MsalClientException(
                         APP_MANIFEST_VALIDATION_ERROR,
                         "Intent filter for: " +
-                                BrowserTabActivity.class.getSimpleName() +
+                                activityClassName +
                                 " is missing. " +
                                 " Please make sure you have the following activity in your AndroidManifest.xml \n\n" +
-                                "<activity android:name=\"com.microsoft.identity.client.BrowserTabActivity\">" + "\n" +
+                                "<activity android:name=\"com.microsoft.identity.client." + activityClassName + "\">" + "\n" +
                                 "\t" + "<intent-filter>" + "\n" +
                                 "\t\t" + "<action android:name=\"android.intent.action.VIEW\" />" + "\n" +
                                 "\t\t" + "<category android:name=\"android.intent.category.DEFAULT\" />" + "\n" +

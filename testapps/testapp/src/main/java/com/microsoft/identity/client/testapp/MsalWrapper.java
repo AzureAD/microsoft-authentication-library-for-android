@@ -96,7 +96,7 @@ abstract class MsalWrapper {
 
         final AcquireTokenParameters.Builder builder = getAcquireTokenParametersBuilder(activity, requestOptions, callback);
         builder.withAuthorizationQueryStringParameters(null);
-        builder.withResource(requestOptions.getScopes().toLowerCase().trim());
+        builder.withResource(requestOptions.getScopes().trim());
 
         final AcquireTokenParameters parameters = builder.build();
         acquireTokenAsyncInternal(parameters);

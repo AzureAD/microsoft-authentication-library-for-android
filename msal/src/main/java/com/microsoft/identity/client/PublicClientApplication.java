@@ -49,22 +49,22 @@ import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.CommandParametersAdapter;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
-import com.microsoft.identity.common.adal.internal.cache.IStorageHelper;
-import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
+import com.microsoft.identity.common.AndroidPlatformComponents;
 import com.microsoft.identity.common.adal.internal.tokensharing.ITokenShareResultInternal;
 import com.microsoft.identity.common.adal.internal.tokensharing.TokenShareUtility;
+import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager;
 import com.microsoft.identity.common.java.exception.BaseException;
 import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.exception.ErrorStrings;
 import com.microsoft.identity.common.java.exception.ServiceException;
-import com.microsoft.identity.common.internal.authorities.Authority;
-import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
-import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
-import com.microsoft.identity.common.internal.cache.ICacheRecord;
+import com.microsoft.identity.common.java.authorities.Authority;
+import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthority;
+import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryB2CAuthority;
+import com.microsoft.identity.common.java.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.IShareSingleSignOnState;
-import com.microsoft.identity.common.internal.cache.ISharedPreferencesFileManager;
+import com.microsoft.identity.common.internal.cache.IMultiTypeNameValueStorage;
 import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
-import com.microsoft.identity.common.internal.cache.SchemaUtil;
+import com.microsoft.identity.common.java.util.SchemaUtil;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.commands.CommandCallback;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
@@ -73,25 +73,25 @@ import com.microsoft.identity.common.internal.commands.GenerateShrCommand;
 import com.microsoft.identity.common.internal.commands.GetDeviceModeCommand;
 import com.microsoft.identity.common.internal.commands.InteractiveTokenCommand;
 import com.microsoft.identity.common.internal.commands.SilentTokenCommand;
-import com.microsoft.identity.common.internal.commands.parameters.CommandParameters;
+import com.microsoft.identity.common.java.commands.parameters.CommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.DeviceCodeFlowCommandParameters;
 import com.microsoft.identity.common.internal.commands.parameters.GenerateShrCommandParameters;
-import com.microsoft.identity.common.internal.commands.parameters.InteractiveTokenCommandParameters;
-import com.microsoft.identity.common.internal.commands.parameters.SilentTokenCommandParameters;
+import com.microsoft.identity.common.java.commands.parameters.InteractiveTokenCommandParameters;
+import com.microsoft.identity.common.java.commands.parameters.SilentTokenCommandParameters;
 import com.microsoft.identity.common.internal.controllers.BaseController;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
 import com.microsoft.identity.common.internal.controllers.ExceptionAdapter;
 import com.microsoft.identity.common.internal.controllers.LocalMSALController;
-import com.microsoft.identity.common.internal.dto.AccountRecord;
+import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
 import com.microsoft.identity.common.internal.migration.AdalMigrationAdapter;
 import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
 import com.microsoft.identity.common.internal.migration.TokenMigrationUtility;
 import com.microsoft.identity.common.internal.net.cache.HttpCache;
-import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftAccount;
-import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftRefreshToken;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
-import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
+import com.microsoft.identity.common.java.providers.microsoft.MicrosoftAccount;
+import com.microsoft.identity.common.java.providers.microsoft.MicrosoftRefreshToken;
+import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
+import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.result.GenerateShrResult;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
@@ -131,11 +131,11 @@ import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_A
 import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_MESSAGE;
 import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_CODE;
 import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_MESSAGE;
-import static com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience.isHomeTenantAlias;
+import static com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudience.isHomeTenantAlias;
 import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST;
 import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST_ASYNC;
-import static com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken.TENANT_ID;
-import static com.microsoft.identity.common.internal.util.StringUtil.isUuid;
+import static com.microsoft.identity.common.java.providers.microsoft.MicrosoftIdToken.TENANT_ID;
+import static com.microsoft.identity.common.java.util.StringUtil.isUuid;
 
 /**
  * <p>
@@ -949,7 +949,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                         // Should not be reached.
                     }
                 },
-                null
+                PublicApiId.PCA_GET_DEVICE_MODE
         );
 
         CommandDispatcher.submitSilent(command);
@@ -1418,7 +1418,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         validateNonNullArgument(scopes, NONNULL_CONSTANTS.SCOPES);
         validateNonNullArgument(callback, NONNULL_CONSTANTS.CALLBACK);
 
-
         AcquireTokenParameters.Builder builder = new AcquireTokenParameters.Builder();
         AcquireTokenParameters acquireTokenParameters = builder.startAuthorizationFromActivity(activity)
                 .withFragment(fragment)
@@ -1619,7 +1618,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             tokenParameters.setAuthority(
                     pcaConfig
                             .getDefaultAuthority()
-                            .getAuthorityUri()
+                            .getAuthorityURL()
                             .toString()
             );
         }
@@ -1965,7 +1964,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     private OAuth2TokenCache<?, ?, ?> getOAuth2TokenCache() {
-        return MsalOAuth2TokenCache.create(mPublicClientConfiguration.getAppContext());
+        return MsalOAuth2TokenCache.create(AndroidPlatformComponents.createFromContext(mPublicClientConfiguration.getAppContext()));
     }
 
     protected class AccountMatcher {
@@ -2134,12 +2133,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             callback.onMigrationFinished(0);
         } else {
             // Create the SharedPreferencesFileManager for the legacy accounts/credentials
-            final IStorageHelper storageHelper = new StorageHelper(mPublicClientConfiguration.getAppContext());
-            final ISharedPreferencesFileManager sharedPreferencesFileManager =
+            final IMultiTypeNameValueStorage sharedPreferencesFileManager =
                     new SharedPreferencesFileManager(
                             mPublicClientConfiguration.getAppContext(),
                             "com.microsoft.aad.adal.cache",
-                            storageHelper
+                            new AndroidAuthSdkStorageEncryptionManager(
+                                    mPublicClientConfiguration.getAppContext(), null)
                     );
 
             // Load the old TokenCacheItems as key/value JSON
