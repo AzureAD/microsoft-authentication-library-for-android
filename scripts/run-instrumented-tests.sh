@@ -9,5 +9,4 @@ gradle -version
 echo =============================================
 echo Running instrumented tests
 echo =============================================
-gradle msal:connectedLocalDebugAndroidTest Psugar=true -i
-
+gradle msal:connectedLocalDebugAndroidTest -Psugar=true -i
