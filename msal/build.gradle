@@ -82,12 +82,12 @@ android {
     buildTypes {
         // testCoverageEnabled flag is set to true to get coverage reports for Android Tests
         debug {
-//            testCoverageEnabled true
+            testCoverageEnabled true
             debuggable true
             buildConfigField("String", "VERSION_NAME", "\"${versionName}\"")
         }
         release {
-//            testCoverageEnabled true
+            testCoverageEnabled true
             minifyEnabled false
             debuggable false
             consumerProguardFiles 'consumer-rules.pro'

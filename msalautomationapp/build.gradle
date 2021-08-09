@@ -179,7 +179,7 @@ ext.createCoverageTask = { buildVariant, testType ->
     def androidTestFile = "outputs/code_coverage/${buildVariant}AndroidTest/connected/*.ec"
 
     // Task to generate coverage report for particular build variant, that depends on additional tasks(androidTestTask)
-    task "${buildVariant}Msal${testType}CoverageReport"(type: JacocoReport, dependsOn: [androidTestTask]) {
+    task "${buildVariant}MsalAutomationApp${testType}CoverageReport"(type: JacocoReport, dependsOn: [androidTestTask]) {
         group = "Code Coverage MsalAutomation"
         description = "Generate Msal Coverage Reports(${testType}) on the ${buildVariant.capitalize()}"
 
