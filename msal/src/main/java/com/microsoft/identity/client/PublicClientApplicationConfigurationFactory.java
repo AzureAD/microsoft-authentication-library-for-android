@@ -37,7 +37,7 @@ import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.authorities.AuthorityDeserializer;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudienceDeserializer;
-import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
+import com.microsoft.identity.common.java.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.internal.configuration.LibraryConfiguration;
 import com.microsoft.identity.msal.R;
 import com.microsoft.identity.common.logging.Logger;
