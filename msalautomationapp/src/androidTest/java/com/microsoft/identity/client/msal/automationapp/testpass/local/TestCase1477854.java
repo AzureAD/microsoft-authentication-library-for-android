@@ -93,7 +93,7 @@ public class TestCase1477854 extends AbstractMsalUiTest {
     @Override
     public LabUserQuery getLabUserQuery() {
         final LabUserQuery query = new LabUserQuery();
-        query.mfa = LabConstants.Mfa.LAB_6;
+        query.mfa = LabConstants.HomeUpn.LAB_6;
         return query;
     }
 
@@ -104,7 +104,7 @@ public class TestCase1477854 extends AbstractMsalUiTest {
 
     @Override
     public String[] getScopes() {
-        return new String[]{"https://msidlab6-my.sharepoint.com/.default"};
+        return new String[]{"https://msidlab6-my.sharepoint.com/user.read"};
     }
 
     @Override
