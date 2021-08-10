@@ -22,12 +22,15 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.local;
 
+import android.text.TextUtils;
+
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
+import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
@@ -37,6 +40,7 @@ import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -48,7 +52,8 @@ public class TestCase1477854 extends AbstractMsalUiTest {
     public void test_1477854() throws Throwable {
 
         //acquire token interactively - retain token with lifetime 3hr
-        final String username = mLoginHint;
+        final String username = "fidlab@MSIDLAB6.com";
+        this.mLoginHint = "fidlab@MSIDLAB6.com";
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
@@ -80,21 +85,30 @@ public class TestCase1477854 extends AbstractMsalUiTest {
         authResult.assertSuccess();
 
         //fast forward 1:35 min - means refresh expired
+        TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTime(5700);
 
         //acquire token silently - should refresh token, and get new AT
+        final MsalAuthTestParams authTestParams2 = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .loginHint(mLoginHint)
+                .scopes(Arrays.asList(mScopes))
+                .promptParameter(Prompt.LOGIN)
+                .msalConfigResourceId(getConfigFileResourceId())
+                .build();
 
-        //expect old AT != new AT
+        final MsalAuthResult authResult2 = msalSdk.acquireTokenSilent(authTestParams2, TokenRequestTimeout.MEDIUM);
 
+        authResult2.assertSuccess();
 
+        //expect old AT != new AT since refresh_in initiates new AT
+        Assert.assertFalse(authResult.equals(authResult2));
 
     }
 
 
     @Override
     public LabUserQuery getLabUserQuery() {
-        final LabUserQuery query = new LabUserQuery();
-        query.mfa = LabConstants.HomeUpn.LAB_6;
-        return query;
+        return null;
     }
 
     @Override
