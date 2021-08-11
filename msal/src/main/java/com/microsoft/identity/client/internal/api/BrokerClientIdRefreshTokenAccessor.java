@@ -34,7 +34,7 @@ import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.java.authscheme.BearerAuthenticationSchemeInternal;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.java.cache.ICacheRecord;
-import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
+import com.microsoft.identity.common.java.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.logging.Logger;
 
