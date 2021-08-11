@@ -6,7 +6,7 @@ trigger:
 - main
 
 pool:
- name: DockerBuildAgents
+ name: DockerBuildAgents2
 
 resources:
  repositories:
