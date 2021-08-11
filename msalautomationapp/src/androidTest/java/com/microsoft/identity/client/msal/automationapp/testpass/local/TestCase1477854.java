@@ -52,8 +52,7 @@ public class TestCase1477854 extends AbstractMsalUiTest {
     public void test_1477854() throws Throwable {
 
         //acquire token interactively - retain token with lifetime 3hr
-        final String username = "fidlab@MSIDLAB6.com";
-        this.mLoginHint = "fidlab@MSIDLAB6.com";
+        final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
@@ -128,7 +127,7 @@ public class TestCase1477854 extends AbstractMsalUiTest {
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_sharepoint;
+        return R.raw.msal_config_default;
     }
 
 }
