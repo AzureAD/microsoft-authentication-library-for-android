@@ -1,0 +1,29 @@
+# File: azure-pipelines\nightly-snapshot-releases\Latest Common VSTS Release.yml
+# Description: Assemble & publish Latest common release nightly to internal feed
+# https://identitydivision.visualstudio.com/Engineering/_packaging?_a=feed&feed=AndroidADAL
+name: $(date:yyyyMMdd)$(rev:.r)
+
+trigger: none
+pr: none
+
+resources:
+ repositories:
+ - repository: common
+   type: github
+   name: AzureAD/microsoft-authentication-library-common-for-android
+   ref: dev
+   endpoint: ANDROID_GITHUB
+
+jobs:
+- job: assemble_publish
+  displayName: Assemble and publish
+  pool:
+    name: Hosted Windows 2019 with VS2019
+  steps:
+  - template: azure-pipelines/templates/steps/nightly-snapshot-releases/assemble-publish.yml@common
+    parameters:
+      versionVariant: Snapshot
+      assembleVariant: Snapshot
+      testVariant: SnapshotDebugUnitTest
+      project: msal
+      envVstsMvnAt: ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN
