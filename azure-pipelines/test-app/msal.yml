@@ -1,0 +1,72 @@
+# File: azure-pipelines\test-app\msal.yml
+# Description: Generate MSAL test app APK
+# use <project>_branch variables to build the Local version
+# use <project>_version variables to build the Dist version
+# Variable '[msal]_branch' was defined in the Variables tab
+# Variable '[msal]_version' was defined in the Variables tab
+# Variable: 'ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN' was defined in the Variables tab
+# Variable: 'mvnAccessToken' was defined in the Variables tab
+# https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate
+name: $(date:yyyyMMdd)$(rev:.r)
+
+trigger: none
+pr: none
+
+parameters:
+- name: productFlavors
+  displayName: Product Flavor
+  type: string
+  default: Local
+  values:
+  - Local
+  - Dist
+- name: signingConfigurations
+  displayName: Signing Configuration
+  type: string
+  default: Debug
+  values:
+  - Debug
+  - Release
+
+jobs:
+- job: msal-test-app
+  displayName: Build Msal Test App ${{ parameters.productFlavors }} ${{ parameters.signingConfigurations }} APK
+  pool:
+    name: Hosted Windows 2019 with VS2019
+  steps:
+  - checkout: self
+    clean: true
+  - ${{ if eq(parameters.productFlavors, 'Dist') }}:
+    - task: PowerShell@2
+      displayName: Generate Assemble Dist Task
+      inputs:
+        targetType: inline
+        script: |
+          $assembleTask = "assembleDist${{ parameters.signingConfigurations }}"
+          if (("$(msal_version)" -ne "")) {
+              $assembleTask = $assembleTask + " -PdistMsalVersion=" + "$(msal_version)"
+          }
+          Write-Host "##vso[task.setvariable variable=AssembleTask;]$assembleTask"
+  - ${{ if eq(parameters.productFlavors, 'Local') }}:
+    - pwsh: echo "##vso[task.setvariable variable=AssembleTask;]assembleLocal${{ parameters.signingConfigurations }}"
+      displayName: Generate Assemble Local Task
+  - task: CmdLine@1
+    displayName: Set MVN AccessToken in Environment
+    inputs:
+      filename: echo
+      arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN]$(mvnAccessToken)'
+  - task: Gradle@1
+    name: Gradle1
+    displayName: Assemble msalTestApp
+    inputs:
+      tasks: testapps:testapp:clean testapps:testapp:$(AssembleTask)
+      publishJUnitResults: false
+      jdkArchitecture: x86
+      sqAnalysisBreakBuildIfQualityGateFailed: false
+  - task: PublishPipelineArtifact@1
+    displayName: Publish Broker Host APK
+    inputs:
+      targetPath: testapps/testapp/build/outputs/apk/${{ lower(parameters.productFlavors) }}/${{ lower(parameters.signingConfigurations) }}
+      artifactName: msalTestApp
+      patterns: '**/*.apk'
+...
