@@ -28,7 +28,7 @@ import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.common.internal.util.ObjectUtils;
+import com.microsoft.identity.common.java.util.ported.ObjectUtils;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
 import org.junit.Assert;
