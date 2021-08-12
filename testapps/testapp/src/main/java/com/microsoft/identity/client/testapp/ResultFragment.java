@@ -1,3 +1,4 @@
+
 //  Copyright (c) Microsoft Corporation.
 //  All rights reserved.
 //
@@ -44,6 +45,7 @@ public class ResultFragment extends Fragment {
 
     public static final String CORRELATION_ID = "correlation_id";
     static final String ACCESS_TOKEN = "access_token";
+    static final String EXPIRES_ON = "expires_on";
     static final String DISPLAYABLE = "displayable";
     static final String STRING_DATA_TO_DISPLAY = "string_data_to_display";
     static String previousAccessToken = "";
@@ -66,6 +68,7 @@ public class ResultFragment extends Fragment {
 
         if (isDisplayingAccessTokenResult(bundle)) {
             final String accessToken = (String) bundle.get(ACCESS_TOKEN);
+            final String expiresOn = (String) bundle.get(EXPIRES_ON);
             final String displayable = (String) bundle.get(DISPLAYABLE);
 
             // Only display this when the app has acquired an access token at least once in this session.
@@ -74,7 +77,8 @@ public class ResultFragment extends Fragment {
                 output += "Is access token changed? " + ": " + isTokenChanged + '\n';
             }
 
-            output += ACCESS_TOKEN + ": " + accessToken + '\n'
+            output += EXPIRES_ON + ": " + expiresOn + '\n'
+                    + ACCESS_TOKEN + ": " + accessToken + '\n'
                     + DISPLAYABLE + ": " + displayable;
 
             previousAccessToken = accessToken;

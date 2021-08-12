@@ -1,3 +1,5 @@
+
+
 //  Copyright (c) Microsoft Corporation.
 //  All rights reserved.
 //
@@ -189,6 +191,7 @@ public class MainActivity extends AppCompatActivity
             if (mAuthResult != null) {
                 bundle.putString(ResultFragment.CORRELATION_ID, mAuthResult.getCorrelationId().toString());
                 bundle.putString(ResultFragment.ACCESS_TOKEN, mAuthResult.getAccessToken());
+                bundle.putString(ResultFragment.EXPIRES_ON, mAuthResult.getExpiresOn().toString());
                 bundle.putString(
                         ResultFragment.DISPLAYABLE,
                         mAuthResult.getAccount().getUsername()
