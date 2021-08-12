@@ -42,7 +42,7 @@ import com.microsoft.identity.common.internal.commands.CommandCallback;
 import com.microsoft.identity.common.internal.commands.LoadAccountCommand;
 import com.microsoft.identity.common.internal.commands.RemoveAccountCommand;
 import com.microsoft.identity.common.java.commands.parameters.CommandParameters;
-import com.microsoft.identity.common.internal.commands.parameters.RemoveAccountCommandParameters;
+import com.microsoft.identity.common.java.commands.parameters.RemoveAccountCommandParameters;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
 import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
