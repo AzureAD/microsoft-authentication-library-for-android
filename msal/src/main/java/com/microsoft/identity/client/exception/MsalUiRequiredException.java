@@ -23,8 +23,8 @@
 
 package com.microsoft.identity.client.exception;
 
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.java.constants.OAuth2ErrorCode;
+import com.microsoft.identity.common.java.AuthenticationConstants;
 import com.microsoft.identity.common.java.exception.ErrorStrings;
 
 /**
