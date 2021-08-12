@@ -35,22 +35,22 @@ import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.CommandParametersAdapter;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
-import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.adal.internal.util.JsonExtensions;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-import com.microsoft.identity.common.java.exception.BaseException;
-import com.microsoft.identity.common.internal.cache.ICacheRecord;
+import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager;
+import com.microsoft.identity.common.java.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.commands.CommandCallback;
 import com.microsoft.identity.common.internal.commands.GetCurrentAccountCommand;
 import com.microsoft.identity.common.internal.commands.RemoveCurrentAccountCommand;
-import com.microsoft.identity.common.internal.commands.parameters.CommandParameters;
-import com.microsoft.identity.common.internal.commands.parameters.RemoveAccountCommandParameters;
+import com.microsoft.identity.common.java.commands.parameters.CommandParameters;
+import com.microsoft.identity.common.java.commands.parameters.RemoveAccountCommandParameters;
 import com.microsoft.identity.common.internal.controllers.BaseController;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
-import com.microsoft.identity.common.internal.dto.AccountRecord;
+import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
-import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
+import com.microsoft.identity.common.java.result.ILocalAuthenticationResult;
+import com.microsoft.identity.common.java.exception.BaseException;
 import com.microsoft.identity.common.java.util.ResultFuture;
 import com.microsoft.identity.common.logging.Logger;
 
@@ -101,7 +101,7 @@ public class SingleAccountPublicClientApplication
         sharedPreferencesFileManager = new SharedPreferencesFileManager(
                 context,
                 SINGLE_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
-                new StorageHelper(context)
+                new AndroidAuthSdkStorageEncryptionManager(context, null)
         );
     }
 

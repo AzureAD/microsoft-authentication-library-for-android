@@ -37,7 +37,7 @@ import com.microsoft.identity.client.SilentAuthenticationCallback;
 import com.microsoft.identity.client.e2e.shadows.ShadowMockAuthority;
 import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
-import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
+import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
 import com.microsoft.identity.client.e2e.shadows.ShadowStrategyResultServerError;
 import com.microsoft.identity.client.e2e.shadows.ShadowStrategyResultUnsuccessful;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
@@ -45,7 +45,7 @@ import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.ErrorCodes;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.java.exception.ClientException;
-import com.microsoft.identity.common.internal.cache.ICacheRecord;
+import com.microsoft.identity.common.java.cache.ICacheRecord;
 import com.microsoft.identity.common.java.net.HttpClient;
 import com.microsoft.identity.common.java.net.HttpResponse;
 import com.microsoft.identity.common.java.providers.oauth2.TokenResponse;
@@ -77,7 +77,7 @@ import static org.junit.Assert.fail;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {
-        ShadowStorageHelper.class,
+        ShadowAndroidSdkStorageEncryptionManager.class,
         ShadowMockAuthority.class,
         ShadowHttpClient.class,
         ShadowPublicClientApplicationConfiguration.class,

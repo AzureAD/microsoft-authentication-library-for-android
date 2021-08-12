@@ -28,7 +28,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.claims.ClaimsRequest;
-import com.microsoft.identity.common.internal.dto.AccountRecord;
+import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.util.ArrayList;
@@ -249,7 +249,7 @@ public abstract class TokenParameters {
                 );
             } else {
                 mScopes = new ArrayList<String>() {{
-                    add(resource.toLowerCase(Locale.ROOT).trim() + "/.default");
+                    add(resource.trim() + "/.default");
                 }};
             }
 

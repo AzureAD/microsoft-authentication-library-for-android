@@ -22,13 +22,13 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import com.microsoft.identity.common.internal.authorities.AccountsInOneOrganization;
-import com.microsoft.identity.common.internal.authorities.AnyOrganizationalAccount;
-import com.microsoft.identity.common.internal.authorities.AnyPersonalAccount;
-import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience;
-import com.microsoft.identity.common.internal.authorities.Environment;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryEnvironment;
+import com.microsoft.identity.common.java.authorities.AccountsInOneOrganization;
+import com.microsoft.identity.common.java.authorities.AnyOrganizationalAccount;
+import com.microsoft.identity.common.java.authorities.AnyPersonalAccount;
+import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudience;
+import com.microsoft.identity.common.java.authorities.Environment;
+import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
+import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectoryEnvironment;
 
 import junit.framework.Assert;
 

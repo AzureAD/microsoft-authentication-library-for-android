@@ -48,6 +48,7 @@ import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USE
  * This class tests the fromAuthority builder of {@link TokenParameters} using the AzureAdMyOrg
  * audience. The tests for other audiences are located in {@link TokenParametersAuthorityTest}
  */
+@SuppressWarnings("unchecked")
 @RunWith(ParameterizedRobolectricTestRunner.class)
 public class TokenParametersAuthorityMyOrgTest {
 

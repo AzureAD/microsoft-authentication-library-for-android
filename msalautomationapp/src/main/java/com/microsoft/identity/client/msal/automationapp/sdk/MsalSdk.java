@@ -45,8 +45,11 @@ import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.sdk.ResultFuture;
 import com.microsoft.identity.client.ui.automation.sdk.IAuthSdk;
+import com.microsoft.identity.common.java.authorities.Authority;
+import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryB2CAuthority;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A Sdk wrapper for Microsoft Authentication Library (MSAL) which implements
@@ -105,11 +108,26 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
 
         final ResultFuture<IAuthenticationResult, Exception> future = new ResultFuture<>();
 
-        final IAccount account = getAccount(
-                authTestParams.getActivity(),
-                authTestParams.getMsalConfigResourceId(),
-                authTestParams.getLoginHint()
-        );
+        final Authority authority;
+        if (authTestParams.getAuthority() != null) {
+            authority = Authority.getAuthorityFromAuthorityUrl(authTestParams.getAuthority());
+        } else {
+            authority = pca.getConfiguration().getDefaultAuthority();
+        }
+
+        final IAccount account;
+
+        if (authority instanceof AzureActiveDirectoryB2CAuthority) {
+            final AzureActiveDirectoryB2CAuthority b2cAuthority = (AzureActiveDirectoryB2CAuthority) authority;
+            final String policyName = b2cAuthority.getB2CPolicyName();
+            account = getAccountForPolicyName((MultipleAccountPublicClientApplication) pca, policyName);
+        } else {
+            account = getAccount(
+                    authTestParams.getActivity(),
+                    authTestParams.getMsalConfigResourceId(),
+                    authTestParams.getLoginHint()
+            );
+        }
 
         final AcquireTokenSilentParameters.Builder acquireTokenParametersBuilder = new AcquireTokenSilentParameters.Builder()
                 .forAccount(account)
@@ -232,5 +250,22 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
         } catch (final Exception exception) {
             throw new AssertionError(exception);
         }
+    }
+
+    private IAccount getAccountForPolicyName(@NonNull final MultipleAccountPublicClientApplication pca, @NonNull final String policyName)
+    {
+        try {
+            List<IAccount> accounts = pca.getAccounts();
+            for(IAccount account : accounts)
+            {
+                if (policyName.equals(account.getClaims().get("tfp")))
+                {
+                    return account;
+                }
+            }
+        } catch (final Exception exception) {
+            throw new AssertionError(exception);
+        }
+        return null;
     }
 }

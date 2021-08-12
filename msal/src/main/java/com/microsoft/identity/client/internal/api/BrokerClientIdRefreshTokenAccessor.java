@@ -29,12 +29,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.common.AndroidPlatformComponents;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.internal.authscheme.BearerAuthenticationSchemeInternal;
+import com.microsoft.identity.common.java.authscheme.BearerAuthenticationSchemeInternal;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
-import com.microsoft.identity.common.internal.cache.ICacheRecord;
-import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
-import com.microsoft.identity.common.internal.dto.AccountRecord;
+import com.microsoft.identity.common.java.cache.ICacheRecord;
+import com.microsoft.identity.common.java.cache.MsalOAuth2TokenCache;
+import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.logging.Logger;
 
 import static com.microsoft.identity.client.exception.MsalClientException.NOT_ELIGIBLE_TO_USE_BROKER;
@@ -64,7 +65,7 @@ public final class BrokerClientIdRefreshTokenAccessor {
 
         throwIfNotValidBroker(context);
 
-        final MsalOAuth2TokenCache tokenCache = MsalOAuth2TokenCache.create(context);
+        final MsalOAuth2TokenCache tokenCache = MsalOAuth2TokenCache.create(AndroidPlatformComponents.createFromContext(context));
         final ICacheRecord cacheRecord = getCacheRecordForIdentifier(tokenCache, accountObjectId);
 
         if (cacheRecord == null) {
