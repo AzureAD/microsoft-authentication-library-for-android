@@ -8,6 +8,12 @@ name: $(date:yyyyMMdd)$(rev:.r)
 trigger: none
 
 variables:
+- name: BuildParameters.jdkVersion
+  value: 1.8
+- name: BuildParameters.jdkArchitecture
+  value: x64
+- name: BuildParameters.javaHomeSelection
+  value: JDKVersion
 - name: robolectricSdkVersion
   value: 29
 
@@ -22,12 +28,11 @@ resources:
     ref: paul/code-coverage
     endpoint: ANDROID_GITHUB
 
-pool:
-  name: Hosted Windows 2019 with VS2019
-
 jobs:
 - job: msalCodeCoverage
   displayName: Msal code coverage
+  pool:
+    name: Hosted Windows 2019 with VS2019
   steps:
   - checkout: self
     displayName: Checkout msal repository
@@ -35,11 +40,19 @@ jobs:
     submodules: recursive
     persistCredentials: True
   - template: azure-pipelines/templates/steps/automation-cert.yml@common
+  - task: JavaToolInstaller@0
+    displayName: Use Java 8
+    inputs:
+      jdkArchitectureOption: x64
+      jdkSourceOption: PreInstalled
   - task: Gradle@1
     displayName: Assemble Release
     inputs:
       tasks: clean msal:assembleLocal
       publishJUnitResults: false
+      jdkVersion: $(BuildParameters.jdkVersion)
+      jdkArchitecture: $(BuildParameters.jdkArchitecture)
+      sqGradlePluginVersion: 2.0.1
   - task: Gradle@2
     displayName: Run msal code coverage
     inputs:
@@ -49,3 +62,6 @@ jobs:
     inputs:
       summaryFileLocation: '$(Build.SourcesDirectory)\msal\build\reports\jacoco\localDebugMsalUnitTestCoverageReport\localDebugMsalUnitTestCoverageReport.xml'
       reportDirectory: '$(Build.SourcesDirectory)\msal\build\reports\jacoco\localDebugMsalUnitTestCoverageReport\html'
+      javaHomeSelection: $(BuildParameters.javaHomeSelection)
+      jdkVersion: 1.11
+...
