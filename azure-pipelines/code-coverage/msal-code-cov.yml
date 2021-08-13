@@ -16,6 +16,11 @@ resources:
   - repository: self
     type: git
     ref: paul/code-coverage
+  - repository: common
+    type: github
+    name: AzureAD/microsoft-authentication-library-common-for-android
+    ref: paul/code-coverage
+    endpoint: ANDROID_GITHUB
 
 pool:
   name: Hosted Windows 2019 with VS2019
@@ -29,9 +34,9 @@ jobs:
     clean: true
     submodules: recursive
     persistCredentials: True
-  - template: ../templates/steps/automation-cert.yml
+  - template: azure-pipelines/templates/steps/automation-cert.yml@common
   - task: Gradle@1
-    displayName: Assemble msal
+    displayName: Assemble Release
     inputs:
       tasks: clean msal:assembleLocal
       publishJUnitResults: false
