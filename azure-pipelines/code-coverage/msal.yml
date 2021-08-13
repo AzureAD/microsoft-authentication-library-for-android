@@ -1,0 +1,46 @@
+# File: azure-pipelines\code-coverage\msal.yml
+# Description: Code coverage for msal
+# Variable: 'mvnAccessToken' was defined in the Variables tab
+# https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate
+# Variable: 'msalBranchName' msal branch to be used when running the pipeline manually
+name: $(date:yyyyMMdd)$(rev:.r)
+
+trigger: none
+
+variables:
+- name: robolectricSdkVersion
+  value: 29
+
+resources:
+  repositories:
+  - repository: self
+    type: git
+    ref: paul/code-coverage
+
+pool:
+  name: Hosted Windows 2019 with VS2019
+
+jobs:
+- job: msalCodeCoverage
+  displayName: Msal code coverage
+  steps:
+  - checkout: self
+    displayName: Checkout msal repository
+    clean: true
+    submodules: recursive
+    persistCredentials: True
+  - template: ../templates/steps/automation-cert.yml
+  - task: Gradle@1
+    displayName: Assemble msal
+    inputs:
+      tasks: clean msal:assembleLocal
+      publishJUnitResults: false
+  - task: Gradle@2
+    displayName: Run msal code coverage
+    inputs:
+      tasks: msal:localDebugMsalUnitTestCoverageReport -Plabtest -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}}
+  - task: PublishCodeCoverageResults@1
+    displayName: 'Publish code coverage report'
+    inputs:
+      summaryFileLocation: '$(Build.SourcesDirectory)\msal\build\reports\jacoco\localDebugMsalUnitTestCoverageReport\localDebugMsalUnitTestCoverageReport.xml'
+      reportDirectory: '$(Build.SourcesDirectory)\msal\build\reports\jacoco\localDebugMsalUnitTestCoverageReport\html'
