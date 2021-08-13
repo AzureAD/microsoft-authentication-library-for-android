@@ -82,7 +82,10 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
         }, TokenRequestTimeout.MEDIUM);
 
         authResult1.assertSuccess();
-
+        /*
+            Note that password reset doesn't take effect by ESTS at least user being logged in for 1 min.
+            Therefore we have a Thread.sleep after first successful token acquisition before resetting password.
+         */
         Thread.sleep(TimeUnit.MINUTES.toMillis(2));
         LabUserHelper.resetPassword(username);
 
