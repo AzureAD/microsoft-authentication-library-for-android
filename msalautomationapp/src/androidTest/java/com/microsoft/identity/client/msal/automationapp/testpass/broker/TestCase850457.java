@@ -85,6 +85,8 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
 
         LabUserHelper.resetPassword(username);
 
+        Thread.sleep(TimeUnit.MINUTES.toMillis(2));
+
         TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
 
         final MsalAuthTestParams msalAuthTestParams2 = MsalAuthTestParams.builder()
