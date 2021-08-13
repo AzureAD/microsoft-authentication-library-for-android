@@ -26,7 +26,7 @@ import com.microsoft.identity.common.java.exception.ErrorStrings;
 import com.microsoft.identity.common.java.exception.ServiceException;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommandCallback;
-import com.microsoft.identity.common.internal.result.AcquireTokenResult;
+import com.microsoft.identity.common.java.result.AcquireTokenResult;
 
 import org.robolectric.annotation.Implements;
 import org.robolectric.annotation.RealObject;
