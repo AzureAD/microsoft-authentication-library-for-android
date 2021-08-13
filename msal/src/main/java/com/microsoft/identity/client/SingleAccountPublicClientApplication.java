@@ -45,7 +45,7 @@ import com.microsoft.identity.common.internal.commands.GetCurrentAccountCommand;
 import com.microsoft.identity.common.internal.commands.RemoveCurrentAccountCommand;
 import com.microsoft.identity.common.java.commands.parameters.CommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.RemoveAccountCommandParameters;
-import com.microsoft.identity.common.internal.controllers.BaseController;
+import com.microsoft.identity.common.java.controllers.BaseController;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
 import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;

@@ -62,7 +62,7 @@ import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthor
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryB2CAuthority;
 import com.microsoft.identity.common.java.cache.ICacheRecord;
 import com.microsoft.identity.common.java.cache.IShareSingleSignOnState;
-import com.microsoft.identity.common.internal.cache.IMultiTypeNameValueStorage;
+import com.microsoft.identity.common.java.cache.IMultiTypeNameValueStorage;
 import com.microsoft.identity.common.java.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.java.util.SchemaUtil;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
@@ -78,9 +78,9 @@ import com.microsoft.identity.common.java.commands.parameters.DeviceCodeFlowComm
 import com.microsoft.identity.common.java.commands.parameters.GenerateShrCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.InteractiveTokenCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.SilentTokenCommandParameters;
-import com.microsoft.identity.common.internal.controllers.BaseController;
+import com.microsoft.identity.common.java.controllers.BaseController;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
-import com.microsoft.identity.common.internal.controllers.ExceptionAdapter;
+import com.microsoft.identity.common.java.controllers.ExceptionAdapter;
 import com.microsoft.identity.common.internal.controllers.LocalMSALController;
 import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
