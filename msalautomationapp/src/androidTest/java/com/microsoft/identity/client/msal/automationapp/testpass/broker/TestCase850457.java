@@ -83,9 +83,8 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
 
         authResult1.assertSuccess();
 
-        LabUserHelper.resetPassword(username);
-
         Thread.sleep(TimeUnit.MINUTES.toMillis(2));
+        LabUserHelper.resetPassword(username);
 
         TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
 
@@ -115,6 +114,8 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
                         .handlePrompt(username, password);
             }
         }, TokenRequestTimeout.MEDIUM);
+
+        System.out.println("Completed acquireTokenInteractive");
 
         authResult2.assertSuccess();
 
