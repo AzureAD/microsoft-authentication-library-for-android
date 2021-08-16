@@ -15,7 +15,7 @@ variables:
 - name: BuildParameters.javaHomeSelection
   value: JDKVersion
 - name: robolectricSdkVersion
-  value: 29
+  value: 28
 
 resources:
   repositories:
