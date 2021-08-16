@@ -34,11 +34,12 @@ import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.java.authscheme.BearerAuthenticationSchemeInternal;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.java.cache.ICacheRecord;
-import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
+import com.microsoft.identity.common.java.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.logging.Logger;
 
 import static com.microsoft.identity.client.exception.MsalClientException.NOT_ELIGIBLE_TO_USE_BROKER;
+import static com.microsoft.identity.common.java.AuthenticationConstants.Broker.BROKER_CLIENT_ID;
 import static com.microsoft.identity.common.java.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
 
 /**
@@ -91,7 +92,7 @@ public final class BrokerClientIdRefreshTokenAccessor {
             @NonNull final String accountObjectId) throws MsalClientException {
         final AccountRecord localAccountRecord = tokenCache.getAccountByLocalAccountId(
                 null,
-                AuthenticationConstants.Broker.BROKER_CLIENT_ID,
+                BROKER_CLIENT_ID,
                 accountObjectId
         );
 
@@ -102,7 +103,7 @@ public final class BrokerClientIdRefreshTokenAccessor {
         }
 
         return tokenCache.load(
-                AuthenticationConstants.Broker.BROKER_CLIENT_ID,
+                BROKER_CLIENT_ID,
                 null, // wildcard (*)
                 localAccountRecord,
                 new BearerAuthenticationSchemeInternal() // Auth scheme is inconsequential - only using RT

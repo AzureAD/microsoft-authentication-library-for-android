@@ -24,7 +24,7 @@ package com.microsoft.identity.client;
 
 import androidx.annotation.NonNull;
 
-import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
+import com.microsoft.identity.common.java.result.ILocalAuthenticationResult;
 
 /**
  * Class to adapt between AcquireTokenSilentParameters and AcquireTokenParameters.
