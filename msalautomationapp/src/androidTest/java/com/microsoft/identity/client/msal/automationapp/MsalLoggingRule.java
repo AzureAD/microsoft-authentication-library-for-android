@@ -30,7 +30,7 @@ import com.microsoft.identity.client.ui.automation.logging.LogLevel;
 import com.microsoft.identity.client.ui.automation.logging.appender.FileAppender;
 import com.microsoft.identity.client.ui.automation.logging.formatter.LogcatLikeFormatter;
 import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
-import com.microsoft.identity.common.internal.util.ThreadUtils;
+import com.microsoft.identity.common.java.util.ThreadUtils;
 
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;

@@ -36,7 +36,7 @@ import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.exception.ErrorStrings;
-import com.microsoft.identity.common.internal.authorities.Authority;
+import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationErrorResponse;
 import com.microsoft.identity.common.java.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
 import com.microsoft.identity.common.java.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationResponse;
@@ -66,6 +66,7 @@ import static com.microsoft.identity.internal.testutils.TestConstants.Configurat
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {ShadowPublicClientApplicationConfiguration.class})
+@SuppressWarnings("unchecked")
 public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
     private boolean mUserCodeReceived;

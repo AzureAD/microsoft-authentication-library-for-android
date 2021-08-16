@@ -31,14 +31,14 @@ import androidx.test.core.app.ApplicationProvider;
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
 import com.microsoft.identity.client.internal.CommandParametersAdapter;
-import com.microsoft.identity.common.internal.cache.IAccountCredentialAdapter;
-import com.microsoft.identity.common.internal.cache.IAccountCredentialCache;
-import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
-import com.microsoft.identity.common.internal.commands.parameters.InteractiveTokenCommandParameters;
-import com.microsoft.identity.common.internal.commands.parameters.SilentTokenCommandParameters;
-import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
+import com.microsoft.identity.common.AndroidPlatformComponents;
+import com.microsoft.identity.common.java.cache.IAccountCredentialAdapter;
+import com.microsoft.identity.common.java.cache.IAccountCredentialCache;
+import com.microsoft.identity.common.java.cache.MsalOAuth2TokenCache;
+import com.microsoft.identity.common.java.commands.parameters.InteractiveTokenCommandParameters;
+import com.microsoft.identity.common.java.commands.parameters.SilentTokenCommandParameters;
+import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.java.exception.ClientException;
-import com.microsoft.identity.internal.testutils.TestUtils;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -253,8 +253,9 @@ public class CommandParametersTest {
          * @param accountCredentialCache   IAccountCredentialCache
          * @param accountCredentialAdapter IAccountCredentialAdapter
          */
+        @SuppressWarnings("unchecked")
         public TestOAuth2TokenCache(Context context, IAccountCredentialCache accountCredentialCache, IAccountCredentialAdapter accountCredentialAdapter) {
-            super(context, accountCredentialCache, accountCredentialAdapter);
+            super(AndroidPlatformComponents.createFromContext(context), accountCredentialCache, accountCredentialAdapter);
         }
     }
 

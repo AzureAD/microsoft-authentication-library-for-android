@@ -43,16 +43,12 @@ import androidx.browser.customtabs.CustomTabsService;
 import com.microsoft.identity.client.BrowserTabActivity;
 import com.microsoft.identity.client.CurrentTaskBrowserTabActivity;
 import com.microsoft.identity.client.exception.MsalArgumentException;
-import com.microsoft.identity.client.exception.MsalClientException;
-import com.microsoft.identity.common.logging.Logger;
-import com.microsoft.identity.common.internal.configuration.LibraryConfiguration;
+import com.microsoft.identity.common.java.configuration.LibraryConfiguration;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;

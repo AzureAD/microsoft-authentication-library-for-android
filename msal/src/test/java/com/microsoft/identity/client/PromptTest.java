@@ -22,7 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import com.microsoft.identity.common.internal.providers.oauth2.OpenIdConnectPromptParameter;
+import com.microsoft.identity.common.java.providers.oauth2.OpenIdConnectPromptParameter;
 
 import org.junit.Assert;
 import org.junit.Test;
