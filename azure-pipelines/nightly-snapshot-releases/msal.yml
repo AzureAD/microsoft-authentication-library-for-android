@@ -1,17 +1,34 @@
-# File: azure-pipelines\nightly-snapshot-releases\Latest Common VSTS Release.yml
-# Description: Assemble & publish Latest common release nightly to internal feed
+# File: azure-pipelines\nightly-snapshot-releases\msal.yml
+# Description: Publish msal release nightly to internal feed
 # https://identitydivision.visualstudio.com/Engineering/_packaging?_a=feed&feed=AndroidADAL
 name: $(date:yyyyMMdd)$(rev:.r)
 
 trigger: none
 pr: none
 
+parameters:
+- name: productFlavors
+  displayName: Product Flavor
+  type: string
+  default: Snapshot
+  values:
+  - Local
+  - Dist
+  - Snapshot
+- name: signingConfigurations
+  displayName: Signing Configuration
+  type: string
+  default: Debug
+  values:
+  - Debug
+  - Release
+
 resources:
  repositories:
  - repository: common
    type: github
    name: AzureAD/microsoft-authentication-library-common-for-android
-   ref: dev
+   ref: pedroro/pipes
    endpoint: ANDROID_GITHUB
 
 jobs:
@@ -22,8 +39,8 @@ jobs:
   steps:
   - template: azure-pipelines/templates/steps/nightly-snapshot-releases/assemble-publish.yml@common
     parameters:
-      versionVariant: Snapshot
-      assembleVariant: Snapshot
-      testVariant: SnapshotDebugUnitTest
+      versionVariant: Snapshot # Only option avalible
+      assembleVariant: ${{ parameters.productFlavors }}${{ parameters.signingConfigurations }}
+      testVariant: ${{ parameters.productFlavors }}${{ parameters.signingConfigurations}}UnitTest
       project: msal
       envVstsMvnAt: ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN
