@@ -2,7 +2,7 @@ package com.microsoft.identity.client.e2e.utils;
 
 import androidx.annotation.NonNull;
 
-import com.microsoft.identity.common.internal.util.ThreadUtils;
+import com.microsoft.identity.common.java.util.ThreadUtils;
 
 import org.robolectric.RuntimeEnvironment;
 

@@ -27,10 +27,10 @@ import com.microsoft.identity.common.java.authscheme.BearerAuthenticationSchemeI
 import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.util.SchemaUtil;
 import com.microsoft.identity.common.java.commands.parameters.CommandParameters;
-import com.microsoft.identity.common.internal.commands.parameters.DeviceCodeFlowCommandParameters;
-import com.microsoft.identity.common.internal.commands.parameters.GenerateShrCommandParameters;
+import com.microsoft.identity.common.java.commands.parameters.DeviceCodeFlowCommandParameters;
+import com.microsoft.identity.common.java.commands.parameters.GenerateShrCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.InteractiveTokenCommandParameters;
-import com.microsoft.identity.common.internal.commands.parameters.RemoveAccountCommandParameters;
+import com.microsoft.identity.common.java.commands.parameters.RemoveAccountCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.SilentTokenCommandParameters;
 import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;

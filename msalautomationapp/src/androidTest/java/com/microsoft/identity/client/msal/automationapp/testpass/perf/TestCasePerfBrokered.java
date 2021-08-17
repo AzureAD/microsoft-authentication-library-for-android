@@ -37,8 +37,8 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadP
 import com.microsoft.identity.client.ui.automation.logging.appender.FileAppender;
 import com.microsoft.identity.client.ui.automation.logging.formatter.SimpleTextFormatter;
 import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
-import com.microsoft.identity.common.CodeMarkerManager;
-import com.microsoft.identity.common.PerfConstants;
+import com.microsoft.identity.common.java.marker.CodeMarkerManager;
+import com.microsoft.identity.common.java.marker.PerfConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;

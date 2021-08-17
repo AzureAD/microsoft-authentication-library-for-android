@@ -49,7 +49,7 @@ import com.microsoft.identity.common.java.authorities.Environment;
 import com.microsoft.identity.common.internal.authorities.UnknownAudience;
 import com.microsoft.identity.common.java.authorities.UnknownAuthority;
 import com.microsoft.identity.common.internal.broker.PackageHelper;
-import com.microsoft.identity.common.internal.configuration.LibraryConfiguration;
+import com.microsoft.identity.common.java.configuration.LibraryConfiguration;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.telemetry.TelemetryConfiguration;
