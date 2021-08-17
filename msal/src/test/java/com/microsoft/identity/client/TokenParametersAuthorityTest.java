@@ -34,6 +34,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.robolectric.ParameterizedRobolectricTestRunner;
 
 import java.util.Arrays;
@@ -90,7 +91,8 @@ public class TokenParametersAuthorityTest {
     @Before
     public void setup() {
         mContext = ApplicationProvider.getApplicationContext();
-        mActivity = TestUtils.getMockActivity(mContext);
+        mActivity = Mockito.mock(Activity.class);
+        Mockito.when(mActivity.getApplicationContext()).thenReturn(mContext);
     }
 
     @Test

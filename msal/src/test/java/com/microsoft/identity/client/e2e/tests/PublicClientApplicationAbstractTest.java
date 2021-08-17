@@ -32,9 +32,9 @@ import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper;
-import com.microsoft.identity.internal.testutils.TestUtils;
 
 import org.junit.Before;
+import org.mockito.Mockito;
 
 import java.io.File;
 
@@ -52,7 +52,8 @@ public abstract class PublicClientApplicationAbstractTest implements IPublicClie
     @Before
     public void setup() {
         mContext = ApplicationProvider.getApplicationContext();
-        mActivity = TestUtils.getMockActivity(mContext);
+        mActivity = Mockito.mock(Activity.class);
+        Mockito.when(mActivity.getApplicationContext()).thenReturn(mContext);
         setupPCA();
         Logger.getInstance().setEnableLogcatLog(true);
         Logger.getInstance().setEnablePII(true);
