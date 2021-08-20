@@ -4,7 +4,7 @@
 # Repo Code Owners
 #--------------------
 
-*       @AdamBJohnsonx @iambmelt @rpdome @shahzaibj @shoatman
+*       @AdamBJohnsonx @iamgusain @rpdome @shahzaibj @shoatman
 
 
 # Area Owners
@@ -19,14 +19,14 @@
 *.gradle                                                                            @shoatman @AdamBJohnsonx @shahzaibj
 
 # Docs
-/docs                                                                               @iambmelt @AdamBJohnsonx 
+/docs                                                                               @shahzaibj @AdamBJohnsonx 
 
 # PackageInspector
-/package-inspector                                                                  @iambmelt @shahzaibj 
+/package-inspector                                                                  @AdamBJohnsonx @shahzaibj
 
 # Pipelines
 /azure-pipelines/                                                                   @shoatman @shahzaibj @p3dr0rv
 
 # PoP Benchmarker
-/pop-benchmarker                                                                    @iambmelt @AdamBJohnsonx 
+/pop-benchmarker                                                                    @shoatman @AdamBJohnsonx 
 
