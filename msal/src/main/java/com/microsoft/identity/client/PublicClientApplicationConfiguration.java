@@ -78,6 +78,7 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REQUIRED_BROKER_PROTOCOL_VERSION;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.TELEMETRY;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.USE_BROKER;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REFRESH_IN_ENABLED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEB_VIEW_ZOOM_CONTROLS_ENABLED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEB_VIEW_ZOOM_ENABLED;
 import static com.microsoft.identity.client.exception.MsalClientException.APP_MANIFEST_VALIDATION_ERROR;
@@ -98,6 +99,7 @@ public class PublicClientApplicationConfiguration {
         static final String LOGGING = "logging";
         static final String MULTIPLE_CLOUDS_SUPPORTED = "multiple_clouds_supported";
         static final String USE_BROKER = "broker_redirect_uri_registered";
+        static final String REFRESH_IN_ENABLED = "refresh_in_enabled";
         static final String ENVIRONMENT = "environment";
         static final String REQUIRED_BROKER_PROTOCOL_VERSION = "minimum_required_broker_protocol_version";
         static final String TELEMETRY = "telemetry";
@@ -134,6 +136,9 @@ public class PublicClientApplicationConfiguration {
 
     @SerializedName(USE_BROKER)
     private Boolean mUseBroker;
+
+    @SerializedName(REFRESH_IN_ENABLED)
+    private Boolean isRefreshInEnabled;
 
     @SerializedName(ENVIRONMENT)
     private Environment mEnvironment;
@@ -393,6 +398,10 @@ public class PublicClientApplicationConfiguration {
         return isAuthorizationInCurrentTask;
     }
 
+    public Boolean isRefreshInEnabled() {
+        return isRefreshInEnabled;
+    }
+
     public Authority getDefaultAuthority() {
         if (mAuthorities != null) {
             if (mAuthorities.size() > 1) {
@@ -459,6 +468,7 @@ public class PublicClientApplicationConfiguration {
         this.mHttpConfiguration = config.mHttpConfiguration == null ? this.mHttpConfiguration : config.mHttpConfiguration;
         this.mMultipleCloudsSupported = config.mMultipleCloudsSupported == null ? this.mMultipleCloudsSupported : config.mMultipleCloudsSupported;
         this.mUseBroker = config.mUseBroker == null ? this.mUseBroker : config.mUseBroker;
+        this.isRefreshInEnabled = config.isRefreshInEnabled == null ? this.isRefreshInEnabled : config.isRefreshInEnabled;
         this.mTelemetryConfiguration = config.mTelemetryConfiguration == null ? this.mTelemetryConfiguration : config.mTelemetryConfiguration;
         this.mRequiredBrokerProtocolVersion = config.mRequiredBrokerProtocolVersion == null ? this.mRequiredBrokerProtocolVersion : config.mRequiredBrokerProtocolVersion;
         if (this.mBrowserSafeList == null) {

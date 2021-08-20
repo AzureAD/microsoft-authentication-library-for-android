@@ -94,7 +94,11 @@ public class PublicClientApplicationConfigurationFactory {
         }
 
         //Initialize internal library configuration
-        final LibraryConfiguration libraryConfiguration = LibraryConfiguration.builder().authorizationInCurrentTask((config.authorizationInCurrentTask())).build();
+        final LibraryConfiguration libraryConfiguration = LibraryConfiguration
+                .builder()
+                .authorizationInCurrentTask((config.authorizationInCurrentTask()))
+                .refreshInEnabled(config.isRefreshInEnabled())
+                .build();
         LibraryConfiguration.intializeLibraryConfiguration(libraryConfiguration);
 
         config.setOAuth2TokenCache(MsalOAuth2TokenCache.create(AndroidPlatformComponents.createFromContext(context)));
