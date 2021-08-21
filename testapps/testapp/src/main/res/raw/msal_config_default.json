@@ -4,6 +4,7 @@
   "redirect_uri" : "msauth://com.msft.identity.client.sample.local/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D",
   "handle_null_taskaffinity": true,
   "authorization_in_current_task": false,
+  "refresh_in_enabled": true,
   "authorities" : [
     {
       "type": "AAD",
