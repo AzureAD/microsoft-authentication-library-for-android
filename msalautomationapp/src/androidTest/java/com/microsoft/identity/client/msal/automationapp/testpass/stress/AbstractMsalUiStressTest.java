@@ -120,6 +120,11 @@ public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest 
         }
 
         executorService.shutdown();
+
+        // Force shut down of the executorService
+        if (!executorService.isShutdown()) {
+            executorService.shutdownNow();
+        }
     }
 
     private synchronized void updateTestPassRate(boolean passed) {
