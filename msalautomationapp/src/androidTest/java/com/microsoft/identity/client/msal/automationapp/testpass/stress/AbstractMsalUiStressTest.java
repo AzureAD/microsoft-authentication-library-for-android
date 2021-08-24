@@ -49,6 +49,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest {
@@ -56,17 +57,16 @@ public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest 
     // Sets the interval duration in seconds to which the device performance will be monitored.
     private static final long DEVICE_MONITOR_INTERVAL = TimeUnit.SECONDS.toMillis(1);
     private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+
     private Exception executionException;
 
-    private int testsPassed = 0;
-    private int testsFailed = 0;
+    private final AtomicInteger testsPassed = new AtomicInteger(0);
+    private final AtomicInteger testsFailed = new AtomicInteger(0);
 
     @Override
     @Before
     public void setup() {
         super.setup();
-        executionException = null;
-
         DeviceMonitor.setProfiler(PerformanceProfile.CPU, new CPUMonitor());
         DeviceMonitor.setProfiler(PerformanceProfile.MEMORY, new MemoryMonitor());
         DeviceMonitor.setProfiler(PerformanceProfile.NETWORK, new NetworkUsageMonitor());
@@ -98,37 +98,35 @@ public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest 
         executorService.submit(getPerformanceStatsCollector());
 
 
-        while (System.currentTimeMillis() - startTime < timeLimit && executionException == null) {
+        for (int i = 0; i < getNumberOfThreads(); i++) {
             executorService.submit(new Runnable() {
                 @Override
                 public void run() {
-                    try {
-                        S result = execute(prerequisites);
+                    while (System.currentTimeMillis() - startTime < timeLimit && executionException == null) {
+                        try {
+                            S result = execute(prerequisites);
 
-                        boolean passed = isTestPassed(result);
+                            boolean passed = isTestPassed(result);
 
-                        updateTestPassRate(passed);
-                    } catch (Exception ex) {
-                        executionException = ex;
+                            updateTestPassRate(passed);
+
+                            TimeUnit.MILLISECONDS.sleep(50);
+                        } catch (Exception ex) {
+                            executionException = ex;
+                        }
                     }
                 }
             });
-            TimeUnit.MILLISECONDS.sleep(50);
         }
 
         executorService.shutdown();
-
-
-        if (executionException != null) {
-            throw executionException;
-        }
     }
 
     private synchronized void updateTestPassRate(boolean passed) {
         if (passed) {
-            testsPassed++;
+            testsPassed.incrementAndGet();
         } else {
-            testsFailed++;
+            testsFailed.incrementAndGet();
         }
     }
 
@@ -150,8 +148,8 @@ public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest 
                                 getTimeLimit(),
                                 DeviceMonitor.getTotalMemory(),
                                 DeviceMonitor.getDeviceName(),
-                                testsPassed,
-                                testsFailed
+                                testsPassed.get(),
+                                testsFailed.get()
                         );
 
                         writeFile(line);
