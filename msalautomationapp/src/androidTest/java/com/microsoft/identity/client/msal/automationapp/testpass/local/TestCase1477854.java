@@ -98,8 +98,22 @@ public class TestCase1477854 extends AbstractMsalUiTest {
 
         authResult2.assertSuccess();
 
+        //acquire token silently for second time, since old AT was returned in first silent call above.
+        //This silent call returns the new AT acquired from the first silent token call.
+        final MsalAuthTestParams authTestParams3 = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .loginHint(mLoginHint)
+                .scopes(Arrays.asList(mScopes))
+                .promptParameter(Prompt.LOGIN)
+                .msalConfigResourceId(getConfigFileResourceId())
+                .build();
+
+        final MsalAuthResult authResult3 = msalSdk.acquireTokenSilent(authTestParams3, TokenRequestTimeout.MEDIUM);
+
+        authResult3.assertSuccess();
+
         //expect old AT != new AT since refresh_in initiates new AT
-        Assert.assertFalse(authResult.equals(authResult2));
+        Assert.assertFalse(authResult.equals(authResult3));
 
     }
 
