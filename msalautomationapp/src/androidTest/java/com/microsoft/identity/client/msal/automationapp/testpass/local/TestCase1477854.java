@@ -42,6 +42,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 //https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1477854
 public class TestCase1477854 extends AbstractMsalUiTest {
@@ -49,6 +50,21 @@ public class TestCase1477854 extends AbstractMsalUiTest {
     @Ignore
     @Test
     public void test_1477854() throws Throwable {
+        /*
+            Summary: Execute 3 requests; 1 interactive, followed by 2 silent(which are refresh_in enabled).
+            Verify:
+            1) interactive access token == first silent access token
+            2) second silent access token != first silent access token
+
+            Steps
+            a) Interactive returns access token A
+            b) Fast forward device time to refresh expire interactively acquired access token but not cause access token regular expiry(in this case move by 1:35 min) - i.e. access token is now refresh expired
+            c) Silent returns access token A (Refresh executed In Time(eager) causes background thread to retrieve NEW access token)
+            d) Verify interactive and silent are both = to A
+            e) Wait 1 minute (for background request to complete)
+            f) Second Silent request returns access token B
+            g) Verify that 2nd silent request... after refresh in expired... now returns a new AT. Silent 1 response not equal to silent 2 response.
+         */
 
         //acquire token interactively - retain token with lifetime 3hr
         final String username = mLoginHint;
@@ -64,7 +80,7 @@ public class TestCase1477854 extends AbstractMsalUiTest {
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-        final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
+        final MsalAuthResult interactiveResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
@@ -80,12 +96,14 @@ public class TestCase1477854 extends AbstractMsalUiTest {
             }
         }, TokenRequestTimeout.MEDIUM);
 
-        authResult.assertSuccess();
+        // a) Interactive returns access token A
+        interactiveResult.assertSuccess();
 
-        //fast forward 1:35 min - means refresh expired
+        // b) Fast forward device time to refresh expire interactively acquired access token but not cause access token regular expiry(in this case move by 1:35 min) - i.e. access token is now refresh expired
         TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTime(5700);
 
-        //acquire token silently - should refresh token, and get new AT
+        //acquire token silently - will start a background thread to refresh access token,
+        //but in this thread the interactively acquired AT(i.e. belonging to authResult from above) will be returned.
         final MsalAuthTestParams authTestParams2 = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(mLoginHint)
@@ -93,27 +111,32 @@ public class TestCase1477854 extends AbstractMsalUiTest {
                 .promptParameter(Prompt.LOGIN)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
+        final MsalAuthResult firstSilentResult = msalSdk.acquireTokenSilent(authTestParams2, TokenRequestTimeout.MEDIUM);
 
-        final MsalAuthResult authResult2 = msalSdk.acquireTokenSilent(authTestParams2, TokenRequestTimeout.MEDIUM);
+        // c) Silent returns access token A. Refresh executed In Time(eager) causes background thread to retrieve NEW access token)
+        firstSilentResult.assertSuccess();
 
-        authResult2.assertSuccess();
+        // d) Verify interactive and silent are both = to A
+        Assert.assertTrue(interactiveResult.isAccessTokenEqual(firstSilentResult.getAccessToken()));
 
-        //acquire token silently for second time, since old AT was returned in first silent call above.
-        //This silent call returns the new AT acquired from the first silent token call.
-        final MsalAuthTestParams authTestParams3 = MsalAuthTestParams.builder()
+        // e) Wait 1 minute (for background request to complete)
+        Thread.sleep(TimeUnit.MINUTES.toMillis(1));
+
+        //acquire token silently for second time, the purpose is to acquire the new AT fetched using the background thread
+        //from the above silent call
+        final MsalAuthTestParams secondSilentResult = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(mLoginHint)
                 .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.LOGIN)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
-
         final MsalAuthResult authResult3 = msalSdk.acquireTokenSilent(authTestParams3, TokenRequestTimeout.MEDIUM);
-
+        // f) Second Silent request returns access token B
         authResult3.assertSuccess();
 
-        //expect old AT != new AT since refresh_in initiates new AT
-        Assert.assertFalse(authResult.equals(authResult3));
+        // g) Verify that 2nd silent request... after refresh in expired... now returns a new AT by verifying Silent 1 response not equal to silent 2 response.
+        Assert.assertFalse(firstSilentResult.isAccessTokenEqual(secondSilentResult.getAccessToken()));
 
     }
 
