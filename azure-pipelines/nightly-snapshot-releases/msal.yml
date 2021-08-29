@@ -22,10 +22,6 @@ parameters:
   values:
   - Debug
   - Release
-- name: commonLocalBranch
-  displayName: Common Local Branch (only used if local flavor is selected)
-  type: string
-  default: ''
 
 resources:
  repositories:
@@ -49,4 +45,4 @@ jobs:
       project: msal
       envVstsMvnAt: ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN
       ${{ if eq(parameters.productFlavors, 'Local') }}:
-        commmonBranch: ${{ parameters.commonLocalBranch }}
+        commmonBranch: ${{ variables.commonLocalBranch }}
