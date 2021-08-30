@@ -29,7 +29,7 @@ parameters:
   - Release
 
 jobs:
-- job: msal-test-app
+- job: msal_test_app
   displayName: Build Msal Test App ${{ parameters.productFlavors }} ${{ parameters.signingConfigurations }} APK
   pool:
     name: Hosted Windows 2019 with VS2019
