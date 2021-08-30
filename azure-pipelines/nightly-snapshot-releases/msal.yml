@@ -42,6 +42,7 @@ jobs:
       versionVariant: Snapshot # Only option avalible
       assembleVariant: ${{ parameters.productFlavors }}${{ parameters.signingConfigurations }}
       testVariant: ${{ parameters.productFlavors }}${{ parameters.signingConfigurations}}UnitTest
+      testArguments: -ProbolectricSdkVersion=28
       project: msal
       envVstsMvnAt: ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN
       ${{ if eq(parameters.productFlavors, 'Local') }}:

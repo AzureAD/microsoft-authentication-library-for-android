@@ -281,7 +281,10 @@ dependencies {
     testImplementation "org.mockito:mockito-inline:$rootProject.ext.mockitoCoreVersion"
     testImplementation ("org.robolectric:robolectric:$rootProject.ext.robolectricVersion")
     testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"
-    testImplementation project(':testutils')
+    testImplementation (project(':testutils')){
+        // MSAL has direct dependency on common
+        exclude module: 'common'
+    }
     // instrumentation test dependencies
     androidTestImplementation "androidx.test.ext:junit:$rootProject.ext.androidxJunitVersion"
     // Set this dependency to use JUnit 4 rules
