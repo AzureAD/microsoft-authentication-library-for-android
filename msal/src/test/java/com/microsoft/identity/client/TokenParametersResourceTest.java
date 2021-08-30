@@ -20,23 +20,31 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.e2e.shadows;
+package com.microsoft.identity.client;
 
-import android.content.Context;
 
-import androidx.annotation.NonNull;
+import android.util.Log;
 
-import com.microsoft.identity.client.PublicClientApplicationConfiguration;
-import com.microsoft.identity.client.internal.MsalUtils;
+import org.junit.Test;
 
-import org.robolectric.annotation.Implements;
+import static org.junit.Assert.assertEquals;
 
-@Implements(PublicClientApplicationConfiguration.class)
-public class ShadowPublicClientApplicationConfiguration {
 
-    // mocking this to assume we have custom tab redirect activity during tests
-    public static boolean validateCustomTabRedirectActivity(@NonNull final Context context,
-                                                            @NonNull final String url) {
-        return true;
+public class TokenParametersResourceTest {
+
+    public final static String RESOURCE_MIXED_CASE = "https://SomeAADApi.aadgraph.onmicrosoft.com";
+    public final static String RESOURCE_MIXED_CASE_DEFAULT_APPENDED = RESOURCE_MIXED_CASE + "/.default";
+
+    /**
+     * Verify that the casing of the provided resource is not altered by the building of the parameters.
+     * In addition verify that the /.default value was added to the reosource to convert it to a scope for the purposes of the v2 endpoint.
+     */
+    @Test
+    public void testVerifyScopeIsAsProvided() {
+
+        AcquireTokenParameters acquireTokenParameters = new AcquireTokenParameters.Builder().withResource(RESOURCE_MIXED_CASE).build();
+
+        assertEquals(RESOURCE_MIXED_CASE_DEFAULT_APPENDED, acquireTokenParameters.getScopes().get(0));
+
     }
 }

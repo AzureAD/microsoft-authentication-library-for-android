@@ -22,7 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import com.microsoft.identity.common.internal.authscheme.BearerAuthenticationSchemeInternal;
+import com.microsoft.identity.common.java.authscheme.BearerAuthenticationSchemeInternal;
 
 public class BearerAuthenticationScheme extends AuthenticationScheme {
 

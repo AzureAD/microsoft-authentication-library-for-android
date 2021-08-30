@@ -3,8 +3,8 @@ package com.microsoft.identity.client.e2e.utils;
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
 import com.microsoft.identity.common.internal.util.StringUtil;
+import com.microsoft.identity.common.java.controllers.CommandDispatcher;
 
 import org.junit.Assert;
 

@@ -36,14 +36,14 @@ import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.exception.ErrorStrings;
-import com.microsoft.identity.common.internal.authorities.Authority;
+import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationErrorResponse;
 import com.microsoft.identity.common.java.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
 import com.microsoft.identity.common.java.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationResponse;
 import com.microsoft.identity.common.java.providers.microsoft.microsoftsts.MicrosoftStsTokenRequest;
 import com.microsoft.identity.common.java.providers.oauth2.AuthorizationResult;
-import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
-import com.microsoft.identity.common.internal.providers.oauth2.OAuth2StrategyParameters;
+import com.microsoft.identity.common.java.providers.oauth2.OAuth2Strategy;
+import com.microsoft.identity.common.java.providers.oauth2.OAuth2StrategyParameters;
 import com.microsoft.identity.common.java.providers.oauth2.TokenRequest;
 import com.microsoft.identity.common.java.providers.oauth2.TokenResult;
 
@@ -66,6 +66,7 @@ import static com.microsoft.identity.internal.testutils.TestConstants.Configurat
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {ShadowPublicClientApplicationConfiguration.class})
+@SuppressWarnings("unchecked")
 public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
     private boolean mUserCodeReceived;
@@ -85,7 +86,7 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
     //===========================================================================================================
     @Test
     public void testGetDeviceCodeSuccessResult() throws IOException, ClientException {
-        final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
+        final OAuth2StrategyParameters strategyParameters = OAuth2StrategyParameters.builder().build();
         final PublicClientApplicationConfiguration config = mApplication.getConfiguration();
         final OAuth2Strategy strategy = config.getDefaultAuthority().createOAuth2Strategy(strategyParameters);
 
@@ -109,7 +110,7 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
     @Test
     public void testGetDeviceCodeFailureNoClientId() throws IOException, ClientException {
-        final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
+        final OAuth2StrategyParameters strategyParameters = OAuth2StrategyParameters.builder().build();
         final PublicClientApplicationConfiguration config = mApplication.getConfiguration();
         final OAuth2Strategy strategy = config.getDefaultAuthority().createOAuth2Strategy(strategyParameters);
 
@@ -127,7 +128,7 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
     @Test
     public void testGetDeviceCodeFailureNoScope() throws IOException, ClientException {
-        final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
+        final OAuth2StrategyParameters strategyParameters = OAuth2StrategyParameters.builder().build();
         final PublicClientApplicationConfiguration config = mApplication.getConfiguration();
         final OAuth2Strategy strategy = config.getDefaultAuthority().createOAuth2Strategy(strategyParameters);
 
@@ -145,7 +146,7 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
     @Test
     public void testGetDeviceCodeFailureBadScope() throws IOException, ClientException {
-        final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
+        final OAuth2StrategyParameters strategyParameters = OAuth2StrategyParameters.builder().build();
         final PublicClientApplicationConfiguration config = mApplication.getConfiguration();
         final OAuth2Strategy strategy = config.getDefaultAuthority().createOAuth2Strategy(strategyParameters);
 
@@ -180,7 +181,7 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
     //===========================================================================================================x
     @Test
     public void testDeviceCodeFlowTokenInvalidRequest() throws IOException, ClientException {
-        final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
+        final OAuth2StrategyParameters strategyParameters = OAuth2StrategyParameters.builder().build();
         final PublicClientApplicationConfiguration config = mApplication.getConfiguration();
         final Authority defaultAuthority = config.getDefaultAuthority();
         Assert.assertNotNull("Default authority should not be null", defaultAuthority);
@@ -196,7 +197,7 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
     @Test
     public void testDeviceCodeFlowTokenExpiredToken() throws IOException, ClientException {
-        final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
+        final OAuth2StrategyParameters strategyParameters = OAuth2StrategyParameters.builder().build();
         final PublicClientApplicationConfiguration config = mApplication.getConfiguration();
         final Authority defaultAuthority = config.getDefaultAuthority();
         Assert.assertNotNull("Default authority should not be null", defaultAuthority);
