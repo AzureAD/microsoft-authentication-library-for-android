@@ -12,6 +12,14 @@ name: $(date:yyyyMMdd)$(rev:.r)
 trigger: none
 pr: none
 
+resources:
+  repositories:
+  - repository: common
+    type: github
+    name: AzureAD/microsoft-authentication-library-common-for-android
+    ref: dev
+    endpoint: ANDROID_GITHUB
+
 parameters:
 - name: productFlavors
   displayName: Product Flavor
@@ -30,13 +38,16 @@ parameters:
 
 jobs:
 - job: msal_test_app
-  displayName: Build Msal Test App ${{ parameters.productFlavors }} ${{ parameters.signingConfigurations }} ${{ variables.msal_version }} APK
+  displayName: Build Msal Test App ${{ parameters.productFlavors }} ${{ parameters.signingConfigurations }} "$(msal_version)" APK
   pool:
     name: Hosted Windows 2019 with VS2019
   steps:
   - checkout: self
     clean: true
     submodules: true
+  - template: azure-pipelines/templates/steps/automation-cert.yml@common
+    parameters:
+      envVstsMvnAt: ENV_VSTS_MVN_ANDROID_MSAL_USERNAME
   - ${{ if eq(parameters.productFlavors, 'Dist') }}:
     - task: PowerShell@2
       displayName: Generate Assemble Dist Task
