@@ -38,7 +38,7 @@ parameters:
 
 jobs:
 - job: msal_test_app
-  displayName: Build Msal Test App ${{ parameters.productFlavors }} ${{ parameters.signingConfigurations }} $(msal_version) APK
+  displayName: Build Msal Test App ${{ parameters.productFlavors }} ${{ parameters.signingConfigurations }} ${{variables.msal_version}} APK
   pool:
     name: Hosted Windows 2019 with VS2019
   steps:
