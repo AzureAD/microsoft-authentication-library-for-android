@@ -63,6 +63,8 @@ public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest 
     private final AtomicInteger testsPassed = new AtomicInteger(0);
     private final AtomicInteger testsFailed = new AtomicInteger(0);
 
+    private FileAppender fileAppender;
+
     @Override
     @Before
     public void setup() {
@@ -109,9 +111,7 @@ public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest 
                             boolean passed = isTestPassed(result);
 
                             updateTestPassRate(passed);
-
-                            TimeUnit.MILLISECONDS.sleep(50);
-                        } catch (Exception ex) {
+                        } catch (final Exception ex) {
                             executionException = ex;
                         }
                     }
@@ -127,7 +127,7 @@ public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest 
         }
     }
 
-    private synchronized void updateTestPassRate(boolean passed) {
+    private void updateTestPassRate(boolean passed) {
         if (passed) {
             testsPassed.incrementAndGet();
         } else {
@@ -170,13 +170,20 @@ public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest 
 
     private synchronized void writeFile(final String output) {
         try {
-            final FileAppender fileAppender = new FileAppender(getOutputFileName(), new LogcatLikeFormatter());
+            final FileAppender fileAppender = getFileAppender();
             fileAppender.append(output);
 
             CommonUtils.copyFileToFolderInSdCard(fileAppender.getLogFile(), "automation");
         } catch (IOException e) {
             executionException = e;
         }
+    }
+
+    private FileAppender getFileAppender() throws IOException {
+        if (this.fileAppender == null) {
+            this.fileAppender = new FileAppender(getOutputFileName(), new LogcatLikeFormatter());
+        }
+        return this.fileAppender;
     }
 
 
