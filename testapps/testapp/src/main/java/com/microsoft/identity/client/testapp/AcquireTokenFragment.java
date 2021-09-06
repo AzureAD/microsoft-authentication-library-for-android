@@ -69,6 +69,7 @@ public class AcquireTokenFragment extends Fragment {
     private EditText mExtraScope;
     private EditText mClaims;
     private Button mAddDeviceIdClaimButton;
+    private Button mAddNgcMfaClaimButton;
     private Switch mEnablePII;
     private Switch mForceRefresh;
     private Button mGetUsers;
@@ -117,6 +118,18 @@ public class AcquireTokenFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 final String str = "{\"access_token\":{\"deviceid\":{\"essential\":true}}}";
+                mClaims.setText(str);
+            }
+        });
+
+        // Force MFA to be done in the last x mins (5? I can't remember the exact number)
+        // This is what authapp uses to acquire token for NGC registration.
+        // We can use this to test interrupt flow.
+        mAddNgcMfaClaimButton = view.findViewById(R.id.btn_ngcMfaClaim);
+        mAddNgcMfaClaimButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final String str = "{\"access_token\":{\"deviceid\":{\"essential\":true},\"amr\":{\"values\":[\"ngcmfa\"]}}}";
                 mClaims.setText(str);
             }
         });

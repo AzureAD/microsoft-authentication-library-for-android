@@ -59,19 +59,19 @@ import java.util.concurrent.ExecutionException;
 
 import static com.microsoft.identity.client.exception.MsalClientException.UNKNOWN_ERROR;
 import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_SCOPES_AUTHORITY_CALLBACK;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_WITH_PARAMETERS;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_WITH_SCOPES_AUTHORITY;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_ACTIVITY_SCOPES_CALLBACK;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_EXISTING_SIGN_IN_WITH_PROMPT;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_GET_CURRENT_ACCOUNT;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_GET_CURRENT_ACCOUNT_ASYNC;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_IN;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_IN_WITH_PROMPT;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_OUT;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_OUT_WITH_CALLBACK;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_SCOPES_AUTHORITY_CALLBACK;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_WITH_PARAMETERS;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_WITH_SCOPES_AUTHORITY;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_ACTIVITY_SCOPES_CALLBACK;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_EXISTING_SIGN_IN_WITH_PROMPT;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_GET_CURRENT_ACCOUNT;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_GET_CURRENT_ACCOUNT_ASYNC;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_IN;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_IN_WITH_PROMPT;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_OUT;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_OUT_WITH_CALLBACK;
 
 public class SingleAccountPublicClientApplication
         extends PublicClientApplication
