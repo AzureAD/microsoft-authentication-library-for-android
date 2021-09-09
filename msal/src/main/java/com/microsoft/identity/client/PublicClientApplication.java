@@ -83,7 +83,7 @@ import com.microsoft.identity.common.java.controllers.CommandDispatcher;
 import com.microsoft.identity.common.java.controllers.ExceptionAdapter;
 import com.microsoft.identity.common.internal.controllers.LocalMSALController;
 import com.microsoft.identity.common.java.dto.AccountRecord;
-import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
+import com.microsoft.identity.common.java.eststelemetry.PublicApiId;
 import com.microsoft.identity.common.internal.migration.AdalMigrationAdapter;
 import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
 import com.microsoft.identity.common.internal.migration.TokenMigrationUtility;
@@ -132,8 +132,8 @@ import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_A
 import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_CODE;
 import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_MESSAGE;
 import static com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudience.isHomeTenantAlias;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST_ASYNC;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST_ASYNC;
 import static com.microsoft.identity.common.java.providers.microsoft.MicrosoftIdToken.TENANT_ID;
 import static com.microsoft.identity.common.java.util.StringUtil.isUuid;
 
