@@ -1,2 +1,0 @@
-TEST1,Fail,2,com.microsoft.identity.client.exception.MsalServiceException: net::ERR_INTERNET_DISCONNECTED,com.microsoft.identity.client.exception.MsalServiceException
-TEST2,Pass,3,\d+,

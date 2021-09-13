@@ -24,31 +24,32 @@ package com.microsoft.identity.client.msal.automationapp.testpass.network;
 
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
-import com.microsoft.identity.client.ui.automation.utils.AdbShellUtils;
-import com.microsoft.identity.common.java.util.ResultFuture;
-import com.microsoft.identity.internal.testutils.IShellCommandExecutor;
+import com.microsoft.identity.client.ui.automation.network.INetworkTestRunner;
+import com.microsoft.identity.client.ui.automation.network.NetworkTestConstants;
+import com.microsoft.identity.client.ui.automation.network.NetworkTestResult;
+import com.microsoft.identity.client.ui.automation.network.NetworkTestingManager;
+import com.microsoft.identity.client.ui.automation.sdk.ResultFuture;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
-import com.microsoft.identity.internal.testutils.networkutils.INetworkTestRunner;
-import com.microsoft.identity.internal.testutils.networkutils.NetworkTestConstants;
-import com.microsoft.identity.internal.testutils.networkutils.NetworkTestResult;
-import com.microsoft.identity.internal.testutils.networkutils.NetworkTestingManager;
+
+import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.function.Executable;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public abstract class AbstractMsalNetworkTest extends AbstractMsalUiTest {
+/**
+ * Sets up a base class for running MSAL network tests.
+ */
+public class BaseMsalNetworkTest extends AbstractMsalUiTest {
 
-    private static final IShellCommandExecutor shellCommandExecutor = new IShellCommandExecutor() {
-        @Override
-        public String execute(String shellCommand) {
-            return AdbShellUtils.executeShellCommand(shellCommand);
-        }
-    };
 
     @Override
     public void setup() {
@@ -57,41 +58,58 @@ public abstract class AbstractMsalNetworkTest extends AbstractMsalUiTest {
         super.setup();
     }
 
+    /**
+     * Reset the network state to WIFI_AND_CELLULAR
+     */
     private void resetNetworkState() {
-        NetworkTestingManager.changeNetworkState(shellCommandExecutor, NetworkTestConstants.InterfaceType.WIFI_AND_CELLULAR, true);
+        final NetworkTestConstants.InterfaceType previousInterface = NetworkTestingManager.getCurrentInterface();
 
-        final CountDownLatch waiter = new CountDownLatch(1);
-        try {
-            // Wait for a few seconds for WIFI to turn ON
-            waiter.await(10, TimeUnit.SECONDS);
-        } catch (InterruptedException ignored) {
+        NetworkTestingManager.changeNetworkState(NetworkTestConstants.InterfaceType.WIFI_AND_CELLULAR);
+
+        // If the previous interface WIFI was turned off, wait for a few seconds to turn WIFI on.
+        if (previousInterface == null || !previousInterface.wifiActive()) {
+            final CountDownLatch waiter = new CountDownLatch(1);
+            try {
+                waiter.await(10, TimeUnit.SECONDS);
+            } catch (InterruptedException ignored) {
+            }
         }
     }
 
 
-    public <T> void runNetworkTest(String inputFile, String expectedOutputFile, INetworkTestRunner<T> testRun) throws ClassNotFoundException, IOException {
+    public Collection<DynamicTest> dynamicNetworkTests(String inputFile, String expectedOutputFile, INetworkTestRunner testRun) throws ClassNotFoundException, IOException {
         List<NetworkTestingManager> stateManagerList = NetworkTestingManager.readCSVFile(
                 getClass(),
-                shellCommandExecutor,
                 inputFile, expectedOutputFile
         );
 
+        final Set<DynamicTest> tests = new LinkedHashSet<>(stateManagerList.size());
 
-        for (NetworkTestingManager stateManager : stateManagerList) {
-            submitForTestRun(stateManager, testRun);
+
+        for (int i = 0; i < stateManagerList.size(); i++) {
+            NetworkTestingManager stateManager = stateManagerList.get(i);
+
+            tests.add(DynamicTest.dynamicTest(stateManager.getId(), new Executable() {
+                @Override
+                public void execute() throws Throwable {
+                    submitForTestRun(stateManager, testRun);
+                    resetNetworkState();
+                }
+            }));
         }
+
+        return tests;
     }
 
-    private <T> void submitForTestRun(final NetworkTestingManager networkTestingManager, final INetworkTestRunner<T> testRun) {
-        final long startTime = System.currentTimeMillis();
-
+    private void submitForTestRun(final NetworkTestingManager networkTestingManager, final INetworkTestRunner testRun) {
         final Thread networkStateThread = networkTestingManager.execute();
 
         final ExecutorService executorService = Executors.newFixedThreadPool(2);
 
         executorService.execute(networkStateThread);
 
-        final ResultFuture<T> testResults = new ResultFuture<>();
+        final ResultFuture<String, Exception> testResults = new ResultFuture<>();
+
 
         executorService.submit(new Runnable() {
             @Override
@@ -104,12 +122,9 @@ public abstract class AbstractMsalNetworkTest extends AbstractMsalUiTest {
 
         final NetworkTestResult expectedResult = networkTestingManager.getTestResult();
 
-        expectedResult.verifyResult(testResults, startTime);
+        expectedResult.verifyResult(testResults);
 
         executorService.shutdownNow();
-
-        // Reset the network state after running a test.
-        resetNetworkState();
     }
 
     @Override
