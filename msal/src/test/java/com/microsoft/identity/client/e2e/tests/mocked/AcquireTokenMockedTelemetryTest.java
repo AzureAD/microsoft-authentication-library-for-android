@@ -34,7 +34,7 @@ import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncrypti
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper;
-import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
+import com.microsoft.identity.common.java.eststelemetry.PublicApiId;
 import com.microsoft.identity.common.java.eststelemetry.EstsTelemetry;
 import com.microsoft.identity.common.java.eststelemetry.SchemaConstants;
 import com.microsoft.identity.common.java.net.HttpClient;
