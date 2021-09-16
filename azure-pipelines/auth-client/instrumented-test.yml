@@ -6,7 +6,7 @@ trigger:
 - main
 
 pool:
- name: DockerBuildAgents
+ name: 1ESDockerBuild
 
 resources:
  repositories:
