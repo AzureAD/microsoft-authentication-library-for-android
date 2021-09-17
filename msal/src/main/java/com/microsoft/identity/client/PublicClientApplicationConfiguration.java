@@ -536,15 +536,6 @@ public class PublicClientApplicationConfiguration {
                 final MessageDigest messageDigest = MessageDigest.getInstance("SHA");
                 messageDigest.update(signature.toByteArray());
                 final String signatureHash = Base64.encodeToString(messageDigest.digest(), Base64.NO_WRAP);
-
-                if (packageName.equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME)
-                    && (signatureHash.equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_RELEASE_SIGNATURE)
-                        || signatureHash.equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_DEBUG_SIGNATURE))
-                    && mRedirectUri.equalsIgnoreCase(AuthenticationConstants.Broker.BROKER_REDIRECT_URI))
-                {
-                    return;
-                }
-
                 final Uri.Builder builder = new Uri.Builder();
                 final Uri uri = builder.scheme("msauth")
                         .authority(packageName)
@@ -604,6 +595,27 @@ public class PublicClientApplicationConfiguration {
 
         if (!mUseBroker) {
             return;
+        }
+
+        if (mAppContext.getPackageName().equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME))
+        {
+            try {
+                final PackageInfo info = mAppContext.getPackageManager().getPackageInfo(mAppContext.getPackageName(), PackageManager.GET_SIGNATURES);
+                if (info != null && info.signatures != null && info.signatures.length > 0) {
+                    Signature signature = info.signatures[0];
+                    MessageDigest md = MessageDigest.getInstance("SHA");
+                    md.update(signature.toByteArray());
+                    final String signatureHash = Base64.encodeToString(md.digest(), Base64.NO_WRAP);
+                    if (signatureHash.equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_RELEASE_SIGNATURE)
+                            || signatureHash.equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_DEBUG_SIGNATURE)
+                            && mRedirectUri.equalsIgnoreCase(AuthenticationConstants.Broker.BROKER_REDIRECT_URI)) {
+                        return;
+                    }
+                }
+            }
+            catch (PackageManager.NameNotFoundException | NoSuchAlgorithmException e) {
+                Logger.error(TAG, "Unexpected error in getting package info/signature for Autheticator", e);
+            }
         }
 
         if (!isBrokerRedirectUri(mRedirectUri, mAppContext.getPackageName())) {
