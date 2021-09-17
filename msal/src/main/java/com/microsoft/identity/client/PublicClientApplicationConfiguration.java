@@ -486,8 +486,13 @@ public class PublicClientApplicationConfiguration {
     }
 
     private void validateRedirectUri(@NonNull final String redirectUri) {
-        final boolean isInvalid = TextUtils.isEmpty(redirectUri) || !hasSchemeAndAuthority(redirectUri);
-
+        boolean isInvalid = false;
+        if (mAppContext.getPackageName().equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME))
+        {
+            isInvalid = verifyAuthenticatorRedirectUri();
+        } else {
+            isInvalid = TextUtils.isEmpty(redirectUri) || !hasSchemeAndAuthority(redirectUri);
+        }
         if (isInvalid) {
             throw new IllegalArgumentException(INVALID_REDIRECT_MSG);
         }
@@ -599,22 +604,9 @@ public class PublicClientApplicationConfiguration {
 
         if (mAppContext.getPackageName().equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME))
         {
-            try {
-                final PackageInfo info = mAppContext.getPackageManager().getPackageInfo(mAppContext.getPackageName(), PackageManager.GET_SIGNATURES);
-                if (info != null && info.signatures != null && info.signatures.length > 0) {
-                    Signature signature = info.signatures[0];
-                    MessageDigest md = MessageDigest.getInstance("SHA");
-                    md.update(signature.toByteArray());
-                    final String signatureHash = Base64.encodeToString(md.digest(), Base64.NO_WRAP);
-                    if (signatureHash.equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_RELEASE_SIGNATURE)
-                            || signatureHash.equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_DEBUG_SIGNATURE)
-                            && mRedirectUri.equalsIgnoreCase(AuthenticationConstants.Broker.BROKER_REDIRECT_URI)) {
-                        return;
-                    }
-                }
-            }
-            catch (PackageManager.NameNotFoundException | NoSuchAlgorithmException e) {
-                Logger.error(TAG, "Unexpected error in getting package info/signature for Autheticator", e);
+            if (verifyAuthenticatorRedirectUri())
+            {
+                return;
             }
         }
 
@@ -631,4 +623,32 @@ public class PublicClientApplicationConfiguration {
         verifyRedirectUriWithAppSignature();
     }
 
+    private boolean verifyAuthenticatorRedirectUri() {
+        try {
+            final PackageInfo info = mAppContext.getPackageManager().getPackageInfo(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, PackageManager.GET_SIGNATURES);
+            if (info != null && info.signatures != null && info.signatures.length > 0) {
+                Signature signature = info.signatures[0];
+                MessageDigest md = MessageDigest.getInstance("SHA");
+                md.update(signature.toByteArray());
+                final String signatureHash = Base64.encodeToString(md.digest(), Base64.NO_WRAP);
+                if (signatureHash.equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_RELEASE_SIGNATURE)
+                    || signatureHash.equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_DEBUG_SIGNATURE)
+                ) {
+                    final Uri.Builder builder = new Uri.Builder();
+                    final Uri uri = builder.scheme("msauth")
+                            .authority(mAppContext.getPackageName())
+                            .appendPath(signatureHash)
+                            .build();
+
+                    if (mRedirectUri.equalsIgnoreCase(uri.toString()) || mRedirectUri.equalsIgnoreCase(AuthenticationConstants.Broker.BROKER_REDIRECT_URI)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        catch (PackageManager.NameNotFoundException | NoSuchAlgorithmException e) {
+            Logger.error(TAG, "Unexpected error in getting package info/signature for Autheticator", e);
+        }
+        return false;
+    }
 }
