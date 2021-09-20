@@ -621,7 +621,7 @@ public class PublicClientApplicationConfiguration {
     }
 
     private boolean isValidAuthenticatorRedirectUri() {
-        // This is an temporary fix to allow authenticator to migrate to MSAL
+        // This is a temporary fix to allow authenticator to migrate to MSAL
         // For Legacy reason Authenticator still needs to pass in the old redirect uri to be able to
         // have backward compatibility with older versions of BrokerHost (Company Portal)
         // We should remove this check after the new Broker Host apps are released to >90% of production
@@ -634,9 +634,8 @@ public class PublicClientApplicationConfiguration {
                 MessageDigest md = MessageDigest.getInstance("SHA");
                 md.update(signature.toByteArray());
                 final String signatureHash = Base64.encodeToString(md.digest(), Base64.NO_WRAP);
-                if (signatureHash.equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_RELEASE_SIGNATURE)
-                    || signatureHash.equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_DEBUG_SIGNATURE)
-                ) {
+                if (AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_RELEASE_SIGNATURE.equalsIgnoreCase(signatureHash)
+                    || AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_DEBUG_SIGNATURE.equalsIgnoreCase(signatureHash)) {
                     final Uri.Builder builder = new Uri.Builder();
                     final Uri uri = builder.scheme("msauth")
                             .authority(mAppContext.getPackageName())
