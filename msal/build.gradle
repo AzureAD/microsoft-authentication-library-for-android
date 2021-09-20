@@ -4,7 +4,6 @@ plugins {
     id 'pmd'
     id 'checkstyle'
     id 'maven-publish'
-    id 'jacoco'
 }
 
 apply from: 'versioning/version_tasks.gradle'
