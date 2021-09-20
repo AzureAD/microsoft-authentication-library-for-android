@@ -487,7 +487,7 @@ public class PublicClientApplicationConfiguration {
 
     private void validateRedirectUri(@NonNull final String redirectUri) {
         boolean isInvalid = false;
-        if (AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME.equalsIgnoreCase(mAppContext.getPackageName())) {
+        if (mAppContext!= null && AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME.equalsIgnoreCase(mAppContext.getPackageName())) {
             isInvalid = !isValidAuthenticatorRedirectUri();
         } else {
             isInvalid = TextUtils.isEmpty(redirectUri) || !hasSchemeAndAuthority(redirectUri);
@@ -601,7 +601,7 @@ public class PublicClientApplicationConfiguration {
             return;
         }
 
-        if (mAppContext.getPackageName().equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME)) {
+        if (mAppContext!=null && AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME.equalsIgnoreCase(mAppContext.getPackageName())) {
             if (isValidAuthenticatorRedirectUri()) {
                 return;
             }
