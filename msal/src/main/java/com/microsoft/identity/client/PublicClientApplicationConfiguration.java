@@ -489,7 +489,7 @@ public class PublicClientApplicationConfiguration {
         boolean isInvalid = false;
         if (mAppContext.getPackageName().equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME))
         {
-            isInvalid = verifyAuthenticatorRedirectUri();
+            isInvalid = !isValidAuthenticatorRedirectUri();
         } else {
             isInvalid = TextUtils.isEmpty(redirectUri) || !hasSchemeAndAuthority(redirectUri);
         }
@@ -604,7 +604,7 @@ public class PublicClientApplicationConfiguration {
 
         if (mAppContext.getPackageName().equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME))
         {
-            if (verifyAuthenticatorRedirectUri())
+            if (isValidAuthenticatorRedirectUri())
             {
                 return;
             }
@@ -623,7 +623,7 @@ public class PublicClientApplicationConfiguration {
         verifyRedirectUriWithAppSignature();
     }
 
-    private boolean verifyAuthenticatorRedirectUri() {
+    private boolean isValidAuthenticatorRedirectUri() {
         try {
             final PackageInfo info = mAppContext.getPackageManager().getPackageInfo(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, PackageManager.GET_SIGNATURES);
             if (info != null && info.signatures != null && info.signatures.length > 0) {
