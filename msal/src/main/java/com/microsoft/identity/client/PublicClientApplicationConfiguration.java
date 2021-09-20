@@ -648,7 +648,7 @@ public class PublicClientApplicationConfiguration {
                 }
             }
         } catch (final PackageManager.NameNotFoundException | NoSuchAlgorithmException e) {
-            Logger.error(TAG, "Unexpected error in getting package info/signature for Autheticator", e);
+            Logger.error(TAG, "Unexpected error in getting package info/signature for Authenticator", e);
         }
 
         return false;
