@@ -487,8 +487,7 @@ public class PublicClientApplicationConfiguration {
 
     private void validateRedirectUri(@NonNull final String redirectUri) {
         boolean isInvalid = false;
-        if (mAppContext.getPackageName().equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME))
-        {
+        if (mAppContext.getPackageName().equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME)) {
             isInvalid = !isValidAuthenticatorRedirectUri();
         } else {
             isInvalid = TextUtils.isEmpty(redirectUri) || !hasSchemeAndAuthority(redirectUri);
@@ -602,10 +601,8 @@ public class PublicClientApplicationConfiguration {
             return;
         }
 
-        if (mAppContext.getPackageName().equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME))
-        {
-            if (isValidAuthenticatorRedirectUri())
-            {
+        if (mAppContext.getPackageName().equalsIgnoreCase(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME)) {
+            if (isValidAuthenticatorRedirectUri()) {
                 return;
             }
         }
@@ -624,10 +621,16 @@ public class PublicClientApplicationConfiguration {
     }
 
     private boolean isValidAuthenticatorRedirectUri() {
+        // This is an temporary fix to allow authenticator to migrate to MSAL
+        // For Legacy reason Authenticator still needs to pass in the old redirect uri to be able to
+        // have backward compatibility with older versions of BrokerHost (Company Portal)
+        // We should remove this check after the new Broker Host apps are released to >90% of production
+        // customer.
+        // ADO workitem for tracking: https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1576096
         try {
             final PackageInfo info = mAppContext.getPackageManager().getPackageInfo(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, PackageManager.GET_SIGNATURES);
             if (info != null && info.signatures != null && info.signatures.length > 0) {
-                Signature signature = info.signatures[0];
+                final Signature signature = info.signatures[0];
                 MessageDigest md = MessageDigest.getInstance("SHA");
                 md.update(signature.toByteArray());
                 final String signatureHash = Base64.encodeToString(md.digest(), Base64.NO_WRAP);
@@ -645,10 +648,10 @@ public class PublicClientApplicationConfiguration {
                     }
                 }
             }
-        }
-        catch (PackageManager.NameNotFoundException | NoSuchAlgorithmException e) {
+        } catch (final PackageManager.NameNotFoundException | NoSuchAlgorithmException e) {
             Logger.error(TAG, "Unexpected error in getting package info/signature for Autheticator", e);
         }
+
         return false;
     }
 }
