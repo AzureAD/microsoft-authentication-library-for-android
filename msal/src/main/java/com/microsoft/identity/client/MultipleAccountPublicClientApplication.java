@@ -48,6 +48,7 @@ import com.microsoft.identity.common.internal.dto.AccountRecord;
 import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
 import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
 import com.microsoft.identity.common.internal.result.ResultFuture;
+import com.microsoft.identity.common.logging.Logger;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -217,12 +218,13 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
             public void onMigrationFinished(int numberOfAccountsMigrated) {
                 final String methodName = ":getAccount";
 
-                com.microsoft.identity.common.internal.logging.Logger.verbose(
+                com.microsoft.identity.common.internal.logging.Logger.info(
                         TAG + methodName,
-                        "Get account with the identifier."
+                        "Get account with the identifier : " + identifier
                 );
 
                 try {
+                    final StringBuilder listofAccounts = new StringBuilder();
                     final CommandParameters params = CommandParametersAdapter.createCommandParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
                     final LoadAccountCommand loadAccountCommand = new LoadAccountCommand(
                             params,
@@ -235,15 +237,23 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                                 @Override
                                 public void onTaskCompleted(final List<ICacheRecord> result) {
                                     if (null == result || result.size() == 0) {
-                                        com.microsoft.identity.common.internal.logging.Logger.verbose(
+                                        com.microsoft.identity.common.internal.logging.Logger.info(
                                                 TAG + methodName,
                                                 "No account found.");
                                         callback.onTaskCompleted(null);
                                     } else {
+                                        Logger.info(TAG + methodName,
+                                                "Number of accounts found for identifier : " + identifier + " are : " + result.size());
                                         // First, transform the result into IAccount + TenantProfile form
                                         final List<IAccount>
                                                 accounts = AccountAdapter.adapt(result);
-
+                                        for (IAccount account : accounts){
+                                            listofAccounts.append(account.getId() + " ").append(account.getAuthority() + " ");
+                                        }
+                                        Logger.info(TAG + methodName,
+                                                "Account ID and Authority found for identifier : "
+                                                        + identifier + " are : "
+                                                        + listofAccounts.toString());
                                         final String trimmedIdentifier = identifier.trim();
 
                                         // Evaluation precedence...
@@ -260,11 +270,14 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
                                         for (final IAccount account : accounts) {
                                             if (accountMatcher.matches(trimmedIdentifier, account)) {
+                                                Logger.info(TAG + methodName,
+                                                        "Successful callback for identifier:" + identifier);
                                                 callback.onTaskCompleted(account);
                                                 return;
                                             }
                                         }
-
+                                        Logger.info(TAG + methodName,
+                                                "No accounts found callback for identifier:" + identifier);
                                         callback.onTaskCompleted(null);
                                     }
                                 }

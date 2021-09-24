@@ -2022,12 +2022,18 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         boolean matches(@NonNull final String identifier,
                         @NonNull final IAccount account) {
+            final String methodName = ":matches";
             boolean matches = false;
 
             for (final AccountMatcher matcher : mDelegateMatchers) {
                 matches = matcher.matches(identifier, account);
 
                 if (matches) {
+                    com.microsoft.identity.common.logging.Logger.info(
+                            TAG + methodName,
+                            "Successfull match for identifer: "
+                                    + identifier
+                    );
                     break;
                 }
             }
