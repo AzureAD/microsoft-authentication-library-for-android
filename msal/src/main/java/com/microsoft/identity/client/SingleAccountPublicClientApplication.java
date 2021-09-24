@@ -31,6 +31,7 @@ import androidx.annotation.WorkerThread;
 
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.CommandParametersAdapter;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
@@ -38,6 +39,7 @@ import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.common.adal.internal.util.JsonExtensions;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager;
+import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommandCallback;
 import com.microsoft.identity.common.java.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.java.commands.CommandCallback;
@@ -49,11 +51,14 @@ import com.microsoft.identity.common.java.controllers.BaseController;
 import com.microsoft.identity.common.java.controllers.CommandDispatcher;
 import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
+import com.microsoft.identity.common.java.exception.ServiceException;
 import com.microsoft.identity.common.java.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.java.exception.BaseException;
+import com.microsoft.identity.common.java.result.LocalAuthenticationResult;
 import com.microsoft.identity.common.java.util.ResultFuture;
 import com.microsoft.identity.common.logging.Logger;
 
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -703,5 +708,62 @@ public class SingleAccountPublicClientApplication
                 acquireTokenSilentParameters,
                 SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_WITH_PARAMETERS
         );
+    }
+
+    @Override
+    protected DeviceCodeFlowCommandCallback getDeviceCodeFlowCommandCallback(@NonNull final DeviceCodeFlowCallback callback) {
+        return new DeviceCodeFlowCommandCallback<LocalAuthenticationResult, BaseException>() {
+
+            @Override
+            public void onUserCodeReceived(@NonNull final String vUri,
+                                           @NonNull final String userCode,
+                                           @NonNull final String message,
+                                           @NonNull final Date sessionExpirationDate) {
+                callback.onUserCodeReceived(vUri, userCode, message, sessionExpirationDate);
+            }
+
+            @Override
+            public void onTaskCompleted(LocalAuthenticationResult tokenResult) {
+                // Convert tokenResult to an AuthenticationResult object
+                final IAuthenticationResult convertedResult = AuthenticationResultAdapter.adapt(
+                        tokenResult);
+
+                // Type cast the interface object
+                final AuthenticationResult authResult = (AuthenticationResult) convertedResult;
+
+                // Persist the account in single account mode
+                persistCurrentAccount(tokenResult.getCacheRecordWithTenantProfileData());
+
+                callback.onTokenReceived(authResult);
+            }
+
+            @Override
+            public void onError(BaseException error) {
+                final MsalException msalException;
+
+                if (error instanceof ServiceException) {
+                    msalException = new MsalServiceException(
+                            error.getErrorCode(),
+                            error.getMessage(),
+                            ((ServiceException) error).getHttpStatusCode(),
+                            error
+                    );
+                } else {
+                    msalException = new MsalClientException(
+                            error.getErrorCode(),
+                            error.getMessage(),
+                            error
+                    );
+                }
+
+                callback.onError(msalException);
+            }
+
+            @Override
+            public void onCancel() {
+                // Do nothing
+                // No current plans for allowing cancellation of DCF
+            }
+        };
     }
 }
