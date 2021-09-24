@@ -271,7 +271,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                                         for (final IAccount account : accounts) {
                                             if (accountMatcher.matches(trimmedIdentifier, account)) {
                                                 Logger.info(TAG + methodName,
-                                                        "Successful callback for identifier:" + identifier);
+                                                        "Account found, Successful callback for identifier:" + identifier);
                                                 callback.onTaskCompleted(account);
                                                 return;
                                             }
