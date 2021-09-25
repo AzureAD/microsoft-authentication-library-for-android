@@ -248,7 +248,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                                         final List<IAccount>
                                                 accounts = AccountAdapter.adapt(result);
                                         for (IAccount account : accounts){
-                                            listofAccounts.append(account.getId() + " - ").append(account.getAuthority() + "\n");
+                                            listofAccounts.append(account.getId()).append(" - ").append(account.getAuthority()).append("\n");
                                         }
                                         Logger.info(TAG + methodName,
                                                 "Account ID and Authority found for identifier : "
