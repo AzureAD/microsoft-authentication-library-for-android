@@ -216,7 +216,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         TokenMigrationCallback migrationCallback = new TokenMigrationCallback() {
             @Override
             public void onMigrationFinished(int numberOfAccountsMigrated) {
-                final String methodName = ":getAccount";
+                final String methodName = ":getAccountInternal";
 
                 com.microsoft.identity.common.internal.logging.Logger.info(
                         TAG + methodName,
@@ -243,7 +243,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                                         callback.onTaskCompleted(null);
                                     } else {
                                         Logger.info(TAG + methodName,
-                                                "Number of accounts found for identifier : " + identifier + " are : " + result.size());
+                                                "Number of accounts found for identifier before account matching: " + identifier + " are : " + result.size());
                                         // First, transform the result into IAccount + TenantProfile form
                                         final List<IAccount>
                                                 accounts = AccountAdapter.adapt(result);

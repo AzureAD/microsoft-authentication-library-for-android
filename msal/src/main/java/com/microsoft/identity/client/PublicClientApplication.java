@@ -2022,7 +2022,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         boolean matches(@NonNull final String identifier,
                         @NonNull final IAccount account) {
-            final String methodName = ":matches";
+            final String methodName = ":AccountMatchermatches";
             boolean matches = false;
 
             for (final AccountMatcher matcher : mDelegateMatchers) {
@@ -2031,7 +2031,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 if (matches) {
                     com.microsoft.identity.common.logging.Logger.info(
                             TAG + methodName,
-                            "Successfull match for identifer: "
+                            "Successful match for identifer: "
                                     + identifier
                     );
                     break;
@@ -2043,18 +2043,32 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     protected AccountMatcher homeAccountMatcher = new AccountMatcher() {
+        final String methodName = ":homeAccountMatcher";
         @Override
         boolean matches(@NonNull final String homeAccountId,
                         @NonNull final IAccount account) {
+            com.microsoft.identity.common.logging.Logger.info(
+                    TAG + methodName,
+                    "For homeAccountMatcher identifier: " + homeAccountId +
+                            " and account id :" + account.getId() +
+                            ", match : " + homeAccountId.contains(account.getId())
+            );
             return homeAccountId.contains(account.getId());
         }
     };
 
     protected AccountMatcher localAccountMatcher = new AccountMatcher() {
+        final String methodName = ":localAccountMatcher";
         @Override
         boolean matches(@NonNull final String localAccountId,
                         @NonNull final IAccount account) {
             // First, inspect the root account...
+            com.microsoft.identity.common.logging.Logger.info(
+                    TAG + methodName,
+                    "For localAccountId identifier: " + localAccountId +
+                            " and account id :" + account.getId() +
+                            ", match : " + localAccountId.contains(account.getId())
+            );
             if (localAccountId.contains(account.getId())) {
                 return true;
             } else if (account instanceof MultiTenantAccount) {
@@ -2064,6 +2078,22 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
                 if (null != tenantProfiles && !tenantProfiles.isEmpty()) {
                     for (final Map.Entry<String, ITenantProfile> profileEntry : tenantProfiles.entrySet()) {
+                        boolean isEmpty = TextUtils.isEmpty(profileEntry.getValue().getId());
+                        if(isEmpty){
+                            com.microsoft.identity.common.logging.Logger.info(
+                                    TAG + methodName,
+                                    "For localAccountId identifier: " + localAccountId +
+                                            " profileEntry getId() is empty."
+                            );
+                        } else {
+                            com.microsoft.identity.common.logging.Logger.info(
+                                    TAG + methodName,
+                                    "For localAccountId identifier: " + localAccountId +
+                                            " and profileEntry account id :" + profileEntry.getValue().getId() +
+                                            ", match : " + localAccountId.contains(profileEntry.getValue().getId())
+                            );
+                        }
+
                         if (!TextUtils.isEmpty(profileEntry.getValue().getId()) &&
                                 localAccountId.contains(profileEntry.getValue().getId())) {
                             return true;
@@ -2077,6 +2107,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     };
 
     protected AccountMatcher usernameMatcher = new AccountMatcher() {
+        final String methodName = ":usernameMatcher";
         @Override
         boolean matches(@NonNull final String username,
                         @NonNull final IAccount account) {
@@ -2100,6 +2131,25 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             }
 
             for (final IClaimable thingWithClaims : thingsWithClaims) {
+                if (null == thingWithClaims.getClaims()){
+                    com.microsoft.identity.common.logging.Logger.info(
+                            TAG + methodName,
+                            "For username identifier: " + username +
+                                    "thingWithClaims.getClaims() is null."
+                    );
+                } else {
+                    com.microsoft.identity.common.logging.Logger.info(
+                            TAG + methodName,
+                            "For username identifier: " + username +
+                                    " thingWithClaims.getClaims() id :" +
+                                    SchemaUtil.getDisplayableId(thingWithClaims.getClaims()) +
+                                    ", match : " + username.equalsIgnoreCase(
+                                    SchemaUtil.getDisplayableId(
+                                            thingWithClaims.getClaims()
+                                    )
+                            )
+                    );
+                }
                 if (null != thingWithClaims.getClaims()
                         && username.equalsIgnoreCase(
                         SchemaUtil.getDisplayableId(
@@ -2163,6 +2213,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     void performMigration(@NonNull final TokenMigrationCallback callback) {
+        final String methodName = ":performMigration";
+        com.microsoft.identity.common.logging.Logger.info(
+                TAG + methodName,
+                "Performing Migration, which starts the load account command."
+        );
         final Map<String, String> redirects = new HashMap<>();
         redirects.put(
                 mPublicClientConfiguration.getClientId(), // Our client id
