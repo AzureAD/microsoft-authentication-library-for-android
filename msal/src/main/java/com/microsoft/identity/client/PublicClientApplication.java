@@ -2051,7 +2051,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     TAG + methodName,
                     "For homeAccountMatcher identifier: " + homeAccountId +
                             " and account id :" + account.getId() +
-                            ", match : " + homeAccountId.contains(account.getId())
+                            ", match: " + homeAccountId.contains(account.getId())
             );
             return homeAccountId.contains(account.getId());
         }
