@@ -2101,7 +2101,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     }
                 }
             }
-
+            com.microsoft.identity.common.logging.Logger.info(
+                    TAG + methodName,
+                    "No match for localAccountId identifier: " + localAccountId
+            );
             return false;
         }
     };
