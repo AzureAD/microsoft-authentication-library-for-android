@@ -365,10 +365,10 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
     public void testCanAcquireTokenSilentlyAfterDeviceCode() {
         mSingleAccountPCA.acquireTokenWithDeviceCode(mScopes, new IPublicClientApplication.DeviceCodeFlowCallback() {
             @Override
-            public void onUserCodeReceived(@NonNull String vUri,
-                                           @NonNull String userCode,
-                                           @NonNull String message,
-                                           @NonNull Date sessionExpirationDate) {
+            public void onUserCodeReceived(final @NonNull String vUri,
+                                           final @NonNull String userCode,
+                                           final @NonNull String message,
+                                           final @NonNull Date sessionExpirationDate) {
                 // Assert that the protocol returns the userCode and others after successful authorization
                 Assert.assertNotNull(vUri);
                 Assert.assertNotNull(userCode);
