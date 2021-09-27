@@ -94,13 +94,6 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
         mockHttpClient.intercept(
                 HttpRequestMatcher.builder()
                         .isPOST()
-                        .urlPattern(DEVICE_CODE_FLOW_AUTHORIZATION_REGEX)
-                        .build(),
-                MockServerResponse.getMockDeviceCodeFlowAuthorizationHttpResponse()
-        );
-        mockHttpClient.intercept(
-                HttpRequestMatcher.builder()
-                        .isPOST()
                         .urlPattern(MOCK_TOKEN_URL_REGEX)
                         .build(),
                 MockServerResponse.getMockTokenSuccessResponse()
@@ -363,6 +356,18 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
 
     @Test
     public void testCanAcquireTokenSilentlyAfterDeviceCode() {
+        // Test sometimes fails because the url is sometimes matched to the token url in MOCK_TOKEN_URL_REGEX
+        // Test case will clear all previous matchers in HttpsClient and reload them as test goes on.
+        mockHttpClient.uninstall();
+
+        // Load Device Code Flow Authorization interceptor
+        mockHttpClient.intercept(
+                HttpRequestMatcher.builder()
+                        .isPOST()
+                        .urlPattern(DEVICE_CODE_FLOW_AUTHORIZATION_REGEX)
+                        .build(),
+                MockServerResponse.getMockDeviceCodeFlowAuthorizationHttpResponse()
+        );
         mSingleAccountPCA.acquireTokenWithDeviceCode(mScopes, new IPublicClientApplication.DeviceCodeFlowCallback() {
             @Override
             public void onUserCodeReceived(final @NonNull String vUri,
@@ -374,6 +379,15 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
                 Assert.assertNotNull(userCode);
                 Assert.assertNotNull(message);
                 Assert.assertNotNull(sessionExpirationDate);
+
+                // Load Token interceptor
+                mockHttpClient.intercept(
+                        HttpRequestMatcher.builder()
+                                .isPOST()
+                                .urlPattern(MOCK_TOKEN_URL_REGEX)
+                                .build(),
+                        MockServerResponse.getMockTokenSuccessResponse()
+                );
             }
             @Override
             public void onTokenReceived(@NonNull AuthenticationResult authResult) {
