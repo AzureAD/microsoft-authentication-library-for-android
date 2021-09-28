@@ -699,7 +699,7 @@ public class PublicClientApplicationConfiguration {
             }
         }
 
-        if (!isBrokerRedirectUri(mRedirectUri, mAppContext.getPackageName())) {
+        if (mAppContext != null && !isBrokerRedirectUri(mRedirectUri, mAppContext.getPackageName())) {
             // This means that the app is still using the legacy local-only MSAL Redirect uri (already removed from the new portal).
             // If this is the case, we can assume that the user doesn't need Broker support.
             Logger.warn(TAG, "The app is still using legacy MSAL redirect uri. Switch to MSAL local auth."
