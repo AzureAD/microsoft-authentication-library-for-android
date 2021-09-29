@@ -29,9 +29,12 @@ import com.microsoft.identity.client.ui.automation.sdk.AuthResult;
 
 import java.util.Map;
 
+import lombok.Getter;
+
 // MSAL Result Class to handle asserting success or failure on execution of Automated Test Cases
 public class MsalAuthResult extends AuthResult {
 
+    @Getter
     private Map<String, ?> claims;
 
     public MsalAuthResult(@NonNull final IAuthenticationResult authenticationResult) {

@@ -22,6 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.msal.automationapp.BuildConfig;
@@ -30,6 +31,7 @@ import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
+import com.microsoft.identity.client.ui.automation.installer.IAppInstaller;
 
 import java.util.Arrays;
 import java.util.List;
@@ -59,4 +61,30 @@ public class BrokerTestHelper {
                 throw new UnsupportedOperationException("Unsupported broker :(");
         }
     }
+
+    public static ITestBroker createBrokerFlavorFromSource(@Nullable final SupportedBrokers supportedBrokersAnnotation, @NonNull final IAppInstaller appSource) {
+        switch (BuildConfig.SELECTED_BROKER) {
+            case BuildConfig.BrokerHost:
+                return new BrokerHost();
+            case BuildConfig.BrokerMicrosoftAuthenticator:
+                return new BrokerMicrosoftAuthenticator(appSource);
+            case BuildConfig.BrokerCompanyPortal:
+                return new BrokerCompanyPortal(appSource);
+            case BuildConfig.AutoBroker: {
+                if (supportedBrokersAnnotation == null) {
+                    return new BrokerMicrosoftAuthenticator(appSource);
+                }
+                final List<Class<? extends ITestBroker>> supportedBrokerClasses =
+                        Arrays.asList(supportedBrokersAnnotation.brokers());
+                if (BuildConfig.FLAVOR_main.equals("dist") && supportedBrokerClasses.contains(BrokerCompanyPortal.class)) {
+                    return new BrokerCompanyPortal(appSource);
+                } else {
+                    return new BrokerMicrosoftAuthenticator(appSource);
+                }
+            }
+            default:
+                throw new UnsupportedOperationException("Unsupported broker :(");
+        }
+    }
+
 }
