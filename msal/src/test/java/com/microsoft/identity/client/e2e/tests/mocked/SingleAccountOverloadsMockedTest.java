@@ -393,6 +393,8 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
             @Override
             public void onTokenReceived(@NonNull IAuthenticationResult authResult) {
                 Assert.assertNotNull(authResult);
+                Assert.assertNotNull(authResult.getAccount());
+                Assert.assertFalse(StringUtil.isNullOrEmpty(authResult.getAccount().getIdToken()));
                 Assert.assertNotNull(authResult.getAccessToken());
                 AcquireTokenTestHelper.setAccount(authResult.getAccount());
             }
