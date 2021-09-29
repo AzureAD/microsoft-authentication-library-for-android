@@ -31,7 +31,6 @@ import com.microsoft.identity.client.Account;
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.AuthenticationCallback;
-import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IPublicClientApplication;
@@ -49,6 +48,7 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.java.exception.ServiceException;
 import com.microsoft.identity.common.java.providers.oauth2.IDToken;
+import com.microsoft.identity.common.java.util.StringUtil;
 import com.microsoft.identity.internal.testutils.HttpRequestMatcher;
 import com.microsoft.identity.internal.testutils.TestConstants;
 import com.microsoft.identity.internal.testutils.TestUtils;
@@ -375,9 +375,9 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
                                            final @NonNull String message,
                                            final @NonNull Date sessionExpirationDate) {
                 // Assert that the protocol returns the userCode and others after successful authorization
-                Assert.assertNotNull(vUri);
-                Assert.assertNotNull(userCode);
-                Assert.assertNotNull(message);
+                Assert.assertFalse(StringUtil.isNullOrEmpty(vUri));
+                Assert.assertFalse(StringUtil.isNullOrEmpty(userCode));
+                Assert.assertFalse(StringUtil.isNullOrEmpty(message));
                 Assert.assertNotNull(sessionExpirationDate);
 
                 // Load Token interceptor
@@ -389,15 +389,18 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
                         MockServerResponse.getMockTokenSuccessResponse()
                 );
             }
+
             @Override
-            public void onTokenReceived(@NonNull AuthenticationResult authResult) {
+            public void onTokenReceived(@NonNull IAuthenticationResult authResult) {
                 Assert.assertNotNull(authResult);
+                Assert.assertNotNull(authResult.getAccessToken());
                 AcquireTokenTestHelper.setAccount(authResult.getAccount());
             }
+
             @Override
-            public void onError(@NonNull MsalException error) {
+            public void onError(@NonNull MsalException exception) {
                 // This shouldn't run
-                Assert.fail();
+                throw new AssertionError(exception);
             }
         });
         RoboTestUtils.flushScheduler();

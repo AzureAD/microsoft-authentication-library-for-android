@@ -723,39 +723,19 @@ public class SingleAccountPublicClientApplication
             }
 
             @Override
-            public void onTaskCompleted(LocalAuthenticationResult tokenResult) {
+            public void onTaskCompleted(@NonNull final LocalAuthenticationResult tokenResult) {
                 // Convert tokenResult to an AuthenticationResult object
                 final IAuthenticationResult convertedResult = AuthenticationResultAdapter.adapt(
                         tokenResult);
 
-                // Type cast the interface object
-                final AuthenticationResult authResult = (AuthenticationResult) convertedResult;
-
                 // Persist the account in single account mode
                 persistCurrentAccount(tokenResult.getCacheRecordWithTenantProfileData());
-
-                callback.onTokenReceived(authResult);
+                callback.onTokenReceived(convertedResult);
             }
 
             @Override
-            public void onError(BaseException error) {
-                final MsalException msalException;
-
-                if (error instanceof ServiceException) {
-                    msalException = new MsalServiceException(
-                            error.getErrorCode(),
-                            error.getMessage(),
-                            ((ServiceException) error).getHttpStatusCode(),
-                            error
-                    );
-                } else {
-                    msalException = new MsalClientException(
-                            error.getErrorCode(),
-                            error.getMessage(),
-                            error
-                    );
-                }
-
+            public void onError(@NonNull final BaseException exception) {
+                final MsalException msalException = MsalExceptionAdapter.msalExceptionFromBaseException(exception);
                 callback.onError(msalException);
             }
 
