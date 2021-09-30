@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.common.internal.controllers;
 
+import com.microsoft.identity.common.java.controllers.CommandDispatcher;
+
 /**
  * A utility to invoke and/or provide few functionalities related to the the flow of Acquiring token.
  */

@@ -25,8 +25,6 @@ jobs:
     inputs:
       filename: echo
       arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN]$(mvnAccessToken)'
-    parameters:
-      policheckCmdLineArgsDir: msal
   - task: Gradle@1
     name: Gradle1
     displayName: Assemble Release
