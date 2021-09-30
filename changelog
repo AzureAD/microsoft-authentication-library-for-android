@@ -9,6 +9,7 @@ vNext
 - [PATCH] Update Nimbus dependency version (#1382)
 - [MAJOR] Migrate *TokenCache classes to common4j (#1652)
 - [MINOR] Adapt to BaseController migration (#1483)
+- [PATCH] Code coverage addition (#1480)
 
 Version 2.2.1
 ----------
