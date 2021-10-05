@@ -132,7 +132,7 @@ public class TestCase1136663 extends AbstractWpjTest{
         // Install cert
         mBrokerHost.enableBrowserAccess();
         //Perform Client TLS, Acquire Token
-        msalSdk.acquireTokenInteractive(getTlsAuthTestParams(), new OnInteractionRequired() {
+        final MsalAuthResult authResultTls = msalSdk.acquireTokenInteractive(getTlsAuthTestParams(), new OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
@@ -147,11 +147,6 @@ public class TestCase1136663 extends AbstractWpjTest{
                 new TlsPromptHandler(promptHandlerParameters)
                         .handlePrompt(username, password);
 
-            }
-        }, TokenRequestTimeout.MEDIUM);
-        final MsalAuthResult authResultTls = msalSdk.acquireTokenInteractive(getBasicAuthTestParams(), new OnInteractionRequired() {
-            @Override
-            public void handleUserInteraction() {
             }
         }, TokenRequestTimeout.MEDIUM);
         authResultTls.assertSuccess();

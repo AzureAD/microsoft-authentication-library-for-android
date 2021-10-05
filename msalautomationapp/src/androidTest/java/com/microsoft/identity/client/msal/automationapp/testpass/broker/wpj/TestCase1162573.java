@@ -115,7 +115,7 @@ public class TestCase1162573 extends AbstractWpjTest{
         Thread.sleep(TimeUnit.SECONDS.toMillis(3));
         azureSampleApp.confirmSignedIn(username);
         //Perform Client TLS, Acquire Token (User Should not be prompted)
-        msalSdk.acquireTokenInteractive(getTlsAuthTestParams(), new OnInteractionRequired() {
+        final MsalAuthResult authResultTls = msalSdk.acquireTokenInteractive(getTlsAuthTestParams(), new OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
@@ -130,12 +130,6 @@ public class TestCase1162573 extends AbstractWpjTest{
                 new TlsPromptHandler(promptHandlerParameters)
                         .handlePrompt(username, password);
 
-            }
-        }, TokenRequestTimeout.MEDIUM);
-        Thread.sleep(TimeUnit.SECONDS.toMillis(5));
-        final MsalAuthResult authResultTls = msalSdk.acquireTokenInteractive(getBasicAuthTestParams(), new OnInteractionRequired() {
-            @Override
-            public void handleUserInteraction() {
             }
         }, TokenRequestTimeout.MEDIUM);
         authResultTls.assertSuccess();

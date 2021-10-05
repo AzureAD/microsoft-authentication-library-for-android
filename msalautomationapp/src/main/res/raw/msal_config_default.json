@@ -11,8 +11,8 @@
     }
   ],
   "logging": {
-    "pii_enabled": false,
+    "pii_enabled": true,
     "log_level": "VERBOSE",
-    "logcat_enabled": false
+    "logcat_enabled": true
   }
 }

@@ -8,22 +8,26 @@ import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.BrokerTestHelper;
+import com.microsoft.identity.client.msal.automationapp.MsalLoggingRule;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.ui.automation.BuildConfig;
 import com.microsoft.identity.client.ui.automation.IBrokerHostTest;
 import com.microsoft.identity.client.ui.automation.IBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
+import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.installer.IAppInstaller;
 import com.microsoft.identity.client.ui.automation.installer.LocalApkInstaller;
 import com.microsoft.identity.client.ui.automation.installer.PlayStore;
+import com.microsoft.identity.client.ui.automation.rules.DevicePinSetupRule;
 import com.microsoft.identity.client.ui.automation.rules.RulesHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
+import org.junit.Rule;
 import org.junit.rules.RuleChain;
 
 import java.util.Arrays;
@@ -133,6 +137,10 @@ public abstract class AbstractWpjTest extends AbstractMsalUiTest implements IBro
     @Override
     public String getTempUserType() { return LabConstants.TempUserType.BASIC; }
 
+    @Override
+    public RuleChain getPrimaryRules() {
+        return RulesHelper.getPrimaryRules(getBroker());
+    }
 }
 
 

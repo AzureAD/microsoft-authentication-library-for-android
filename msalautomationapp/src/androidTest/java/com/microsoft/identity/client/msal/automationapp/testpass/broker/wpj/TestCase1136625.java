@@ -22,6 +22,9 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.wpj;
 
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.uiautomator.UiDevice;
+
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
@@ -35,6 +38,7 @@ import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.AbstractTestBroker;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
+import com.microsoft.identity.client.ui.automation.device.TestDevice;
 import com.microsoft.identity.client.ui.automation.installer.IAppInstaller;
 import com.microsoft.identity.client.ui.automation.installer.LocalApkInstaller;
 import com.microsoft.identity.client.ui.automation.installer.PlayStore;
@@ -117,7 +121,7 @@ public class TestCase1136625 extends AbstractWpjTest{
         // Install cert
         mBrokerHost.enableBrowserAccess();
         //Perform Client TLS, Acquire Token
-        msalSdk.acquireTokenInteractive(getTlsAuthTestParams(), new OnInteractionRequired() {
+        final MsalAuthResult authResultTls = msalSdk.acquireTokenInteractive(getTlsAuthTestParams(), new OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
@@ -132,11 +136,6 @@ public class TestCase1136625 extends AbstractWpjTest{
                 new TlsPromptHandler(promptHandlerParameters)
                         .handlePrompt(username, password);
 
-            }
-        }, TokenRequestTimeout.MEDIUM);
-        final MsalAuthResult authResultTls = msalSdk.acquireTokenInteractive(getBasicAuthTestParams(), new OnInteractionRequired() {
-            @Override
-            public void handleUserInteraction() {
             }
         }, TokenRequestTimeout.MEDIUM);
         authResultTls.assertSuccess();
