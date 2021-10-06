@@ -1,5 +1,6 @@
 package com.microsoft.identity.client.msal.automationapp.testpass.network;
 
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
@@ -15,15 +16,43 @@ import com.microsoft.identity.client.ui.automation.annotations.NetworkTestTimeou
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.client.ui.automation.rules.NetworkTestRule;
+import com.microsoft.identity.client.ui.automation.network.runners.NetworkTestRunner;
+import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
+import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
+import com.microsoft.identity.common.java.cache.SharedPreferencesAccountCredentialCache;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 
-import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
+import java.io.File;
 import java.util.Arrays;
 
+@RunWith(NetworkTestRunner.class)
 public class TestCaseNetwork extends BaseMsalUiNetworkTest {
+
+    @Override
+    public void setup() {
+        Log.d("NetworkTestRule", "Running test setup");
+        super.setup();
+    }
+
+    @Override
+    public void cleanup() {
+        Log.d("NetworkTestRule", "Running test clean up.");
+        super.cleanup();
+
+        boolean mainActivityFocused = mActivity.hasWindowFocus();
+
+        if (!mainActivityFocused) {
+            UiAutomatorUtils.pressBack();
+            Log.d("NetworkTestRule", "Pressing the back button...");
+        }
+
+        CommonUtils.deleteDirectory(mContext.getCacheDir());
+        CommonUtils.deleteDirectory(mContext.getDir("webview", 0));
+        mContext.deleteSharedPreferences(SharedPreferencesAccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES);
+    }
 
     @NetworkStatesFile("input_acquireTokenWithoutBroker.csv")
     @NetworkTestTimeout(seconds = 120)

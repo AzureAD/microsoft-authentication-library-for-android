@@ -22,7 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.network;
 
-import androidx.test.core.app.ApplicationProvider;
+import android.util.Log;
 
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.IAuthenticationResult;
@@ -30,13 +30,14 @@ import com.microsoft.identity.client.SilentAuthenticationCallback;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
-import com.microsoft.identity.client.ui.automation.network.NetworkTestStateManager;
 import com.microsoft.identity.client.ui.automation.rules.NetworkTestRule;
+import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
 import org.junit.Rule;
 
+import java.io.File;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -49,12 +50,12 @@ public abstract class BaseMsalUiNetworkTest extends AbstractMsalUiTest {
 
     @Override
     public void setup() {
-        mContext = ApplicationProvider.getApplicationContext();
-
-        // Turn WIFI ON before running the first test.
-        NetworkTestStateManager.resetNetworkState(mContext);
-
         super.setup();
+    }
+
+    @Override
+    public void cleanup() {
+        super.cleanup();
     }
 
     @Override
@@ -69,6 +70,7 @@ public abstract class BaseMsalUiNetworkTest extends AbstractMsalUiTest {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
                 latch.countDown();
+                Log.d("NetworkTestRule", "Token: " + authenticationResult.getAccessToken());
                 networkTestRule.setResult(authenticationResult);
             }
 
