@@ -69,12 +69,21 @@ public abstract class AbstractWpjTest extends AbstractMsalUiTest implements IBro
         return mBroker;
     }
 
+    /**
+     * Run LabUserQuery to get a cloud device administrator user
+     *
+     * @return cloud device administrator user
+     */
     public String getLabUserForCloudDeviceAdmin() {
         final LabUserQuery query = new LabUserQuery();
         query.userRole = LabConstants.UserRole.CLOUD_DEVICE_ADMINISTRATOR;
         return LabUserHelper.loadUserForTest(query);
     }
 
+
+    /**
+     * Build MSAL acquire token parameters with default configuration for WPJ test cases
+     */
     public final MsalAuthTestParams getBasicAuthTestParams() {
         return MsalAuthTestParams.builder()
                 .activity(mActivity)
@@ -85,30 +94,31 @@ public abstract class AbstractWpjTest extends AbstractMsalUiTest implements IBro
                 .build();
     }
 
+    /**
+     * Build MSAL acquire token parameters required to perform Client TLS
+     * https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1162698
+     */
     public final MsalAuthTestParams getTlsAuthTestParams() {
+        // request the deviceid claim in AT Token
+        final ClaimsRequest claimsRequest = new ClaimsRequest();
+        final RequestedClaimAdditionalInformation requestedClaimAdditionalInformation =
+                new RequestedClaimAdditionalInformation();
+        requestedClaimAdditionalInformation.setEssential(true);
+        // claim {"access_token":{"deviceid":{"essential":true}}}
+        claimsRequest.requestClaimInAccessToken("deviceid", requestedClaimAdditionalInformation);
         return MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(mLoginHint)
                 .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
-                .msalConfigResourceId(getTslConfigFileResourceId())
-                .claims(getTslClaim())
+                .msalConfigResourceId(R.raw.msal_config_instance_aware_common_skip_broker)
+                .claims(claimsRequest)
                 .build();
     }
 
-    private int getTslConfigFileResourceId() {
-        return R.raw.msal_config_instance_aware_common_skip_broker;
-    }
-
-    private ClaimsRequest getTslClaim() {
-        // claim {"access_token":{"deviceid":{"essential":true}}}
-        final ClaimsRequest claimsRequest = new ClaimsRequest();
-        final RequestedClaimAdditionalInformation requestedClaimAdditionalInformation =
-                new RequestedClaimAdditionalInformation();
-        requestedClaimAdditionalInformation.setEssential(true);
-        // request the deviceid claim in AT Token
-        claimsRequest.requestClaimInAccessToken("deviceid", requestedClaimAdditionalInformation);
-        return claimsRequest;
+    @Override
+    public int getConfigFileResourceId() {
+        return R.raw.msal_config_default;
     }
 
     @Override
@@ -119,11 +129,6 @@ public abstract class AbstractWpjTest extends AbstractMsalUiTest implements IBro
     @Override
     public String[] getScopes() {
         return new String[]{"User.read"};
-    }
-
-    @Override
-    public int getConfigFileResourceId() {
-        return R.raw.msal_config_default;
     }
 
     @Override
