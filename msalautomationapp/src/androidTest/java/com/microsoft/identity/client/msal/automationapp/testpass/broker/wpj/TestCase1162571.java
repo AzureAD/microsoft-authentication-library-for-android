@@ -55,12 +55,12 @@ import java.util.concurrent.TimeUnit;
 public class TestCase1162571 extends AbstractWpjTest{
 
     @Override
-    protected IAppInstaller getBrokerSource(){
+    protected IAppInstaller brokerInstallationSource(){
         return new PlayStore();
     }
 
     @Override
-    protected String getBrokerHostApkName(){
+    protected String brokerHostApkName(){
         return BrokerHost.BROKER_HOST_APK_RC;
     }
 

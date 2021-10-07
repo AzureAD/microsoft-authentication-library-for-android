@@ -44,14 +44,14 @@ public abstract class AbstractWpjTest extends AbstractMsalUiTest implements IBro
     @Nullable
     protected abstract IAppInstaller brokerInstallationSource();
     @Nullable
-    protected abstract String brokerHostInstallationSource();
+    protected abstract String brokerHostApkName();
 
     @NonNull
     @Override
     public BrokerHost getBrokerHost() {
         // only initialize once....so calling getBrokerHost from anywhere returns the same instance
         if (mBrokerHost == null) {
-            final String brokerHostApkName = brokerHostInstallationSource();
+            final String brokerHostApkName = brokerHostApkName();
             mBrokerHost = new BrokerHost(brokerHostApkName);
         }
         return mBrokerHost;
