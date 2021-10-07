@@ -37,32 +37,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class BrokerTestHelper {
-    public static ITestBroker createBrokerFromFlavor(@Nullable final SupportedBrokers supportedBrokersAnnotation) {
-        switch (BuildConfig.SELECTED_BROKER) {
-            case BuildConfig.BrokerHost:
-                return new BrokerHost();
-            case BuildConfig.BrokerMicrosoftAuthenticator:
-                return new BrokerMicrosoftAuthenticator();
-            case BuildConfig.BrokerCompanyPortal:
-                return new BrokerCompanyPortal();
-            case BuildConfig.AutoBroker: {
-                if (supportedBrokersAnnotation == null) {
-                    return new BrokerMicrosoftAuthenticator();
-                }
-                final List<Class<? extends ITestBroker>> supportedBrokerClasses =
-                        Arrays.asList(supportedBrokersAnnotation.brokers());
-                if (BuildConfig.FLAVOR_main.equals("dist") && supportedBrokerClasses.contains(BrokerCompanyPortal.class)) {
-                    return new BrokerCompanyPortal();
-                } else {
-                    return new BrokerMicrosoftAuthenticator();
-                }
-            }
-            default:
-                throw new UnsupportedOperationException("Unsupported broker :(");
-        }
-    }
-
-    public static ITestBroker createBrokerFlavorFromSource(@Nullable final SupportedBrokers supportedBrokersAnnotation, @NonNull final IAppInstaller appSource) {
+    public static ITestBroker createBrokerFromFlavor(@Nullable final SupportedBrokers supportedBrokersAnnotation, @Nullable final IAppInstaller appSource) {
         switch (BuildConfig.SELECTED_BROKER) {
             case BuildConfig.BrokerHost:
                 return new BrokerHost();

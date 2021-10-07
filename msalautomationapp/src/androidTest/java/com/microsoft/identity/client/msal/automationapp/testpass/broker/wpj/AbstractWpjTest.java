@@ -2,6 +2,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.wpj;
 
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.claims.ClaimsRequest;
@@ -11,6 +12,7 @@ import com.microsoft.identity.client.msal.automationapp.BrokerTestHelper;
 import com.microsoft.identity.client.msal.automationapp.MsalLoggingRule;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
+import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.BuildConfig;
 import com.microsoft.identity.client.ui.automation.IBrokerHostTest;
 import com.microsoft.identity.client.ui.automation.IBrokerTest;
@@ -37,41 +39,34 @@ import java.util.Arrays;
  */
 public abstract class AbstractWpjTest extends AbstractMsalUiTest implements IBrokerTest, IBrokerHostTest {
 
-    protected ITestBroker mBroker = getBroker();
     protected BrokerHost mBrokerHost = getBrokerHost();
-
-    @NonNull
-    @Override
-    public ITestBroker getBroker() {
-        if (mBroker == null) {
-            final IAppInstaller mBrokerSource = getBrokerSource();
-            final SupportedBrokers supportedBrokersAnnotation = getClass().getAnnotation(SupportedBrokers.class);
-            mBroker = BrokerTestHelper.createBrokerFlavorFromSource(supportedBrokersAnnotation, mBrokerSource);
-        }
-        return mBroker;
-    }
+    protected ITestBroker mBroker = getBroker();
+    @Nullable
+    protected abstract IAppInstaller brokerInstallationSource();
+    @Nullable
+    protected abstract String brokerHostInstallationSource();
 
     @NonNull
     @Override
     public BrokerHost getBrokerHost() {
+        // only initialize once....so calling getBrokerHost from anywhere returns the same instance
         if (mBrokerHost == null) {
-            final String brokerHostApkName = getBrokerHostApkName();
-            if (null == brokerHostApkName){
-                mBrokerHost = new BrokerHost();
-            }else{
-                mBrokerHost = new BrokerHost(brokerHostApkName);
-            }
+            final String brokerHostApkName = brokerHostInstallationSource();
+            mBrokerHost = new BrokerHost(brokerHostApkName);
         }
         return mBrokerHost;
     }
 
-    protected IAppInstaller getBrokerSource(){
-        return BuildConfig.INSTALL_SOURCE_LOCAL_APK
-                .equalsIgnoreCase(BuildConfig.BROKER_INSTALL_SOURCE)
-                ? new LocalApkInstaller() : new PlayStore();
-    }
-    protected String getBrokerHostApkName(){
-        return null;
+    @NonNull
+    @Override
+    public ITestBroker getBroker() {
+        // only initialize once....so calling getBroker from anywhere returns the same instance
+        if (mBroker == null) {
+            final IAppInstaller mBrokerSource = brokerInstallationSource();
+            final SupportedBrokers supportedBrokersAnnotation = getClass().getAnnotation(SupportedBrokers.class);
+            mBroker = BrokerTestHelper.createBrokerFromFlavor(supportedBrokersAnnotation, mBrokerSource);
+        }
+        return mBroker;
     }
 
     public String getLabUserForCloudDeviceAdmin() {
