@@ -9,7 +9,6 @@ import androidx.annotation.NonNull;
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.AuthenticationCallback;
-import com.microsoft.identity.client.AuthenticationResult;
 import com.microsoft.identity.client.HttpMethod;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
@@ -218,7 +217,7 @@ abstract class MsalWrapper {
                     }
 
                     @Override
-                    public void onTokenReceived(@NonNull AuthenticationResult authResult) {
+                    public void onTokenReceived(@NonNull IAuthenticationResult authResult) {
                         callback.onSuccess(authResult);
                     }
 
