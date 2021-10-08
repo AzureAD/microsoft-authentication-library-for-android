@@ -223,7 +223,6 @@ ext.createCoverageTask = { buildVariant, testType ->
 
 dependencies {
 
-    androidTestImplementation project(path: ':LabApiUtilities')
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
 
     // Compile Dependency
@@ -247,6 +246,10 @@ dependencies {
         exclude module: 'appcompat'
     }
     implementation(project(":uiautomationutilities")) {
+        exclude module: 'common'
+        exclude module: 'appcompat'
+    }
+    implementation(project(":LabApiUtilities")) {
         exclude module: 'common'
         exclude module: 'appcompat'
     }

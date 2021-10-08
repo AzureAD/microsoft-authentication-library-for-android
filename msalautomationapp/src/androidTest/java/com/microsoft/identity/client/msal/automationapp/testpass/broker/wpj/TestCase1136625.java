@@ -70,8 +70,8 @@ public class TestCase1136625 extends AbstractWpjTest{
 
     @Override
     protected String brokerHostApkName(){ return BrokerHost.BROKER_HOST_APK_PROD; }
-
-    @Test
+    // TODO Uncomment test once it is possible to download Authenticator in ADO
+    // @Test
     public void test_1136625() throws Throwable {
 
         final String username = mLoginHint;
