@@ -42,6 +42,7 @@ import androidx.browser.customtabs.CustomTabsService;
 
 import com.microsoft.identity.client.BrowserTabActivity;
 import com.microsoft.identity.client.exception.MsalArgumentException;
+import com.microsoft.identity.common.logging.Logger;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -236,11 +237,16 @@ public final class MsalUtils {
      */
     public static boolean hasCustomTabRedirectActivity(@NonNull final Context context,
                                                        @NonNull final String url) {
+        final String methodName = "methodName";
+
         final PackageManager packageManager = context.getPackageManager();
 
         if (packageManager == null) {
+            Logger.info(TAG + methodName, "PackageManager is null");
             return false;
         }
+
+        Logger.info(TAG + methodName, "Querying intent activities with URI:" + url);
 
         final Intent intent = new Intent();
         intent.setAction(Intent.ACTION_VIEW);
@@ -253,15 +259,21 @@ public final class MsalUtils {
                 PackageManager.GET_RESOLVED_FILTER
         );
 
+        Logger.info(TAG + methodName, "Found " + resolveInfoList.size() + "resolveInfo");
+
         // resolve info list will never be null, if no matching activities are found, empty list will be returned.
         boolean hasActivity = false;
 
         for (final ResolveInfo info : resolveInfoList) {
-            final ActivityInfo activityInfo = info.activityInfo;
+            Logger.info(TAG + methodName, "ResolveInfo: " + info);
 
+            final ActivityInfo activityInfo = info.activityInfo;
             if (activityInfo.name.equals(BrowserTabActivity.class.getName())) {
                 hasActivity = true;
             } else {
+                Logger.warn(TAG + methodName, "another application is listening for this url scheme. " +
+                        "activityInfo.name: " + activityInfo.name +
+                        "activityInfo.packageName: " + activityInfo.packageName);
                 // another application is listening for this url scheme, don't open
                 // Custom Tab for security reasons
                 return false;

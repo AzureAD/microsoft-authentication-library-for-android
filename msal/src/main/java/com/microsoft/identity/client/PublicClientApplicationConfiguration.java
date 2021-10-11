@@ -519,10 +519,13 @@ public class PublicClientApplicationConfiguration {
 
     @SuppressWarnings("PMD")
     public void checkIntentFilterAddedToAppManifestForBrokerFlow() throws MsalClientException {
+        final String methodName = "checkIntentFilterAddedToAppManifestForBrokerFlow";
         final boolean hasCustomTabRedirectActivity = MsalUtils.hasCustomTabRedirectActivity(
                 mAppContext,
                 mRedirectUri
         );
+
+        com.microsoft.identity.common.logging.Logger.info(TAG + methodName, "hasCustomTabRedirectActivity = " + hasCustomTabRedirectActivity);
 
         if ((getAuthorizationAgent() == AuthorizationAgent.DEFAULT
                 || getAuthorizationAgent() == AuthorizationAgent.BROWSER)
