@@ -254,6 +254,8 @@ public final class MsalUtils {
         intent.addCategory(Intent.CATEGORY_BROWSABLE);
         intent.setDataAndNormalize(Uri.parse(url));
 
+        Logger.info(TAG + methodName, "Intent getData:" + intent.getData());
+
         final List<ResolveInfo> resolveInfoList = packageManager.queryIntentActivities(
                 intent,
                 PackageManager.GET_RESOLVED_FILTER
