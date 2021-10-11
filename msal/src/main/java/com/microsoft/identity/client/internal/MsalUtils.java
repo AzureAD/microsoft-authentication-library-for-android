@@ -42,7 +42,7 @@ import androidx.browser.customtabs.CustomTabsService;
 
 import com.microsoft.identity.client.BrowserTabActivity;
 import com.microsoft.identity.client.exception.MsalArgumentException;
-import com.microsoft.identity.common.logging.Logger;
+import com.microsoft.identity.common.internal.logging.Logger;
 
 import org.json.JSONException;
 import org.json.JSONObject;

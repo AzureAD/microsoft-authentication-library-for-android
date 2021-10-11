@@ -525,7 +525,7 @@ public class PublicClientApplicationConfiguration {
                 mRedirectUri
         );
 
-        com.microsoft.identity.common.logging.Logger.info(TAG + methodName, "hasCustomTabRedirectActivity = " + hasCustomTabRedirectActivity);
+        Logger.info(TAG + methodName, "hasCustomTabRedirectActivity = " + hasCustomTabRedirectActivity);
 
         if ((getAuthorizationAgent() == AuthorizationAgent.DEFAULT
                 || getAuthorizationAgent() == AuthorizationAgent.BROWSER)
