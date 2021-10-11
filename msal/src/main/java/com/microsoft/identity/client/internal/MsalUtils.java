@@ -237,7 +237,7 @@ public final class MsalUtils {
      */
     public static boolean hasCustomTabRedirectActivity(@NonNull final Context context,
                                                        @NonNull final String url) {
-        final String methodName = "methodName";
+        final String methodName = "hasCustomTabRedirectActivity";
 
         final PackageManager packageManager = context.getPackageManager();
 
