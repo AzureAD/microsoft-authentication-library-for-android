@@ -274,9 +274,9 @@ dependencies {
         transitive = false
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.6.2', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.6.3', changing: true)
 
-    distApi("com.microsoft.identity:common:3.6.2") {
+    distApi("com.microsoft.identity:common:3.6.3") {
         transitive = false
     }
 }
