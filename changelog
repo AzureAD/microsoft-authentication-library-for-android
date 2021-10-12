@@ -2,6 +2,10 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 Version 2.2.1
 ----------
+- Picks up common@3.6.3
+
+Version 2.2.1
+----------
 - [PATCH] Picks up common@3.6.2
 - [PATCH] Allow Authenticator to pass older format for redirect uri (#1517)
 
