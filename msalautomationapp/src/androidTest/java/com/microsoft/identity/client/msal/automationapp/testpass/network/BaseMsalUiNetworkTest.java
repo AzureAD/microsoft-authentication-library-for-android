@@ -22,8 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.network;
 
-import android.util.Log;
-
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
@@ -31,13 +29,12 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.ui.automation.rules.NetworkTestRule;
-import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
+import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
 import org.junit.Rule;
 
-import java.io.File;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -45,7 +42,7 @@ import java.util.concurrent.CountDownLatch;
  */
 public abstract class BaseMsalUiNetworkTest extends AbstractMsalUiTest {
 
-    @Rule(order = 3)
+    @Rule(order = 20)
     public NetworkTestRule<IAuthenticationResult> networkTestRule = new NetworkTestRule<>();
 
     @Override
@@ -56,6 +53,11 @@ public abstract class BaseMsalUiNetworkTest extends AbstractMsalUiTest {
     @Override
     public void cleanup() {
         super.cleanup();
+        final boolean mainActivityFocused = mActivity.hasWindowFocus();
+
+        if (!mainActivityFocused) {
+            UiAutomatorUtils.pressBack();
+        }
     }
 
     @Override
@@ -70,7 +72,6 @@ public abstract class BaseMsalUiNetworkTest extends AbstractMsalUiTest {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
                 latch.countDown();
-                Log.d("NetworkTestRule", "Token: " + authenticationResult.getAccessToken());
                 networkTestRule.setResult(authenticationResult);
             }
 

@@ -43,6 +43,7 @@ import com.microsoft.identity.client.ui.automation.IRuleBasedTest;
 import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
 import com.microsoft.identity.client.ui.automation.browser.IBrowser;
 import com.microsoft.identity.client.ui.automation.rules.RulesHelper;
+import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
 
@@ -90,8 +91,12 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
         mScopes = getScopes();
         mBrowser = getBrowser();
 
-        // clear all cookies in the browser
-        mBrowser.clear();
+        // clear all cookies in the browser and in the WebView
+        try {
+            mBrowser.clear();
+            CommonUtils.clearCookiesSync(mActivity);
+        } catch (InterruptedException ignored) {
+        }
 
         mContext = ApplicationProvider.getApplicationContext();
         setupPCA();

@@ -1,8 +1,5 @@
 package com.microsoft.identity.client.msal.automationapp.testpass.network;
 
-import android.content.SharedPreferences;
-import android.util.Log;
-
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IAccount;
@@ -11,21 +8,18 @@ import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveR
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
-import com.microsoft.identity.client.ui.automation.annotations.NetworkStatesFile;
-import com.microsoft.identity.client.ui.automation.annotations.NetworkTestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.NetworkTest;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.client.ui.automation.network.NetworkTestConstants;
 import com.microsoft.identity.client.ui.automation.network.runners.NetworkTestRunner;
-import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
-import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
-import com.microsoft.identity.common.java.cache.SharedPreferencesAccountCredentialCache;
+import com.microsoft.identity.client.ui.automation.reporting.Timeline;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
 import java.util.Arrays;
 
 @RunWith(NetworkTestRunner.class)
@@ -33,33 +27,20 @@ public class TestCaseNetwork extends BaseMsalUiNetworkTest {
 
     @Override
     public void setup() {
-        Log.d("NetworkTestRule", "Running test setup");
+        Timeline.start(NetworkTestConstants.TimelineEntities.TEST_EXECUTION_STAGE, "Setting up test");
         super.setup();
+        Timeline.finish(NetworkTestConstants.TimelineEntities.TEST_EXECUTION_STAGE);
     }
 
-    @Override
-    public void cleanup() {
-        Log.d("NetworkTestRule", "Running test clean up.");
-        super.cleanup();
-
-        boolean mainActivityFocused = mActivity.hasWindowFocus();
-
-        if (!mainActivityFocused) {
-            UiAutomatorUtils.pressBack();
-            Log.d("NetworkTestRule", "Pressing the back button...");
-        }
-
-        CommonUtils.deleteDirectory(mContext.getCacheDir());
-        CommonUtils.deleteDirectory(mContext.getDir("webview", 0));
-        mContext.deleteSharedPreferences(SharedPreferencesAccountCredentialCache.DEFAULT_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES);
-    }
-
-    @NetworkStatesFile("input_acquireTokenWithoutBroker.csv")
-    @NetworkTestTimeout(seconds = 120)
+    @NetworkTest(
+            inputFile = "input_acquireTokenWithoutBroker.csv",
+            testTimeout = 120
+    )
     @Test
-    public void test_acquireTokenWithoutBroker() {
-        Log.d("NetworkTestRule", "Running test....");
+    public void test_acquireTokenWithoutBroker() throws InterruptedException {
+        Timeline.start(NetworkTestConstants.TimelineEntities.TEST_EXECUTION_STAGE, "Test for acquire token");
         TokenRequestLatch tokenRequestLatch = new TokenRequestLatch(1);
+
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
                 .withLoginHint(mLoginHint)
@@ -94,14 +75,15 @@ public class TestCaseNetwork extends BaseMsalUiNetworkTest {
 
         interactiveRequest.execute();
 
-        tokenRequestLatch.await(TokenRequestTimeout.SHORT);
+        tokenRequestLatch.await();
 
-        mBrowser.clear();
-        mAccount = null;
+        Timeline.finish(NetworkTestConstants.TimelineEntities.TEST_EXECUTION_STAGE);
     }
 
-    @NetworkStatesFile("input_acquireTokenSilentWithoutBroker.csv")
-    @NetworkTestTimeout(seconds = 120)
+    @NetworkTest(
+            inputFile = "input_acquireTokenSilentWithoutBroker.csv",
+            testTimeout = 120
+    )
     @Test
     public void test_acquireTokenSilentWithoutBroker() {
         final TokenRequestLatch latch = new TokenRequestLatch(1);
