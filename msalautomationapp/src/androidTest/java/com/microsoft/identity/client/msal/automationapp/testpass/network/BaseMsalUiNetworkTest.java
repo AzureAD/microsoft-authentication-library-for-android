@@ -43,7 +43,7 @@ import java.util.concurrent.CountDownLatch;
 public abstract class BaseMsalUiNetworkTest extends AbstractMsalUiTest {
 
     @Rule(order = 20)
-    public NetworkTestRule<IAuthenticationResult> networkTestRule = new NetworkTestRule<>();
+    public NetworkTestRule networkTestRule = new NetworkTestRule();
 
     @Override
     public void setup() {
@@ -72,7 +72,7 @@ public abstract class BaseMsalUiNetworkTest extends AbstractMsalUiTest {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
                 latch.countDown();
-                networkTestRule.setResult(authenticationResult);
+                networkTestRule.setResult("Access token: " + authenticationResult.getAccessToken());
             }
 
             @Override
@@ -89,7 +89,7 @@ public abstract class BaseMsalUiNetworkTest extends AbstractMsalUiTest {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
                 latch.countDown();
-                networkTestRule.setResult(authenticationResult);
+                networkTestRule.setResult("Access token: " + authenticationResult.getAccessToken());
             }
 
             @Override
