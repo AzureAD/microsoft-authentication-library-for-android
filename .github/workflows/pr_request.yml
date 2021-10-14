@@ -1,0 +1,24 @@
+# This is a workflow to run the deploy snapshot pipeline in Azure DevOps
+name: pr_validation
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the dev branch
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
+    branches: [ dev ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # Make sure we have a changelog entry
+  changelog:
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dangoslen/changelog-enforcer@v1.4.0
+        with:
+          changeLogPath: 'CHANGELOG'
+          skipLabel: 'No-Changelog'
+
