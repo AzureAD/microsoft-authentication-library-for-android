@@ -151,7 +151,7 @@ public class TestCase1136627 extends AbstractWpjTest{
         Thread.sleep(TimeUnit.SECONDS.toMillis(5));
         try {
             final boolean deviceDeleted = LabDeviceHelper.deleteDevice(accountUpn, deviceId);
-        } catch (LabApiException e) {
+        } catch (final LabApiException e) {
             Assert.assertTrue(e.getCode() == 400);
         }
     }

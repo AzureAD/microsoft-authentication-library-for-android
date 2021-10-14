@@ -71,7 +71,7 @@ public class TestCase1136625 extends AbstractWpjTest{
     @Override
     protected String brokerHostApkName(){ return BrokerHost.BROKER_HOST_APK_PROD; }
     // TODO Uncomment test once it is possible to download Authenticator in ADO
-    // @Test
+    @Test
     public void test_1136625() throws Throwable {
 
         final String username = mLoginHint;
@@ -153,7 +153,7 @@ public class TestCase1136625 extends AbstractWpjTest{
         Thread.sleep(TimeUnit.SECONDS.toMillis(5));
         try {
             final boolean deviceDeleted = LabDeviceHelper.deleteDevice(accountUpn, deviceId);
-        } catch (LabApiException e) {
+        } catch (final LabApiException e) {
             Assert.assertTrue(e.getCode() == 400);
         }
     }

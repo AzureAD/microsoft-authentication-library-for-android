@@ -27,6 +27,7 @@ import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.msal.automationapp.BuildConfig;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
+import com.microsoft.identity.client.ui.automation.broker.AbstractTestBroker;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
@@ -37,7 +38,13 @@ import java.util.Arrays;
 import java.util.List;
 
 public class BrokerTestHelper {
-    public static ITestBroker createBrokerFromFlavor(@Nullable final SupportedBrokers supportedBrokersAnnotation, @Nullable final IAppInstaller appSource) {
+    public static ITestBroker createBrokerFromFlavor(@Nullable final SupportedBrokers supportedBrokersAnnotation, @NonNull final IAppInstaller appSource) {
+        return internalCreateBrokerFromFlavor(supportedBrokersAnnotation, appSource);
+    }
+    public static ITestBroker createBrokerFromFlavor(@Nullable final SupportedBrokers supportedBrokersAnnotation){
+        return internalCreateBrokerFromFlavor(supportedBrokersAnnotation, AbstractTestBroker.DEFAULT_BROKER_APP_INSTALLER);
+    }
+    private static ITestBroker internalCreateBrokerFromFlavor(@Nullable final SupportedBrokers supportedBrokersAnnotation, @NonNull final IAppInstaller appSource) {
         switch (BuildConfig.SELECTED_BROKER) {
             case BuildConfig.BrokerHost:
                 return new BrokerHost();
