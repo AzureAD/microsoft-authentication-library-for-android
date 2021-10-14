@@ -43,14 +43,12 @@ import androidx.browser.customtabs.CustomTabsService;
 import com.microsoft.identity.client.BrowserTabActivity;
 import com.microsoft.identity.client.CurrentTaskBrowserTabActivity;
 import com.microsoft.identity.client.exception.MsalArgumentException;
-import com.microsoft.identity.common.internal.configuration.LibraryConfiguration;
+import com.microsoft.identity.common.java.configuration.LibraryConfiguration;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
@@ -125,6 +123,7 @@ public final class MsalUtils {
 
     /**
      * Throws MsalArgumentException if the argument is null or empty
+     *
      * @param o
      * @param argName
      * @throws MsalArgumentException
@@ -229,13 +228,14 @@ public final class MsalUtils {
     }
 
     /**
-     * hasCustomTabRedirectActivity - Ensures that the developer has properly configured their
+     * Ensures that the developer has properly configured their
      * AndroidManifest to expose the BrowserTabActivity.
      *
-     * @param context
-     * @param url
-     * @return
+     * @param context the context of the application
+     * @param url     the redirect uri of the app
+     * @return a boolean indicating if BrowserTabActivity is configured or not
      */
+    @Deprecated
     public static boolean hasCustomTabRedirectActivity(@NonNull final Context context,
                                                        @NonNull final String url) {
         final PackageManager packageManager = context.getPackageManager();
@@ -455,27 +455,6 @@ public final class MsalUtils {
             return new String(Base64.encode(digester.digest(msgInBytes), Base64.NO_WRAP), ENCODING_UTF8);
         }
         return msg;
-    }
-
-    /**
-     * create url from given endpoint. return null if format is not right.
-     *
-     * @param endpoint url as a string
-     * @return URL object for this string
-     */
-    public static URL getUrl(String endpoint) {
-        URL url = null;
-        try {
-            url = new URL(endpoint);
-        } catch (MalformedURLException e1) {
-            com.microsoft.identity.common.internal.logging.Logger.errorPII(
-                    TAG,
-                    "Url is invalid",
-                    e1
-            );
-        }
-
-        return url;
     }
 
     public static String getUniqueUserIdentifier(final String uid, final String utid) {

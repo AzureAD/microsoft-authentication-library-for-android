@@ -23,8 +23,8 @@
 
 package com.microsoft.identity.client.exception;
 
-import com.microsoft.identity.common.exception.ClientException;
-import com.microsoft.identity.common.exception.ErrorStrings;
+import com.microsoft.identity.common.java.exception.ClientException;
+import com.microsoft.identity.common.java.exception.ErrorStrings;
 
 /**
  * This exception class represents general errors that are local to the library. Below is the table of proposed codes and a short description of each.
@@ -186,6 +186,12 @@ public final class MsalClientException extends MsalException {
      * Developer error. Application manifest is not properly configured to support MSAL.
      */
     public static final String APP_MANIFEST_VALIDATION_ERROR = "app_manifest_validation_error";
+
+    /**
+     * More than one app is listening for the custom URL scheme determined by the Redirect URI in
+     * the AndroidManifest.
+     */
+    public static final String MULTIPLE_APPS_LISTENING_CUSTOM_URL_SCHEME = "multiple_apps_listening_url_scheme";
 
     /**
      * Developer error. The redirect URI in the configuration file doesn't match with the one generated with package name and signature hash.

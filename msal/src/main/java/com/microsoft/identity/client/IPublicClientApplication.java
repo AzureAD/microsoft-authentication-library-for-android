@@ -28,7 +28,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
 
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
+import com.microsoft.identity.common.java.util.TaskCompletedCallbackWithError;
 
 import java.util.Date;
 import java.util.List;

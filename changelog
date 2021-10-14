@@ -1,5 +1,15 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
+vNext
+----------
+- [PATCH] Better messaging clarity around redirect URI (#1265).
+- [PATCH] Fixes deprecated PackageInfo.signatures and PackageManager.GET_SIGNATURES (#1321)
+- [MINOR] Added support for handling null taskAffinity.  Add configuration to enable this new feature.  "handle_null_taskaffinity" which is a boolean (#1342)
+- [PATCH] Log and throw exception if there are other apps listening for the redirect URL scheme defined in Android Manifest (#1357)
+- [PATCH] Update Nimbus dependency version (#1382)
+- [MAJOR] Migrate *TokenCache classes to common4j (#1652)
+- [MINOR] Adapt to BaseController migration (#1483)
+
 Version 2.2.2
 ----------
 - Picks up common@3.6.3

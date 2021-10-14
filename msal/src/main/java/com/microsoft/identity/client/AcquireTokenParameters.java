@@ -24,11 +24,11 @@
 package com.microsoft.identity.client;
 
 import android.app.Activity;
-import android.util.Pair;
 
 import androidx.fragment.app.Fragment;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Encapsulates the parameters passed to the acquireToken methods of PublicClientApplication
@@ -40,7 +40,7 @@ public class AcquireTokenParameters extends TokenParameters {
     private String mLoginHint;
     private Prompt mPrompt;
     private List<String> mExtraScopesToConsent;
-    private List<Pair<String, String>> mExtraQueryStringParameters;
+    private List<Map.Entry<String, String>> mExtraQueryStringParameters;
     private AuthenticationCallback mCallback;
 
     public AcquireTokenParameters(AcquireTokenParameters.Builder builder) {
@@ -96,8 +96,10 @@ public class AcquireTokenParameters extends TokenParameters {
     }
 
     /**
-     * These are additional scopes that you would like the user to authorize the use of, while getting consent
-     * for the first set of scopes
+     * These are additional scopes (of other resources) that you would like the user to authorize up front.
+     * (MSAL's {@link TokenParameters#getScopes()} parameter should only contain scopes for a single resource
+     *
+     * https://docs.microsoft.com/bs-latn-ba/azure/active-directory/develop/msal-net-user-gets-consent-for-multiple-resources
      *
      * @return
      */
@@ -111,7 +113,7 @@ public class AcquireTokenParameters extends TokenParameters {
      *
      * @return
      */
-    public List<Pair<String, String>> getExtraQueryStringParameters() {
+    public List<Map.Entry<String, String>> getExtraQueryStringParameters() {
         return mExtraQueryStringParameters;
     }
 
@@ -137,7 +139,7 @@ public class AcquireTokenParameters extends TokenParameters {
         private String mLoginHint;
         private Prompt mPrompt;
         private List<String> mExtraScopesToConsent;
-        private List<Pair<String, String>> mExtraQueryStringParameters;
+        private List<Map.Entry<String, String>> mExtraQueryStringParameters;
         private AuthenticationCallback mCallback;
 
         public AcquireTokenParameters.Builder startAuthorizationFromActivity(final Activity activity) {
@@ -166,7 +168,7 @@ public class AcquireTokenParameters extends TokenParameters {
         }
 
         public AcquireTokenParameters.Builder withAuthorizationQueryStringParameters(
-                List<Pair<String, String>> parameters) {
+                List<Map.Entry<String, String>> parameters) {
             mExtraQueryStringParameters = parameters;
             return self();
         }

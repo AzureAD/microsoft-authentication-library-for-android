@@ -1,0 +1,895 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<BugCollection version="4.2.2" sequence="0" timestamp="1620242182605" analysisTimestamp="1620242182630" release="2.0.10">
+  <BugInstance type="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE" priority="2" rank="13" abbrev="NP" category="STYLE" instanceHash="4d2eeebf89c007fa30178c4c191a3d68" instanceOccurrenceNum="0" instanceOccurrenceMax="0" cweid="476">
+    <ShortMessage>Possible null pointer dereference due to return value of called method</ShortMessage>
+    <LongMessage>Possible null pointer dereference in com.microsoft.identity.client.Account.getAuthority() due to return value of called method</LongMessage>
+    <Class classname="com.microsoft.identity.client.Account" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.Account" start="41" end="162" sourcefile="Account.java" sourcepath="com/microsoft/identity/client/Account.java">
+        <Message>At Account.java:[lines 41-162]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.identity.client.Account</Message>
+    </Class>
+    <Method classname="com.microsoft.identity.client.Account" name="getAuthority" signature="()Ljava/lang/String;" isStatic="false" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.Account" start="155" end="162" startBytecode="0" endBytecode="111" sourcefile="Account.java" sourcepath="com/microsoft/identity/client/Account.java"/>
+      <Message>In method com.microsoft.identity.client.Account.getAuthority()</Message>
+    </Method>
+    <LocalVariable name="?" register="-1" pc="14" role="LOCAL_VARIABLE_UNKNOWN">
+      <Message>Local variable stored in JVM register ?</Message>
+    </LocalVariable>
+    <SourceLine classname="com.microsoft.identity.client.Account" primary="true" start="156" end="156" startBytecode="14" endBytecode="14" sourcefile="Account.java" sourcepath="com/microsoft/identity/client/Account.java" role="SOURCE_LINE_DEREF">
+      <Message>Dereferenced at Account.java:[line 156]</Message>
+    </SourceLine>
+    <SourceLine classname="com.microsoft.identity.client.Account" start="156" end="156" startBytecode="9" endBytecode="9" sourcefile="Account.java" sourcepath="com/microsoft/identity/client/Account.java" role="SOURCE_LINE_KNOWN_NULL">
+      <Message>Known null at Account.java:[line 156]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE" priority="2" rank="13" abbrev="NP" category="STYLE" instanceHash="fc0b108e93fa900ea0fa0ab40913932d" instanceOccurrenceNum="0" instanceOccurrenceMax="0" cweid="476">
+    <ShortMessage>Possible null pointer dereference due to return value of called method</ShortMessage>
+    <LongMessage>Possible null pointer dereference in com.microsoft.identity.client.Account.getUsername() due to return value of called method</LongMessage>
+    <Class classname="com.microsoft.identity.client.Account" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.Account" start="41" end="162" sourcefile="Account.java" sourcepath="com/microsoft/identity/client/Account.java">
+        <Message>At Account.java:[lines 41-162]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.identity.client.Account</Message>
+    </Class>
+    <Method classname="com.microsoft.identity.client.Account" name="getUsername" signature="()Ljava/lang/String;" isStatic="false" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.Account" start="143" end="147" startBytecode="0" endBytecode="77" sourcefile="Account.java" sourcepath="com/microsoft/identity/client/Account.java"/>
+      <Message>In method com.microsoft.identity.client.Account.getUsername()</Message>
+    </Method>
+    <LocalVariable name="?" register="-1" pc="12" role="LOCAL_VARIABLE_UNKNOWN">
+      <Message>Local variable stored in JVM register ?</Message>
+    </LocalVariable>
+    <SourceLine classname="com.microsoft.identity.client.Account" primary="true" start="144" end="144" startBytecode="12" endBytecode="12" sourcefile="Account.java" sourcepath="com/microsoft/identity/client/Account.java" role="SOURCE_LINE_INVOKED">
+      <Message>Method invoked at Account.java:[line 144]</Message>
+    </SourceLine>
+    <SourceLine classname="com.microsoft.identity.client.Account" start="144" end="144" startBytecode="9" endBytecode="9" sourcefile="Account.java" sourcepath="com/microsoft/identity/client/Account.java" role="SOURCE_LINE_KNOWN_NULL">
+      <Message>Known null at Account.java:[line 144]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE" priority="2" rank="13" abbrev="NP" category="STYLE" instanceHash="c42fedd55fc2437726da12121f24b3b7" instanceOccurrenceNum="0" instanceOccurrenceMax="0" cweid="476">
+    <ShortMessage>Possible null pointer dereference due to return value of called method</ShortMessage>
+    <LongMessage>Possible null pointer dereference in com.microsoft.identity.client.AccountAdapter.appendChildren(List, List) due to return value of called method</LongMessage>
+    <Class classname="com.microsoft.identity.client.AccountAdapter" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.AccountAdapter" start="41" end="375" sourcefile="AccountAdapter.java" sourcepath="com/microsoft/identity/client/AccountAdapter.java">
+        <Message>At AccountAdapter.java:[lines 41-375]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.identity.client.AccountAdapter</Message>
+    </Class>
+    <Method classname="com.microsoft.identity.client.AccountAdapter" name="appendChildren" signature="(Ljava/util/List;Ljava/util/List;)V" isStatic="true" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.AccountAdapter" start="254" end="278" startBytecode="0" endBytecode="397" sourcefile="AccountAdapter.java" sourcepath="com/microsoft/identity/client/AccountAdapter.java"/>
+      <Message>In method com.microsoft.identity.client.AccountAdapter.appendChildren(List, List)</Message>
+    </Method>
+    <LocalVariable name="?" register="-1" pc="101" role="LOCAL_VARIABLE_UNKNOWN">
+      <Message>Local variable stored in JVM register ?</Message>
+    </LocalVariable>
+    <SourceLine classname="com.microsoft.identity.client.AccountAdapter" primary="true" start="267" end="267" startBytecode="101" endBytecode="101" sourcefile="AccountAdapter.java" sourcepath="com/microsoft/identity/client/AccountAdapter.java" role="SOURCE_LINE_INVOKED">
+      <Message>Method invoked at AccountAdapter.java:[line 267]</Message>
+    </SourceLine>
+    <SourceLine classname="com.microsoft.identity.client.AccountAdapter" start="267" end="267" startBytecode="98" endBytecode="98" sourcefile="AccountAdapter.java" sourcepath="com/microsoft/identity/client/AccountAdapter.java" role="SOURCE_LINE_KNOWN_NULL">
+      <Message>Known null at AccountAdapter.java:[line 267]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE" priority="2" rank="13" abbrev="NP" category="STYLE" instanceHash="220718504064d9ab1e1199ad68a97b46" instanceOccurrenceNum="0" instanceOccurrenceMax="0" cweid="476">
+    <ShortMessage>Possible null pointer dereference due to return value of called method</ShortMessage>
+    <LongMessage>Possible null pointer dereference in com.microsoft.identity.client.AccountAdapter.createIAccountsForGuestsNotSignedIntoHomeTenant(List) due to return value of called method</LongMessage>
+    <Class classname="com.microsoft.identity.client.AccountAdapter" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.AccountAdapter" start="41" end="375" sourcefile="AccountAdapter.java" sourcepath="com/microsoft/identity/client/AccountAdapter.java">
+        <Message>At AccountAdapter.java:[lines 41-375]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.identity.client.AccountAdapter</Message>
+    </Class>
+    <Method classname="com.microsoft.identity.client.AccountAdapter" name="createIAccountsForGuestsNotSignedIntoHomeTenant" signature="(Ljava/util/List;)Ljava/util/List;" isStatic="true" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.AccountAdapter" start="190" end="248" startBytecode="0" endBytecode="735" sourcefile="AccountAdapter.java" sourcepath="com/microsoft/identity/client/AccountAdapter.java"/>
+      <Message>In method com.microsoft.identity.client.AccountAdapter.createIAccountsForGuestsNotSignedIntoHomeTenant(List)</Message>
+    </Method>
+    <LocalVariable name="?" register="-1" pc="295" role="LOCAL_VARIABLE_UNKNOWN">
+      <Message>Local variable stored in JVM register ?</Message>
+    </LocalVariable>
+    <SourceLine classname="com.microsoft.identity.client.AccountAdapter" primary="true" start="238" end="238" startBytecode="295" endBytecode="295" sourcefile="AccountAdapter.java" sourcepath="com/microsoft/identity/client/AccountAdapter.java" role="SOURCE_LINE_INVOKED">
+      <Message>Method invoked at AccountAdapter.java:[line 238]</Message>
+    </SourceLine>
+    <SourceLine classname="com.microsoft.identity.client.AccountAdapter" start="238" end="238" startBytecode="292" endBytecode="292" sourcefile="AccountAdapter.java" sourcepath="com/microsoft/identity/client/AccountAdapter.java" role="SOURCE_LINE_KNOWN_NULL">
+      <Message>Known null at AccountAdapter.java:[line 238]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="IS2_INCONSISTENT_SYNC" priority="2" rank="17" abbrev="IS" category="MT_CORRECTNESS" instanceHash="3f2d05a7ca0c3f0c62b7a96012c92ada" instanceOccurrenceNum="0" instanceOccurrenceMax="0" cweid="366">
+    <ShortMessage>Inconsistent synchronization</ShortMessage>
+    <LongMessage>Inconsistent synchronization of com.microsoft.identity.client.MsalChromeCustomTabManager.mCustomTabsIntent; locked 40% of time</LongMessage>
+    <Class classname="com.microsoft.identity.client.MsalChromeCustomTabManager" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.MsalChromeCustomTabManager" start="47" end="155" sourcefile="MsalChromeCustomTabManager.java" sourcepath="com/microsoft/identity/client/MsalChromeCustomTabManager.java">
+        <Message>At MsalChromeCustomTabManager.java:[lines 47-155]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.identity.client.MsalChromeCustomTabManager</Message>
+    </Class>
+    <Field classname="com.microsoft.identity.client.MsalChromeCustomTabManager" name="mCustomTabsIntent" signature="Landroidx/browser/customtabs/CustomTabsIntent;" isStatic="false" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.MsalChromeCustomTabManager" sourcefile="MsalChromeCustomTabManager.java" sourcepath="com/microsoft/identity/client/MsalChromeCustomTabManager.java">
+        <Message>In MsalChromeCustomTabManager.java</Message>
+      </SourceLine>
+      <Message>Field com.microsoft.identity.client.MsalChromeCustomTabManager.mCustomTabsIntent</Message>
+    </Field>
+    <Int value="40" role="INT_SYNC_PERCENT">
+      <Message>Synchronized 40% of the time</Message>
+    </Int>
+    <SourceLine classname="com.microsoft.identity.client.MsalChromeCustomTabManager" primary="true" start="144" end="144" startBytecode="8" endBytecode="8" sourcefile="MsalChromeCustomTabManager.java" sourcepath="com/microsoft/identity/client/MsalChromeCustomTabManager.java" role="SOURCE_LINE_UNSYNC_ACCESS">
+      <Message>Unsynchronized access at MsalChromeCustomTabManager.java:[line 144]</Message>
+    </SourceLine>
+    <SourceLine classname="com.microsoft.identity.client.MsalChromeCustomTabManager" start="146" end="146" startBytecode="23" endBytecode="23" sourcefile="MsalChromeCustomTabManager.java" sourcepath="com/microsoft/identity/client/MsalChromeCustomTabManager.java" role="SOURCE_LINE_UNSYNC_ACCESS">
+      <Message>Unsynchronized access at MsalChromeCustomTabManager.java:[line 146]</Message>
+    </SourceLine>
+    <SourceLine classname="com.microsoft.identity.client.MsalChromeCustomTabManager" start="98" end="98" startBytecode="88" endBytecode="88" sourcefile="MsalChromeCustomTabManager.java" sourcepath="com/microsoft/identity/client/MsalChromeCustomTabManager.java" role="SOURCE_LINE_SYNC_ACCESS">
+      <Message>Synchronized access at MsalChromeCustomTabManager.java:[line 98]</Message>
+    </SourceLine>
+    <SourceLine classname="com.microsoft.identity.client.MsalChromeCustomTabManager" start="99" end="99" startBytecode="92" endBytecode="92" sourcefile="MsalChromeCustomTabManager.java" sourcepath="com/microsoft/identity/client/MsalChromeCustomTabManager.java" role="SOURCE_LINE_SYNC_ACCESS">
+      <Message>Synchronized access at MsalChromeCustomTabManager.java:[line 99]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="NP_NONNULL_PARAM_VIOLATION" priority="1" rank="6" abbrev="NP" category="CORRECTNESS" instanceHash="bfada17d11e7fd9f755694b5d2631a7a" instanceOccurrenceNum="0" instanceOccurrenceMax="0" cweid="476">
+    <ShortMessage>Method call passes null to a non-null parameter</ShortMessage>
+    <LongMessage>Null passed for non-null parameter of new com.microsoft.identity.common.internal.commands.GetDeviceModeCommand(CommandParameters, BaseController, CommandCallback, String) in com.microsoft.identity.client.PublicClientApplication.create(PublicClientApplicationConfiguration, String, String, String, IPublicClientApplication$ApplicationCreatedListener)</LongMessage>
+    <Class classname="com.microsoft.identity.client.PublicClientApplication" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.PublicClientApplication" start="202" end="2199" sourcefile="PublicClientApplication.java" sourcepath="com/microsoft/identity/client/PublicClientApplication.java">
+        <Message>At PublicClientApplication.java:[lines 202-2199]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.identity.client.PublicClientApplication</Message>
+    </Class>
+    <Method classname="com.microsoft.identity.client.PublicClientApplication" name="create" signature="(Lcom/microsoft/identity/client/PublicClientApplicationConfiguration;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/microsoft/identity/client/IPublicClientApplication$ApplicationCreatedListener;)V" isStatic="true" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.PublicClientApplication" start="890" end="959" startBytecode="0" endBytecode="463" sourcefile="PublicClientApplication.java" sourcepath="com/microsoft/identity/client/PublicClientApplication.java"/>
+      <Message>In method com.microsoft.identity.client.PublicClientApplication.create(PublicClientApplicationConfiguration, String, String, String, IPublicClientApplication$ApplicationCreatedListener)</Message>
+    </Method>
+    <Method classname="com.microsoft.identity.common.internal.commands.GetDeviceModeCommand" name="&lt;init&gt;" signature="(Lcom/microsoft/identity/common/internal/commands/parameters/CommandParameters;Lcom/microsoft/identity/common/internal/controllers/BaseController;Lcom/microsoft/identity/common/internal/commands/CommandCallback;Ljava/lang/String;)V" isStatic="false" role="METHOD_CALLED">
+      <SourceLine classname="com.microsoft.identity.common.internal.commands.GetDeviceModeCommand" start="46" end="47" startBytecode="0" endBytecode="95" sourcefile="GetDeviceModeCommand.java" sourcepath="com/microsoft/identity/common/internal/commands/GetDeviceModeCommand.java"/>
+      <Message>Called method new com.microsoft.identity.common.internal.commands.GetDeviceModeCommand(CommandParameters, BaseController, CommandCallback, String)</Message>
+    </Method>
+    <Int value="4" role="INT_NULL_ARG">
+      <Message>Argument 4 is definitely null but must not be null</Message>
+    </Int>
+    <SourceLine classname="com.microsoft.identity.client.PublicClientApplication" primary="true" start="926" end="926" startBytecode="135" endBytecode="135" sourcefile="PublicClientApplication.java" sourcepath="com/microsoft/identity/client/PublicClientApplication.java">
+      <Message>At PublicClientApplication.java:[line 926]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE" priority="1" rank="14" abbrev="NP" category="STYLE" instanceHash="da7698189424165496b3cbfae0662abd" instanceOccurrenceNum="0" instanceOccurrenceMax="0" cweid="476">
+    <ShortMessage>Parameter must be non-null but is marked as nullable</ShortMessage>
+    <LongMessage>scopes must be non-null but is marked as nullable</LongMessage>
+    <Class classname="com.microsoft.identity.client.PublicClientApplication" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.PublicClientApplication" start="202" end="2199" sourcefile="PublicClientApplication.java" sourcepath="com/microsoft/identity/client/PublicClientApplication.java">
+        <Message>At PublicClientApplication.java:[lines 202-2199]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.identity.client.PublicClientApplication</Message>
+    </Class>
+    <Method classname="com.microsoft.identity.client.PublicClientApplication" name="acquireTokenWithDeviceCode" signature="([Ljava/lang/String;Lcom/microsoft/identity/client/IPublicClientApplication$DeviceCodeFlowCallback;)V" isStatic="false" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.PublicClientApplication" start="1820" end="1840" startBytecode="0" endBytecode="166" sourcefile="PublicClientApplication.java" sourcepath="com/microsoft/identity/client/PublicClientApplication.java"/>
+      <Message>In method com.microsoft.identity.client.PublicClientApplication.acquireTokenWithDeviceCode(String[], IPublicClientApplication$DeviceCodeFlowCallback)</Message>
+    </Method>
+    <LocalVariable name="scopes" register="1" pc="0" role="LOCAL_VARIABLE_PARAMETER_NAMED">
+      <Message>Parameter scopes</Message>
+    </LocalVariable>
+    <SourceLine classname="com.microsoft.identity.client.PublicClientApplication" start="1820" end="1840" startBytecode="0" endBytecode="166" sourcefile="PublicClientApplication.java" sourcepath="com/microsoft/identity/client/PublicClientApplication.java" synthetic="true">
+      <Message>At PublicClientApplication.java:[lines 1820-1840]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE" priority="1" rank="14" abbrev="NP" category="STYLE" instanceHash="1b20d436fc6f2ea2e296cabe9839577e" instanceOccurrenceNum="0" instanceOccurrenceMax="0" cweid="476">
+    <ShortMessage>Parameter must be non-null but is marked as nullable</ShortMessage>
+    <LongMessage>configFile must be non-null but is marked as nullable</LongMessage>
+    <Class classname="com.microsoft.identity.client.PublicClientApplication" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.PublicClientApplication" start="202" end="2199" sourcefile="PublicClientApplication.java" sourcepath="com/microsoft/identity/client/PublicClientApplication.java">
+        <Message>At PublicClientApplication.java:[lines 202-2199]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.identity.client.PublicClientApplication</Message>
+    </Class>
+    <Method classname="com.microsoft.identity.client.PublicClientApplication" name="createSingleAccountPublicClientApplication" signature="(Landroid/content/Context;Ljava/io/File;)Lcom/microsoft/identity/client/ISingleAccountPublicClientApplication;" isStatic="true" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.PublicClientApplication" start="777" end="779" startBytecode="0" endBytecode="78" sourcefile="PublicClientApplication.java" sourcepath="com/microsoft/identity/client/PublicClientApplication.java"/>
+      <Message>In method com.microsoft.identity.client.PublicClientApplication.createSingleAccountPublicClientApplication(Context, File)</Message>
+    </Method>
+    <LocalVariable name="configFile" register="1" pc="0" role="LOCAL_VARIABLE_PARAMETER_NAMED">
+      <Message>Parameter configFile</Message>
+    </LocalVariable>
+    <SourceLine classname="com.microsoft.identity.client.PublicClientApplication" start="777" end="779" startBytecode="0" endBytecode="78" sourcefile="PublicClientApplication.java" sourcepath="com/microsoft/identity/client/PublicClientApplication.java" synthetic="true">
+      <Message>At PublicClientApplication.java:[lines 777-779]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE" priority="1" rank="14" abbrev="NP" category="STYLE" instanceHash="47665484d6377d89655ffa77ee33f53f" instanceOccurrenceNum="0" instanceOccurrenceMax="0" cweid="476">
+    <ShortMessage>Parameter must be non-null but is marked as nullable</ShortMessage>
+    <LongMessage>configuration must be non-null but is marked as nullable</LongMessage>
+    <Class classname="com.microsoft.identity.client.PublicClientApplication" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.PublicClientApplication" start="202" end="2199" sourcefile="PublicClientApplication.java" sourcepath="com/microsoft/identity/client/PublicClientApplication.java">
+        <Message>At PublicClientApplication.java:[lines 202-2199]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.identity.client.PublicClientApplication</Message>
+    </Class>
+    <Method classname="com.microsoft.identity.client.PublicClientApplication" name="createSingleAccountPublicClientApplication" signature="(Lcom/microsoft/identity/client/PublicClientApplicationConfiguration;)Lcom/microsoft/identity/client/ISingleAccountPublicClientApplication;" isStatic="true" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.PublicClientApplication" start="867" end="878" startBytecode="0" endBytecode="137" sourcefile="PublicClientApplication.java" sourcepath="com/microsoft/identity/client/PublicClientApplication.java"/>
+      <Message>In method com.microsoft.identity.client.PublicClientApplication.createSingleAccountPublicClientApplication(PublicClientApplicationConfiguration)</Message>
+    </Method>
+    <LocalVariable name="configuration" register="0" pc="0" role="LOCAL_VARIABLE_PARAMETER_NAMED">
+      <Message>Parameter configuration</Message>
+    </LocalVariable>
+    <SourceLine classname="com.microsoft.identity.client.PublicClientApplication" start="867" end="878" startBytecode="0" endBytecode="137" sourcefile="PublicClientApplication.java" sourcepath="com/microsoft/identity/client/PublicClientApplication.java" synthetic="true">
+      <Message>At PublicClientApplication.java:[lines 867-878]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE" priority="2" rank="13" abbrev="NP" category="STYLE" instanceHash="af396fbf5e387a8d5923fd06a2cda17c" instanceOccurrenceNum="0" instanceOccurrenceMax="0" cweid="476">
+    <ShortMessage>Possible null pointer dereference due to return value of called method</ShortMessage>
+    <LongMessage>Possible null pointer dereference in com.microsoft.identity.client.PublicClientApplication$22.matches(String, IAccount) due to return value of called method</LongMessage>
+    <Class classname="com.microsoft.identity.client.PublicClientApplication$22" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.PublicClientApplication$22" start="2064" end="2098" sourcefile="PublicClientApplication.java" sourcepath="com/microsoft/identity/client/PublicClientApplication.java">
+        <Message>At PublicClientApplication.java:[lines 2064-2098]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.identity.client.PublicClientApplication$22</Message>
+    </Class>
+    <Method classname="com.microsoft.identity.client.PublicClientApplication$22" name="matches" signature="(Ljava/lang/String;Lcom/microsoft/identity/client/IAccount;)Z" isStatic="false" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.PublicClientApplication$22" start="2069" end="2098" startBytecode="0" endBytecode="440" sourcefile="PublicClientApplication.java" sourcepath="com/microsoft/identity/client/PublicClientApplication.java"/>
+      <Message>In method com.microsoft.identity.client.PublicClientApplication$22.matches(String, IAccount)</Message>
+    </Method>
+    <LocalVariable name="?" register="-1" pc="167" role="LOCAL_VARIABLE_UNKNOWN">
+      <Message>Local variable stored in JVM register ?</Message>
+    </LocalVariable>
+    <SourceLine classname="com.microsoft.identity.client.PublicClientApplication$22" primary="true" start="2090" end="2090" startBytecode="167" endBytecode="167" sourcefile="PublicClientApplication.java" sourcepath="com/microsoft/identity/client/PublicClientApplication.java" role="SOURCE_LINE_INVOKED">
+      <Message>Method invoked at PublicClientApplication.java:[line 2090]</Message>
+    </SourceLine>
+    <SourceLine classname="com.microsoft.identity.client.PublicClientApplication$22" start="2091" end="2091" startBytecode="162" endBytecode="162" sourcefile="PublicClientApplication.java" sourcepath="com/microsoft/identity/client/PublicClientApplication.java" role="SOURCE_LINE_KNOWN_NULL">
+      <Message>Known null at PublicClientApplication.java:[line 2091]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="BC_IMPOSSIBLE_INSTANCEOF" priority="2" rank="9" abbrev="BC" category="CORRECTNESS" instanceHash="2425d606d5495a43e447592665a28013" instanceOccurrenceNum="0" instanceOccurrenceMax="0" cweid="570">
+    <ShortMessage>instanceof will always return false</ShortMessage>
+    <LongMessage>instanceof will always return false in com.microsoft.identity.client.PublicClientApplicationConfigurationFactory.loadConfiguration(InputStream, boolean), since a RuntimeException can&apos;t be a InterruptedException</LongMessage>
+    <Class classname="com.microsoft.identity.client.PublicClientApplicationConfigurationFactory" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.PublicClientApplicationConfigurationFactory" start="51" end="186" sourcefile="PublicClientApplicationConfigurationFactory.java" sourcepath="com/microsoft/identity/client/PublicClientApplicationConfigurationFactory.java">
+        <Message>At PublicClientApplicationConfigurationFactory.java:[lines 51-186]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.identity.client.PublicClientApplicationConfigurationFactory</Message>
+    </Class>
+    <Method classname="com.microsoft.identity.client.PublicClientApplicationConfigurationFactory" name="loadConfiguration" signature="(Ljava/io/InputStream;Z)Lcom/microsoft/identity/client/PublicClientApplicationConfiguration;" isStatic="true" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.PublicClientApplicationConfigurationFactory" start="133" end="168" startBytecode="0" endBytecode="105" sourcefile="PublicClientApplicationConfigurationFactory.java" sourcepath="com/microsoft/identity/client/PublicClientApplicationConfigurationFactory.java"/>
+      <Message>In method com.microsoft.identity.client.PublicClientApplicationConfigurationFactory.loadConfiguration(InputStream, boolean)</Message>
+    </Method>
+    <Type descriptor="Ljava/lang/RuntimeException;" role="TYPE_FOUND">
+      <SourceLine classname="java.lang.RuntimeException" start="51" end="118" sourcefile="RuntimeException.java" sourcepath="java/lang/RuntimeException.java">
+        <Message>At RuntimeException.java:[lines 51-118]</Message>
+      </SourceLine>
+      <Message>Actual type RuntimeException</Message>
+    </Type>
+    <Type descriptor="Ljava/lang/InterruptedException;" role="TYPE_EXPECTED">
+      <SourceLine classname="java.lang.InterruptedException" start="57" end="68" sourcefile="InterruptedException.java" sourcepath="java/lang/InterruptedException.java">
+        <Message>At InterruptedException.java:[lines 57-68]</Message>
+      </SourceLine>
+      <Message>Expected InterruptedException</Message>
+    </Type>
+    <LocalVariable name="e" register="5" pc="211" role="LOCAL_VARIABLE_VALUE_OF">
+      <Message>Value loaded from e</Message>
+    </LocalVariable>
+    <SourceLine classname="com.microsoft.identity.client.PublicClientApplicationConfigurationFactory" primary="true" start="165" end="165" startBytecode="213" endBytecode="213" sourcefile="PublicClientApplicationConfigurationFactory.java" sourcepath="com/microsoft/identity/client/PublicClientApplicationConfigurationFactory.java">
+      <Message>At PublicClientApplicationConfigurationFactory.java:[line 165]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="DM_DEFAULT_ENCODING" priority="1" rank="19" abbrev="Dm" category="I18N" instanceHash="9fa94d8a6a581d38b87c66d7933bb98c" instanceOccurrenceNum="0" instanceOccurrenceMax="0">
+    <ShortMessage>Reliance on default encoding</ShortMessage>
+    <LongMessage>Found reliance on default encoding in com.microsoft.identity.client.PublicClientApplicationConfigurationFactory.loadConfiguration(InputStream, boolean): new String(byte[])</LongMessage>
+    <Class classname="com.microsoft.identity.client.PublicClientApplicationConfigurationFactory" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.PublicClientApplicationConfigurationFactory" start="51" end="186" sourcefile="PublicClientApplicationConfigurationFactory.java" sourcepath="com/microsoft/identity/client/PublicClientApplicationConfigurationFactory.java">
+        <Message>At PublicClientApplicationConfigurationFactory.java:[lines 51-186]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.identity.client.PublicClientApplicationConfigurationFactory</Message>
+    </Class>
+    <Method classname="com.microsoft.identity.client.PublicClientApplicationConfigurationFactory" name="loadConfiguration" signature="(Ljava/io/InputStream;Z)Lcom/microsoft/identity/client/PublicClientApplicationConfiguration;" isStatic="true" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.PublicClientApplicationConfigurationFactory" start="133" end="168" startBytecode="0" endBytecode="664" sourcefile="PublicClientApplicationConfigurationFactory.java" sourcepath="com/microsoft/identity/client/PublicClientApplicationConfigurationFactory.java"/>
+      <Message>In method com.microsoft.identity.client.PublicClientApplicationConfigurationFactory.loadConfiguration(InputStream, boolean)</Message>
+    </Method>
+    <Method classname="java.lang.String" name="&lt;init&gt;" signature="([B)V" isStatic="false" role="METHOD_CALLED">
+      <SourceLine classname="java.lang.String" start="566" end="567" startBytecode="0" endBytecode="36" sourcefile="String.java" sourcepath="java/lang/String.java"/>
+      <Message>Called method new String(byte[])</Message>
+    </Method>
+    <SourceLine classname="com.microsoft.identity.client.PublicClientApplicationConfigurationFactory" primary="true" start="159" end="159" startBytecode="188" endBytecode="188" sourcefile="PublicClientApplicationConfigurationFactory.java" sourcepath="com/microsoft/identity/client/PublicClientApplicationConfigurationFactory.java">
+      <Message>At PublicClientApplicationConfigurationFactory.java:[line 159]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION" priority="1" rank="16" abbrev="NP" category="STYLE" instanceHash="a5c0c34886760ef50d11fae74794ad50" instanceOccurrenceNum="0" instanceOccurrenceMax="0" cweid="476">
+    <ShortMessage>Method tightens nullness annotation on parameter</ShortMessage>
+    <LongMessage>Method new com.microsoft.identity.client.TenantProfile(String, IDToken) overrides the nullness annotation of parameter idToken in an incompatible way</LongMessage>
+    <Class classname="com.microsoft.identity.client.TenantProfile" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.TenantProfile" start="35" end="51" sourcefile="TenantProfile.java" sourcepath="com/microsoft/identity/client/TenantProfile.java">
+        <Message>At TenantProfile.java:[lines 35-51]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.identity.client.TenantProfile</Message>
+    </Class>
+    <Method classname="com.microsoft.identity.client.TenantProfile" name="&lt;init&gt;" signature="(Ljava/lang/String;Lcom/microsoft/identity/common/internal/providers/oauth2/IDToken;)V" isStatic="false" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.TenantProfile" start="35" end="36" startBytecode="0" endBytecode="72" sourcefile="TenantProfile.java" sourcepath="com/microsoft/identity/client/TenantProfile.java"/>
+      <Message>In method new com.microsoft.identity.client.TenantProfile(String, IDToken)</Message>
+    </Method>
+    <LocalVariable name="idToken" register="2" pc="0" role="LOCAL_VARIABLE_PARAMETER_NAMED">
+      <Message>Parameter idToken</Message>
+    </LocalVariable>
+    <SourceLine classname="com.microsoft.identity.client.TenantProfile" start="35" end="36" startBytecode="0" endBytecode="72" sourcefile="TenantProfile.java" sourcepath="com/microsoft/identity/client/TenantProfile.java" synthetic="true">
+      <Message>At TenantProfile.java:[lines 35-36]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE" priority="2" rank="13" abbrev="NP" category="STYLE" instanceHash="326f9776108f65131aefccc8aa928340" instanceOccurrenceNum="0" instanceOccurrenceMax="0" cweid="476">
+    <ShortMessage>Possible null pointer dereference due to return value of called method</ShortMessage>
+    <LongMessage>Possible null pointer dereference in com.microsoft.identity.client.TenantProfile.getTenantId() due to return value of called method</LongMessage>
+    <Class classname="com.microsoft.identity.client.TenantProfile" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.TenantProfile" start="35" end="51" sourcefile="TenantProfile.java" sourcepath="com/microsoft/identity/client/TenantProfile.java">
+        <Message>At TenantProfile.java:[lines 35-51]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.identity.client.TenantProfile</Message>
+    </Class>
+    <Method classname="com.microsoft.identity.client.TenantProfile" name="getTenantId" signature="()Ljava/lang/String;" isStatic="false" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.TenantProfile" start="41" end="51" startBytecode="0" endBytecode="130" sourcefile="TenantProfile.java" sourcepath="com/microsoft/identity/client/TenantProfile.java"/>
+      <Message>In method com.microsoft.identity.client.TenantProfile.getTenantId()</Message>
+    </Method>
+    <LocalVariable name="?" register="-1" pc="17" role="LOCAL_VARIABLE_UNKNOWN">
+      <Message>Local variable stored in JVM register ?</Message>
+    </LocalVariable>
+    <SourceLine classname="com.microsoft.identity.client.TenantProfile" primary="true" start="44" end="44" startBytecode="17" endBytecode="17" sourcefile="TenantProfile.java" sourcepath="com/microsoft/identity/client/TenantProfile.java" role="SOURCE_LINE_DEREF">
+      <Message>Dereferenced at TenantProfile.java:[line 44]</Message>
+    </SourceLine>
+    <SourceLine classname="com.microsoft.identity.client.TenantProfile" start="44" end="44" startBytecode="12" endBytecode="12" sourcefile="TenantProfile.java" sourcepath="com/microsoft/identity/client/TenantProfile.java" role="SOURCE_LINE_KNOWN_NULL">
+      <Message>Known null at TenantProfile.java:[line 44]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="VA_FORMAT_STRING_USES_NEWLINE" priority="2" rank="20" abbrev="FS" category="BAD_PRACTICE" instanceHash="96a7af0f6e55ddb582803056baf068ca" instanceOccurrenceNum="0" instanceOccurrenceMax="0">
+    <ShortMessage>Format string should use %n rather than \n</ShortMessage>
+    <LongMessage>Format string should use %n rather than \n in com.microsoft.identity.client.helper.BrokerHelperActivity.onCreate(Bundle)</LongMessage>
+    <Class classname="com.microsoft.identity.client.helper.BrokerHelperActivity" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.helper.BrokerHelperActivity" start="23" end="79" sourcefile="BrokerHelperActivity.java" sourcepath="com/microsoft/identity/client/helper/BrokerHelperActivity.java">
+        <Message>At BrokerHelperActivity.java:[lines 23-79]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.identity.client.helper.BrokerHelperActivity</Message>
+    </Class>
+    <Method classname="com.microsoft.identity.client.helper.BrokerHelperActivity" name="onCreate" signature="(Landroid/os/Bundle;)V" isStatic="false" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.helper.BrokerHelperActivity" start="48" end="60" startBytecode="0" endBytecode="232" sourcefile="BrokerHelperActivity.java" sourcepath="com/microsoft/identity/client/helper/BrokerHelperActivity.java"/>
+      <Message>In method com.microsoft.identity.client.helper.BrokerHelperActivity.onCreate(Bundle)</Message>
+    </Method>
+    <Method classname="java.lang.String" name="format" signature="(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;" isStatic="true" role="METHOD_CALLED">
+      <SourceLine classname="java.lang.String" start="2940" end="2940" startBytecode="0" endBytecode="39" sourcefile="String.java" sourcepath="java/lang/String.java"/>
+      <Message>Called method String.format(String, Object[])</Message>
+    </Method>
+    <String value="&lt;activity android:name=&quot;com.microsoft.identity.client.BrowserTabActivity&quot;&gt;\n    &lt;intent-filter&gt;\n        &lt;action android:name=&quot;android.intent.action.VIEW&quot; /&gt;\n        &lt;category android:name=&quot;android.intent.category.DEFAULT&quot; /&gt;\n        &lt;category android:name=&quot;android.intent.category.BROWSABLE&quot; /&gt;\n        &lt;data\n            android:host=&quot;%s&quot;\n            android:path=&quot;/%s&quot;\n            android:scheme=&quot;msauth&quot; /&gt;\n    &lt;/intent-filter&gt;\n&lt;/activity&gt;" role="STRING_FORMAT_STRING">
+      <Message>Format string &quot;&lt;activity android:name=&quot;com.microsoft.identity.client.BrowserTabActivity&quot;&gt;\n    &lt;intent-filter&gt;\n        &lt;action android:name=&quot;android.intent.action.VIEW&quot; /&gt;\n        &lt;category android:name=&quot;android.intent.category.DEFAULT&quot; /&gt;\n        &lt;category android:name=&quot;android.intent.category.BROWSABLE&quot; /&gt;\n        &lt;data\n            android:host=&quot;%s&quot;\n            android:path=&quot;/%s&quot;\n            android:scheme=&quot;msauth&quot; /&gt;\n    &lt;/intent-filter&gt;\n&lt;/activity&gt;&quot;</Message>
+    </String>
+    <SourceLine classname="com.microsoft.identity.client.helper.BrokerHelperActivity" primary="true" start="58" end="58" startBytecode="123" endBytecode="123" sourcefile="BrokerHelperActivity.java" sourcepath="com/microsoft/identity/client/helper/BrokerHelperActivity.java">
+      <Message>At BrokerHelperActivity.java:[line 58]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE" priority="2" rank="13" abbrev="NP" category="STYLE" instanceHash="551f7233e6bf79d85b7c773354abb0fa" instanceOccurrenceNum="0" instanceOccurrenceMax="1" cweid="476">
+    <ShortMessage>Possible null pointer dereference due to return value of called method</ShortMessage>
+    <LongMessage>Possible null pointer dereference in com.microsoft.identity.client.internal.CommandParametersAdapter.getUsername(IAccount) due to return value of called method</LongMessage>
+    <Class classname="com.microsoft.identity.client.internal.CommandParametersAdapter" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.internal.CommandParametersAdapter" start="45" end="440" sourcefile="CommandParametersAdapter.java" sourcepath="com/microsoft/identity/client/internal/CommandParametersAdapter.java">
+        <Message>At CommandParametersAdapter.java:[lines 45-440]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.identity.client.internal.CommandParametersAdapter</Message>
+    </Class>
+    <Method classname="com.microsoft.identity.client.internal.CommandParametersAdapter" name="getUsername" signature="(Lcom/microsoft/identity/client/IAccount;)Ljava/lang/String;" isStatic="true" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.internal.CommandParametersAdapter" start="284" end="305" startBytecode="0" endBytecode="329" sourcefile="CommandParametersAdapter.java" sourcepath="com/microsoft/identity/client/internal/CommandParametersAdapter.java"/>
+      <Message>In method com.microsoft.identity.client.internal.CommandParametersAdapter.getUsername(IAccount)</Message>
+    </Method>
+    <LocalVariable name="?" register="-1" pc="18" role="LOCAL_VARIABLE_UNKNOWN">
+      <Message>Local variable stored in JVM register ?</Message>
+    </LocalVariable>
+    <SourceLine classname="com.microsoft.identity.client.internal.CommandParametersAdapter" primary="true" start="287" end="287" startBytecode="18" endBytecode="18" sourcefile="CommandParametersAdapter.java" sourcepath="com/microsoft/identity/client/internal/CommandParametersAdapter.java" role="SOURCE_LINE_INVOKED">
+      <Message>Method invoked at CommandParametersAdapter.java:[line 287]</Message>
+    </SourceLine>
+    <SourceLine classname="com.microsoft.identity.client.internal.CommandParametersAdapter" start="287" end="287" startBytecode="13" endBytecode="13" sourcefile="CommandParametersAdapter.java" sourcepath="com/microsoft/identity/client/internal/CommandParametersAdapter.java" role="SOURCE_LINE_KNOWN_NULL">
+      <Message>Known null at CommandParametersAdapter.java:[line 287]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE" priority="2" rank="13" abbrev="NP" category="STYLE" instanceHash="551f7233e6bf79d85b7c773354abb0fa" instanceOccurrenceNum="1" instanceOccurrenceMax="1" cweid="476">
+    <ShortMessage>Possible null pointer dereference due to return value of called method</ShortMessage>
+    <LongMessage>Possible null pointer dereference in com.microsoft.identity.client.internal.CommandParametersAdapter.getUsername(IAccount) due to return value of called method</LongMessage>
+    <Class classname="com.microsoft.identity.client.internal.CommandParametersAdapter" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.internal.CommandParametersAdapter" start="45" end="440" sourcefile="CommandParametersAdapter.java" sourcepath="com/microsoft/identity/client/internal/CommandParametersAdapter.java">
+        <Message>At CommandParametersAdapter.java:[lines 45-440]</Message>
+      </SourceLine>
+      <Message>In class com.microsoft.identity.client.internal.CommandParametersAdapter</Message>
+    </Class>
+    <Method classname="com.microsoft.identity.client.internal.CommandParametersAdapter" name="getUsername" signature="(Lcom/microsoft/identity/client/IAccount;)Ljava/lang/String;" isStatic="true" primary="true">
+      <SourceLine classname="com.microsoft.identity.client.internal.CommandParametersAdapter" start="284" end="305" startBytecode="0" endBytecode="329" sourcefile="CommandParametersAdapter.java" sourcepath="com/microsoft/identity/client/internal/CommandParametersAdapter.java"/>
+      <Message>In method com.microsoft.identity.client.internal.CommandParametersAdapter.getUsername(IAccount)</Message>
+    </Method>
+    <LocalVariable name="?" register="-1" pc="104" role="LOCAL_VARIABLE_UNKNOWN">
+      <Message>Local variable stored in JVM register ?</Message>
+    </LocalVariable>
+    <SourceLine classname="com.microsoft.identity.client.internal.CommandParametersAdapter" primary="true" start="296" end="296" startBytecode="104" endBytecode="104" sourcefile="CommandParametersAdapter.java" sourcepath="com/microsoft/identity/client/internal/CommandParametersAdapter.java" role="SOURCE_LINE_INVOKED">
+      <Message>Method invoked at CommandParametersAdapter.java:[line 296]</Message>
+    </SourceLine>
+    <SourceLine classname="com.microsoft.identity.client.internal.CommandParametersAdapter" start="296" end="296" startBytecode="99" endBytecode="99" sourcefile="CommandParametersAdapter.java" sourcepath="com/microsoft/identity/client/internal/CommandParametersAdapter.java" role="SOURCE_LINE_KNOWN_NULL">
+      <Message>Known null at CommandParametersAdapter.java:[line 296]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugCategory category="BAD_PRACTICE">
+    <Description>Bad practice</Description>
+  </BugCategory>
+  <BugCategory category="CORRECTNESS">
+    <Description>Correctness</Description>
+  </BugCategory>
+  <BugCategory category="STYLE">
+    <Description>Dodgy code</Description>
+  </BugCategory>
+  <BugCategory category="MT_CORRECTNESS">
+    <Description>Multithreaded correctness</Description>
+  </BugCategory>
+  <BugCategory category="I18N">
+    <Description>Internationalization</Description>
+  </BugCategory>
+  <BugPattern type="NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE" abbrev="NP" category="STYLE">
+    <ShortDescription>Parameter must be non-null but is marked as nullable</ShortDescription>
+    <Details><![CDATA[
+
+<p> This parameter is always used in a way that requires it to be non-null,
+but the parameter is explicitly annotated as being Nullable. Either the use
+of the parameter or the annotation is wrong.
+</p>
+
+    ]]></Details>
+  </BugPattern>
+  <BugPattern type="VA_FORMAT_STRING_USES_NEWLINE" abbrev="FS" category="BAD_PRACTICE">
+    <ShortDescription>Format string should use %n rather than \n</ShortDescription>
+    <Details><![CDATA[
+
+<p>
+This format string includes a newline character (\n). In format strings, it is generally
+ preferable to use %n, which will produce the platform-specific line separator.
+</p>
+
+     ]]></Details>
+  </BugPattern>
+  <BugPattern type="NP_NONNULL_PARAM_VIOLATION" abbrev="NP" category="CORRECTNESS">
+    <ShortDescription>Method call passes null to a non-null parameter</ShortDescription>
+    <Details><![CDATA[
+      
+      <p>
+      This method passes a null value as the parameter of a method which
+    must be non-null. Either this parameter has been explicitly marked
+    as @Nonnull, or analysis has determined that this parameter is
+    always dereferenced.
+      </p>
+      
+   ]]></Details>
+  </BugPattern>
+  <BugPattern type="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE" abbrev="NP" category="STYLE">
+    <ShortDescription>Possible null pointer dereference due to return value of called method</ShortDescription>
+    <Details><![CDATA[
+      
+<p> The return value from a method is dereferenced without a null check,
+and the return value of that method is one that should generally be checked
+for null.  This may lead to a <code>NullPointerException</code> when the code is executed.
+</p>
+      
+   ]]></Details>
+  </BugPattern>
+  <BugPattern type="BC_IMPOSSIBLE_INSTANCEOF" abbrev="BC" category="CORRECTNESS" cweid="570">
+    <ShortDescription>instanceof will always return false</ShortDescription>
+    <Details><![CDATA[
+
+<p>
+This instanceof test will always return false. Although this is safe, make sure it isn't
+an indication of some misunderstanding or some other logic error.
+</p>
+
+    ]]></Details>
+  </BugPattern>
+  <BugPattern type="DM_DEFAULT_ENCODING" abbrev="Dm" category="I18N">
+    <ShortDescription>Reliance on default encoding</ShortDescription>
+    <Details><![CDATA[
+
+<p> Found a call to a method which will perform a byte to String (or String to byte) conversion, and will assume that the default platform encoding is suitable. This will cause the application behaviour to vary between platforms. Use an alternative API and specify a charset name or Charset object explicitly.  </p>
+
+      ]]></Details>
+  </BugPattern>
+  <BugPattern type="NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION" abbrev="NP" category="STYLE">
+    <ShortDescription>Method tightens nullness annotation on parameter</ShortDescription>
+    <Details><![CDATA[
+        <p>
+        A method should always implement the contract of a method it overrides. Thus, if a method takes a parameter
+    that is marked as @Nullable, you shouldn't override that method in a subclass with a method where that parameter is @Nonnull.
+    Doing so violates the contract that the method should handle a null parameter.
+        </p>
+      ]]></Details>
+  </BugPattern>
+  <BugPattern type="IS2_INCONSISTENT_SYNC" abbrev="IS" category="MT_CORRECTNESS">
+    <ShortDescription>Inconsistent synchronization</ShortDescription>
+    <Details><![CDATA[
+
+  <p> The fields of this class appear to be accessed inconsistently with respect
+  to synchronization.&nbsp; This bug report indicates that the bug pattern detector
+  judged that
+  </p>
+  <ul>
+  <li> The class contains a mix of locked and unlocked accesses,</li>
+  <li> The class is <b>not</b> annotated as javax.annotation.concurrent.NotThreadSafe,</li>
+  <li> At least one locked access was performed by one of the class's own methods, and</li>
+  <li> The number of unsynchronized field accesses (reads and writes) was no more than
+       one third of all accesses, with writes being weighed twice as high as reads</li>
+  </ul>
+
+  <p> A typical bug matching this bug pattern is forgetting to synchronize
+  one of the methods in a class that is intended to be thread-safe.</p>
+
+  <p> You can select the nodes labeled "Unsynchronized access" to show the
+  code locations where the detector believed that a field was accessed
+  without synchronization.</p>
+
+  <p> Note that there are various sources of inaccuracy in this detector;
+  for example, the detector cannot statically detect all situations in which
+  a lock is held.&nbsp; Also, even when the detector is accurate in
+  distinguishing locked vs. unlocked accesses, the code in question may still
+  be correct.</p>
+
+
+    ]]></Details>
+  </BugPattern>
+  <BugCode abbrev="BC">
+    <Description>Bad casts of object references</Description>
+  </BugCode>
+  <BugCode abbrev="NP" cweid="476">
+    <Description>Null pointer dereference</Description>
+  </BugCode>
+  <BugCode abbrev="Dm">
+    <Description>Dubious method used</Description>
+  </BugCode>
+  <BugCode abbrev="IS" cweid="366">
+    <Description>Inconsistent synchronization</Description>
+  </BugCode>
+  <BugCode abbrev="FS">
+    <Description>Format string problem</Description>
+  </BugCode>
+  <Errors errors="1" missingClasses="28">
+    <Error>
+      <ErrorMessage>Unable to read filter: C:\android-complete\msal\config\spotbugs\baseline.xml : Failing reading C:\android-complete\msal\config\spotbugs\baseline.xml</ErrorMessage>
+      <Exception>org.dom4j.DocumentException: Failing reading C:\android-complete\msal\config\spotbugs\baseline.xml</Exception>
+      <StackTrace>edu.umd.cs.findbugs.SortedBugCollection.readXML(SortedBugCollection.java:279)</StackTrace>
+      <StackTrace>edu.umd.cs.findbugs.SortedBugCollection.readXML(SortedBugCollection.java:260)</StackTrace>
+      <StackTrace>edu.umd.cs.findbugs.ExcludingHashesBugReporter.addToExcludedInstanceHashes(ExcludingHashesBugReporter.java:57)</StackTrace>
+      <StackTrace>edu.umd.cs.findbugs.ExcludingHashesBugReporter.&lt;init&gt;(ExcludingHashesBugReporter.java:44)</StackTrace>
+      <StackTrace>edu.umd.cs.findbugs.FindBugs.configureBaselineFilter(FindBugs.java:488)</StackTrace>
+      <StackTrace>edu.umd.cs.findbugs.FindBugs2.excludeBaselineBugs(FindBugs2.java:409)</StackTrace>
+      <StackTrace>edu.umd.cs.findbugs.FindBugs2.configureFilters(FindBugs2.java:516)</StackTrace>
+      <StackTrace>edu.umd.cs.findbugs.FindBugs2.setUserPreferences(FindBugs2.java:505)</StackTrace>
+      <StackTrace>edu.umd.cs.findbugs.TextUICommandLine.configureEngine(TextUICommandLine.java:683)</StackTrace>
+      <StackTrace>edu.umd.cs.findbugs.FindBugs.processCommandLine(FindBugs.java:359)</StackTrace>
+      <StackTrace>com.github.spotbugs.snom.internal.SpotBugsRunnerForWorker$SpotBugsExecutor.execute(SpotBugsRunnerForWorker.java:96)</StackTrace>
+      <StackTrace>org.gradle.workers.internal.DefaultWorkerServer.execute(DefaultWorkerServer.java:63)</StackTrace>
+      <StackTrace>org.gradle.workers.internal.AbstractClassLoaderWorker$1.create(AbstractClassLoaderWorker.java:49)</StackTrace>
+      <StackTrace>org.gradle.workers.internal.AbstractClassLoaderWorker$1.create(AbstractClassLoaderWorker.java:43)</StackTrace>
+      <StackTrace>org.gradle.internal.classloader.ClassLoaderUtils.executeInClassloader(ClassLoaderUtils.java:97)</StackTrace>
+      <StackTrace>org.gradle.workers.internal.AbstractClassLoaderWorker.executeInClassLoader(AbstractClassLoaderWorker.java:43)</StackTrace>
+      <StackTrace>org.gradle.workers.internal.IsolatedClassloaderWorker.run(IsolatedClassloaderWorker.java:49)</StackTrace>
+      <StackTrace>org.gradle.workers.internal.IsolatedClassloaderWorker.run(IsolatedClassloaderWorker.java:30)</StackTrace>
+      <StackTrace>org.gradle.workers.internal.WorkerDaemonServer.run(WorkerDaemonServer.java:85)</StackTrace>
+      <StackTrace>org.gradle.workers.internal.WorkerDaemonServer.run(WorkerDaemonServer.java:55)</StackTrace>
+      <StackTrace>org.gradle.process.internal.worker.request.WorkerAction$1.call(WorkerAction.java:138)</StackTrace>
+      <StackTrace>org.gradle.process.internal.worker.child.WorkerLogEventListener.withWorkerLoggingProtocol(WorkerLogEventListener.java:41)</StackTrace>
+      <StackTrace>org.gradle.process.internal.worker.request.WorkerAction.run(WorkerAction.java:135)</StackTrace>
+      <StackTrace>sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)</StackTrace>
+      <StackTrace>sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)</StackTrace>
+      <StackTrace>sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)</StackTrace>
+      <StackTrace>java.lang.reflect.Method.invoke(Method.java:498)</StackTrace>
+      <StackTrace>org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)</StackTrace>
+      <StackTrace>org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)</StackTrace>
+      <StackTrace>org.gradle.internal.remote.internal.hub.MessageHubBackedObjectConnection$DispatchWrapper.dispatch(MessageHubBackedObjectConnection.java:182)</StackTrace>
+      <StackTrace>org.gradle.internal.remote.internal.hub.MessageHubBackedObjectConnection$DispatchWrapper.dispatch(MessageHubBackedObjectConnection.java:164)</StackTrace>
+      <StackTrace>org.gradle.internal.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:414)</StackTrace>
+      <StackTrace>org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)</StackTrace>
+      <StackTrace>org.gradle.internal.concurrent.ManagedExecutorImpl$1.run(ManagedExecutorImpl.java:48)</StackTrace>
+      <StackTrace>java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)</StackTrace>
+      <StackTrace>java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)</StackTrace>
+      <StackTrace>org.gradle.internal.concurrent.ThreadFactoryImpl$ManagedThreadRunnable.run(ThreadFactoryImpl.java:56)</StackTrace>
+      <StackTrace>java.lang.Thread.run(Thread.java:748)</StackTrace>
+    </Error>
+    <MissingClass>android.accounts.AccountManager</MissingClass>
+    <MissingClass>android.accounts.AuthenticatorDescription</MissingClass>
+    <MissingClass>android.app.Activity</MissingClass>
+    <MissingClass>android.content.Context</MissingClass>
+    <MissingClass>android.content.Intent</MissingClass>
+    <MissingClass>android.content.ServiceConnection</MissingClass>
+    <MissingClass>android.content.pm.ActivityInfo</MissingClass>
+    <MissingClass>android.content.pm.ApplicationInfo</MissingClass>
+    <MissingClass>android.content.pm.PackageInfo</MissingClass>
+    <MissingClass>android.content.pm.PackageManager</MissingClass>
+    <MissingClass>android.content.pm.PackageManager$NameNotFoundException</MissingClass>
+    <MissingClass>android.content.pm.ResolveInfo</MissingClass>
+    <MissingClass>android.content.pm.ServiceInfo</MissingClass>
+    <MissingClass>android.content.pm.Signature</MissingClass>
+    <MissingClass>android.content.res.Resources</MissingClass>
+    <MissingClass>android.net.Uri</MissingClass>
+    <MissingClass>android.net.Uri$Builder</MissingClass>
+    <MissingClass>android.os.Handler</MissingClass>
+    <MissingClass>android.os.Looper</MissingClass>
+    <MissingClass>android.os.PowerManager</MissingClass>
+    <MissingClass>android.text.TextUtils</MissingClass>
+    <MissingClass>android.util.Base64</MissingClass>
+    <MissingClass>android.util.Log</MissingClass>
+    <MissingClass>android.util.Pair</MissingClass>
+    <MissingClass>android.widget.TextView</MissingClass>
+    <MissingClass>android.widget.Toast</MissingClass>
+    <MissingClass>org.json.JSONException</MissingClass>
+    <MissingClass>org.json.JSONObject</MissingClass>
+  </Errors>
+  <FindBugsSummary timestamp="Wed, 5 May 2021 12:16:22 -0700" total_classes="150" referenced_classes="407" total_bugs="17" total_size="3942" num_packages="10" java_version="1.8.0-25" vm_version="25.71-b00" cpu_seconds="19.69" clock_seconds="2.48" peak_mbytes="320.42" alloc_mbytes="455.50" gc_seconds="0.05" priority_2="11" priority_1="6">
+    <FileStats path="com/microsoft/identity/client/AadAuthorityAudience.java" bugCount="0" size="21"/>
+    <FileStats path="com/microsoft/identity/client/Account.java" bugCount="2" size="61" bugHash="56aed016a6e256a1ac45e11d82f90b19"/>
+    <FileStats path="com/microsoft/identity/client/AccountAdapter.java" bugCount="2" size="151" bugHash="149248fb693ede58dc8db5dbd3534698"/>
+    <FileStats path="com/microsoft/identity/client/AcquireTokenParameters.java" bugCount="0" size="79"/>
+    <FileStats path="com/microsoft/identity/client/AcquireTokenSilentParameters.java" bugCount="0" size="37"/>
+    <FileStats path="com/microsoft/identity/client/AuthenticationCallback.java" bugCount="0" size="2"/>
+    <FileStats path="com/microsoft/identity/client/AuthenticationResult.java" bugCount="0" size="47"/>
+    <FileStats path="com/microsoft/identity/client/AuthenticationResultAdapter.java" bugCount="0" size="37"/>
+    <FileStats path="com/microsoft/identity/client/AuthenticationScheme.java" bugCount="0" size="8"/>
+    <FileStats path="com/microsoft/identity/client/AzureCloudInstance.java" bugCount="0" size="21"/>
+    <FileStats path="com/microsoft/identity/client/BearerAuthenticationScheme.java" bugCount="0" size="4"/>
+    <FileStats path="com/microsoft/identity/client/BrowserTabActivity.java" bugCount="0" size="18"/>
+    <FileStats path="com/microsoft/identity/client/ClientInfo.java" bugCount="0" size="26"/>
+    <FileStats path="com/microsoft/identity/client/Constants.java" bugCount="0" size="30"/>
+    <FileStats path="com/microsoft/identity/client/CurrentAccountResult.java" bugCount="0" size="16"/>
+    <FileStats path="com/microsoft/identity/client/HttpMethod.java" bugCount="0" size="25"/>
+    <FileStats path="com/microsoft/identity/client/IAccount.java" bugCount="0" size="3"/>
+    <FileStats path="com/microsoft/identity/client/IAuthenticationResult.java" bugCount="0" size="9"/>
+    <FileStats path="com/microsoft/identity/client/IClaimable.java" bugCount="0" size="5"/>
+    <FileStats path="com/microsoft/identity/client/ICurrentAccountResult.java" bugCount="0" size="4"/>
+    <FileStats path="com/microsoft/identity/client/ILoggerCallback.java" bugCount="0" size="2"/>
+    <FileStats path="com/microsoft/identity/client/IMsalEventReceiver.java" bugCount="0" size="2"/>
+    <FileStats path="com/microsoft/identity/client/IMultiTenantAccount.java" bugCount="0" size="2"/>
+    <FileStats path="com/microsoft/identity/client/IMultipleAccountPublicClientApplication.java" bugCount="0" size="16"/>
+    <FileStats path="com/microsoft/identity/client/IPublicClientApplication.java" bugCount="0" size="29"/>
+    <FileStats path="com/microsoft/identity/client/ISingleAccountPublicClientApplication.java" bugCount="0" size="17"/>
+    <FileStats path="com/microsoft/identity/client/ITenantProfile.java" bugCount="0" size="1"/>
+    <FileStats path="com/microsoft/identity/client/ITokenShare.java" bugCount="0" size="7"/>
+    <FileStats path="com/microsoft/identity/client/Logger.java" bugCount="0" size="75"/>
+    <FileStats path="com/microsoft/identity/client/MsalChromeCustomTabManager.java" bugCount="1" size="91" bugHash="1807749d9b45e57e8f8daae6970a0ff3"/>
+    <FileStats path="com/microsoft/identity/client/MultiTenantAccount.java" bugCount="0" size="11"/>
+    <FileStats path="com/microsoft/identity/client/MultipleAccountPublicClientApplication.java" bugCount="0" size="220"/>
+    <FileStats path="com/microsoft/identity/client/PoPAuthenticationScheme.java" bugCount="0" size="55"/>
+    <FileStats path="com/microsoft/identity/client/Prompt.java" bugCount="0" size="32"/>
+    <FileStats path="com/microsoft/identity/client/PublicClientApplication.java" bugCount="5" size="900" bugHash="0bc4bd58932bfb65606f7d10b9fe1f44"/>
+    <FileStats path="com/microsoft/identity/client/PublicClientApplicationConfiguration.java" bugCount="0" size="277"/>
+    <FileStats path="com/microsoft/identity/client/PublicClientApplicationConfigurationFactory.java" bugCount="2" size="63" bugHash="5bf9fe9487157b1718be612c3cde7140"/>
+    <FileStats path="com/microsoft/identity/client/SilentAuthenticationCallback.java" bugCount="0" size="3"/>
+    <FileStats path="com/microsoft/identity/client/SingleAccountPublicClientApplication.java" bugCount="0" size="300"/>
+    <FileStats path="com/microsoft/identity/client/TenantProfile.java" bugCount="2" size="11" bugHash="ec6db04dc4a96e46bfa0fc83af715b63"/>
+    <FileStats path="com/microsoft/identity/client/TokenParameters.java" bugCount="0" size="113"/>
+    <FileStats path="com/microsoft/identity/client/TokenParametersAdapter.java" bugCount="0" size="13"/>
+    <FileStats path="com/microsoft/identity/client/TokenShareResult.java" bugCount="0" size="14"/>
+    <FileStats path="com/microsoft/identity/client/WebViewSelection.java" bugCount="0" size="17"/>
+    <FileStats path="com/microsoft/identity/client/claims/ClaimsRequest.java" bugCount="0" size="68"/>
+    <FileStats path="com/microsoft/identity/client/claims/ClaimsRequestDeserializer.java" bugCount="0" size="24"/>
+    <FileStats path="com/microsoft/identity/client/claims/ClaimsRequestSerializer.java" bugCount="0" size="24"/>
+    <FileStats path="com/microsoft/identity/client/claims/RequestClaimAdditionalInformationSerializer.java" bugCount="0" size="16"/>
+    <FileStats path="com/microsoft/identity/client/claims/RequestedClaim.java" bugCount="0" size="25"/>
+    <FileStats path="com/microsoft/identity/client/claims/RequestedClaimAdditionalInformation.java" bugCount="0" size="43"/>
+    <FileStats path="com/microsoft/identity/client/claims/WWWAuthenticateHeader.java" bugCount="0" size="36"/>
+    <FileStats path="com/microsoft/identity/client/configuration/AccountMode.java" bugCount="0" size="11"/>
+    <FileStats path="com/microsoft/identity/client/configuration/HttpConfiguration.java" bugCount="0" size="15"/>
+    <FileStats path="com/microsoft/identity/client/configuration/LoggerConfiguration.java" bugCount="0" size="18"/>
+    <FileStats path="com/microsoft/identity/client/exception/MsalArgumentException.java" bugCount="0" size="27"/>
+    <FileStats path="com/microsoft/identity/client/exception/MsalClientException.java" bugCount="0" size="41"/>
+    <FileStats path="com/microsoft/identity/client/exception/MsalDeclinedScopeException.java" bugCount="0" size="16"/>
+    <FileStats path="com/microsoft/identity/client/exception/MsalException.java" bugCount="0" size="19"/>
+    <FileStats path="com/microsoft/identity/client/exception/MsalIntuneAppProtectionPolicyRequiredException.java" bugCount="0" size="20"/>
+    <FileStats path="com/microsoft/identity/client/exception/MsalServiceException.java" bugCount="0" size="21"/>
+    <FileStats path="com/microsoft/identity/client/exception/MsalUiRequiredException.java" bugCount="0" size="13"/>
+    <FileStats path="com/microsoft/identity/client/exception/MsalUserCancelException.java" bugCount="0" size="4"/>
+    <FileStats path="com/microsoft/identity/client/helper/BrokerHelperActivity.java" bugCount="1" size="36" bugHash="a56e5cbfb2b22a8c02d71e7fdc6e0fc3"/>
+    <FileStats path="com/microsoft/identity/client/internal/AsyncResult.java" bugCount="0" size="14"/>
+    <FileStats path="com/microsoft/identity/client/internal/CommandParametersAdapter.java" bugCount="2" size="233" bugHash="54d6a0642f8c84df01fb863f9895a508"/>
+    <FileStats path="com/microsoft/identity/client/internal/IntuneAcquireTokenParameters.java" bugCount="0" size="27"/>
+    <FileStats path="com/microsoft/identity/client/internal/MsalUtils.java" bugCount="0" size="184"/>
+    <FileStats path="com/microsoft/identity/client/internal/api/BrokerClientIdRefreshTokenAccessor.java" bugCount="0" size="30"/>
+    <FileStats path="com/microsoft/identity/client/internal/configuration/LogLevelDeserializer.java" bugCount="0" size="7"/>
+    <FileStats path="com/microsoft/identity/client/internal/controllers/MSALControllerFactory.java" bugCount="0" size="51"/>
+    <FileStats path="com/microsoft/identity/client/internal/controllers/MsalExceptionAdapter.java" bugCount="0" size="34"/>
+    <FileStats path="com/microsoft/identity/msal/BuildConfig.java" bugCount="0" size="10"/>
+    <PackageStats package="com.microsoft.identity.client" total_bugs="14" total_types="118" total_size="2875" priority_2="8" priority_1="6">
+      <ClassStats class="com.microsoft.identity.client.AadAuthorityAudience" sourceFile="AadAuthorityAudience.java" interface="false" size="21" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.Account" sourceFile="Account.java" interface="false" size="61" bugs="2" priority_2="2"/>
+      <ClassStats class="com.microsoft.identity.client.AccountAdapter" sourceFile="AccountAdapter.java" interface="false" size="96" bugs="2" priority_2="2"/>
+      <ClassStats class="com.microsoft.identity.client.AccountAdapter$1" sourceFile="AccountAdapter.java" interface="false" size="18" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.AccountAdapter$1$1" sourceFile="AccountAdapter.java" interface="false" size="9" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.AccountAdapter$CacheRecordFilter" sourceFile="AccountAdapter.java" interface="true" size="2" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.AccountAdapter$GuestAccountFilter" sourceFile="AccountAdapter.java" interface="false" size="13" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.AccountAdapter$HomeAccountFilter" sourceFile="AccountAdapter.java" interface="false" size="13" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.AcquireTokenParameters" sourceFile="AcquireTokenParameters.java" interface="false" size="35" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.AcquireTokenParameters$Builder" sourceFile="AcquireTokenParameters.java" interface="false" size="44" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.AcquireTokenSilentParameters" sourceFile="AcquireTokenSilentParameters.java" interface="false" size="18" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.AcquireTokenSilentParameters$Builder" sourceFile="AcquireTokenSilentParameters.java" interface="false" size="19" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.AuthenticationCallback" sourceFile="AuthenticationCallback.java" interface="true" size="2" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.AuthenticationResult" sourceFile="AuthenticationResult.java" interface="false" size="47" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.AuthenticationResultAdapter" sourceFile="AuthenticationResultAdapter.java" interface="false" size="37" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.AuthenticationScheme" sourceFile="AuthenticationScheme.java" interface="false" size="8" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.AzureCloudInstance" sourceFile="AzureCloudInstance.java" interface="false" size="21" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.BearerAuthenticationScheme" sourceFile="BearerAuthenticationScheme.java" interface="false" size="4" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.BrowserTabActivity" sourceFile="BrowserTabActivity.java" interface="false" size="18" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.ClientInfo" sourceFile="ClientInfo.java" interface="false" size="21" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.ClientInfo$ClientInfoClaim" sourceFile="ClientInfo.java" interface="false" size="5" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.Constants" sourceFile="Constants.java" interface="false" size="10" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.Constants$MsalErrorMessage" sourceFile="Constants.java" interface="false" size="7" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.Constants$MsalInternalError" sourceFile="Constants.java" interface="false" size="5" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.Constants$UIResponse" sourceFile="Constants.java" interface="false" size="8" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.CurrentAccountResult" sourceFile="CurrentAccountResult.java" interface="false" size="16" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.HttpMethod" sourceFile="HttpMethod.java" interface="false" size="25" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.IAccount" sourceFile="IAccount.java" interface="true" size="3" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.IAuthenticationResult" sourceFile="IAuthenticationResult.java" interface="true" size="9" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.IClaimable" sourceFile="IClaimable.java" interface="true" size="5" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.ICurrentAccountResult" sourceFile="ICurrentAccountResult.java" interface="true" size="4" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.ILoggerCallback" sourceFile="ILoggerCallback.java" interface="true" size="2" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.IMsalEventReceiver" sourceFile="IMsalEventReceiver.java" interface="true" size="2" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.IMultiTenantAccount" sourceFile="IMultiTenantAccount.java" interface="true" size="2" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.IMultipleAccountPublicClientApplication" sourceFile="IMultipleAccountPublicClientApplication.java" interface="true" size="10" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.IMultipleAccountPublicClientApplication$GetAccountCallback" sourceFile="IMultipleAccountPublicClientApplication.java" interface="true" size="3" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.IMultipleAccountPublicClientApplication$RemoveAccountCallback" sourceFile="IMultipleAccountPublicClientApplication.java" interface="true" size="3" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.IPublicClientApplication" sourceFile="IPublicClientApplication.java" interface="true" size="10" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.IPublicClientApplication$ApplicationCreatedListener" sourceFile="IPublicClientApplication.java" interface="true" size="3" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.IPublicClientApplication$DeviceCodeFlowCallback" sourceFile="IPublicClientApplication.java" interface="true" size="4" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.IPublicClientApplication$IMultipleAccountApplicationCreatedListener" sourceFile="IPublicClientApplication.java" interface="true" size="3" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.IPublicClientApplication$ISingleAccountApplicationCreatedListener" sourceFile="IPublicClientApplication.java" interface="true" size="3" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.IPublicClientApplication$LoadAccountsCallback" sourceFile="IPublicClientApplication.java" interface="true" size="3" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.IPublicClientApplication$SignedHttpRequestRequestCallback" sourceFile="IPublicClientApplication.java" interface="true" size="3" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.ISingleAccountPublicClientApplication" sourceFile="ISingleAccountPublicClientApplication.java" interface="true" size="10" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.ISingleAccountPublicClientApplication$CurrentAccountCallback" sourceFile="ISingleAccountPublicClientApplication.java" interface="true" size="4" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.ISingleAccountPublicClientApplication$SignOutCallback" sourceFile="ISingleAccountPublicClientApplication.java" interface="true" size="3" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.ITenantProfile" sourceFile="ITenantProfile.java" interface="true" size="1" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.ITokenShare" sourceFile="ITokenShare.java" interface="true" size="7" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.Logger" sourceFile="Logger.java" interface="false" size="38" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.Logger$1" sourceFile="Logger.java" interface="false" size="16" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.Logger$2" sourceFile="Logger.java" interface="false" size="6" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.Logger$LogLevel" sourceFile="Logger.java" interface="false" size="15" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.MsalChromeCustomTabManager" sourceFile="MsalChromeCustomTabManager.java" interface="false" size="60" bugs="1" priority_2="1"/>
+      <ClassStats class="com.microsoft.identity.client.MsalChromeCustomTabManager$MsalCustomTabsServiceConnection" sourceFile="MsalChromeCustomTabManager.java" interface="false" size="31" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.MultiTenantAccount" sourceFile="MultiTenantAccount.java" interface="false" size="11" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.MultipleAccountPublicClientApplication" sourceFile="MultipleAccountPublicClientApplication.java" interface="false" size="92" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.MultipleAccountPublicClientApplication$1" sourceFile="MultipleAccountPublicClientApplication.java" interface="false" size="21" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.MultipleAccountPublicClientApplication$1$1" sourceFile="MultipleAccountPublicClientApplication.java" interface="false" size="8" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.MultipleAccountPublicClientApplication$2" sourceFile="MultipleAccountPublicClientApplication.java" interface="false" size="13" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.MultipleAccountPublicClientApplication$3" sourceFile="MultipleAccountPublicClientApplication.java" interface="false" size="21" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.MultipleAccountPublicClientApplication$3$1" sourceFile="MultipleAccountPublicClientApplication.java" interface="false" size="26" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.MultipleAccountPublicClientApplication$4" sourceFile="MultipleAccountPublicClientApplication.java" interface="false" size="13" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.MultipleAccountPublicClientApplication$5" sourceFile="MultipleAccountPublicClientApplication.java" interface="false" size="15" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.MultipleAccountPublicClientApplication$6" sourceFile="MultipleAccountPublicClientApplication.java" interface="false" size="11" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PoPAuthenticationScheme" sourceFile="PoPAuthenticationScheme.java" interface="false" size="27" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PoPAuthenticationScheme$1" sourceFile="PoPAuthenticationScheme.java" interface="false" size="1" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PoPAuthenticationScheme$Builder" sourceFile="PoPAuthenticationScheme.java" interface="false" size="27" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.Prompt" sourceFile="Prompt.java" interface="false" size="28" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.Prompt$1" sourceFile="Prompt.java" interface="false" size="4" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplication" sourceFile="PublicClientApplication.java" interface="false" size="495" bugs="4" priority_1="4"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplication$1" sourceFile="PublicClientApplication.java" interface="false" size="10" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplication$10" sourceFile="PublicClientApplication.java" interface="false" size="16" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplication$11" sourceFile="PublicClientApplication.java" interface="false" size="15" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplication$12" sourceFile="PublicClientApplication.java" interface="false" size="16" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplication$13" sourceFile="PublicClientApplication.java" interface="false" size="15" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplication$14" sourceFile="PublicClientApplication.java" interface="false" size="27" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplication$14$1" sourceFile="PublicClientApplication.java" interface="false" size="9" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplication$15" sourceFile="PublicClientApplication.java" interface="false" size="25" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplication$15$1" sourceFile="PublicClientApplication.java" interface="false" size="9" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplication$16" sourceFile="PublicClientApplication.java" interface="false" size="11" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplication$17" sourceFile="PublicClientApplication.java" interface="false" size="17" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplication$18" sourceFile="PublicClientApplication.java" interface="false" size="22" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplication$19" sourceFile="PublicClientApplication.java" interface="false" size="28" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplication$2" sourceFile="PublicClientApplication.java" interface="false" size="10" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplication$20" sourceFile="PublicClientApplication.java" interface="false" size="6" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplication$21" sourceFile="PublicClientApplication.java" interface="false" size="17" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplication$22" sourceFile="PublicClientApplication.java" interface="false" size="23" bugs="1" priority_2="1"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplication$23" sourceFile="PublicClientApplication.java" interface="false" size="11" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplication$3" sourceFile="PublicClientApplication.java" interface="false" size="12" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplication$4" sourceFile="PublicClientApplication.java" interface="false" size="10" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplication$5" sourceFile="PublicClientApplication.java" interface="false" size="10" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplication$6" sourceFile="PublicClientApplication.java" interface="false" size="10" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplication$7" sourceFile="PublicClientApplication.java" interface="false" size="10" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplication$8" sourceFile="PublicClientApplication.java" interface="false" size="10" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplication$9" sourceFile="PublicClientApplication.java" interface="false" size="21" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplication$AccountMatcher" sourceFile="PublicClientApplication.java" interface="false" size="18" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplication$BrokerDeviceModeCallback" sourceFile="PublicClientApplication.java" interface="true" size="3" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplication$NONNULL_CONSTANTS" sourceFile="PublicClientApplication.java" interface="false" size="14" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplicationConfiguration" sourceFile="PublicClientApplicationConfiguration.java" interface="false" size="256" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplicationConfiguration$SerializedNames" sourceFile="PublicClientApplicationConfiguration.java" interface="false" size="21" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.PublicClientApplicationConfigurationFactory" sourceFile="PublicClientApplicationConfigurationFactory.java" interface="false" size="63" bugs="2" priority_2="1" priority_1="1"/>
+      <ClassStats class="com.microsoft.identity.client.SilentAuthenticationCallback" sourceFile="SilentAuthenticationCallback.java" interface="true" size="3" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.SingleAccountPublicClientApplication" sourceFile="SingleAccountPublicClientApplication.java" interface="false" size="199" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.SingleAccountPublicClientApplication$1" sourceFile="SingleAccountPublicClientApplication.java" interface="false" size="18" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.SingleAccountPublicClientApplication$1$1" sourceFile="SingleAccountPublicClientApplication.java" interface="false" size="15" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.SingleAccountPublicClientApplication$2" sourceFile="SingleAccountPublicClientApplication.java" interface="false" size="16" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.SingleAccountPublicClientApplication$3" sourceFile="SingleAccountPublicClientApplication.java" interface="false" size="25" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.SingleAccountPublicClientApplication$4" sourceFile="SingleAccountPublicClientApplication.java" interface="false" size="16" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.SingleAccountPublicClientApplication$5" sourceFile="SingleAccountPublicClientApplication.java" interface="false" size="11" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.TenantProfile" sourceFile="TenantProfile.java" interface="false" size="11" bugs="2" priority_2="1" priority_1="1"/>
+      <ClassStats class="com.microsoft.identity.client.TokenParameters" sourceFile="TokenParameters.java" interface="false" size="43" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.TokenParameters$Builder" sourceFile="TokenParameters.java" interface="false" size="63" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.TokenParameters$Builder$1" sourceFile="TokenParameters.java" interface="false" size="7" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.TokenParametersAdapter" sourceFile="TokenParametersAdapter.java" interface="false" size="13" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.TokenShareResult" sourceFile="TokenShareResult.java" interface="false" size="9" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.TokenShareResult$TokenShareExportFormat" sourceFile="TokenShareResult.java" interface="false" size="5" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.WebViewSelection" sourceFile="WebViewSelection.java" interface="false" size="17" bugs="0"/>
+    </PackageStats>
+    <PackageStats package="com.microsoft.identity.client.claims" total_bugs="0" total_types="8" total_size="236">
+      <ClassStats class="com.microsoft.identity.client.claims.ClaimsRequest" sourceFile="ClaimsRequest.java" interface="false" size="68" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.claims.ClaimsRequestDeserializer" sourceFile="ClaimsRequestDeserializer.java" interface="false" size="24" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.claims.ClaimsRequestSerializer" sourceFile="ClaimsRequestSerializer.java" interface="false" size="24" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.claims.RequestClaimAdditionalInformationSerializer" sourceFile="RequestClaimAdditionalInformationSerializer.java" interface="false" size="16" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.claims.RequestedClaim" sourceFile="RequestedClaim.java" interface="false" size="25" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation" sourceFile="RequestedClaimAdditionalInformation.java" interface="false" size="37" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation$SerializedNames" sourceFile="RequestedClaimAdditionalInformation.java" interface="false" size="6" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.claims.WWWAuthenticateHeader" sourceFile="WWWAuthenticateHeader.java" interface="false" size="36" bugs="0"/>
+    </PackageStats>
+    <PackageStats package="com.microsoft.identity.client.configuration" total_bugs="0" total_types="4" total_size="44">
+      <ClassStats class="com.microsoft.identity.client.configuration.AccountMode" sourceFile="AccountMode.java" interface="false" size="11" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.configuration.HttpConfiguration" sourceFile="HttpConfiguration.java" interface="false" size="15" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.configuration.LoggerConfiguration" sourceFile="LoggerConfiguration.java" interface="false" size="12" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.configuration.LoggerConfiguration$SerializedNames" sourceFile="LoggerConfiguration.java" interface="false" size="6" bugs="0"/>
+    </PackageStats>
+    <PackageStats package="com.microsoft.identity.client.exception" total_bugs="0" total_types="8" total_size="161">
+      <ClassStats class="com.microsoft.identity.client.exception.MsalArgumentException" sourceFile="MsalArgumentException.java" interface="false" size="27" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.exception.MsalClientException" sourceFile="MsalClientException.java" interface="false" size="41" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.exception.MsalDeclinedScopeException" sourceFile="MsalDeclinedScopeException.java" interface="false" size="16" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.exception.MsalException" sourceFile="MsalException.java" interface="false" size="19" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.exception.MsalIntuneAppProtectionPolicyRequiredException" sourceFile="MsalIntuneAppProtectionPolicyRequiredException.java" interface="false" size="20" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.exception.MsalServiceException" sourceFile="MsalServiceException.java" interface="false" size="21" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.exception.MsalUiRequiredException" sourceFile="MsalUiRequiredException.java" interface="false" size="13" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.exception.MsalUserCancelException" sourceFile="MsalUserCancelException.java" interface="false" size="4" bugs="0"/>
+    </PackageStats>
+    <PackageStats package="com.microsoft.identity.client.helper" total_bugs="1" total_types="1" total_size="36" priority_2="1">
+      <ClassStats class="com.microsoft.identity.client.helper.BrokerHelperActivity" sourceFile="BrokerHelperActivity.java" interface="false" size="36" bugs="1" priority_2="1"/>
+    </PackageStats>
+    <PackageStats package="com.microsoft.identity.client.internal" total_bugs="2" total_types="6" total_size="458" priority_2="2">
+      <ClassStats class="com.microsoft.identity.client.internal.AsyncResult" sourceFile="AsyncResult.java" interface="false" size="14" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.internal.CommandParametersAdapter" sourceFile="CommandParametersAdapter.java" interface="false" size="233" bugs="2" priority_2="2"/>
+      <ClassStats class="com.microsoft.identity.client.internal.IntuneAcquireTokenParameters" sourceFile="IntuneAcquireTokenParameters.java" interface="false" size="10" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.internal.IntuneAcquireTokenParameters$1" sourceFile="IntuneAcquireTokenParameters.java" interface="false" size="1" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.internal.IntuneAcquireTokenParameters$Builder" sourceFile="IntuneAcquireTokenParameters.java" interface="false" size="16" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.internal.MsalUtils" sourceFile="MsalUtils.java" interface="false" size="184" bugs="0"/>
+    </PackageStats>
+    <PackageStats package="com.microsoft.identity.client.internal.api" total_bugs="0" total_types="1" total_size="30">
+      <ClassStats class="com.microsoft.identity.client.internal.api.BrokerClientIdRefreshTokenAccessor" sourceFile="BrokerClientIdRefreshTokenAccessor.java" interface="false" size="30" bugs="0"/>
+    </PackageStats>
+    <PackageStats package="com.microsoft.identity.client.internal.configuration" total_bugs="0" total_types="1" total_size="7">
+      <ClassStats class="com.microsoft.identity.client.internal.configuration.LogLevelDeserializer" sourceFile="LogLevelDeserializer.java" interface="false" size="7" bugs="0"/>
+    </PackageStats>
+    <PackageStats package="com.microsoft.identity.client.internal.controllers" total_bugs="0" total_types="2" total_size="85">
+      <ClassStats class="com.microsoft.identity.client.internal.controllers.MSALControllerFactory" sourceFile="MSALControllerFactory.java" interface="false" size="51" bugs="0"/>
+      <ClassStats class="com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter" sourceFile="MsalExceptionAdapter.java" interface="false" size="34" bugs="0"/>
+    </PackageStats>
+    <PackageStats package="com.microsoft.identity.msal" total_bugs="0" total_types="1" total_size="10">
+      <ClassStats class="com.microsoft.identity.msal.BuildConfig" sourceFile="BuildConfig.java" interface="false" size="10" bugs="0"/>
+    </PackageStats>
+    <FindBugsProfile>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.ClassInfoAnalysisEngine" totalMilliseconds="200" invocations="1519" avgMicrosecondsPerInvocation="131" maxMicrosecondsPerInvocation="8242" standardDeviationMicrosecondsPerInvocation="386"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.ClassDataAnalysisEngine" totalMilliseconds="172" invocations="1528" avgMicrosecondsPerInvocation="113" maxMicrosecondsPerInvocation="1120" standardDeviationMicrosecondsPerInvocation="150"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindNoSideEffectMethods" totalMilliseconds="106" invocations="407" avgMicrosecondsPerInvocation="261" maxMicrosecondsPerInvocation="11918" standardDeviationMicrosecondsPerInvocation="804"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FieldItemSummary" totalMilliseconds="91" invocations="407" avgMicrosecondsPerInvocation="225" maxMicrosecondsPerInvocation="4255" standardDeviationMicrosecondsPerInvocation="487"/>
+      <ClassProfile name="edu.umd.cs.findbugs.ba.npe.NullDerefAndRedundantComparisonFinder" totalMilliseconds="88" invocations="662" avgMicrosecondsPerInvocation="133" maxMicrosecondsPerInvocation="5950" standardDeviationMicrosecondsPerInvocation="296"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.IsNullValueDataflowFactory" totalMilliseconds="88" invocations="702" avgMicrosecondsPerInvocation="125" maxMicrosecondsPerInvocation="2088" standardDeviationMicrosecondsPerInvocation="207"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.TypeDataflowFactory" totalMilliseconds="67" invocations="724" avgMicrosecondsPerInvocation="93" maxMicrosecondsPerInvocation="1472" standardDeviationMicrosecondsPerInvocation="150"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.UnconditionalValueDerefDataflowFactory" totalMilliseconds="65" invocations="694" avgMicrosecondsPerInvocation="93" maxMicrosecondsPerInvocation="6925" standardDeviationMicrosecondsPerInvocation="343"/>
+      <ClassProfile name="edu.umd.cs.findbugs.OpcodeStack$JumpInfoFactory" totalMilliseconds="56" invocations="1106" avgMicrosecondsPerInvocation="50" maxMicrosecondsPerInvocation="1856" standardDeviationMicrosecondsPerInvocation="101"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.ValueNumberDataflowFactory" totalMilliseconds="55" invocations="728" avgMicrosecondsPerInvocation="76" maxMicrosecondsPerInvocation="1252" standardDeviationMicrosecondsPerInvocation="127"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.CFGFactory" totalMilliseconds="53" invocations="702" avgMicrosecondsPerInvocation="76" maxMicrosecondsPerInvocation="653" standardDeviationMicrosecondsPerInvocation="77"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindRefComparison$SpecialTypeAnalysis" totalMilliseconds="48" invocations="557" avgMicrosecondsPerInvocation="87" maxMicrosecondsPerInvocation="1178" standardDeviationMicrosecondsPerInvocation="132"/>
+      <ClassProfile name="edu.umd.cs.findbugs.util.TopologicalSort" totalMilliseconds="34" invocations="1391" avgMicrosecondsPerInvocation="24" maxMicrosecondsPerInvocation="866" standardDeviationMicrosecondsPerInvocation="50"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.NoteDirectlyRelevantTypeQualifiers" totalMilliseconds="31" invocations="407" avgMicrosecondsPerInvocation="78" maxMicrosecondsPerInvocation="1790" standardDeviationMicrosecondsPerInvocation="147"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.UnreadFields" totalMilliseconds="28" invocations="150" avgMicrosecondsPerInvocation="188" maxMicrosecondsPerInvocation="4403" standardDeviationMicrosecondsPerInvocation="397"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.CalledMethods" totalMilliseconds="22" invocations="407" avgMicrosecondsPerInvocation="55" maxMicrosecondsPerInvocation="1215" standardDeviationMicrosecondsPerInvocation="113"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.BuildStringPassthruGraph" totalMilliseconds="21" invocations="407" avgMicrosecondsPerInvocation="53" maxMicrosecondsPerInvocation="2815" standardDeviationMicrosecondsPerInvocation="170"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindBadCast2" totalMilliseconds="21" invocations="150" avgMicrosecondsPerInvocation="143" maxMicrosecondsPerInvocation="8149" standardDeviationMicrosecondsPerInvocation="712"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.BuildObligationPolicyDatabase" totalMilliseconds="21" invocations="407" avgMicrosecondsPerInvocation="52" maxMicrosecondsPerInvocation="1209" standardDeviationMicrosecondsPerInvocation="87"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindInconsistentSync2" totalMilliseconds="19" invocations="150" avgMicrosecondsPerInvocation="127" maxMicrosecondsPerInvocation="2196" standardDeviationMicrosecondsPerInvocation="224"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.impl.ZipCodeBaseFactory" totalMilliseconds="18" invocations="54" avgMicrosecondsPerInvocation="337" maxMicrosecondsPerInvocation="642" standardDeviationMicrosecondsPerInvocation="156"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FunctionsThatMightBeMistakenForProcedures" totalMilliseconds="18" invocations="407" avgMicrosecondsPerInvocation="44" maxMicrosecondsPerInvocation="1229" standardDeviationMicrosecondsPerInvocation="95"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.LoadOfKnownNullValue" totalMilliseconds="18" invocations="150" avgMicrosecondsPerInvocation="120" maxMicrosecondsPerInvocation="2140" standardDeviationMicrosecondsPerInvocation="258"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.DumbMethods" totalMilliseconds="17" invocations="150" avgMicrosecondsPerInvocation="117" maxMicrosecondsPerInvocation="1682" standardDeviationMicrosecondsPerInvocation="202"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.ConstantDataflowFactory" totalMilliseconds="17" invocations="702" avgMicrosecondsPerInvocation="24" maxMicrosecondsPerInvocation="378" standardDeviationMicrosecondsPerInvocation="37"/>
+      <ClassProfile name="edu.umd.cs.findbugs.ba.npe.TypeQualifierNullnessAnnotationDatabase" totalMilliseconds="17" invocations="9746" avgMicrosecondsPerInvocation="1" maxMicrosecondsPerInvocation="176" standardDeviationMicrosecondsPerInvocation="5"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.OverridingEqualsNotSymmetrical" totalMilliseconds="16" invocations="407" avgMicrosecondsPerInvocation="41" maxMicrosecondsPerInvocation="425" standardDeviationMicrosecondsPerInvocation="65"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FormatStringChecker" totalMilliseconds="16" invocations="150" avgMicrosecondsPerInvocation="107" maxMicrosecondsPerInvocation="8231" standardDeviationMicrosecondsPerInvocation="674"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.MethodGenFactory" totalMilliseconds="15" invocations="785" avgMicrosecondsPerInvocation="20" maxMicrosecondsPerInvocation="116" standardDeviationMicrosecondsPerInvocation="15"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.JavaClassAnalysisEngine" totalMilliseconds="15" invocations="538" avgMicrosecondsPerInvocation="29" maxMicrosecondsPerInvocation="341" standardDeviationMicrosecondsPerInvocation="34"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindNullDeref$CheckCallSitesAndReturnInstructions" totalMilliseconds="15" invocations="662" avgMicrosecondsPerInvocation="23" maxMicrosecondsPerInvocation="261" standardDeviationMicrosecondsPerInvocation="29"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.RuntimeExceptionCapture" totalMilliseconds="14" invocations="150" avgMicrosecondsPerInvocation="97" maxMicrosecondsPerInvocation="1512" standardDeviationMicrosecondsPerInvocation="213"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindRefComparison" totalMilliseconds="13" invocations="150" avgMicrosecondsPerInvocation="91" maxMicrosecondsPerInvocation="1478" standardDeviationMicrosecondsPerInvocation="166"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.MethodReturnCheck" totalMilliseconds="13" invocations="150" avgMicrosecondsPerInvocation="87" maxMicrosecondsPerInvocation="1525" standardDeviationMicrosecondsPerInvocation="184"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.DefaultEncodingDetector" totalMilliseconds="12" invocations="150" avgMicrosecondsPerInvocation="83" maxMicrosecondsPerInvocation="2490" standardDeviationMicrosecondsPerInvocation="324"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindNullDeref" totalMilliseconds="11" invocations="150" avgMicrosecondsPerInvocation="79" maxMicrosecondsPerInvocation="1316" standardDeviationMicrosecondsPerInvocation="136"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindUselessObjects" totalMilliseconds="11" invocations="150" avgMicrosecondsPerInvocation="78" maxMicrosecondsPerInvocation="1140" standardDeviationMicrosecondsPerInvocation="141"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.SerializableIdiom" totalMilliseconds="11" invocations="150" avgMicrosecondsPerInvocation="75" maxMicrosecondsPerInvocation="995" standardDeviationMicrosecondsPerInvocation="104"/>
+    </FindBugsProfile>
+  </FindBugsSummary>
+  <ClassFeatures></ClassFeatures>
+  <History></History>
+</BugCollection>

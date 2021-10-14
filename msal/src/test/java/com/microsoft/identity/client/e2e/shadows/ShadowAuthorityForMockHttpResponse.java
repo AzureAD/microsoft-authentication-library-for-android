@@ -26,11 +26,8 @@ import android.net.Uri;
 
 import androidx.annotation.NonNull;
 
-import com.microsoft.identity.common.internal.authorities.AccountsInOneOrganization;
-import com.microsoft.identity.common.internal.authorities.Authority;
-import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience;
-import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
-import com.microsoft.identity.internal.testutils.TestConstants;
+import com.microsoft.identity.common.java.authorities.Authority;
+import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.internal.testutils.authorities.MockAuthorityHttpResponse;
 
 import org.robolectric.annotation.Implements;

@@ -24,6 +24,7 @@ package com.microsoft.identity.client;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -106,9 +107,6 @@ public final class CurrentTaskBrowserTabActivity extends Activity {
             Intent broadcast = new Intent(REDIRECT_RETURNED_ACTION);
             LocalBroadcastManager.getInstance(this).sendBroadcast(broadcast);
 
-
-
-
             // Wait for the custom tab to be removed from the back stack before finishing.
             mCloseBroadcastReceiver = new BroadcastReceiver() {
                 @Override
@@ -117,12 +115,13 @@ public final class CurrentTaskBrowserTabActivity extends Activity {
                     boolean hasNullTaskAffinity = false;
                     final PackageManager packageManager = CurrentTaskBrowserTabActivity.this.getApplicationContext().getPackageManager();
                     try {
-                        final ActivityInfo activityInfo = CurrentTaskBrowserTabActivity.this.getComponentName() != null ? packageManager.getActivityInfo(CurrentTaskBrowserTabActivity.this.getComponentName(), 0) : null;
-                        if(activityInfo.taskAffinity == null){
+                        final ComponentName componentName = CurrentTaskBrowserTabActivity.this.getComponentName();
+                        final ActivityInfo activityInfo = componentName != null ? packageManager.getActivityInfo(componentName, 0) : null;
+                        if(activityInfo == null || activityInfo.taskAffinity == null){
                             hasNullTaskAffinity = true;
                         }
-                    } catch (PackageManager.NameNotFoundException e) {
-                        e.printStackTrace();
+                    } catch (final PackageManager.NameNotFoundException e) {
+                        Logger.warn(TAG, null, "Package name not found for: " + CurrentTaskBrowserTabActivity.this.getComponentName());
                     }
 
                     finishActivity(REDIRECT_RECEIVED_CODE);

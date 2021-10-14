@@ -20,7 +20,6 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-
 package com.microsoft.identity.client;
 
 import android.content.Context;
@@ -33,13 +32,15 @@ import androidx.annotation.WorkerThread;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer;
-import com.microsoft.identity.common.internal.authorities.Authority;
-import com.microsoft.identity.common.internal.authorities.AuthorityDeserializer;
-import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience;
+import com.microsoft.identity.common.AndroidPlatformComponents;
+import com.microsoft.identity.common.java.authorities.Authority;
+import com.microsoft.identity.common.java.authorities.AuthorityDeserializer;
+import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudienceDeserializer;
-import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
-import com.microsoft.identity.common.internal.configuration.LibraryConfiguration;
+import com.microsoft.identity.common.java.cache.MsalOAuth2TokenCache;
+import com.microsoft.identity.common.java.configuration.LibraryConfiguration;
 import com.microsoft.identity.msal.R;
+import com.microsoft.identity.common.logging.Logger;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -96,17 +97,14 @@ public class PublicClientApplicationConfigurationFactory {
         final LibraryConfiguration libraryConfiguration = LibraryConfiguration.builder().authorizationInCurrentTask((config.authorizationInCurrentTask())).build();
         LibraryConfiguration.intializeLibraryConfiguration(libraryConfiguration);
 
-        config.setOAuth2TokenCache(MsalOAuth2TokenCache.create(context));
+        config.setOAuth2TokenCache(MsalOAuth2TokenCache.create(AndroidPlatformComponents.createFromContext(context)));
         return config;
     }
 
     @WorkerThread
     private static PublicClientApplicationConfiguration loadDefaultConfiguration(@NonNull final Context context) {
         final String methodName = ":loadDefaultConfiguration";
-        com.microsoft.identity.common.internal.logging.Logger.verbose(
-                TAG + methodName,
-                "Loading default configuration"
-        );
+        Logger.verbose(TAG + methodName, "Loading default configuration");
         final PublicClientApplicationConfiguration config = loadConfiguration(context, R.raw.msal_default_config);
         config.setAppContext(context);
 
@@ -151,14 +149,14 @@ public class PublicClientApplicationConfigurationFactory {
                 configStream.close();
             } catch (IOException e) {
                 if (isDefaultConfiguration) {
-                    com.microsoft.identity.common.internal.logging.Logger.warn(
-                            TAG + "loadConfiguration",
-                            "Unable to close default configuration file. This can cause memory leak."
+                    Logger.warn(TAG + "loadConfiguration",
+                            "Unable to close default configuration file. " +
+                                    "This can cause memory leak."
                     );
                 } else {
-                    com.microsoft.identity.common.internal.logging.Logger.warn(
-                            TAG + "loadConfiguration",
-                            "Unable to close provided configuration file. This can cause memory leak."
+                    Logger.warn(TAG + "loadConfiguration",
+                            "Unable to close provided configuration file. " +
+                                    "This can cause memory leak."
                     );
                 }
             }
@@ -188,7 +186,7 @@ public class PublicClientApplicationConfigurationFactory {
                         new AzureActiveDirectoryAudienceDeserializer()
                 )
                 .registerTypeAdapter(
-                        Logger.LogLevel.class,
+                        com.microsoft.identity.client.Logger.LogLevel.class,
                         new LogLevelDeserializer()
                 )
                 .create();

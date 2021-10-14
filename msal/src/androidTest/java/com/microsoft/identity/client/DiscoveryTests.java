@@ -25,13 +25,14 @@ package com.microsoft.identity.client;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
+import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 
 @RunWith(AndroidJUnit4.class)
 public class DiscoveryTests {
@@ -57,10 +58,8 @@ public class DiscoveryTests {
     }
 
     @Test
-    public void testInstanceDiscovery() throws IOException {
+    public void testInstanceDiscovery() throws Exception {
         AndroidTestMockUtil.mockSuccessInstanceDiscoveryAPIVersion1_1();
         AzureActiveDirectory.performCloudDiscovery();
     }
-
-
 }

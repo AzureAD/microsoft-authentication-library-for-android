@@ -1,10 +1,25 @@
-apply plugin: 'com.android.library'
-apply plugin: 'checkstyle'
-apply plugin: 'pmd'
-apply plugin: 'maven'
-apply plugin: 'maven-publish'
+plugins {
+    id 'com.microsoft.identity.buildsystem' version '0.1.0'
+    id 'com.android.library'
+    id 'pmd'
+    id 'checkstyle'
+    id 'maven-publish'
+}
+
 apply from: 'versioning/version_tasks.gradle'
+
 group = 'com.microsoft.identity.client'
+
+def desugarCode = false
+
+if(project.hasProperty("sugar")){
+    desugarCode = sugar.toBoolean()
+}
+
+buildSystem {
+    desugar = desugarCode
+}
+
 //apply plugin: 'jacoco'
 //
 //// To include Robolectric tests in the Jacoco report, flag -> "includeNolocationClasses" is set to true
@@ -22,7 +37,6 @@ def androidTestType = "AndroidTest"
 def bothTestType = "BothTest"
 
 android {
-
 //    testOptions {
 //        compileOptions {
 //            // Flag to enable support for the new language APIs
@@ -53,7 +67,7 @@ android {
         multiDexEnabled true
         minSdkVersion rootProject.ext.minSdkVersion
         if(project.getProperties().get("robolectricSdkVersion")){
-            println "Using command line parameter robolectricSdkVersion for target sdk version"
+            println "Using command line parameter robolectricSdkVersion for target sdk version " + project.getProperties().get("robolectricSdkVersion")
             targetSdkVersion project.getProperties().get("robolectricSdkVersion")
         }else{
             targetSdkVersion rootProject.ext.targetSdkVersion
@@ -143,7 +157,9 @@ android {
                 // example: ./gradlew testLocalDebugUnitTest -Plabtest
                 exclude 'com/microsoft/identity/client/e2e/tests/network'
             }
-
+            testLogging {
+                exceptionFormat = "full"
+            }
         }
     }
 }
@@ -242,9 +258,10 @@ task sourcesJar(type: Jar) {
 }
 
 dependencies {
+    testImplementation project(path: ':common4j')
 
-    //Commenting out until the next major version of common/msal/etc...
-    //coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
+    //Please leave this in... desugaring is currently disabled by default; however it's required for running some tests
+    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
 
     def mockito_version = 'latest.release'
 
@@ -254,6 +271,7 @@ dependencies {
     implementation ("com.nimbusds:nimbus-jose-jwt:$rootProject.ext.nimbusVersion") {
         exclude module: 'asm'
     }
+    implementation "cz.msebera.android:httpclient:$rootProject.ext.mseberaApacheHttpClientVersion"
     implementation "androidx.constraintlayout:constraintlayout:$rootProject.ext.constraintLayoutVersion"
 
     // test dependencies
@@ -271,14 +289,15 @@ dependencies {
     androidTestImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
     // 'local' flavor dependencies
     localApi(project(":common")) {
-        transitive = false
+        transitive = true
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.6.3', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '4.0.0-RC3', changing: true)
 
-    distApi("com.microsoft.identity:common:3.6.3") {
-        transitive = false
+    distApi("com.microsoft.identity:common:4.0.0-RC3") {
+        transitive = true
     }
+
 }
 
 def configDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')

@@ -25,12 +25,13 @@ package com.microsoft.identity.client;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.microsoft.identity.common.exception.ServiceException;
-import com.microsoft.identity.common.internal.cache.ICacheRecord;
-import com.microsoft.identity.common.internal.dto.AccountRecord;
-import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
-import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
-import com.microsoft.identity.common.internal.util.StringUtil;
+import com.microsoft.identity.common.java.exception.ServiceException;
+import com.microsoft.identity.common.java.cache.ICacheRecord;
+import com.microsoft.identity.common.java.dto.AccountRecord;
+import com.microsoft.identity.common.java.providers.oauth2.IDToken;
+import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
+import com.microsoft.identity.common.java.util.StringUtil;
+import com.microsoft.identity.common.logging.Logger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -214,8 +215,8 @@ class AccountAdapter {
 
             // Set the home oid & home tid of the root, even though we don't have the IdToken...
             // hooray for client_info
-            emptyRoot.setId(StringUtil.getTenantInfo(entry.getKey()).first);
-            emptyRoot.setTenantId(StringUtil.getTenantInfo(entry.getKey()).second);
+            emptyRoot.setId(StringUtil.getTenantInfo(entry.getKey()).getKey());
+            emptyRoot.setTenantId(StringUtil.getTenantInfo(entry.getKey()).getValue());
             emptyRoot.setEnvironment( // Look ahead into our CacheRecords to determine the environment
                     entry
                             .getValue()
@@ -299,7 +300,7 @@ class AccountAdapter {
                             homeCacheRecord
                                     .getAccount()
                                     .getHomeAccountId()
-                    ).second
+                    ).getValue()
             );
 
             // Set the environment...
@@ -359,7 +360,7 @@ class AccountAdapter {
                                             @Nullable final String realm) {
         final AccountRecord accountToReturn;
 
-        if (!StringUtil.isEmpty(homeAccountIdentifier)) {
+        if (!StringUtil.isNullOrEmpty(homeAccountIdentifier)) {
             accountToReturn = oAuth2TokenCache.getAccount(
                     null, // * wildcard
                     clientId,
@@ -367,10 +368,7 @@ class AccountAdapter {
                     realm
             );
         } else {
-            com.microsoft.identity.common.internal.logging.Logger.warn(
-                    TAG,
-                    "homeAccountIdentifier was null or empty -- invalid criteria"
-            );
+            Logger.warn(TAG, "homeAccountIdentifier was null or empty -- invalid criteria");
             accountToReturn = null;
         }
 

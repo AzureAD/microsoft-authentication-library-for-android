@@ -26,16 +26,15 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.exception.MsalClientException;
-import com.microsoft.identity.common.internal.cache.SchemaUtil;
-import com.microsoft.identity.common.internal.logging.Logger;
-import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken;
-import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryIdToken;
-import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
+import com.microsoft.identity.common.java.util.SchemaUtil;
+import com.microsoft.identity.common.java.providers.microsoft.MicrosoftIdToken;
+import com.microsoft.identity.common.java.providers.oauth2.IDToken;
 import com.microsoft.identity.common.internal.util.StringUtil;
+import com.microsoft.identity.common.logging.Logger;
 
 import java.util.Map;
 
-import static com.microsoft.identity.common.internal.cache.SchemaUtil.MISSING_FROM_THE_TOKEN_RESPONSE;
+import static com.microsoft.identity.common.java.util.SchemaUtil.MISSING_FROM_THE_TOKEN_RESPONSE;
 
 public class Account implements IAccount {
 

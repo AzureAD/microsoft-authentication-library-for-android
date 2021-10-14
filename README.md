@@ -1,8 +1,8 @@
 Microsoft Authentication Library (MSAL) for Android
 ==============================================
 
-| [Getting Started](https://docs.microsoft.com/azure/active-directory/develop/quickstart-v2-android) | [Sample Code](https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki/MSAL-Code-Samples)| [Library Reference](http://javadoc.io/doc/com.microsoft.identity.client/msal) | [Support](README.md#community-help-and-support) | [Overview](https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki)
-| --- | --- | --- | --- | --- |
+| [Getting Started](https://docs.microsoft.com/azure/active-directory/develop/quickstart-v2-android) | [Sample Code](https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki/MSAL-Code-Samples)| [Library Reference](http://javadoc.io/doc/com.microsoft.identity.client/msal) | [Support](README.md#community-help-and-support) | [Overview](https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki) | [Feedback](https://forms.office.com/r/3J8pAAqAcj)
+| --- | --- | --- | --- | --- | --- |
 
 The MSAL library for Android gives your app the ability to use the [Microsoft Cloud](https://cloud.microsoft.com) by supporting [Microsoft Azure Active Directory](https://azure.microsoft.com/services/active-directory/) and [Microsoft accounts](https://account.microsoft.com) in a converged experience using industry standard OAuth2 and OpenID Connect. The library also supports [Azure AD B2C](https://azure.microsoft.com/services/active-directory-b2c/).
 
@@ -14,6 +14,10 @@ The MSAL library for Android gives your app the ability to use the [Microsoft Cl
 ### What's new?
 
 > Looking for developers interested in providing early feedback on a x-platform implementation of MSAL written in C++ and Java, callable from Java, Kotlin and C++.  If you're interested please please contact shoatman@microsoft.com.
+
+***06/25/2021***
+- Silent requests were inadvertently serialized in MSAL v2.0.10-v2.0.12, Common v3.2.0-v3.4.3. This will be fixed in an upcoming release, tentatively scheduled for next week.
+- In the meantime, please *do not use* the mentioned library versions, and *strongly* consider moving to 2.0.8. Details for the issue can be found [here](https://github.com/AzureAD/microsoft-authentication-library-common-for-android/issues/1438).
 
 ***11/09/2020***
  - Android changes for SDK30, see [the android developers notice](https://android-developers.googleblog.com/2020/07/preparing-your-build-for-package-visibility-in-android-11.html).
@@ -75,7 +79,7 @@ Add to your app's build.gradle:
 
 ```gradle
 dependencies {
-    implementation 'com.microsoft.identity.client:msal:1.5.+'
+    implementation 'com.microsoft.identity.client:msal:2.0.+'
 }
 ```
 
@@ -229,6 +233,9 @@ MSAL uses reflection and generic type information stored in `.class` files at ru
 We use [StackOverflow](http://stackoverflow.com/questions/tagged/msal) with the community to provide support. You should browse existing issues to see if someone has asked about your issue before. If there are workable solutions to your issue then try out those solutions. If not, ask your question and let the community help you out. We're part of the community too and watch for new questions. We help with answers when the community cannot give you a solution.
 
 If you find and bug or have a feature request, please raise the issue on [GitHub Issues](../../issues).
+
+## Submit Feedback
+We'd like your thoughts on this library. Please complete [this short survey](https://forms.office.com/r/3J8pAAqAcj).
 
 ## Contribute
 

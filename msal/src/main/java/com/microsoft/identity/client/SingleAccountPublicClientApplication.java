@@ -35,42 +35,43 @@ import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.CommandParametersAdapter;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
-import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
 import com.microsoft.identity.common.adal.internal.util.JsonExtensions;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
-import com.microsoft.identity.common.exception.BaseException;
-import com.microsoft.identity.common.internal.cache.ICacheRecord;
+import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager;
+import com.microsoft.identity.common.java.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
-import com.microsoft.identity.common.internal.commands.CommandCallback;
+import com.microsoft.identity.common.java.commands.CommandCallback;
 import com.microsoft.identity.common.internal.commands.GetCurrentAccountCommand;
 import com.microsoft.identity.common.internal.commands.RemoveCurrentAccountCommand;
-import com.microsoft.identity.common.internal.commands.parameters.CommandParameters;
-import com.microsoft.identity.common.internal.commands.parameters.RemoveAccountCommandParameters;
-import com.microsoft.identity.common.internal.controllers.BaseController;
-import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
-import com.microsoft.identity.common.internal.dto.AccountRecord;
+import com.microsoft.identity.common.java.commands.parameters.CommandParameters;
+import com.microsoft.identity.common.java.commands.parameters.RemoveAccountCommandParameters;
+import com.microsoft.identity.common.java.controllers.BaseController;
+import com.microsoft.identity.common.java.controllers.CommandDispatcher;
+import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
-import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
-import com.microsoft.identity.common.internal.result.ResultFuture;
+import com.microsoft.identity.common.java.result.ILocalAuthenticationResult;
+import com.microsoft.identity.common.java.exception.BaseException;
+import com.microsoft.identity.common.java.util.ResultFuture;
+import com.microsoft.identity.common.logging.Logger;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static com.microsoft.identity.client.exception.MsalClientException.UNKNOWN_ERROR;
 import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_SCOPES_AUTHORITY_CALLBACK;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_WITH_PARAMETERS;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_WITH_SCOPES_AUTHORITY;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_ACTIVITY_SCOPES_CALLBACK;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_EXISTING_SIGN_IN_WITH_PROMPT;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_GET_CURRENT_ACCOUNT;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_GET_CURRENT_ACCOUNT_ASYNC;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_IN;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_IN_WITH_PROMPT;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_OUT;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_OUT_WITH_CALLBACK;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_SCOPES_AUTHORITY_CALLBACK;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_WITH_PARAMETERS;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_WITH_SCOPES_AUTHORITY;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_ACTIVITY_SCOPES_CALLBACK;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_EXISTING_SIGN_IN_WITH_PROMPT;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_GET_CURRENT_ACCOUNT;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_GET_CURRENT_ACCOUNT_ASYNC;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_IN;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_IN_WITH_PROMPT;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_OUT;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_OUT_WITH_CALLBACK;
 
 public class SingleAccountPublicClientApplication
         extends PublicClientApplication
@@ -100,7 +101,7 @@ public class SingleAccountPublicClientApplication
         sharedPreferencesFileManager = new SharedPreferencesFileManager(
                 context,
                 SINGLE_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
-                new StorageHelper(context)
+                new AndroidAuthSdkStorageEncryptionManager(context, null)
         );
     }
 
@@ -535,7 +536,7 @@ public class SingleAccountPublicClientApplication
         final List<IAccount> account = AccountAdapter.adapt(cacheRecords);
 
         if (account.size() != 1) {
-            com.microsoft.identity.common.internal.logging.Logger.verbose(
+            Logger.verbose(
                     TAG + methodName,
                     "Returned cacheRecords were adapted into multiple IAccount. " +
                             "This is unexpected in Single account mode." +
