@@ -66,12 +66,16 @@ import java.util.concurrent.TimeUnit;
 public class TestCase1136625 extends AbstractWpjTest{
 
     @Override
-    protected IAppInstaller brokerInstallationSource(){ return new PlayStore(); }
+    protected IAppInstaller brokerInstallationSource(){
+        return new PlayStore();
+    }
 
     @Override
-    protected String brokerHostApkName(){ return BrokerHost.BROKER_HOST_APK_PROD; }
+    protected String brokerHostApkName(){
+        return BrokerHost.BROKER_HOST_APK_PROD;
+    }
     // TODO Uncomment test once it is possible to download Authenticator in ADO
-    @Test
+    //@Test
     public void test_1136625() throws Throwable {
 
         final String username = mLoginHint;
