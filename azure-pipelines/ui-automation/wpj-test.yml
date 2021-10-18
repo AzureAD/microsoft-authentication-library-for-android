@@ -1,0 +1,139 @@
+# test
+name: $(Build.BuildId)_$(Build.DefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger: none
+pr: none
+
+variables:
+  engineering_project_id: 'fac9d424-53d2-45c0-91b5-ef6ba7a6bf26'
+  brokerhost_pipeline_id: 1432
+  azuresample_pipeline_id: 1458
+  brokerhost_rc_apk: BrokerHostRC.apk
+  brokerhost_prod_apk: BrokerHostProd.apk
+  azure_sample_apk: Azuresample.apk
+  company_portal_apk: CompanyPortal.apk
+  authenticator_apk: Authenticator.apk
+  device_id: flame
+  device_android_version: 29
+  firebase_timeout: 45m
+  results_history_name: WPJ test
+
+parameters:
+- name: companyPortalLink
+  displayName: Company Portal RC Link
+  type: string
+- name: authenticatorLink
+  displayName: Authenticator RC Link
+  type: string
+- name: BrokerHostRC
+  displayName: BrokerHost RC run ID
+  type: number
+- name: BrokerHostProd
+  displayName: BrokerHost prod run ID
+  type: number
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- task: AzureKeyVault@2
+  displayName: 'Get Key vault AndroidAutomationRunnerAppSecret'
+  inputs:
+    azureSubscription: 'MSIDLABS_ANDROID_KV'
+    KeyVaultName: 'ADALTestInfo'
+    SecretsFilter: 'AndroidAutomationRunnerAppSecret'
+    RunAsPreJob: false
+- task: DownloadSecureFile@1
+  displayName: 'Download Firebase Service Account Key File'
+  name: gcServiceAccountKey
+  inputs:
+    secureFile: AndroidFirebaseServiceAccountKey.json
+    retryCount: 5
+- task: CmdLine@1
+  displayName: 'Set MVN Access Token in Environment'
+  inputs:
+    filename: echo
+    arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN]$(mvnAccessToken)'
+# Download APKs
+- task: DownloadPipelineArtifact@2
+  displayName: 'Download RC Broker Host'
+  inputs:
+    buildType: specific
+    project: '$(engineering_project_id)'
+    definition: '$(brokerhost_pipeline_id)'
+    artifactName: BrokerHost
+    itemPattern: '**/*.apk'
+    targetPath: '$(Build.StagingDirectory)/rc'
+    runVersion: 'specific'
+    runId: ${{ parameters.BrokerHostRC }}
+- task: DownloadPipelineArtifact@2
+  displayName: 'Download Production Broker Host'
+  inputs:
+    buildType: specific
+    project: '$(engineering_project_id)'
+    definition: '$(brokerhost_pipeline_id)'
+    artifactName: BrokerHost
+    itemPattern: '**/*.apk'
+    targetPath: '$(Build.StagingDirectory)/prod'
+    runVersion: 'specific'
+    runId: ${{ parameters.BrokerHostRC }}
+- task: DownloadPipelineArtifact@2
+  displayName: 'Download latest Azure Sample'
+  inputs:
+    buildType: 'specific'
+    project: '$(engineering_project_id)'
+    definition: '$(azuresample_pipeline_id)'
+    artifactName: AzureSample
+    itemPattern: '**/*.apk'
+    targetPath: '$(Build.StagingDirectory)/azuresample'
+    buildVersionToDownload: 'latest'
+- script: curl -L -o $(authenticator_apk)  "${{ parameters.authenticatorLink }}"
+  displayName: 'Download Authenticator'
+  workingDirectory: '$(Build.StagingDirectory)'
+- script:  curl -L -o $(company_portal_apk) "${{ parameters.companyPortalLink }}"
+  displayName: 'Download Company Portal'
+  workingDirectory: '$(Build.StagingDirectory)'
+- script: |
+    mv azuresample/*.apk $(azure_sample_apk)
+    rm -r azuresample
+    mv prod/*.apk $(brokerhost_prod_apk)
+    rm -r prod
+    mv rc/*.apk $(brokerhost_rc_apk)
+    rm -r rc
+  displayName: 'Rename APKs'
+  workingDirectory: '$(Build.StagingDirectory)'
+- script: gcloud version
+  displayName: 'Check gcloud version'
+- task: Gradle@1
+  displayName: 'Assemble MSAL Automation App'
+  inputs:
+    tasks: 'clean msalautomationapp:assembleLocalBrokerHost -PlabSecret=$(AndroidAutomationRunnerAppSecret) -PpreferPreInstalledApks'
+    publishJUnitResults: false
+- task: Gradle@1
+  displayName: 'Assemble MSAL Automation App Instrumented Tests'
+  inputs:
+    tasks: 'msalautomationapp:assembleLocalBrokerHostDebugAndroidTest -PlabSecret=$(AndroidAutomationRunnerAppSecret) -PpreferPreInstalledApks'
+    publishJUnitResults: false
+#- task: Bash@3
+#  displayName: Run UI Automation on Firebase
+#  inputs:
+#    targetType: inline
+#    script: |
+#      $baseApkPath = "$(Build.SourcesDirectory)\msalautomationapp\build\outputs\apk"
+#      $appApk = "$baseApkPath\localBrokerHost\debug\msalautomationapp-local-BrokerHost-debug.apk"
+#      $testApk = "$baseApkPath\androidTest\localBrokerHost\debug\msalautomationapp-local-BrokerHost-debug-androidTest.apk"
+#      gcloud auth activate-service-account --key-file "$(gcServiceAccountKey.secureFilePath)"
+#      gcloud config set project $(gCloudProjectId)
+#      gcloud firebase test android run \
+#        --type instrumentation \
+#        --app "$(appApk)" \
+#        --test "$(testApk)" \
+#        --device "model=$(deviceId),version=$(deviceAndroidVersion)" \
+#        --timeout "$(device_timeout)" \
+#        --other-files "/data/local/tmp/BrokerHost.apk=$(brokerHostApk),/data/local/tmp/MicrosoftOutlook.apk=$(System.ArtifactsDirectory)/$(outlookApk)" \
+#        --results-dir "WPJ-test-$(Build.BuildId)-$(Build.BuildNumber)" \
+#        --directories-to-pull "/sdcard" \
+#        --use-orchestrator \
+#        --environment-variables clearPackageData=true
+#        --results-history-name "WPJ test"
+#        --test-targets "notPackage com.microsoft.identity.client.msal.automationapp.testpass.perf"
