@@ -10,6 +10,10 @@ vNext
 - [MAJOR] Migrate *TokenCache classes to common4j (#1652)
 - [MINOR] Adapt to BaseController migration (#1483)
 
+Version 2.2.2
+----------
+- Picks up common@3.6.3
+
 Version 2.2.1
 ----------
 - [PATCH] Picks up common@3.6.2
