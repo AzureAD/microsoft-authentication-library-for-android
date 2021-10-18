@@ -9,6 +9,8 @@ variables:
   engineeringProjectId: 'fac9d424-53d2-45c0-91b5-ef6ba7a6bf26'
   brokerHostPipelineId: 1432
   azureSamplePipelineId: 1458
+  app: msalautomationapp-local-BrokerHost-debug.apk
+  testApp: msalautomationapp-local-BrokerHost-debug-androidTest.apk
   brokerHostRcApk: BrokerHostRC.apk
   brokerHostProdApk: BrokerHostProd.apk
   azureSampleApk: Azuresample.apk
@@ -100,16 +102,6 @@ steps:
 - script:  curl -L -o $(companyPortalApk) "${{ parameters.companyPortalLink }}"
   displayName: 'Download Company Portal'
   workingDirectory: '$(Build.StagingDirectory)'
-- script: |
-    mv azuresample/*.apk $(azureSampleApk)
-    rm -r azuresample
-    mv prod/*.apk $(brokerHostProdApk)
-    rm -r prod
-    mv rc/*.apk $(brokerHostRcApk)
-    rm -r rc
-    ls *.apk
-  displayName: 'Rename APKs'
-  workingDirectory: '$(Build.StagingDirectory)'
 # Assemble MSAL Automation apks
 - task: Gradle@1
   displayName: 'Assemble MSAL Automation App'
@@ -124,20 +116,32 @@ steps:
 # Firebase tasks
 - script: gcloud version
   displayName: 'Check gcloud version'
+- script: |
+    $baseApkPath = "$(Build.SourcesDirectory)\msalautomationapp\build\outputs\apk"
+    $appApk = "$baseApkPath\localBrokerHost\debug\$(app)"
+    $testApk = "$baseApkPath\androidTest\localBrokerHost\debug\$(testApp)"
+    mv $appApk ($app)
+    mv $testApk ($testApp)
+    mv azuresample/*.apk $(azureSampleApk)
+    rm -r azuresample
+    mv prod/*.apk $(brokerHostProdApk)
+    rm -r prod
+    mv rc/*.apk $(brokerHostRcApk)
+    rm -r rc
+    ls *.apk
+  displayName: 'Rename APKs'
+  workingDirectory: '$(Build.StagingDirectory)'
 - task: Bash@3
   displayName: Run UI Automation on Firebase
   inputs:
     targetType: inline
     script: |
-      $baseApkPath = "$(Build.SourcesDirectory)\msalautomationapp\build\outputs\apk"
-      $appApk = "$baseApkPath\localBrokerHost\debug\msalautomationapp-local-BrokerHost-debug.apk"
-      $testApk = "$baseApkPath\androidTest\localBrokerHost\debug\msalautomationapp-local-BrokerHost-debug-androidTest.apk"
       gcloud auth activate-service-account --key-file "$(gcServiceAccountKey.secureFilePath)"
       gcloud config set project $(gCloudProjectId)
       gcloud firebase test android run \
         --type instrumentation \
-        --app $appApk \
-        --test $testApk \
+        --app $(app) \
+        --test $(testApp) \
         --device "model=$(deviceId),version=$(deviceAndroidVersion)" \
         --timeout "$(firebaseTimeout)" \
         --other-files "/data/local/tmp/$(brokerHostRcApk)=$(brokerHostRcApk),/data/local/tmp/$(brokerHostprodApk)=$(brokerHostprodApk)" \
