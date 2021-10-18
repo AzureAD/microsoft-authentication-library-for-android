@@ -233,7 +233,7 @@ android {
 task javadoc(type: Javadoc) {
     failOnError false
     source = android.sourceSets.main.java.srcDirs
-    classpath += configurations.implementation
+    classpath += configurations.compile
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
 
     options.memberLevel = JavadocMemberLevel.PUBLIC
@@ -292,10 +292,10 @@ dependencies {
         transitive = true
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.4.4', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '4.0.0-RC3', changing: true)
 
-    distApi("com.microsoft.identity:common:3.4.4") {
-        transitive = false
+    distApi("com.microsoft.identity:common:4.0.0-RC3") {
+        transitive = true
     }
 
 }
