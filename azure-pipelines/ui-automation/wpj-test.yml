@@ -113,12 +113,12 @@ jobs:
   - task: Gradle@1
     displayName: 'Assemble MSAL Automation App'
     inputs:
-      tasks: 'clean msalautomationapp:assembleLocalBrokerHost -PlabSecret=$(AndroidAutomationRunnerAppSecret)'
+      tasks: 'clean msalautomationapp:assembleLocalBrokerMicrosoftAuthenticator -PlabSecret=$(AndroidAutomationRunnerAppSecret)'
       publishJUnitResults: false
   - task: Gradle@1
     displayName: 'Assemble MSAL Automation App Instrumented Tests'
     inputs:
-      tasks: 'msalautomationapp:assembleLocalBrokerHostDebugAndroidTest -PlabSecret=$(AndroidAutomationRunnerAppSecret)'
+      tasks: 'msalautomationapp:assembleLocalBrokerMicrosoftAuthenticatorDebugAndroidTest -PlabSecret=$(AndroidAutomationRunnerAppSecret)'
       publishJUnitResults: false
   - script: |
       baseApkPath="$(Build.SourcesDirectory)/msalautomationapp/build/outputs/apk"
