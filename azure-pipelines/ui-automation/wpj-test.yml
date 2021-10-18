@@ -146,7 +146,10 @@ steps:
         --timeout "$(firebaseTimeout)" \
         --other-files \
         "/data/local/tmp/$(brokerHostRcApk)=$(Build.StagingDirectory)/$(brokerHostRcApk),\
-        /data/local/tmp/$(brokerHostprodApk)=$(Build.StagingDirectory)/$(brokerHostprodApk)" \
+        /data/local/tmp/$(brokerHostprodApk)=$(Build.StagingDirectory)/$(brokerHostprodApk),\
+        /data/local/tmp/$(companyPortalApk)=$(Build.StagingDirectory)/$(companyPortalApk),\
+        /data/local/tmp/$(authenticatorApk)=$(Build.StagingDirectory)/$(authenticatorApk),\
+        /data/local/tmp/$(azureSampleApk)=$(Build.StagingDirectory)/$(azureSampleApk)" \
         --results-dir $(resultsDir) \
         --directories-to-pull "/sdcard" \
         --use-orchestrator \
