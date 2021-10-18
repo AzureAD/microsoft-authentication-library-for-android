@@ -4,7 +4,7 @@ apply plugin: 'jacoco'
 //Constant:- used to generate Coverage report task
 def androidTestType = "AndroidTest"
 
-def msalVersion = "2.+"
+def msalVersion = "3.+"
 
 if (project.hasProperty("distMsalVersion")) {
     msalVersion = distMsalVersion
