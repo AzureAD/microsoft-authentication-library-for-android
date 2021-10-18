@@ -113,13 +113,10 @@ steps:
   inputs:
     tasks: 'msalautomationapp:assembleLocalBrokerHostDebugAndroidTest -PlabSecret=$(AndroidAutomationRunnerAppSecret) -PpreferPreInstalledApks'
     publishJUnitResults: false
-# Firebase tasks
-- script: gcloud version
-  displayName: 'Check gcloud version'
 - script: |
     baseApkPath="$(Build.SourcesDirectory)/msalautomationapp/build/outputs/apk"
     appApk="$baseApkPath/localBrokerHost/debug/$(app)"
-    testApk="$baseApkPath\androidTest\localBrokerHost\debug\$(testApp)"
+    testApk="$baseApkPath/androidTest/localBrokerHost/debug/$(testApp)"
     mv $appApk $(app)
     mv $testApk $(testApp)
     mv azuresample/*.apk $(azureSampleApk)
@@ -131,6 +128,9 @@ steps:
     ls *.apk
   displayName: 'Rename APKs'
   workingDirectory: '$(Build.StagingDirectory)'
+# Firebase tasks
+- script: gcloud version
+  displayName: 'Check gcloud version'
 - task: Bash@3
   displayName: Run UI Automation on Firebase
   inputs:
