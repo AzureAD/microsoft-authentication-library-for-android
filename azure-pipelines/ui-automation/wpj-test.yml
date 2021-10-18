@@ -11,8 +11,8 @@ variables:
   engineeringProjectId: 'fac9d424-53d2-45c0-91b5-ef6ba7a6bf26'
   brokerHostPipelineId: 1432
   azureSamplePipelineId: 1458
-  app: msalautomationapp-local-BrokerHost-debug.apk
-  testApp: msalautomationapp-local-BrokerHost-debug-androidTest.apk
+  app: msalAutomationApp.apk
+  testApp: msalAutomationAppAndroidTest.apk
   brokerHostRcApk: BrokerHostRC.apk
   brokerHostProdApk: BrokerHostProd.apk
   azureSampleApk: Azuresample.apk
@@ -122,8 +122,8 @@ jobs:
       publishJUnitResults: false
   - script: |
       baseApkPath="$(Build.SourcesDirectory)/msalautomationapp/build/outputs/apk"
-      appApk="$baseApkPath/localBrokerHost/debug/$(app)"
-      testApk="$baseApkPath/androidTest/localBrokerHost/debug/$(testApp)"
+      appApk="$baseApkPath/localBrokerMicrosoftAuthenticator/debug/*.apk"
+      testApk="$baseApkPath/androidTest/localBrokerMicrosoftAuthenticator/debug/*.apk"
       mv $appApk $(app)
       mv $testApk $(testApp)
       mv azuresample/*.apk $(azureSampleApk)
