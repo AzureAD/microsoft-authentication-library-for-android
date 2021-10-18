@@ -20,18 +20,17 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.crosscloud;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.crosscloud;
 
 import android.text.TextUtils;
 
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.msal.automationapp.AbstractGuestAccountMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
+import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractGuestAccountMsalBrokerUiTest;
 import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
-import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
@@ -49,42 +48,41 @@ import org.junit.runners.Parameterized;
 import java.util.Arrays;
 import java.util.Collection;
 
-// Acquiring token for cross cloud guest account (Msal Only)
-// https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1420484
+// Acquire token for cross cloud guest account (with broker)
+// https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1420494
 @RunWith(Parameterized.class)
-public class TestCase1420484 extends AbstractGuestAccountMsalUiTest {
+public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
 
     private final String mGuestHomeAzureEnvironment;
 
-    public TestCase1420484(final String name, final String guestHomeAzureEnvironment) {
+    public TestCase1420494(final String name, final String guestHomeAzureEnvironment) {
         mGuestHomeAzureEnvironment = guestHomeAzureEnvironment;
     }
 
     @Parameterized.Parameters(name = "{0}")
     public static Collection guestHomeAzureEnvironment() {
         return Arrays.asList(new Object[][]{
-                {"AZURE_US_GOV", LabConstants.GuestHomeAzureEnvironment.AZURE_US_GOV},
                 {"AZURE_CHINA_CLOUD", LabConstants.GuestHomeAzureEnvironment.AZURE_CHINA_CLOUD},
+                {"AZURE_US_GOV", LabConstants.GuestHomeAzureEnvironment.AZURE_US_GOV},
         });
     }
 
     /**
-     * Tests Acquiring token for Cross cloud Guest account without broker.
+     * Tests Acquiring token for Cross cloud Guest account with broker.
      */
     @Test
-    public void test_1420484() throws Throwable {
+    public void test_1420494() throws Throwable {
         final String userName = mGuestUser.getHomeUpn();
         final String password = LabGuestAccountHelper.getPasswordForGuestUser(mGuestUser);
 
         // Handler for Interactive auth call
         final OnInteractionRequired interactionHandler = () -> {
-            ((IApp) mBrowser).handleFirstRun();
             final PromptHandlerParameters promptHandlerParameters =
                     PromptHandlerParameters.builder()
                     .prompt(PromptParameter.SELECT_ACCOUNT)
                     .loginHint(userName)
                     .staySignedInPageExpected(true)
-                    .speedBumpExpected(true)
+                    .broker(mBroker)
                     .build();
             final AadPromptHandler promptHandler = new AadPromptHandler(promptHandlerParameters);
             promptHandler.handlePrompt(userName, password);
@@ -108,7 +106,7 @@ public class TestCase1420484 extends AbstractGuestAccountMsalUiTest {
         TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
 
         // Acquire token silently
-        final MsalAuthResult acquireTokenSilentResult = msalSdk.acquireTokenSilent(acquireTokenAuthParams, TokenRequestTimeout.SHORT);
+        MsalAuthResult acquireTokenSilentResult = msalSdk.acquireTokenSilent(acquireTokenAuthParams, TokenRequestTimeout.SHORT);
         Assert.assertFalse("Verify accessToken is not empty", TextUtils.isEmpty(acquireTokenSilentResult.getAccessToken()));
 
         Assert.assertNotEquals("Silent request gets new access token", acquireTokenSilentResult.getAccessToken(), acquireTokenResult.getAccessToken());
@@ -137,3 +135,4 @@ public class TestCase1420484 extends AbstractGuestAccountMsalUiTest {
         return "https://login.microsoftonline.com/" + mGuestUser.getGuestLabTenants().get(0);
     }
 }
+
