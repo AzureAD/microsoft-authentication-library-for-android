@@ -132,7 +132,7 @@ jobs:
       rm -r prod
       mv rc/*.apk $(brokerHostRcApk)
       rm -r rc
-      ls *.apk
+      ls -lh *.apk
     displayName: 'Rename APKs'
     workingDirectory: '$(Build.StagingDirectory)'
   # Firebase tasks
