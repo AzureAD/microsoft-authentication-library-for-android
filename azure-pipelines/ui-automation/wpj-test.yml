@@ -140,11 +140,11 @@ steps:
       gcloud config set project $(gCloudProjectId)
       gcloud firebase test android run \
         --type instrumentation \
-        --app $(app) \
-        --test $(testApp) \
+        --app $(Build.StagingDirectory)/$(app) \
+        --test $(Build.StagingDirectory)/$(testApp) \
         --device "model=$(deviceId),version=$(deviceAndroidVersion)" \
         --timeout "$(firebaseTimeout)" \
-        --other-files "/data/local/tmp/$(brokerHostRcApk)=$(brokerHostRcApk),/data/local/tmp/$(brokerHostprodApk)=$(brokerHostprodApk)" \
+        --other-files "/data/local/tmp/$(brokerHostRcApk)=$(Build.StagingDirectory)/$(brokerHostRcApk),/data/local/tmp/$(brokerHostprodApk)=$(Build.StagingDirectory)/$(brokerHostprodApk)" \
         --results-dir $(resultsDir) \
         --directories-to-pull "/sdcard" \
         --use-orchestrator \
