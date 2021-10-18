@@ -136,8 +136,8 @@ steps:
       gcloud config set project $(gCloudProjectId)
       gcloud firebase test android run \
         --type instrumentation \
-        --app "$(appApk)" \
-        --test "$(testApk)" \
+        --app $appApk \
+        --test $testApk \
         --device "model=$(deviceId),version=$(deviceAndroidVersion)" \
         --timeout "$(firebaseTimeout)" \
         --other-files "/data/local/tmp/$(brokerHostRcApk)=$(brokerHostRcApk),/data/local/tmp/$(brokerHostprodApk)=$(brokerHostprodApk)" \
