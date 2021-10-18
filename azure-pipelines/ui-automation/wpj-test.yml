@@ -120,8 +120,8 @@ steps:
     $baseApkPath = "$(Build.SourcesDirectory)\msalautomationapp\build\outputs\apk"
     $appApk = "$baseApkPath\localBrokerHost\debug\$(app)"
     $testApk = "$baseApkPath\androidTest\localBrokerHost\debug\$(testApp)"
-    mv $appApk ($app)
-    mv $testApk ($testApp)
+    mv $appApk $(app)
+    mv $testApk $(testApp)
     mv azuresample/*.apk $(azureSampleApk)
     rm -r azuresample
     mv prod/*.apk $(brokerHostProdApk)
