@@ -38,6 +38,7 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
+# Setup
 - checkout: self
   clean: true
   submodules: recursive
@@ -109,6 +110,7 @@ steps:
     ls *.apk
   displayName: 'Rename APKs'
   workingDirectory: '$(Build.StagingDirectory)'
+# Assemble MSAL Automation apks
 - task: Gradle@1
   displayName: 'Assemble MSAL Automation App'
   inputs:
@@ -119,6 +121,7 @@ steps:
   inputs:
     tasks: 'msalautomationapp:assembleLocalBrokerHostDebugAndroidTest -PlabSecret=$(AndroidAutomationRunnerAppSecret) -PpreferPreInstalledApks'
     publishJUnitResults: false
+# Firebase tasks
 - script: gcloud version
   displayName: 'Check gcloud version'
 - task: Bash@3
@@ -147,7 +150,6 @@ steps:
 - script: gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml $(Build.SourcesDirectory)
   displayName: Download Test Result File
   condition: succeededOrFailed()
-    
 - task: PublishTestResults@2
   displayName: Publish Test Results to ADO
   condition: succeededOrFailed()
