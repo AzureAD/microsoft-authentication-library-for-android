@@ -154,8 +154,8 @@ steps:
         --directories-to-pull "/sdcard" \
         --use-orchestrator \
         --environment-variables clearPackageData=true \
-        --results-history-name "$(resultsHistoryName)" \
-        --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker.wpj"
+        --results-history-name "$(resultsHistoryName)" 
+        #--test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker.wpj"
 - script: gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml $(Build.SourcesDirectory)
   displayName: Download Test Result File
   condition: succeededOrFailed()
