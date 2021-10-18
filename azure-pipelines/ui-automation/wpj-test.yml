@@ -1,5 +1,7 @@
-# test 
-# variable gCloudProjectId is defined in variables tab
+# run UI automation testcases for wpj
+# Variable: 'ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME' was defined in the Variables tab
+# Variable: 'gCloudProjectId' was defined in the Variables tab
+# Variable: 'mvnAccessToken' was defined in the Variables tab
 name: $(Build.BuildId)_$(Build.DefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
 
 trigger: none
@@ -154,8 +156,8 @@ steps:
         --directories-to-pull "/sdcard" \
         --use-orchestrator \
         --environment-variables clearPackageData=true \
-        --results-history-name "$(resultsHistoryName)" 
-        #--test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker.wpj"
+        --results-history-name "$(resultsHistoryName)" \
+        --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker.wpj"
 - script: gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml $(Build.SourcesDirectory)
   displayName: Download Test Result File
   condition: succeededOrFailed()
