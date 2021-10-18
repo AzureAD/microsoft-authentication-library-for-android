@@ -18,6 +18,7 @@ variables:
   deviceAndroidVersion: 29
   firebaseTimeout: 45m
   resultsHistoryName: WPJ test
+  resultsDir: "WPJ-test-$(Build.BuildId)-$(Build.BuildNumber)"
 
 parameters:
 - name: companyPortalLink
@@ -137,9 +138,20 @@ steps:
         --device "model=$(deviceId),version=$(deviceAndroidVersion)" \
         --timeout "$(firebaseTimeout)" \
         --other-files "/data/local/tmp/$(brokerHostRcApk)=$(brokerHostRcApk),/data/local/tmp/$(brokerHostprodApk)=$(brokerHostprodApk)" \
-        --results-dir "WPJ-test-$(Build.BuildId)-$(Build.BuildNumber)" \
+        --results-dir $(resultsDir) \
         --directories-to-pull "/sdcard" \
         --use-orchestrator \
         --environment-variables clearPackageData=true \
         --results-history-name "$(resultsHistoryName)" \
         --test-targets "com.microsoft.identity.client.msal.automationapp.testpass.broker.wpj"
+- script: gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml $(Build.SourcesDirectory)
+  displayName: Download Test Result File
+  condition: succeededOrFailed()
+    
+- task: PublishTestResults@2
+  displayName: Publish Test Results to ADO
+  condition: succeededOrFailed()
+  inputs:
+    testResultsFiles: '*test_result*.xml'
+    searchFolder: $(Build.SourcesDirectory)
+    testRunTitle: 'MSAL UI Automation - Build # $(Build.BuildNumber)'
