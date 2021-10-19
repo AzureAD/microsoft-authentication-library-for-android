@@ -15,7 +15,7 @@ variables:
   testApp: msalAutomationAppAndroidTest.apk
   brokerHostRcApk: BrokerHostRC.apk
   brokerHostProdApk: BrokerHostProd.apk
-  azureSampleApk: Azuresample.apk
+  azureSampleApk: AzureSample.apk
   companyPortalApk: CompanyPortal.apk
   authenticatorApk: Authenticator.apk
   deviceId: flame
