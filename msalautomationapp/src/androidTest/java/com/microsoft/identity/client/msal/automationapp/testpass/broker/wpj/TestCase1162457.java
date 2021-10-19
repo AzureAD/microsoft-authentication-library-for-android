@@ -80,8 +80,8 @@ public class TestCase1162457 extends AbstractWpjTest{
         final String deviceId = mBrokerHost.obtainDeviceId();
         final String accountUpn = mBrokerHost.getAccountUpn();
         Assert.assertEquals(username, accountUpn);
+        Thread.sleep(TimeUnit.SECONDS.toMillis(2));
         final String deviceState = mBrokerHost.getDeviceState();
-        Thread.sleep(TimeUnit.SECONDS.toMillis(1));
         Assert.assertTrue("true".equalsIgnoreCase(deviceState));
         final boolean isDeviceShared =  mBrokerHost.isDeviceShared();
         Assert.assertFalse(isDeviceShared);
