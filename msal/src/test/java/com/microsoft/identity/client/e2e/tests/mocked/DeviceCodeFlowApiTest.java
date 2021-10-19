@@ -24,7 +24,7 @@ package com.microsoft.identity.client.e2e.tests.mocked;
 
 import androidx.annotation.NonNull;
 
-import com.microsoft.identity.client.AuthenticationResult;
+import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowDeviceCodeFlowCommandAuthError;
@@ -46,6 +46,7 @@ import com.microsoft.identity.common.java.providers.oauth2.OAuth2Strategy;
 import com.microsoft.identity.common.java.providers.oauth2.OAuth2StrategyParameters;
 import com.microsoft.identity.common.java.providers.oauth2.TokenRequest;
 import com.microsoft.identity.common.java.providers.oauth2.TokenResult;
+import com.microsoft.identity.common.java.util.StringUtil;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -252,16 +253,18 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
                 // This shouldn't run if authorization step fails
                 Assert.fail();
             }
+
             @Override
-            public void onTokenReceived(@NonNull AuthenticationResult authResult) {
+            public void onTokenReceived(@NonNull IAuthenticationResult authResult) {
                 // This shouldn't run if authorization step fails
                 Assert.fail();
             }
+
             @Override
-            public void onError(@NonNull MsalException error) {
+            public void onError(@NonNull MsalException exception) {
                 // Handle exception when authorization fails
                 Assert.assertFalse(mUserCodeReceived);
-                Assert.assertEquals(ErrorStrings.INVALID_SCOPE, error.getErrorCode());
+                Assert.assertEquals(ErrorStrings.INVALID_SCOPE, exception.getErrorCode());
             }
         });
 
@@ -279,24 +282,26 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
                                            @NonNull String message,
                                            @NonNull Date sessionExpirationDate) {
                 // Assert that the protocol returns the userCode and others after successful authorization
-                Assert.assertNotNull(vUri);
-                Assert.assertNotNull(userCode);
-                Assert.assertNotNull(message);
+                Assert.assertFalse(StringUtil.isNullOrEmpty(vUri));
+                Assert.assertFalse(StringUtil.isNullOrEmpty(userCode));
+                Assert.assertFalse(StringUtil.isNullOrEmpty(message));
                 Assert.assertNotNull(sessionExpirationDate);
 
                 Assert.assertFalse(mUserCodeReceived);
                 mUserCodeReceived = true;
             }
+
             @Override
-            public void onTokenReceived(@NonNull AuthenticationResult authResult) {
+            public void onTokenReceived(@NonNull IAuthenticationResult authResult) {
                 // This shouldn't run
                 Assert.fail();
             }
+
             @Override
-            public void onError(@NonNull MsalException error) {
+            public void onError(@NonNull MsalException exception) {
                 // Handle Exception
                 Assert.assertTrue(mUserCodeReceived);
-                Assert.assertEquals(ErrorStrings.DEVICE_CODE_FLOW_EXPIRED_TOKEN_ERROR_CODE, error.getErrorCode());
+                Assert.assertEquals(ErrorStrings.DEVICE_CODE_FLOW_EXPIRED_TOKEN_ERROR_CODE, exception.getErrorCode());
             }
         });
 
@@ -314,23 +319,25 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
                                            @NonNull String message,
                                            @NonNull Date sessionExpirationDate) {
                 // Assert that the protocol returns the userCode and others after successful authorization
-                Assert.assertNotNull(vUri);
-                Assert.assertNotNull(userCode);
-                Assert.assertNotNull(message);
+                Assert.assertFalse(StringUtil.isNullOrEmpty(vUri));
+                Assert.assertFalse(StringUtil.isNullOrEmpty(userCode));
+                Assert.assertFalse(StringUtil.isNullOrEmpty(message));
                 Assert.assertNotNull(sessionExpirationDate);
 
                 Assert.assertFalse(mUserCodeReceived);
                 mUserCodeReceived = true;
             }
+
             @Override
-            public void onTokenReceived(@NonNull AuthenticationResult authResult) {
+            public void onTokenReceived(@NonNull IAuthenticationResult authResult) {
                 Assert.assertTrue(mUserCodeReceived);
                 Assert.assertNotNull(authResult);
             }
+
             @Override
-            public void onError(@NonNull MsalException error) {
+            public void onError(@NonNull MsalException exception) {
                 // This shouldn't run
-                Assert.fail();
+                throw new AssertionError(exception);
             }
         });
 
