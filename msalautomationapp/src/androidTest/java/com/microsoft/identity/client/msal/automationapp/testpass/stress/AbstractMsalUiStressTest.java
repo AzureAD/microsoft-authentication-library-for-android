@@ -24,55 +24,27 @@ package com.microsoft.identity.client.msal.automationapp.testpass.stress;
 
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
-import com.microsoft.identity.client.ui.automation.logging.appender.FileAppender;
-import com.microsoft.identity.client.ui.automation.logging.formatter.LogcatLikeFormatter;
-import com.microsoft.identity.client.ui.automation.performance.CPUMonitor;
-import com.microsoft.identity.client.ui.automation.performance.DeviceMonitor;
-import com.microsoft.identity.client.ui.automation.performance.MemoryMonitor;
-import com.microsoft.identity.client.ui.automation.performance.NetworkUsageMonitor;
-import com.microsoft.identity.client.ui.automation.performance.PerformanceProfile;
+import com.microsoft.identity.client.msal.automationapp.testpass.stress.rules.StressTestingRule;
 import com.microsoft.identity.client.ui.automation.rules.RulesHelper;
-import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
-import org.junit.Before;
+import org.junit.Rule;
 import org.junit.rules.RuleChain;
 import org.junit.rules.Timeout;
 
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.RejectedExecutionHandler;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 
 public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest {
 
-    // Sets the interval duration in seconds to which the device performance will be monitored.
-    private static final long DEVICE_MONITOR_INTERVAL = TimeUnit.SECONDS.toMillis(1);
-    private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+    @Rule(order = 10)
+    public final StressTestingRule stressTestingRule = new StressTestingRule(
+            getOutputFileName(), getNumberOfThreads(), getTimeLimit()
+    );
 
-    private Exception executionException;
-
-    private final AtomicInteger testsPassed = new AtomicInteger(0);
-    private final AtomicInteger testsFailed = new AtomicInteger(0);
-
-    private FileAppender fileAppender;
-
-    @Override
-    @Before
-    public void setup() {
-        super.setup();
-        DeviceMonitor.setProfiler(PerformanceProfile.CPU, new CPUMonitor());
-        DeviceMonitor.setProfiler(PerformanceProfile.MEMORY, new MemoryMonitor());
-        DeviceMonitor.setProfiler(PerformanceProfile.NETWORK, new NetworkUsageMonitor());
-    }
 
     /**
      * Run the stress tests
@@ -80,39 +52,26 @@ public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest 
     public void run() throws Exception {
         final T prerequisites = this.prepare();
 
-        final BlockingQueue<Runnable> blockingQueue = new ArrayBlockingQueue<>(getNumberOfThreads());
-        final RejectedExecutionHandler rejectedExecutionHandler = new ThreadPoolExecutor.CallerRunsPolicy();
+        final ExecutorService executorService = Executors.newFixedThreadPool(getNumberOfThreads());
 
-        final ExecutorService executorService = new ThreadPoolExecutor(
-                1,
-                getNumberOfThreads() + 1,
-                0L,
-                TimeUnit.MILLISECONDS,
-                blockingQueue,
-                rejectedExecutionHandler
-        );
-
-
-        final long startTime = System.currentTimeMillis();
         final long timeLimit = TimeUnit.MINUTES.toMillis(getTimeLimit());
-
-        // use the execution thread pool to collect device stats
-        executorService.submit(getPerformanceStatsCollector());
 
 
         for (int i = 0; i < getNumberOfThreads(); i++) {
-            executorService.submit(new Runnable() {
+            executorService.execute(new Runnable() {
                 @Override
                 public void run() {
-                    while (System.currentTimeMillis() - startTime < timeLimit && executionException == null) {
+                    while (!stressTestingRule.executionFailed()) {
                         try {
                             S result = execute(prerequisites);
 
                             boolean passed = isTestPassed(result);
 
-                            updateTestPassRate(passed);
-                        } catch (final Exception ex) {
-                            executionException = ex;
+                            stressTestingRule.updatePassRate(passed);
+
+                        } catch (final Exception exception) {
+                            stressTestingRule.updatePassRate(false);
+                            stressTestingRule.setExecutionException(exception);
                         }
                     }
                 }
@@ -120,70 +79,8 @@ public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest 
         }
 
         executorService.shutdown();
-
-        // Force shut down of the executorService
-        if (!executorService.isShutdown()) {
-            executorService.shutdownNow();
-        }
-    }
-
-    private void updateTestPassRate(boolean passed) {
-        if (passed) {
-            testsPassed.incrementAndGet();
-        } else {
-            testsFailed.incrementAndGet();
-        }
-    }
-
-    private Runnable getPerformanceStatsCollector() {
-        return new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    while (true) {
-                        // time   cpu_usage   memory_usage   data_received   data_sent   num_threads   time_limit   device_memory   device_name   tests_passed   tests_failed
-                        String line = String.format(
-                                "%s,%.2f,%d,%d,%d,%d,%d,%d,%s,%d,%d",
-                                new SimpleDateFormat(DATE_FORMAT).format(new Date()),
-                                DeviceMonitor.getCpuUsage(),
-                                DeviceMonitor.getMemoryUsage(),
-                                DeviceMonitor.getNetworkTrafficInfo().getDiffBytesReceived(),
-                                DeviceMonitor.getNetworkTrafficInfo().getDiffBytesSent(),
-                                getNumberOfThreads(),
-                                getTimeLimit(),
-                                DeviceMonitor.getTotalMemory(),
-                                DeviceMonitor.getDeviceName(),
-                                testsPassed.get(),
-                                testsFailed.get()
-                        );
-
-                        writeFile(line);
-
-                        TimeUnit.MILLISECONDS.sleep(DEVICE_MONITOR_INTERVAL);
-                    }
-                } catch (Exception ex) {
-                    executionException = ex;
-                }
-            }
-        };
-    }
-
-    private synchronized void writeFile(final String output) {
-        try {
-            final FileAppender fileAppender = getFileAppender();
-            fileAppender.append(output);
-
-            CommonUtils.copyFileToFolderInSdCard(fileAppender.getLogFile(), "automation");
-        } catch (IOException e) {
-            executionException = e;
-        }
-    }
-
-    private FileAppender getFileAppender() throws IOException {
-        if (this.fileAppender == null) {
-            this.fileAppender = new FileAppender(getOutputFileName(), new LogcatLikeFormatter());
-        }
-        return this.fileAppender;
+        executorService.awaitTermination(timeLimit, TimeUnit.MILLISECONDS);
+        executorService.shutdownNow();
     }
 
 
@@ -220,7 +117,8 @@ public abstract class AbstractMsalUiStressTest<T, S> extends AbstractMsalUiTest 
         // Use the time limit as the test timeout rule and add 5 more minutes for cleaning up of the tests
         final Timeout timeout = new Timeout(getTimeLimit() + 5, TimeUnit.MINUTES);
 
-        return RulesHelper.getPrimaryRules(null, timeout);
+        return RulesHelper
+                .getPrimaryRules(null, timeout);
     }
 
     /**

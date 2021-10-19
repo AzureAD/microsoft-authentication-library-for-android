@@ -27,6 +27,7 @@ import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.Prompt;
+import com.microsoft.identity.client.msal.automationapp.MsalLoggingOptions;
 import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
@@ -49,6 +50,8 @@ public class TestCaseStress extends AbstractMsalUiStressTest<IAccount, IAuthenti
 
 
     @Test
+    // disable log file as the output is really high and may fill up the device storage.
+    @MsalLoggingOptions(logFileEnabled = false, logcatEnabled = true)
     public void test_acquireTokenSilentlyWithCachedTokens() throws Exception {
         run();
     }
