@@ -37,6 +37,8 @@ import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
 import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -49,12 +51,38 @@ public class MsalLoggingRule implements TestRule {
 
     public static final String TAG = MsalLoggingRule.class.getSimpleName();
 
+    private static final MsalLoggingOptions defaultLoggingOptions = new MsalLoggingOptions() {
+        @Override
+        public boolean logcatEnabled() {
+            return false;
+        }
+
+        @Override
+        public boolean logFileEnabled() {
+            return true;
+        }
+
+        @Override
+        public Logger.LogLevel logLevel() {
+            return Logger.LogLevel.VERBOSE;
+        }
+
+        @Override
+        public Class<? extends Annotation> annotationType() {
+            return MsalLoggingOptions.class;
+        }
+    };
+
     @Override
     public Statement apply(final Statement base, final Description description) {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
-                final FileAppender msalLogFileAppender = turnOnMsalLogging(description);
+                final MsalLoggingOptions loggingOptions = Optional
+                        .of(description.getAnnotation(MsalLoggingOptions.class))
+                        .orElse(defaultLoggingOptions);
+
+                final FileAppender msalLogFileAppender = turnOnMsalLogging(description, loggingOptions);
 
                 try {
                     base.evaluate();
@@ -83,19 +111,25 @@ public class MsalLoggingRule implements TestRule {
         };
     }
 
-    private FileAppender turnOnMsalLogging(final Description description) throws IOException {
+    private FileAppender turnOnMsalLogging(
+            final Description description,
+            final MsalLoggingOptions loggingOptions
+    ) throws IOException {
         final String msalLogFileName = description.getMethodName() + "-msal.log";
         final FileAppender msalFileLogAppender = new FileAppender(msalLogFileName, new LogcatLikeFormatter());
-        Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
-        Logger.getInstance().setEnableLogcatLog(false);
-        Logger.getInstance().setExternalLogger(new ILoggerCallback() {
-            @Override
-            public void log(final String tag, final Logger.LogLevel logLevel,
-                            final String message, boolean containsPII) {
-                final LogLevel level = convertMsalLogLevelToInternalLogLevel(logLevel);
-                msalFileLogAppender.append(level, tag, message, null);
-            }
-        });
+        Logger.getInstance().setLogLevel(loggingOptions.logLevel());
+        Logger.getInstance().setEnableLogcatLog(loggingOptions.logFileEnabled());
+
+        if (loggingOptions.logFileEnabled()) {
+            Logger.getInstance().setExternalLogger(new ILoggerCallback() {
+                @Override
+                public void log(final String tag, final Logger.LogLevel logLevel,
+                                final String message, boolean containsPII) {
+                    final LogLevel level = convertMsalLogLevelToInternalLogLevel(logLevel);
+                    msalFileLogAppender.append(level, tag, message, null);
+                }
+            });
+        }
 
         return msalFileLogAppender;
     }
