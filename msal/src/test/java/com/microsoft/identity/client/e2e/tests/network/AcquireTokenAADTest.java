@@ -71,7 +71,7 @@ public abstract class AcquireTokenAADTest extends AcquireTokenNetworkTest {
             return query;
         }
     }
-
+    
     public static class AzureChinaCloudUser extends AcquireTokenAADTest {
         @Override
         public String getConfigFilePath() {
@@ -86,6 +86,7 @@ public abstract class AcquireTokenAADTest extends AcquireTokenNetworkTest {
         }
     }
 
+    @Ignore
     public static class AzureGermanyCloudUser extends AcquireTokenAADTest {
         @Override
         public LabUserQuery getLabUserQuery() {
