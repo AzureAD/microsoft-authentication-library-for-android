@@ -111,7 +111,7 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
 
         Assert.assertNotEquals("Silent request gets new access token", acquireTokenSilentResult.getAccessToken(), acquireTokenResult.getAccessToken());
 
-        JSONObject profileObject = getProfileObjectFromMSGraph(acquireTokenSilentResult.getAccessToken());
+        final JSONObject profileObject = getProfileObjectFromMSGraph(acquireTokenSilentResult.getAccessToken());
         Assert.assertEquals(userName, profileObject.get("mail"));
     }
 

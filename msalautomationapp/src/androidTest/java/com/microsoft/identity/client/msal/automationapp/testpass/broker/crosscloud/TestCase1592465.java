@@ -108,6 +108,7 @@ public class TestCase1592465 extends AbstractGuestAccountMsalBrokerUiTest {
                 .build();
 
         // Acquire token silently from cross cloud, expected to throw an exception
+        // due to authority mismatch between the requested authority and prt authority.
         final MsalAuthResult acquireTokenSilentlyCrossCloudResult = msalSdk.acquireTokenSilent(acquireTokenCrossCloudAuthParams, TokenRequestTimeout.SHORT);
         MsalArgumentException exception = (MsalArgumentException) acquireTokenSilentlyCrossCloudResult.getException();
         Assert.assertNotNull("Verify Exception is returned", exception);

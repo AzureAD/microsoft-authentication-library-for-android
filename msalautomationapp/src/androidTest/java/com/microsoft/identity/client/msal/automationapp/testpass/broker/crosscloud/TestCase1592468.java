@@ -130,8 +130,8 @@ public class TestCase1592468 extends AbstractGuestAccountMsalBrokerUiTest {
 
         // Verify the account object contains tenant profile corresponding to the cross cloud guest account
         MultiTenantAccount account = (MultiTenantAccount) msalSdk.getAccount(mActivity, getConfigFileResourceId(), userName);
-        Assert.assertTrue(account.getTenantProfiles().containsKey(mGuestUser.getGuestLabTenants().get(0)));
         ITenantProfile tenantProfile = account.getTenantProfiles().get(mGuestUser.getGuestLabTenants().get(0));
+        Assert.assertNotNull(tenantProfile);
         Assert.assertTrue(tenantProfile.getClaims().get("iss").toString().contains(mCrossCloud));
         Assert.assertTrue(tenantProfile.getClaims().get("idp").toString().contains(mHomeCloud));
     }

@@ -69,6 +69,12 @@ public abstract class AbstractGuestAccountMsalUiTest implements IMsalTest, ILabT
         mBrowser.clear();
     }
 
+    /**
+     * Calls "https://graph.microsoft.com/v1.0/me" endpoint with given accessToken
+     * returns the response back on success
+     * @param accessToken token to call the graph api
+     * @return response of graph call
+     */
     protected JSONObject getProfileObjectFromMSGraph(final String accessToken) {
         try {
             final URL profileApiUrl = new URL("https://graph.microsoft.com/v1.0/me");
