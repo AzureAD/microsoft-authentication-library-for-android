@@ -152,7 +152,9 @@ public class StressTestingRule implements TestRule {
                     }
                 } catch (Exception exception) {
                     Log.e(TAG, "Error saving statistics", exception);
-                    executionException = exception;
+                    if (!(exception instanceof InterruptedException)) {
+                        executionException = exception;
+                    }
                 }
             }
         };
