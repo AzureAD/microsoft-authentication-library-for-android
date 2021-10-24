@@ -22,10 +22,10 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.network;
 
+import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.ui.automation.rules.NetworkTestRule;
-import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
@@ -41,16 +41,11 @@ public abstract class BaseMsalUiNetworkTest extends AbstractMsalUiTest {
 
 
     @Override
-    public void cleanup() {
-        super.cleanup();
-        final boolean mainActivityFocused = mActivity.hasWindowFocus();
-
-        if (!mainActivityFocused) {
-            UiAutomatorUtils.pressBack();
-        }
+    public void setup() {
+        super.setup();
+        Logger.getInstance()
+                .setEnableLogcatLog(true);
     }
-
-
 
     @Override
     public LabUserQuery getLabUserQuery() {

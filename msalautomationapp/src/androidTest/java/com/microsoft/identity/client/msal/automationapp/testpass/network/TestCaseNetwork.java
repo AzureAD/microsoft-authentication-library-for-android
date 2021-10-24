@@ -11,10 +11,13 @@ import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveR
 import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
-import com.microsoft.identity.client.ui.automation.annotations.NetworkTest;
+import com.microsoft.identity.client.ui.automation.annotations.NetworkOverrides;
+import com.microsoft.identity.client.ui.automation.annotations.NetworkStateOverride;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.common.java.network.NetworkConstants;
+import com.microsoft.identity.common.java.network.NetworkInterface;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 
 import org.junit.Test;
@@ -24,7 +27,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class TestCaseNetwork extends BaseMsalUiNetworkTest {
 
-    @NetworkTest(testTimeout = 120)
+    @NetworkOverrides({
+            @NetworkStateOverride(
+                    marker = NetworkConstants.NetworkCodeMarkers.ACQUIRE_TOKEN_INTERACTIVE,
+                    networkInterface = NetworkInterface.NONE
+            )
+    })
     @Test
     public void test_acquireTokenWithoutBroker() throws InterruptedException {
         TokenRequestLatch tokenRequestLatch = new TokenRequestLatch(1);
@@ -66,7 +74,6 @@ public class TestCaseNetwork extends BaseMsalUiNetworkTest {
         tokenRequestLatch.await();
     }
 
-    @NetworkTest(testTimeout = 120)
     @Test
     public void test_acquireTokenSilentWithoutBroker() throws InterruptedException {
         final TokenRequestLatch latch = new TokenRequestLatch(1);
