@@ -22,10 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.network;
 
-import com.microsoft.identity.client.AuthenticationCallback;
-import com.microsoft.identity.client.IAuthenticationResult;
-import com.microsoft.identity.client.SilentAuthenticationCallback;
-import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.ui.automation.rules.NetworkTestRule;
@@ -35,8 +31,6 @@ import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
 import org.junit.Rule;
 
-import java.util.concurrent.CountDownLatch;
-
 /**
  * Sets up a base class for running MSAL network tests.
  */
@@ -45,10 +39,6 @@ public abstract class BaseMsalUiNetworkTest extends AbstractMsalUiTest {
     @Rule(order = 20)
     public NetworkTestRule networkTestRule = new NetworkTestRule();
 
-    @Override
-    public void setup() {
-        super.setup();
-    }
 
     @Override
     public void cleanup() {
@@ -60,45 +50,7 @@ public abstract class BaseMsalUiNetworkTest extends AbstractMsalUiTest {
         }
     }
 
-    @Override
-    protected AuthenticationCallback successfulInteractiveCallback(CountDownLatch latch) {
-        return new AuthenticationCallback() {
-            @Override
-            public void onCancel() {
-                latch.countDown();
-                networkTestRule.setException(new Exception("Interactive flow cancelled by user."));
-            }
 
-            @Override
-            public void onSuccess(IAuthenticationResult authenticationResult) {
-                latch.countDown();
-                networkTestRule.setResult("Access token: " + authenticationResult.getAccessToken());
-            }
-
-            @Override
-            public void onError(MsalException exception) {
-                latch.countDown();
-                networkTestRule.setException(exception);
-            }
-        };
-    }
-
-    @Override
-    protected SilentAuthenticationCallback successfulSilentCallback(CountDownLatch latch) {
-        return new SilentAuthenticationCallback() {
-            @Override
-            public void onSuccess(IAuthenticationResult authenticationResult) {
-                latch.countDown();
-                networkTestRule.setResult("Access token: " + authenticationResult.getAccessToken());
-            }
-
-            @Override
-            public void onError(MsalException exception) {
-                latch.countDown();
-                networkTestRule.setException(exception);
-            }
-        };
-    }
 
     @Override
     public LabUserQuery getLabUserQuery() {
