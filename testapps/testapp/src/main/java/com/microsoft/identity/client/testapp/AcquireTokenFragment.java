@@ -28,7 +28,6 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -50,10 +49,10 @@ import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.common.internal.broker.BrokerValidator;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import static com.microsoft.identity.client.testapp.R.id.enablePII;
 
@@ -94,6 +93,8 @@ public class AcquireTokenFragment extends Fragment {
 
     private LinearLayout mPopSection;
     private LinearLayout mLoginHintSection;
+
+    private Button mDebugBrokers;
 
     private OnFragmentInteractionListener mOnFragmentInteractionListener;
     private MsalWrapper mMsalWrapper;
@@ -155,6 +156,7 @@ public class AcquireTokenFragment extends Fragment {
         mPopHttpMethod = view.findViewById(R.id.pop_http_method);
         mPopResourceUrl = view.findViewById(R.id.pop_resource_url);
         mPopClientClaims = view.findViewById(R.id.pop_client_claims);
+        mDebugBrokers = view.findViewById(R.id.btn_trust_debug_brkr);
 
         mPopSection = view.findViewById(R.id.pop_section);
         mLoginHintSection = view.findViewById(R.id.login_hint_section);
@@ -312,6 +314,28 @@ public class AcquireTokenFragment extends Fragment {
             }
         });
 
+        mDebugBrokers.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                boolean foo = BrokerValidator.getShouldTrustDebugBrokers();
+                if ("Debug Brokers".equalsIgnoreCase(String.valueOf(mDebugBrokers.getText()))
+            || "Prod Brokers".equalsIgnoreCase(String.valueOf(mDebugBrokers.getText()))) {
+                    BrokerValidator.setShouldTrustDebugBrokers(!foo);
+                    if (foo) {
+                        mDebugBrokers.setText("Prod Brokers");
+                    } else {
+                        mDebugBrokers.setText("Debug Brokers");
+                    }
+                } else {
+                    if (!foo) {
+                        mDebugBrokers.setText("Prod Brokers");
+                    } else {
+                        mDebugBrokers.setText("Debug Brokers");
+                    }
+
+                }
+            }
+        });
 
         loadMsalApplicationFromRequestParameters(getCurrentRequestOptions());
         return view;
