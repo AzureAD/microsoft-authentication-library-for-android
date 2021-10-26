@@ -22,14 +22,32 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.network;
 
+import com.microsoft.identity.client.AcquireTokenParameters;
+import com.microsoft.identity.client.AcquireTokenSilentParameters;
+import com.microsoft.identity.client.AuthenticationCallback;
+import com.microsoft.identity.client.IAccount;
+import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.Logger;
+import com.microsoft.identity.client.Prompt;
+import com.microsoft.identity.client.SilentAuthenticationCallback;
+import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
+import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
+import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
+import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
+import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.rules.NetworkTestRule;
+import com.microsoft.identity.client.ui.automation.sdk.ResultFuture;
+import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
 import org.junit.Rule;
+
+import java.util.Arrays;
 
 /**
  * Sets up a base class for running MSAL network tests.
@@ -74,4 +92,91 @@ public abstract class BaseMsalUiNetworkTest extends AbstractMsalUiTest {
         return R.raw.msal_config_webview;
     }
 
+
+    public IAuthenticationResult runAcquireTokenInteractive() throws Throwable {
+        final ResultFuture<IAuthenticationResult, Exception> resultFuture = new ResultFuture<>();
+        final TokenRequestTimeout timeout = TokenRequestTimeout.LONG;
+
+        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                .startAuthorizationFromActivity(mActivity)
+                .withLoginHint(mLoginHint)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(new AuthenticationCallback() {
+                    @Override
+                    public void onCancel() {
+                        resultFuture.setException(new Exception("Interactive flow cancelled by user."));
+                    }
+
+                    @Override
+                    public void onSuccess(IAuthenticationResult authenticationResult) {
+                        resultFuture.setResult(authenticationResult);
+                    }
+
+                    @Override
+                    public void onError(MsalException exception) {
+                        resultFuture.setException(exception);
+                    }
+                })
+                .withPrompt(Prompt.SELECT_ACCOUNT)
+                .build();
+
+
+        final InteractiveRequest interactiveRequest = new InteractiveRequest(
+                mApplication,
+                parameters,
+                new OnInteractionRequired() {
+                    @Override
+                    public void handleUserInteraction() {
+                        final String username = mLoginHint;
+                        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+
+                        final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
+                                .prompt(PromptParameter.SELECT_ACCOUNT)
+                                .loginHint(mLoginHint)
+                                .sessionExpected(false)
+                                .consentPageExpected(false)
+                                .speedBumpExpected(false)
+                                .build();
+
+                        new AadPromptHandler(promptHandlerParameters)
+                                .handlePrompt(username, password);
+                    }
+                }
+        );
+
+        interactiveRequest.execute();
+
+        return resultFuture.get(timeout.getTime(), timeout.getTimeUnit());
+    }
+
+
+    public IAuthenticationResult runAcquireTokenSilent(final boolean forceRefresh) throws Throwable {
+        final IAuthenticationResult interactiveResult = runAcquireTokenInteractive();
+
+        final IAccount account = interactiveResult.getAccount();
+        final ResultFuture<IAuthenticationResult, Exception> resultFuture = new ResultFuture<>();
+        final TokenRequestTimeout timeout = TokenRequestTimeout.SILENT;
+
+        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                .forAccount(account)
+                .fromAuthority(account.getAuthority())
+                .forceRefresh(forceRefresh)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(new SilentAuthenticationCallback() {
+                    @Override
+                    public void onSuccess(IAuthenticationResult authenticationResult) {
+                        resultFuture.setResult(authenticationResult);
+                    }
+
+                    @Override
+                    public void onError(MsalException exception) {
+                        resultFuture.setException(exception);
+                    }
+                })
+                .build();
+
+        mApplication.acquireTokenSilentAsync(silentParameters);
+
+        return resultFuture.get(timeout.getTime(), timeout.getTimeUnit());
+    }
 }
