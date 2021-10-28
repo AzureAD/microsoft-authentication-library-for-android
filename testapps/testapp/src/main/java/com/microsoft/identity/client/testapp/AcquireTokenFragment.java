@@ -34,12 +34,14 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import androidx.fragment.app.Fragment;
 
@@ -94,7 +96,7 @@ public class AcquireTokenFragment extends Fragment {
     private LinearLayout mPopSection;
     private LinearLayout mLoginHintSection;
 
-    private Button mDebugBrokers;
+    private ToggleButton mDebugBrokers;
 
     private OnFragmentInteractionListener mOnFragmentInteractionListener;
     private MsalWrapper mMsalWrapper;
@@ -157,6 +159,9 @@ public class AcquireTokenFragment extends Fragment {
         mPopResourceUrl = view.findViewById(R.id.pop_resource_url);
         mPopClientClaims = view.findViewById(R.id.pop_client_claims);
         mDebugBrokers = view.findViewById(R.id.btn_trust_debug_brkr);
+        mDebugBrokers.setTextOff("Prod Brokers");
+        mDebugBrokers.setTextOn("Debug Brokers");
+        mDebugBrokers.setChecked(BrokerValidator.getShouldTrustDebugBrokers());
 
         mPopSection = view.findViewById(R.id.pop_section);
         mLoginHintSection = view.findViewById(R.id.login_hint_section);
@@ -314,25 +319,14 @@ public class AcquireTokenFragment extends Fragment {
             }
         });
 
-        mDebugBrokers.setOnClickListener(new View.OnClickListener() {
+        mDebugBrokers.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
-            public void onClick(View v) {
-                boolean foo = BrokerValidator.getShouldTrustDebugBrokers();
-                if ("Debug Brokers".equalsIgnoreCase(String.valueOf(mDebugBrokers.getText()))
-            || "Prod Brokers".equalsIgnoreCase(String.valueOf(mDebugBrokers.getText()))) {
-                    BrokerValidator.setShouldTrustDebugBrokers(!foo);
-                    if (foo) {
-                        mDebugBrokers.setText("Prod Brokers");
-                    } else {
-                        mDebugBrokers.setText("Debug Brokers");
-                    }
+            public void onCheckedChanged(CompoundButton v, boolean debugBrokers) {
+                BrokerValidator.setShouldTrustDebugBrokers(debugBrokers);
+                if (debugBrokers) {
+                    mDebugBrokers.setText("Debug Brokers");
                 } else {
-                    if (!foo) {
-                        mDebugBrokers.setText("Prod Brokers");
-                    } else {
-                        mDebugBrokers.setText("Debug Brokers");
-                    }
-
+                    mDebugBrokers.setText("Prod Brokers");
                 }
             }
         });

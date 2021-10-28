@@ -614,7 +614,7 @@
             android:layout_height="match_parent"
             android:orientation="horizontal">
 
-            <Button
+            <ToggleButton
                 android:id="@+id/btn_trust_debug_brkr"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
