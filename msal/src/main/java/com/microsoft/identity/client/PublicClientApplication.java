@@ -2050,7 +2050,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         boolean matches(@NonNull final String localAccountId,
                         @NonNull final IAccount account) {
             // First, inspect the root account...
-            if (account.getId() != null) {
+            if (account.getId() == null) {
                 return false;
             }
             if (localAccountId.contains(account.getId())) {
