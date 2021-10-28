@@ -100,6 +100,7 @@ import com.microsoft.identity.common.internal.result.GenerateShrResult;
 import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
 import com.microsoft.identity.common.internal.result.ResultFuture;
+import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.msal.BuildConfig;
 
 import java.io.File;
@@ -2040,7 +2041,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         @Override
         boolean matches(@NonNull final String homeAccountId,
                         @NonNull final IAccount account) {
-            return homeAccountId.contains(account.getId());
+            return account.getId() != null && homeAccountId.contains(account.getId());
         }
     };
 
@@ -2049,6 +2050,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         boolean matches(@NonNull final String localAccountId,
                         @NonNull final IAccount account) {
             // First, inspect the root account...
+            if (account.getId() != null) {
+                return false;
+            }
             if (localAccountId.contains(account.getId())) {
                 return true;
             } else if (account instanceof MultiTenantAccount) {
@@ -2095,7 +2099,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
             for (final IClaimable thingWithClaims : thingsWithClaims) {
                 if (null != thingWithClaims.getClaims()
-                        && username.equalsIgnoreCase(
+                        && StringUtil.equalsIgnoreCase(username,
                         SchemaUtil.getDisplayableId(
                                 thingWithClaims.getClaims()
                         )
