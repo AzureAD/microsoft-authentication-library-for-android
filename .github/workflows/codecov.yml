@@ -17,10 +17,8 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: AzureAD/microsoft-authentication-library-common-for-android
+          ref: dev
           path: common
-
-      - name: Show dirs
-        run: tree .
 
       - name: Set up JDK 1.8
         uses: actions/setup-java@v1
