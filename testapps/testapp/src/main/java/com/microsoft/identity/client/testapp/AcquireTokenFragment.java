@@ -323,11 +323,6 @@ public class AcquireTokenFragment extends Fragment {
             @Override
             public void onCheckedChanged(CompoundButton v, boolean debugBrokers) {
                 BrokerValidator.setShouldTrustDebugBrokers(debugBrokers);
-                if (debugBrokers) {
-                    mDebugBrokers.setText("Debug Brokers");
-                } else {
-                    mDebugBrokers.setText("Prod Brokers");
-                }
             }
         });
 
