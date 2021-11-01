@@ -18,8 +18,8 @@ variables:
   azureSampleApk: AzureSample.apk
   companyPortalApk: CompanyPortal.apk
   authenticatorApk: Authenticator.apk
-  deviceId: blueline
-  deviceAndroidVersion: 28
+  deviceId: flame
+  deviceAndroidVersion: 29
   firebaseTimeout: 45m
   resultsHistoryName: WPJ test
   resultsDir: "WPJ-test-$(Build.BuildId)-$(Build.BuildNumber)"
