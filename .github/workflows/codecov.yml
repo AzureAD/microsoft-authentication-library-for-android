@@ -10,6 +10,9 @@ jobs:
   build:
     runs-on: windows-2019
     steps:
+      - name: Configure long paths
+        run: git config --global core.longpaths true
+
       - name: Checkout repository and submodules
         uses: actions/checkout@v2
         with:
