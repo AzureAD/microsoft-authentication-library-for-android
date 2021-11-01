@@ -29,7 +29,7 @@ jobs:
 
           $protectedCertificateBytes = $certCollection.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Pkcs12)
 
-          $pfxPath = '$(Build.SourcesDirectory)' + "\TestCert.pfx"
+          $pfxPath = ${{ github.workspace }}\TestCert.pfx
 
           [System.IO.File]::WriteAllBytes($pfxPath, $protectedCertificateBytes)
 
