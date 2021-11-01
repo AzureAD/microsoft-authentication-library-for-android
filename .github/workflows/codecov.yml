@@ -19,6 +19,23 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
+      
+      - name: Install Automation Cert
+        shell: pwsh
+        run: |
+          $kvSecretBytes = [System.Convert]::FromBase64String('${{secret.AndroidAutomationRunner}}')
+
+          $certCollection = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2Collection
+
+          $certCollection.Import($kvSecretBytes, $null, [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable)
+
+          $protectedCertificateBytes = $certCollection.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Pkcs12)
+
+          $pfxPath = '$(Build.SourcesDirectory)' + "\TestCert.pfx"
+
+          [System.IO.File]::WriteAllBytes($pfxPath, $protectedCertificateBytes)
+
+          Import-PfxCertificate -FilePath $pfxPath -CertStoreLocation Cert:\CurrentUser\My
 
       - name: Run Coverage
         run: ./gradlew msal:localDebugMsalUnitTestCoverageReport -Plabtest -ProbolectricSdkVersion=$ROBOELECTRIC_SDK_VERSION
