@@ -36,9 +36,13 @@ jobs:
           Import-PfxCertificate -FilePath $pfxPath -CertStoreLocation Cert:\CurrentUser\My
 
       - name: Set up JDK 1.8
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v2
         with:
-          java-version: 1.8
+          distribution: 'temurin'
+          java-version: '8'
+
+      - name: Assemble
+        run: ./gradlew clean msal:assembleLocal
 
       - name: Run Coverage
         run: ./gradlew msal:localDebugMsalUnitTestCoverageReport -Plabtest -ProbolectricSdkVersion=$ROBOELECTRIC_SDK_VERSION
