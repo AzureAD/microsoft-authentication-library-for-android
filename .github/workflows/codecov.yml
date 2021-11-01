@@ -23,7 +23,7 @@ jobs:
       - name: Install Automation Cert
         shell: pwsh
         run: |
-          $kvSecretBytes = [System.Convert]::FromBase64String('${{secret.AndroidAutomationRunner}}')
+          $kvSecretBytes = [System.Convert]::FromBase64String('${{secrets.AndroidAutomationRunner}}')
 
           $certCollection = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2Collection
 
