@@ -39,13 +39,14 @@ jobs:
         uses: actions/setup-java@v2
         with:
           distribution: 'temurin'
-          java-version: '8'
+          java-version: '11'
+          architecture: 'x64'
 
       - name: Assemble
         run: ./gradlew clean msal:assembleLocal
 
       - name: Run Coverage
-        run: ./gradlew --debug msal:localDebugMsalUnitTestCoverageReport -Plabtest -ProbolectricSdkVersion=$ROBOELECTRIC_SDK_VERSION
+        run: ./gradlew msal:localDebugMsalUnitTestCoverageReport -Plabtest -ProbolectricSdkVersion=$ROBOELECTRIC_SDK_VERSION
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
