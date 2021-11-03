@@ -22,7 +22,6 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client;
 
-
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;

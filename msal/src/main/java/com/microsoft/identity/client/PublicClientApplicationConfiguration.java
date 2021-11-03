@@ -406,7 +406,7 @@ public class PublicClientApplicationConfiguration {
                     }
                 }
                 return null; // This shouldn't happen since authority configuration is validated to
-                             // ensure that one authority is marked as default/only one
+                // ensure that one authority is marked as default/only one
             } else {
                 return mAuthorities.get(0);
             }

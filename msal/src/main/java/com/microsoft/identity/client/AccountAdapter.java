@@ -213,10 +213,9 @@ class AccountAdapter {
             // hooray for client_info
             emptyRoot.setId(StringUtil.getTenantInfo(entry.getKey()).getKey());
             emptyRoot.setTenantId(StringUtil.getTenantInfo(entry.getKey()).getValue());
-            emptyRoot
-                    .setEnvironment( // Look ahead into our CacheRecords to determine the
-                                     // environment
-                            entry.getValue().get(0).getAccount().getEnvironment());
+            emptyRoot.setEnvironment( // Look ahead into our CacheRecords to determine the
+                    // environment
+                    entry.getValue().get(0).getAccount().getEnvironment());
 
             // Create the Map of TenantProfiles to set...
             final Map<String, ITenantProfile> tenantProfileMap = new HashMap<>();
