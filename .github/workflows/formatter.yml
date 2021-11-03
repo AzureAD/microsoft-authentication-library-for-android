@@ -1,0 +1,25 @@
+# This is a workflow to run the deploy snapshot pipeline in Azure DevOps
+name: formatting
+
+# Controls when the action will run. Triggers the workflow on pull request
+# events but only for the dev branch
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [ dev ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # Make sure we have a changelog entry
+  formatting:
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - run: echo "The action here is ${{ github.event.name }}"
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+      - uses: axel-op/googlejavaformat-action@3.5.0
+        with:
+          args: "--replace --aosp --skip-reflowing-long-strings --skip-javadoc-formatting"
