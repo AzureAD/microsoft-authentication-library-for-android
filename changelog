@@ -7,6 +7,23 @@ vNext
 - [MINOR] Added support for handling null taskAffinity.  Add configuration to enable this new feature.  "handle_null_taskaffinity" which is a boolean (#1342)
 - [PATCH] Log and throw exception if there are other apps listening for the redirect URL scheme defined in Android Manifest (#1357)
 - [PATCH] Update Nimbus dependency version (#1382)
+- [MAJOR] Migrate *TokenCache classes to common4j (#1652)
+- [MINOR] Adapt to BaseController migration (#1483)
+
+Version 2.2.1
+----------
+- [PATCH] Picks up common@3.6.2
+- [PATCH] Allow Authenticator to pass older format for redirect uri (#1517)
+
+Version 2.2.0
+----------
+- Picks up common@3.6.0
+
+Version 2.1.0
+----------
+- Picks up common@3.4.4
+- Adds preview support for authorization using current Android Task
+- Fixes resource URI casing issue.
 
 Version 2.0.12
 ----------

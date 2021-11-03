@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Package Inspector</string>
     <string name="dismiss">Dismiss</string>
+    <string name="certificate_hash">Certificate Hash:</string>
 </resources>

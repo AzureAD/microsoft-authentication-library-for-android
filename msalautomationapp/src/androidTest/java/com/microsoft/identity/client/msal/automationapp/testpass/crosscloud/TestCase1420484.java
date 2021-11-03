@@ -40,6 +40,7 @@ import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabGuestAccountHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
+import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -111,6 +112,9 @@ public class TestCase1420484 extends AbstractGuestAccountMsalUiTest {
         Assert.assertFalse("Verify accessToken is not empty", TextUtils.isEmpty(acquireTokenSilentResult.getAccessToken()));
 
         Assert.assertNotEquals("Silent request gets new access token", acquireTokenSilentResult.getAccessToken(), acquireTokenResult.getAccessToken());
+
+        JSONObject profileObject = getProfileObjectFromMSGraph(acquireTokenSilentResult.getAccessToken());
+        Assert.assertEquals(userName, profileObject.get("mail"));
     }
 
     @Override
@@ -125,7 +129,7 @@ public class TestCase1420484 extends AbstractGuestAccountMsalUiTest {
 
     @Override
     public String[] getScopes() {
-        return new String[]{"https://graph.windows.net/.default"};
+        return new String[]{"User.read"};
     }
 
     @Override

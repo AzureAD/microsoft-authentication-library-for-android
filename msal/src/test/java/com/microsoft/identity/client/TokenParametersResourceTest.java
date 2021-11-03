@@ -20,27 +20,31 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.e2e.shadows;
+package com.microsoft.identity.client;
 
-import androidx.annotation.NonNull;
 
-import com.microsoft.identity.common.adal.internal.cache.StorageHelper;
+import android.util.Log;
 
-import org.robolectric.annotation.Implements;
+import org.junit.Test;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
+import static org.junit.Assert.assertEquals;
 
-import javax.crypto.SecretKey;
 
-@Implements(StorageHelper.class)
-public class ShadowStorageHelper {
+public class TokenParametersResourceTest {
+
+    public final static String RESOURCE_MIXED_CASE = "https://SomeAADApi.aadgraph.onmicrosoft.com";
+    public final static String RESOURCE_MIXED_CASE_DEFAULT_APPENDED = RESOURCE_MIXED_CASE + "/.default";
 
     /**
-     * Fake saving key to key store as Android Key Store is not available in Robolectric
+     * Verify that the casing of the provided resource is not altered by the building of the parameters.
+     * In addition verify that the /.default value was added to the reosource to convert it to a scope for the purposes of the v2 endpoint.
      */
-    public void saveKeyStoreEncryptedKey(@NonNull SecretKey unencryptedKey) throws GeneralSecurityException, IOException {
-        return;
-    }
+    @Test
+    public void testVerifyScopeIsAsProvided() {
 
+        AcquireTokenParameters acquireTokenParameters = new AcquireTokenParameters.Builder().withResource(RESOURCE_MIXED_CASE).build();
+
+        assertEquals(RESOURCE_MIXED_CASE_DEFAULT_APPENDED, acquireTokenParameters.getScopes().get(0));
+
+    }
 }

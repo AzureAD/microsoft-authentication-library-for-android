@@ -27,9 +27,15 @@ import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthority;
+import com.microsoft.identity.client.e2e.shadows.ShadowMockAuthority;
+import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
+import com.microsoft.identity.common.java.net.HttpClient;
+import com.microsoft.identity.common.java.net.HttpResponse;
+import com.microsoft.identity.internal.testutils.HttpRequestInterceptor;
+import com.microsoft.identity.internal.testutils.HttpRequestMatcher;
 import com.microsoft.identity.internal.testutils.shadows.ShadowHttpClient;
 import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
-import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
+import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.CacheCountAuthenticationCallback;
@@ -43,7 +49,10 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLog;
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.Arrays;
+import java.util.Map;
 
 import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
 import static com.microsoft.identity.internal.testutils.TestConstants.Authorities.AAD_MOCK_AUTHORITY;
@@ -51,16 +60,37 @@ import static com.microsoft.identity.internal.testutils.TestConstants.Authoritie
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
 import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+// TODO: re-enable this oncd we re-enable command caching.
 @Ignore
 @RunWith(RobolectricTestRunner.class)
-@Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowHttpClient.class, ShadowPublicClientApplicationConfiguration.class})
+@Config(shadows = {
+        ShadowAndroidSdkStorageEncryptionManager.class,
+        ShadowMockAuthority.class,
+        ShadowHttpClient.class,
+        ShadowPublicClientApplicationConfiguration.class,
+        ShadowOpenIdProviderConfigurationClient.class
+})
 public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
 
     @Before
     public void before() {
-        CommandDispatcherHelper.clear();
-        ShadowLog.stream = System.out;
+        super.setup();
+        mockHttpClient.intercept(
+                HttpRequestMatcher.builder().isPOST().build(), new HttpRequestInterceptor() {
+                    @Override
+                    public HttpResponse performIntercept(
+                            @NonNull HttpClient.HttpMethod httpMethod,
+                            @NonNull URL requestUrl,
+                            @NonNull Map<String, String> requestHeaders,
+                            @Nullable byte[] requestContent) throws IOException {
+                        throw new IOException("Sending requests to server has been disabled for mocked unit tests");
+                    }
+                });
 
+        ShadowLog.stream = System.out;
     }
 
     @Override

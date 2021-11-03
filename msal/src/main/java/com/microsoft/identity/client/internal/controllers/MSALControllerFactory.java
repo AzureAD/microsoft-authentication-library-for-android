@@ -25,26 +25,29 @@ package com.microsoft.identity.client.internal.controllers;
 import android.accounts.AccountManager;
 import android.accounts.AuthenticatorDescription;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
 import android.os.Build;
 import android.os.PowerManager;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.exception.MsalClientException;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.internal.authorities.AnyPersonalAccount;
-import com.microsoft.identity.common.internal.authorities.Authority;
-import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
+import com.microsoft.identity.common.java.authorities.AnyPersonalAccount;
+import com.microsoft.identity.common.java.authorities.Authority;
+import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
-import com.microsoft.identity.common.internal.controllers.BaseController;
+import com.microsoft.identity.common.java.controllers.BaseController;
 import com.microsoft.identity.common.internal.controllers.BrokerMsalController;
 import com.microsoft.identity.common.internal.controllers.LocalMSALController;
 import com.microsoft.identity.common.logging.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.microsoft.identity.common.java.AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
 
 /**
  * Responsible for returning the correct controller depending on the type of request (Silent, Interactive), authority
@@ -189,7 +192,7 @@ public class MSALControllerFactory {
         //Verify the signature
         AuthenticatorDescription[] authenticators = accountManager.getAuthenticatorTypes();
         for (AuthenticatorDescription authenticator : authenticators) {
-            if (authenticator.type.equals(AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE)
+            if (BROKER_ACCOUNT_TYPE.equals(authenticator.type)
                     && brokerValidator.verifySignature(authenticator.packageName)) {
                 return true;
             }

@@ -33,20 +33,22 @@ import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
+import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthorityForMockHttpResponse;
 import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
-import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
+import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.common.exception.ServiceException;
-import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
+import com.microsoft.identity.common.java.exception.ServiceException;
+import com.microsoft.identity.common.java.providers.oauth2.IDToken;
+import com.microsoft.identity.common.java.util.StringUtil;
 import com.microsoft.identity.internal.testutils.HttpRequestMatcher;
 import com.microsoft.identity.internal.testutils.TestConstants;
 import com.microsoft.identity.internal.testutils.TestUtils;
@@ -62,16 +64,18 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.util.Arrays;
+import java.util.Date;
 
 import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
 import static com.microsoft.identity.internal.testutils.mocks.MockTokenCreator.CLOUD_DISCOVERY_ENDPOINT_REGEX;
+import static com.microsoft.identity.internal.testutils.mocks.MockTokenCreator.DEVICE_CODE_FLOW_AUTHORIZATION_REGEX;
 import static com.microsoft.identity.internal.testutils.mocks.MockTokenCreator.MOCK_PREFERRED_USERNAME_VALUE;
 import static com.microsoft.identity.internal.testutils.mocks.MockTokenCreator.MOCK_TOKEN_URL_REGEX;
 import static org.junit.Assert.fail;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {
-        ShadowStorageHelper.class,
+        ShadowAndroidSdkStorageEncryptionManager.class,
         ShadowAuthorityForMockHttpResponse.class,
         ShadowPublicClientApplicationConfiguration.class,
         ShadowHttpClient.class,
@@ -347,6 +351,63 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
             }
         });
 
+        RoboTestUtils.flushScheduler();
+    }
+
+    @Test
+    public void testCanAcquireTokenSilentlyAfterDeviceCode() {
+        // Test sometimes fails because the url is sometimes matched to the token url in MOCK_TOKEN_URL_REGEX
+        // Test case will clear all previous matchers in HttpsClient and reload them as test goes on.
+        mockHttpClient.uninstall();
+
+        // Load Device Code Flow Authorization interceptor
+        mockHttpClient.intercept(
+                HttpRequestMatcher.builder()
+                        .isPOST()
+                        .urlPattern(DEVICE_CODE_FLOW_AUTHORIZATION_REGEX)
+                        .build(),
+                MockServerResponse.getMockDeviceCodeFlowAuthorizationHttpResponse()
+        );
+        mSingleAccountPCA.acquireTokenWithDeviceCode(mScopes, new IPublicClientApplication.DeviceCodeFlowCallback() {
+            @Override
+            public void onUserCodeReceived(final @NonNull String vUri,
+                                           final @NonNull String userCode,
+                                           final @NonNull String message,
+                                           final @NonNull Date sessionExpirationDate) {
+                // Assert that the protocol returns the userCode and others after successful authorization
+                Assert.assertFalse(StringUtil.isNullOrEmpty(vUri));
+                Assert.assertFalse(StringUtil.isNullOrEmpty(userCode));
+                Assert.assertFalse(StringUtil.isNullOrEmpty(message));
+                Assert.assertNotNull(sessionExpirationDate);
+
+                // Load Token interceptor
+                mockHttpClient.intercept(
+                        HttpRequestMatcher.builder()
+                                .isPOST()
+                                .urlPattern(MOCK_TOKEN_URL_REGEX)
+                                .build(),
+                        MockServerResponse.getMockTokenSuccessResponse()
+                );
+            }
+
+            @Override
+            public void onTokenReceived(@NonNull IAuthenticationResult authResult) {
+                Assert.assertNotNull(authResult);
+                Assert.assertNotNull(authResult.getAccount());
+                Assert.assertFalse(StringUtil.isNullOrEmpty(authResult.getAccount().getIdToken()));
+                Assert.assertNotNull(authResult.getAccessToken());
+                AcquireTokenTestHelper.setAccount(authResult.getAccount());
+            }
+
+            @Override
+            public void onError(@NonNull MsalException exception) {
+                // This shouldn't run
+                throw new AssertionError(exception);
+            }
+        });
+        RoboTestUtils.flushScheduler();
+
+        mSingleAccountPCA.acquireTokenSilentAsync(mScopes, getAuthority(), getSuccessExpectedCallback());
         RoboTestUtils.flushScheduler();
     }
 
