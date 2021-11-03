@@ -44,6 +44,4 @@ public interface SilentAuthenticationCallback {
      *                  {@link MsalUiRequiredException}.
      */
     void onError(final MsalException exception);
-
-
 }

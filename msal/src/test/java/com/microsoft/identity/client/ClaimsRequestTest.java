@@ -31,15 +31,14 @@ import org.junit.Test;
 
 public class ClaimsRequestTest {
 
-    public final static String DEVICE_ID_CLAIM_NAME = "device_id";
-    public final static String POLICY_ID_CLAIM_NAME = "policy_id";
-    public final static String[] POLICY_ID_VALUES = {"policy1", "policy2"};
-
+    public static final String DEVICE_ID_CLAIM_NAME = "device_id";
+    public static final String POLICY_ID_CLAIM_NAME = "policy_id";
+    public static final String[] POLICY_ID_VALUES = {"policy1", "policy2"};
 
     @Test
     public void testSerializeBasicClaimsRequest() {
 
-        //What we're aiming for
+        // What we're aiming for
         final String CLAIMS_REQUEST_JSON = "{\"access_token\":{\"device_id\":null}}";
 
         ClaimsRequest cr = new ClaimsRequest();
@@ -48,36 +47,38 @@ public class ClaimsRequestTest {
         String claimsRequestJson = ClaimsRequest.getJsonStringFromClaimsRequest(cr);
 
         Assert.assertEquals(CLAIMS_REQUEST_JSON, claimsRequestJson);
-
     }
 
     @Test
     public void testSerializeBasicClaimsWithInfoRequest() {
 
-        //What we're aiming for
-        final String CLAIMS_REQUEST_JSON = "{\"access_token\":{\"device_id\":{\"essential\":true}}}";
+        // What we're aiming for
+        final String CLAIMS_REQUEST_JSON =
+                "{\"access_token\":{\"device_id\":{\"essential\":true}}}";
 
         ClaimsRequest cr = new ClaimsRequest();
 
-        RequestedClaimAdditionalInformation additionalInformation = new RequestedClaimAdditionalInformation();
+        RequestedClaimAdditionalInformation additionalInformation =
+                new RequestedClaimAdditionalInformation();
         additionalInformation.setEssential(true);
         cr.requestClaimInAccessToken(DEVICE_ID_CLAIM_NAME, additionalInformation);
 
         String claimsRequestJson = ClaimsRequest.getJsonStringFromClaimsRequest(cr);
 
         Assert.assertEquals(CLAIMS_REQUEST_JSON, claimsRequestJson);
-
     }
 
     @Test
     public void testSerializeBasicClaimsWithInfoAndValuesRequest() {
 
-        //What we're aiming for
-        final String CLAIMS_REQUEST_JSON = "{\"access_token\":{\"policy_id\":{\"essential\":true,\"values\":[\"policy1\",\"policy2\"]}}}";
+        // What we're aiming for
+        final String CLAIMS_REQUEST_JSON =
+                "{\"access_token\":{\"policy_id\":{\"essential\":true,\"values\":[\"policy1\",\"policy2\"]}}}";
 
         ClaimsRequest cr = new ClaimsRequest();
 
-        RequestedClaimAdditionalInformation additionalInformation = new RequestedClaimAdditionalInformation();
+        RequestedClaimAdditionalInformation additionalInformation =
+                new RequestedClaimAdditionalInformation();
         additionalInformation.setEssential(true);
 
         for (String value : POLICY_ID_VALUES) {
@@ -89,7 +90,6 @@ public class ClaimsRequestTest {
         String claimsRequestJson = ClaimsRequest.getJsonStringFromClaimsRequest(cr);
 
         Assert.assertEquals(CLAIMS_REQUEST_JSON, claimsRequestJson);
-
     }
 
     @Test
@@ -97,9 +97,5 @@ public class ClaimsRequestTest {
 
         final String claimsRequestJson = ClaimsRequest.getJsonStringFromClaimsRequest(null);
         Assert.assertEquals(null, claimsRequestJson);
-
     }
-
-
-
 }

@@ -71,7 +71,8 @@ public class AcquireTokenSilentParameters extends TokenParameters {
         return mForceRefresh;
     }
 
-    public static class Builder extends TokenParameters.Builder<AcquireTokenSilentParameters.Builder> {
+    public static class Builder
+            extends TokenParameters.Builder<AcquireTokenSilentParameters.Builder> {
 
         private boolean mForceRefresh;
         private SilentAuthenticationCallback mCallback;
@@ -96,5 +97,4 @@ public class AcquireTokenSilentParameters extends TokenParameters {
             return new AcquireTokenSilentParameters(this);
         }
     }
-
 }

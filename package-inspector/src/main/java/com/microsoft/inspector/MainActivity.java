@@ -72,18 +72,19 @@ public class MainActivity extends AppCompatActivity {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.options_menu, menu);
         SearchView search = (SearchView) menu.findItem(R.id.search).getActionView();
-        search.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                return false;
-            }
+        search.setOnQueryTextListener(
+                new SearchView.OnQueryTextListener() {
+                    @Override
+                    public boolean onQueryTextSubmit(String query) {
+                        return false;
+                    }
 
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                filterAndDisplayPackages(newText);
-                return true;
-            }
-        });
+                    @Override
+                    public boolean onQueryTextChange(String newText) {
+                        filterAndDisplayPackages(newText);
+                        return true;
+                    }
+                });
 
         return true;
     }
@@ -112,74 +113,75 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        final ArrayAdapter<String> appAdapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_list_item_1,
-                packageNames
-        );
+        final ArrayAdapter<String> appAdapter =
+                new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, packageNames);
 
         mListView.setAdapter(appAdapter);
         appAdapter.notifyDataSetChanged();
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                try {
-                    String pkgName = packageNames.get(position);
+        mListView.setOnItemClickListener(
+                new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(
+                            AdapterView<?> adapterView, View view, int position, long l) {
+                        try {
+                            String pkgName = packageNames.get(position);
 
-                    if (pkgName.endsWith(ACCOUNT_AFFINITY_SUFFIX)) {
-                        pkgName = pkgName.replace(ACCOUNT_AFFINITY_SUFFIX, "");
+                            if (pkgName.endsWith(ACCOUNT_AFFINITY_SUFFIX)) {
+                                pkgName = pkgName.replace(ACCOUNT_AFFINITY_SUFFIX, "");
+                            }
+
+                            final ApplicationInfo clickedAppInfo =
+                                    mPackageManager.getApplicationInfo(
+                                            pkgName, PackageManager.GET_META_DATA);
+                            final PackageInfo packageInfo =
+                                    mPackageManager.getPackageInfo(
+                                            clickedAppInfo.packageName, getPackageManagerFlag());
+
+                            String packageSigningSha = "";
+
+                            final Signature[] signatures = getSignatures(packageInfo);
+                            if (null != signatures && signatures.length > 0) {
+                                final Signature signature = signatures[0];
+                                final MessageDigest digest = MessageDigest.getInstance("SHA");
+                                digest.update(signature.toByteArray());
+                                packageSigningSha =
+                                        Base64.encodeToString(digest.digest(), Base64.NO_WRAP);
+                            }
+
+                            String msg = packageSigningSha;
+
+                            if (isAnAuthenticatorApp(pkgName)) {
+                                msg += "\n\n" + getAuthenticatorAppMetadata(pkgName);
+                            }
+
+                            LayoutInflater layoutInflater = LayoutInflater.from(MainActivity.this);
+
+                            View dialogView =
+                                    layoutInflater.inflate(R.layout.dialog_layout, null, false);
+                            TextView hashTextView =
+                                    dialogView.findViewById(R.id.certificateHashTextView);
+
+                            hashTextView.setText(msg);
+
+                            new AlertDialog.Builder(MainActivity.this)
+                                    .setView(dialogView)
+                                    .setTitle(pkgName)
+                                    .setPositiveButton(
+                                            MainActivity.this.getString(R.string.dismiss),
+                                            new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(
+                                                        DialogInterface dialogInterface, int i) {
+                                                    dialogInterface.dismiss();
+                                                }
+                                            })
+                                    .show();
+                        } catch (PackageManager.NameNotFoundException
+                                | NoSuchAlgorithmException e) {
+                            e.printStackTrace();
+                        }
                     }
-
-                    final ApplicationInfo clickedAppInfo = mPackageManager.getApplicationInfo(
-                            pkgName,
-                            PackageManager.GET_META_DATA
-                    );
-                    final PackageInfo packageInfo = mPackageManager.getPackageInfo(
-                            clickedAppInfo.packageName,
-                            getPackageManagerFlag()
-                    );
-
-                    String packageSigningSha = "";
-
-                    final Signature[] signatures = getSignatures(packageInfo);
-                    if (null != signatures
-                            && signatures.length > 0) {
-                        final Signature signature = signatures[0];
-                        final MessageDigest digest = MessageDigest.getInstance("SHA");
-                        digest.update(signature.toByteArray());
-                        packageSigningSha = Base64.encodeToString(digest.digest(), Base64.NO_WRAP);
-                    }
-
-                    String msg = packageSigningSha;
-
-                    if (isAnAuthenticatorApp(pkgName)) {
-                        msg += "\n\n" + getAuthenticatorAppMetadata(pkgName);
-                    }
-
-                    LayoutInflater layoutInflater = LayoutInflater.from(MainActivity.this);
-
-                    View dialogView = layoutInflater.inflate(R.layout.dialog_layout, null, false);
-                    TextView hashTextView = dialogView.findViewById(R.id.certificateHashTextView);
-
-                    hashTextView.setText(msg);
-
-                    new AlertDialog.Builder(MainActivity.this)
-                            .setView(dialogView)
-                            .setTitle(pkgName)
-                            .setPositiveButton(
-                                    MainActivity.this.getString(R.string.dismiss),
-                                    new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialogInterface, int i) {
-                                            dialogInterface.dismiss();
-                                        }
-                                    }
-                            ).show();
-                } catch (PackageManager.NameNotFoundException | NoSuchAlgorithmException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+                });
     }
 
     @Override
@@ -192,19 +194,23 @@ public class MainActivity extends AppCompatActivity {
         mPackageManager = getPackageManager();
         populateAuthenticatorsLookup(AccountManager.get(this));
         mApplications = mPackageManager.getInstalledApplications(PackageManager.GET_META_DATA);
-        Collections.sort(mApplications, new Comparator<ApplicationInfo>() {
-            @Override
-            public int compare(@NonNull final ApplicationInfo info1,
-                               @NonNull final ApplicationInfo info2) {
-                return info1.packageName.compareTo(info2.packageName);
-            }
-        });
+        Collections.sort(
+                mApplications,
+                new Comparator<ApplicationInfo>() {
+                    @Override
+                    public int compare(
+                            @NonNull final ApplicationInfo info1,
+                            @NonNull final ApplicationInfo info2) {
+                        return info1.packageName.compareTo(info2.packageName);
+                    }
+                });
 
         filterAndDisplayPackages(null);
     }
 
     private void populateAuthenticatorsLookup(@NonNull final AccountManager accountManager) {
-        final AuthenticatorDescription[] authenticatorDescriptions = accountManager.getAuthenticatorTypes();
+        final AuthenticatorDescription[] authenticatorDescriptions =
+                accountManager.getAuthenticatorTypes();
 
         for (final AuthenticatorDescription description : authenticatorDescriptions) {
             mPkgAuthenticators.put(description.packageName, description.type);
@@ -212,9 +218,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private String getAuthenticatorAppMetadata(@NonNull final String pkgName) {
-        return "App has account type affinity: "
-                + "\n"
-                + mPkgAuthenticators.get(pkgName);
+        return "App has account type affinity: " + "\n" + mPkgAuthenticators.get(pkgName);
     }
 
     private boolean isAnAuthenticatorApp(@NonNull final String pkgName) {

@@ -28,8 +28,7 @@ public class CurrentAccountResult implements ICurrentAccountResult {
     private IAccount mPriorAccount;
     private boolean mChanged;
 
-
-    public CurrentAccountResult(IAccount current, IAccount prior, boolean changed){
+    public CurrentAccountResult(IAccount current, IAccount prior, boolean changed) {
         mCurrentAccount = current;
         mPriorAccount = prior;
         mChanged = changed;

@@ -22,10 +22,10 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.shadows;
 
-import com.microsoft.identity.common.java.exception.ErrorStrings;
-import com.microsoft.identity.common.java.exception.ServiceException;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommandCallback;
+import com.microsoft.identity.common.java.exception.ErrorStrings;
+import com.microsoft.identity.common.java.exception.ServiceException;
 import com.microsoft.identity.common.java.result.AcquireTokenResult;
 
 import org.robolectric.annotation.Implements;
@@ -40,11 +40,11 @@ import java.util.concurrent.TimeUnit;
 @Implements(DeviceCodeFlowCommand.class)
 public class ShadowDeviceCodeFlowCommandTokenError {
 
-    @RealObject
-    private DeviceCodeFlowCommand mDeviceCodeFlowCommand;
+    @RealObject private DeviceCodeFlowCommand mDeviceCodeFlowCommand;
 
     public AcquireTokenResult execute() throws Exception {
-        final DeviceCodeFlowCommandCallback callback = (DeviceCodeFlowCommandCallback) mDeviceCodeFlowCommand.getCallback();
+        final DeviceCodeFlowCommandCallback callback =
+                (DeviceCodeFlowCommandCallback) mDeviceCodeFlowCommand.getCallback();
 
         // 15 minutes is the default timeout.
         final Date expiryDate = new Date();
@@ -56,6 +56,9 @@ public class ShadowDeviceCodeFlowCommandTokenError {
                 "Follow these instructions to authenticate.",
                 expiryDate);
 
-        throw new ServiceException(ErrorStrings.DEVICE_CODE_FLOW_EXPIRED_TOKEN_ERROR_CODE, "The device_code expired. No need to continue polling for the token (expired token).", null);
+        throw new ServiceException(
+                ErrorStrings.DEVICE_CODE_FLOW_EXPIRED_TOKEN_ERROR_CODE,
+                "The device_code expired. No need to continue polling for the token (expired token).",
+                null);
     }
 }

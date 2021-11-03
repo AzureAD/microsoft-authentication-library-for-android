@@ -24,33 +24,25 @@ package com.microsoft.identity.client.testapp;
 
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.MenuItem;
+import android.widget.RelativeLayout;
+import android.widget.Toast;
 
-import com.google.android.material.navigation.NavigationView;
-
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
-import android.view.MenuItem;
-import android.widget.ArrayAdapter;
-import android.widget.RelativeLayout;
-import android.widget.Spinner;
-import android.widget.Toast;
-
+import com.google.android.material.navigation.NavigationView;
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.AuthenticationResult;
-import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.ILoggerCallback;
-import com.microsoft.identity.client.ITenantProfile;
 import com.microsoft.identity.client.Logger;
-import com.microsoft.identity.client.MultiTenantAccount;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
@@ -61,8 +53,6 @@ import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -74,7 +64,7 @@ import javax.crypto.spec.SecretKeySpec;
  */
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
-        AcquireTokenFragment.OnFragmentInteractionListener {
+                AcquireTokenFragment.OnFragmentInteractionListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -132,23 +122,34 @@ public class MainActivity extends AppCompatActivity
         try {
             // For API version lower than 18, you have to provide the secret key. The secret key
             // needs to be 256 bits. You can use the following way to generate the secret key. And
-            // use AuthenticationSettings.Instance.setSecretKey(secretKeyBytes) to supply us the key.
-            // For API version 18 and above, we use android keystore to generate keypair, and persist
-            // the keypair in AndroidKeyStore. Current investigation shows 1)Keystore may be locked with
+            // use AuthenticationSettings.Instance.setSecretKey(secretKeyBytes) to supply us the
+            // key.
+            // For API version 18 and above, we use android keystore to generate keypair, and
+            // persist
+            // the keypair in AndroidKeyStore. Current investigation shows 1)Keystore may be locked
+            // with
             // a lock screen, if calling app has a lot of background activity, keystore cannot be
-            // accessed when locked, we'll be unable to decrypt the cache items 2) AndroidKeystore could
+            // accessed when locked, we'll be unable to decrypt the cache items 2) AndroidKeystore
+            // could
             // be reset when gesture to unlock the device is changed.
             // We do recommend the calling app the supply us the key with the above two limitations.
             if (AuthenticationSettings.INSTANCE.getSecretKeyData() == null) {
                 // use same key for tests
-                SecretKeyFactory keyFactory = SecretKeyFactory
-                        .getInstance("PBEWithSHA256And256BitAES-CBC-BC");
-                SecretKey tempkey = keyFactory.generateSecret(new PBEKeySpec("test".toCharArray(),
-                        "abcdedfdfd".getBytes("UTF-8"), 100, 256));
+                SecretKeyFactory keyFactory =
+                        SecretKeyFactory.getInstance("PBEWithSHA256And256BitAES-CBC-BC");
+                SecretKey tempkey =
+                        keyFactory.generateSecret(
+                                new PBEKeySpec(
+                                        "test".toCharArray(),
+                                        "abcdedfdfd".getBytes("UTF-8"),
+                                        100,
+                                        256));
                 SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
                 AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
             }
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException | UnsupportedEncodingException ex) {
+        } catch (NoSuchAlgorithmException
+                | InvalidKeySpecException
+                | UnsupportedEncodingException ex) {
             showMessageWithToast("Fail to generate secret key:" + ex.getMessage());
         }
 
@@ -158,14 +159,15 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private Fragment getCurrentFragment(){
+    private Fragment getCurrentFragment() {
         int index = getSupportFragmentManager().getBackStackEntryCount() - 1;
 
-        if (index < 0){
+        if (index < 0) {
             return null;
         }
 
-        final FragmentManager.BackStackEntry entry = getSupportFragmentManager().getBackStackEntryAt(index);
+        final FragmentManager.BackStackEntry entry =
+                getSupportFragmentManager().getBackStackEntryAt(index);
         final String tag = entry.getName();
         return getSupportFragmentManager().findFragmentByTag(tag);
     }
@@ -175,24 +177,23 @@ public class MainActivity extends AppCompatActivity
         final Fragment fragment;
         int menuItemId = item.getItemId();
         if (menuItemId == R.id.nav_acquire) {
-            if (getCurrentFragment() instanceof AcquireTokenFragment){
+            if (getCurrentFragment() instanceof AcquireTokenFragment) {
                 return false;
             }
             fragment = new AcquireTokenFragment();
         } else if (menuItemId == R.id.nav_result) {
-            if (getCurrentFragment() instanceof ResultFragment){
+            if (getCurrentFragment() instanceof ResultFragment) {
                 return false;
             }
 
             fragment = new ResultFragment();
             final Bundle bundle = new Bundle();
             if (mAuthResult != null) {
-                bundle.putString(ResultFragment.CORRELATION_ID, mAuthResult.getCorrelationId().toString());
+                bundle.putString(
+                        ResultFragment.CORRELATION_ID, mAuthResult.getCorrelationId().toString());
                 bundle.putString(ResultFragment.ACCESS_TOKEN, mAuthResult.getAccessToken());
                 bundle.putString(
-                        ResultFragment.DISPLAYABLE,
-                        mAuthResult.getAccount().getUsername()
-                );
+                        ResultFragment.DISPLAYABLE, mAuthResult.getAccount().getUsername());
             } else if (null != mStringResult) {
                 bundle.putString(ResultFragment.STRING_DATA_TO_DISPLAY, mStringResult);
             }
@@ -200,7 +201,7 @@ public class MainActivity extends AppCompatActivity
             fragment.setArguments(bundle);
             mAuthResult = null;
         } else if (menuItemId == R.id.nav_log) {
-            if (getCurrentFragment() instanceof LogFragment){
+            if (getCurrentFragment() instanceof LogFragment) {
                 return false;
             }
             fragment = new LogFragment();
@@ -230,11 +231,11 @@ public class MainActivity extends AppCompatActivity
         final DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
         drawerLayout.closeDrawer(GravityCompat.START);
 
-
-        fragmentTransaction.replace(mContentMain.getId(), fragment, fragment.getClass().getName())
-                .addToBackStack(fragment.getClass().getName()).commitAllowingStateLoss();
+        fragmentTransaction
+                .replace(mContentMain.getId(), fragment, fragment.getClass().getName())
+                .addToBackStack(fragment.getClass().getName())
+                .commitAllowingStateLoss();
     }
-
 
     private NavigationView getNavigationView() {
         final NavigationView navigationView = findViewById(R.id.nav_view);
@@ -256,12 +257,15 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void showMessageWithToast(final String msg) {
-        new Handler(getMainLooper()).post(new Runnable() {
+        new Handler(getMainLooper())
+                .post(
+                        new Runnable() {
 
-            @Override
-            public void run() {
-                Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
-            }
-        });
+                            @Override
+                            public void run() {
+                                Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG)
+                                        .show();
+                            }
+                        });
     }
 }

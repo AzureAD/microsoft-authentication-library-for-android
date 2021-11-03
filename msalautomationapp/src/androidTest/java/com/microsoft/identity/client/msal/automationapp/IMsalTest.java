@@ -59,5 +59,4 @@ public interface IMsalTest {
      * @return config file resource id
      */
     int getConfigFileResourceId();
-
 }

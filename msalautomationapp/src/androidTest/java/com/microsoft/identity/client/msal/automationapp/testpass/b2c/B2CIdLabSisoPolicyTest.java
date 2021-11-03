@@ -24,7 +24,6 @@ package com.microsoft.identity.client.msal.automationapp.testpass.b2c;
 
 import androidx.annotation.NonNull;
 
-import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
@@ -39,7 +38,6 @@ import com.microsoft.identity.client.ui.automation.interaction.b2c.B2CProvider;
 import com.microsoft.identity.client.ui.automation.interaction.b2c.IdLabB2cSisoPolicyPromptHandler;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -49,12 +47,10 @@ import java.util.Arrays;
 @RunWith(Parameterized.class)
 public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
 
-    final static B2CProvider[] b2CProviders = new B2CProvider[]{
-            B2CProvider.Local,
-            B2CProvider.MSA,
-            B2CProvider.Google,
-            B2CProvider.Facebook,
-    };
+    static final B2CProvider[] b2CProviders =
+            new B2CProvider[] {
+                B2CProvider.Local, B2CProvider.MSA, B2CProvider.Google, B2CProvider.Facebook,
+            };
 
     @Parameterized.Parameters(name = "{0}")
     public static B2CProvider[] data() {
@@ -79,65 +75,73 @@ public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
 
         final MsalSdk msalSdk = new MsalSdk();
 
-        final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
-                .activity(mActivity)
-                .loginHint(mLoginHint)
-                .scopes(Arrays.asList(mScopes))
-                .promptParameter(Prompt.SELECT_ACCOUNT)
-                .msalConfigResourceId(getConfigFileResourceId())
-                .build();
-
-        final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
-            @Override
-            public void handleUserInteraction() {
-                ((IApp) mBrowser).handleFirstRun();
-
-                final B2CPromptHandlerParameters promptHandlerParameters = B2CPromptHandlerParameters.builder()
-                        .prompt(PromptParameter.SELECT_ACCOUNT)
+        final MsalAuthTestParams authTestParams =
+                MsalAuthTestParams.builder()
+                        .activity(mActivity)
                         .loginHint(mLoginHint)
-                        .sessionExpected(false)
-                        .consentPageExpected(false)
-                        .speedBumpExpected(false)
-                        .broker(null)
-                        .expectingBrokerAccountChooserActivity(false)
-                        .b2cProvider(getB2cProvider())
+                        .scopes(Arrays.asList(mScopes))
+                        .promptParameter(Prompt.SELECT_ACCOUNT)
+                        .msalConfigResourceId(getConfigFileResourceId())
                         .build();
 
-                new IdLabB2cSisoPolicyPromptHandler(promptHandlerParameters)
-                        .handlePrompt(username, password);
-            }
-        },TokenRequestTimeout.MEDIUM);
+        final MsalAuthResult authResult =
+                msalSdk.acquireTokenInteractive(
+                        authTestParams,
+                        new OnInteractionRequired() {
+                            @Override
+                            public void handleUserInteraction() {
+                                ((IApp) mBrowser).handleFirstRun();
+
+                                final B2CPromptHandlerParameters promptHandlerParameters =
+                                        B2CPromptHandlerParameters.builder()
+                                                .prompt(PromptParameter.SELECT_ACCOUNT)
+                                                .loginHint(mLoginHint)
+                                                .sessionExpected(false)
+                                                .consentPageExpected(false)
+                                                .speedBumpExpected(false)
+                                                .broker(null)
+                                                .expectingBrokerAccountChooserActivity(false)
+                                                .b2cProvider(getB2cProvider())
+                                                .build();
+
+                                new IdLabB2cSisoPolicyPromptHandler(promptHandlerParameters)
+                                        .handlePrompt(username, password);
+                            }
+                        },
+                        TokenRequestTimeout.MEDIUM);
 
         authResult.assertSuccess();
 
         // ------ do silent request ------
 
+        final MsalAuthTestParams authTestSilentParams =
+                MsalAuthTestParams.builder()
+                        .activity(mActivity)
+                        .authority(getAuthority())
+                        .loginHint(username)
+                        .forceRefresh(false)
+                        .scopes(Arrays.asList(mScopes))
+                        .msalConfigResourceId(getConfigFileResourceId())
+                        .build();
 
-        final MsalAuthTestParams authTestSilentParams = MsalAuthTestParams.builder()
-                .activity(mActivity)
-                .authority(getAuthority())
-                .loginHint(username)
-                .forceRefresh(false)
-                .scopes(Arrays.asList(mScopes))
-                .msalConfigResourceId(getConfigFileResourceId())
-                .build();
-
-        final MsalAuthResult authSilentResult = msalSdk.acquireTokenSilent(authTestSilentParams, TokenRequestTimeout.SILENT);
+        final MsalAuthResult authSilentResult =
+                msalSdk.acquireTokenSilent(authTestSilentParams, TokenRequestTimeout.SILENT);
         authSilentResult.assertSuccess();
 
         // ------ do force refresh silent request ------
 
+        final MsalAuthTestParams silentForceParams =
+                MsalAuthTestParams.builder()
+                        .activity(mActivity)
+                        .authority(getAuthority())
+                        .loginHint(username)
+                        .forceRefresh(true)
+                        .scopes(Arrays.asList(mScopes))
+                        .msalConfigResourceId(getConfigFileResourceId())
+                        .build();
 
-        final MsalAuthTestParams silentForceParams = MsalAuthTestParams.builder()
-                .activity(mActivity)
-                .authority(getAuthority())
-                .loginHint(username)
-                .forceRefresh(true)
-                .scopes(Arrays.asList(mScopes))
-                .msalConfigResourceId(getConfigFileResourceId())
-                .build();
-
-        final MsalAuthResult authSilentForceResult = msalSdk.acquireTokenSilent(silentForceParams, TokenRequestTimeout.SILENT);
+        final MsalAuthResult authSilentForceResult =
+                msalSdk.acquireTokenSilent(silentForceParams, TokenRequestTimeout.SILENT);
         authSilentForceResult.assertSuccess();
     }
 

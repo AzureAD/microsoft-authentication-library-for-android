@@ -23,17 +23,15 @@
 package com.microsoft.identity.client;
 
 
-import android.util.Log;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-
-
 public class TokenParametersResourceTest {
 
-    public final static String RESOURCE_MIXED_CASE = "https://SomeAADApi.aadgraph.onmicrosoft.com";
-    public final static String RESOURCE_MIXED_CASE_DEFAULT_APPENDED = RESOURCE_MIXED_CASE + "/.default";
+    public static final String RESOURCE_MIXED_CASE = "https://SomeAADApi.aadgraph.onmicrosoft.com";
+    public static final String RESOURCE_MIXED_CASE_DEFAULT_APPENDED =
+            RESOURCE_MIXED_CASE + "/.default";
 
     /**
      * Verify that the casing of the provided resource is not altered by the building of the parameters.
@@ -42,9 +40,10 @@ public class TokenParametersResourceTest {
     @Test
     public void testVerifyScopeIsAsProvided() {
 
-        AcquireTokenParameters acquireTokenParameters = new AcquireTokenParameters.Builder().withResource(RESOURCE_MIXED_CASE).build();
+        AcquireTokenParameters acquireTokenParameters =
+                new AcquireTokenParameters.Builder().withResource(RESOURCE_MIXED_CASE).build();
 
-        assertEquals(RESOURCE_MIXED_CASE_DEFAULT_APPENDED, acquireTokenParameters.getScopes().get(0));
-
+        assertEquals(
+                RESOURCE_MIXED_CASE_DEFAULT_APPENDED, acquireTokenParameters.getScopes().get(0));
     }
 }

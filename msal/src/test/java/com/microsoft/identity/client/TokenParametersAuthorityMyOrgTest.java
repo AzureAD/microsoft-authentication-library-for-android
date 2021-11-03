@@ -22,13 +22,14 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
+
 import android.app.Activity;
 import android.content.Context;
 
 import androidx.test.core.app.ApplicationProvider;
 
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
-import com.microsoft.identity.internal.testutils.TestUtils;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -41,8 +42,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
-
-import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
 
 /**
  * This class tests the fromAuthority builder of {@link TokenParameters} using the AzureAdMyOrg
@@ -61,20 +60,33 @@ public class TokenParametersAuthorityMyOrgTest {
     private AzureCloudInstance azureCloudInstance;
     private String expectedAuthorityUrl;
 
-    public TokenParametersAuthorityMyOrgTest(final AzureCloudInstance azureCloudInstance,
-                                             final String expectedAuthorityUrl) {
+    public TokenParametersAuthorityMyOrgTest(
+            final AzureCloudInstance azureCloudInstance, final String expectedAuthorityUrl) {
         this.azureCloudInstance = azureCloudInstance;
         this.expectedAuthorityUrl = expectedAuthorityUrl;
     }
 
     @ParameterizedRobolectricTestRunner.Parameters(name = "cloud = {0}")
     public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][]{
-                {AzureCloudInstance.AzurePublic, "https://login.microsoftonline.com/" + testTenant},
-                {AzureCloudInstance.AzureChina, "https://login.partner.microsoftonline.cn/" + testTenant},
-                {AzureCloudInstance.AzureGermany, "https://login.microsoftonline.de/" + testTenant},
-                {AzureCloudInstance.AzureUsGov, "https://login.microsoftonline.us/" + testTenant},
-        });
+        return Arrays.asList(
+                new Object[][] {
+                    {
+                        AzureCloudInstance.AzurePublic,
+                        "https://login.microsoftonline.com/" + testTenant
+                    },
+                    {
+                        AzureCloudInstance.AzureChina,
+                        "https://login.partner.microsoftonline.cn/" + testTenant
+                    },
+                    {
+                        AzureCloudInstance.AzureGermany,
+                        "https://login.microsoftonline.de/" + testTenant
+                    },
+                    {
+                        AzureCloudInstance.AzureUsGov,
+                        "https://login.microsoftonline.us/" + testTenant
+                    },
+                });
     }
 
     @Before
@@ -86,36 +98,40 @@ public class TokenParametersAuthorityMyOrgTest {
 
     @Test
     public void testCreateAuthorityFromUrl() {
-        final AcquireTokenParameters tokenParameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withScopes(SCOPES)
-                .fromAuthority(expectedAuthorityUrl)
-                .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
-                .build();
+        final AcquireTokenParameters tokenParameters =
+                new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(mActivity)
+                        .withScopes(SCOPES)
+                        .fromAuthority(expectedAuthorityUrl)
+                        .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
+                        .build();
 
         Assert.assertEquals(expectedAuthorityUrl, tokenParameters.getAuthority());
     }
 
     @Test
     public void testCreateAuthorityFromCloudAndTenant() {
-        final AcquireTokenParameters tokenParameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withScopes(SCOPES)
-                .fromAuthority(azureCloudInstance, testTenant)
-                .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
-                .build();
+        final AcquireTokenParameters tokenParameters =
+                new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(mActivity)
+                        .withScopes(SCOPES)
+                        .fromAuthority(azureCloudInstance, testTenant)
+                        .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
+                        .build();
 
         Assert.assertEquals(expectedAuthorityUrl, tokenParameters.getAuthority());
     }
 
     @Test
     public void testCreateAuthorityFromCloudAndAudienceAndTenantIfAudienceIsMyOrg() {
-        final AcquireTokenParameters tokenParameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withScopes(SCOPES)
-                .fromAuthority(azureCloudInstance, AadAuthorityAudience.AzureAdMyOrg, testTenant)
-                .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
-                .build();
+        final AcquireTokenParameters tokenParameters =
+                new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(mActivity)
+                        .withScopes(SCOPES)
+                        .fromAuthority(
+                                azureCloudInstance, AadAuthorityAudience.AzureAdMyOrg, testTenant)
+                        .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
+                        .build();
 
         Assert.assertEquals(expectedAuthorityUrl, tokenParameters.getAuthority());
     }
@@ -131,5 +147,4 @@ public class TokenParametersAuthorityMyOrgTest {
 
         Assert.fail("Unexpected failure"); // we should not get here
     }
-
 }

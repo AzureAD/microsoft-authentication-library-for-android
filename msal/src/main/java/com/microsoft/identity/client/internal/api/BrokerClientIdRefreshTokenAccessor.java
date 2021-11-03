@@ -23,6 +23,10 @@
 
 package com.microsoft.identity.client.internal.api;
 
+import static com.microsoft.identity.client.exception.MsalClientException.NOT_ELIGIBLE_TO_USE_BROKER;
+import static com.microsoft.identity.common.java.AuthenticationConstants.Broker.BROKER_CLIENT_ID;
+import static com.microsoft.identity.common.java.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
+
 import android.content.Context;
 
 import androidx.annotation.NonNull;
@@ -30,17 +34,12 @@ import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.AndroidPlatformComponents;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.java.authscheme.BearerAuthenticationSchemeInternal;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
+import com.microsoft.identity.common.java.authscheme.BearerAuthenticationSchemeInternal;
 import com.microsoft.identity.common.java.cache.ICacheRecord;
 import com.microsoft.identity.common.java.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.logging.Logger;
-
-import static com.microsoft.identity.client.exception.MsalClientException.NOT_ELIGIBLE_TO_USE_BROKER;
-import static com.microsoft.identity.common.java.AuthenticationConstants.Broker.BROKER_CLIENT_ID;
-import static com.microsoft.identity.common.java.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
 
 /**
  * For Broker apps to obtain an RT associated to Broker's client ID (for WPJ scenario).
@@ -59,14 +58,15 @@ public final class BrokerClientIdRefreshTokenAccessor {
      * @return an RT, if there's any.
      * @throws MsalClientException if the calling app is not a broker app.
      */
-    public static @Nullable
-    String get(@NonNull final Context context,
-               @NonNull final String accountObjectId) throws MsalClientException {
+    public static @Nullable String get(
+            @NonNull final Context context, @NonNull final String accountObjectId)
+            throws MsalClientException {
         final String methodName = "getBrokerRefreshToken";
 
         throwIfNotValidBroker(context);
 
-        final MsalOAuth2TokenCache tokenCache = MsalOAuth2TokenCache.create(AndroidPlatformComponents.createFromContext(context));
+        final MsalOAuth2TokenCache tokenCache =
+                MsalOAuth2TokenCache.create(AndroidPlatformComponents.createFromContext(context));
         final ICacheRecord cacheRecord = getCacheRecordForIdentifier(tokenCache, accountObjectId);
 
         if (cacheRecord == null) {
@@ -88,13 +88,10 @@ public final class BrokerClientIdRefreshTokenAccessor {
     }
 
     private static ICacheRecord getCacheRecordForIdentifier(
-            @NonNull final MsalOAuth2TokenCache tokenCache,
-            @NonNull final String accountObjectId) throws MsalClientException {
-        final AccountRecord localAccountRecord = tokenCache.getAccountByLocalAccountId(
-                null,
-                BROKER_CLIENT_ID,
-                accountObjectId
-        );
+            @NonNull final MsalOAuth2TokenCache tokenCache, @NonNull final String accountObjectId)
+            throws MsalClientException {
+        final AccountRecord localAccountRecord =
+                tokenCache.getAccountByLocalAccountId(null, BROKER_CLIENT_ID, accountObjectId);
 
         // Check it's not null
         if (null == localAccountRecord) {
@@ -106,15 +103,17 @@ public final class BrokerClientIdRefreshTokenAccessor {
                 BROKER_CLIENT_ID,
                 null, // wildcard (*)
                 localAccountRecord,
-                new BearerAuthenticationSchemeInternal() // Auth scheme is inconsequential - only using RT
-        );
+                new BearerAuthenticationSchemeInternal() // Auth scheme is inconsequential - only
+                                                         // using RT
+                );
     }
 
     private static void throwIfNotValidBroker(final Context context) throws MsalClientException {
         final BrokerValidator brokerValidator = new BrokerValidator(context);
         if (!brokerValidator.isValidBrokerPackage(context.getPackageName())) {
             // package name not matched so this is not a valid broker.
-            throw new MsalClientException(NOT_ELIGIBLE_TO_USE_BROKER, "This can only be invoked by Broker apps.");
+            throw new MsalClientException(
+                    NOT_ELIGIBLE_TO_USE_BROKER, "This can only be invoked by Broker apps.");
         }
     }
 }

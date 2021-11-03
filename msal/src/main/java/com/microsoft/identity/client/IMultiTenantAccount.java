@@ -30,5 +30,4 @@ public interface IMultiTenantAccount extends IAccount {
 
     @NonNull
     Map<String, ITenantProfile> getTenantProfiles();
-
 }

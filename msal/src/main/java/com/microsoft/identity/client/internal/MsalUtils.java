@@ -23,6 +23,8 @@
 
 package com.microsoft.identity.client.internal;
 
+import static com.microsoft.identity.common.internal.util.StringUtil.convertSetToString;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -68,8 +70,6 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.concurrent.TimeUnit;
 
-import static com.microsoft.identity.common.internal.util.StringUtil.convertSetToString;
-
 /**
  * Internal Util class for MSAL.
  */
@@ -95,8 +95,7 @@ public final class MsalUtils {
     /**
      * Private constructor to prevent Util class from being initiated.
      */
-    private MsalUtils() {
-    }
+    private MsalUtils() {}
 
     /**
      * To improve test-ability with local Junit. Android.jar used for local Junit doesn't have a default implementation
@@ -110,14 +109,10 @@ public final class MsalUtils {
     /**
      * Throws IllegalArgumentException if the argument is null.
      */
-    public static void validateNonNullArgument(@Nullable final Object o,
-                                               @NonNull final String argName) {
-        if (null == o
-                || (o instanceof CharSequence) && TextUtils.isEmpty((CharSequence) o)) {
-            throw new IllegalArgumentException(
-                    argName
-                            + " cannot be null or empty"
-            );
+    public static void validateNonNullArgument(
+            @Nullable final Object o, @NonNull final String argName) {
+        if (null == o || (o instanceof CharSequence) && TextUtils.isEmpty((CharSequence) o)) {
+            throw new IllegalArgumentException(argName + " cannot be null or empty");
         }
     }
 
@@ -128,8 +123,8 @@ public final class MsalUtils {
      * @param argName
      * @throws MsalArgumentException
      */
-    public static void validateNonNullArg(@Nullable final Object o,
-                                          @NonNull final String argName) throws MsalArgumentException {
+    public static void validateNonNullArg(@Nullable final Object o, @NonNull final String argName)
+            throws MsalArgumentException {
         if (null == o
                 || (o instanceof CharSequence) && TextUtils.isEmpty((CharSequence) o)
                 || (o instanceof List) && ((List) o).isEmpty()) {
@@ -145,7 +140,8 @@ public final class MsalUtils {
      * @return The url encoded string.
      * @throws UnsupportedEncodingException If the named encoding is not supported.
      */
-    public static String urlFormEncode(final String stringToEncode) throws UnsupportedEncodingException {
+    public static String urlFormEncode(final String stringToEncode)
+            throws UnsupportedEncodingException {
         if (isEmpty(stringToEncode)) {
             return "";
         }
@@ -236,8 +232,8 @@ public final class MsalUtils {
      * @return a boolean indicating if BrowserTabActivity is configured or not
      */
     @Deprecated
-    public static boolean hasCustomTabRedirectActivity(@NonNull final Context context,
-                                                       @NonNull final String url) {
+    public static boolean hasCustomTabRedirectActivity(
+            @NonNull final Context context, @NonNull final String url) {
         final PackageManager packageManager = context.getPackageManager();
 
         if (packageManager == null) {
@@ -250,27 +246,25 @@ public final class MsalUtils {
         intent.addCategory(Intent.CATEGORY_BROWSABLE);
         intent.setDataAndNormalize(Uri.parse(url));
 
-        final List<ResolveInfo> resolveInfoList = packageManager.queryIntentActivities(
-                intent,
-                PackageManager.GET_RESOLVED_FILTER
-        );
+        final List<ResolveInfo> resolveInfoList =
+                packageManager.queryIntentActivities(intent, PackageManager.GET_RESOLVED_FILTER);
 
-        // resolve info list will never be null, if no matching activities are found, empty list will be returned.
+        // resolve info list will never be null, if no matching activities are found, empty list
+        // will be returned.
         boolean hasActivity = false;
 
-
-        //Current default activity for use with authorization agent "DEFAULT" or "BROWSER"
+        // Current default activity for use with authorization agent "DEFAULT" or "BROWSER"
         String activityClassName = BrowserTabActivity.class.getName();
 
-        //If we're using authorization in current task... then we need to look for that activity
-        if(LibraryConfiguration.getInstance().isAuthorizationInCurrentTask()){
+        // If we're using authorization in current task... then we need to look for that activity
+        if (LibraryConfiguration.getInstance().isAuthorizationInCurrentTask()) {
             activityClassName = CurrentTaskBrowserTabActivity.class.getName();
         }
 
         for (final ResolveInfo info : resolveInfoList) {
             final ActivityInfo activityInfo = info.activityInfo;
 
-            if (activityInfo.name.equals(activityClassName))  {
+            if (activityInfo.name.equals(activityClassName)) {
                 hasActivity = true;
             } else {
                 // another application is listening for this url scheme, don't open
@@ -292,22 +286,21 @@ public final class MsalUtils {
     public static String getChromePackageWithCustomTabSupport(final Context context) {
         if (context.getPackageManager() == null) {
             com.microsoft.identity.common.internal.logging.Logger.warn(
-                    TAG,
-                    "getPackageManager() returned null."
-            );
+                    TAG, "getPackageManager() returned null.");
             return null;
         }
 
-        final Intent customTabServiceIntent = new Intent(CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION);
-        final List<ResolveInfo> resolveInfoList = context.getPackageManager().queryIntentServices(
-                customTabServiceIntent, 0);
+        final Intent customTabServiceIntent =
+                new Intent(CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION);
+        final List<ResolveInfo> resolveInfoList =
+                context.getPackageManager().queryIntentServices(customTabServiceIntent, 0);
 
         // queryIntentServices could return null or an empty list if no matching service existed.
         if (resolveInfoList == null || resolveInfoList.isEmpty()) {
             com.microsoft.identity.common.internal.logging.Logger.warn(
                     TAG,
-                    "No Service responded to Intent: " + CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION
-            );
+                    "No Service responded to Intent: "
+                            + CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION);
             return null;
         }
 
@@ -319,9 +312,7 @@ public final class MsalUtils {
         }
 
         com.microsoft.identity.common.internal.logging.Logger.warn(
-                TAG,
-                "No pkg with CustomTab support found."
-        );
+                TAG, "No pkg with CustomTab support found.");
 
         return null;
     }
@@ -341,7 +332,8 @@ public final class MsalUtils {
 
         String installedChromePackage = null;
         try {
-            PackageInfo packageInfo = packageManager.getPackageInfo(CHROME_PACKAGE, PackageManager.GET_ACTIVITIES);
+            PackageInfo packageInfo =
+                    packageManager.getPackageInfo(CHROME_PACKAGE, PackageManager.GET_ACTIVITIES);
             ApplicationInfo applicationInfo = packageInfo.applicationInfo;
             if (applicationInfo != null && applicationInfo.enabled) {
                 installedChromePackage = CHROME_PACKAGE;
@@ -349,10 +341,7 @@ public final class MsalUtils {
         } catch (final PackageManager.NameNotFoundException e) {
             // swallow this exception. If the package is not existed, the exception will be thrown.
             com.microsoft.identity.common.internal.logging.Logger.error(
-                    TAG,
-                    "Failed to retrieve chrome package info.",
-                    e
-            );
+                    TAG, "Failed to retrieve chrome package info.", e);
         }
 
         return installedChromePackage;
@@ -391,10 +380,7 @@ public final class MsalUtils {
                 }
             } catch (final UnsupportedEncodingException e) {
                 com.microsoft.identity.common.internal.logging.Logger.errorPII(
-                        TAG,
-                        "URL form decode failed.",
-                        e
-                );
+                        TAG, "URL form decode failed.", e);
             }
         }
 
@@ -404,7 +390,8 @@ public final class MsalUtils {
     /**
      * Append parameter to the url. If the no query parameters, return the url originally passed in.
      */
-    public static String appendQueryParameterToUrl(final String url, final Map<String, String> requestParams)
+    public static String appendQueryParameterToUrl(
+            final String url, final Map<String, String> requestParams)
             throws UnsupportedEncodingException {
         if (MsalUtils.isEmpty(url)) {
             throw new IllegalArgumentException("Empty authority string");
@@ -422,7 +409,10 @@ public final class MsalUtils {
         final String queryString = convertSetToString(queryParamsSet, QUERY_STRING_DELIMITER);
         final String queryStringFormat;
         if (url.contains(QUERY_STRING_SYMBOL)) {
-            queryStringFormat = url.endsWith(QUERY_STRING_DELIMITER) ? "%s%s" : "%s" + QUERY_STRING_DELIMITER + "%s";
+            queryStringFormat =
+                    url.endsWith(QUERY_STRING_DELIMITER)
+                            ? "%s%s"
+                            : "%s" + QUERY_STRING_DELIMITER + "%s";
         } else {
             queryStringFormat = "%s" + QUERY_STRING_SYMBOL + "%s";
         }
@@ -431,13 +421,15 @@ public final class MsalUtils {
     }
 
     public static String base64UrlEncodeToString(final String message) {
-        return Base64.encodeToString(message.getBytes(Charset.forName(ENCODING_UTF8)), Base64.URL_SAFE | Base64.NO_WRAP);
+        return Base64.encodeToString(
+                message.getBytes(Charset.forName(ENCODING_UTF8)), Base64.URL_SAFE | Base64.NO_WRAP);
     }
 
     /**
      * @return True if there is an intersection between the scopes stored in the token cache key and the request scopes.
      */
-    public static boolean isScopeIntersects(final Set<String> scopes, final Set<String> otherScopes) {
+    public static boolean isScopeIntersects(
+            final Set<String> scopes, final Set<String> otherScopes) {
         for (final String scope : otherScopes) {
             if (scopes.contains(scope)) {
                 return true;
@@ -447,12 +439,13 @@ public final class MsalUtils {
         return false;
     }
 
-    public static String createHash(String msg) throws NoSuchAlgorithmException,
-            UnsupportedEncodingException {
+    public static String createHash(String msg)
+            throws NoSuchAlgorithmException, UnsupportedEncodingException {
         if (!isEmpty(msg)) {
             MessageDigest digester = MessageDigest.getInstance(TOKEN_HASH_ALGORITHM);
             final byte[] msgInBytes = msg.getBytes(ENCODING_UTF8);
-            return new String(Base64.encode(digester.digest(msgInBytes), Base64.NO_WRAP), ENCODING_UTF8);
+            return new String(
+                    Base64.encode(digester.digest(msgInBytes), Base64.NO_WRAP), ENCODING_UTF8);
         }
         return msg;
     }
@@ -470,8 +463,10 @@ public final class MsalUtils {
     public static ApplicationInfo getApplicationInfo(final Context context) {
         final ApplicationInfo applicationInfo;
         try {
-            applicationInfo = context.getPackageManager().getApplicationInfo(
-                    context.getPackageName(), PackageManager.GET_META_DATA);
+            applicationInfo =
+                    context.getPackageManager()
+                            .getApplicationInfo(
+                                    context.getPackageName(), PackageManager.GET_META_DATA);
         } catch (PackageManager.NameNotFoundException e) {
             throw new IllegalStateException("Unable to find the package info, unable to proceed");
         }
@@ -499,7 +494,8 @@ public final class MsalUtils {
      */
     public static void throwOnMainThread(final String methodName) {
         if (Looper.myLooper() == Looper.getMainLooper()) {
-            throw new IllegalStateException("method: " + methodName + " may not be called from main thread.");
+            throw new IllegalStateException(
+                    "method: " + methodName + " may not be called from main thread.");
         }
     }
 }

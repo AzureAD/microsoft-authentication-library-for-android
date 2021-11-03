@@ -53,36 +53,41 @@ public class TestCase940393 extends AbstractMsalBrokerTest {
 
         final MsalSdk msalSdk = new MsalSdk();
 
-        final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
-                .activity(mActivity)
-                .scopes(Arrays.asList(mScopes))
-                .promptParameter(Prompt.SELECT_ACCOUNT)
-                .msalConfigResourceId(getConfigFileResourceId())
-                .build();
-
-        // start interactive acquire token request in MSAL (should succeed)
-        final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
-            @Override
-            public void handleUserInteraction() {
-                final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                        .prompt(PromptParameter.SELECT_ACCOUNT)
-                        .loginHint(null)
-                        .sessionExpected(false)
-                        .consentPageExpected(false)
-                        .speedBumpExpected(false)
-                        .broker(mBroker)
-                        .expectingBrokerAccountChooserActivity(false)
-                        .expectingLoginPageAccountPicker(false)
+        final MsalAuthTestParams authTestParams =
+                MsalAuthTestParams.builder()
+                        .activity(mActivity)
+                        .scopes(Arrays.asList(mScopes))
+                        .promptParameter(Prompt.SELECT_ACCOUNT)
+                        .msalConfigResourceId(getConfigFileResourceId())
                         .build();
 
-                new AadPromptHandler(promptHandlerParameters)
-                        .handlePrompt(username, password);
-            }
-        }, TokenRequestTimeout.MEDIUM);
+        // start interactive acquire token request in MSAL (should succeed)
+        final MsalAuthResult authResult =
+                msalSdk.acquireTokenInteractive(
+                        authTestParams,
+                        new OnInteractionRequired() {
+                            @Override
+                            public void handleUserInteraction() {
+                                final PromptHandlerParameters promptHandlerParameters =
+                                        PromptHandlerParameters.builder()
+                                                .prompt(PromptParameter.SELECT_ACCOUNT)
+                                                .loginHint(null)
+                                                .sessionExpected(false)
+                                                .consentPageExpected(false)
+                                                .speedBumpExpected(false)
+                                                .broker(mBroker)
+                                                .expectingBrokerAccountChooserActivity(false)
+                                                .expectingLoginPageAccountPicker(false)
+                                                .build();
+
+                                new AadPromptHandler(promptHandlerParameters)
+                                        .handlePrompt(username, password);
+                            }
+                        },
+                        TokenRequestTimeout.MEDIUM);
 
         authResult.assertSuccess();
     }
-
 
     @Override
     public LabUserQuery getLabUserQuery() {
@@ -99,7 +104,7 @@ public class TestCase940393 extends AbstractMsalBrokerTest {
 
     @Override
     public String[] getScopes() {
-        return new String[]{"User.read"};
+        return new String[] {"User.read"};
     }
 
     @Override
@@ -111,5 +116,4 @@ public class TestCase940393 extends AbstractMsalBrokerTest {
     public int getConfigFileResourceId() {
         return R.raw.msal_config_instance_aware_organization;
     }
-
 }

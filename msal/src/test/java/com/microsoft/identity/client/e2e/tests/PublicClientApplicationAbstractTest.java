@@ -23,6 +23,7 @@
 package com.microsoft.identity.client.e2e.tests;
 
 import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
+
 import static org.junit.Assert.fail;
 import static org.robolectric.annotation.LooperMode.Mode.LEGACY;
 
@@ -49,7 +50,8 @@ import java.io.File;
 @LooperMode(LEGACY)
 public abstract class PublicClientApplicationAbstractTest implements IPublicClientApplicationTest {
 
-    protected final String SHARED_PREFERENCES_NAME = "com.microsoft.identity.client.account_credential_cache";
+    protected final String SHARED_PREFERENCES_NAME =
+            "com.microsoft.identity.client.account_credential_cache";
 
     protected Context mContext;
     protected IPlatformComponents mComponents;
@@ -72,17 +74,20 @@ public abstract class PublicClientApplicationAbstractTest implements IPublicClie
     private void setupPCA() {
         final File configFile = new File(getConfigFilePath());
 
-        PublicClientApplication.create(mContext, configFile, new PublicClientApplication.ApplicationCreatedListener() {
-            @Override
-            public void onCreated(IPublicClientApplication application) {
-                mApplication = application;
-            }
+        PublicClientApplication.create(
+                mContext,
+                configFile,
+                new PublicClientApplication.ApplicationCreatedListener() {
+                    @Override
+                    public void onCreated(IPublicClientApplication application) {
+                        mApplication = application;
+                    }
 
-            @Override
-            public void onError(MsalException exception) {
-                fail(exception.getMessage());
-            }
-        });
+                    @Override
+                    public void onError(MsalException exception) {
+                        fail(exception.getMessage());
+                    }
+                });
 
         flushScheduler();
     }

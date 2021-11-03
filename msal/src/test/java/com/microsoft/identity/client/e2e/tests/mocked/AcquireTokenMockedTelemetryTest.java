@@ -22,20 +22,24 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.mocked;
 
+import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
+import static com.microsoft.identity.internal.testutils.TestConstants.Authorities.AAD_MOCK_AUTHORITY_HTTP_RESPONSE;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_MOCK_TEST_CONFIG_FILE_PATH;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
-import com.microsoft.identity.client.e2e.shadows.ShadowMockAuthority;
-import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
-import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
+import com.microsoft.identity.client.e2e.shadows.ShadowMockAuthority;
+import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
+import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper;
-import com.microsoft.identity.common.java.eststelemetry.PublicApiId;
 import com.microsoft.identity.common.java.eststelemetry.EstsTelemetry;
+import com.microsoft.identity.common.java.eststelemetry.PublicApiId;
 import com.microsoft.identity.common.java.eststelemetry.SchemaConstants;
 import com.microsoft.identity.common.java.net.HttpClient;
 import com.microsoft.identity.common.java.net.HttpResponse;
@@ -59,25 +63,21 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
-import static com.microsoft.identity.internal.testutils.TestConstants.Authorities.AAD_MOCK_AUTHORITY_HTTP_RESPONSE;
-import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_MOCK_TEST_CONFIG_FILE_PATH;
-
 @RunWith(RobolectricTestRunner.class)
-@Config(shadows = {
-        ShadowAndroidSdkStorageEncryptionManager.class,
-        ShadowMockAuthority.class,
-        ShadowPublicClientApplicationConfiguration.class,
-        ShadowHttpClient.class,
-        ShadowOpenIdProviderConfigurationClient.class
-})
+@Config(
+        shadows = {
+            ShadowAndroidSdkStorageEncryptionManager.class,
+            ShadowMockAuthority.class,
+            ShadowPublicClientApplicationConfiguration.class,
+            ShadowHttpClient.class,
+            ShadowOpenIdProviderConfigurationClient.class
+        })
 public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
 
     private static Map<String, String> sTelemetryHeaders;
     private static List<String> sCorrelationIdList = new ArrayList<>();
-    private final HttpRequestMatcher postRequestMatcher = HttpRequestMatcher.builder()
-            .isPOST()
-            .build();
+    private final HttpRequestMatcher postRequestMatcher =
+            HttpRequestMatcher.builder().isPOST().build();
 
     @Override
     public String[] getScopes() {
@@ -103,14 +103,16 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
     }
 
     private void mockWithResponse(final HttpResponse httpResponse) {
-        mockHttpClient.intercept(postRequestMatcher,
+        mockHttpClient.intercept(
+                postRequestMatcher,
                 new HttpRequestInterceptor() {
                     @Override
                     public HttpResponse performIntercept(
                             @NonNull HttpClient.HttpMethod httpMethod,
                             @NonNull URL requestUrl,
                             @NonNull Map<String, String> requestHeaders,
-                            @Nullable byte[] requestContent) throws IOException {
+                            @Nullable byte[] requestContent)
+                            throws IOException {
                         final String correlationId = requestHeaders.get("client-request-id");
 
                         AcquireTokenMockedTelemetryTest.addCorrelationId(correlationId);
@@ -137,13 +139,14 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         CommandDispatcherHelper.clear();
 
         // successful interactive request
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(username)
-                .withScopes(Arrays.asList(mScopes))
-                .fromAuthority(getAuthority())
-                .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
-                .build();
+        final AcquireTokenParameters parameters =
+                new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(mActivity)
+                        .withLoginHint(username)
+                        .withScopes(Arrays.asList(mScopes))
+                        .fromAuthority(getAuthority())
+                        .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
+                        .build();
 
         int networkRequestIndex = 0;
 
@@ -159,13 +162,14 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         CommandDispatcherHelper.clear();
 
         // successful silent request - served from cache
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .forAccount(AcquireTokenTestHelper.getAccount())
-                .withScopes(Arrays.asList(mScopes))
-                .forceRefresh(false)
-                .fromAuthority(getAuthority())
-                .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
-                .build();
+        final AcquireTokenSilentParameters silentParameters =
+                new AcquireTokenSilentParameters.Builder()
+                        .forAccount(AcquireTokenTestHelper.getAccount())
+                        .withScopes(Arrays.asList(mScopes))
+                        .forceRefresh(false)
+                        .fromAuthority(getAuthority())
+                        .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
+                        .build();
 
         mockWithResponse(MockServerResponse.getMockTokenSuccessResponse());
         mApplication.acquireTokenSilentAsync(silentParameters);
@@ -181,13 +185,14 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         CommandDispatcherHelper.clear();
 
         // failed silent request - goes to token endpoint - invalid grant
-        final AcquireTokenSilentParameters silentParametersForceRefreshInvalidGrant = new AcquireTokenSilentParameters.Builder()
-                .forAccount(AcquireTokenTestHelper.getAccount())
-                .withScopes(Arrays.asList(mScopes))
-                .forceRefresh(true)
-                .fromAuthority(getAuthority())
-                .withCallback(AcquireTokenTestHelper.failureSilentCallback("invalid_grant"))
-                .build();
+        final AcquireTokenSilentParameters silentParametersForceRefreshInvalidGrant =
+                new AcquireTokenSilentParameters.Builder()
+                        .forAccount(AcquireTokenTestHelper.getAccount())
+                        .withScopes(Arrays.asList(mScopes))
+                        .forceRefresh(true)
+                        .fromAuthority(getAuthority())
+                        .withCallback(AcquireTokenTestHelper.failureSilentCallback("invalid_grant"))
+                        .build();
 
         networkRequestIndex++;
 
@@ -196,20 +201,24 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         flushScheduler();
 
         // assert telem
-        expectedCurrent = "2|" + PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + ",1|1,1,1,1,0,1";
+        expectedCurrent =
+                "2|"
+                        + PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS
+                        + ",1|1,1,1,1,0,1";
         expectedLast = "2|2|||1";
         assertTelemetry(expectedCurrent, expectedLast);
 
         CommandDispatcherHelper.clear();
 
         // failed silent request - goes to token endpoint - invalid scope
-        final AcquireTokenSilentParameters silentParametersForceRefreshInvalidScope = new AcquireTokenSilentParameters.Builder()
-                .forAccount(AcquireTokenTestHelper.getAccount())
-                .withScopes(Arrays.asList(mScopes))
-                .forceRefresh(true)
-                .fromAuthority(getAuthority())
-                .withCallback(AcquireTokenTestHelper.failureSilentCallback("invalid_scope"))
-                .build();
+        final AcquireTokenSilentParameters silentParametersForceRefreshInvalidScope =
+                new AcquireTokenSilentParameters.Builder()
+                        .forAccount(AcquireTokenTestHelper.getAccount())
+                        .withScopes(Arrays.asList(mScopes))
+                        .forceRefresh(true)
+                        .fromAuthority(getAuthority())
+                        .withCallback(AcquireTokenTestHelper.failureSilentCallback("invalid_scope"))
+                        .build();
 
         networkRequestIndex++;
 
@@ -218,21 +227,31 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         flushScheduler();
 
         // assert telem
-        expectedCurrent = "2|" + PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + ",1|1,1,1,1,0,1";
-        expectedLast = "2|0|" + PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + "," +
-                sCorrelationIdList.get(networkRequestIndex - 1) + "|invalid_grant|1";
+        expectedCurrent =
+                "2|"
+                        + PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS
+                        + ",1|1,1,1,1,0,1";
+        expectedLast =
+                "2|0|"
+                        + PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS
+                        + ","
+                        + sCorrelationIdList.get(networkRequestIndex - 1)
+                        + "|invalid_grant|1";
         assertTelemetry(expectedCurrent, expectedLast);
 
         CommandDispatcherHelper.clear();
 
         // failure interactive request - service unavailable
-        final AcquireTokenParameters parametersServiceUnavailable = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(username)
-                .withScopes(Arrays.asList(mScopes))
-                .fromAuthority(getAuthority())
-                .withCallback(AcquireTokenTestHelper.failureInteractiveCallback("service_unavailable"))
-                .build();
+        final AcquireTokenParameters parametersServiceUnavailable =
+                new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(mActivity)
+                        .withLoginHint(username)
+                        .withScopes(Arrays.asList(mScopes))
+                        .fromAuthority(getAuthority())
+                        .withCallback(
+                                AcquireTokenTestHelper.failureInteractiveCallback(
+                                        "service_unavailable"))
+                        .build();
 
         networkRequestIndex++;
 
@@ -242,8 +261,12 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
 
         // assert telem
         expectedCurrent = "2|" + PublicApiId.PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|,,,,,";
-        expectedLast = "2|0|" + PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + "," +
-                sCorrelationIdList.get(networkRequestIndex - 1) + "|invalid_scope|1";
+        expectedLast =
+                "2|0|"
+                        + PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS
+                        + ","
+                        + sCorrelationIdList.get(networkRequestIndex - 1)
+                        + "|invalid_scope|1";
         assertTelemetry(expectedCurrent, expectedLast);
 
         CommandDispatcherHelper.clear();
@@ -258,10 +281,16 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
 
         // assert telem
         expectedCurrent = "2|" + PublicApiId.PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|,,,,,";
-        expectedLast = "2|0|" +
-                PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + "," + sCorrelationIdList.get(networkRequestIndex - 2) +
-                "," + PublicApiId.PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + "," + sCorrelationIdList.get(networkRequestIndex - 1) +
-                "|invalid_scope,service_unavailable|1";
+        expectedLast =
+                "2|0|"
+                        + PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS
+                        + ","
+                        + sCorrelationIdList.get(networkRequestIndex - 2)
+                        + ","
+                        + PublicApiId.PCA_ACQUIRE_TOKEN_WITH_PARAMETERS
+                        + ","
+                        + sCorrelationIdList.get(networkRequestIndex - 1)
+                        + "|invalid_scope,service_unavailable|1";
         assertTelemetry(expectedCurrent, expectedLast);
 
         CommandDispatcherHelper.clear();
@@ -270,20 +299,24 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
 
         networkRequestIndex++;
 
-        final AcquireTokenSilentParameters silentParametersForceRefreshSuccessful = new AcquireTokenSilentParameters.Builder()
-                .forAccount(AcquireTokenTestHelper.getAccount())
-                .withScopes(Arrays.asList(mScopes))
-                .forceRefresh(true)
-                .fromAuthority(getAuthority())
-                .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
-                .build();
+        final AcquireTokenSilentParameters silentParametersForceRefreshSuccessful =
+                new AcquireTokenSilentParameters.Builder()
+                        .forAccount(AcquireTokenTestHelper.getAccount())
+                        .withScopes(Arrays.asList(mScopes))
+                        .forceRefresh(true)
+                        .fromAuthority(getAuthority())
+                        .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
+                        .build();
 
         mockWithResponse(MockServerResponse.getMockTokenSuccessResponse());
         mApplication.acquireTokenSilentAsync(silentParametersForceRefreshSuccessful);
         flushScheduler();
 
         // assert telem
-        expectedCurrent = "2|" + PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + ",1|1,1,1,1,0,1";
+        expectedCurrent =
+                "2|"
+                        + PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS
+                        + ",1|1,1,1,1,0,1";
         expectedLast = "2|0|||1";
         assertTelemetry(expectedCurrent, expectedLast);
 
@@ -351,11 +384,11 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         expectedCurrent = "2|" + PublicApiId.PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|,,,,,";
         expectedLast = "2|0|||1";
         assertTelemetry(expectedCurrent, expectedLast);
-
     }
 
     private void assertTelemetry(final String expectedCurrent, final String expectedLast) {
-        final String currentHeader = sTelemetryHeaders.get(SchemaConstants.CURRENT_REQUEST_HEADER_NAME);
+        final String currentHeader =
+                sTelemetryHeaders.get(SchemaConstants.CURRENT_REQUEST_HEADER_NAME);
         final String lastHeader = sTelemetryHeaders.get(SchemaConstants.LAST_REQUEST_HEADER_NAME);
 
         Assert.assertEquals(expectedCurrent, currentHeader);

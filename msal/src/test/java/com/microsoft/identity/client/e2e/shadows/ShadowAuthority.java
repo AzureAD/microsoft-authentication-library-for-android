@@ -46,7 +46,8 @@ import java.util.List;
 // A shadow works in a similar way to method overriding
 // Implementing a shadow for a class does not mean that we are shadowing the entire class,
 // instead we are only shadowing the particular method that is implemented in the shadow
-// so in this case, the only thing that we are shadowing is the getAuthorityFromAuthorityUrl method in the Authority class
+// so in this case, the only thing that we are shadowing is the getAuthorityFromAuthorityUrl method
+// in the Authority class
 @Implements(Authority.class)
 public class ShadowAuthority {
 
@@ -87,22 +88,23 @@ public class ShadowAuthority {
         String authorityType = pathSegments.get(0);
 
         switch (authorityType.toLowerCase()) {
-            // For our test environment, authority could be a AAD, B2C or a mocked authority
-            // For AAD and B2C, we create a test version of that authority that supports ROPC
-            // more cases can be added here in the future
+                // For our test environment, authority could be a AAD, B2C or a mocked authority
+                // For AAD and B2C, we create a test version of that authority that supports ROPC
+                // more cases can be added here in the future
             case AAD_MOCK_PATH_SEGMENT:
-                //Return new AAD MOCK Authority
-                authority = new MockAuthority(new AccountsInOneOrganization(
-                        TestConstants.Authorities.AAD_MOCK_AUTHORITY,
-                        TestConstants.Authorities.AAD_MOCK_AUTHORITY_TENANT)
-                );
+                // Return new AAD MOCK Authority
+                authority =
+                        new MockAuthority(
+                                new AccountsInOneOrganization(
+                                        TestConstants.Authorities.AAD_MOCK_AUTHORITY,
+                                        TestConstants.Authorities.AAD_MOCK_AUTHORITY_TENANT));
                 break;
             case AAD_MOCK_DELAYED_PATH_SEGMENT:
                 authority = new MockDelayedResponseAuthority();
                 break;
             case B2C_PATH_SEGMENT:
             case B2C_PATH_SEGMENT_ALT:
-                //Return new B2C TEST Authority
+                // Return new B2C TEST Authority
                 authority = new B2CTestAuthority(authorityUrl);
                 break;
             default:
@@ -121,12 +123,12 @@ public class ShadowAuthority {
      * @param pathSegments determines the audience
      * @return
      */
-    private static Authority createAadAuthority(@NonNull final Uri authorityUri,
-                                                @NonNull final List<String> pathSegments) {
-        AzureActiveDirectoryAudience audience = AzureActiveDirectoryAudience.getAzureActiveDirectoryAudience(
-                authorityUri.getScheme() + "://" + authorityUri.getHost(),
-                getPathForRopc(pathSegments)
-        );
+    private static Authority createAadAuthority(
+            @NonNull final Uri authorityUri, @NonNull final List<String> pathSegments) {
+        AzureActiveDirectoryAudience audience =
+                AzureActiveDirectoryAudience.getAzureActiveDirectoryAudience(
+                        authorityUri.getScheme() + "://" + authorityUri.getHost(),
+                        getPathForRopc(pathSegments));
 
         return new AADTestAuthority(audience);
     }
@@ -141,13 +143,11 @@ public class ShadowAuthority {
      */
     private static String getPathForRopc(@NonNull final List<String> pathSegments) {
         final String providedPath = pathSegments.get(0);
-        if (providedPath.equals(AzureActiveDirectoryAudience.ALL) ||
-                providedPath.equals(AzureActiveDirectoryAudience.CONSUMERS)) {
+        if (providedPath.equals(AzureActiveDirectoryAudience.ALL)
+                || providedPath.equals(AzureActiveDirectoryAudience.CONSUMERS)) {
             return AzureActiveDirectoryAudience.ORGANIZATIONS;
         } else {
             return providedPath;
         }
     }
-
-
 }

@@ -83,11 +83,11 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      *                  Failure case will be sent back via {
      * @link AuthenticationCallback#onError(MsalException)}.
      */
-    void signIn(@NonNull final Activity activity,
-                @Nullable final String loginHint,
-                @NonNull final String[] scopes,
-                @NonNull final AuthenticationCallback callback
-    );
+    void signIn(
+            @NonNull final Activity activity,
+            @Nullable final String loginHint,
+            @NonNull final String[] scopes,
+            @NonNull final AuthenticationCallback callback);
 
     /**
      * Allows a user to sign in to your application with one of their accounts. This method may only
@@ -110,12 +110,12 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      *                  Failure case will be sent back via {
      * @link AuthenticationCallback#onError(MsalException)}.
      */
-    void signIn(@NonNull final Activity activity,
-                @Nullable final String loginHint,
-                @NonNull final String[] scopes,
-                @Nullable final Prompt prompt,
-                @NonNull final AuthenticationCallback callback
-    );
+    void signIn(
+            @NonNull final Activity activity,
+            @Nullable final String loginHint,
+            @NonNull final String[] scopes,
+            @Nullable final Prompt prompt,
+            @NonNull final AuthenticationCallback callback);
 
     /**
      * Reauthorizes the current account according to the supplied scopes and prompt behavior.
@@ -138,11 +138,11 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      *                 {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
      *                 Failure case will be sent back via {@link AuthenticationCallback#onError(MsalException)}.
      */
-    void signInAgain(@NonNull final Activity activity,
-                     @NonNull final String[] scopes,
-                     @Nullable final Prompt prompt,
-                     @NonNull final AuthenticationCallback callback
-    );
+    void signInAgain(
+            @NonNull final Activity activity,
+            @NonNull final String[] scopes,
+            @Nullable final Prompt prompt,
+            @NonNull final AuthenticationCallback callback);
 
     /**
      * Signs out the current the Account and Credentials (tokens).
@@ -174,10 +174,10 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      *                  Failure case will be sent back via {
      * @link AuthenticationCallback#onError(MsalException)}.
      */
-    void acquireTokenSilentAsync(@NonNull final String[] scopes,
-                                 @NonNull final String authority,
-                                 @NonNull final SilentAuthenticationCallback callback
-    );
+    void acquireTokenSilentAsync(
+            @NonNull final String[] scopes,
+            @NonNull final String authority,
+            @NonNull final SilentAuthenticationCallback callback);
 
     /**
      * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
@@ -189,8 +189,9 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      * @param authority Authority to issue the token.
      */
     @WorkerThread
-    IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
-                                             @NonNull final String authority) throws MsalException, InterruptedException;
+    IAuthenticationResult acquireTokenSilent(
+            @NonNull final String[] scopes, @NonNull final String authority)
+            throws MsalException, InterruptedException;
 
     /**
      * Callback for asynchronous loading of the msal IAccount account.
@@ -210,7 +211,8 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
          * @param priorAccount   the previous signed-in account. This could be null.
          * @param currentAccount the current signed-in account. This could be null.
          */
-        void onAccountChanged(@Nullable final IAccount priorAccount, @Nullable final IAccount currentAccount);
+        void onAccountChanged(
+                @Nullable final IAccount priorAccount, @Nullable final IAccount currentAccount);
 
         /**
          * Invoked when the account failed to load.

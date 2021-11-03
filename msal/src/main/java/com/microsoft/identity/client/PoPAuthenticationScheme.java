@@ -30,8 +30,7 @@ import com.microsoft.identity.common.java.authscheme.PopAuthenticationSchemeInte
 
 import java.net.URL;
 
-public class PoPAuthenticationScheme
-        extends AuthenticationScheme
+public class PoPAuthenticationScheme extends AuthenticationScheme
         implements IPoPAuthenticationSchemeParams {
 
     private final URL mUrl;
@@ -39,10 +38,11 @@ public class PoPAuthenticationScheme
     private final String mNonce;
     private final String mClientClaims;
 
-    private PoPAuthenticationScheme(@NonNull final HttpMethod method,
-                                    @NonNull final URL url,
-                                    @Nullable final String nonce,
-                                    @Nullable final String clientClaims) {
+    private PoPAuthenticationScheme(
+            @NonNull final HttpMethod method,
+            @NonNull final URL url,
+            @Nullable final String nonce,
+            @Nullable final String clientClaims) {
         super(PopAuthenticationSchemeInternal.SCHEME_POP);
         mHttpMethod = method;
         mUrl = url;

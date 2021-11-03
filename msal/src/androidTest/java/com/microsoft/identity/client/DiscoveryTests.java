@@ -31,9 +31,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-
 @RunWith(AndroidJUnit4.class)
 public class DiscoveryTests {
 
@@ -41,20 +38,14 @@ public class DiscoveryTests {
     public void setUp() {
         System.setProperty(
                 "dexmaker.dexcache",
-                androidx.test.platform.app.InstrumentationRegistry
-                        .getInstrumentation()
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
                         .getTargetContext()
                         .getCacheDir()
-                        .getPath()
-        );
+                        .getPath());
 
         System.setProperty(
                 "org.mockito.android.target",
-                ApplicationProvider
-                        .getApplicationContext()
-                        .getCacheDir()
-                        .getPath()
-        );
+                ApplicationProvider.getApplicationContext().getCacheDir().getPath());
     }
 
     @Test

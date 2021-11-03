@@ -35,7 +35,12 @@ public class MsalAuthResult extends AuthResult {
     private Map<String, ?> claims;
 
     public MsalAuthResult(@NonNull final IAuthenticationResult authenticationResult) {
-        super(authenticationResult.getAccessToken(), authenticationResult.getAccount().getIdToken(), authenticationResult.getAccount().getId(), authenticationResult.getAccount().getUsername(), authenticationResult.getAccount().getAuthority());
+        super(
+                authenticationResult.getAccessToken(),
+                authenticationResult.getAccount().getIdToken(),
+                authenticationResult.getAccount().getId(),
+                authenticationResult.getAccount().getUsername(),
+                authenticationResult.getAccount().getAuthority());
         this.claims = authenticationResult.getAccount().getClaims();
     }
 

@@ -36,8 +36,7 @@ public class MultiTenantAccount extends Account implements IMultiTenantAccount {
     private Map<String, ITenantProfile> mTenantProfiles = new HashMap<>();
 
     MultiTenantAccount(
-            @Nullable final String clientInfo,
-            @Nullable final IDToken homeTenantIdToken) {
+            @Nullable final String clientInfo, @Nullable final IDToken homeTenantIdToken) {
         super(clientInfo, homeTenantIdToken);
     }
 

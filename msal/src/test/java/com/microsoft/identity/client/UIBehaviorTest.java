@@ -22,16 +22,14 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client;
 
-
 import org.junit.Assert;
 import org.junit.Test;
 
 public final class UIBehaviorTest {
 
-    public final static String LOGIN = "login";
-    public final static String CONSENT = "consent";
-    public final static String SELECT_ACCOUNT = "select_account";
-
+    public static final String LOGIN = "login";
+    public static final String CONSENT = "consent";
+    public static final String SELECT_ACCOUNT = "select_account";
 
     @Test
     public void testToStringForceLogin() {

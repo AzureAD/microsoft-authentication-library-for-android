@@ -48,8 +48,8 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-//Perf test case with Joined AcquireToken test with MSAL and Broker
-//This test case is build over the test case number 832430
+// Perf test case with Joined AcquireToken test with MSAL and Broker
+// This test case is build over the test case number 832430
 public class TestCasePerfBrokered extends AbstractMsalBrokerTest {
 
     @Test
@@ -59,81 +59,86 @@ public class TestCasePerfBrokered extends AbstractMsalBrokerTest {
         final String outputFilenamePrefix = "PerfDataTargetBrokerHostWR"; // With Resource
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
-        //acquiring token
+        // acquiring token
         final TokenRequestLatch latch = new TokenRequestLatch(1);
 
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(mLoginHint)
-                .withCallback(successfulInteractiveCallback(latch))
-                .withPrompt(Prompt.SELECT_ACCOUNT)
-                .withResource(mScopes[0])
-                .build();
+        final AcquireTokenParameters parameters =
+                new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(mActivity)
+                        .withLoginHint(mLoginHint)
+                        .withCallback(successfulInteractiveCallback(latch))
+                        .withPrompt(Prompt.SELECT_ACCOUNT)
+                        .withResource(mScopes[0])
+                        .build();
 
-        final InteractiveRequest interactiveRequest = new InteractiveRequest(
-                mApplication,
-                parameters,
-                new OnInteractionRequired() {
-                    @Override
-                    public void handleUserInteraction() {
-                        final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                                .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHint(mLoginHint)
-                                .sessionExpected(false)
-                                .consentPageExpected(false)
-                                .speedBumpExpected(false)
-                                .broker(mBroker)
-                                .expectingBrokerAccountChooserActivity(false)
-                                .registerPageExpected(true)
-                                .build();
+        final InteractiveRequest interactiveRequest =
+                new InteractiveRequest(
+                        mApplication,
+                        parameters,
+                        new OnInteractionRequired() {
+                            @Override
+                            public void handleUserInteraction() {
+                                final PromptHandlerParameters promptHandlerParameters =
+                                        PromptHandlerParameters.builder()
+                                                .prompt(PromptParameter.SELECT_ACCOUNT)
+                                                .loginHint(mLoginHint)
+                                                .sessionExpected(false)
+                                                .consentPageExpected(false)
+                                                .speedBumpExpected(false)
+                                                .broker(mBroker)
+                                                .expectingBrokerAccountChooserActivity(false)
+                                                .registerPageExpected(true)
+                                                .build();
 
-                        new AadPromptHandler(promptHandlerParameters)
-                                .handlePrompt(username, password);
-                    }
-                }
-        );
+                                new AadPromptHandler(promptHandlerParameters)
+                                        .handlePrompt(username, password);
+                            }
+                        });
 
         interactiveRequest.execute();
         latch.await();
 
         final IAccount account = getAccount();
         codeMarkerManager.setEnableCodeMarker(true);
-        //Setting up scenario code. 100 -> Non Brokered, 200 -> Brokered
-        codeMarkerManager.setPrefixScenarioCode(PerfConstants.ScenarioConstants.SCENARIO_BROKERED_ACQUIRE_TOKEN_SILENTLY);
-        //acquiring token silently
+        // Setting up scenario code. 100 -> Non Brokered, 200 -> Brokered
+        codeMarkerManager.setPrefixScenarioCode(
+                PerfConstants.ScenarioConstants.SCENARIO_BROKERED_ACQUIRE_TOKEN_SILENTLY);
+        // acquiring token silently
 
-        for(int i = 0; i < numberOfOccurrenceOfTest; i++) {
+        for (int i = 0; i < numberOfOccurrenceOfTest; i++) {
             codeMarkerManager.clearMarkers();
             final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
 
-            final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                    .forAccount(account)
-                    .fromAuthority(account.getAuthority())
-                    .withResource(mScopes[0])
-                    .withCallback(successfulSilentCallback(silentLatch))
-                    .build();
+            final AcquireTokenSilentParameters silentParameters =
+                    new AcquireTokenSilentParameters.Builder()
+                            .forAccount(account)
+                            .fromAuthority(account.getAuthority())
+                            .withResource(mScopes[0])
+                            .withCallback(successfulSilentCallback(silentLatch))
+                            .build();
 
             mApplication.acquireTokenSilentAsync(silentParameters);
             silentLatch.await();
 
             try {
-                FileAppender fileAppender = new FileAppender(outputFilenamePrefix + i + ".txt", new SimpleTextFormatter());
+                FileAppender fileAppender =
+                        new FileAppender(
+                                outputFilenamePrefix + i + ".txt", new SimpleTextFormatter());
                 fileAppender.append(codeMarkerManager.getFileContent());
-                CommonUtils.copyFileToFolderInSdCard(
-                        fileAppender.getLogFile(),
-                        "automation"
-                );
+                CommonUtils.copyFileToFolderInSdCard(fileAppender.getLogFile(), "automation");
             } catch (IOException e) {
                 throw new AssertionError("IOException while writing Perf data file");
             }
-            // If this is not the last iteration, then we need either to clear cache of access token manually or wait for 30 seconds.
+            // If this is not the last iteration, then we need either to clear cache of access token
+            // manually or wait for 30 seconds.
             if (i < numberOfOccurrenceOfTest - 1) {
                 // CommandDispatcherHelper.clear();
                 try {
                     // Sleep for 30 seconds so that the cache access token cache is cleared.
                     Thread.sleep(TimeUnit.SECONDS.toMillis(30));
                 } catch (InterruptedException e) {
-                    throw new AssertionError("Interrupted while sleeping for 30 seconds so that old access token could have been out of cache");
+                    throw new AssertionError(
+                            "Interrupted while sleeping for 30 seconds so that old access token could have been out of cache");
                 }
             }
         }
@@ -157,7 +162,7 @@ public class TestCasePerfBrokered extends AbstractMsalBrokerTest {
 
     @Override
     public String[] getScopes() {
-        return new String[]{"00000003-0000-0ff1-ce00-000000000000"};
+        return new String[] {"00000003-0000-0ff1-ce00-000000000000"};
     }
 
     @Override
@@ -169,5 +174,4 @@ public class TestCasePerfBrokered extends AbstractMsalBrokerTest {
     public int getConfigFileResourceId() {
         return R.raw.msal_config_default;
     }
-
 }

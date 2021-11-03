@@ -38,8 +38,8 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadP
 import com.microsoft.identity.client.ui.automation.logging.appender.FileAppender;
 import com.microsoft.identity.client.ui.automation.logging.formatter.SimpleTextFormatter;
 import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
-import com.microsoft.identity.common.java.marker.PerfConstants;
 import com.microsoft.identity.common.java.marker.CodeMarkerManager;
+import com.microsoft.identity.common.java.marker.PerfConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
@@ -61,86 +61,90 @@ public class TestCasePerf extends AbstractMsalUiTest {
         final int numberOfOccurrenceOfTest = 10;
         final String outputFilenamePrefix = "PerfDataTarget";
 
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(mLoginHint)
-                .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulInteractiveCallback(latch))
-                .withPrompt(Prompt.SELECT_ACCOUNT)
-                .build();
+        final AcquireTokenParameters parameters =
+                new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(mActivity)
+                        .withLoginHint(mLoginHint)
+                        .withScopes(Arrays.asList(mScopes))
+                        .withCallback(successfulInteractiveCallback(latch))
+                        .withPrompt(Prompt.SELECT_ACCOUNT)
+                        .build();
 
+        final InteractiveRequest interactiveRequest =
+                new InteractiveRequest(
+                        mApplication,
+                        parameters,
+                        new OnInteractionRequired() {
+                            @Override
+                            public void handleUserInteraction() {
+                                final String username = mLoginHint;
+                                final String password =
+                                        LabConfig.getCurrentLabConfig().getLabUserPassword();
 
-        final InteractiveRequest interactiveRequest = new InteractiveRequest(
-                mApplication,
-                parameters,
-                new OnInteractionRequired() {
-                    @Override
-                    public void handleUserInteraction() {
-                        final String username = mLoginHint;
-                        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+                                final PromptHandlerParameters promptHandlerParameters =
+                                        PromptHandlerParameters.builder()
+                                                .prompt(PromptParameter.SELECT_ACCOUNT)
+                                                .loginHint(mLoginHint)
+                                                .sessionExpected(false)
+                                                .consentPageExpected(false)
+                                                .speedBumpExpected(false)
+                                                .build();
 
-                        final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                                .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHint(mLoginHint)
-                                .sessionExpected(false)
-                                .consentPageExpected(false)
-                                .speedBumpExpected(false)
-                                .build();
-
-                        new AadPromptHandler(promptHandlerParameters)
-                                .handlePrompt(username, password);
-                    }
-                }
-        );
+                                new AadPromptHandler(promptHandlerParameters)
+                                        .handlePrompt(username, password);
+                            }
+                        });
 
         interactiveRequest.execute();
         latch.await(TokenRequestTimeout.SHORT);
 
         final IAccount account = getAccount();
         codeMarkerManager.setEnableCodeMarker(true);
-        //Setting up scenario code. 100 -> Non Brokered, 200 -> Brokered
-        codeMarkerManager.setPrefixScenarioCode(PerfConstants.ScenarioConstants.SCENARIO_NON_BROKERED_ACQUIRE_TOKEN_SILENTLY);
+        // Setting up scenario code. 100 -> Non Brokered, 200 -> Brokered
+        codeMarkerManager.setPrefixScenarioCode(
+                PerfConstants.ScenarioConstants.SCENARIO_NON_BROKERED_ACQUIRE_TOKEN_SILENTLY);
 
-        for(int i = 0; i < numberOfOccurrenceOfTest; i++) {
+        for (int i = 0; i < numberOfOccurrenceOfTest; i++) {
             codeMarkerManager.clearMarkers();
             final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
 
-            final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                    .forAccount(account)
-                    .fromAuthority(account.getAuthority())
-                    .forceRefresh(true)
-                    .withScopes(Arrays.asList(mScopes))
-                    .withCallback(successfulSilentCallback(silentLatch))
-                    .build();
+            final AcquireTokenSilentParameters silentParameters =
+                    new AcquireTokenSilentParameters.Builder()
+                            .forAccount(account)
+                            .fromAuthority(account.getAuthority())
+                            .forceRefresh(true)
+                            .withScopes(Arrays.asList(mScopes))
+                            .withCallback(successfulSilentCallback(silentLatch))
+                            .build();
 
             mApplication.acquireTokenSilentAsync(silentParameters);
             silentLatch.await(TokenRequestTimeout.SILENT);
             try {
-                FileAppender fileAppender = new FileAppender(outputFilenamePrefix + i + ".txt", new SimpleTextFormatter());
+                FileAppender fileAppender =
+                        new FileAppender(
+                                outputFilenamePrefix + i + ".txt", new SimpleTextFormatter());
                 fileAppender.append(codeMarkerManager.getFileContent());
-                CommonUtils.copyFileToFolderInSdCard(
-                        fileAppender.getLogFile(),
-                        "automation"
-                );
+                CommonUtils.copyFileToFolderInSdCard(fileAppender.getLogFile(), "automation");
             } catch (IOException e) {
                 throw new AssertionError("IOException while writing Perf data file");
             }
 
-            // If this is not the last iteration, then we need either to clear cache of access token manually or wait for 30 seconds.
-            if(i < numberOfOccurrenceOfTest - 1) {
+            // If this is not the last iteration, then we need either to clear cache of access token
+            // manually or wait for 30 seconds.
+            if (i < numberOfOccurrenceOfTest - 1) {
                 // CommandDispatcherHelper.clear();
                 try {
                     // Sleep for 30 seconds so that the cache access token cache is cleared.
                     Thread.sleep(TimeUnit.SECONDS.toMillis(30));
                 } catch (InterruptedException e) {
-                    throw new AssertionError("Interrupted while sleeping for 30 seconds so that old access token could have been out of chache");
+                    throw new AssertionError(
+                            "Interrupted while sleeping for 30 seconds so that old access token could have been out of chache");
                 }
             }
         }
         codeMarkerManager.clearMarkers();
         codeMarkerManager.setEnableCodeMarker(false);
     }
-
 
     @Override
     public LabUserQuery getLabUserQuery() {
@@ -156,7 +160,7 @@ public class TestCasePerf extends AbstractMsalUiTest {
 
     @Override
     public String[] getScopes() {
-        return new String[]{"User.read"};
+        return new String[] {"User.read"};
     }
 
     @Override

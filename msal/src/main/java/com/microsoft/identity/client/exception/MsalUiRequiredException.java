@@ -24,7 +24,6 @@
 package com.microsoft.identity.client.exception;
 
 import com.microsoft.identity.common.java.constants.OAuth2ErrorCode;
-import com.microsoft.identity.common.java.AuthenticationConstants;
 import com.microsoft.identity.common.java.exception.ErrorStrings;
 
 /**
@@ -37,7 +36,6 @@ import com.microsoft.identity.common.java.exception.ErrorStrings;
  * </ul>
  * </p>
  */
-
 public final class MsalUiRequiredException extends MsalException {
     /**
      * The refresh token used to redeem access token is invalid, expired, revoked.
@@ -62,7 +60,8 @@ public final class MsalUiRequiredException extends MsalException {
         super(errorCode, errorMessage);
     }
 
-    public MsalUiRequiredException(final String errorCode, final String errorMessage, final Throwable throwable) {
+    public MsalUiRequiredException(
+            final String errorCode, final String errorMessage, final Throwable throwable) {
         super(errorCode, errorMessage, throwable);
     }
 }

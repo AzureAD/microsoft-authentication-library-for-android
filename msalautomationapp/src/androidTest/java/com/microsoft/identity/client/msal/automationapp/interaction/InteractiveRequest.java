@@ -38,9 +38,10 @@ public class InteractiveRequest {
     private AcquireTokenParameters parameters;
     private OnInteractionRequired interactionRequiredCallback;
 
-    public InteractiveRequest(@NonNull final IPublicClientApplication application,
-                              @NonNull final AcquireTokenParameters parameters,
-                              @NonNull final OnInteractionRequired interactionRequiredCallback) {
+    public InteractiveRequest(
+            @NonNull final IPublicClientApplication application,
+            @NonNull final AcquireTokenParameters parameters,
+            @NonNull final OnInteractionRequired interactionRequiredCallback) {
         this.application = application;
         this.parameters = parameters;
         this.interactionRequiredCallback = interactionRequiredCallback;
@@ -50,5 +51,4 @@ public class InteractiveRequest {
         application.acquireToken(parameters);
         interactionRequiredCallback.handleUserInteraction();
     }
-
 }

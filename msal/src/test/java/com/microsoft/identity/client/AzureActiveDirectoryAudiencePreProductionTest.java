@@ -38,26 +38,26 @@ import org.junit.Test;
 
 public class AzureActiveDirectoryAudiencePreProductionTest {
 
-    public final static String ALTERNATE_CLOUD_URL = "https://login.microsoftonline.de";
-    public final static String ALL_ORGS_TENANT_ID = "organizations";
-    public final static String TENANT_ID = "tenantId";
-    public final static String CONSUMERS_TENANT_ID = "consumers";
-
+    public static final String ALTERNATE_CLOUD_URL = "https://login.microsoftonline.de";
+    public static final String ALL_ORGS_TENANT_ID = "organizations";
+    public static final String TENANT_ID = "tenantId";
+    public static final String CONSUMERS_TENANT_ID = "consumers";
 
     @Before
-    public void init(){
+    public void init() {
         AzureActiveDirectory.setEnvironment(Environment.PreProduction);
     }
 
     @After
-    public void finalize(){
+    public void finalize() {
         AzureActiveDirectory.setEnvironment(Environment.Production);
     }
 
     @Test
     public void testAllOrganizationsAudienceDefaultConstructor() {
         AzureActiveDirectoryAudience audience = new AnyOrganizationalAccount();
-        Assert.assertEquals(AzureActiveDirectoryEnvironment.PREPRODUCTION_CLOUD_URL, audience.getCloudUrl());
+        Assert.assertEquals(
+                AzureActiveDirectoryEnvironment.PREPRODUCTION_CLOUD_URL, audience.getCloudUrl());
         Assert.assertEquals(ALL_ORGS_TENANT_ID, audience.getTenantId());
     }
 
@@ -71,19 +71,22 @@ public class AzureActiveDirectoryAudiencePreProductionTest {
     @Test
     public void testOneOrganizationAudienceDefaultConstructor() {
         AzureActiveDirectoryAudience audience = new AccountsInOneOrganization();
-        Assert.assertEquals(AzureActiveDirectoryEnvironment.PREPRODUCTION_CLOUD_URL, audience.getCloudUrl());
+        Assert.assertEquals(
+                AzureActiveDirectoryEnvironment.PREPRODUCTION_CLOUD_URL, audience.getCloudUrl());
     }
 
     @Test
     public void testOneOrganizationTenantIdConstructor() {
         AzureActiveDirectoryAudience audience = new AccountsInOneOrganization(TENANT_ID);
-        Assert.assertEquals(AzureActiveDirectoryEnvironment.PREPRODUCTION_CLOUD_URL, audience.getCloudUrl());
+        Assert.assertEquals(
+                AzureActiveDirectoryEnvironment.PREPRODUCTION_CLOUD_URL, audience.getCloudUrl());
         Assert.assertEquals(TENANT_ID, audience.getTenantId());
     }
 
     @Test
     public void testOneOrganizationTenantIdAndCloudUrlConstructor() {
-        AzureActiveDirectoryAudience audience = new AccountsInOneOrganization(ALTERNATE_CLOUD_URL, TENANT_ID);
+        AzureActiveDirectoryAudience audience =
+                new AccountsInOneOrganization(ALTERNATE_CLOUD_URL, TENANT_ID);
         Assert.assertEquals(ALTERNATE_CLOUD_URL, audience.getCloudUrl());
         Assert.assertEquals(TENANT_ID, audience.getTenantId());
     }
@@ -91,9 +94,8 @@ public class AzureActiveDirectoryAudiencePreProductionTest {
     @Test
     public void testConsumersConstructor() {
         AzureActiveDirectoryAudience audience = new AnyPersonalAccount();
-        Assert.assertEquals(AzureActiveDirectoryEnvironment.PREPRODUCTION_CLOUD_URL, audience.getCloudUrl());
+        Assert.assertEquals(
+                AzureActiveDirectoryEnvironment.PREPRODUCTION_CLOUD_URL, audience.getCloudUrl());
         Assert.assertEquals(CONSUMERS_TENANT_ID, audience.getTenantId());
     }
-
-
 }

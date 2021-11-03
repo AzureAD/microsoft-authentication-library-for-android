@@ -48,11 +48,14 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class AbstractGuestAccountMsalUiTest implements IMsalTest, ILabTest, IRuleBasedTest {
+public abstract class AbstractGuestAccountMsalUiTest
+        implements IMsalTest, ILabTest, IRuleBasedTest {
     @Rule(order = 0)
     public RuleChain primaryRules = getPrimaryRules();
+
     @Rule(order = 1)
     public ActivityTestRule<MainActivity> mActivityRule = new ActivityTestRule(MainActivity.class);
+
     protected Activity mActivity;
     protected IBrowser mBrowser;
     protected LabGuest mGuestUser;
@@ -80,7 +83,9 @@ public abstract class AbstractGuestAccountMsalUiTest implements IMsalTest, ILabT
             final URL profileApiUrl = new URL("https://graph.microsoft.com/v1.0/me");
             final Map<String, String> requestHeaders = new HashMap<>();
             requestHeaders.put("Authorization", "Bearer " + accessToken);
-            final HttpResponse response = UrlConnectionHttpClient.getDefaultInstance().get(profileApiUrl, requestHeaders, null);
+            final HttpResponse response =
+                    UrlConnectionHttpClient.getDefaultInstance()
+                            .get(profileApiUrl, requestHeaders, null);
             Assert.assertTrue(response.getStatusCode() == HttpURLConnection.HTTP_OK);
             return new JSONObject(response.getBody());
         } catch (final Exception exception) {

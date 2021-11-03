@@ -63,12 +63,19 @@ public final class BrowserTabActivity extends Activity {
         if (savedInstanceState == null
                 && getIntent() != null
                 && !StringUtil.isEmpty(getIntent().getDataString())) {
-            final Intent responseIntent = BrowserAuthorizationFragment.createCustomTabResponseIntent(this, getIntent().getDataString());
+            final Intent responseIntent =
+                    BrowserAuthorizationFragment.createCustomTabResponseIntent(
+                            this, getIntent().getDataString());
             if (responseIntent != null) {
                 startActivity(responseIntent);
             } else {
-                Logger.warn(TAG, "Received NULL response intent. Unable to complete authorization.");
-                Toast.makeText(getApplicationContext(), "Unable to complete authorization as there is no interactive call in progress. This can be due to closing the app while the authorization was in process.", Toast.LENGTH_LONG).show();
+                Logger.warn(
+                        TAG, "Received NULL response intent. Unable to complete authorization.");
+                Toast.makeText(
+                                getApplicationContext(),
+                                "Unable to complete authorization as there is no interactive call in progress. This can be due to closing the app while the authorization was in process.",
+                                Toast.LENGTH_LONG)
+                        .show();
             }
             finish();
         }

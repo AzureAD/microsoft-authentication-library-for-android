@@ -22,12 +22,18 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.network;
 
+import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.failureSilentCallback;
+import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.getAccount;
+import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.successfulInteractiveCallback;
+import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.successfulSilentCallback;
+import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
+
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.e2e.rules.NetworkTestsRuleChain;
+import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthority;
 import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
-import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.ErrorCodes;
@@ -45,20 +51,19 @@ import org.robolectric.annotation.Config;
 
 import java.util.Arrays;
 
-import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.failureSilentCallback;
-import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.getAccount;
-import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.successfulInteractiveCallback;
-import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.successfulSilentCallback;
-import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
-
 @RunWith(RobolectricTestRunner.class)
-@Config(shadows = {ShadowAndroidSdkStorageEncryptionManager.class, ShadowAuthority.class, ShadowPublicClientApplicationConfiguration.class})
-public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest implements IAcquireTokenNetworkTest {
+@Config(
+        shadows = {
+            ShadowAndroidSdkStorageEncryptionManager.class,
+            ShadowAuthority.class,
+            ShadowPublicClientApplicationConfiguration.class
+        })
+public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest
+        implements IAcquireTokenNetworkTest {
 
     private String mUsername;
 
-    @Rule
-    public TestRule rule = NetworkTestsRuleChain.getRule();
+    @Rule public TestRule rule = NetworkTestsRuleChain.getRule();
 
     @Before
     public void setup() {
@@ -70,13 +75,13 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
 
     @Test
     public void testAcquireTokenSuccess() {
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(mUsername)
-                .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulInteractiveCallback())
-                .build();
-
+        final AcquireTokenParameters parameters =
+                new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(mActivity)
+                        .withLoginHint(mUsername)
+                        .withScopes(Arrays.asList(mScopes))
+                        .withCallback(successfulInteractiveCallback())
+                        .build();
 
         mApplication.acquireToken(parameters);
         flushScheduler();
@@ -84,23 +89,25 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
 
     @Test
     public void testAcquireTokenSuccessFollowedBySilentSuccess() {
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(mUsername)
-                .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulInteractiveCallback())
-                .build();
+        final AcquireTokenParameters parameters =
+                new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(mActivity)
+                        .withLoginHint(mUsername)
+                        .withScopes(Arrays.asList(mScopes))
+                        .withCallback(successfulInteractiveCallback())
+                        .build();
 
         mApplication.acquireToken(parameters);
         flushScheduler();
 
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .forAccount(getAccount())
-                .fromAuthority(getAuthority())
-                .withScopes(Arrays.asList(mScopes))
-                .forceRefresh(false)
-                .withCallback(successfulSilentCallback())
-                .build();
+        final AcquireTokenSilentParameters silentParameters =
+                new AcquireTokenSilentParameters.Builder()
+                        .forAccount(getAccount())
+                        .fromAuthority(getAuthority())
+                        .withScopes(Arrays.asList(mScopes))
+                        .forceRefresh(false)
+                        .withCallback(successfulSilentCallback())
+                        .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
         flushScheduler();
@@ -108,23 +115,25 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
 
     @Test
     public void testAcquireTokenSilentSuccessForceRefresh() {
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(mUsername)
-                .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulInteractiveCallback())
-                .build();
+        final AcquireTokenParameters parameters =
+                new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(mActivity)
+                        .withLoginHint(mUsername)
+                        .withScopes(Arrays.asList(mScopes))
+                        .withCallback(successfulInteractiveCallback())
+                        .build();
 
         mApplication.acquireToken(parameters);
         flushScheduler();
 
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .forAccount(getAccount())
-                .fromAuthority(getAuthority())
-                .withScopes(Arrays.asList(mScopes))
-                .forceRefresh(true)
-                .withCallback(successfulSilentCallback())
-                .build();
+        final AcquireTokenSilentParameters silentParameters =
+                new AcquireTokenSilentParameters.Builder()
+                        .forAccount(getAccount())
+                        .fromAuthority(getAuthority())
+                        .withScopes(Arrays.asList(mScopes))
+                        .forceRefresh(true)
+                        .withCallback(successfulSilentCallback())
+                        .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
         flushScheduler();
@@ -132,12 +141,13 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
 
     @Test
     public void testAcquireTokenSilentFailureEmptyCache() {
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(mUsername)
-                .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulInteractiveCallback())
-                .build();
+        final AcquireTokenParameters parameters =
+                new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(mActivity)
+                        .withLoginHint(mUsername)
+                        .withScopes(Arrays.asList(mScopes))
+                        .withCallback(successfulInteractiveCallback())
+                        .build();
 
         mApplication.acquireToken(parameters);
         flushScheduler();
@@ -145,13 +155,14 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
         // clear the cache now
         TestUtils.clearCache(SHARED_PREFERENCES_NAME);
 
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .forAccount(getAccount())
-                .fromAuthority(getAuthority())
-                .withScopes(Arrays.asList(mScopes))
-                .forceRefresh(false)
-                .withCallback(failureSilentCallback(ErrorCodes.NO_ACCOUNT_FOUND_ERROR_CODE))
-                .build();
+        final AcquireTokenSilentParameters silentParameters =
+                new AcquireTokenSilentParameters.Builder()
+                        .forAccount(getAccount())
+                        .fromAuthority(getAuthority())
+                        .withScopes(Arrays.asList(mScopes))
+                        .forceRefresh(false)
+                        .withCallback(failureSilentCallback(ErrorCodes.NO_ACCOUNT_FOUND_ERROR_CODE))
+                        .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
         flushScheduler();
@@ -159,12 +170,13 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
 
     @Test
     public void testAcquireTokenSilentSuccessCacheWithNoAccessToken() {
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(mUsername)
-                .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulInteractiveCallback())
-                .build();
+        final AcquireTokenParameters parameters =
+                new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(mActivity)
+                        .withLoginHint(mUsername)
+                        .withScopes(Arrays.asList(mScopes))
+                        .withCallback(successfulInteractiveCallback())
+                        .build();
 
         mApplication.acquireToken(parameters);
         flushScheduler();
@@ -172,16 +184,16 @@ public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest i
         // remove the access token from cache
         TestUtils.removeAccessTokenFromCache(SHARED_PREFERENCES_NAME);
 
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .forAccount(getAccount())
-                .fromAuthority(getAuthority())
-                .withScopes(Arrays.asList(mScopes))
-                .forceRefresh(false)
-                .withCallback(successfulSilentCallback())
-                .build();
+        final AcquireTokenSilentParameters silentParameters =
+                new AcquireTokenSilentParameters.Builder()
+                        .forAccount(getAccount())
+                        .fromAuthority(getAuthority())
+                        .withScopes(Arrays.asList(mScopes))
+                        .forceRefresh(false)
+                        .withCallback(successfulSilentCallback())
+                        .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
         flushScheduler();
     }
-
 }

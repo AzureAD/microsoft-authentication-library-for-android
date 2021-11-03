@@ -22,48 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import android.Manifest;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.ActivityInfo;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
-import android.content.pm.Signature;
-import android.net.Uri;
-import android.text.TextUtils;
-import android.util.Base64;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.VisibleForTesting;
-
-import com.google.gson.annotations.SerializedName;
-import com.microsoft.identity.client.configuration.AccountMode;
-import com.microsoft.identity.client.configuration.HttpConfiguration;
-import com.microsoft.identity.client.configuration.LoggerConfiguration;
-import com.microsoft.identity.client.exception.MsalClientException;
-import com.microsoft.identity.client.internal.MsalUtils;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
-import com.microsoft.identity.common.java.authorities.Authority;
-import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthority;
-import com.microsoft.identity.common.java.authorities.Environment;
-import com.microsoft.identity.common.internal.authorities.UnknownAudience;
-import com.microsoft.identity.common.java.authorities.UnknownAuthority;
-import com.microsoft.identity.common.internal.broker.PackageHelper;
-import com.microsoft.identity.common.java.configuration.LibraryConfiguration;
-import com.microsoft.identity.common.internal.logging.Logger;
-import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
-import com.microsoft.identity.common.internal.telemetry.TelemetryConfiguration;
-import com.microsoft.identity.common.java.ui.AuthorizationAgent;
-import com.microsoft.identity.common.java.ui.BrowserDescriptor;
-
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.List;
-
-import javax.crypto.SecretKey;
-
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.ACCOUNT_MODE;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORITIES;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORIZATION_IN_CURRENT_TASK;
@@ -85,11 +43,53 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEB_VIEW_ZOOM_ENABLED;
 import static com.microsoft.identity.client.exception.MsalClientException.APP_MANIFEST_VALIDATION_ERROR;
 
+import android.Manifest;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.content.pm.Signature;
+import android.net.Uri;
+import android.text.TextUtils;
+import android.util.Base64;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
+
+import com.google.gson.annotations.SerializedName;
+import com.microsoft.identity.client.configuration.AccountMode;
+import com.microsoft.identity.client.configuration.HttpConfiguration;
+import com.microsoft.identity.client.configuration.LoggerConfiguration;
+import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
+import com.microsoft.identity.common.internal.authorities.UnknownAudience;
+import com.microsoft.identity.common.internal.broker.PackageHelper;
+import com.microsoft.identity.common.internal.logging.Logger;
+import com.microsoft.identity.common.internal.telemetry.TelemetryConfiguration;
+import com.microsoft.identity.common.java.authorities.Authority;
+import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthority;
+import com.microsoft.identity.common.java.authorities.Environment;
+import com.microsoft.identity.common.java.authorities.UnknownAuthority;
+import com.microsoft.identity.common.java.configuration.LibraryConfiguration;
+import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
+import com.microsoft.identity.common.java.ui.AuthorizationAgent;
+import com.microsoft.identity.common.java.ui.BrowserDescriptor;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.List;
+
+import javax.crypto.SecretKey;
+
 public class PublicClientApplicationConfiguration {
     private static final String TAG = PublicClientApplicationConfiguration.class.getSimpleName();
 
     private static final String BROKER_REDIRECT_URI_SCHEME_AND_SEPARATOR = "msauth://";
-    public static final String INVALID_REDIRECT_MSG = "Invalid, null, or malformed redirect_uri supplied";
+    public static final String INVALID_REDIRECT_MSG =
+            "Invalid, null, or malformed redirect_uri supplied";
 
     public static final class SerializedNames {
         static final String CLIENT_ID = "client_id";
@@ -101,14 +101,16 @@ public class PublicClientApplicationConfiguration {
         static final String MULTIPLE_CLOUDS_SUPPORTED = "multiple_clouds_supported";
         static final String USE_BROKER = "broker_redirect_uri_registered";
         static final String ENVIRONMENT = "environment";
-        static final String REQUIRED_BROKER_PROTOCOL_VERSION = "minimum_required_broker_protocol_version";
+        static final String REQUIRED_BROKER_PROTOCOL_VERSION =
+                "minimum_required_broker_protocol_version";
         static final String TELEMETRY = "telemetry";
         static final String BROWSER_SAFE_LIST = "browser_safelist";
         static final String ACCOUNT_MODE = "account_mode";
         static final String CLIENT_CAPABILITIES = "client_capabilities";
         static final String WEB_VIEW_ZOOM_CONTROLS_ENABLED = "web_view_zoom_controls_enabled";
         static final String WEB_VIEW_ZOOM_ENABLED = "web_view_zoom_enabled";
-        static final String POWER_OPT_CHECK_FOR_NETWORK_REQUEST_ENABLED = "power_opt_check_for_network_req_enabled";
+        static final String POWER_OPT_CHECK_FOR_NETWORK_REQUEST_ENABLED =
+                "power_opt_check_for_network_req_enabled";
         static final String HANDLE_TASKS_WITH_NULL_TASKAFFINITY = "handle_null_taskaffinity";
         static final String AUTHORIZATION_IN_CURRENT_TASK = "authorization_in_current_task";
     }
@@ -174,11 +176,11 @@ public class PublicClientApplicationConfiguration {
     @SerializedName(AUTHORIZATION_IN_CURRENT_TASK)
     private Boolean isAuthorizationInCurrentTask;
 
-    transient private OAuth2TokenCache mOAuth2TokenCache;
+    private transient OAuth2TokenCache mOAuth2TokenCache;
 
-    transient private Context mAppContext;
+    private transient Context mAppContext;
 
-    transient private boolean mIsSharedDevice = false;
+    private transient boolean mIsSharedDevice = false;
 
     /**
      * Sets the secret key bytes to use when encrypting/decrypting cache entries.
@@ -403,7 +405,8 @@ public class PublicClientApplicationConfiguration {
                         return authority;
                     }
                 }
-                return null; //This shouldn't happen since authority configuration is validated to ensure that one authority is marked as default/only one
+                return null; // This shouldn't happen since authority configuration is validated to
+                             // ensure that one authority is marked as default/only one
             } else {
                 return mAuthorities.get(0);
             }
@@ -415,9 +418,12 @@ public class PublicClientApplicationConfiguration {
     private void checkManifestPermissions() {
         if (this.handleNullTaskAffinity != null && this.handleNullTaskAffinity) {
             final PackageManager packageManager = mAppContext.getPackageManager();
-            final int reorderTasksGranted = packageManager.checkPermission(Manifest.permission.REORDER_TASKS, mAppContext.getPackageName());
+            final int reorderTasksGranted =
+                    packageManager.checkPermission(
+                            Manifest.permission.REORDER_TASKS, mAppContext.getPackageName());
             if (reorderTasksGranted != PackageManager.PERMISSION_GRANTED) {
-                throw new IllegalStateException("You requested that we handle null taskAffinity but your manifest does not include the REORDER_TASKS permission");
+                throw new IllegalStateException(
+                        "You requested that we handle null taskAffinity but your manifest does not include the REORDER_TASKS permission");
             }
         }
     }
@@ -433,11 +439,13 @@ public class PublicClientApplicationConfiguration {
             }
 
             if (defaultCount == 0) {
-                throw new IllegalArgumentException("One authority in your configuration must be marked as default.");
+                throw new IllegalArgumentException(
+                        "One authority in your configuration must be marked as default.");
             }
 
             if (defaultCount > 1) {
-                throw new IllegalArgumentException("More than one authority in your configuration is marked as default.  Only one authority may be default.");
+                throw new IllegalArgumentException(
+                        "More than one authority in your configuration is marked as default.  Only one authority may be default.");
             }
         }
     }
@@ -456,28 +464,68 @@ public class PublicClientApplicationConfiguration {
         this.mClientId = config.mClientId == null ? this.mClientId : config.mClientId;
         this.mRedirectUri = config.mRedirectUri == null ? this.mRedirectUri : config.mRedirectUri;
         this.mAuthorities = config.mAuthorities == null ? this.mAuthorities : config.mAuthorities;
-        this.mAuthorizationAgent = config.mAuthorizationAgent == null ? this.mAuthorizationAgent : config.mAuthorizationAgent;
+        this.mAuthorizationAgent =
+                config.mAuthorizationAgent == null
+                        ? this.mAuthorizationAgent
+                        : config.mAuthorizationAgent;
         this.mEnvironment = config.mEnvironment == null ? this.mEnvironment : config.mEnvironment;
-        this.mHttpConfiguration = config.mHttpConfiguration == null ? this.mHttpConfiguration : config.mHttpConfiguration;
-        this.mMultipleCloudsSupported = config.mMultipleCloudsSupported == null ? this.mMultipleCloudsSupported : config.mMultipleCloudsSupported;
+        this.mHttpConfiguration =
+                config.mHttpConfiguration == null
+                        ? this.mHttpConfiguration
+                        : config.mHttpConfiguration;
+        this.mMultipleCloudsSupported =
+                config.mMultipleCloudsSupported == null
+                        ? this.mMultipleCloudsSupported
+                        : config.mMultipleCloudsSupported;
         this.mUseBroker = config.mUseBroker == null ? this.mUseBroker : config.mUseBroker;
-        this.mTelemetryConfiguration = config.mTelemetryConfiguration == null ? this.mTelemetryConfiguration : config.mTelemetryConfiguration;
-        this.mRequiredBrokerProtocolVersion = config.mRequiredBrokerProtocolVersion == null ? this.mRequiredBrokerProtocolVersion : config.mRequiredBrokerProtocolVersion;
+        this.mTelemetryConfiguration =
+                config.mTelemetryConfiguration == null
+                        ? this.mTelemetryConfiguration
+                        : config.mTelemetryConfiguration;
+        this.mRequiredBrokerProtocolVersion =
+                config.mRequiredBrokerProtocolVersion == null
+                        ? this.mRequiredBrokerProtocolVersion
+                        : config.mRequiredBrokerProtocolVersion;
         if (this.mBrowserSafeList == null) {
             this.mBrowserSafeList = config.mBrowserSafeList;
         } else if (config.mBrowserSafeList != null) {
             this.mBrowserSafeList.addAll(config.mBrowserSafeList);
         }
         // Multiple is the default mode.
-        this.mAccountMode = config.mAccountMode != AccountMode.MULTIPLE ? config.mAccountMode : this.mAccountMode;
-        this.mClientCapabilities = config.mClientCapabilities == null ? this.mClientCapabilities : config.mClientCapabilities;
-        this.mIsSharedDevice = config.mIsSharedDevice == true ? this.mIsSharedDevice : config.mIsSharedDevice;
-        this.mLoggerConfiguration = config.mLoggerConfiguration == null ? this.mLoggerConfiguration : config.mLoggerConfiguration;
-        this.webViewZoomControlsEnabled = config.webViewZoomControlsEnabled == null ? this.webViewZoomControlsEnabled : config.webViewZoomControlsEnabled;
-        this.webViewZoomEnabled = config.webViewZoomEnabled == null ? this.webViewZoomEnabled : config.webViewZoomEnabled;
-        this.powerOptCheckEnabled = config.powerOptCheckEnabled == null ? this.powerOptCheckEnabled : config.powerOptCheckEnabled;
-        this.handleNullTaskAffinity = config.handleNullTaskAffinity == null ? this.handleNullTaskAffinity : config.handleNullTaskAffinity;
-        this.isAuthorizationInCurrentTask = config.isAuthorizationInCurrentTask == null ? this.isAuthorizationInCurrentTask : config.isAuthorizationInCurrentTask;
+        this.mAccountMode =
+                config.mAccountMode != AccountMode.MULTIPLE
+                        ? config.mAccountMode
+                        : this.mAccountMode;
+        this.mClientCapabilities =
+                config.mClientCapabilities == null
+                        ? this.mClientCapabilities
+                        : config.mClientCapabilities;
+        this.mIsSharedDevice =
+                config.mIsSharedDevice == true ? this.mIsSharedDevice : config.mIsSharedDevice;
+        this.mLoggerConfiguration =
+                config.mLoggerConfiguration == null
+                        ? this.mLoggerConfiguration
+                        : config.mLoggerConfiguration;
+        this.webViewZoomControlsEnabled =
+                config.webViewZoomControlsEnabled == null
+                        ? this.webViewZoomControlsEnabled
+                        : config.webViewZoomControlsEnabled;
+        this.webViewZoomEnabled =
+                config.webViewZoomEnabled == null
+                        ? this.webViewZoomEnabled
+                        : config.webViewZoomEnabled;
+        this.powerOptCheckEnabled =
+                config.powerOptCheckEnabled == null
+                        ? this.powerOptCheckEnabled
+                        : config.powerOptCheckEnabled;
+        this.handleNullTaskAffinity =
+                config.handleNullTaskAffinity == null
+                        ? this.handleNullTaskAffinity
+                        : config.handleNullTaskAffinity;
+        this.isAuthorizationInCurrentTask =
+                config.isAuthorizationInCurrentTask == null
+                        ? this.isAuthorizationInCurrentTask
+                        : config.isAuthorizationInCurrentTask;
     }
 
     void validateConfiguration() {
@@ -490,16 +538,13 @@ public class PublicClientApplicationConfiguration {
         // when the authorization agent is set either DEFAULT or BROWSER.
         if (!mAuthorizationAgent.equals(AuthorizationAgent.WEBVIEW)
                 && (mBrowserSafeList == null || mBrowserSafeList.isEmpty())) {
-            throw new IllegalArgumentException(
-                    "Null browser safe list configured."
-            );
+            throw new IllegalArgumentException("Null browser safe list configured.");
         }
 
         for (final Authority authority : mAuthorities) {
             if (authority instanceof UnknownAuthority) {
                 throw new IllegalArgumentException(
-                        "Unrecognized authority type -- null, invalid or unknown type specified."
-                );
+                        "Unrecognized authority type -- null, invalid or unknown type specified.");
             }
 
             // validate the audience type of this Authority
@@ -511,7 +556,9 @@ public class PublicClientApplicationConfiguration {
 
     private void validateRedirectUri(@NonNull final String redirectUri) {
         boolean isInvalid = false;
-        if (mAppContext!= null && AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME.equalsIgnoreCase(mAppContext.getPackageName())) {
+        if (mAppContext != null
+                && AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME
+                        .equalsIgnoreCase(mAppContext.getPackageName())) {
             isInvalid = !isValidAuthenticatorRedirectUri();
         } else {
             isInvalid = TextUtils.isEmpty(redirectUri) || !hasSchemeAndAuthority(redirectUri);
@@ -534,23 +581,25 @@ public class PublicClientApplicationConfiguration {
         return false;
     }
 
-    private void validateAzureActiveDirectoryAuthority(@NonNull final AzureActiveDirectoryAuthority azureActiveDirectoryAuthority) {
+    private void validateAzureActiveDirectoryAuthority(
+            @NonNull final AzureActiveDirectoryAuthority azureActiveDirectoryAuthority) {
         if (null != azureActiveDirectoryAuthority.mAudience
                 && azureActiveDirectoryAuthority.mAudience instanceof UnknownAudience) {
             throw new IllegalArgumentException(
-                    "Unrecognized audience type for AzureActiveDirectoryAuthority -- null, invalid, or unknown type specified"
-            );
+                    "Unrecognized audience type for AzureActiveDirectoryAuthority -- null, invalid, or unknown type specified");
         }
     }
 
     private static void nullConfigurationCheck(String configKey, String configValue) {
         if (TextUtils.isEmpty(configValue)) {
-            throw new IllegalArgumentException(configKey + " cannot be null.  Invalid configuration.");
+            throw new IllegalArgumentException(
+                    configKey + " cannot be null.  Invalid configuration.");
         }
     }
 
     @VisibleForTesting
-    public static boolean isBrokerRedirectUri(final @NonNull String redirectUri, final @NonNull String packageName) {
+    public static boolean isBrokerRedirectUri(
+            final @NonNull String redirectUri, final @NonNull String packageName) {
         final String potentialPrefix = BROKER_REDIRECT_URI_SCHEME_AND_SEPARATOR + packageName + "/";
         return redirectUri != null && redirectUri.startsWith(potentialPrefix);
     }
@@ -559,17 +608,20 @@ public class PublicClientApplicationConfiguration {
     private void verifyRedirectUriWithAppSignature() throws MsalClientException {
         final String packageName = mAppContext.getPackageName();
         try {
-            final PackageInfo info = PackageHelper.getPackageInfo(mAppContext.getPackageManager(), packageName);
+            final PackageInfo info =
+                    PackageHelper.getPackageInfo(mAppContext.getPackageManager(), packageName);
             Signature[] signatures = PackageHelper.getSignatures(info);
             for (final Signature signature : signatures) {
                 final MessageDigest messageDigest = MessageDigest.getInstance("SHA");
                 messageDigest.update(signature.toByteArray());
-                final String signatureHash = Base64.encodeToString(messageDigest.digest(), Base64.NO_WRAP);
+                final String signatureHash =
+                        Base64.encodeToString(messageDigest.digest(), Base64.NO_WRAP);
                 final Uri.Builder builder = new Uri.Builder();
-                final Uri uri = builder.scheme("msauth")
-                        .authority(packageName)
-                        .appendPath(signatureHash)
-                        .build();
+                final Uri uri =
+                        builder.scheme("msauth")
+                                .authority(packageName)
+                                .appendPath(signatureHash)
+                                .build();
 
                 if (mRedirectUri.equalsIgnoreCase(uri.toString())) {
                     // Life is good.
@@ -577,15 +629,22 @@ public class PublicClientApplicationConfiguration {
                 } else {
                     throw new MsalClientException(
                             MsalClientException.REDIRECT_URI_VALIDATION_ERROR,
-                            "The redirect URI in the configuration file doesn't match with the one " +
-                                    "generated with package name and signature hash. Please verify " +
-                                    "the uri in the config file and your app registration in Azure portal." +
-                                    "We expected '" + uri.toString() + "' and we received '" + mRedirectUri + "'.");
+                            "The redirect URI in the configuration file doesn't match with the one "
+                                    + "generated with package name and signature hash. Please verify "
+                                    + "the uri in the config file and your app registration in Azure portal."
+                                    + "We expected '"
+                                    + uri.toString()
+                                    + "' and we received '"
+                                    + mRedirectUri
+                                    + "'.");
                 }
             }
         } catch (PackageManager.NameNotFoundException | NoSuchAlgorithmException e) {
             Logger.error(TAG, "Unexpected error in verifyRedirectUriWithAppSignature()", e);
-            throw new MsalClientException(MsalClientException.UNKNOWN_ERROR, "Unexpected error in verifyRedirectUriWithAppSignature()", e);
+            throw new MsalClientException(
+                    MsalClientException.UNKNOWN_ERROR,
+                    "Unexpected error in verifyRedirectUriWithAppSignature()",
+                    e);
         }
     }
 
@@ -597,8 +656,8 @@ public class PublicClientApplicationConfiguration {
      * @param url     the redirect uri of the app
      * @return a boolean indicating if BrowserTabActivity is configured or not
      */
-    private static boolean validateCustomTabRedirectActivity(@NonNull final Context context,
-                                                             @NonNull final String url) throws MsalClientException {
+    private static boolean validateCustomTabRedirectActivity(
+            @NonNull final Context context, @NonNull final String url) throws MsalClientException {
         final String methodName = ":validateCustomTabRedirectActivity";
         final PackageManager packageManager = context.getPackageManager();
 
@@ -612,38 +671,39 @@ public class PublicClientApplicationConfiguration {
         intent.addCategory(Intent.CATEGORY_BROWSABLE);
         intent.setDataAndNormalize(Uri.parse(url));
 
-        final List<ResolveInfo> resolveInfoList = packageManager.queryIntentActivities(
-                intent,
-                PackageManager.GET_RESOLVED_FILTER
-        );
+        final List<ResolveInfo> resolveInfoList =
+                packageManager.queryIntentActivities(intent, PackageManager.GET_RESOLVED_FILTER);
 
-        // resolve info list will never be null, if no matching activities are found, empty list will be returned.
+        // resolve info list will never be null, if no matching activities are found, empty list
+        // will be returned.
         boolean hasActivity = false;
 
         for (final ResolveInfo info : resolveInfoList) {
             final ActivityInfo activityInfo = info.activityInfo;
             String activityClassName = BrowserTabActivity.class.getName();
 
-            //If we're using authorization in current task... then we need to look for that activity
-            if(LibraryConfiguration.getInstance().isAuthorizationInCurrentTask()){
+            // If we're using authorization in current task... then we need to look for that
+            // activity
+            if (LibraryConfiguration.getInstance().isAuthorizationInCurrentTask()) {
                 activityClassName = CurrentTaskBrowserTabActivity.class.getName();
             }
 
-            if (activityInfo.name.equals(activityClassName) &&
-                    activityInfo.packageName.equals(context.getPackageName())) {
+            if (activityInfo.name.equals(activityClassName)
+                    && activityInfo.packageName.equals(context.getPackageName())) {
                 hasActivity = true;
             } else {
                 // another application is listening for this url scheme, don't open
                 // Custom Tab for security reasons
                 com.microsoft.identity.common.logging.Logger.warn(
                         TAG + methodName,
-                        String.format("Another application %s is listening for the URL scheme %s", activityInfo.packageName, url)
-                );
+                        String.format(
+                                "Another application %s is listening for the URL scheme %s",
+                                activityInfo.packageName, url));
                 throw new MsalClientException(
                         MsalClientException.MULTIPLE_APPS_LISTENING_CUSTOM_URL_SCHEME,
-                        "More than one app is listening for the URL scheme defined for BrowserTabActivity in the AndroidManifest." +
-                                " The package name of this other app is: " + activityInfo.packageName
-                );
+                        "More than one app is listening for the URL scheme defined for BrowserTabActivity in the AndroidManifest."
+                                + " The package name of this other app is: "
+                                + activityInfo.packageName);
             }
         }
 
@@ -655,15 +715,13 @@ public class PublicClientApplicationConfiguration {
         if ((getAuthorizationAgent() == AuthorizationAgent.DEFAULT
                 || getAuthorizationAgent() == AuthorizationAgent.BROWSER)) {
 
-            final boolean hasCustomTabRedirectActivity = validateCustomTabRedirectActivity(
-                    mAppContext,
-                    mRedirectUri
-            );
+            final boolean hasCustomTabRedirectActivity =
+                    validateCustomTabRedirectActivity(mAppContext, mRedirectUri);
 
             if (!hasCustomTabRedirectActivity) {
                 String activityClassName = BrowserTabActivity.class.getSimpleName();
 
-                if (LibraryConfiguration.getInstance().isAuthorizationInCurrentTask()){
+                if (LibraryConfiguration.getInstance().isAuthorizationInCurrentTask()) {
                     activityClassName = CurrentTaskBrowserTabActivity.class.getSimpleName();
                 }
 
@@ -671,21 +729,49 @@ public class PublicClientApplicationConfiguration {
 
                 throw new MsalClientException(
                         APP_MANIFEST_VALIDATION_ERROR,
-                        "Intent filter for: " +
-                                activityClassName +
-                                " is missing. " +
-                                " Please make sure you have the following activity in your AndroidManifest.xml \n\n" +
-                                "<activity android:name=\"com.microsoft.identity.client." + activityClassName + "\">" + "\n" +
-                                "\t" + "<intent-filter>" + "\n" +
-                                "\t\t" + "<action android:name=\"android.intent.action.VIEW\" />" + "\n" +
-                                "\t\t" + "<category android:name=\"android.intent.category.DEFAULT\" />" + "\n" +
-                                "\t\t" + "<category android:name=\"android.intent.category.BROWSABLE\" />" + "\n" +
-                                "\t\t" + "<data" + "\n" +
-                                "\t\t\t" + "android:host=\"" + redirectUri.getHost() + "\"" + "\n" +
-                                "\t\t\t" + "android:path=\"" + redirectUri.getPath() + "\"" + "\n" +
-                                "\t\t\t" + "android:scheme=\"" + redirectUri.getScheme() + "\" />" + "\n" +
-                                "\t" + "</intent-filter>" + "\n" +
-                                "</activity>" + "\n");
+                        "Intent filter for: "
+                                + activityClassName
+                                + " is missing. "
+                                + " Please make sure you have the following activity in your AndroidManifest.xml \n\n"
+                                + "<activity android:name=\"com.microsoft.identity.client."
+                                + activityClassName
+                                + "\">"
+                                + "\n"
+                                + "\t"
+                                + "<intent-filter>"
+                                + "\n"
+                                + "\t\t"
+                                + "<action android:name=\"android.intent.action.VIEW\" />"
+                                + "\n"
+                                + "\t\t"
+                                + "<category android:name=\"android.intent.category.DEFAULT\" />"
+                                + "\n"
+                                + "\t\t"
+                                + "<category android:name=\"android.intent.category.BROWSABLE\" />"
+                                + "\n"
+                                + "\t\t"
+                                + "<data"
+                                + "\n"
+                                + "\t\t\t"
+                                + "android:host=\""
+                                + redirectUri.getHost()
+                                + "\""
+                                + "\n"
+                                + "\t\t\t"
+                                + "android:path=\""
+                                + redirectUri.getPath()
+                                + "\""
+                                + "\n"
+                                + "\t\t\t"
+                                + "android:scheme=\""
+                                + redirectUri.getScheme()
+                                + "\" />"
+                                + "\n"
+                                + "\t"
+                                + "</intent-filter>"
+                                + "\n"
+                                + "</activity>"
+                                + "\n");
             }
         }
 
@@ -693,18 +779,24 @@ public class PublicClientApplicationConfiguration {
             return;
         }
 
-        if (mAppContext!=null && AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME.equalsIgnoreCase(mAppContext.getPackageName())) {
+        if (mAppContext != null
+                && AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME
+                        .equalsIgnoreCase(mAppContext.getPackageName())) {
             if (isValidAuthenticatorRedirectUri()) {
                 return;
             }
         }
 
-        if (mAppContext != null && !isBrokerRedirectUri(mRedirectUri, mAppContext.getPackageName())) {
-            // This means that the app is still using the legacy local-only MSAL Redirect uri (already removed from the new portal).
+        if (mAppContext != null
+                && !isBrokerRedirectUri(mRedirectUri, mAppContext.getPackageName())) {
+            // This means that the app is still using the legacy local-only MSAL Redirect uri
+            // (already removed from the new portal).
             // If this is the case, we can assume that the user doesn't need Broker support.
-            Logger.warn(TAG, "The app is still using legacy MSAL redirect uri. Switch to MSAL local auth."
-                    + "  For brokered auth, the redirect URI is expected to conform to 'msauth://<authority>/.*' where the authority in "
-                    + "that uri is the package name of the app. This package name is listed as 'applicationId' in the build.gradle file.");
+            Logger.warn(
+                    TAG,
+                    "The app is still using legacy MSAL redirect uri. Switch to MSAL local auth."
+                            + "  For brokered auth, the redirect URI is expected to conform to 'msauth://<authority>/.*' where the authority in "
+                            + "that uri is the package name of the app. This package name is listed as 'applicationId' in the build.gradle file.");
             mUseBroker = false;
             return;
         }
@@ -716,31 +808,45 @@ public class PublicClientApplicationConfiguration {
         // This is a temporary fix to allow authenticator to migrate to MSAL
         // For Legacy reason Authenticator still needs to pass in the old redirect uri to be able to
         // have backward compatibility with older versions of BrokerHost (Company Portal)
-        // We should remove this check after the new Broker Host apps are released to >90% of production
+        // We should remove this check after the new Broker Host apps are released to >90% of
+        // production
         // customer.
-        // ADO workitem for tracking: https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1576096
+        // ADO workitem for tracking:
+        // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1576096
         try {
-            final PackageInfo info = mAppContext.getPackageManager().getPackageInfo(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, PackageManager.GET_SIGNATURES);
+            final PackageInfo info =
+                    mAppContext
+                            .getPackageManager()
+                            .getPackageInfo(
+                                    AuthenticationConstants.Broker
+                                            .AZURE_AUTHENTICATOR_APP_PACKAGE_NAME,
+                                    PackageManager.GET_SIGNATURES);
             if (info != null && info.signatures != null && info.signatures.length > 0) {
                 final Signature signature = info.signatures[0];
                 MessageDigest md = MessageDigest.getInstance("SHA");
                 md.update(signature.toByteArray());
                 final String signatureHash = Base64.encodeToString(md.digest(), Base64.NO_WRAP);
-                if (AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_RELEASE_SIGNATURE.equalsIgnoreCase(signatureHash)
-                    || AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_DEBUG_SIGNATURE.equalsIgnoreCase(signatureHash)) {
+                if (AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_RELEASE_SIGNATURE
+                                .equalsIgnoreCase(signatureHash)
+                        || AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_DEBUG_SIGNATURE
+                                .equalsIgnoreCase(signatureHash)) {
                     final Uri.Builder builder = new Uri.Builder();
-                    final Uri uri = builder.scheme("msauth")
-                            .authority(mAppContext.getPackageName())
-                            .appendPath(signatureHash)
-                            .build();
+                    final Uri uri =
+                            builder.scheme("msauth")
+                                    .authority(mAppContext.getPackageName())
+                                    .appendPath(signatureHash)
+                                    .build();
 
-                    if (mRedirectUri.equalsIgnoreCase(uri.toString()) || mRedirectUri.equalsIgnoreCase(AuthenticationConstants.Broker.BROKER_REDIRECT_URI)) {
+                    if (mRedirectUri.equalsIgnoreCase(uri.toString())
+                            || mRedirectUri.equalsIgnoreCase(
+                                    AuthenticationConstants.Broker.BROKER_REDIRECT_URI)) {
                         return true;
                     }
                 }
             }
         } catch (final PackageManager.NameNotFoundException | NoSuchAlgorithmException e) {
-            Logger.error(TAG, "Unexpected error in getting package info/signature for Authenticator", e);
+            Logger.error(
+                    TAG, "Unexpected error in getting package info/signature for Authenticator", e);
         }
 
         return false;

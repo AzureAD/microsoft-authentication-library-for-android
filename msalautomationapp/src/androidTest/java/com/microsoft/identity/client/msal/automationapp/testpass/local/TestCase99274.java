@@ -29,6 +29,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.UiResponse;
@@ -36,7 +37,6 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadP
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
-import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 
 import org.junit.Test;
 
@@ -53,62 +53,72 @@ public class TestCase99274 extends AbstractMsalUiTest {
 
         final MsalSdk msalSdk = new MsalSdk();
 
-        final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
-                .activity(mActivity)
-                .loginHint(mLoginHint)
-                .scopes(Arrays.asList(mScopes))
-                .promptParameter(Prompt.SELECT_ACCOUNT)
-                .msalConfigResourceId(getConfigFileResourceId())
-                .build();
-
-        final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
-            @Override
-            public void handleUserInteraction() {
-                final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                        .prompt(PromptParameter.SELECT_ACCOUNT)
+        final MsalAuthTestParams authTestParams =
+                MsalAuthTestParams.builder()
+                        .activity(mActivity)
                         .loginHint(mLoginHint)
-                        .sessionExpected(false)
-                        .consentPageExpected(true)
-                        .speedBumpExpected(false)
-                        .consentPageResponse(UiResponse.ACCEPT)
+                        .scopes(Arrays.asList(mScopes))
+                        .promptParameter(Prompt.SELECT_ACCOUNT)
+                        .msalConfigResourceId(getConfigFileResourceId())
                         .build();
 
-                new AadPromptHandler(promptHandlerParameters)
-                        .handlePrompt(username, password);
-            }
-        },TokenRequestTimeout.MEDIUM);
+        final MsalAuthResult authResult =
+                msalSdk.acquireTokenInteractive(
+                        authTestParams,
+                        new OnInteractionRequired() {
+                            @Override
+                            public void handleUserInteraction() {
+                                final PromptHandlerParameters promptHandlerParameters =
+                                        PromptHandlerParameters.builder()
+                                                .prompt(PromptParameter.SELECT_ACCOUNT)
+                                                .loginHint(mLoginHint)
+                                                .sessionExpected(false)
+                                                .consentPageExpected(true)
+                                                .speedBumpExpected(false)
+                                                .consentPageResponse(UiResponse.ACCEPT)
+                                                .build();
+
+                                new AadPromptHandler(promptHandlerParameters)
+                                        .handlePrompt(username, password);
+                            }
+                        },
+                        TokenRequestTimeout.MEDIUM);
 
         authResult.assertSuccess();
 
         // do second request
-        final MsalAuthTestParams consentRecordParams = MsalAuthTestParams.builder()
-                .activity(mActivity)
-                .loginHint(mLoginHint)
-                .scopes(Arrays.asList(mScopes))
-                .promptParameter(Prompt.SELECT_ACCOUNT)
-                .msalConfigResourceId(getConfigFileResourceId())
-                .build();
-
-        final MsalAuthResult consentRecordResults = msalSdk.acquireTokenInteractive(consentRecordParams, new OnInteractionRequired() {
-            @Override
-            public void handleUserInteraction() {
-                final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                        .prompt(PromptParameter.SELECT_ACCOUNT)
+        final MsalAuthTestParams consentRecordParams =
+                MsalAuthTestParams.builder()
+                        .activity(mActivity)
                         .loginHint(mLoginHint)
-                        .sessionExpected(true)
-                        .consentPageExpected(false)
-                        .speedBumpExpected(false)
+                        .scopes(Arrays.asList(mScopes))
+                        .promptParameter(Prompt.SELECT_ACCOUNT)
+                        .msalConfigResourceId(getConfigFileResourceId())
                         .build();
 
-                new AadPromptHandler(promptHandlerParameters)
-                        .handlePrompt(username, password);
-            }
-        },TokenRequestTimeout.SHORT);
+        final MsalAuthResult consentRecordResults =
+                msalSdk.acquireTokenInteractive(
+                        consentRecordParams,
+                        new OnInteractionRequired() {
+                            @Override
+                            public void handleUserInteraction() {
+                                final PromptHandlerParameters promptHandlerParameters =
+                                        PromptHandlerParameters.builder()
+                                                .prompt(PromptParameter.SELECT_ACCOUNT)
+                                                .loginHint(mLoginHint)
+                                                .sessionExpected(true)
+                                                .consentPageExpected(false)
+                                                .speedBumpExpected(false)
+                                                .build();
+
+                                new AadPromptHandler(promptHandlerParameters)
+                                        .handlePrompt(username, password);
+                            }
+                        },
+                        TokenRequestTimeout.SHORT);
 
         consentRecordResults.assertSuccess();
-
     }
-
 
     @Override
     public LabUserQuery getLabUserQuery() {
@@ -122,7 +132,7 @@ public class TestCase99274 extends AbstractMsalUiTest {
 
     @Override
     public String[] getScopes() {
-        return new String[]{"User.read"};
+        return new String[] {"User.read"};
     }
 
     @Override

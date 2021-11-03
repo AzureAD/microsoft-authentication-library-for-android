@@ -11,12 +11,12 @@ import org.junit.Test;
 
 public class AzureActiveDirectoryAudienceTest {
 
-    public final static String CLOUD_URL = "https://login.microsoftonline.com";
-    public final static String ALTERNATE_CLOUD_URL = "https://login.microsoftonline.de";
-    public final static String ALL_ORGS_TENANT_ID = "organizations";
-    public final static String TENANT_ID = "tenantId";
-    public final static String CONSUMERS_TENANT_ID = "consumers";
-    public final static String ALL_TENANT_ID = "common";
+    public static final String CLOUD_URL = "https://login.microsoftonline.com";
+    public static final String ALTERNATE_CLOUD_URL = "https://login.microsoftonline.de";
+    public static final String ALL_ORGS_TENANT_ID = "organizations";
+    public static final String TENANT_ID = "tenantId";
+    public static final String CONSUMERS_TENANT_ID = "consumers";
+    public static final String ALL_TENANT_ID = "common";
 
     @Test
     public void testAllOrganizationsAudienceDefaultConstructor() {
@@ -47,7 +47,8 @@ public class AzureActiveDirectoryAudienceTest {
 
     @Test
     public void testOneOrganizationTenantIdAndCloudUrlConstructor() {
-        AzureActiveDirectoryAudience audience = new AccountsInOneOrganization(ALTERNATE_CLOUD_URL, TENANT_ID);
+        AzureActiveDirectoryAudience audience =
+                new AccountsInOneOrganization(ALTERNATE_CLOUD_URL, TENANT_ID);
         Assert.assertEquals(ALTERNATE_CLOUD_URL, audience.getCloudUrl());
         Assert.assertEquals(TENANT_ID, audience.getTenantId());
     }
@@ -58,6 +59,4 @@ public class AzureActiveDirectoryAudienceTest {
         Assert.assertEquals(CLOUD_URL, audience.getCloudUrl());
         Assert.assertEquals(CONSUMERS_TENANT_ID, audience.getTenantId());
     }
-
-
 }

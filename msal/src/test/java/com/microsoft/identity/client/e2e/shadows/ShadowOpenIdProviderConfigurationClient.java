@@ -9,10 +9,9 @@ import org.robolectric.annotation.Implements;
 @Implements(OpenIdProviderConfigurationClient.class)
 public class ShadowOpenIdProviderConfigurationClient {
 
-    public synchronized OpenIdProviderConfiguration loadOpenIdProviderConfiguration() throws ServiceException {
+    public synchronized OpenIdProviderConfiguration loadOpenIdProviderConfiguration()
+            throws ServiceException {
         throw new ServiceException(
-                "503",
-                "Not allowed to query well known config for mocked tests",
-                null);
+                "503", "Not allowed to query well known config for mocked tests", null);
     }
 }

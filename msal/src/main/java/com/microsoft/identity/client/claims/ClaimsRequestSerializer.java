@@ -33,7 +33,8 @@ import java.util.List;
 class ClaimsRequestSerializer implements JsonSerializer<ClaimsRequest> {
 
     @Override
-    public JsonElement serialize(ClaimsRequest src, Type typeOfSrc, JsonSerializationContext context) {
+    public JsonElement serialize(
+            ClaimsRequest src, Type typeOfSrc, JsonSerializationContext context) {
         JsonObject claimsRequest = new JsonObject();
         JsonObject userInfoObject = new JsonObject();
         JsonObject accessTokenObject = new JsonObject();
@@ -58,12 +59,16 @@ class ClaimsRequestSerializer implements JsonSerializer<ClaimsRequest> {
         return claimsRequest;
     }
 
-    public void addPropertiesToObject(List<RequestedClaim> requestedClaims,
-                                      JsonObject addTo,
-                                      JsonSerializationContext context) {
+    public void addPropertiesToObject(
+            List<RequestedClaim> requestedClaims,
+            JsonObject addTo,
+            JsonSerializationContext context) {
         for (RequestedClaim claim : requestedClaims) {
-            addTo.add(claim.getName(), context.serialize(claim.getAdditionalInformation(), RequestedClaimAdditionalInformation.class));
+            addTo.add(
+                    claim.getName(),
+                    context.serialize(
+                            claim.getAdditionalInformation(),
+                            RequestedClaimAdditionalInformation.class));
         }
     }
-
 }

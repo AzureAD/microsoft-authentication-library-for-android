@@ -62,9 +62,7 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      * @param identifier String of the identifier
      * @param callback   The callback to notify once this action has finished.
      */
-    void getAccount(@NonNull final String identifier,
-                    @NonNull final GetAccountCallback callback
-    );
+    void getAccount(@NonNull final String identifier, @NonNull final GetAccountCallback callback);
 
     /**
      * Retrieve the IAccount object matching the identifier.
@@ -73,16 +71,16 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      * @param identifier String of the identifier
      */
     @WorkerThread
-    IAccount getAccount(@NonNull final String identifier) throws InterruptedException, MsalException;
+    IAccount getAccount(@NonNull final String identifier)
+            throws InterruptedException, MsalException;
 
     /**
      * Removes the Account and Credentials (tokens) for the supplied IAccount.
      *
      * @param account The IAccount whose entry and associated tokens should be removed.
      */
-    void removeAccount(@Nullable final IAccount account,
-                       @NonNull final RemoveAccountCallback callback
-    );
+    void removeAccount(
+            @Nullable final IAccount account, @NonNull final RemoveAccountCallback callback);
 
     /**
      * Removes the Account and Credentials (tokens) for the supplied IAccount.
@@ -91,7 +89,8 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      * @return True, if the account was removed. False otherwise.
      */
     @WorkerThread
-    boolean removeAccount(@Nullable final IAccount account) throws MsalException, InterruptedException;
+    boolean removeAccount(@Nullable final IAccount account)
+            throws MsalException, InterruptedException;
 
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
@@ -109,11 +108,11 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      *                  3) All the other errors will be sent back via
      *                  {@link AuthenticationCallback#onError(MsalException)}.
      */
-    void acquireToken(@NonNull final Activity activity,
-                      @NonNull final String[] scopes,
-                      @Nullable final String loginHint,
-                      @NonNull final AuthenticationCallback callback
-    );
+    void acquireToken(
+            @NonNull final Activity activity,
+            @NonNull final String[] scopes,
+            @Nullable final String loginHint,
+            @NonNull final AuthenticationCallback callback);
 
     /**
      * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
@@ -126,9 +125,11 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      * @param authority Authority to issue the token.
      */
     @WorkerThread
-    IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
-                                             @NonNull final IAccount account,
-                                             @NonNull final String authority) throws MsalException, InterruptedException;
+    IAuthenticationResult acquireTokenSilent(
+            @NonNull final String[] scopes,
+            @NonNull final IAccount account,
+            @NonNull final String authority)
+            throws MsalException, InterruptedException;
 
     /**
      * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
@@ -144,10 +145,11 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      *                  Failure case will be sent back via {
      * @link AuthenticationCallback#onError(MsalException)}.
      */
-    void acquireTokenSilentAsync(@NonNull final String[] scopes,
-                                 @NonNull final IAccount account,
-                                 @NonNull final String authority,
-                                 @NonNull final SilentAuthenticationCallback callback);
+    void acquireTokenSilentAsync(
+            @NonNull final String[] scopes,
+            @NonNull final IAccount account,
+            @NonNull final String authority,
+            @NonNull final SilentAuthenticationCallback callback);
 
     interface GetAccountCallback extends TaskCompletedCallbackWithError<IAccount, MsalException> {
         /**

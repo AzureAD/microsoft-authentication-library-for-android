@@ -54,37 +54,43 @@ public class TestCase948676 extends AbstractMsalBrokerTest {
 
         final MsalSdk msalSdk = new MsalSdk();
 
-        //acquiring token
-        final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
-                .activity(mActivity)
-                .loginHint(mLoginHint)
-                .scopes(Arrays.asList(mScopes))
-                .msalConfigResourceId(getConfigFileResourceId())
-                .promptParameter(Prompt.SELECT_ACCOUNT)
-                .build();
-
-        final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired() {
-            @Override
-            public void handleUserInteraction() {
-                final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                        .prompt(PromptParameter.SELECT_ACCOUNT)
-                        .loginHint(username)
-                        .sessionExpected(true)
-                        .consentPageExpected(false)
-                        .speedBumpExpected(false)
-                        .broker(mBroker)
-                        .expectingBrokerAccountChooserActivity(true)
-                        .expectingLoginPageAccountPicker(false)
+        // acquiring token
+        final MsalAuthTestParams authTestParams =
+                MsalAuthTestParams.builder()
+                        .activity(mActivity)
+                        .loginHint(mLoginHint)
+                        .scopes(Arrays.asList(mScopes))
+                        .msalConfigResourceId(getConfigFileResourceId())
+                        .promptParameter(Prompt.SELECT_ACCOUNT)
                         .build();
 
-                new AadPromptHandler(promptHandlerParameters)
-                        .handlePrompt(username, password);
-            }
-        }, TokenRequestTimeout.MEDIUM);
+        final MsalAuthResult authResult =
+                msalSdk.acquireTokenInteractive(
+                        authTestParams,
+                        new com.microsoft.identity.client.ui.automation.interaction
+                                .OnInteractionRequired() {
+                            @Override
+                            public void handleUserInteraction() {
+                                final PromptHandlerParameters promptHandlerParameters =
+                                        PromptHandlerParameters.builder()
+                                                .prompt(PromptParameter.SELECT_ACCOUNT)
+                                                .loginHint(username)
+                                                .sessionExpected(true)
+                                                .consentPageExpected(false)
+                                                .speedBumpExpected(false)
+                                                .broker(mBroker)
+                                                .expectingBrokerAccountChooserActivity(true)
+                                                .expectingLoginPageAccountPicker(false)
+                                                .build();
+
+                                new AadPromptHandler(promptHandlerParameters)
+                                        .handlePrompt(username, password);
+                            }
+                        },
+                        TokenRequestTimeout.MEDIUM);
 
         authResult.assertSuccess();
     }
-
 
     @Override
     public LabUserQuery getLabUserQuery() {
@@ -101,7 +107,7 @@ public class TestCase948676 extends AbstractMsalBrokerTest {
 
     @Override
     public String[] getScopes() {
-        return new String[]{"User.read"};
+        return new String[] {"User.read"};
     }
 
     @Override

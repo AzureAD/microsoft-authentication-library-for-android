@@ -28,12 +28,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.claims.ClaimsRequest;
-import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.internal.util.StringUtil;
+import com.microsoft.identity.common.java.dto.AccountRecord;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
 
 /**
@@ -159,7 +158,7 @@ public abstract class TokenParameters {
      *
      * @param <B>
      */
-    public static abstract class Builder<B extends TokenParameters.Builder<B>> {
+    public abstract static class Builder<B extends TokenParameters.Builder<B>> {
 
         private List<String> mScopes;
         private IAccount mAccount;
@@ -195,44 +194,47 @@ public abstract class TokenParameters {
             return self();
         }
 
-        public B fromAuthority(@NonNull final AzureCloudInstance cloudInstance,
-                               @NonNull final AadAuthorityAudience audience,
-                               @Nullable final String tenant) {
+        public B fromAuthority(
+                @NonNull final AzureCloudInstance cloudInstance,
+                @NonNull final AadAuthorityAudience audience,
+                @Nullable final String tenant) {
             if (!TextUtils.isEmpty(tenant)) {
                 if (audience != AadAuthorityAudience.AzureAdMyOrg) {
                     throw new IllegalArgumentException(
-                            "Audience must be " + AadAuthorityAudience.AzureAdMyOrg + " when tenant is specified"
-                    );
+                            "Audience must be "
+                                    + AadAuthorityAudience.AzureAdMyOrg
+                                    + " when tenant is specified");
                 } else {
                     return fromAuthority(cloudInstance, tenant);
                 }
             } else if (audience == AadAuthorityAudience.AzureAdMyOrg) {
                 if (TextUtils.isEmpty(tenant)) {
                     throw new IllegalArgumentException(
-                            "Tenant must be specified when the audience is " + audience
-                    );
+                            "Tenant must be specified when the audience is " + audience);
                 } else {
                     mAuthority = cloudInstance.getCloudInstanceUri() + "/" + tenant;
                     return self();
                 }
             } else {
-                mAuthority = cloudInstance.getCloudInstanceUri() + "/" + audience.getAudienceValue();
+                mAuthority =
+                        cloudInstance.getCloudInstanceUri() + "/" + audience.getAudienceValue();
                 return self();
             }
         }
 
-        public B fromAuthority(@NonNull final AzureCloudInstance cloudInstance,
-                               @NonNull final AadAuthorityAudience audience) {
+        public B fromAuthority(
+                @NonNull final AzureCloudInstance cloudInstance,
+                @NonNull final AadAuthorityAudience audience) {
             return fromAuthority(cloudInstance, audience, null);
         }
 
-        public B fromAuthority(@NonNull final AzureCloudInstance cloudInstance,
-                               @NonNull final String tenant) {
+        public B fromAuthority(
+                @NonNull final AzureCloudInstance cloudInstance, @NonNull final String tenant) {
             mAuthority = cloudInstance.getCloudInstanceUri() + "/" + tenant;
             return self();
         }
 
-        //TODO: Needs it's own builder... possible added here
+        // TODO: Needs it's own builder... possible added here
         public B withClaims(ClaimsRequest claimsRequest) {
             mClaimsRequest = claimsRequest;
             return self();
@@ -241,16 +243,16 @@ public abstract class TokenParameters {
         public B withResource(final String resource) {
             if (null != mScopes) {
                 throw new IllegalArgumentException(
-                        "Scopes is already set. Scopes and resources cannot be combined in a single request."
-                );
+                        "Scopes is already set. Scopes and resources cannot be combined in a single request.");
             } else if (StringUtil.isEmpty(resource)) {
-                throw new IllegalArgumentException(
-                        "Empty resource string."
-                );
+                throw new IllegalArgumentException("Empty resource string.");
             } else {
-                mScopes = new ArrayList<String>() {{
-                    add(resource.trim() + "/.default");
-                }};
+                mScopes =
+                        new ArrayList<String>() {
+                            {
+                                add(resource.trim() + "/.default");
+                            }
+                        };
             }
 
             return self();

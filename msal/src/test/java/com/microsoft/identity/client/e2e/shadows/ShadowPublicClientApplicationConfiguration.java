@@ -27,7 +27,6 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
-import com.microsoft.identity.client.internal.MsalUtils;
 
 import org.robolectric.annotation.Implements;
 
@@ -35,8 +34,8 @@ import org.robolectric.annotation.Implements;
 public class ShadowPublicClientApplicationConfiguration {
 
     // mocking this to assume we have custom tab redirect activity during tests
-    public static boolean validateCustomTabRedirectActivity(@NonNull final Context context,
-                                                            @NonNull final String url) {
+    public static boolean validateCustomTabRedirectActivity(
+            @NonNull final Context context, @NonNull final String url) {
         return true;
     }
 }

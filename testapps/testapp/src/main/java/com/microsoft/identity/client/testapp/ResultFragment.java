@@ -33,7 +33,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
@@ -56,7 +55,10 @@ public class ResultFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
+    public View onCreateView(
+            final LayoutInflater inflater,
+            final ViewGroup container,
+            final Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_result, container, false);
         mTextView = view.findViewById(R.id.txt_result);
 
@@ -68,14 +70,14 @@ public class ResultFragment extends Fragment {
             final String accessToken = (String) bundle.get(ACCESS_TOKEN);
             final String displayable = (String) bundle.get(DISPLAYABLE);
 
-            // Only display this when the app has acquired an access token at least once in this session.
+            // Only display this when the app has acquired an access token at least once in this
+            // session.
             if (previousAccessToken != null && !previousAccessToken.isEmpty()) {
                 final boolean isTokenChanged = !previousAccessToken.equalsIgnoreCase(accessToken);
                 output += "Is access token changed? " + ": " + isTokenChanged + '\n';
             }
 
-            output += ACCESS_TOKEN + ": " + accessToken + '\n'
-                    + DISPLAYABLE + ": " + displayable;
+            output += ACCESS_TOKEN + ": " + accessToken + '\n' + DISPLAYABLE + ": " + displayable;
 
             previousAccessToken = accessToken;
         } else {
@@ -89,15 +91,18 @@ public class ResultFragment extends Fragment {
         mTextView.setMovementMethod(new ScrollingMovementMethod());
 
         mCopyAuthResultButton = view.findViewById(R.id.btn_copyAuthResult);
-        mCopyAuthResultButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                final ClipboardManager clipboard = (ClipboardManager)
-                        getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
-                final ClipData clip = ClipData.newPlainText("Auth Result", mTextView.getText());
-                clipboard.setPrimaryClip(clip);
-            }
-        });
+        mCopyAuthResultButton.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        final ClipboardManager clipboard =
+                                (ClipboardManager)
+                                        getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+                        final ClipData clip =
+                                ClipData.newPlainText("Auth Result", mTextView.getText());
+                        clipboard.setPrimaryClip(clip);
+                    }
+                });
 
         return view;
     }

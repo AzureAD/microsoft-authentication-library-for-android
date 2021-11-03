@@ -102,13 +102,18 @@ public class MsalServiceException extends MsalException {
      */
     public static final int DEFAULT_STATUS_CODE = 0;
 
-    public MsalServiceException(final String errorCode, final String errorMessage, final Throwable throwable) {
+    public MsalServiceException(
+            final String errorCode, final String errorMessage, final Throwable throwable) {
         super(errorCode, errorMessage, throwable);
 
         mHttpStatusCode = DEFAULT_STATUS_CODE;
     }
 
-    public MsalServiceException(final String errorCode, final String errorMessage, final int httpStatusCode, final Throwable throwable) {
+    public MsalServiceException(
+            final String errorCode,
+            final String errorMessage,
+            final int httpStatusCode,
+            final Throwable throwable) {
         super(errorCode, errorMessage, throwable);
 
         mHttpStatusCode = httpStatusCode;

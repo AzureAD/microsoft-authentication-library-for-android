@@ -23,7 +23,6 @@
 
 package com.microsoft.identity.client;
 
-
 /**
  * Interface for apps to configure the external logging and implement the callback to designate the
  * output of the log messages.

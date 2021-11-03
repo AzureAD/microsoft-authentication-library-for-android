@@ -58,61 +58,74 @@ public class SingleAccountModeWrapper extends MsalWrapper {
     @Override
     public String getDefaultBrowser() {
         try {
-            return BrowserSelector.select(mApp.getConfiguration().getAppContext(), mApp.getConfiguration().getBrowserSafeList()).getPackageName();
+            return BrowserSelector.select(
+                            mApp.getConfiguration().getAppContext(),
+                            mApp.getConfiguration().getBrowserSafeList())
+                    .getPackageName();
         } catch (ClientException e) {
             return "Unknown";
         }
     }
 
     @Override
-    public void loadAccounts(final @NonNull INotifyOperationResultCallback<List<IAccount>> callback) {
-        mApp.getCurrentAccountAsync(new ISingleAccountPublicClientApplication.CurrentAccountCallback() {
-            @Override
-            public void onAccountLoaded(@Nullable IAccount activeAccount) {
-                List<IAccount> accountList = new ArrayList<>();
+    public void loadAccounts(
+            final @NonNull INotifyOperationResultCallback<List<IAccount>> callback) {
+        mApp.getCurrentAccountAsync(
+                new ISingleAccountPublicClientApplication.CurrentAccountCallback() {
+                    @Override
+                    public void onAccountLoaded(@Nullable IAccount activeAccount) {
+                        List<IAccount> accountList = new ArrayList<>();
 
-                if (activeAccount != null) {
-                    accountList.add(activeAccount);
-                }
+                        if (activeAccount != null) {
+                            accountList.add(activeAccount);
+                        }
 
-                callback.onSuccess(accountList);
-            }
+                        callback.onSuccess(accountList);
+                    }
 
-            @Override
-            public void onAccountChanged(@Nullable IAccount priorAccount, @Nullable IAccount currentAccount) {
-                callback.showMessage(
-                        "signed-in account is changed from "
-                                + (null == priorAccount ? "null" : priorAccount.getUsername())
-                                + " to "
-                                + (null == currentAccount ? "null" : currentAccount.getUsername()));
-            }
+                    @Override
+                    public void onAccountChanged(
+                            @Nullable IAccount priorAccount, @Nullable IAccount currentAccount) {
+                        callback.showMessage(
+                                "signed-in account is changed from "
+                                        + (null == priorAccount
+                                                ? "null"
+                                                : priorAccount.getUsername())
+                                        + " to "
+                                        + (null == currentAccount
+                                                ? "null"
+                                                : currentAccount.getUsername()));
+                    }
 
-            @Override
-            public void onError(MsalException exception) {
-                callback.showMessage(
-                        "Failed to load account from broker. "
-                                + "Error code: " + exception.getErrorCode()
-                                + " Error Message: " + exception.getMessage()
-                );
-            }
-        });
+                    @Override
+                    public void onError(MsalException exception) {
+                        callback.showMessage(
+                                "Failed to load account from broker. "
+                                        + "Error code: "
+                                        + exception.getErrorCode()
+                                        + " Error Message: "
+                                        + exception.getMessage());
+                    }
+                });
     }
 
     @Override
-    public void removeAccount(@NonNull IAccount account,
-                              @NonNull final INotifyOperationResultCallback<Void> callback) {
-        mApp.signOut(new ISingleAccountPublicClientApplication.SignOutCallback() {
-            @Override
-            public void onSignOut() {
-                callback.showMessage("The account is successfully signed out.");
-                callback.onSuccess(null);
-            }
+    public void removeAccount(
+            @NonNull IAccount account,
+            @NonNull final INotifyOperationResultCallback<Void> callback) {
+        mApp.signOut(
+                new ISingleAccountPublicClientApplication.SignOutCallback() {
+                    @Override
+                    public void onSignOut() {
+                        callback.showMessage("The account is successfully signed out.");
+                        callback.onSuccess(null);
+                    }
 
-            @Override
-            public void onError(@NonNull MsalException exception) {
-                callback.showMessage("Failed to sign out: " + exception.getMessage());
-            }
-        });
+                    @Override
+                    public void onError(@NonNull MsalException exception) {
+                        callback.showMessage("Failed to sign out: " + exception.getMessage());
+                    }
+                });
     }
 
     @Override
@@ -126,15 +139,17 @@ public class SingleAccountModeWrapper extends MsalWrapper {
     }
 
     @Override
-    void acquireTokenWithDeviceCodeFlowInternal(@NonNull String[] scopes,
-                                                @NonNull final IPublicClientApplication.DeviceCodeFlowCallback callback) {
+    void acquireTokenWithDeviceCodeFlowInternal(
+            @NonNull String[] scopes,
+            @NonNull final IPublicClientApplication.DeviceCodeFlowCallback callback) {
         mApp.acquireTokenWithDeviceCode(scopes, callback);
     }
 
     @Override
-    public void generateSignedHttpRequestInternal(@NonNull final IAccount account,
-                                                  @NonNull final PoPAuthenticationScheme params,
-                                                  @NonNull final INotifyOperationResultCallback<String> generateShrCallback) {
+    public void generateSignedHttpRequestInternal(
+            @NonNull final IAccount account,
+            @NonNull final PoPAuthenticationScheme params,
+            @NonNull final INotifyOperationResultCallback<String> generateShrCallback) {
         mApp.generateSignedHttpRequest(
                 account,
                 params,
@@ -148,7 +163,6 @@ public class SingleAccountModeWrapper extends MsalWrapper {
                     public void onError(MsalException exception) {
                         generateShrCallback.showMessage(exception.getMessage());
                     }
-                }
-        );
+                });
     }
 }

@@ -50,8 +50,8 @@ public final class AuthenticationResult implements IAuthenticationResult {
     private final IAccount mAccount;
     private final UUID mCorrelationId;
 
-    AuthenticationResult(@NonNull final List<ICacheRecord> cacheRecords,
-                         @Nullable final String correlationId) {
+    AuthenticationResult(
+            @NonNull final List<ICacheRecord> cacheRecords, @Nullable final String correlationId) {
         final ICacheRecord mostRecentlyAuthorized = cacheRecords.get(0);
         mAccessToken = mostRecentlyAuthorized.getAccessToken();
         mTenantId = mostRecentlyAuthorized.getAccount().getRealm();
@@ -70,9 +70,7 @@ public final class AuthenticationResult implements IAuthenticationResult {
     public String getAuthorizationHeader() {
         final String scheme = mAccessToken.getAccessTokenType();
 
-        return scheme
-                + TokenAuthenticationScheme.SCHEME_DELIMITER
-                + mAccessToken.getSecret();
+        return scheme + TokenAuthenticationScheme.SCHEME_DELIMITER + mAccessToken.getSecret();
     }
 
     @NonNull
@@ -89,13 +87,8 @@ public final class AuthenticationResult implements IAuthenticationResult {
         // Client (MSAL) will not be aware of configured value
         final Date expiresOn;
 
-        expiresOn = new Date(
-                TimeUnit.SECONDS.toMillis(
-                        Long.parseLong(
-                                mAccessToken.getExpiresOn()
-                        )
-                )
-        );
+        expiresOn =
+                new Date(TimeUnit.SECONDS.toMillis(Long.parseLong(mAccessToken.getExpiresOn())));
 
         return expiresOn;
     }

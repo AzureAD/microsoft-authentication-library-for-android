@@ -72,40 +72,47 @@ public class TestCase940421 extends AbstractMsalBrokerTest {
         // request the deviceid claim in ID Token
         claimsRequest.requestClaimInIdToken("deviceid", requestedClaimAdditionalInformation);
 
-        final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
-                .activity(mActivity)
-                .loginHint(username)
-                .claims(claimsRequest)
-                .scopes(Arrays.asList(mScopes))
-                .promptParameter(Prompt.SELECT_ACCOUNT)
-                .msalConfigResourceId(getConfigFileResourceId())
-                .build();
-
-        // start interactive acquire token request in MSAL (should succeed)
-        final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
-            @Override
-            public void handleUserInteraction() {
-                final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                        .prompt(PromptParameter.SELECT_ACCOUNT)
+        final MsalAuthTestParams authTestParams =
+                MsalAuthTestParams.builder()
+                        .activity(mActivity)
                         .loginHint(username)
-                        .sessionExpected(false)
-                        .consentPageExpected(false)
-                        .speedBumpExpected(false)
-                        .broker(mBroker)
-                        .expectingBrokerAccountChooserActivity(false)
-                        .expectingLoginPageAccountPicker(false)
-                        .registerPageExpected(true)
+                        .claims(claimsRequest)
+                        .scopes(Arrays.asList(mScopes))
+                        .promptParameter(Prompt.SELECT_ACCOUNT)
+                        .msalConfigResourceId(getConfigFileResourceId())
                         .build();
 
-                new AadPromptHandler(promptHandlerParameters)
-                        .handlePrompt(username, password);
-            }
-        }, TokenRequestTimeout.LONG);
+        // start interactive acquire token request in MSAL (should succeed)
+        final MsalAuthResult authResult =
+                msalSdk.acquireTokenInteractive(
+                        authTestParams,
+                        new OnInteractionRequired() {
+                            @Override
+                            public void handleUserInteraction() {
+                                final PromptHandlerParameters promptHandlerParameters =
+                                        PromptHandlerParameters.builder()
+                                                .prompt(PromptParameter.SELECT_ACCOUNT)
+                                                .loginHint(username)
+                                                .sessionExpected(false)
+                                                .consentPageExpected(false)
+                                                .speedBumpExpected(false)
+                                                .broker(mBroker)
+                                                .expectingBrokerAccountChooserActivity(false)
+                                                .expectingLoginPageAccountPicker(false)
+                                                .registerPageExpected(true)
+                                                .build();
+
+                                new AadPromptHandler(promptHandlerParameters)
+                                        .handlePrompt(username, password);
+                            }
+                        },
+                        TokenRequestTimeout.LONG);
 
         authResult.assertSuccess();
 
         // Assertion of Deviceid Claim in the ID Token claims
-        assertDeviceIdClaimSuccess(msalSdk.getAccount(mActivity,getConfigFileResourceId(),username));
+        assertDeviceIdClaimSuccess(
+                msalSdk.getAccount(mActivity, getConfigFileResourceId(), username));
     }
 
     private void assertDeviceIdClaimSuccess(@NonNull final IAccount account) {
@@ -134,7 +141,7 @@ public class TestCase940421 extends AbstractMsalBrokerTest {
 
     @Override
     public String[] getScopes() {
-        return new String[]{"User.read"};
+        return new String[] {"User.read"};
     }
 
     @Override
@@ -146,5 +153,4 @@ public class TestCase940421 extends AbstractMsalBrokerTest {
     public int getConfigFileResourceId() {
         return R.raw.msal_config_instance_aware_common;
     }
-
 }

@@ -35,5 +35,4 @@ public class ShadowStrategyResultUnsuccessful {
         TokenResult tokenResult = new TokenResult((TokenResponse) null);
         return tokenResult;
     }
-
 }

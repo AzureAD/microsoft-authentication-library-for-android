@@ -43,9 +43,10 @@ public class MsalDeclinedScopeException extends MsalException {
 
     private AcquireTokenSilentParameters mSilentParametersForGrantedScopes;
 
-    public MsalDeclinedScopeException(@NonNull final List<String> grantedScopes,
-                                      @NonNull final List<String> declinedScopes,
-                                      @NonNull final AcquireTokenSilentParameters silentParametersForGrantedScopes){
+    public MsalDeclinedScopeException(
+            @NonNull final List<String> grantedScopes,
+            @NonNull final List<String> declinedScopes,
+            @NonNull final AcquireTokenSilentParameters silentParametersForGrantedScopes) {
         super(ErrorStrings.DECLINED_SCOPE_ERROR_CODE, ErrorStrings.DECLINED_SCOPE_ERROR_MESSAGE);
         mGrantedScopes = grantedScopes;
         mDeclinedScopes = declinedScopes;
@@ -83,5 +84,4 @@ public class MsalDeclinedScopeException extends MsalException {
     public AcquireTokenSilentParameters getSilentParametersForGrantedScopes() {
         return mSilentParametersForGrantedScopes;
     }
-
 }

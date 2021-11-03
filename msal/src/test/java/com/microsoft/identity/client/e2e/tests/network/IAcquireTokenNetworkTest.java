@@ -28,7 +28,4 @@ import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 public interface IAcquireTokenNetworkTest extends IAcquireTokenTest {
 
     LabUserQuery getLabUserQuery();
-
 }
-
-

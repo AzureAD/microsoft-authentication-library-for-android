@@ -43,8 +43,8 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalUserCancelException;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.ui.automation.sdk.ResultFuture;
 import com.microsoft.identity.client.ui.automation.sdk.IAuthSdk;
+import com.microsoft.identity.client.ui.automation.sdk.ResultFuture;
 import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryB2CAuthority;
 
@@ -58,22 +58,25 @@ import java.util.List;
  * parameters and get back the final result.
  */
 public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
-    
+
     @Override
-    public MsalAuthResult acquireTokenInteractive(@NonNull MsalAuthTestParams authTestParams, final OnInteractionRequired interactionRequiredCallback, @NonNull final TokenRequestTimeout tokenRequestTimeout) throws Throwable {
-        final IPublicClientApplication pca = setupPCA(
-                authTestParams.getActivity(),
-                authTestParams.getMsalConfigResourceId()
-        );
+    public MsalAuthResult acquireTokenInteractive(
+            @NonNull MsalAuthTestParams authTestParams,
+            final OnInteractionRequired interactionRequiredCallback,
+            @NonNull final TokenRequestTimeout tokenRequestTimeout)
+            throws Throwable {
+        final IPublicClientApplication pca =
+                setupPCA(authTestParams.getActivity(), authTestParams.getMsalConfigResourceId());
 
         final ResultFuture<IAuthenticationResult, Exception> future = new ResultFuture<>();
 
-        final AcquireTokenParameters.Builder acquireTokenParametersBuilder = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(authTestParams.getActivity())
-                .withLoginHint(authTestParams.getLoginHint())
-                .withPrompt(authTestParams.getPromptParameter())
-                .fromAuthority(authTestParams.getAuthority())
-                .withCallback(getAuthCallback(future));
+        final AcquireTokenParameters.Builder acquireTokenParametersBuilder =
+                new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(authTestParams.getActivity())
+                        .withLoginHint(authTestParams.getLoginHint())
+                        .withPrompt(authTestParams.getPromptParameter())
+                        .fromAuthority(authTestParams.getAuthority())
+                        .withCallback(getAuthCallback(future));
 
         if (authTestParams.getScopes() == null || authTestParams.getScopes().isEmpty()) {
             acquireTokenParametersBuilder.withResource(authTestParams.getResource());
@@ -92,7 +95,8 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
         interactionRequiredCallback.handleUserInteraction();
 
         try {
-            final IAuthenticationResult result = future.get(tokenRequestTimeout.getTime(), tokenRequestTimeout.getTimeUnit());
+            final IAuthenticationResult result =
+                    future.get(tokenRequestTimeout.getTime(), tokenRequestTimeout.getTimeUnit());
             return new MsalAuthResult(result);
         } catch (Exception exception) {
             return new MsalAuthResult(exception);
@@ -100,11 +104,12 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
     }
 
     @Override
-    public MsalAuthResult acquireTokenSilent(@NonNull MsalAuthTestParams authTestParams, @NonNull final TokenRequestTimeout tokenRequestTimeout) throws Throwable {
-        final IPublicClientApplication pca = setupPCA(
-            authTestParams.getActivity(),
-            authTestParams.getMsalConfigResourceId()
-        );
+    public MsalAuthResult acquireTokenSilent(
+            @NonNull MsalAuthTestParams authTestParams,
+            @NonNull final TokenRequestTimeout tokenRequestTimeout)
+            throws Throwable {
+        final IPublicClientApplication pca =
+                setupPCA(authTestParams.getActivity(), authTestParams.getMsalConfigResourceId());
 
         final ResultFuture<IAuthenticationResult, Exception> future = new ResultFuture<>();
 
@@ -118,22 +123,26 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
         final IAccount account;
 
         if (authority instanceof AzureActiveDirectoryB2CAuthority) {
-            final AzureActiveDirectoryB2CAuthority b2cAuthority = (AzureActiveDirectoryB2CAuthority) authority;
+            final AzureActiveDirectoryB2CAuthority b2cAuthority =
+                    (AzureActiveDirectoryB2CAuthority) authority;
             final String policyName = b2cAuthority.getB2CPolicyName();
-            account = getAccountForPolicyName((MultipleAccountPublicClientApplication) pca, policyName);
+            account =
+                    getAccountForPolicyName(
+                            (MultipleAccountPublicClientApplication) pca, policyName);
         } else {
-            account = getAccount(
-                    authTestParams.getActivity(),
-                    authTestParams.getMsalConfigResourceId(),
-                    authTestParams.getLoginHint()
-            );
+            account =
+                    getAccount(
+                            authTestParams.getActivity(),
+                            authTestParams.getMsalConfigResourceId(),
+                            authTestParams.getLoginHint());
         }
 
-        final AcquireTokenSilentParameters.Builder acquireTokenParametersBuilder = new AcquireTokenSilentParameters.Builder()
-                .forAccount(account)
-                .forceRefresh(authTestParams.isForceRefresh())
-                .fromAuthority(authTestParams.getAuthority())
-                .withCallback(getAuthCallback(future));
+        final AcquireTokenSilentParameters.Builder acquireTokenParametersBuilder =
+                new AcquireTokenSilentParameters.Builder()
+                        .forAccount(account)
+                        .forceRefresh(authTestParams.isForceRefresh())
+                        .fromAuthority(authTestParams.getAuthority())
+                        .withCallback(getAuthCallback(future));
 
         if (authTestParams.getScopes() == null || authTestParams.getScopes().isEmpty()) {
             acquireTokenParametersBuilder.withResource(authTestParams.getResource());
@@ -145,20 +154,22 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
             acquireTokenParametersBuilder.withClaims(authTestParams.getClaims());
         }
 
-        final AcquireTokenSilentParameters acquireTokenParameters = acquireTokenParametersBuilder.build();
+        final AcquireTokenSilentParameters acquireTokenParameters =
+                acquireTokenParametersBuilder.build();
 
         pca.acquireTokenSilentAsync(acquireTokenParameters);
 
         try {
-            final IAuthenticationResult result = future.get(tokenRequestTimeout.getTime(), tokenRequestTimeout.getTimeUnit());
+            final IAuthenticationResult result =
+                    future.get(tokenRequestTimeout.getTime(), tokenRequestTimeout.getTimeUnit());
             return new MsalAuthResult(result);
         } catch (final Exception exception) {
             return new MsalAuthResult(exception);
         }
     }
 
-    private IPublicClientApplication setupPCA(@NonNull final Context context,
-                                              final int msalConfigResourceId) {
+    private IPublicClientApplication setupPCA(
+            @NonNull final Context context, final int msalConfigResourceId) {
         try {
             return PublicClientApplication.create(context, msalConfigResourceId);
         } catch (InterruptedException | MsalException e) {
@@ -166,7 +177,8 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
         }
     }
 
-    private AuthenticationCallback getAuthCallback(final ResultFuture<IAuthenticationResult, Exception> future) {
+    private AuthenticationCallback getAuthCallback(
+            final ResultFuture<IAuthenticationResult, Exception> future) {
         return new AuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
@@ -185,42 +197,44 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
         };
     }
 
-    public IAccount getAccount(@NonNull final Activity activity,
-                                final int msalConfigResourceId,
-                                @NonNull final String username) {
-        final IPublicClientApplication pca = setupPCA(
-                activity,
-                msalConfigResourceId
-        );
+    public IAccount getAccount(
+            @NonNull final Activity activity,
+            final int msalConfigResourceId,
+            @NonNull final String username) {
+        final IPublicClientApplication pca = setupPCA(activity, msalConfigResourceId);
 
         if (pca instanceof SingleAccountPublicClientApplication) {
             return getAccountForSingleAccountPca((SingleAccountPublicClientApplication) pca);
         } else if (pca instanceof MultipleAccountPublicClientApplication) {
-            return getAccountForMultipleAccountPca((MultipleAccountPublicClientApplication) pca, username);
+            return getAccountForMultipleAccountPca(
+                    (MultipleAccountPublicClientApplication) pca, username);
         } else {
             throw new AssertionError("Weird");
         }
     }
 
-    private IAccount getAccountForSingleAccountPca(@NonNull final SingleAccountPublicClientApplication pca) {
+    private IAccount getAccountForSingleAccountPca(
+            @NonNull final SingleAccountPublicClientApplication pca) {
         final ResultFuture<IAccount, Exception> future = new ResultFuture<>();
 
-        pca.getCurrentAccountAsync(new ISingleAccountPublicClientApplication.CurrentAccountCallback() {
-            @Override
-            public void onAccountLoaded(@Nullable IAccount activeAccount) {
-                future.setResult(activeAccount);
-            }
+        pca.getCurrentAccountAsync(
+                new ISingleAccountPublicClientApplication.CurrentAccountCallback() {
+                    @Override
+                    public void onAccountLoaded(@Nullable IAccount activeAccount) {
+                        future.setResult(activeAccount);
+                    }
 
-            @Override
-            public void onAccountChanged(@Nullable IAccount priorAccount, @Nullable IAccount currentAccount) {
-                future.setResult(currentAccount);
-            }
+                    @Override
+                    public void onAccountChanged(
+                            @Nullable IAccount priorAccount, @Nullable IAccount currentAccount) {
+                        future.setResult(currentAccount);
+                    }
 
-            @Override
-            public void onError(@NonNull MsalException exception) {
-                future.setException(exception);
-            }
-        });
+                    @Override
+                    public void onError(@NonNull MsalException exception) {
+                        future.setException(exception);
+                    }
+                });
 
         try {
             return future.get();
@@ -229,21 +243,23 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
         }
     }
 
-    private IAccount getAccountForMultipleAccountPca(@NonNull final MultipleAccountPublicClientApplication pca,
-                                                     final String username) {
+    private IAccount getAccountForMultipleAccountPca(
+            @NonNull final MultipleAccountPublicClientApplication pca, final String username) {
         final ResultFuture<IAccount, Exception> future = new ResultFuture<>();
 
-        pca.getAccount(username, new IMultipleAccountPublicClientApplication.GetAccountCallback() {
-            @Override
-            public void onTaskCompleted(IAccount result) {
-                future.setResult(result);
-            }
+        pca.getAccount(
+                username,
+                new IMultipleAccountPublicClientApplication.GetAccountCallback() {
+                    @Override
+                    public void onTaskCompleted(IAccount result) {
+                        future.setResult(result);
+                    }
 
-            @Override
-            public void onError(MsalException exception) {
-                future.setException(exception);
-            }
-        });
+                    @Override
+                    public void onError(MsalException exception) {
+                        future.setException(exception);
+                    }
+                });
 
         try {
             return future.get();
@@ -252,14 +268,13 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
         }
     }
 
-    private IAccount getAccountForPolicyName(@NonNull final MultipleAccountPublicClientApplication pca, @NonNull final String policyName)
-    {
+    private IAccount getAccountForPolicyName(
+            @NonNull final MultipleAccountPublicClientApplication pca,
+            @NonNull final String policyName) {
         try {
             List<IAccount> accounts = pca.getAccounts();
-            for(IAccount account : accounts)
-            {
-                if (policyName.equals(account.getClaims().get("tfp")))
-                {
+            for (IAccount account : accounts) {
+                if (policyName.equals(account.getClaims().get("tfp"))) {
                     return account;
                 }
             }

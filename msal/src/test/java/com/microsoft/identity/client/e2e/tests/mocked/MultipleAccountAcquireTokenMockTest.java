@@ -22,14 +22,15 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.mocked;
 
+import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_MOCK_TEST_CONFIG_FILE_PATH;
+
+import static org.junit.Assert.fail;
+
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
-
-import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
-import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_MOCK_TEST_CONFIG_FILE_PATH;
-import static org.junit.Assert.fail;
 
 public class MultipleAccountAcquireTokenMockTest extends AcquireTokenMockTest {
 
@@ -41,7 +42,8 @@ public class MultipleAccountAcquireTokenMockTest extends AcquireTokenMockTest {
     @Override
     IAccount performGetAccount(IPublicClientApplication application, String loginHint) {
         final IAccount[] requestedAccount = {null};
-        final IMultipleAccountPublicClientApplication multipleAcctApp = (IMultipleAccountPublicClientApplication) application;
+        final IMultipleAccountPublicClientApplication multipleAcctApp =
+                (IMultipleAccountPublicClientApplication) application;
         multipleAcctApp.getAccount(
                 loginHint.trim(),
                 new IMultipleAccountPublicClientApplication.GetAccountCallback() {
@@ -63,5 +65,5 @@ public class MultipleAccountAcquireTokenMockTest extends AcquireTokenMockTest {
         return requestedAccount[0];
     }
 
-    //TODO: add Multiple Account specific tests
+    // TODO: add Multiple Account specific tests
 }

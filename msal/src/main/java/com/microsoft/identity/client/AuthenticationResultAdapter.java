@@ -39,14 +39,14 @@ class AuthenticationResultAdapter {
 
     private static final String TAG = AuthenticationResultAdapter.class.getName();
 
-    static IAuthenticationResult adapt(@NonNull final ILocalAuthenticationResult localAuthenticationResult) {
-        final IAuthenticationResult authenticationResult = new AuthenticationResult(
-                localAuthenticationResult.getCacheRecordWithTenantProfileData(),
-                localAuthenticationResult.getCorrelationId()
-        );
+    static IAuthenticationResult adapt(
+            @NonNull final ILocalAuthenticationResult localAuthenticationResult) {
+        final IAuthenticationResult authenticationResult =
+                new AuthenticationResult(
+                        localAuthenticationResult.getCacheRecordWithTenantProfileData(),
+                        localAuthenticationResult.getCorrelationId());
         return authenticationResult;
     }
-
 
     /**
      * Helper method which retuns a {@link MsalDeclinedScopeException} from {@link ILocalAuthenticationResult}
@@ -55,25 +55,28 @@ class AuthenticationResultAdapter {
      * @param requestParameters         : request Token parameters.
      * @return MsalDeclinedScopeException
      */
-    static MsalDeclinedScopeException declinedScopeExceptionFromResult(@NonNull final ILocalAuthenticationResult localAuthenticationResult,
-                                                                       @NonNull final List<String> declinedScopes,
-                                                                       @NonNull final TokenParameters requestParameters) {
+    static MsalDeclinedScopeException declinedScopeExceptionFromResult(
+            @NonNull final ILocalAuthenticationResult localAuthenticationResult,
+            @NonNull final List<String> declinedScopes,
+            @NonNull final TokenParameters requestParameters) {
         final String methodName = ":declinedScopeExceptionFromResult";
         final List<String> grantedScopes = Arrays.asList(localAuthenticationResult.getScope());
-        Logger.warn(TAG + methodName,
-                "Returning DeclinedScopeException as not all requested scopes are granted," +
-                        " Requested scopes: " + requestParameters.getScopes().toString()
-                        + " Granted scopes:" + grantedScopes.toString());
+        Logger.warn(
+                TAG + methodName,
+                "Returning DeclinedScopeException as not all requested scopes are granted,"
+                        + " Requested scopes: "
+                        + requestParameters.getScopes().toString()
+                        + " Granted scopes:"
+                        + grantedScopes.toString());
 
         AcquireTokenSilentParameters silentParameters;
 
         if (requestParameters instanceof AcquireTokenSilentParameters) {
             silentParameters = (AcquireTokenSilentParameters) requestParameters;
         } else {
-            silentParameters = TokenParametersAdapter.silentParametersFromInteractive(
-                    (AcquireTokenParameters) requestParameters,
-                    localAuthenticationResult
-            );
+            silentParameters =
+                    TokenParametersAdapter.silentParametersFromInteractive(
+                            (AcquireTokenParameters) requestParameters, localAuthenticationResult);
         }
 
         // Set the granted scopes as request scopes.
@@ -82,8 +85,9 @@ class AuthenticationResultAdapter {
         return new MsalDeclinedScopeException(grantedScopes, declinedScopes, silentParameters);
     }
 
-    static List<String> getDeclinedScopes(@NonNull final List<String> grantedScopes,
-                                          @NonNull final List<String> requestedScopes) {
+    static List<String> getDeclinedScopes(
+            @NonNull final List<String> grantedScopes,
+            @NonNull final List<String> requestedScopes) {
         final Set<String> grantedScopesSet = new HashSet<>();
 
         // Add each granted scope to the Set

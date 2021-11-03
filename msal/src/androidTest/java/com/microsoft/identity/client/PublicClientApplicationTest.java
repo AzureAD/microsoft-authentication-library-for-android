@@ -22,6 +22,9 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.fail;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
@@ -47,13 +50,11 @@ import com.microsoft.identity.msal.test.R;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 
-import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
@@ -64,10 +65,6 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.fail;
-
-
 /**
  * Tests for {@link PublicClientApplication}.
  */
@@ -76,28 +73,26 @@ public final class PublicClientApplicationTest {
     private Context mAppContext;
     private static final String CLIENT_ID = "client-id";
     private static final String[] SCOPE = {"scope1", "scope2"};
-    public static final String TEST_REDIRECT_URI = "msauth://com.microsoft.identity.client.sample.local/signature";
+    public static final String TEST_REDIRECT_URI =
+            "msauth://com.microsoft.identity.client.sample.local/signature";
 
     @Before
     public void setUp() {
         System.setProperty(
                 "dexmaker.dexcache",
-                androidx.test.platform.app.InstrumentationRegistry
-                        .getInstrumentation()
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
                         .getTargetContext()
                         .getCacheDir()
-                        .getPath()
-        );
+                        .getPath());
 
         System.setProperty(
                 "org.mockito.android.target",
-                ApplicationProvider
-                        .getApplicationContext()
-                        .getCacheDir()
-                        .getPath()
-        );
+                ApplicationProvider.getApplicationContext().getCacheDir().getPath());
 
-        mAppContext = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().getContext().getApplicationContext();
+        mAppContext =
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+                        .getContext()
+                        .getApplicationContext();
     }
 
     @After
@@ -107,27 +102,27 @@ public final class PublicClientApplicationTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testConfigValidationFailsOnEmptyRedirect() throws MsalException, InterruptedException {
+    public void testConfigValidationFailsOnEmptyRedirect()
+            throws MsalException, InterruptedException {
         final Context context = new PublicClientApplicationTest.MockContext(mAppContext);
         mockPackageManagerWithDefaultFlag(context);
         mockHasCustomTabRedirect(context);
 
-        final IMultipleAccountPublicClientApplication app = PublicClientApplication.createMultipleAccountPublicClientApplication(
-                context,
-                R.raw.test_pcaconfig_empty_redirect
-        );
+        final IMultipleAccountPublicClientApplication app =
+                PublicClientApplication.createMultipleAccountPublicClientApplication(
+                        context, R.raw.test_pcaconfig_empty_redirect);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testConfigValidationFailsOnEmptyClientId() throws MsalException, InterruptedException {
+    public void testConfigValidationFailsOnEmptyClientId()
+            throws MsalException, InterruptedException {
         final Context context = new PublicClientApplicationTest.MockContext(mAppContext);
         mockPackageManagerWithDefaultFlag(context);
         mockHasCustomTabRedirect(context);
 
-        final IMultipleAccountPublicClientApplication app = PublicClientApplication.createMultipleAccountPublicClientApplication(
-                context,
-                R.raw.test_pcaconfig_empty_clientid
-        );
+        final IMultipleAccountPublicClientApplication app =
+                PublicClientApplication.createMultipleAccountPublicClientApplication(
+                        context, R.raw.test_pcaconfig_empty_clientid);
     }
 
     @Test
@@ -137,10 +132,9 @@ public final class PublicClientApplicationTest {
         mockHasCustomTabRedirect(context);
 
         try {
-            final ISingleAccountPublicClientApplication app = PublicClientApplication.createSingleAccountPublicClientApplication(
-                    context,
-                    R.raw.test_msal_config_single_account
-            );
+            final ISingleAccountPublicClientApplication app =
+                    PublicClientApplication.createSingleAccountPublicClientApplication(
+                            context, R.raw.test_msal_config_single_account);
             Assert.assertTrue(app instanceof ISingleAccountPublicClientApplication);
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -156,10 +150,9 @@ public final class PublicClientApplicationTest {
         mockHasCustomTabRedirect(context);
 
         try {
-            final IMultipleAccountPublicClientApplication app = PublicClientApplication.createMultipleAccountPublicClientApplication(
-                    context,
-                    R.raw.test_msal_config_multiple_account
-            );
+            final IMultipleAccountPublicClientApplication app =
+                    PublicClientApplication.createMultipleAccountPublicClientApplication(
+                            context, R.raw.test_msal_config_multiple_account);
             Assert.assertTrue(app instanceof IMultipleAccountPublicClientApplication);
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -180,7 +173,8 @@ public final class PublicClientApplicationTest {
                 new PublicClientApplication.IMultipleAccountApplicationCreatedListener() {
                     @Override
                     public void onCreated(IMultipleAccountPublicClientApplication application) {
-                        Assert.assertTrue(application instanceof IMultipleAccountPublicClientApplication);
+                        Assert.assertTrue(
+                                application instanceof IMultipleAccountPublicClientApplication);
                     }
 
                     @Override
@@ -224,12 +218,12 @@ public final class PublicClientApplicationTest {
                 new PublicClientApplication.ISingleAccountApplicationCreatedListener() {
                     @Override
                     public void onCreated(ISingleAccountPublicClientApplication application) {
-                        Assert.assertTrue(application instanceof ISingleAccountPublicClientApplication);
+                        Assert.assertTrue(
+                                application instanceof ISingleAccountPublicClientApplication);
                     }
 
                     @Override
-                    public void onError(MsalException exception) {
-                    }
+                    public void onError(MsalException exception) {}
                 });
     }
 
@@ -259,13 +253,15 @@ public final class PublicClientApplicationTest {
      * Verify correct exception is thrown if callback is not provided.
      */
     @Test(expected = IllegalArgumentException.class)
-    public void testCallBackEmpty() throws PackageManager.NameNotFoundException, MsalClientException {
+    public void testCallBackEmpty()
+            throws PackageManager.NameNotFoundException, MsalClientException {
         final Context context = new MockContext(mAppContext);
         mockPackageManagerWithClientId(context, null, CLIENT_ID);
         mockHasCustomTabRedirect(context);
         mockPackageManagerWithDefaultFlag(context);
 
-        final PublicClientApplicationConfiguration config = PublicClientApplicationConfigurationFactory.initializeConfiguration(context);
+        final PublicClientApplicationConfiguration config =
+                PublicClientApplicationConfigurationFactory.initializeConfiguration(context);
         config.setRedirectUri(TEST_REDIRECT_URI);
         config.setClientId(CLIENT_ID);
         final PublicClientApplication application = new PublicClientApplication(config);
@@ -273,60 +269,62 @@ public final class PublicClientApplicationTest {
     }
 
     @Test(expected = IllegalStateException.class)
-    public void testInternetPermissionMissing() throws PackageManager.NameNotFoundException, MsalClientException {
+    public void testInternetPermissionMissing()
+            throws PackageManager.NameNotFoundException, MsalClientException {
         final Context context = new MockContext(mAppContext);
         final PackageManager packageManager = context.getPackageManager();
         mockPackageManagerWithClientId(context, null, CLIENT_ID);
         mockHasCustomTabRedirect(context);
         mockPackageManagerWithDefaultFlag(context);
 
-        Mockito.when(packageManager.checkPermission(Mockito.refEq("android.permission.INTERNET"),
-                Mockito.refEq(mAppContext.getPackageName()))).thenReturn(PackageManager.PERMISSION_DENIED);
+        Mockito.when(
+                        packageManager.checkPermission(
+                                Mockito.refEq("android.permission.INTERNET"),
+                                Mockito.refEq(mAppContext.getPackageName())))
+                .thenReturn(PackageManager.PERMISSION_DENIED);
 
-        PublicClientApplicationConfiguration config = PublicClientApplicationConfigurationFactory.initializeConfiguration(context);
+        PublicClientApplicationConfiguration config =
+                PublicClientApplicationConfigurationFactory.initializeConfiguration(context);
         config.setRedirectUri(TEST_REDIRECT_URI);
         config.setClientId(CLIENT_ID);
 
         new PublicClientApplication(config);
     }
 
-
     @Test
-    public void testSecretKeysAreSet() throws NoSuchAlgorithmException, InvalidKeySpecException, MsalClientException {
+    public void testSecretKeysAreSet()
+            throws NoSuchAlgorithmException, InvalidKeySpecException, MsalClientException {
         final Context context = new MockContext(mAppContext);
         mockHasCustomTabRedirect(context);
         mockPackageManagerWithDefaultFlag(context);
 
-        final PublicClientApplicationConfiguration config = PublicClientApplicationConfigurationFactory.initializeConfiguration(context);
+        final PublicClientApplicationConfiguration config =
+                PublicClientApplicationConfigurationFactory.initializeConfiguration(context);
         config.setRedirectUri(TEST_REDIRECT_URI);
         config.setClientId(CLIENT_ID);
         final PublicClientApplication pca = new PublicClientApplication(config);
         final PublicClientApplicationConfiguration appConfig = pca.getConfiguration();
 
-        SecretKeyFactory keyFactory = SecretKeyFactory
-                .getInstance("PBEWithSHA256And256BitAES-CBC-BC");
-        SecretKey generatedSecretKey = keyFactory.generateSecret(
-                new PBEKeySpec(
-                        "test_password".toCharArray(),
-                        "byte-code-for-your-salt".getBytes(),
-                        100,
-                        256
-                )
-        );
+        SecretKeyFactory keyFactory =
+                SecretKeyFactory.getInstance("PBEWithSHA256And256BitAES-CBC-BC");
+        SecretKey generatedSecretKey =
+                keyFactory.generateSecret(
+                        new PBEKeySpec(
+                                "test_password".toCharArray(),
+                                "byte-code-for-your-salt".getBytes(),
+                                100,
+                                256));
         SecretKey secretKey = new SecretKeySpec(generatedSecretKey.getEncoded(), "AES");
         final byte[] encodedSecretKey = secretKey.getEncoded();
 
         appConfig.setTokenCacheSecretKeys(encodedSecretKey);
 
         // Check that the AuthenticationSettings.INSTANCE.secretKey matches the value configured
-        assertEquals(
-                encodedSecretKey,
-                AuthenticationSettings.INSTANCE.getSecretKeyData()
-        );
+        assertEquals(encodedSecretKey, AuthenticationSettings.INSTANCE.getSecretKeyData());
     }
 
-    private void mockPackageManagerWithClientId(final Context context, final String alternateAuthorityInManifest,
-                                                final String clientId)
+    private void mockPackageManagerWithClientId(
+            final Context context, final String alternateAuthorityInManifest, final String clientId)
             throws PackageManager.NameNotFoundException {
         final PackageManager mockedPackageManager = context.getPackageManager();
         final ApplicationInfo applicationInfo = Mockito.mock(ApplicationInfo.class);
@@ -337,26 +335,35 @@ public final class PublicClientApplicationTest {
         }
 
         if (!MsalUtils.isEmpty(alternateAuthorityInManifest)) {
-            applicationInfo.metaData.putString("com.microsoft.identity.client.AuthorityMetadata", alternateAuthorityInManifest);
+            applicationInfo.metaData.putString(
+                    "com.microsoft.identity.client.AuthorityMetadata",
+                    alternateAuthorityInManifest);
         }
 
-        Mockito.when(mockedPackageManager.getApplicationInfo(
-                Mockito.refEq(mAppContext.getPackageName()), Mockito.eq(
-                        PackageManager.GET_META_DATA))).thenReturn(applicationInfo);
+        Mockito.when(
+                        mockedPackageManager.getApplicationInfo(
+                                Mockito.refEq(mAppContext.getPackageName()),
+                                Mockito.eq(PackageManager.GET_META_DATA)))
+                .thenReturn(applicationInfo);
 
         final PackageInfo mockedPackageInfo = Mockito.mock(PackageInfo.class);
-        Mockito.when(mockedPackageManager.getPackageInfo(Mockito.anyString(), Mockito.anyInt())).thenReturn(mockedPackageInfo);
+        Mockito.when(mockedPackageManager.getPackageInfo(Mockito.anyString(), Mockito.anyInt()))
+                .thenReturn(mockedPackageInfo);
     }
 
     private void mockPackageManagerWithDefaultFlag(final Context context) {
         // This is to bypass telemetry initialization code.
         try {
             final ApplicationInfo applicationInfo = Mockito.mock(ApplicationInfo.class);
-            Mockito.when(context.getPackageManager().getApplicationInfo(mAppContext.getPackageName(), 0))
+            Mockito.when(
+                            context.getPackageManager()
+                                    .getApplicationInfo(mAppContext.getPackageName(), 0))
                     .thenReturn(applicationInfo);
 
             final PackageInfo packageInfo = Mockito.mock(PackageInfo.class);
-            Mockito.when(context.getPackageManager().getPackageInfo(mAppContext.getPackageName(), 0))
+            Mockito.when(
+                            context.getPackageManager()
+                                    .getPackageInfo(mAppContext.getPackageName(), 0))
                     .thenReturn(packageInfo);
 
         } catch (Exception e) {
@@ -368,8 +375,11 @@ public final class PublicClientApplicationTest {
         final PackageManager packageManager = context.getPackageManager();
 
         final List<ResolveInfo> resolveInfos = new ArrayList<>();
-        Mockito.when(packageManager.queryIntentActivities(Matchers.any(Intent.class),
-                Matchers.eq(PackageManager.GET_RESOLVED_FILTER))).thenReturn(resolveInfos);
+        Mockito.when(
+                        packageManager.queryIntentActivities(
+                                Matchers.any(Intent.class),
+                                Matchers.eq(PackageManager.GET_RESOLVED_FILTER)))
+                .thenReturn(resolveInfos);
 
         final ResolveInfo mockedResolveInfo1 = Mockito.mock(ResolveInfo.class);
         final ActivityInfo mockedActivityInfo1 = Mockito.mock(ActivityInfo.class);

@@ -30,8 +30,7 @@ import com.microsoft.identity.common.java.providers.oauth2.IDToken;
 
 public class TenantProfile extends Account implements ITenantProfile {
 
-    public TenantProfile(@Nullable final String clientInfo,
-                         @Nullable final IDToken idToken) {
+    public TenantProfile(@Nullable final String clientInfo, @Nullable final IDToken idToken) {
         super(clientInfo, idToken);
     }
 

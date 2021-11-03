@@ -45,7 +45,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class MsalLoggingRule implements TestRule {
 
-    final static String LOG_FOLDER_NAME = "automation";
+    static final String LOG_FOLDER_NAME = "automation";
 
     public static final String TAG = MsalLoggingRule.class.getSimpleName();
 
@@ -59,25 +59,26 @@ public class MsalLoggingRule implements TestRule {
                 try {
                     base.evaluate();
                 } finally {
-                    // MSAL (common) logger logs using a background thread, so even though the test is
+                    // MSAL (common) logger logs using a background thread, so even though the test
+                    // is
                     // finished at this point, we may still be receiving logs from the logger. If we
-                    // close the stream right now we might the lose the last bit of logs and we might
-                    // encounter an IoException when trying to write that last bit of logs to the file
+                    // close the stream right now we might the lose the last bit of logs and we
+                    // might
+                    // encounter an IoException when trying to write that last bit of logs to the
+                    // file
                     // as the stream was closed.
-                    // To mitigate it we would just sleep for a tiny bit of time to ensure that we grab
+                    // To mitigate it we would just sleep for a tiny bit of time to ensure that we
+                    // grab
                     // those last bit of logs, dump them to the file and then close the writer.
                     ThreadUtils.sleepSafely(
                             Math.toIntExact(TimeUnit.SECONDS.toMillis(1)),
                             TAG,
-                            "Error while sleeping during saving logs."
-                    );
+                            "Error while sleeping during saving logs.");
 
                     msalLogFileAppender.closeWriter();
 
                     CommonUtils.copyFileToFolderInSdCard(
-                            msalLogFileAppender.getLogFile(),
-                            LOG_FOLDER_NAME
-                    );
+                            msalLogFileAppender.getLogFile(), LOG_FOLDER_NAME);
                 }
             }
         };
@@ -85,17 +86,24 @@ public class MsalLoggingRule implements TestRule {
 
     private FileAppender turnOnMsalLogging(final Description description) throws IOException {
         final String msalLogFileName = description.getMethodName() + "-msal.log";
-        final FileAppender msalFileLogAppender = new FileAppender(msalLogFileName, new LogcatLikeFormatter());
+        final FileAppender msalFileLogAppender =
+                new FileAppender(msalLogFileName, new LogcatLikeFormatter());
         Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
         Logger.getInstance().setEnableLogcatLog(false);
-        Logger.getInstance().setExternalLogger(new ILoggerCallback() {
-            @Override
-            public void log(final String tag, final Logger.LogLevel logLevel,
-                            final String message, boolean containsPII) {
-                final LogLevel level = convertMsalLogLevelToInternalLogLevel(logLevel);
-                msalFileLogAppender.append(level, tag, message, null);
-            }
-        });
+        Logger.getInstance()
+                .setExternalLogger(
+                        new ILoggerCallback() {
+                            @Override
+                            public void log(
+                                    final String tag,
+                                    final Logger.LogLevel logLevel,
+                                    final String message,
+                                    boolean containsPII) {
+                                final LogLevel level =
+                                        convertMsalLogLevelToInternalLogLevel(logLevel);
+                                msalFileLogAppender.append(level, tag, message, null);
+                            }
+                        });
 
         return msalFileLogAppender;
     }

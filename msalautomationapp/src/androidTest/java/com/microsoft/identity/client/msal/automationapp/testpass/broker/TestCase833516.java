@@ -54,13 +54,12 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
         // pca should be in MULTIPLE account mode starting out
         Assert.assertTrue(mApplication instanceof MultipleAccountPublicClientApplication);
 
-        //we should NOT be in shared device mode
+        // we should NOT be in shared device mode
         Assert.assertFalse(mApplication.isSharedDevice());
 
         // perform shared device registration
         mBroker.performSharedDeviceRegistration(
-                mLoginHint, LabConfig.getCurrentLabConfig().getLabUserPassword()
-        );
+                mLoginHint, LabConfig.getCurrentLabConfig().getLabUserPassword());
 
         // re-create PCA after device registration
         mApplication = PublicClientApplication.create(mContext, getConfigFileResourceId());
@@ -86,14 +85,15 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
         // try sign in with an account from the same tenant
         singleAccountPCA.signIn(mActivity, username, mScopes, successfulInteractiveCallback(latch));
 
-        final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                .loginHint(username)
-                .sessionExpected(false)
-                .consentPageExpected(false)
-                .broker(mBroker)
-                .prompt(PromptParameter.SELECT_ACCOUNT)
-                .expectingBrokerAccountChooserActivity(false)
-                .build();
+        final PromptHandlerParameters promptHandlerParameters =
+                PromptHandlerParameters.builder()
+                        .loginHint(username)
+                        .sessionExpected(false)
+                        .consentPageExpected(false)
+                        .broker(mBroker)
+                        .prompt(PromptParameter.SELECT_ACCOUNT)
+                        .expectingBrokerAccountChooserActivity(false)
+                        .build();
 
         AadPromptHandler aadPromptHandler = new AadPromptHandler(promptHandlerParameters);
         aadPromptHandler.handlePrompt(username, password);
@@ -113,7 +113,11 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
         final TokenRequestLatch latch2 = new TokenRequestLatch(1);
 
         // try sign in with an account from the same tenant
-        singleAccountPCA.signIn(mActivity, anotherUserFromSameTenant, mScopes, failureInteractiveCallback(latch2, ErrorCodes.INVALID_PARAMETER));
+        singleAccountPCA.signIn(
+                mActivity,
+                anotherUserFromSameTenant,
+                mScopes,
+                failureInteractiveCallback(latch2, ErrorCodes.INVALID_PARAMETER));
 
         latch2.await(TokenRequestTimeout.MEDIUM);
     }
@@ -132,7 +136,7 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
 
     @Override
     public String[] getScopes() {
-        return new String[]{"User.read"};
+        return new String[] {"User.read"};
     }
 
     @Override
@@ -144,5 +148,4 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
     public int getConfigFileResourceId() {
         return R.raw.msal_config_instance_aware_common;
     }
-
 }

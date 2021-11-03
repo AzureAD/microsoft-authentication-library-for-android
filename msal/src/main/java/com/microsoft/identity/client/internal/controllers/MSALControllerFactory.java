@@ -22,32 +22,30 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.internal.controllers;
 
+import static com.microsoft.identity.common.java.AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+
 import android.accounts.AccountManager;
 import android.accounts.AuthenticatorDescription;
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.content.Context;
 import android.os.Build;
 import android.os.PowerManager;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.common.internal.broker.BrokerValidator;
+import com.microsoft.identity.common.internal.controllers.BrokerMsalController;
+import com.microsoft.identity.common.internal.controllers.LocalMSALController;
 import com.microsoft.identity.common.java.authorities.AnyPersonalAccount;
 import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthority;
-import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.java.controllers.BaseController;
-import com.microsoft.identity.common.internal.controllers.BrokerMsalController;
-import com.microsoft.identity.common.internal.controllers.LocalMSALController;
 import com.microsoft.identity.common.logging.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.microsoft.identity.common.java.AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
 
 /**
  * Responsible for returning the correct controller depending on the type of request (Silent, Interactive), authority
@@ -68,9 +66,10 @@ public class MSALControllerFactory {
      *
      * @return
      */
-    public static BaseController getDefaultController(@NonNull final Context applicationContext,
-                                                      @NonNull final Authority authority,
-                                                      @NonNull final PublicClientApplicationConfiguration applicationConfiguration)
+    public static BaseController getDefaultController(
+            @NonNull final Context applicationContext,
+            @NonNull final Authority authority,
+            @NonNull final PublicClientApplicationConfiguration applicationConfiguration)
             throws MsalClientException {
         if (brokerEligible(applicationContext, authority, applicationConfiguration)) {
             return new BrokerMsalController(applicationContext);
@@ -95,9 +94,10 @@ public class MSALControllerFactory {
      *
      * @return
      */
-    public static List<BaseController> getAllControllers(@NonNull final Context applicationContext,
-                                                         @NonNull final Authority authority,
-                                                         @NonNull final PublicClientApplicationConfiguration applicationConfiguration)
+    public static List<BaseController> getAllControllers(
+            @NonNull final Context applicationContext,
+            @NonNull final Authority authority,
+            @NonNull final PublicClientApplicationConfiguration applicationConfiguration)
             throws MsalClientException {
         List<BaseController> controllers = new ArrayList<>();
         controllers.add(new LocalMSALController());
@@ -121,32 +121,39 @@ public class MSALControllerFactory {
      * @param applicationConfiguration
      * @return
      */
-    public static boolean brokerEligible(@NonNull final Context applicationContext,
-                                         @NonNull Authority authority,
-                                         @NonNull PublicClientApplicationConfiguration applicationConfiguration) throws MsalClientException {
+    public static boolean brokerEligible(
+            @NonNull final Context applicationContext,
+            @NonNull Authority authority,
+            @NonNull PublicClientApplicationConfiguration applicationConfiguration)
+            throws MsalClientException {
         final String methodName = ":brokerEligible";
         final String logBrokerEligibleFalse = "Eligible to call broker? [false]. ";
 
-        //If app has asked for Broker or if the authority is not AAD return false
-        if (!applicationConfiguration.getUseBroker() || !(authority instanceof AzureActiveDirectoryAuthority)) {
-            Logger.verbose(TAG + methodName, logBrokerEligibleFalse +
-                    "App does not ask for Broker or the authority is not AAD authority.");
+        // If app has asked for Broker or if the authority is not AAD return false
+        if (!applicationConfiguration.getUseBroker()
+                || !(authority instanceof AzureActiveDirectoryAuthority)) {
+            Logger.verbose(
+                    TAG + methodName,
+                    logBrokerEligibleFalse
+                            + "App does not ask for Broker or the authority is not AAD authority.");
             return false;
         }
 
-        //Do not use broker when the audience is MSA only (personal accounts / consumers tenant alias)
-        AzureActiveDirectoryAuthority azureActiveDirectoryAuthority = (AzureActiveDirectoryAuthority) authority;
+        // Do not use broker when the audience is MSA only (personal accounts / consumers tenant
+        // alias)
+        AzureActiveDirectoryAuthority azureActiveDirectoryAuthority =
+                (AzureActiveDirectoryAuthority) authority;
 
         if (azureActiveDirectoryAuthority.getAudience() instanceof AnyPersonalAccount) {
-            Logger.verbose(TAG + methodName, logBrokerEligibleFalse +
-                    "The audience is MSA only.");
+            Logger.verbose(TAG + methodName, logBrokerEligibleFalse + "The audience is MSA only.");
             return false;
         }
 
         // Check if broker installed
         if (!brokerInstalled(applicationContext)) {
-            Logger.verbose(TAG + methodName, logBrokerEligibleFalse +
-                    "Broker application is not installed.");
+            Logger.verbose(
+                    TAG + methodName,
+                    logBrokerEligibleFalse + "Broker application is not installed.");
             return false;
         }
 
@@ -164,7 +171,8 @@ public class MSALControllerFactory {
         PowerManager pm = (PowerManager) applicationContext.getSystemService(Context.POWER_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && null != pm) {
             final boolean isPowerOptimizationOn = !pm.isIgnoringBatteryOptimizations(packageName);
-            Logger.verbose(TAG + methodName, "Is power optimization on? [" + isPowerOptimizationOn + "]");
+            Logger.verbose(
+                    TAG + methodName, "Is power optimization on? [" + isPowerOptimizationOn + "]");
             return isPowerOptimizationOn;
         } else {
             Logger.verbose(TAG + methodName, "Is power optimization on? [" + false + "]");
@@ -189,7 +197,7 @@ public class MSALControllerFactory {
         BrokerValidator brokerValidator = new BrokerValidator(applicationContext);
         AccountManager accountManager = AccountManager.get(applicationContext);
 
-        //Verify the signature
+        // Verify the signature
         AuthenticatorDescription[] authenticators = accountManager.getAuthenticatorTypes();
         for (AuthenticatorDescription authenticator : authenticators) {
             if (BROKER_ACCOUNT_TYPE.equals(authenticator.type)

@@ -43,7 +43,7 @@ public abstract class AbstractB2CTest extends AbstractMsalUiTest implements IB2C
 
     @Override
     public String[] getScopes() {
-        return new String[]{"https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"};
+        return new String[] {"https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"};
     }
 
     @Override

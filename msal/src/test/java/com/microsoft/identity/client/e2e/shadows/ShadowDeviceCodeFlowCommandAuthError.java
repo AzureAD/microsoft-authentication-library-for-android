@@ -22,9 +22,9 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.shadows;
 
+import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
 import com.microsoft.identity.common.java.exception.ErrorStrings;
 import com.microsoft.identity.common.java.exception.ServiceException;
-import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
 import com.microsoft.identity.common.java.result.AcquireTokenResult;
 
 import org.robolectric.annotation.Implements;
@@ -34,8 +34,11 @@ import org.robolectric.annotation.Implements;
  */
 @Implements(DeviceCodeFlowCommand.class)
 public class ShadowDeviceCodeFlowCommandAuthError {
-    
+
     public AcquireTokenResult execute() throws Exception {
-        throw new ServiceException(ErrorStrings.INVALID_SCOPE, "This exception reflects an error in the authorization step in Device Code Flow (invalid scope).", null);
+        throw new ServiceException(
+                ErrorStrings.INVALID_SCOPE,
+                "This exception reflects an error in the authorization step in Device Code Flow (invalid scope).",
+                null);
     }
 }

@@ -22,10 +22,10 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.shadows;
 
-import com.microsoft.identity.common.java.cache.CacheRecord;
-import com.microsoft.identity.common.java.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommandCallback;
+import com.microsoft.identity.common.java.cache.CacheRecord;
+import com.microsoft.identity.common.java.cache.ICacheRecord;
 import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.java.request.SdkType;
 import com.microsoft.identity.common.java.result.AcquireTokenResult;
@@ -47,8 +47,7 @@ import java.util.concurrent.TimeUnit;
 @Implements(DeviceCodeFlowCommand.class)
 public class ShadowDeviceCodeFlowCommandSuccessful {
 
-    @RealObject
-    private DeviceCodeFlowCommand mDeviceCodeFlowCommand;
+    @RealObject private DeviceCodeFlowCommand mDeviceCodeFlowCommand;
 
     @Implementation
     public AcquireTokenResult execute() {
@@ -56,7 +55,8 @@ public class ShadowDeviceCodeFlowCommandSuccessful {
         final Date expiryDate = new Date();
         expiryDate.setTime(expiryDate.getTime() + TimeUnit.MINUTES.toMillis(15));
 
-        final DeviceCodeFlowCommandCallback callback = (DeviceCodeFlowCommandCallback) mDeviceCodeFlowCommand.getCallback();
+        final DeviceCodeFlowCommandCallback callback =
+                (DeviceCodeFlowCommandCallback) mDeviceCodeFlowCommand.getCallback();
         callback.onUserCodeReceived(
                 "https://login.microsoftonline.com/common/oauth2/deviceauth",
                 "ABCDEFGH",
@@ -74,12 +74,8 @@ public class ShadowDeviceCodeFlowCommandSuccessful {
         cacheRecordList.add(cacheRecord);
 
         // Create dummy authentication result
-        final ILocalAuthenticationResult localAuthenticationResult = new LocalAuthenticationResult(
-                cacheRecord,
-                cacheRecordList,
-                SdkType.MSAL,
-                false
-        );
+        final ILocalAuthenticationResult localAuthenticationResult =
+                new LocalAuthenticationResult(cacheRecord, cacheRecordList, SdkType.MSAL, false);
 
         // Create dummy token result
         final AcquireTokenResult tokenResult = new AcquireTokenResult();

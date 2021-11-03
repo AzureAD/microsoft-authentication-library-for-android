@@ -62,10 +62,11 @@ public class TestCase1420484 extends AbstractGuestAccountMsalUiTest {
 
     @Parameterized.Parameters(name = "{0}")
     public static Collection guestHomeAzureEnvironment() {
-        return Arrays.asList(new Object[][]{
-                {"AZURE_US_GOV", LabConstants.GuestHomeAzureEnvironment.AZURE_US_GOV},
-                {"AZURE_CHINA_CLOUD", LabConstants.GuestHomeAzureEnvironment.AZURE_CHINA_CLOUD},
-        });
+        return Arrays.asList(
+                new Object[][] {
+                    {"AZURE_US_GOV", LabConstants.GuestHomeAzureEnvironment.AZURE_US_GOV},
+                    {"AZURE_CHINA_CLOUD", LabConstants.GuestHomeAzureEnvironment.AZURE_CHINA_CLOUD},
+                });
     }
 
     /**
@@ -77,43 +78,57 @@ public class TestCase1420484 extends AbstractGuestAccountMsalUiTest {
         final String password = LabGuestAccountHelper.getPasswordForGuestUser(mGuestUser);
 
         // Handler for Interactive auth call
-        final OnInteractionRequired interactionHandler = () -> {
-            ((IApp) mBrowser).handleFirstRun();
-            final PromptHandlerParameters promptHandlerParameters =
-                    PromptHandlerParameters.builder()
-                    .prompt(PromptParameter.SELECT_ACCOUNT)
-                    .loginHint(userName)
-                    .staySignedInPageExpected(true)
-                    .speedBumpExpected(true)
-                    .build();
-            final AadPromptHandler promptHandler = new AadPromptHandler(promptHandlerParameters);
-            promptHandler.handlePrompt(userName, password);
-        };
+        final OnInteractionRequired interactionHandler =
+                () -> {
+                    ((IApp) mBrowser).handleFirstRun();
+                    final PromptHandlerParameters promptHandlerParameters =
+                            PromptHandlerParameters.builder()
+                                    .prompt(PromptParameter.SELECT_ACCOUNT)
+                                    .loginHint(userName)
+                                    .staySignedInPageExpected(true)
+                                    .speedBumpExpected(true)
+                                    .build();
+                    final AadPromptHandler promptHandler =
+                            new AadPromptHandler(promptHandlerParameters);
+                    promptHandler.handlePrompt(userName, password);
+                };
 
-        final MsalAuthTestParams acquireTokenAuthParams = MsalAuthTestParams.builder()
-                .activity(mActivity)
-                .loginHint(userName)
-                .scopes(Arrays.asList(getScopes()))
-                .promptParameter(Prompt.SELECT_ACCOUNT)
-                .authority(getAuthority())
-                .msalConfigResourceId(getConfigFileResourceId())
-                .build();
+        final MsalAuthTestParams acquireTokenAuthParams =
+                MsalAuthTestParams.builder()
+                        .activity(mActivity)
+                        .loginHint(userName)
+                        .scopes(Arrays.asList(getScopes()))
+                        .promptParameter(Prompt.SELECT_ACCOUNT)
+                        .authority(getAuthority())
+                        .msalConfigResourceId(getConfigFileResourceId())
+                        .build();
 
         final MsalSdk msalSdk = new MsalSdk();
         // Acquire token interactively
-        final MsalAuthResult acquireTokenResult = msalSdk.acquireTokenInteractive(acquireTokenAuthParams, interactionHandler, TokenRequestTimeout.SHORT);
-        Assert.assertFalse("Verify accessToken is not empty", TextUtils.isEmpty(acquireTokenResult.getAccessToken()));
+        final MsalAuthResult acquireTokenResult =
+                msalSdk.acquireTokenInteractive(
+                        acquireTokenAuthParams, interactionHandler, TokenRequestTimeout.SHORT);
+        Assert.assertFalse(
+                "Verify accessToken is not empty",
+                TextUtils.isEmpty(acquireTokenResult.getAccessToken()));
 
         // change the time on the device
         TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
 
         // Acquire token silently
-        final MsalAuthResult acquireTokenSilentResult = msalSdk.acquireTokenSilent(acquireTokenAuthParams, TokenRequestTimeout.SHORT);
-        Assert.assertFalse("Verify accessToken is not empty", TextUtils.isEmpty(acquireTokenSilentResult.getAccessToken()));
+        final MsalAuthResult acquireTokenSilentResult =
+                msalSdk.acquireTokenSilent(acquireTokenAuthParams, TokenRequestTimeout.SHORT);
+        Assert.assertFalse(
+                "Verify accessToken is not empty",
+                TextUtils.isEmpty(acquireTokenSilentResult.getAccessToken()));
 
-        Assert.assertNotEquals("Silent request gets new access token", acquireTokenSilentResult.getAccessToken(), acquireTokenResult.getAccessToken());
+        Assert.assertNotEquals(
+                "Silent request gets new access token",
+                acquireTokenSilentResult.getAccessToken(),
+                acquireTokenResult.getAccessToken());
 
-        JSONObject profileObject = getProfileObjectFromMSGraph(acquireTokenSilentResult.getAccessToken());
+        JSONObject profileObject =
+                getProfileObjectFromMSGraph(acquireTokenSilentResult.getAccessToken());
         Assert.assertEquals(userName, profileObject.get("mail"));
     }
 
@@ -129,7 +144,7 @@ public class TestCase1420484 extends AbstractGuestAccountMsalUiTest {
 
     @Override
     public String[] getScopes() {
-        return new String[]{"User.read"};
+        return new String[] {"User.read"};
     }
 
     @Override

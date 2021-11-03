@@ -34,7 +34,7 @@ import org.robolectric.shadows.ShadowLog;
  */
 public class RobolectricLoggingRule implements TestRule {
 
-    private final static String TAG = RobolectricLoggingRule.class.getSimpleName();
+    private static final String TAG = RobolectricLoggingRule.class.getSimpleName();
 
     @Override
     public Statement apply(final Statement base, Description description) {

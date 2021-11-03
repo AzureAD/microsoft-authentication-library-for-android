@@ -18,14 +18,13 @@ import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
 import com.microsoft.identity.common.AndroidPlatformComponents;
 import com.microsoft.identity.common.internal.commands.parameters.AndroidActivityInteractiveTokenCommandParameters;
+import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryB2CAuthority;
 import com.microsoft.identity.common.java.authscheme.AbstractAuthenticationScheme;
 import com.microsoft.identity.common.java.authscheme.AuthenticationSchemeFactory;
 import com.microsoft.identity.common.java.authscheme.BearerAuthenticationSchemeInternal;
-import com.microsoft.identity.common.java.exception.ClientException;
-import com.microsoft.identity.common.java.util.SchemaUtil;
 import com.microsoft.identity.common.java.commands.parameters.CommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.DeviceCodeFlowCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.GenerateShrCommandParameters;
@@ -33,11 +32,12 @@ import com.microsoft.identity.common.java.commands.parameters.InteractiveTokenCo
 import com.microsoft.identity.common.java.commands.parameters.RemoveAccountCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.SilentTokenCommandParameters;
 import com.microsoft.identity.common.java.dto.AccountRecord;
+import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.java.providers.oauth2.OpenIdConnectPromptParameter;
 import com.microsoft.identity.common.java.request.SdkType;
 import com.microsoft.identity.common.java.ui.AuthorizationAgent;
-import com.microsoft.identity.common.internal.util.StringUtil;
+import com.microsoft.identity.common.java.util.SchemaUtil;
 import com.microsoft.identity.common.logging.Logger;
 
 import java.util.ArrayList;
@@ -54,19 +54,23 @@ public class CommandParametersAdapter {
             @NonNull final PublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache) {
 
-        final CommandParameters commandParameters = CommandParameters.builder()
-                .platformComponents(AndroidPlatformComponents.createFromContext(configuration.getAppContext()))
-                .applicationName(configuration.getAppContext().getPackageName())
-                .applicationVersion(getPackageVersion(configuration.getAppContext()))
-                .clientId(configuration.getClientId())
-                .isSharedDevice(configuration.getIsSharedDevice())
-                .oAuth2TokenCache(tokenCache)
-                .redirectUri(configuration.getRedirectUri())
-                .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
-                .sdkType(SdkType.MSAL)
-                .sdkVersion(PublicClientApplication.getSdkVersion())
-                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
-                .build();
+        final CommandParameters commandParameters =
+                CommandParameters.builder()
+                        .platformComponents(
+                                AndroidPlatformComponents.createFromContext(
+                                        configuration.getAppContext()))
+                        .applicationName(configuration.getAppContext().getPackageName())
+                        .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                        .clientId(configuration.getClientId())
+                        .isSharedDevice(configuration.getIsSharedDevice())
+                        .oAuth2TokenCache(tokenCache)
+                        .redirectUri(configuration.getRedirectUri())
+                        .requiredBrokerProtocolVersion(
+                                configuration.getRequiredBrokerProtocolVersion())
+                        .sdkType(SdkType.MSAL)
+                        .sdkVersion(PublicClientApplication.getSdkVersion())
+                        .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                        .build();
 
         return commandParameters;
     }
@@ -76,21 +80,25 @@ public class CommandParametersAdapter {
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final AccountRecord account) {
 
-        final RemoveAccountCommandParameters commandParameters = RemoveAccountCommandParameters.builder()
-                .platformComponents(AndroidPlatformComponents.createFromContext(configuration.getAppContext()))
-                .applicationName(configuration.getAppContext().getPackageName())
-                .applicationVersion(getPackageVersion(configuration.getAppContext()))
-                .clientId(configuration.getClientId())
-                .isSharedDevice(configuration.getIsSharedDevice())
-                .oAuth2TokenCache(tokenCache)
-                .redirectUri(configuration.getRedirectUri())
-                .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
-                .sdkType(SdkType.MSAL)
-                .sdkVersion(PublicClientApplication.getSdkVersion())
-                .account(account)
-                .browserSafeList(configuration.getBrowserSafeList())
-                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
-                .build();
+        final RemoveAccountCommandParameters commandParameters =
+                RemoveAccountCommandParameters.builder()
+                        .platformComponents(
+                                AndroidPlatformComponents.createFromContext(
+                                        configuration.getAppContext()))
+                        .applicationName(configuration.getAppContext().getPackageName())
+                        .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                        .clientId(configuration.getClientId())
+                        .isSharedDevice(configuration.getIsSharedDevice())
+                        .oAuth2TokenCache(tokenCache)
+                        .redirectUri(configuration.getRedirectUri())
+                        .requiredBrokerProtocolVersion(
+                                configuration.getRequiredBrokerProtocolVersion())
+                        .sdkType(SdkType.MSAL)
+                        .sdkVersion(PublicClientApplication.getSdkVersion())
+                        .account(account)
+                        .browserSafeList(configuration.getBrowserSafeList())
+                        .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                        .build();
 
         return commandParameters;
     }
@@ -98,56 +106,55 @@ public class CommandParametersAdapter {
     public static InteractiveTokenCommandParameters createInteractiveTokenCommandParameters(
             @NonNull final PublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
-            @NonNull final AcquireTokenParameters parameters) throws ClientException {
+            @NonNull final AcquireTokenParameters parameters)
+            throws ClientException {
 
-        final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
-                AndroidPlatformComponents.createFromContext(parameters.getActivity()),
-                parameters.getAuthenticationScheme()
-        );
+        final AbstractAuthenticationScheme authenticationScheme =
+                AuthenticationSchemeFactory.createScheme(
+                        AndroidPlatformComponents.createFromContext(parameters.getActivity()),
+                        parameters.getAuthenticationScheme());
 
         final Authority authority = getAuthority(configuration, parameters);
 
-        final String claimsRequestJson = ClaimsRequest.getJsonStringFromClaimsRequest(
-                getClaimsRequest(
-                        parameters.getClaimsRequest(),
-                        configuration,
-                        authority
-                ));
+        final String claimsRequestJson =
+                ClaimsRequest.getJsonStringFromClaimsRequest(
+                        getClaimsRequest(parameters.getClaimsRequest(), configuration, authority));
 
-        final InteractiveTokenCommandParameters commandParameters = AndroidActivityInteractiveTokenCommandParameters
-                .builder()
-                .activity(parameters.getActivity())
-                .platformComponents(AndroidPlatformComponents.createFromActivity(
-                        parameters.getActivity(),
-                        parameters.getFragment()))
-                .applicationName(configuration.getAppContext().getPackageName())
-                .applicationVersion(getPackageVersion(configuration.getAppContext()))
-                .clientId(configuration.getClientId())
-                .isSharedDevice(configuration.getIsSharedDevice())
-                .oAuth2TokenCache(tokenCache)
-                .redirectUri(configuration.getRedirectUri())
-                .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
-                .sdkType(SdkType.MSAL)
-                .sdkVersion(PublicClientApplication.getSdkVersion())
-                .browserSafeList(configuration.getBrowserSafeList())
-                .authority(authority)
-                .claimsRequestJson(claimsRequestJson)
-                .forceRefresh(parameters.getClaimsRequest() != null)
-                .scopes(new HashSet<>(parameters.getScopes()))
-                .extraScopesToConsent(parameters.getExtraScopesToConsent())
-                .extraQueryStringParameters(parameters.getExtraQueryStringParameters())
-                .loginHint(getLoginHint(parameters))
-                .account(parameters.getAccountRecord())
-                .authenticationScheme(authenticationScheme)
-                .authorizationAgent(getAuthorizationAgent(configuration))
-                .brokerBrowserSupportEnabled(getBrokerBrowserSupportEnabled(parameters))
-                .prompt(getPromptParameter(parameters))
-                .isWebViewZoomControlsEnabled(configuration.isWebViewZoomControlsEnabled())
-                .isWebViewZoomEnabled(configuration.isWebViewZoomEnabled())
-                .handleNullTaskAffinity(configuration.isHandleNullTaskAffinityEnabled())
-                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
-                .correlationId(parameters.getCorrelationId())
-                .build();
+        final InteractiveTokenCommandParameters commandParameters =
+                AndroidActivityInteractiveTokenCommandParameters.builder()
+                        .activity(parameters.getActivity())
+                        .platformComponents(
+                                AndroidPlatformComponents.createFromActivity(
+                                        parameters.getActivity(), parameters.getFragment()))
+                        .applicationName(configuration.getAppContext().getPackageName())
+                        .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                        .clientId(configuration.getClientId())
+                        .isSharedDevice(configuration.getIsSharedDevice())
+                        .oAuth2TokenCache(tokenCache)
+                        .redirectUri(configuration.getRedirectUri())
+                        .requiredBrokerProtocolVersion(
+                                configuration.getRequiredBrokerProtocolVersion())
+                        .sdkType(SdkType.MSAL)
+                        .sdkVersion(PublicClientApplication.getSdkVersion())
+                        .browserSafeList(configuration.getBrowserSafeList())
+                        .authority(authority)
+                        .claimsRequestJson(claimsRequestJson)
+                        .forceRefresh(parameters.getClaimsRequest() != null)
+                        .scopes(new HashSet<>(parameters.getScopes()))
+                        .extraScopesToConsent(parameters.getExtraScopesToConsent())
+                        .extraQueryStringParameters(parameters.getExtraQueryStringParameters())
+                        .loginHint(getLoginHint(parameters))
+                        .account(parameters.getAccountRecord())
+                        .authenticationScheme(authenticationScheme)
+                        .authorizationAgent(getAuthorizationAgent(configuration))
+                        .brokerBrowserSupportEnabled(getBrokerBrowserSupportEnabled(parameters))
+                        .prompt(getPromptParameter(parameters))
+                        .isWebViewZoomControlsEnabled(configuration.isWebViewZoomControlsEnabled())
+                        .isWebViewZoomEnabled(configuration.isWebViewZoomEnabled())
+                        .handleNullTaskAffinity(configuration.isHandleNullTaskAffinityEnabled())
+                        .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                        .correlationId(parameters.getCorrelationId())
+                        .build();
 
         return commandParameters;
     }
@@ -155,48 +162,49 @@ public class CommandParametersAdapter {
     public static SilentTokenCommandParameters createSilentTokenCommandParameters(
             @NonNull final PublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
-            @NonNull final AcquireTokenSilentParameters parameters) throws ClientException {
+            @NonNull final AcquireTokenSilentParameters parameters)
+            throws ClientException {
         final Authority authority = getAuthority(configuration, parameters);
 
         final ClaimsRequest claimsRequest = parameters.getClaimsRequest();
 
-        final ClaimsRequest mergedClaimsRequest = getClaimsRequest(
-                parameters.getClaimsRequest(),
-                configuration,
-                authority);
+        final ClaimsRequest mergedClaimsRequest =
+                getClaimsRequest(parameters.getClaimsRequest(), configuration, authority);
 
-        final String claimsRequestJson = ClaimsRequest.getJsonStringFromClaimsRequest(
-                mergedClaimsRequest
-        );
+        final String claimsRequestJson =
+                ClaimsRequest.getJsonStringFromClaimsRequest(mergedClaimsRequest);
 
         final boolean forceRefresh = claimsRequest != null || parameters.getForceRefresh();
 
-        final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
-                AndroidPlatformComponents.createFromContext(configuration.getAppContext()),
-                parameters.getAuthenticationScheme()
-        );
+        final AbstractAuthenticationScheme authenticationScheme =
+                AuthenticationSchemeFactory.createScheme(
+                        AndroidPlatformComponents.createFromContext(configuration.getAppContext()),
+                        parameters.getAuthenticationScheme());
 
-        final SilentTokenCommandParameters commandParameters = SilentTokenCommandParameters
-                .builder()
-                .platformComponents(AndroidPlatformComponents.createFromContext(configuration.getAppContext()))
-                .applicationName(configuration.getAppContext().getPackageName())
-                .applicationVersion(getPackageVersion(configuration.getAppContext()))
-                .clientId(configuration.getClientId())
-                .isSharedDevice(configuration.getIsSharedDevice())
-                .oAuth2TokenCache(tokenCache)
-                .redirectUri(configuration.getRedirectUri())
-                .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
-                .sdkType(SdkType.MSAL)
-                .sdkVersion(PublicClientApplication.getSdkVersion())
-                .authority(authority)
-                .claimsRequestJson(claimsRequestJson)
-                .forceRefresh(forceRefresh)
-                .account(parameters.getAccountRecord())
-                .authenticationScheme(authenticationScheme)
-                .scopes(new HashSet<>(parameters.getScopes()))
-                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
-                .correlationId(parameters.getCorrelationId())
-                .build();
+        final SilentTokenCommandParameters commandParameters =
+                SilentTokenCommandParameters.builder()
+                        .platformComponents(
+                                AndroidPlatformComponents.createFromContext(
+                                        configuration.getAppContext()))
+                        .applicationName(configuration.getAppContext().getPackageName())
+                        .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                        .clientId(configuration.getClientId())
+                        .isSharedDevice(configuration.getIsSharedDevice())
+                        .oAuth2TokenCache(tokenCache)
+                        .redirectUri(configuration.getRedirectUri())
+                        .requiredBrokerProtocolVersion(
+                                configuration.getRequiredBrokerProtocolVersion())
+                        .sdkType(SdkType.MSAL)
+                        .sdkVersion(PublicClientApplication.getSdkVersion())
+                        .authority(authority)
+                        .claimsRequestJson(claimsRequestJson)
+                        .forceRefresh(forceRefresh)
+                        .account(parameters.getAccountRecord())
+                        .authenticationScheme(authenticationScheme)
+                        .scopes(new HashSet<>(parameters.getScopes()))
+                        .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                        .correlationId(parameters.getCorrelationId())
+                        .build();
 
         return commandParameters;
     }
@@ -210,24 +218,29 @@ public class CommandParametersAdapter {
 
         final Authority authority = configuration.getDefaultAuthority();
 
-        final AbstractAuthenticationScheme authenticationScheme = new BearerAuthenticationSchemeInternal();
+        final AbstractAuthenticationScheme authenticationScheme =
+                new BearerAuthenticationSchemeInternal();
 
-        final DeviceCodeFlowCommandParameters commandParameters = DeviceCodeFlowCommandParameters.builder()
-                .platformComponents(AndroidPlatformComponents.createFromContext(configuration.getAppContext()))
-                .applicationName(configuration.getAppContext().getPackageName())
-                .applicationVersion(getPackageVersion(configuration.getAppContext()))
-                .clientId(configuration.getClientId())
-                .isSharedDevice(configuration.getIsSharedDevice())
-                .redirectUri(configuration.getRedirectUri())
-                .oAuth2TokenCache(tokenCache)
-                .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
-                .sdkType(SdkType.MSAL)
-                .sdkVersion(PublicClientApplication.getSdkVersion())
-                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
-                .authenticationScheme(authenticationScheme)
-                .scopes(new HashSet<>(Arrays.asList(scopes)))
-                .authority(authority)
-                .build();
+        final DeviceCodeFlowCommandParameters commandParameters =
+                DeviceCodeFlowCommandParameters.builder()
+                        .platformComponents(
+                                AndroidPlatformComponents.createFromContext(
+                                        configuration.getAppContext()))
+                        .applicationName(configuration.getAppContext().getPackageName())
+                        .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                        .clientId(configuration.getClientId())
+                        .isSharedDevice(configuration.getIsSharedDevice())
+                        .redirectUri(configuration.getRedirectUri())
+                        .oAuth2TokenCache(tokenCache)
+                        .requiredBrokerProtocolVersion(
+                                configuration.getRequiredBrokerProtocolVersion())
+                        .sdkType(SdkType.MSAL)
+                        .sdkVersion(PublicClientApplication.getSdkVersion())
+                        .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                        .authenticationScheme(authenticationScheme)
+                        .scopes(new HashSet<>(Arrays.asList(scopes)))
+                        .authority(authority)
+                        .build();
 
         return commandParameters;
     }
@@ -235,7 +248,8 @@ public class CommandParametersAdapter {
     private static String getPackageVersion(@NonNull final Context context) {
         final String packageName = context.getPackageName();
         try {
-            final PackageInfo packageInfo = context.getPackageManager().getPackageInfo(packageName, 0);
+            final PackageInfo packageInfo =
+                    context.getPackageManager().getPackageInfo(packageName, 0);
             return packageInfo.versionName;
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
@@ -244,17 +258,22 @@ public class CommandParametersAdapter {
     }
 
     private static Authority getRequestAuthority(
-            @NonNull final PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
+            @NonNull
+                    final PublicClientApplicationConfiguration
+                            publicClientApplicationConfiguration) {
 
         String requestAuthority = null;
         Authority authority;
 
-        // For a B2C request, the silent request will use the passed-in authority string from client app.
-        if (publicClientApplicationConfiguration.getDefaultAuthority() instanceof AzureActiveDirectoryB2CAuthority) {
-            requestAuthority = publicClientApplicationConfiguration
-                    .getDefaultAuthority()
-                    .getAuthorityURL()
-                    .toString();
+        // For a B2C request, the silent request will use the passed-in authority string from client
+        // app.
+        if (publicClientApplicationConfiguration.getDefaultAuthority()
+                instanceof AzureActiveDirectoryB2CAuthority) {
+            requestAuthority =
+                    publicClientApplicationConfiguration
+                            .getDefaultAuthority()
+                            .getAuthorityURL()
+                            .toString();
         }
 
         if (requestAuthority == null) {
@@ -266,12 +285,13 @@ public class CommandParametersAdapter {
         return authority;
     }
 
-    public static ClaimsRequest addClientCapabilitiesToClaimsRequest(ClaimsRequest cr, String clientCapabilities) {
+    public static ClaimsRequest addClientCapabilitiesToClaimsRequest(
+            ClaimsRequest cr, String clientCapabilities) {
 
         final ClaimsRequest mergedClaimsRequest = (cr == null) ? new ClaimsRequest() : cr;
 
         if (clientCapabilities != null) {
-            //Add client capabilities to existing claims request
+            // Add client capabilities to existing claims request
             RequestedClaimAdditionalInformation info = new RequestedClaimAdditionalInformation();
             String[] capabilities = clientCapabilities.split(",");
             info.setValues(new ArrayList<Object>(Arrays.asList(capabilities)));
@@ -293,12 +313,15 @@ public class CommandParametersAdapter {
             // The home account was null, therefore this must be a multi-tenant account
             final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
             // Any arbitrary tenant profile should work...
-            final Map<String, ITenantProfile> tenantProfiles = multiTenantAccount.getTenantProfiles();
+            final Map<String, ITenantProfile> tenantProfiles =
+                    multiTenantAccount.getTenantProfiles();
 
             for (final Map.Entry<String, ITenantProfile> profileEntry : tenantProfiles.entrySet()) {
                 if (null != profileEntry.getValue().getClaims()) {
-                    final String displayableId = SchemaUtil.getDisplayableId(profileEntry.getValue().getClaims());
-                    if (!SchemaUtil.MISSING_FROM_THE_TOKEN_RESPONSE.equalsIgnoreCase(displayableId)) {
+                    final String displayableId =
+                            SchemaUtil.getDisplayableId(profileEntry.getValue().getClaims());
+                    if (!SchemaUtil.MISSING_FROM_THE_TOKEN_RESPONSE.equalsIgnoreCase(
+                            displayableId)) {
                         username = displayableId;
                         break;
                     }
@@ -321,18 +344,13 @@ public class CommandParametersAdapter {
                 authority = configuration.getDefaultAuthority();
             }
         } else {
-            authority = Authority.getAuthorityFromAuthorityUrl(
-                    parameters.getAuthority()
-            );
+            authority = Authority.getAuthorityFromAuthorityUrl(parameters.getAuthority());
         }
 
         if (authority instanceof AzureActiveDirectoryAuthority) {
-            AzureActiveDirectoryAuthority aadAuthority =
-                    (AzureActiveDirectoryAuthority) authority;
+            AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) authority;
 
-            aadAuthority.setMultipleCloudsSupported(
-                    configuration.getMultipleCloudsSupported()
-            );
+            aadAuthority.setMultipleCloudsSupported(configuration.getMultipleCloudsSupported());
         }
 
         return authority;
@@ -345,8 +363,7 @@ public class CommandParametersAdapter {
         final Authority authority = Authority.getAuthorityFromAuthorityUrl(requestAuthority);
 
         if (authority instanceof AzureActiveDirectoryAuthority) {
-            AzureActiveDirectoryAuthority aadAuthority =
-                    (AzureActiveDirectoryAuthority) authority;
+            AzureActiveDirectoryAuthority aadAuthority = (AzureActiveDirectoryAuthority) authority;
 
             aadAuthority.setMultipleCloudsSupported(configuration.getMultipleCloudsSupported());
         }
@@ -357,12 +374,11 @@ public class CommandParametersAdapter {
     private static ClaimsRequest getClaimsRequest(
             @NonNull final ClaimsRequest requestedClaims,
             @NonNull final PublicClientApplicationConfiguration configuration,
-            @NonNull final Authority authority
-    ) {
+            @NonNull final Authority authority) {
         if (authority instanceof AzureActiveDirectoryAuthority) {
-            //AzureActiveDirectory supports client capabilities
-            return addClientCapabilitiesToClaimsRequest(requestedClaims,
-                    configuration.getClientCapabilities());
+            // AzureActiveDirectory supports client capabilities
+            return addClientCapabilitiesToClaimsRequest(
+                    requestedClaims, configuration.getClientCapabilities());
         } else {
             return requestedClaims;
         }
@@ -378,7 +394,8 @@ public class CommandParametersAdapter {
         }
     }
 
-    private static AuthorizationAgent getAuthorizationAgent(@NonNull final PublicClientApplicationConfiguration configuration) {
+    private static AuthorizationAgent getAuthorizationAgent(
+            @NonNull final PublicClientApplicationConfiguration configuration) {
         if (configuration.getAuthorizationAgent() != null) {
             return configuration.getAuthorizationAgent();
         } else {
@@ -386,25 +403,28 @@ public class CommandParametersAdapter {
         }
     }
 
-    private static boolean getBrokerBrowserSupportEnabled(@NonNull final AcquireTokenParameters parameters) {
+    private static boolean getBrokerBrowserSupportEnabled(
+            @NonNull final AcquireTokenParameters parameters) {
         final String methodName = ":getBrokerBrowserSupportEnabled";
 
-        // Special case only for Intune COBO app, where they use Intune AcquireTokenParameters (an internal class)
+        // Special case only for Intune COBO app, where they use Intune AcquireTokenParameters (an
+        // internal class)
         // to set browser support in broker to share SSO from System WebView login.
         if (parameters instanceof IntuneAcquireTokenParameters) {
-            boolean brokerBrowserEnabled = ((IntuneAcquireTokenParameters) parameters)
-                    .isBrokerBrowserSupportEnabled();
-            Logger.info(TAG + methodName,
+            boolean brokerBrowserEnabled =
+                    ((IntuneAcquireTokenParameters) parameters).isBrokerBrowserSupportEnabled();
+            Logger.info(
+                    TAG + methodName,
                     " IntuneAcquireTokenParameters instance, broker browser enabled : "
-                            + brokerBrowserEnabled
-            );
+                            + brokerBrowserEnabled);
             return brokerBrowserEnabled;
         }
 
         return false;
     }
 
-    private static OpenIdConnectPromptParameter getPromptParameter(@NonNull final AcquireTokenParameters parameters) {
+    private static OpenIdConnectPromptParameter getPromptParameter(
+            @NonNull final AcquireTokenParameters parameters) {
         if (parameters.getPrompt() == null) {
             return OpenIdConnectPromptParameter.SELECT_ACCOUNT;
         } else {

@@ -34,7 +34,8 @@ public interface ITokenShare extends ITokenShareInternal {
      * {@inheritDoc}
      */
     @Override
-    TokenShareResult getOrgIdFamilyRefreshTokenWithMetadata(String identifier) throws MsalClientException;
+    TokenShareResult getOrgIdFamilyRefreshTokenWithMetadata(String identifier)
+            throws MsalClientException;
 
     /**
      * {@inheritDoc}
@@ -52,7 +53,8 @@ public interface ITokenShare extends ITokenShareInternal {
      * {@inheritDoc}
      */
     @Override
-    TokenShareResult getMsaFamilyRefreshTokenWithMetadata(String identifier) throws MsalClientException;
+    TokenShareResult getMsaFamilyRefreshTokenWithMetadata(String identifier)
+            throws MsalClientException;
 
     /**
      * {@inheritDoc}
@@ -65,5 +67,4 @@ public interface ITokenShare extends ITokenShareInternal {
      */
     @Override
     void saveMsaFamilyRefreshToken(String refreshToken) throws MsalClientException;
-
 }

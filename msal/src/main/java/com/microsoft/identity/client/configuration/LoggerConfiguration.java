@@ -22,12 +22,12 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.configuration;
 
-import com.google.gson.annotations.SerializedName;
-import com.microsoft.identity.client.Logger;
-
 import static com.microsoft.identity.client.configuration.LoggerConfiguration.SerializedNames.LOGCAT_ENABLED;
 import static com.microsoft.identity.client.configuration.LoggerConfiguration.SerializedNames.LOG_LEVEL;
 import static com.microsoft.identity.client.configuration.LoggerConfiguration.SerializedNames.PII_ENABLED;
+
+import com.google.gson.annotations.SerializedName;
+import com.microsoft.identity.client.Logger;
 
 public class LoggerConfiguration {
 

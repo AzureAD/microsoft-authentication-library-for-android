@@ -23,17 +23,16 @@
 package com.microsoft.identity.client.testapp;
 
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -57,12 +56,16 @@ public class UsersFragment extends Fragment {
     private Gson mGson;
 
     @Override
-    public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
+    public View onCreateView(
+            final LayoutInflater inflater,
+            final ViewGroup container,
+            final Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_user, container, false);
 
         mUserList = view.findViewById(R.id.user_list);
 
-        MsalWrapper.create(getContext(),
+        MsalWrapper.create(
+                getContext(),
                 R.raw.msal_config_default,
                 new INotifyOperationResultCallback<MsalWrapper>() {
                     @Override
@@ -75,14 +78,12 @@ public class UsersFragment extends Fragment {
                                     }
 
                                     @Override
-                                    public void showMessage(String message) {
-                                    }
+                                    public void showMessage(String message) {}
                                 });
                     }
 
                     @Override
-                    public void showMessage(String message) {
-                    }
+                    public void showMessage(String message) {}
                 });
 
         return view;
@@ -96,15 +97,19 @@ public class UsersFragment extends Fragment {
             serializedUsers.add(mGson.toJson(jsonAcct));
         }
 
-        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, serializedUsers);
+        final ArrayAdapter<String> arrayAdapter =
+                new ArrayAdapter<>(
+                        getContext(), android.R.layout.simple_list_item_1, serializedUsers);
         mUserList.setAdapter(arrayAdapter);
 
-        mUserList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                getFragmentManager().popBackStack();
-            }
-        });
+        mUserList.setOnItemClickListener(
+                new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(
+                            AdapterView<?> parent, View view, int position, long id) {
+                        getFragmentManager().popBackStack();
+                    }
+                });
     }
 
     @NonNull
@@ -117,17 +122,15 @@ public class UsersFragment extends Fragment {
         if (account instanceof MultiTenantAccount) {
             jsonAcct.add(
                     "tenant_profiles",
-                    tenantProfilesToJson(
-                            ((MultiTenantAccount) account).getTenantProfiles()
-                    )
-            );
+                    tenantProfilesToJson(((MultiTenantAccount) account).getTenantProfiles()));
         }
 
         return jsonAcct;
     }
 
     @Nullable
-    private JsonElement tenantProfilesToJson(@Nullable final Map<String, ITenantProfile> tenantProfiles) {
+    private JsonElement tenantProfilesToJson(
+            @Nullable final Map<String, ITenantProfile> tenantProfiles) {
         if (null != tenantProfiles) {
             final JsonArray jsonArray = new JsonArray();
 

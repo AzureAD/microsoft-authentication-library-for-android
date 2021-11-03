@@ -22,18 +22,18 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.e2e.utils;
 
+import static junit.framework.Assert.fail;
+
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.common.java.util.ported.ObjectUtils;
 import com.microsoft.identity.common.internal.util.StringUtil;
+import com.microsoft.identity.common.java.util.ported.ObjectUtils;
 
 import org.junit.Assert;
-
-import static junit.framework.Assert.fail;
 
 public class AcquireTokenTestHelper {
 
@@ -48,107 +48,114 @@ public class AcquireTokenTestHelper {
     }
 
     public static AuthenticationCallback successfulInteractiveCallback() {
-        AuthenticationCallback callback = new AuthenticationCallback() {
-            @Override
-            public void onSuccess(IAuthenticationResult authenticationResult) {
-                Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
-                sAccount = authenticationResult.getAccount();
-            }
+        AuthenticationCallback callback =
+                new AuthenticationCallback() {
+                    @Override
+                    public void onSuccess(IAuthenticationResult authenticationResult) {
+                        Assert.assertTrue(
+                                !StringUtil.isEmpty(authenticationResult.getAccessToken()));
+                        sAccount = authenticationResult.getAccount();
+                    }
 
-            @Override
-            public void onError(MsalException exception) {
-                throw new AssertionError(exception);
-            }
+                    @Override
+                    public void onError(MsalException exception) {
+                        throw new AssertionError(exception);
+                    }
 
-            @Override
-            public void onCancel() {
-                fail("User cancelled flow");
-            }
-        };
+                    @Override
+                    public void onCancel() {
+                        fail("User cancelled flow");
+                    }
+                };
 
         return callback;
     }
 
     public static AuthenticationCallback failedSilentRequestDuplicateCommandCallback() {
-        AuthenticationCallback callback = new AuthenticationCallback() {
-            @Override
-            public void onSuccess(IAuthenticationResult authenticationResult) {
-                fail("not expected for this request to succeed");
-            }
+        AuthenticationCallback callback =
+                new AuthenticationCallback() {
+                    @Override
+                    public void onSuccess(IAuthenticationResult authenticationResult) {
+                        fail("not expected for this request to succeed");
+                    }
 
-            @Override
-            public void onError(MsalException exception) {
-                if (!ObjectUtils.equals(MsalClientException.DUPLICATE_COMMAND, exception.getErrorCode())) {
-                    throw new AssertionError(exception);
-                }
-            }
+                    @Override
+                    public void onError(MsalException exception) {
+                        if (!ObjectUtils.equals(
+                                MsalClientException.DUPLICATE_COMMAND, exception.getErrorCode())) {
+                            throw new AssertionError(exception);
+                        }
+                    }
 
-            @Override
-            public void onCancel() {
-                fail("Not expected to receive cancel");
-            }
-        };
+                    @Override
+                    public void onCancel() {
+                        fail("Not expected to receive cancel");
+                    }
+                };
 
         return callback;
     }
 
-
     public static SilentAuthenticationCallback successfulSilentCallback() {
-        SilentAuthenticationCallback callback = new SilentAuthenticationCallback() {
-            @Override
-            public void onSuccess(IAuthenticationResult authenticationResult) {
-                Assert.assertTrue("Received a success result with an empty access token", !StringUtil.isEmpty(authenticationResult.getAccessToken()));
-                sAccount = authenticationResult.getAccount();
-            }
+        SilentAuthenticationCallback callback =
+                new SilentAuthenticationCallback() {
+                    @Override
+                    public void onSuccess(IAuthenticationResult authenticationResult) {
+                        Assert.assertTrue(
+                                "Received a success result with an empty access token",
+                                !StringUtil.isEmpty(authenticationResult.getAccessToken()));
+                        sAccount = authenticationResult.getAccount();
+                    }
 
-            @Override
-            public void onError(MsalException exception) {
-                throw new AssertionError(exception);
-            }
-        };
+                    @Override
+                    public void onError(MsalException exception) {
+                        throw new AssertionError(exception);
+                    }
+                };
 
         return callback;
     }
 
     public static AuthenticationCallback failureInteractiveCallback(final String errorCode) {
-        AuthenticationCallback callback = new AuthenticationCallback() {
-            @Override
-            public void onSuccess(IAuthenticationResult authenticationResult) {
-                fail("Unexpected success");
-            }
+        AuthenticationCallback callback =
+                new AuthenticationCallback() {
+                    @Override
+                    public void onSuccess(IAuthenticationResult authenticationResult) {
+                        fail("Unexpected success");
+                    }
 
-            @Override
-            public void onError(MsalException exception) {
-                if (!ObjectUtils.equals(errorCode, exception.getErrorCode())) {
-                    throw new AssertionError(exception);
-                }
-            }
+                    @Override
+                    public void onError(MsalException exception) {
+                        if (!ObjectUtils.equals(errorCode, exception.getErrorCode())) {
+                            throw new AssertionError(exception);
+                        }
+                    }
 
-            @Override
-            public void onCancel() {
-                fail("User cancelled flow");
-            }
-        };
+                    @Override
+                    public void onCancel() {
+                        fail("User cancelled flow");
+                    }
+                };
 
         return callback;
     }
 
     public static SilentAuthenticationCallback failureSilentCallback(final String errorCode) {
-        SilentAuthenticationCallback callback = new SilentAuthenticationCallback() {
-            @Override
-            public void onSuccess(IAuthenticationResult authenticationResult) {
-                fail("Unexpected success");
-            }
+        SilentAuthenticationCallback callback =
+                new SilentAuthenticationCallback() {
+                    @Override
+                    public void onSuccess(IAuthenticationResult authenticationResult) {
+                        fail("Unexpected success");
+                    }
 
-            @Override
-            public void onError(MsalException exception) {
-                if (!ObjectUtils.equals(errorCode, exception.getErrorCode())) {
-                    throw new AssertionError(exception);
-                }
-            }
-        };
+                    @Override
+                    public void onError(MsalException exception) {
+                        if (!ObjectUtils.equals(errorCode, exception.getErrorCode())) {
+                            throw new AssertionError(exception);
+                        }
+                    }
+                };
 
         return callback;
     }
-
 }

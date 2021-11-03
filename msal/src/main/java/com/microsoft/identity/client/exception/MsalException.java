@@ -65,8 +65,7 @@ public class MsalException extends BaseException {
      * @param errorMessage The error message contained in the exception.
      * @param throwable    The {@link Throwable} contains the cause for the exception.
      */
-    MsalException(final String errorCode, final String errorMessage,
-                         final Throwable throwable) {
+    MsalException(final String errorCode, final String errorMessage, final Throwable throwable) {
         super(errorCode, errorMessage, throwable);
     }
 

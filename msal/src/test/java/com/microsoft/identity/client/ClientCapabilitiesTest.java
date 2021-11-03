@@ -22,7 +22,6 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client;
 
-
 import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.claims.ClaimsRequest;
@@ -37,27 +36,34 @@ import java.util.Arrays;
 
 public final class ClientCapabilitiesTest {
 
-    public final static String CP1_CAPABILITY = "CP1";
-
+    public static final String CP1_CAPABILITY = "CP1";
 
     @Test
     public void testAddClientCapabilitiesMatching() {
-        ClaimsRequest clientCapabilities = CommandParametersAdapter.addClientCapabilitiesToClaimsRequest(null, "CP1");
-        Assert.assertEquals(clientCapabilities, getAccessTokenClaimsRequest(CommandParametersAdapter.CLIENT_CAPABILITIES_CLAIM, CP1_CAPABILITY));
+        ClaimsRequest clientCapabilities =
+                CommandParametersAdapter.addClientCapabilitiesToClaimsRequest(null, "CP1");
+        Assert.assertEquals(
+                clientCapabilities,
+                getAccessTokenClaimsRequest(
+                        CommandParametersAdapter.CLIENT_CAPABILITIES_CLAIM, CP1_CAPABILITY));
     }
 
     @Test
     public void testAddClientCapabilitiesNotMatching() {
-        ClaimsRequest clientCapabilities = CommandParametersAdapter.addClientCapabilitiesToClaimsRequest(null, "CP2");
-        Assert.assertNotEquals(clientCapabilities, getAccessTokenClaimsRequest(CommandParametersAdapter.CLIENT_CAPABILITIES_CLAIM, CP1_CAPABILITY));
+        ClaimsRequest clientCapabilities =
+                CommandParametersAdapter.addClientCapabilitiesToClaimsRequest(null, "CP2");
+        Assert.assertNotEquals(
+                clientCapabilities,
+                getAccessTokenClaimsRequest(
+                        CommandParametersAdapter.CLIENT_CAPABILITIES_CLAIM, CP1_CAPABILITY));
     }
 
-    private ClaimsRequest getAccessTokenClaimsRequest(@NonNull String claimName, @NonNull String claimValue) {
+    private ClaimsRequest getAccessTokenClaimsRequest(
+            @NonNull String claimName, @NonNull String claimValue) {
         ClaimsRequest cp1ClaimsRequest = new ClaimsRequest();
         RequestedClaimAdditionalInformation info = new RequestedClaimAdditionalInformation();
         info.setValues(new ArrayList<Object>(Arrays.asList(claimValue)));
         cp1ClaimsRequest.requestClaimInAccessToken(claimName, info);
         return cp1ClaimsRequest;
     }
-
 }

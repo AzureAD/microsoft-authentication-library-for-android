@@ -22,12 +22,21 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.network;
 
+import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.getAccount;
+import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.successfulInteractiveCallback;
+import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
+import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.AD_GRAPH_USER_READ_SCOPE;
+import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.MS_GRAPH_USER_READ_SCOPE;
+import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.OFFICE_USER_READ_SCOPE;
+import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
+
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.e2e.rules.NetworkTestsRuleChain;
+import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthority;
 import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
-import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
@@ -42,21 +51,16 @@ import org.robolectric.annotation.Config;
 
 import java.util.Arrays;
 
-import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.getAccount;
-import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.successfulInteractiveCallback;
-import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
-import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
-import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.AD_GRAPH_USER_READ_SCOPE;
-import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.MS_GRAPH_USER_READ_SCOPE;
-import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.OFFICE_USER_READ_SCOPE;
-import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
-
 @RunWith(RobolectricTestRunner.class)
-@Config(shadows = {ShadowAndroidSdkStorageEncryptionManager.class, ShadowAuthority.class, ShadowPublicClientApplicationConfiguration.class})
+@Config(
+        shadows = {
+            ShadowAndroidSdkStorageEncryptionManager.class,
+            ShadowAuthority.class,
+            ShadowPublicClientApplicationConfiguration.class
+        })
 public class MultiAccountAndResourceAcquireTokenNetworkTests extends AcquireTokenAbstractTest {
 
-    @Rule
-    public TestRule rule = NetworkTestsRuleChain.getRule();
+    @Rule public TestRule rule = NetworkTestsRuleChain.getRule();
 
     @Override
     public String[] getScopes() {
@@ -76,10 +80,12 @@ public class MultiAccountAndResourceAcquireTokenNetworkTests extends AcquireToke
     @Test // test that accounts belonging to multiple clouds can live together in the app
     public void testAcquireTokenAndSilentWithMultipleCloudAccountsSuccess() {
 
-        final LabUserQuery[] queries = new LabUserQuery[]{
-                new AcquireTokenAADTest.AzureWorldWideCloudUser().getLabUserQuery(),
-                new AcquireTokenAADTest.AzureGermanyCloudUser().getLabUserQuery(),
-                new AcquireTokenAADTest.AzureUsGovCloudUser().getLabUserQuery()};
+        final LabUserQuery[] queries =
+                new LabUserQuery[] {
+                    new AcquireTokenAADTest.AzureWorldWideCloudUser().getLabUserQuery(),
+                    new AcquireTokenAADTest.AzureGermanyCloudUser().getLabUserQuery(),
+                    new AcquireTokenAADTest.AzureUsGovCloudUser().getLabUserQuery()
+                };
 
         final IAccount[] accounts = new IAccount[queries.length];
 
@@ -98,16 +104,18 @@ public class MultiAccountAndResourceAcquireTokenNetworkTests extends AcquireToke
 
     @Test // test that we can use mrrt to get a token silently for other resources
     public void testAcquireTokenSilentUsingMrrtSuccess() {
-        final LabUserQuery query = new AcquireTokenAADTest.AzureWorldWideCloudUser().getLabUserQuery();
+        final LabUserQuery query =
+                new AcquireTokenAADTest.AzureWorldWideCloudUser().getLabUserQuery();
 
         final String username = LabUserHelper.loadUserForTest(query);
 
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(username)
-                .withScopes(Arrays.asList(USER_READ_SCOPE))
-                .withCallback(successfulInteractiveCallback())
-                .build();
+        final AcquireTokenParameters parameters =
+                new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(mActivity)
+                        .withLoginHint(username)
+                        .withScopes(Arrays.asList(USER_READ_SCOPE))
+                        .withCallback(successfulInteractiveCallback())
+                        .build();
 
         mApplication.acquireToken(parameters);
         flushScheduler();
@@ -117,5 +125,4 @@ public class MultiAccountAndResourceAcquireTokenNetworkTests extends AcquireToke
         performSilentAcquireTokenCall(OFFICE_USER_READ_SCOPE);
         performSilentAcquireTokenCall(AD_GRAPH_USER_READ_SCOPE);
     }
-
 }

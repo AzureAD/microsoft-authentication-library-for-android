@@ -53,31 +53,37 @@ public class TestCase1116094 extends AbstractMsalUiTest {
 
         final MsalSdk msalSdk = new MsalSdk();
 
-        final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
-                .activity(mActivity)
-                .scopes(Arrays.asList(mScopes))
-                .promptParameter(Prompt.SELECT_ACCOUNT)
-                .msalConfigResourceId(getConfigFileResourceId())
-                .build();
-
-        // Start interactive token request in MSAL (should succeed)
-        final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
-            @Override
-            public void handleUserInteraction() {
-                ((IApp) mBrowser).handleFirstRun();
-
-                final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                        .prompt(PromptParameter.SELECT_ACCOUNT)
-                        .loginHint(null)
-                        .sessionExpected(false)
-                        .consentPageExpected(false)
-                        .speedBumpExpected(false)
+        final MsalAuthTestParams authTestParams =
+                MsalAuthTestParams.builder()
+                        .activity(mActivity)
+                        .scopes(Arrays.asList(mScopes))
+                        .promptParameter(Prompt.SELECT_ACCOUNT)
+                        .msalConfigResourceId(getConfigFileResourceId())
                         .build();
 
-                new AadPromptHandler(promptHandlerParameters)
-                        .handlePrompt(username, password);
-            }
-        },TokenRequestTimeout.MEDIUM);
+        // Start interactive token request in MSAL (should succeed)
+        final MsalAuthResult authResult =
+                msalSdk.acquireTokenInteractive(
+                        authTestParams,
+                        new OnInteractionRequired() {
+                            @Override
+                            public void handleUserInteraction() {
+                                ((IApp) mBrowser).handleFirstRun();
+
+                                final PromptHandlerParameters promptHandlerParameters =
+                                        PromptHandlerParameters.builder()
+                                                .prompt(PromptParameter.SELECT_ACCOUNT)
+                                                .loginHint(null)
+                                                .sessionExpected(false)
+                                                .consentPageExpected(false)
+                                                .speedBumpExpected(false)
+                                                .build();
+
+                                new AadPromptHandler(promptHandlerParameters)
+                                        .handlePrompt(username, password);
+                            }
+                        },
+                        TokenRequestTimeout.MEDIUM);
 
         authResult.assertSuccess();
 
@@ -86,18 +92,20 @@ public class TestCase1116094 extends AbstractMsalUiTest {
 
         final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
 
-        final IAccount account = msalSdk.getAccount(mActivity,getConfigFileResourceId(),username);
+        final IAccount account = msalSdk.getAccount(mActivity, getConfigFileResourceId(), username);
 
         // start silent token request in MSAL
-        final MsalAuthTestParams authTestSilentParams = MsalAuthTestParams.builder()
-                .activity(mActivity)
-                .loginHint(username)
-                .scopes(Arrays.asList(mScopes))
-                .authority(account.getAuthority())
-                .msalConfigResourceId(getConfigFileResourceId())
-                .build();
+        final MsalAuthTestParams authTestSilentParams =
+                MsalAuthTestParams.builder()
+                        .activity(mActivity)
+                        .loginHint(username)
+                        .scopes(Arrays.asList(mScopes))
+                        .authority(account.getAuthority())
+                        .msalConfigResourceId(getConfigFileResourceId())
+                        .build();
 
-        final MsalAuthResult authSilentResult = msalSdk.acquireTokenSilent(authTestSilentParams, TokenRequestTimeout.SILENT);
+        final MsalAuthResult authSilentResult =
+                msalSdk.acquireTokenSilent(authTestSilentParams, TokenRequestTimeout.SILENT);
         authSilentResult.assertSuccess();
     }
 
@@ -115,7 +123,7 @@ public class TestCase1116094 extends AbstractMsalUiTest {
 
     @Override
     public String[] getScopes() {
-        return new String[]{"User.read"};
+        return new String[] {"User.read"};
     }
 
     @Override

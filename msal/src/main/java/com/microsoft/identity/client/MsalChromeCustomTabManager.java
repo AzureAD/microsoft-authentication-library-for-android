@@ -61,8 +61,10 @@ public class MsalChromeCustomTabManager {
             throw new IllegalArgumentException("Activity parameter cannot be null");
         }
         mParentActivity = activity;
-        //TODO: Can move MsalUtils chrome specific util method to common when refactoring
-        mChromePackageWithCustomTabSupport = MsalUtils.getChromePackageWithCustomTabSupport(mParentActivity.getApplicationContext());
+        // TODO: Can move MsalUtils chrome specific util method to common when refactoring
+        mChromePackageWithCustomTabSupport =
+                MsalUtils.getChromePackageWithCustomTabSupport(
+                        mParentActivity.getApplicationContext());
     }
 
     protected void verifyChromeTabOrBrowser() throws MsalClientException {
@@ -71,7 +73,8 @@ public class MsalChromeCustomTabManager {
 
         } else if (MsalUtils.getChromePackage(mParentActivity.getApplicationContext()) == null) {
             Logger.warn(TAG, "Chrome is not installed.");
-            throw new MsalClientException(ErrorStrings.CHROME_NOT_INSTALLED, "Chrome is not installed.");
+            throw new MsalClientException(
+                    ErrorStrings.CHROME_NOT_INSTALLED, "Chrome is not installed.");
         }
     }
 
@@ -87,12 +90,18 @@ public class MsalChromeCustomTabManager {
             mCustomTabsServiceConnection = new MsalCustomTabsServiceConnection(latch);
 
             // Initiate the service-bind action
-            CustomTabsClient.bindCustomTabsService(mParentActivity, mChromePackageWithCustomTabSupport, mCustomTabsServiceConnection);
+            CustomTabsClient.bindCustomTabsService(
+                    mParentActivity,
+                    mChromePackageWithCustomTabSupport,
+                    mCustomTabsServiceConnection);
 
             boolean customTabsServiceConnected = waitForServiceConnectionToEstablish(latch);
 
-            final CustomTabsIntent.Builder builder = customTabsServiceConnected
-                    ? new CustomTabsIntent.Builder(mCustomTabsServiceConnection.getCustomTabsSession()) : new CustomTabsIntent.Builder();
+            final CustomTabsIntent.Builder builder =
+                    customTabsServiceConnected
+                            ? new CustomTabsIntent.Builder(
+                                    mCustomTabsServiceConnection.getCustomTabsSession())
+                            : new CustomTabsIntent.Builder();
 
             // Create the Intent used to launch the Url
             mCustomTabsIntent = builder.setShowTitle(true).build();
@@ -108,9 +117,11 @@ public class MsalChromeCustomTabManager {
         try {
             // await returns true if count is 0, false if action times out
             // invert this boolean to indicate if we should skip warming up
-            final boolean timedOut = !latch.await(CUSTOM_TABS_MAX_CONNECTION_TIMEOUT, TimeUnit.SECONDS);
+            final boolean timedOut =
+                    !latch.await(CUSTOM_TABS_MAX_CONNECTION_TIMEOUT, TimeUnit.SECONDS);
             if (timedOut) {
-                // if the request timed out, we don't actually know whether or not the service connected.
+                // if the request timed out, we don't actually know whether or not the service
+                // connected.
                 // to be safe, we'll skip warmup and rely on mCustomTabsServiceIsBound
                 // to unbind the Service when onStop() is called.
                 connectionEstablished = false;
@@ -127,7 +138,8 @@ public class MsalChromeCustomTabManager {
      * Method to unbind Chrome {@link androidx.browser.customtabs.CustomTabsService}.
      */
     public synchronized void unbindCustomTabsService() {
-        if (null != mCustomTabsServiceConnection && mCustomTabsServiceConnection.getCustomTabsServiceIsBound()) {
+        if (null != mCustomTabsServiceConnection
+                && mCustomTabsServiceConnection.getCustomTabsServiceIsBound()) {
             mParentActivity.unbindService(mCustomTabsServiceConnection);
             mCustomTabsServiceConnection.unbindCustomTabsService();
         }
@@ -147,8 +159,9 @@ public class MsalChromeCustomTabManager {
         } else {
             Logger.info(TAG, "Chrome tab support is not available, launching chrome browser.");
             final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(requestUrl));
-            ////TODO: Can move MsalUtils chrome specific util method to common when refactoring.
-            browserIntent.setPackage(MsalUtils.getChromePackage(mParentActivity.getApplicationContext()));
+            //// TODO: Can move MsalUtils chrome specific util method to common when refactoring.
+            browserIntent.setPackage(
+                    MsalUtils.getChromePackage(mParentActivity.getApplicationContext()));
             browserIntent.addCategory(Intent.CATEGORY_BROWSABLE);
             mParentActivity.startActivity(browserIntent);
         }
@@ -170,8 +183,8 @@ public class MsalChromeCustomTabManager {
         }
 
         @Override
-        public void onCustomTabsServiceConnected(final ComponentName name,
-                                                 final CustomTabsClient client) {
+        public void onCustomTabsServiceConnected(
+                final ComponentName name, final CustomTabsClient client) {
             final CountDownLatch latch = mLatchWeakReference.get();
 
             mCustomTabsServiceIsBound = true;

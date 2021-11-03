@@ -37,7 +37,6 @@ import java.util.Map;
  * Msal internal class for representing the client_info returned from token endpoint, client_info is used to uniquely identify
  * an user.
  */
-
 final class ClientInfo {
     private final String mUniqueIdentifier;
     private final String mUniqueTenantIdentifier;
@@ -50,12 +49,17 @@ final class ClientInfo {
         }
 
         // decode the client info first
-        final String decodedClientInfo = new String(Base64.decode(rawClientInfo, Base64.URL_SAFE), Charset.forName(MsalUtils.ENCODING_UTF8));
+        final String decodedClientInfo =
+                new String(
+                        Base64.decode(rawClientInfo, Base64.URL_SAFE),
+                        Charset.forName(MsalUtils.ENCODING_UTF8));
         final Map<String, String> clientInfoItems;
         try {
             clientInfoItems = MsalUtils.extractJsonObjectIntoMap(decodedClientInfo);
         } catch (final JSONException e) {
-            throw new MsalClientException(MsalClientException.JSON_PARSE_FAILURE, "Failed to parse the returned raw client info.");
+            throw new MsalClientException(
+                    MsalClientException.JSON_PARSE_FAILURE,
+                    "Failed to parse the returned raw client info.");
         }
 
         mUniqueIdentifier = clientInfoItems.get(ClientInfoClaim.UNIQUE_IDENTIFIER);

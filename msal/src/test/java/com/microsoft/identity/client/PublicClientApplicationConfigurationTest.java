@@ -22,12 +22,13 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import org.junit.Ignore;
-import org.junit.Test;
-
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.isBrokerRedirectUri;
+
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import org.junit.Ignore;
+import org.junit.Test;
 
 public class PublicClientApplicationConfigurationTest {
 
@@ -48,14 +49,16 @@ public class PublicClientApplicationConfigurationTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testNullRedirectThrows() {
-        final PublicClientApplicationConfiguration config = new PublicClientApplicationConfiguration();
+        final PublicClientApplicationConfiguration config =
+                new PublicClientApplicationConfiguration();
         config.setRedirectUri(null);
         config.validateConfiguration();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testEmptyStringRedirectThrows() {
-        final PublicClientApplicationConfiguration config = new PublicClientApplicationConfiguration();
+        final PublicClientApplicationConfiguration config =
+                new PublicClientApplicationConfiguration();
         config.setRedirectUri("");
         config.validateConfiguration();
     }
@@ -63,7 +66,8 @@ public class PublicClientApplicationConfigurationTest {
     @Test
     @Ignore // Ignore test due to mocking gaps http://g.co/androidstudio/not-mocked
     public void testValidRedirect() {
-        final PublicClientApplicationConfiguration config = new PublicClientApplicationConfiguration();
+        final PublicClientApplicationConfiguration config =
+                new PublicClientApplicationConfiguration();
         config.setRedirectUri("msauth://authority");
         config.validateConfiguration();
     }
@@ -71,7 +75,8 @@ public class PublicClientApplicationConfigurationTest {
     @Test(expected = IllegalArgumentException.class)
     @Ignore // Ignore test due to mocking gaps http://g.co/androidstudio/not-mocked
     public void testStringLiteralNullRedirectThrows() {
-        final PublicClientApplicationConfiguration config = new PublicClientApplicationConfiguration();
+        final PublicClientApplicationConfiguration config =
+                new PublicClientApplicationConfiguration();
         config.setRedirectUri("null");
         config.validateConfiguration();
     }

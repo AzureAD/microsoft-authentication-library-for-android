@@ -80,7 +80,8 @@ public class TestCase497038 extends AbstractMsalUiTest {
                         .build();
 
         // sign in into the Azure Sample app
-        azureSampleApp.signInWithSingleAccountFragment(username, password, getBrowser(), true, microsoftStsPromptHandlerParameters);
+        azureSampleApp.signInWithSingleAccountFragment(
+                username, password, getBrowser(), true, microsoftStsPromptHandlerParameters);
 
         // sleep as it can take a bit for UPN to appear in Azure Sample app
         Thread.sleep(TimeUnit.SECONDS.toMillis(5));
@@ -92,35 +93,40 @@ public class TestCase497038 extends AbstractMsalUiTest {
 
         final MsalSdk msalSdk = new MsalSdk();
 
-        final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
-                .activity(mActivity)
-                .loginHint(username)
-                .scopes(Arrays.asList(mScopes))
-                .promptParameter(Prompt.SELECT_ACCOUNT)
-                .msalConfigResourceId(getConfigFileResourceId())
-                .build();
-
-        final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
-            @Override
-            public void handleUserInteraction() {
-                final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                        .prompt(PromptParameter.SELECT_ACCOUNT)
-                        .broker(null)
+        final MsalAuthTestParams authTestParams =
+                MsalAuthTestParams.builder()
+                        .activity(mActivity)
                         .loginHint(username)
-                        .sessionExpected(true)
-                        .consentPageExpected(false)
-                        .speedBumpExpected(true)
-                        .speedBumpResponse(UiResponse.ACCEPT)
+                        .scopes(Arrays.asList(mScopes))
+                        .promptParameter(Prompt.SELECT_ACCOUNT)
+                        .msalConfigResourceId(getConfigFileResourceId())
                         .build();
 
-                new AadPromptHandler(promptHandlerParameters)
-                        .handlePrompt(username, password);
-            }
-        }, TokenRequestTimeout.MEDIUM);
+        final MsalAuthResult authResult =
+                msalSdk.acquireTokenInteractive(
+                        authTestParams,
+                        new OnInteractionRequired() {
+                            @Override
+                            public void handleUserInteraction() {
+                                final PromptHandlerParameters promptHandlerParameters =
+                                        PromptHandlerParameters.builder()
+                                                .prompt(PromptParameter.SELECT_ACCOUNT)
+                                                .broker(null)
+                                                .loginHint(username)
+                                                .sessionExpected(true)
+                                                .consentPageExpected(false)
+                                                .speedBumpExpected(true)
+                                                .speedBumpResponse(UiResponse.ACCEPT)
+                                                .build();
+
+                                new AadPromptHandler(promptHandlerParameters)
+                                        .handlePrompt(username, password);
+                            }
+                        },
+                        TokenRequestTimeout.MEDIUM);
 
         authResult.assertSuccess();
     }
-
 
     @Override
     public LabUserQuery getLabUserQuery() {
@@ -134,7 +140,7 @@ public class TestCase497038 extends AbstractMsalUiTest {
 
     @Override
     public String[] getScopes() {
-        return new String[]{"User.read"};
+        return new String[] {"User.read"};
     }
 
     @Override
@@ -146,5 +152,4 @@ public class TestCase497038 extends AbstractMsalUiTest {
     public int getConfigFileResourceId() {
         return R.raw.msal_config_browser;
     }
-
 }

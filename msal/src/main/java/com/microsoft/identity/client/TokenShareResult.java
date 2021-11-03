@@ -40,7 +40,8 @@ public class TokenShareResult extends TokenShareResultInternal {
         /**
          * Used for ORG_ID accounts. Legacy format used by ADAL.
          */
-        public static final String SSO_STATE_SERIALIZER_BLOB = TokenShareExportFormatInternal.SSO_STATE_SERIALIZER_BLOB;
+        public static final String SSO_STATE_SERIALIZER_BLOB =
+                TokenShareExportFormatInternal.SSO_STATE_SERIALIZER_BLOB;
 
         /**
          * Raw RT String. Used by MSA format.
@@ -52,8 +53,7 @@ public class TokenShareResult extends TokenShareResultInternal {
         super(
                 resultInternal.getCacheRecord(),
                 resultInternal.getRefreshToken(),
-                resultInternal.getFormat()
-        );
+                resultInternal.getFormat());
     }
 
     /**

@@ -25,7 +25,6 @@ package com.microsoft.identity.client.testapp;
 /**
  * Constants file.
  */
-
 public class Constants {
 
     enum ConfigFile {

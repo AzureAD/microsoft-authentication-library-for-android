@@ -23,6 +23,8 @@
 
 package com.microsoft.identity.client;
 
+import static org.mockito.Mockito.mock;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -56,18 +58,19 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static org.mockito.Mockito.mock;
-
 /**
  * Util class for instrumentation tests.
  */
 public final class AndroidTestUtil {
-    static final String AUTHORIZE_ENDPOINT = "https://login.microsoftonline.com/sometenant/authorize";
+    static final String AUTHORIZE_ENDPOINT =
+            "https://login.microsoftonline.com/sometenant/authorize";
     static final String TOKEN_ENDPOINT = "https://login.microsoftonline.com/sometenant/token";
     static final String TENANT_DISCOVERY_ENDPOINT = "https://some_tenant_discovery/endpoint";
     static final String TEST_B2C_AUTHORITY = "https://login.microsoftonline.com/tfp/tenant/policy";
-    private static final String ACCESS_TOKEN_SHARED_PREFERENCE = "com.microsoft.identity.client.token";
-    private static final String REFRESH_TOKEN_SHARED_PREFERENCE = "com.microsoft.identity.client.refreshToken";
+    private static final String ACCESS_TOKEN_SHARED_PREFERENCE =
+            "com.microsoft.identity.client.token";
+    private static final String REFRESH_TOKEN_SHARED_PREFERENCE =
+            "com.microsoft.identity.client.refreshToken";
     static final String DEFAULT_AUTHORITY_WITH_TENANT = "https://login.microsoftonline.com/tenant";
     static final int TOKEN_EXPIRATION_IN_MINUTES = 60;
 
@@ -87,7 +90,8 @@ public final class AndroidTestUtil {
     static final String UTID = "adbc-user-tenantid";
 
     // Dummy client_info with randomly generated GUIDs
-    private static final String MOCK_CLIENT_INFO = "eyJ1aWQiOiI1MGE0YjhhMS0zMzNiLTQwNDEtOGQzNS0wYTg2MDY2YzE1YTgiLCJ1dGlkIjoiMGE4NGU5NTctODg0Yi00NmQxLTk0OGYtYTUwMWIwZWE2NmYyIn0=";
+    private static final String MOCK_CLIENT_INFO =
+            "eyJ1aWQiOiI1MGE0YjhhMS0zMzNiLTQwNDEtOGQzNS0wYTg2MDY2YzE1YTgiLCJ1dGlkIjoiMGE4NGU5NTctODg0Yi00NmQxLTk0OGYtYTUwMWIwZWE2NmYyIn0=";
     // The GUIDs in the above client_info
     public static final String MOCK_UID = "50a4b8a1-333b-4041-8d35-0a86066c15a8";
     public static final String MOCK_UTID = "0a84e957-884b-46d1-948f-a501b0ea66f2";
@@ -103,32 +107,35 @@ public final class AndroidTestUtil {
 
     static {
         // TODO populate the above static field with values from the block comment above
-        TEST_IDTOKEN = createIdToken(
-                "5a434691-ccb2-4fd1-b97b-b64bcfbc03fc",
-                "https://login.microsoftonline.com/0287f963-2d72-4363-9e3a-5705c5b0f031/v2.0",
-                "Mam User",
-                "642915a4-d05b-4ab7-bffb-faf2b71778ef",
-                "mam@msdevex.onmicrosoft.com",
-                "z_MszxrmGty92ydc6UrnnIUmPv8DMpLEXyW57Fbaozo",
-                "0287f963-2d72-4363-9e3a-5705c5b0f031",
-                "2.0",
-                new HashMap<String, Object>() {{
-                    put("iat", 1471497316);
-                    put("nbf", 1471497316);
-                    put("exp", 1471501216);
-                }}
-        );
+        TEST_IDTOKEN =
+                createIdToken(
+                        "5a434691-ccb2-4fd1-b97b-b64bcfbc03fc",
+                        "https://login.microsoftonline.com/0287f963-2d72-4363-9e3a-5705c5b0f031/v2.0",
+                        "Mam User",
+                        "642915a4-d05b-4ab7-bffb-faf2b71778ef",
+                        "mam@msdevex.onmicrosoft.com",
+                        "z_MszxrmGty92ydc6UrnnIUmPv8DMpLEXyW57Fbaozo",
+                        "0287f963-2d72-4363-9e3a-5705c5b0f031",
+                        "2.0",
+                        new HashMap<String, Object>() {
+                            {
+                                put("iat", 1471497316);
+                                put("nbf", 1471497316);
+                                put("exp", 1471501216);
+                            }
+                        });
     }
 
-    static String createIdToken(final String audience,
-                                final String issuer,
-                                final String name,
-                                final String objectId,
-                                final String preferredName,
-                                final String subject,
-                                final String tenantId,
-                                final String version,
-                                final Map<String, Object> extraClaims) {
+    static String createIdToken(
+            final String audience,
+            final String issuer,
+            final String name,
+            final String objectId,
+            final String preferredName,
+            final String subject,
+            final String tenantId,
+            final String version,
+            final Map<String, Object> extraClaims) {
         final SecureRandom random = new SecureRandom();
         final byte[] secret = new byte[32];
         random.nextBytes(secret);
@@ -170,8 +177,10 @@ public final class AndroidTestUtil {
     static String createRawClientInfo(final String uid, final String utid) {
         final String claims = "{\"uid\":\"" + uid + "\",\"utid\":\"" + utid + "\"}";
 
-        return new String(Base64.encode(claims.getBytes(
-                Charset.forName(MsalUtils.ENCODING_UTF8)), Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE));
+        return new String(
+                Base64.encode(
+                        claims.getBytes(Charset.forName(MsalUtils.ENCODING_UTF8)),
+                        Base64.NO_PADDING | Base64.NO_WRAP | Base64.URL_SAFE));
     }
 
     static InputStream createInputStream(final String input) {
@@ -183,24 +192,41 @@ public final class AndroidTestUtil {
     }
 
     static String getSuccessResponseWithNoRefreshToken(final String idToken) {
-        final String tokenResponse = "{\"id_token\":\""
-                + idToken
-                + "\",\"access_token\":\"" + ACCESS_TOKEN + "\",\"token_type\":\"Bearer\",\"expires_in\":\"3600\",\"expires_on\":\"1368768616\",\"scope\":\"scope1 scope2\",\"client_info\":\"" + MOCK_CLIENT_INFO + "\"}";
+        final String tokenResponse =
+                "{\"id_token\":\""
+                        + idToken
+                        + "\",\"access_token\":\""
+                        + ACCESS_TOKEN
+                        + "\",\"token_type\":\"Bearer\",\"expires_in\":\"3600\",\"expires_on\":\"1368768616\",\"scope\":\"scope1 scope2\",\"client_info\":\""
+                        + MOCK_CLIENT_INFO
+                        + "\"}";
         return tokenResponse;
     }
 
     static String getSuccessResponseWithNoAccessToken() {
-        final String tokenResponse = "{\"id_token\":\""
-                + TEST_IDTOKEN
-                + "\",\"token_type\":\"Bearer\",\"expires_in\":\"3600\",\"expires_on\":\"1368768616\",\"scope\":\"scope1 scope2\"}";
+        final String tokenResponse =
+                "{\"id_token\":\""
+                        + TEST_IDTOKEN
+                        + "\",\"token_type\":\"Bearer\",\"expires_in\":\"3600\",\"expires_on\":\"1368768616\",\"scope\":\"scope1 scope2\"}";
         return tokenResponse;
     }
 
-    static String getSuccessResponse(final String idToken, final String accessToken, final String scopes, final String clientInfo) {
-        String tokenResponse = "{\"id_token\":\""
-                + idToken
-                + "\",\"access_token\":\"" + accessToken + "\", \"token_type\":\"Bearer\",\"refresh_token\":\"" + REFRESH_TOKEN + "\","
-                + "\"expires_in\":\"3600\",\"expires_on\":\"1368768616\",\"scope\":\"" + scopes + "\""; //}";
+    static String getSuccessResponse(
+            final String idToken,
+            final String accessToken,
+            final String scopes,
+            final String clientInfo) {
+        String tokenResponse =
+                "{\"id_token\":\""
+                        + idToken
+                        + "\",\"access_token\":\""
+                        + accessToken
+                        + "\", \"token_type\":\"Bearer\",\"refresh_token\":\""
+                        + REFRESH_TOKEN
+                        + "\","
+                        + "\"expires_in\":\"3600\",\"expires_on\":\"1368768616\",\"scope\":\""
+                        + scopes
+                        + "\""; // }";
         if (!MsalUtils.isEmpty(clientInfo)) {
             tokenResponse += ",\"client_info\":\"" + clientInfo + "\"";
         }
@@ -210,11 +236,22 @@ public final class AndroidTestUtil {
         return tokenResponse;
     }
 
-    static String getSuccessResponseNoExpires(final String idToken, final String accessToken, final String scopes, final String clientInfo) {
-        String tokenResponse = "{\"id_token\":\""
-                + idToken
-                + "\",\"access_token\":\"" + accessToken + "\", \"token_type\":\"Bearer\",\"refresh_token\":\"" + REFRESH_TOKEN + "\","
-                + "\"scope\":\"" + scopes + "\"";
+    static String getSuccessResponseNoExpires(
+            final String idToken,
+            final String accessToken,
+            final String scopes,
+            final String clientInfo) {
+        String tokenResponse =
+                "{\"id_token\":\""
+                        + idToken
+                        + "\",\"access_token\":\""
+                        + accessToken
+                        + "\", \"token_type\":\"Bearer\",\"refresh_token\":\""
+                        + REFRESH_TOKEN
+                        + "\","
+                        + "\"scope\":\""
+                        + scopes
+                        + "\"";
         if (!MsalUtils.isEmpty(clientInfo)) {
             tokenResponse += ",\"client_info\":\"" + clientInfo + "\"";
         }
@@ -225,10 +262,11 @@ public final class AndroidTestUtil {
     }
 
     static String getErrorResponseMessage(final String errorCode) {
-        final String errorDescription = "\"error_description\":\"AADSTS70000: Authentication failed. Refresh Token is not valid.\r\nTrace ID: "
-                + "bb27293d-74e4-4390-882b-037a63429026\r\nCorrelation ID: b73106d5-419b-4163-8bc6-d2c18f1b1a13\r\nTimestamp: 2014-11-06 18:39:47Z\","
-                + "\"error_codes\":[70000, 70001],\"timestamp\":\"2014-11-06 18:39:47Z\",\"trace_id\":\"bb27293d-74e4-4390-882b-037a63429026\","
-                + "\"correlation_id\":\"b73106d5-419b-4163-8bc6-d2c18f1b1a13\",\"submit_url\":null,\"context\":null";
+        final String errorDescription =
+                "\"error_description\":\"AADSTS70000: Authentication failed. Refresh Token is not valid.\r\nTrace ID: "
+                        + "bb27293d-74e4-4390-882b-037a63429026\r\nCorrelation ID: b73106d5-419b-4163-8bc6-d2c18f1b1a13\r\nTimestamp: 2014-11-06 18:39:47Z\","
+                        + "\"error_codes\":[70000, 70001],\"timestamp\":\"2014-11-06 18:39:47Z\",\"trace_id\":\"bb27293d-74e4-4390-882b-037a63429026\","
+                        + "\"correlation_id\":\"b73106d5-419b-4163-8bc6-d2c18f1b1a13\",\"submit_url\":null,\"context\":null";
 
         if (errorCode != null) {
             return "{\"error\":\"" + errorCode + "\"," + errorDescription + "}";
@@ -237,10 +275,15 @@ public final class AndroidTestUtil {
         return "{" + errorDescription + "}";
     }
 
-    static String encodeProtocolState(final String authority, final Set<String> scopes) throws UnsupportedEncodingException {
-        String state = String.format("a=%s&r=%s", MsalUtils.urlFormEncode(authority),
-                MsalUtils.urlFormEncode(StringUtil.convertSetToString(scopes, " ")));
-        return Base64.encodeToString(state.getBytes(Charset.forName("UTF-8")), Base64.NO_PADDING | Base64.URL_SAFE);
+    static String encodeProtocolState(final String authority, final Set<String> scopes)
+            throws UnsupportedEncodingException {
+        String state =
+                String.format(
+                        "a=%s&r=%s",
+                        MsalUtils.urlFormEncode(authority),
+                        MsalUtils.urlFormEncode(StringUtil.convertSetToString(scopes, " ")));
+        return Base64.encodeToString(
+                state.getBytes(Charset.forName("UTF-8")), Base64.NO_PADDING | Base64.URL_SAFE);
     }
 
     static Date getExpiredDate() {
@@ -260,43 +303,44 @@ public final class AndroidTestUtil {
     }
 
     static void removeAllTokens(final Context appContext) {
-        final SharedPreferences accessTokenSharedPreference = getAccessTokenSharedPreference(appContext);
-        final SharedPreferences.Editor accessTokenSharedPreferenceEditor = accessTokenSharedPreference.edit();
+        final SharedPreferences accessTokenSharedPreference =
+                getAccessTokenSharedPreference(appContext);
+        final SharedPreferences.Editor accessTokenSharedPreferenceEditor =
+                accessTokenSharedPreference.edit();
         accessTokenSharedPreferenceEditor.clear();
         accessTokenSharedPreferenceEditor.apply();
 
-        final SharedPreferences refreshTokenSharedPreference = getRefreshTokenSharedPreference(appContext);
-        final SharedPreferences.Editor refreshTokenSharedPreferenceEditor = refreshTokenSharedPreference.edit();
+        final SharedPreferences refreshTokenSharedPreference =
+                getRefreshTokenSharedPreference(appContext);
+        final SharedPreferences.Editor refreshTokenSharedPreferenceEditor =
+                refreshTokenSharedPreference.edit();
         refreshTokenSharedPreferenceEditor.clear();
         refreshTokenSharedPreferenceEditor.apply();
     }
 
-    static String getRawIdToken(final String displaybleId, final String uniqueId, final String tenantId) {
+    static String getRawIdToken(
+            final String displaybleId, final String uniqueId, final String tenantId) {
         return AndroidTestUtil.createIdToken(
-                AUDIENCE,
-                ISSUER,
-                NAME,
-                uniqueId,
-                displaybleId,
-                SUBJECT,
-                tenantId,
-                VERSION,
-                null
-        );
+                AUDIENCE, ISSUER, NAME, uniqueId, displaybleId, SUBJECT, tenantId, VERSION, null);
     }
 
     static SharedPreferences getAccessTokenSharedPreference(final Context appContext) {
-        return appContext.getSharedPreferences(ACCESS_TOKEN_SHARED_PREFERENCE,
-                Activity.MODE_PRIVATE);
+        return appContext.getSharedPreferences(
+                ACCESS_TOKEN_SHARED_PREFERENCE, Activity.MODE_PRIVATE);
     }
 
     static SharedPreferences getRefreshTokenSharedPreference(final Context appContext) {
-        return appContext.getSharedPreferences(REFRESH_TOKEN_SHARED_PREFERENCE,
-                Activity.MODE_PRIVATE);
+        return appContext.getSharedPreferences(
+                REFRESH_TOKEN_SHARED_PREFERENCE, Activity.MODE_PRIVATE);
     }
 
-    static String getSuccessTenantDiscoveryResponse(final String authorizeEndpoint, final String tokenEndpoint) {
-        return "{\"authorization_endpoint\":\"" + authorizeEndpoint + "\",\"token_endpoint\":\"" + tokenEndpoint + "\""
+    static String getSuccessTenantDiscoveryResponse(
+            final String authorizeEndpoint, final String tokenEndpoint) {
+        return "{\"authorization_endpoint\":\""
+                + authorizeEndpoint
+                + "\",\"token_endpoint\":\""
+                + tokenEndpoint
+                + "\""
                 + ",\"issuer\":\"some issuer\"}";
     }
 
@@ -309,7 +353,8 @@ public final class AndroidTestUtil {
     }
 
     static void mockNetworkConnected(final Context mockedContext, boolean isConnected) {
-        final ConnectivityManager connectivityManager = (ConnectivityManager) mockedContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        final ConnectivityManager connectivityManager =
+                (ConnectivityManager) mockedContext.getSystemService(Context.CONNECTIVITY_SERVICE);
         final NetworkInfo mockedNetworkInfo = mock(NetworkInfo.class);
         Mockito.when(mockedNetworkInfo.isConnected()).thenReturn(isConnected);
         Mockito.when(connectivityManager.getActiveNetworkInfo()).thenReturn(mockedNetworkInfo);
@@ -330,12 +375,10 @@ public final class AndroidTestUtil {
                 "sub",
                 "tenant",
                 "version",
-                null
-        );
+                null);
     }
 
     static String getDefaultClientInfo() {
         return AndroidTestUtil.createRawClientInfo(AndroidTestUtil.UID, AndroidTestUtil.UTID);
     }
-
 }

@@ -32,7 +32,7 @@ public class CommandDispatcherHelper {
     /**
      * Clearing the cache of the Access token otherwise which is cleared after 30 seconds of acquire.
      */
-    public static void clear(){
+    public static void clear() {
         CommandDispatcher.clearCommandCache();
     }
 }

@@ -37,16 +37,15 @@ import java.util.List;
  */
 public class ClaimsRequest {
 
-
-    public final static String USERINFO = "userinfo";
-    public final static String ID_TOKEN = "id_token";
-    public final static String ACCESS_TOKEN = "access_token";
+    public static final String USERINFO = "userinfo";
+    public static final String ID_TOKEN = "id_token";
+    public static final String ACCESS_TOKEN = "access_token";
 
     private List<RequestedClaim> mUserInfoClaimsRequested = new ArrayList<>();
     private List<RequestedClaim> mAccessTokenClaimsRequested = new ArrayList<>();
     private List<RequestedClaim> mIdTokenClaimsRequested = new ArrayList<>();
 
-    //CHECKSTYLE:OFF
+    // CHECKSTYLE:OFF
     // This method is generated. Checkstyle and/or PMD has been disabled.
     // This method *must* be regenerated if the class' structural definition changes through the
     // addition/subtraction of fields.
@@ -58,15 +57,19 @@ public class ClaimsRequest {
 
         ClaimsRequest that = (ClaimsRequest) o;
 
-        if (mUserInfoClaimsRequested != null ? !mUserInfoClaimsRequested.equals(that.mUserInfoClaimsRequested) : that.mUserInfoClaimsRequested != null)
-            return false;
-        if (mAccessTokenClaimsRequested != null ? !mAccessTokenClaimsRequested.equals(that.mAccessTokenClaimsRequested) : that.mAccessTokenClaimsRequested != null)
-            return false;
-        return mIdTokenClaimsRequested != null ? mIdTokenClaimsRequested.equals(that.mIdTokenClaimsRequested) : that.mIdTokenClaimsRequested == null;
+        if (mUserInfoClaimsRequested != null
+                ? !mUserInfoClaimsRequested.equals(that.mUserInfoClaimsRequested)
+                : that.mUserInfoClaimsRequested != null) return false;
+        if (mAccessTokenClaimsRequested != null
+                ? !mAccessTokenClaimsRequested.equals(that.mAccessTokenClaimsRequested)
+                : that.mAccessTokenClaimsRequested != null) return false;
+        return mIdTokenClaimsRequested != null
+                ? mIdTokenClaimsRequested.equals(that.mIdTokenClaimsRequested)
+                : that.mIdTokenClaimsRequested == null;
     }
-    //CHECKSTYLE:ON
+    // CHECKSTYLE:ON
 
-    //CHECKSTYLE:OFF
+    // CHECKSTYLE:OFF
     // This method is generated. Checkstyle and/or PMD has been disabled.
     // This method *must* be regenerated if the class' structural definition changes through the
     // addition/subtraction of fields.
@@ -74,11 +77,19 @@ public class ClaimsRequest {
     @Override
     public int hashCode() {
         int result = mUserInfoClaimsRequested != null ? mUserInfoClaimsRequested.hashCode() : 0;
-        result = 31 * result + (mAccessTokenClaimsRequested != null ? mAccessTokenClaimsRequested.hashCode() : 0);
-        result = 31 * result + (mIdTokenClaimsRequested != null ? mIdTokenClaimsRequested.hashCode() : 0);
+        result =
+                31 * result
+                        + (mAccessTokenClaimsRequested != null
+                                ? mAccessTokenClaimsRequested.hashCode()
+                                : 0);
+        result =
+                31 * result
+                        + (mIdTokenClaimsRequested != null
+                                ? mIdTokenClaimsRequested.hashCode()
+                                : 0);
         return result;
     }
-    //CHECKSTYLE:ON
+    // CHECKSTYLE:ON
 
     /**
      * Return the list of requested claims for the userinfo endpoint in the claims request parameter object
@@ -125,7 +136,8 @@ public class ClaimsRequest {
      * @return
      * @see <a href="https://openid.net/specs/openid-connect-core-1_0-final.html#ClaimsParameter">https://openid.net/specs/openid-connect-core-1_0-final.html#ClaimsParameter</a>
      */
-    public static String getJsonStringFromClaimsRequest(@Nullable final ClaimsRequest claimsRequest) {
+    public static String getJsonStringFromClaimsRequest(
+            @Nullable final ClaimsRequest claimsRequest) {
         return serializeClaimsRequest(claimsRequest);
     }
 
@@ -137,19 +149,22 @@ public class ClaimsRequest {
                 new RequestClaimAdditionalInformationSerializer();
 
         gsonBuilder.registerTypeAdapter(ClaimsRequest.class, claimsRequestSerializer);
-        gsonBuilder.registerTypeAdapter(RequestedClaimAdditionalInformation.class, informationSerializer);
-        //If you omit this... you won't be requesting an claims that don't have additional info specified
+        gsonBuilder.registerTypeAdapter(
+                RequestedClaimAdditionalInformation.class, informationSerializer);
+        // If you omit this... you won't be requesting an claims that don't have additional info
+        // specified
         gsonBuilder.serializeNulls();
 
         final Gson claimsRequestGson = gsonBuilder.create();
 
-        final String claimsRequestJson = claimsRequest != null ? claimsRequestGson.toJson(claimsRequest) : null;
+        final String claimsRequestJson =
+                claimsRequest != null ? claimsRequestGson.toJson(claimsRequest) : null;
 
         return claimsRequestJson;
-
     }
 
-    private static ClaimsRequest deserializeClaimsRequest(@Nullable final String claimsRequestJson) {
+    private static ClaimsRequest deserializeClaimsRequest(
+            @Nullable final String claimsRequestJson) {
         final GsonBuilder gsonBuilder = new GsonBuilder();
 
         final ClaimsRequestDeserializer deserializer = new ClaimsRequestDeserializer();
@@ -157,10 +172,10 @@ public class ClaimsRequest {
 
         final Gson claimsRequestGson = gsonBuilder.create();
 
-        final ClaimsRequest claimsRequest = claimsRequestGson.fromJson(claimsRequestJson, ClaimsRequest.class);
+        final ClaimsRequest claimsRequest =
+                claimsRequestGson.fromJson(claimsRequestJson, ClaimsRequest.class);
 
         return claimsRequest;
-
     }
 
     /**
@@ -169,7 +184,8 @@ public class ClaimsRequest {
      * @param name
      * @param additionalInformation
      */
-    public void requestClaimInAccessToken(String name, RequestedClaimAdditionalInformation additionalInformation) {
+    public void requestClaimInAccessToken(
+            String name, RequestedClaimAdditionalInformation additionalInformation) {
         requestClaimIn(mAccessTokenClaimsRequested, name, additionalInformation);
     }
 
@@ -179,7 +195,8 @@ public class ClaimsRequest {
      * @param name
      * @param additionalInformation
      */
-    public void requestClaimInIdToken(String name, RequestedClaimAdditionalInformation additionalInformation) {
+    public void requestClaimInIdToken(
+            String name, RequestedClaimAdditionalInformation additionalInformation) {
         requestClaimIn(mIdTokenClaimsRequested, name, additionalInformation);
     }
 
@@ -189,15 +206,18 @@ public class ClaimsRequest {
      * @param name
      * @param additionalInformation
      */
-    public void requestClaimInUserInfo(String name, RequestedClaimAdditionalInformation additionalInformation) {
+    public void requestClaimInUserInfo(
+            String name, RequestedClaimAdditionalInformation additionalInformation) {
         requestClaimIn(mUserInfoClaimsRequested, name, additionalInformation);
     }
 
-    private void requestClaimIn(List<RequestedClaim> claims, String name, RequestedClaimAdditionalInformation additionalInformation) {
+    private void requestClaimIn(
+            List<RequestedClaim> claims,
+            String name,
+            RequestedClaimAdditionalInformation additionalInformation) {
         RequestedClaim requestedClaim = new RequestedClaim();
         requestedClaim.setName(name);
         requestedClaim.setAdditionalInformation(additionalInformation);
         claims.add(requestedClaim);
     }
-
 }

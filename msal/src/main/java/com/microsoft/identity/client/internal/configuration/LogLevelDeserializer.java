@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.internal.configuration;
 
+import static com.microsoft.identity.client.Logger.LogLevel;
+
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -33,15 +35,13 @@ import net.jcip.annotations.Immutable;
 import java.lang.reflect.Type;
 import java.util.Locale;
 
-import static com.microsoft.identity.client.Logger.LogLevel;
-
 @Immutable
 public class LogLevelDeserializer implements JsonDeserializer<Logger.LogLevel> {
 
     @Override
-    public Logger.LogLevel deserialize(final JsonElement json,
-                                       final Type typeOfT,
-                                       final JsonDeserializationContext context) throws JsonParseException {
+    public Logger.LogLevel deserialize(
+            final JsonElement json, final Type typeOfT, final JsonDeserializationContext context)
+            throws JsonParseException {
         return LogLevel.valueOf(json.getAsString().toUpperCase(Locale.US));
     }
 }

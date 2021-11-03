@@ -60,7 +60,8 @@ public final class ClientInfoTest {
         final String utid = "some-utid";
 
         try {
-            final ClientInfo clientInfo = new ClientInfo(AndroidTestUtil.createRawClientInfo(uid, utid));
+            final ClientInfo clientInfo =
+                    new ClientInfo(AndroidTestUtil.createRawClientInfo(uid, utid));
             Assert.assertTrue(clientInfo.getUniqueIdentifier().equals(uid));
             Assert.assertTrue(clientInfo.getUniqueTenantIdentifier().equals(utid));
         } catch (final MsalClientException e) {

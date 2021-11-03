@@ -40,12 +40,12 @@ public class IntuneAcquireTokenParameters extends AcquireTokenParameters {
         return mBrokerBrowserSupportEnabled;
     }
 
-
     public static class Builder extends AcquireTokenParameters.Builder {
 
         private boolean mBrokerBrowserSupportEnabled;
 
-        public IntuneAcquireTokenParameters.Builder brokerBrowserSupportEnabled(boolean brokerBrowserSupportEnabled){
+        public IntuneAcquireTokenParameters.Builder brokerBrowserSupportEnabled(
+                boolean brokerBrowserSupportEnabled) {
             mBrokerBrowserSupportEnabled = brokerBrowserSupportEnabled;
             return this;
         }

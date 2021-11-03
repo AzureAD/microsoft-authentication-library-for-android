@@ -37,8 +37,8 @@ import com.microsoft.identity.common.java.cache.IAccountCredentialCache;
 import com.microsoft.identity.common.java.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.java.commands.parameters.InteractiveTokenCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.SilentTokenCommandParameters;
-import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.java.exception.ClientException;
+import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -56,7 +56,8 @@ import java.util.UUID;
 public class CommandParametersTest {
 
     private static final String AAD_CP1_CONFIG_FILE = "src/test/res/raw/aad_capabilities_cp1.json";
-    private static final String AAD_NONE_CONFIG_FILE = "src/test/res/raw/aad_capabilities_none.json";
+    private static final String AAD_NONE_CONFIG_FILE =
+            "src/test/res/raw/aad_capabilities_none.json";
 
     private Context mContext;
     private Activity mActivity;
@@ -68,85 +69,136 @@ public class CommandParametersTest {
         Mockito.when(mActivity.getApplicationContext()).thenReturn(mContext);
     }
 
-
     @Test
     public void testAcquireTokenSilentOperationWithClaimsWithCapabilities() throws ClientException {
-        SilentTokenCommandParameters commandParameters = CommandParametersAdapter.createSilentTokenCommandParameters(getConfiguration(AAD_CP1_CONFIG_FILE), getCache(), getAcquireTokenSilentParametersWithClaims());
+        SilentTokenCommandParameters commandParameters =
+                CommandParametersAdapter.createSilentTokenCommandParameters(
+                        getConfiguration(AAD_CP1_CONFIG_FILE),
+                        getCache(),
+                        getAcquireTokenSilentParametersWithClaims());
         Assert.assertEquals(true, commandParameters.isForceRefresh());
     }
 
     @Test
-    public void testAcquireTokenSilentOperationWithClaimsWithoutCapabilities() throws ClientException {
-        SilentTokenCommandParameters commandParameters = CommandParametersAdapter.createSilentTokenCommandParameters(getConfiguration(AAD_NONE_CONFIG_FILE), getCache(), getAcquireTokenSilentParametersWithClaims());
+    public void testAcquireTokenSilentOperationWithClaimsWithoutCapabilities()
+            throws ClientException {
+        SilentTokenCommandParameters commandParameters =
+                CommandParametersAdapter.createSilentTokenCommandParameters(
+                        getConfiguration(AAD_NONE_CONFIG_FILE),
+                        getCache(),
+                        getAcquireTokenSilentParametersWithClaims());
         Assert.assertEquals(true, commandParameters.isForceRefresh());
     }
 
     @Test
-    public void testAcquireTokenSilentOperationWithoutClaimsWithCapabilities() throws ClientException {
-        SilentTokenCommandParameters commandParameters = CommandParametersAdapter.createSilentTokenCommandParameters(getConfiguration(AAD_CP1_CONFIG_FILE), getCache(), getAcquireTokenSilentParametersWithoutClaims());
+    public void testAcquireTokenSilentOperationWithoutClaimsWithCapabilities()
+            throws ClientException {
+        SilentTokenCommandParameters commandParameters =
+                CommandParametersAdapter.createSilentTokenCommandParameters(
+                        getConfiguration(AAD_CP1_CONFIG_FILE),
+                        getCache(),
+                        getAcquireTokenSilentParametersWithoutClaims());
         Assert.assertEquals(false, commandParameters.isForceRefresh());
     }
 
     @Test
-    public void testAcquireTokenSilentOperationWithoutClaimsWithoutCapabilities() throws ClientException {
-        SilentTokenCommandParameters commandParameters = CommandParametersAdapter.createSilentTokenCommandParameters(getConfiguration(AAD_NONE_CONFIG_FILE), getCache(), getAcquireTokenSilentParametersWithoutClaims());
+    public void testAcquireTokenSilentOperationWithoutClaimsWithoutCapabilities()
+            throws ClientException {
+        SilentTokenCommandParameters commandParameters =
+                CommandParametersAdapter.createSilentTokenCommandParameters(
+                        getConfiguration(AAD_NONE_CONFIG_FILE),
+                        getCache(),
+                        getAcquireTokenSilentParametersWithoutClaims());
 
         Assert.assertEquals(false, commandParameters.isForceRefresh());
     }
 
     @Test
     public void testAcquireTokenOperationWithClaimsWithCapabilities() throws ClientException {
-        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(getConfiguration(AAD_CP1_CONFIG_FILE), getCache(), getAcquireTokenParametersWithClaims());
+        InteractiveTokenCommandParameters commandParameters =
+                CommandParametersAdapter.createInteractiveTokenCommandParameters(
+                        getConfiguration(AAD_CP1_CONFIG_FILE),
+                        getCache(),
+                        getAcquireTokenParametersWithClaims());
         Assert.assertEquals(true, commandParameters.isForceRefresh());
     }
 
     @Test
     public void testAcquireTokenOperationWithClaimsWithoutCapabilities() throws ClientException {
-        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(getConfiguration(AAD_NONE_CONFIG_FILE), getCache(), getAcquireTokenParametersWithClaims());
+        InteractiveTokenCommandParameters commandParameters =
+                CommandParametersAdapter.createInteractiveTokenCommandParameters(
+                        getConfiguration(AAD_NONE_CONFIG_FILE),
+                        getCache(),
+                        getAcquireTokenParametersWithClaims());
         Assert.assertEquals(true, commandParameters.isForceRefresh());
     }
 
     @Test
     public void testAcquireTokenOperationWithoutClaimsWithCapabilities() throws ClientException {
-        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(getConfiguration(AAD_CP1_CONFIG_FILE), getCache(), getAcquireTokenParametersWithoutClaims());
+        InteractiveTokenCommandParameters commandParameters =
+                CommandParametersAdapter.createInteractiveTokenCommandParameters(
+                        getConfiguration(AAD_CP1_CONFIG_FILE),
+                        getCache(),
+                        getAcquireTokenParametersWithoutClaims());
         Assert.assertEquals(false, commandParameters.isForceRefresh());
     }
 
     @Test
     public void testAcquireTokenOperationWithoutClaimsWithoutCapabilities() throws ClientException {
-        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(getConfiguration(AAD_NONE_CONFIG_FILE), getCache(), getAcquireTokenParametersWithoutClaims());
+        InteractiveTokenCommandParameters commandParameters =
+                CommandParametersAdapter.createInteractiveTokenCommandParameters(
+                        getConfiguration(AAD_NONE_CONFIG_FILE),
+                        getCache(),
+                        getAcquireTokenParametersWithoutClaims());
         Assert.assertEquals(false, commandParameters.isForceRefresh());
     }
 
     @Test
     public void testAcquireTokenOperationWithoutCorrelationId() throws ClientException {
-        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(getConfiguration(AAD_CP1_CONFIG_FILE), getCache(), getAcquireTokenParametersWithoutCorrelationId());
+        InteractiveTokenCommandParameters commandParameters =
+                CommandParametersAdapter.createInteractiveTokenCommandParameters(
+                        getConfiguration(AAD_CP1_CONFIG_FILE),
+                        getCache(),
+                        getAcquireTokenParametersWithoutCorrelationId());
         Assert.assertNull(commandParameters.getCorrelationId());
     }
 
     @Test
     public void testAcquireTokenOperationWithCorrelationId() throws ClientException {
         final UUID correlationId = UUID.randomUUID();
-        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(getConfiguration(AAD_NONE_CONFIG_FILE), getCache(), getAcquireTokenParametersWithCorrelationId(correlationId));
+        InteractiveTokenCommandParameters commandParameters =
+                CommandParametersAdapter.createInteractiveTokenCommandParameters(
+                        getConfiguration(AAD_NONE_CONFIG_FILE),
+                        getCache(),
+                        getAcquireTokenParametersWithCorrelationId(correlationId));
         Assert.assertNotNull(commandParameters.getCorrelationId());
         Assert.assertEquals(correlationId.toString(), commandParameters.getCorrelationId());
     }
 
     @Test
     public void testAcquireTokenSilentOperationWithoutCorrelationId() throws ClientException {
-        SilentTokenCommandParameters commandParameters = CommandParametersAdapter.createSilentTokenCommandParameters(getConfiguration(AAD_CP1_CONFIG_FILE), getCache(), getAcquireTokenSilentParametersWithoutCorrelationId());
+        SilentTokenCommandParameters commandParameters =
+                CommandParametersAdapter.createSilentTokenCommandParameters(
+                        getConfiguration(AAD_CP1_CONFIG_FILE),
+                        getCache(),
+                        getAcquireTokenSilentParametersWithoutCorrelationId());
         Assert.assertNull(commandParameters.getCorrelationId());
     }
 
     @Test
     public void testAcquireTokenSilentOperationWithCorrelationId() throws ClientException {
         final UUID correlationId = UUID.randomUUID();
-        SilentTokenCommandParameters commandParameters = CommandParametersAdapter.createSilentTokenCommandParameters(getConfiguration(AAD_NONE_CONFIG_FILE), getCache(), getAcquireTokenSilentParametersWithCorrelationId(correlationId));
+        SilentTokenCommandParameters commandParameters =
+                CommandParametersAdapter.createSilentTokenCommandParameters(
+                        getConfiguration(AAD_NONE_CONFIG_FILE),
+                        getCache(),
+                        getAcquireTokenSilentParametersWithCorrelationId(correlationId));
         Assert.assertNotNull(commandParameters.getCorrelationId());
         Assert.assertEquals(correlationId.toString(), commandParameters.getCorrelationId());
     }
 
-    private ClaimsRequest getAccessTokenClaimsRequest(@NonNull String claimName, @NonNull String claimValue) {
+    private ClaimsRequest getAccessTokenClaimsRequest(
+            @NonNull String claimName, @NonNull String claimValue) {
         ClaimsRequest cp1ClaimsRequest = new ClaimsRequest();
         RequestedClaimAdditionalInformation info = new RequestedClaimAdditionalInformation();
         info.setValues(new ArrayList<Object>(Arrays.asList(claimValue)));
@@ -155,85 +207,96 @@ public class CommandParametersTest {
     }
 
     private AcquireTokenSilentParameters getAcquireTokenSilentParametersWithClaims() {
-        AcquireTokenSilentParameters parameters = new AcquireTokenSilentParameters.Builder()
-                .withClaims(getAccessTokenClaimsRequest("device_id", ""))
-                .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
-                .fromAuthority("https://login.microsoftonline.com/common")
-                .build();
+        AcquireTokenSilentParameters parameters =
+                new AcquireTokenSilentParameters.Builder()
+                        .withClaims(getAccessTokenClaimsRequest("device_id", ""))
+                        .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
+                        .fromAuthority("https://login.microsoftonline.com/common")
+                        .build();
 
         return parameters;
     }
 
     private AcquireTokenSilentParameters getAcquireTokenSilentParametersWithoutClaims() {
-        AcquireTokenSilentParameters parameters = new AcquireTokenSilentParameters.Builder()
-                .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
-                .fromAuthority("https://login.microsoftonline.com/common")
-                .build();
+        AcquireTokenSilentParameters parameters =
+                new AcquireTokenSilentParameters.Builder()
+                        .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
+                        .fromAuthority("https://login.microsoftonline.com/common")
+                        .build();
 
         return parameters;
     }
 
     private AcquireTokenParameters getAcquireTokenParametersWithClaims() {
-        AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .withClaims(getAccessTokenClaimsRequest("device_id", ""))
-                .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
-                .startAuthorizationFromActivity(mActivity)
-                .build();
+        AcquireTokenParameters parameters =
+                new AcquireTokenParameters.Builder()
+                        .withClaims(getAccessTokenClaimsRequest("device_id", ""))
+                        .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
+                        .startAuthorizationFromActivity(mActivity)
+                        .build();
 
         return parameters;
     }
 
     private AcquireTokenParameters getAcquireTokenParametersWithoutClaims() {
-        AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
-                .startAuthorizationFromActivity(mActivity)
-                .build();
+        AcquireTokenParameters parameters =
+                new AcquireTokenParameters.Builder()
+                        .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
+                        .startAuthorizationFromActivity(mActivity)
+                        .build();
 
         return parameters;
     }
 
     private AcquireTokenSilentParameters getAcquireTokenSilentParametersWithoutCorrelationId() {
-        AcquireTokenSilentParameters parameters = new AcquireTokenSilentParameters.Builder()
-                .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
-                .fromAuthority("https://login.microsoftonline.com/common")
-                .build();
+        AcquireTokenSilentParameters parameters =
+                new AcquireTokenSilentParameters.Builder()
+                        .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
+                        .fromAuthority("https://login.microsoftonline.com/common")
+                        .build();
 
         return parameters;
     }
 
-    private AcquireTokenSilentParameters getAcquireTokenSilentParametersWithCorrelationId(final UUID correlationId) {
-        AcquireTokenSilentParameters parameters = new AcquireTokenSilentParameters.Builder()
-                .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
-                .fromAuthority("https://login.microsoftonline.com/common")
-                .withCorrelationId(correlationId)
-                .build();
+    private AcquireTokenSilentParameters getAcquireTokenSilentParametersWithCorrelationId(
+            final UUID correlationId) {
+        AcquireTokenSilentParameters parameters =
+                new AcquireTokenSilentParameters.Builder()
+                        .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
+                        .fromAuthority("https://login.microsoftonline.com/common")
+                        .withCorrelationId(correlationId)
+                        .build();
 
         return parameters;
     }
 
     private AcquireTokenParameters getAcquireTokenParametersWithoutCorrelationId() {
-        AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .withClaims(getAccessTokenClaimsRequest("device_id", ""))
-                .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
-                .startAuthorizationFromActivity(mActivity)
-                .build();
+        AcquireTokenParameters parameters =
+                new AcquireTokenParameters.Builder()
+                        .withClaims(getAccessTokenClaimsRequest("device_id", ""))
+                        .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
+                        .startAuthorizationFromActivity(mActivity)
+                        .build();
 
         return parameters;
     }
 
-    private AcquireTokenParameters getAcquireTokenParametersWithCorrelationId(final UUID correlationId) {
-        AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .withClaims(getAccessTokenClaimsRequest("device_id", ""))
-                .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
-                .startAuthorizationFromActivity(mActivity)
-                .withCorrelationId(correlationId)
-                .build();
+    private AcquireTokenParameters getAcquireTokenParametersWithCorrelationId(
+            final UUID correlationId) {
+        AcquireTokenParameters parameters =
+                new AcquireTokenParameters.Builder()
+                        .withClaims(getAccessTokenClaimsRequest("device_id", ""))
+                        .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
+                        .startAuthorizationFromActivity(mActivity)
+                        .withCorrelationId(correlationId)
+                        .build();
 
         return parameters;
     }
 
     private PublicClientApplicationConfiguration getConfiguration(String path) {
-        return PublicClientApplicationConfigurationFactory.initializeConfiguration(mContext, getConfigFile(path));
+        return PublicClientApplicationConfigurationFactory.initializeConfiguration(
+                mContext, getConfigFile(path));
     }
 
     private OAuth2TokenCache getCache() {
@@ -254,9 +317,14 @@ public class CommandParametersTest {
          * @param accountCredentialAdapter IAccountCredentialAdapter
          */
         @SuppressWarnings("unchecked")
-        public TestOAuth2TokenCache(Context context, IAccountCredentialCache accountCredentialCache, IAccountCredentialAdapter accountCredentialAdapter) {
-            super(AndroidPlatformComponents.createFromContext(context), accountCredentialCache, accountCredentialAdapter);
+        public TestOAuth2TokenCache(
+                Context context,
+                IAccountCredentialCache accountCredentialCache,
+                IAccountCredentialAdapter accountCredentialAdapter) {
+            super(
+                    AndroidPlatformComponents.createFromContext(context),
+                    accountCredentialCache,
+                    accountCredentialAdapter);
         }
     }
-
 }

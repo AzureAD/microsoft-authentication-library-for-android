@@ -60,5 +60,4 @@ public class PromptTest {
         final OpenIdConnectPromptParameter promptValue = prompt.toOpenIdConnectPromptParameter();
         Assert.assertEquals(promptValue, OpenIdConnectPromptParameter.UNSET);
     }
-
 }

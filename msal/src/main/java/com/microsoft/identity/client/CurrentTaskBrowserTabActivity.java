@@ -22,6 +22,9 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.AuthorizationIntentAction.DESTROY_REDIRECT_RECEIVING_ACTIVITY_ACTION;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.AuthorizationIntentAction.REDIRECT_RETURNED_ACTION;
+
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -39,10 +42,6 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import com.microsoft.identity.common.internal.providers.oauth2.CurrentTaskBrowserAuthorizationFragment;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.common.logging.Logger;
-
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.AuthorizationIntentAction.DESTROY_REDIRECT_RECEIVING_ACTIVITY_ACTION;
-import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.AuthorizationIntentAction.REDIRECT_RETURNED_ACTION;
-
 
 /**
  * MSAL activity class (needs to be public in order to be discoverable by the os) to get the browser redirect with auth code from authorize
@@ -73,8 +72,7 @@ public final class CurrentTaskBrowserTabActivity extends Activity {
     private static final String TAG = CurrentTaskBrowserTabActivity.class.getSimpleName();
     private static final int REDIRECT_RECEIVED_CODE = 2;
     private BroadcastReceiver mCloseBroadcastReceiver;
-    //private int mTaskIdResponseFor;
-
+    // private int mTaskIdResponseFor;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -85,14 +83,21 @@ public final class CurrentTaskBrowserTabActivity extends Activity {
         if (savedInstanceState == null
                 && getIntent() != null
                 && !StringUtil.isEmpty(getIntent().getDataString())) {
-            //Leaving this for now to set static response URI value
-            final Intent responseIntent = CurrentTaskBrowserAuthorizationFragment.createCustomTabResponseIntent(this, response);
+            // Leaving this for now to set static response URI value
+            final Intent responseIntent =
+                    CurrentTaskBrowserAuthorizationFragment.createCustomTabResponseIntent(
+                            this, response);
 
             if (responseIntent != null) {
                 startActivityForResult(responseIntent, REDIRECT_RECEIVED_CODE);
             } else {
-                Logger.warn(TAG, "Received NULL response intent. Unable to complete authorization.");
-                Toast.makeText(getApplicationContext(), "Unable to complete authorization as there is no interactive call in progress. This can be due to closing the app while the authorization was in process.", Toast.LENGTH_LONG).show();
+                Logger.warn(
+                        TAG, "Received NULL response intent. Unable to complete authorization.");
+                Toast.makeText(
+                                getApplicationContext(),
+                                "Unable to complete authorization as there is no interactive call in progress. This can be due to closing the app while the authorization was in process.",
+                                Toast.LENGTH_LONG)
+                        .show();
             }
         }
     }
@@ -102,40 +107,54 @@ public final class CurrentTaskBrowserTabActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (resultCode == RESULT_CANCELED) {
-            // We weren't able to open CurrentTaskAuthorizationActivity from the back stack. Send a broadcast
+            // We weren't able to open CurrentTaskAuthorizationActivity from the back stack. Send a
+            // broadcast
             // instead.
             Intent broadcast = new Intent(REDIRECT_RETURNED_ACTION);
             LocalBroadcastManager.getInstance(this).sendBroadcast(broadcast);
 
             // Wait for the custom tab to be removed from the back stack before finishing.
-            mCloseBroadcastReceiver = new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
+            mCloseBroadcastReceiver =
+                    new BroadcastReceiver() {
+                        @Override
+                        public void onReceive(Context context, Intent intent) {
 
-                    boolean hasNullTaskAffinity = false;
-                    final PackageManager packageManager = CurrentTaskBrowserTabActivity.this.getApplicationContext().getPackageManager();
-                    try {
-                        final ComponentName componentName = CurrentTaskBrowserTabActivity.this.getComponentName();
-                        final ActivityInfo activityInfo = componentName != null ? packageManager.getActivityInfo(componentName, 0) : null;
-                        if(activityInfo == null || activityInfo.taskAffinity == null){
-                            hasNullTaskAffinity = true;
+                            boolean hasNullTaskAffinity = false;
+                            final PackageManager packageManager =
+                                    CurrentTaskBrowserTabActivity.this
+                                            .getApplicationContext()
+                                            .getPackageManager();
+                            try {
+                                final ComponentName componentName =
+                                        CurrentTaskBrowserTabActivity.this.getComponentName();
+                                final ActivityInfo activityInfo =
+                                        componentName != null
+                                                ? packageManager.getActivityInfo(componentName, 0)
+                                                : null;
+                                if (activityInfo == null || activityInfo.taskAffinity == null) {
+                                    hasNullTaskAffinity = true;
+                                }
+                            } catch (final PackageManager.NameNotFoundException e) {
+                                Logger.warn(
+                                        TAG,
+                                        null,
+                                        "Package name not found for: "
+                                                + CurrentTaskBrowserTabActivity.this
+                                                        .getComponentName());
+                            }
+
+                            finishActivity(REDIRECT_RECEIVED_CODE);
+                            if (Build.VERSION.SDK_INT > 21 && hasNullTaskAffinity) {
+                                finishAndRemoveTask();
+                            } else {
+                                finish();
+                            }
                         }
-                    } catch (final PackageManager.NameNotFoundException e) {
-                        Logger.warn(TAG, null, "Package name not found for: " + CurrentTaskBrowserTabActivity.this.getComponentName());
-                    }
-
-                    finishActivity(REDIRECT_RECEIVED_CODE);
-                    if(Build.VERSION.SDK_INT > 21 && hasNullTaskAffinity) {
-                        finishAndRemoveTask();
-                    }else{
-                        finish();
-                    }
-                }
-            };
-            LocalBroadcastManager.getInstance(this).registerReceiver(
-                    mCloseBroadcastReceiver,
-                    new IntentFilter(DESTROY_REDIRECT_RECEIVING_ACTIVITY_ACTION)
-            );
+                    };
+            LocalBroadcastManager.getInstance(this)
+                    .registerReceiver(
+                            mCloseBroadcastReceiver,
+                            new IntentFilter(DESTROY_REDIRECT_RECEIVING_ACTIVITY_ACTION));
         }
     }
 
@@ -144,5 +163,4 @@ public final class CurrentTaskBrowserTabActivity extends Activity {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mCloseBroadcastReceiver);
         super.onDestroy();
     }
-
 }

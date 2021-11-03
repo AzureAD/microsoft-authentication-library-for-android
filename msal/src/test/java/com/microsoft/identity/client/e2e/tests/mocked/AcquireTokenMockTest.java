@@ -22,6 +22,12 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.mocked;
 
+import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
+import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushSchedulerWithDelay;
+import static com.microsoft.identity.internal.testutils.TestConstants.Authorities.AAD_MOCK_AUTHORITY;
+
+import static org.junit.Assert.fail;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -34,22 +40,22 @@ import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.RoboTestCacheHelper;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
-import com.microsoft.identity.client.e2e.shadows.ShadowMockAuthority;
-import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
-import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
+import com.microsoft.identity.client.e2e.shadows.ShadowMockAuthority;
+import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
+import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowStrategyResultServerError;
 import com.microsoft.identity.client.e2e.shadows.ShadowStrategyResultUnsuccessful;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.ErrorCodes;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.common.java.exception.ClientException;
+import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.common.java.cache.ICacheRecord;
+import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.net.HttpClient;
 import com.microsoft.identity.common.java.net.HttpResponse;
 import com.microsoft.identity.common.java.providers.oauth2.TokenResponse;
-import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.internal.testutils.HttpRequestInterceptor;
 import com.microsoft.identity.internal.testutils.HttpRequestMatcher;
 import com.microsoft.identity.internal.testutils.TestConstants;
@@ -70,19 +76,15 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
-import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushSchedulerWithDelay;
-import static com.microsoft.identity.internal.testutils.TestConstants.Authorities.AAD_MOCK_AUTHORITY;
-import static org.junit.Assert.fail;
-
 @RunWith(RobolectricTestRunner.class)
-@Config(shadows = {
-        ShadowAndroidSdkStorageEncryptionManager.class,
-        ShadowMockAuthority.class,
-        ShadowHttpClient.class,
-        ShadowPublicClientApplicationConfiguration.class,
-        ShadowOpenIdProviderConfigurationClient.class
-})
+@Config(
+        shadows = {
+            ShadowAndroidSdkStorageEncryptionManager.class,
+            ShadowMockAuthority.class,
+            ShadowHttpClient.class,
+            ShadowPublicClientApplicationConfiguration.class,
+            ShadowOpenIdProviderConfigurationClient.class
+        })
 public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
 
     @Override
@@ -99,46 +101,51 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
     public void setup() {
         super.setup();
         mockHttpClient.intercept(
-                HttpRequestMatcher.builder().isPOST().build(), new HttpRequestInterceptor() {
+                HttpRequestMatcher.builder().isPOST().build(),
+                new HttpRequestInterceptor() {
                     @Override
                     public HttpResponse performIntercept(
                             @NonNull HttpClient.HttpMethod httpMethod,
                             @NonNull URL requestUrl,
                             @NonNull Map<String, String> requestHeaders,
-                            @Nullable byte[] requestContent) throws IOException {
-                        throw new IOException("Sending requests to server has been disabled for mocked unit tests");
+                            @Nullable byte[] requestContent)
+                            throws IOException {
+                        throw new IOException(
+                                "Sending requests to server has been disabled for mocked unit tests");
                     }
                 });
     }
-
 
     @Test
     public void testAcquireTokenSuccess() {
         final String username = "fake@test.com";
 
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(username)
-                .withScopes(Arrays.asList(mScopes))
-                .fromAuthority(getAuthority())
-                .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
-                .build();
+        final AcquireTokenParameters parameters =
+                new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(mActivity)
+                        .withLoginHint(username)
+                        .withScopes(Arrays.asList(mScopes))
+                        .fromAuthority(getAuthority())
+                        .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
+                        .build();
 
         mApplication.acquireToken(parameters);
         flushScheduler();
     }
 
-
     @Test
     public void testAcquireTokenFailureNoScope() {
         final String username = "fake@test.com";
 
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(username)
-                .fromAuthority(getAuthority())
-                .withCallback(AcquireTokenTestHelper.failureInteractiveCallback(ErrorCodes.ILLEGAL_ARGUMENT_ERROR_CODE))
-                .build();
+        final AcquireTokenParameters parameters =
+                new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(mActivity)
+                        .withLoginHint(username)
+                        .fromAuthority(getAuthority())
+                        .withCallback(
+                                AcquireTokenTestHelper.failureInteractiveCallback(
+                                        ErrorCodes.ILLEGAL_ARGUMENT_ERROR_CODE))
+                        .build();
 
         mApplication.acquireToken(parameters);
         flushScheduler();
@@ -148,12 +155,15 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
     public void testAcquireTokenFailureNoActivity() {
         final String username = "fake@test.com";
 
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .withLoginHint(username)
-                .withScopes(Arrays.asList(mScopes))
-                .fromAuthority(getAuthority())
-                .withCallback(AcquireTokenTestHelper.failureInteractiveCallback(ErrorCodes.ILLEGAL_ARGUMENT_ERROR_CODE))
-                .build();
+        final AcquireTokenParameters parameters =
+                new AcquireTokenParameters.Builder()
+                        .withLoginHint(username)
+                        .withScopes(Arrays.asList(mScopes))
+                        .fromAuthority(getAuthority())
+                        .withCallback(
+                                AcquireTokenTestHelper.failureInteractiveCallback(
+                                        ErrorCodes.ILLEGAL_ARGUMENT_ERROR_CODE))
+                        .build();
 
         mApplication.acquireToken(parameters);
         flushScheduler();
@@ -163,12 +173,13 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
     public void testAcquireTokenFailureNoCallback() {
         final String username = "fake@test.com";
 
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(username)
-                .fromAuthority(getAuthority())
-                .withScopes(Arrays.asList(mScopes))
-                .build();
+        final AcquireTokenParameters parameters =
+                new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(mActivity)
+                        .withLoginHint(username)
+                        .fromAuthority(getAuthority())
+                        .withScopes(Arrays.asList(mScopes))
+                        .build();
 
         mApplication.acquireToken(parameters);
         flushScheduler();
@@ -179,13 +190,16 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
     public void testAcquireTokenFailureUnsuccessfulTokenResult() {
         final String username = "fake@test.com";
 
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(username)
-                .withScopes(Arrays.asList(mScopes))
-                .fromAuthority(getAuthority())
-                .withCallback(AcquireTokenTestHelper.failureInteractiveCallback(ErrorCodes.UNKNOWN_ERROR_CODE))
-                .build();
+        final AcquireTokenParameters parameters =
+                new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(mActivity)
+                        .withLoginHint(username)
+                        .withScopes(Arrays.asList(mScopes))
+                        .fromAuthority(getAuthority())
+                        .withCallback(
+                                AcquireTokenTestHelper.failureInteractiveCallback(
+                                        ErrorCodes.UNKNOWN_ERROR_CODE))
+                        .build();
 
         mApplication.acquireToken(parameters);
         flushScheduler();
@@ -196,13 +210,16 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
     public void testAcquireTokenFailureServerError() {
         final String username = "fake@test.com";
 
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(username)
-                .withScopes(Arrays.asList(mScopes))
-                .fromAuthority(getAuthority())
-                .withCallback(AcquireTokenTestHelper.failureInteractiveCallback(ErrorCodes.INTERNAL_SERVER_ERROR_CODE))
-                .build();
+        final AcquireTokenParameters parameters =
+                new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(mActivity)
+                        .withLoginHint(username)
+                        .withScopes(Arrays.asList(mScopes))
+                        .fromAuthority(getAuthority())
+                        .withCallback(
+                                AcquireTokenTestHelper.failureInteractiveCallback(
+                                        ErrorCodes.INTERNAL_SERVER_ERROR_CODE))
+                        .build();
 
         mApplication.acquireToken(parameters);
         flushScheduler();
@@ -212,24 +229,26 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
     public void testAcquireTokenSuccessFollowedBySilentSuccess() {
         final String username = "fake@test.com";
 
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(username)
-                .withScopes(Arrays.asList(mScopes))
-                .fromAuthority(getAuthority())
-                .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
-                .build();
+        final AcquireTokenParameters parameters =
+                new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(mActivity)
+                        .withLoginHint(username)
+                        .withScopes(Arrays.asList(mScopes))
+                        .fromAuthority(getAuthority())
+                        .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
+                        .build();
 
         mApplication.acquireToken(parameters);
         flushScheduler();
 
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .forAccount(AcquireTokenTestHelper.getAccount())
-                .withScopes(Arrays.asList(mScopes))
-                .forceRefresh(false)
-                .fromAuthority(getAuthority())
-                .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
-                .build();
+        final AcquireTokenSilentParameters silentParameters =
+                new AcquireTokenSilentParameters.Builder()
+                        .forAccount(AcquireTokenTestHelper.getAccount())
+                        .withScopes(Arrays.asList(mScopes))
+                        .forceRefresh(false)
+                        .fromAuthority(getAuthority())
+                        .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
+                        .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
         flushScheduler();
@@ -239,13 +258,14 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
     public void testAcquireTokenSilentSuccessForceRefresh() {
         final IAccount account = loadAccountForTest(mApplication);
 
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .withScopes(Arrays.asList(mScopes))
-                .forceRefresh(true)
-                .forAccount(account)
-                .fromAuthority(getAuthority())
-                .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
-                .build();
+        final AcquireTokenSilentParameters silentParameters =
+                new AcquireTokenSilentParameters.Builder()
+                        .withScopes(Arrays.asList(mScopes))
+                        .forceRefresh(true)
+                        .forAccount(account)
+                        .fromAuthority(getAuthority())
+                        .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
+                        .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
         flushScheduler();
@@ -255,13 +275,14 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
     public void testAcquireTokenSilentSuccessValidCache() {
         final IAccount account = loadAccountForTest(mApplication);
 
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .withScopes(Arrays.asList(mScopes))
-                .forceRefresh(false)
-                .fromAuthority(getAuthority())
-                .forAccount(account)
-                .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
-                .build();
+        final AcquireTokenSilentParameters silentParameters =
+                new AcquireTokenSilentParameters.Builder()
+                        .withScopes(Arrays.asList(mScopes))
+                        .forceRefresh(false)
+                        .fromAuthority(getAuthority())
+                        .forAccount(account)
+                        .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
+                        .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
         flushScheduler();
@@ -273,13 +294,14 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
         final String loginHint = cacheRecord.getAccount().getUsername();
         final IAccount account = performGetAccount(mApplication, loginHint);
 
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .withScopes(Arrays.asList(mScopes))
-                .forceRefresh(false)
-                .forAccount(account)
-                .fromAuthority(getAuthority())
-                .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
-                .build();
+        final AcquireTokenSilentParameters silentParameters =
+                new AcquireTokenSilentParameters.Builder()
+                        .withScopes(Arrays.asList(mScopes))
+                        .forceRefresh(false)
+                        .forAccount(account)
+                        .fromAuthority(getAuthority())
+                        .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
+                        .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
         flushScheduler();
@@ -290,13 +312,16 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
         final IAccount account = loadAccountForTest(mApplication);
         TestUtils.clearCache(SHARED_PREFERENCES_NAME);
 
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .withScopes(Arrays.asList(mScopes))
-                .forceRefresh(false)
-                .forAccount(account)
-                .fromAuthority(getAuthority())
-                .withCallback(AcquireTokenTestHelper.failureSilentCallback(ErrorCodes.NO_ACCOUNT_FOUND_ERROR_CODE))
-                .build();
+        final AcquireTokenSilentParameters silentParameters =
+                new AcquireTokenSilentParameters.Builder()
+                        .withScopes(Arrays.asList(mScopes))
+                        .forceRefresh(false)
+                        .forAccount(account)
+                        .fromAuthority(getAuthority())
+                        .withCallback(
+                                AcquireTokenTestHelper.failureSilentCallback(
+                                        ErrorCodes.NO_ACCOUNT_FOUND_ERROR_CODE))
+                        .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
         flushScheduler();
@@ -306,12 +331,15 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
     public void testAcquireTokenSilentFailureNoAuthority() {
         final IAccount account = loadAccountForTest(mApplication);
 
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .withScopes(Arrays.asList(mScopes))
-                .forceRefresh(false)
-                .forAccount(account)
-                .withCallback(AcquireTokenTestHelper.failureSilentCallback(ErrorCodes.ILLEGAL_ARGUMENT_ERROR_CODE))
-                .build();
+        final AcquireTokenSilentParameters silentParameters =
+                new AcquireTokenSilentParameters.Builder()
+                        .withScopes(Arrays.asList(mScopes))
+                        .forceRefresh(false)
+                        .forAccount(account)
+                        .withCallback(
+                                AcquireTokenTestHelper.failureSilentCallback(
+                                        ErrorCodes.ILLEGAL_ARGUMENT_ERROR_CODE))
+                        .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
         flushScheduler();
@@ -327,12 +355,14 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
             noAccountErrorCode = ErrorCodes.ILLEGAL_ARGUMENT_ERROR_CODE;
         }
 
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .withScopes(Arrays.asList(mScopes))
-                .forceRefresh(false)
-                .fromAuthority(getAuthority())
-                .withCallback(AcquireTokenTestHelper.failureSilentCallback(noAccountErrorCode))
-                .build();
+        final AcquireTokenSilentParameters silentParameters =
+                new AcquireTokenSilentParameters.Builder()
+                        .withScopes(Arrays.asList(mScopes))
+                        .forceRefresh(false)
+                        .fromAuthority(getAuthority())
+                        .withCallback(
+                                AcquireTokenTestHelper.failureSilentCallback(noAccountErrorCode))
+                        .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
         flushSchedulerWithDelay(500);
@@ -342,12 +372,15 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
     public void testAcquireTokenSilentFailureNoScopes() {
         final IAccount account = loadAccountForTest(mApplication);
 
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .forAccount(account)
-                .forceRefresh(false)
-                .fromAuthority(getAuthority())
-                .withCallback(AcquireTokenTestHelper.failureSilentCallback(ErrorCodes.ILLEGAL_ARGUMENT_ERROR_CODE))
-                .build();
+        final AcquireTokenSilentParameters silentParameters =
+                new AcquireTokenSilentParameters.Builder()
+                        .forAccount(account)
+                        .forceRefresh(false)
+                        .fromAuthority(getAuthority())
+                        .withCallback(
+                                AcquireTokenTestHelper.failureSilentCallback(
+                                        ErrorCodes.ILLEGAL_ARGUMENT_ERROR_CODE))
+                        .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
         flushScheduler();
@@ -357,12 +390,13 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
     public void testAcquireTokenSilentFailureNoCallback() {
         final IAccount account = loadAccountForTest(mApplication);
 
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .withScopes(Arrays.asList(mScopes))
-                .forceRefresh(false)
-                .fromAuthority(getAuthority())
-                .forAccount(account)
-                .build();
+        final AcquireTokenSilentParameters silentParameters =
+                new AcquireTokenSilentParameters.Builder()
+                        .withScopes(Arrays.asList(mScopes))
+                        .forceRefresh(false)
+                        .fromAuthority(getAuthority())
+                        .forAccount(account)
+                        .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
         flushScheduler();
@@ -372,31 +406,38 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
     public void testAcquireTokenInteractiveResultContainsSomeCorrelationId() {
         final String username = "fake@test.com";
 
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(username)
-                .withScopes(Arrays.asList(mScopes))
-                .fromAuthority(getAuthority())
-                .withCallback(new AuthenticationCallback() {
-                    @Override
-                    public void onCancel() {
-                        Assert.fail("Unexpected cancel");
-                    }
+        final AcquireTokenParameters parameters =
+                new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(mActivity)
+                        .withLoginHint(username)
+                        .withScopes(Arrays.asList(mScopes))
+                        .fromAuthority(getAuthority())
+                        .withCallback(
+                                new AuthenticationCallback() {
+                                    @Override
+                                    public void onCancel() {
+                                        Assert.fail("Unexpected cancel");
+                                    }
 
-                    @Override
-                    public void onSuccess(IAuthenticationResult authenticationResult) {
-                        Assert.assertFalse(StringUtil.isEmpty(authenticationResult.getAccessToken()));
-                        Assert.assertNotNull(authenticationResult.getCorrelationId());
-                        final String correlationId = authenticationResult.getCorrelationId().toString();
-                        Assert.assertFalse(StringUtil.isEmpty(correlationId));
-                    }
+                                    @Override
+                                    public void onSuccess(
+                                            IAuthenticationResult authenticationResult) {
+                                        Assert.assertFalse(
+                                                StringUtil.isEmpty(
+                                                        authenticationResult.getAccessToken()));
+                                        Assert.assertNotNull(
+                                                authenticationResult.getCorrelationId());
+                                        final String correlationId =
+                                                authenticationResult.getCorrelationId().toString();
+                                        Assert.assertFalse(StringUtil.isEmpty(correlationId));
+                                    }
 
-                    @Override
-                    public void onError(MsalException exception) {
-                        Assert.fail(exception.getMessage());
-                    }
-                })
-                .build();
+                                    @Override
+                                    public void onError(MsalException exception) {
+                                        Assert.fail(exception.getMessage());
+                                    }
+                                })
+                        .build();
 
         mApplication.acquireToken(parameters);
         flushScheduler();
@@ -406,26 +447,33 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
     public void testAcquireTokenSilentResultContainsSomeCorrelationId() {
         final IAccount account = loadAccountForTest(mApplication);
 
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .withScopes(Arrays.asList(mScopes))
-                .forceRefresh(true)
-                .forAccount(account)
-                .fromAuthority(getAuthority())
-                .withCallback(new SilentAuthenticationCallback() {
-                    @Override
-                    public void onSuccess(IAuthenticationResult authenticationResult) {
-                        Assert.assertFalse(StringUtil.isEmpty(authenticationResult.getAccessToken()));
-                        Assert.assertNotNull(authenticationResult.getCorrelationId());
-                        final String correlationId = authenticationResult.getCorrelationId().toString();
-                        Assert.assertFalse(StringUtil.isEmpty(correlationId));
-                    }
+        final AcquireTokenSilentParameters silentParameters =
+                new AcquireTokenSilentParameters.Builder()
+                        .withScopes(Arrays.asList(mScopes))
+                        .forceRefresh(true)
+                        .forAccount(account)
+                        .fromAuthority(getAuthority())
+                        .withCallback(
+                                new SilentAuthenticationCallback() {
+                                    @Override
+                                    public void onSuccess(
+                                            IAuthenticationResult authenticationResult) {
+                                        Assert.assertFalse(
+                                                StringUtil.isEmpty(
+                                                        authenticationResult.getAccessToken()));
+                                        Assert.assertNotNull(
+                                                authenticationResult.getCorrelationId());
+                                        final String correlationId =
+                                                authenticationResult.getCorrelationId().toString();
+                                        Assert.assertFalse(StringUtil.isEmpty(correlationId));
+                                    }
 
-                    @Override
-                    public void onError(MsalException exception) {
-                        Assert.fail(exception.getMessage());
-                    }
-                })
-                .build();
+                                    @Override
+                                    public void onError(MsalException exception) {
+                                        Assert.fail(exception.getMessage());
+                                    }
+                                })
+                        .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
         flushScheduler();
@@ -437,31 +485,39 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
 
         final UUID correlationId = UUID.randomUUID();
 
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(username)
-                .withScopes(Arrays.asList(mScopes))
-                .fromAuthority(getAuthority())
-                .withCorrelationId(correlationId)
-                .withCallback(new AuthenticationCallback() {
-                    @Override
-                    public void onCancel() {
-                        Assert.fail("Unexpected cancel");
-                    }
+        final AcquireTokenParameters parameters =
+                new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(mActivity)
+                        .withLoginHint(username)
+                        .withScopes(Arrays.asList(mScopes))
+                        .fromAuthority(getAuthority())
+                        .withCorrelationId(correlationId)
+                        .withCallback(
+                                new AuthenticationCallback() {
+                                    @Override
+                                    public void onCancel() {
+                                        Assert.fail("Unexpected cancel");
+                                    }
 
-                    @Override
-                    public void onSuccess(IAuthenticationResult authenticationResult) {
-                        Assert.assertFalse(StringUtil.isEmpty(authenticationResult.getAccessToken()));
-                        Assert.assertNotNull(authenticationResult.getCorrelationId());
-                        Assert.assertEquals(correlationId, authenticationResult.getCorrelationId());
-                    }
+                                    @Override
+                                    public void onSuccess(
+                                            IAuthenticationResult authenticationResult) {
+                                        Assert.assertFalse(
+                                                StringUtil.isEmpty(
+                                                        authenticationResult.getAccessToken()));
+                                        Assert.assertNotNull(
+                                                authenticationResult.getCorrelationId());
+                                        Assert.assertEquals(
+                                                correlationId,
+                                                authenticationResult.getCorrelationId());
+                                    }
 
-                    @Override
-                    public void onError(MsalException exception) {
-                        Assert.fail(exception.getMessage());
-                    }
-                })
-                .build();
+                                    @Override
+                                    public void onError(MsalException exception) {
+                                        Assert.fail(exception.getMessage());
+                                    }
+                                })
+                        .build();
 
         mApplication.acquireToken(parameters);
         flushScheduler();
@@ -473,32 +529,41 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
 
         final UUID correlationId = UUID.randomUUID();
 
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .withScopes(Arrays.asList(mScopes))
-                .forceRefresh(true)
-                .forAccount(account)
-                .fromAuthority(getAuthority())
-                .withCorrelationId(correlationId)
-                .withCallback(new SilentAuthenticationCallback() {
-                    @Override
-                    public void onSuccess(IAuthenticationResult authenticationResult) {
-                        Assert.assertFalse(StringUtil.isEmpty(authenticationResult.getAccessToken()));
-                        Assert.assertNotNull(authenticationResult.getCorrelationId());
-                        Assert.assertEquals(correlationId, authenticationResult.getCorrelationId());
-                    }
+        final AcquireTokenSilentParameters silentParameters =
+                new AcquireTokenSilentParameters.Builder()
+                        .withScopes(Arrays.asList(mScopes))
+                        .forceRefresh(true)
+                        .forAccount(account)
+                        .fromAuthority(getAuthority())
+                        .withCorrelationId(correlationId)
+                        .withCallback(
+                                new SilentAuthenticationCallback() {
+                                    @Override
+                                    public void onSuccess(
+                                            IAuthenticationResult authenticationResult) {
+                                        Assert.assertFalse(
+                                                StringUtil.isEmpty(
+                                                        authenticationResult.getAccessToken()));
+                                        Assert.assertNotNull(
+                                                authenticationResult.getCorrelationId());
+                                        Assert.assertEquals(
+                                                correlationId,
+                                                authenticationResult.getCorrelationId());
+                                    }
 
-                    @Override
-                    public void onError(MsalException exception) {
-                        Assert.fail(exception.getMessage());
-                    }
-                })
-                .build();
+                                    @Override
+                                    public void onError(MsalException exception) {
+                                        Assert.fail(exception.getMessage());
+                                    }
+                                })
+                        .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
         flushScheduler();
     }
 
-    abstract IAccount performGetAccount(IPublicClientApplication application, final String loginHint);
+    abstract IAccount performGetAccount(
+            IPublicClientApplication application, final String loginHint);
 
     private ICacheRecord createDataInCache(IPublicClientApplication application) {
         ICacheRecord cacheRecord = null;
@@ -513,9 +578,11 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
         return cacheRecord;
     }
 
-    private ICacheRecord createDataInCacheWithExpiredAccessToken(IPublicClientApplication application) {
+    private ICacheRecord createDataInCacheWithExpiredAccessToken(
+            IPublicClientApplication application) {
         ICacheRecord cacheRecord = null;
-        final TokenResponse tokenResponse = MockTokenResponse.getMockTokenResponseWithExpiredAccessToken();
+        final TokenResponse tokenResponse =
+                MockTokenResponse.getMockTokenResponseWithExpiredAccessToken();
 
         try {
             cacheRecord = RoboTestCacheHelper.saveTokens(tokenResponse, application);

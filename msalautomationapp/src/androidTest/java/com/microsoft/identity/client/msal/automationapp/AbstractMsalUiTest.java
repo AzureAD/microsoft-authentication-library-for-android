@@ -22,6 +22,10 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp;
 
+import static com.microsoft.identity.client.ui.automation.rules.LoadLabUserTestRule.TEMP_USER_WAIT_TIME;
+
+import static org.junit.Assert.fail;
+
 import android.app.Activity;
 import android.content.Context;
 import android.text.TextUtils;
@@ -55,9 +59,6 @@ import org.junit.rules.RuleChain;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
-import static com.microsoft.identity.client.ui.automation.rules.LoadLabUserTestRule.TEMP_USER_WAIT_TIME;
-import static org.junit.Assert.fail;
-
 /**
  * A base model for an E2E MSAL UI Test. This class will apply all the rules required for an MSAL
  * test and will get everything setup for use by child classes.
@@ -77,8 +78,7 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
     public RuleChain primaryRules = getPrimaryRules();
 
     @Rule(order = 1)
-    public ActivityTestRule<MainActivity> mActivityRule =
-            new ActivityTestRule(MainActivity.class);
+    public ActivityTestRule<MainActivity> mActivityRule = new ActivityTestRule(MainActivity.class);
 
     @Rule(order = 2)
     public MsalLoggingRule msalLoggingRule = new MsalLoggingRule();
@@ -178,8 +178,7 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
     protected AuthenticationCallback successfulClaimsRequestInIdTokenInteractiveCallback(
             @NonNull final CountDownLatch latch,
             @NonNull final String requestedClaim,
-            @Nullable final String expectedValue
-    ) {
+            @Nullable final String expectedValue) {
         return new AuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
@@ -267,7 +266,8 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
      * @param latch the latch associated to this request
      * @return an {@link AuthenticationCallback} object
      */
-    protected AuthenticationCallback failureInteractiveCallback(final CountDownLatch latch, final String errorCode) {
+    protected AuthenticationCallback failureInteractiveCallback(
+            final CountDownLatch latch, final String errorCode) {
         return new AuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
@@ -296,7 +296,8 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
      * @param latch the latch associated to this request
      * @return an {@link AuthenticationCallback} object
      */
-    protected SilentAuthenticationCallback failureSilentCallback(final CountDownLatch latch, final String errorCode) {
+    protected SilentAuthenticationCallback failureSilentCallback(
+            final CountDownLatch latch, final String errorCode) {
         return new SilentAuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {

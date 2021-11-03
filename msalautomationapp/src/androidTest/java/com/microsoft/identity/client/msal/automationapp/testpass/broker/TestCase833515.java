@@ -56,20 +56,19 @@ import java.util.concurrent.TimeUnit;
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
 public class TestCase833515 extends AbstractMsalBrokerTest {
 
-    final static String MY_APPS_URL = "myapps.microsoft.com";
+    static final String MY_APPS_URL = "myapps.microsoft.com";
 
     @Test
     public void test_833515() throws MsalException, InterruptedException {
         // pca should be in MULTIPLE account mode starting out
         Assert.assertTrue(mApplication instanceof MultipleAccountPublicClientApplication);
 
-        //we should NOT be in shared device mode
+        // we should NOT be in shared device mode
         Assert.assertFalse(mApplication.isSharedDevice());
 
         // perform shared device registration
         mBroker.performSharedDeviceRegistration(
-                mLoginHint, LabConfig.getCurrentLabConfig().getLabUserPassword()
-        );
+                mLoginHint, LabConfig.getCurrentLabConfig().getLabUserPassword());
 
         // re-create PCA after device registration
         mApplication = PublicClientApplication.create(mContext, getConfigFileResourceId());
@@ -80,11 +79,10 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         // we should be in shared device mode
         Assert.assertTrue(mApplication.isSharedDevice());
 
-        //creating a basic temp user account
+        // creating a basic temp user account
         final String username = LabUserHelper.loadTempUser(LabConstants.TempUserType.BASIC);
         String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
         Thread.sleep(TimeUnit.SECONDS.toMillis(30));
-
 
         final SingleAccountPublicClientApplication singleAccountPCA =
                 (SingleAccountPublicClientApplication) mApplication;
@@ -94,21 +92,22 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         // try sign in with an account from the same tenant
         singleAccountPCA.signIn(mActivity, username, mScopes, successfulInteractiveCallback(latch));
 
-        final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                .loginHint(username)
-                .sessionExpected(false)
-                .consentPageExpected(false)
-                .broker(mBroker)
-                .prompt(PromptParameter.SELECT_ACCOUNT)
-                .expectingBrokerAccountChooserActivity(false)
-                .build();
+        final PromptHandlerParameters promptHandlerParameters =
+                PromptHandlerParameters.builder()
+                        .loginHint(username)
+                        .sessionExpected(false)
+                        .consentPageExpected(false)
+                        .broker(mBroker)
+                        .prompt(PromptParameter.SELECT_ACCOUNT)
+                        .expectingBrokerAccountChooserActivity(false)
+                        .build();
 
         AadPromptHandler aadPromptHandler = new AadPromptHandler(promptHandlerParameters);
         aadPromptHandler.handlePrompt(username, password);
 
         latch.await();
 
-        //launching azure sample app and confirming user signed in or not.
+        // launching azure sample app and confirming user signed in or not.
         final AzureSampleApp azureSampleApp = new AzureSampleApp();
         azureSampleApp.uninstall();
         azureSampleApp.install();
@@ -116,11 +115,11 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         Thread.sleep(TimeUnit.SECONDS.toMillis(5));
         azureSampleApp.confirmSignedIn(username);
 
-        //clearing history of chrome.
+        // clearing history of chrome.
         final IBrowser chrome = new BrowserChrome();
         chrome.clear();
 
-        //relaunching chrome after clearing history of chrome.
+        // relaunching chrome after clearing history of chrome.
         chrome.launch();
         chrome.handleFirstRun();
         chrome.navigateTo(MY_APPS_URL);
@@ -131,22 +130,22 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         aadLoginComponentHandler.handlePasswordField(password);
         aadLoginComponentHandler.handleNextButton(); // keep me signed in
 
-        //signing out from the application.
+        // signing out from the application.
         ((SingleAccountPublicClientApplication) mApplication).signOut();
 
-        //selecting which account should be logged out.
+        // selecting which account should be logged out.
         aadLoginComponentHandler.handleAccountPicker(username);
 
-        final UiObject signOutConfirmationUrl = UiAutomatorUtils.obtainUiObjectWithText(
-                "login.microsoftonline.com/common/oauth2/v2.0/logoutsession"
-        );
+        final UiObject signOutConfirmationUrl =
+                UiAutomatorUtils.obtainUiObjectWithText(
+                        "login.microsoftonline.com/common/oauth2/v2.0/logoutsession");
 
         Assert.assertTrue(signOutConfirmationUrl.exists());
 
         // can sometimes take a few seconds to actually be signed out
         Thread.sleep(TimeUnit.SECONDS.toMillis(5));
 
-        //confirming account is signed out in google chrome.
+        // confirming account is signed out in google chrome.
         chrome.launch();
         chrome.navigateTo(MY_APPS_URL);
         aadLoginComponentHandler.handleAccountPicker(username);
@@ -155,14 +154,14 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         final UiObject passwordField = UiAutomatorUtils.obtainUiObjectWithResourceId("i0118");
         Assert.assertTrue(passwordField.exists());
 
-        //Confirming account is signed out in Azure.
+        // Confirming account is signed out in Azure.
         azureSampleApp.launch();
         azureSampleApp.confirmSignedIn("None");
     }
 
     @Override
     public String[] getScopes() {
-        return new String[]{"User.read"};
+        return new String[] {"User.read"};
     }
 
     @Override

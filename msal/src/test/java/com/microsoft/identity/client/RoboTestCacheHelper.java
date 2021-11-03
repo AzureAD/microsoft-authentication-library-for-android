@@ -23,10 +23,10 @@
 package com.microsoft.identity.client;
 
 import com.microsoft.identity.common.AndroidPlatformComponents;
-import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.authorities.AccountsInOneOrganization;
 import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.cache.ICacheRecord;
+import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
 import com.microsoft.identity.common.java.providers.oauth2.OAuth2Strategy;
 import com.microsoft.identity.common.java.providers.oauth2.OAuth2StrategyParameters;
@@ -39,21 +39,30 @@ import org.mockito.Mockito;
 
 public class RoboTestCacheHelper {
 
-    // adding this method here in its own class as the getOAuth2TokenCache method has package-private
-    // access inside the PubliClientApplication class. Therefore, it is required to place this method
+    // adding this method here in its own class as the getOAuth2TokenCache method has
+    // package-private
+    // access inside the PubliClientApplication class. Therefore, it is required to place this
+    // method
     // in this class as part of the com.microsoft.identity.client package to be able to utilize it
-    public static ICacheRecord saveTokens(TokenResponse tokenResponse, IPublicClientApplication application) throws ClientException {
+    public static ICacheRecord saveTokens(
+            TokenResponse tokenResponse, IPublicClientApplication application)
+            throws ClientException {
         final OAuth2TokenCache tokenCache = application.getConfiguration().getOAuth2TokenCache();
         final String clientId = application.getConfiguration().getClientId();
-        final Authority authority = new MockAuthority(new AccountsInOneOrganization(
-                TestConstants.Authorities.AAD_MOCK_AUTHORITY,
-                TestConstants.Authorities.AAD_MOCK_AUTHORITY_TENANT)
-        );
-        final OAuth2StrategyParameters strategyParameters = OAuth2StrategyParameters.builder()
-                .platformComponents(AndroidPlatformComponents.createFromContext(application.getConfiguration().getAppContext()))
-                .build();
+        final Authority authority =
+                new MockAuthority(
+                        new AccountsInOneOrganization(
+                                TestConstants.Authorities.AAD_MOCK_AUTHORITY,
+                                TestConstants.Authorities.AAD_MOCK_AUTHORITY_TENANT));
+        final OAuth2StrategyParameters strategyParameters =
+                OAuth2StrategyParameters.builder()
+                        .platformComponents(
+                                AndroidPlatformComponents.createFromContext(
+                                        application.getConfiguration().getAppContext()))
+                        .build();
         final OAuth2Strategy strategy = authority.createOAuth2Strategy(strategyParameters);
-        final MicrosoftStsAuthorizationRequest mockAuthRequest = Mockito.mock(MicrosoftStsAuthorizationRequest.class);
+        final MicrosoftStsAuthorizationRequest mockAuthRequest =
+                Mockito.mock(MicrosoftStsAuthorizationRequest.class);
         Mockito.when(mockAuthRequest.getAuthority()).thenReturn(authority.getAuthorityURL());
         Mockito.when(mockAuthRequest.getClientId()).thenReturn(clientId);
         return tokenCache.save(strategy, mockAuthRequest, tokenResponse);

@@ -45,7 +45,8 @@ public abstract class AbstractMsalBrokerTest extends AbstractMsalUiTest implemen
     public ITestBroker getBroker() {
         // only initialize once....so calling getBroker from anywhere returns the same instance
         if (mBroker == null) {
-            final SupportedBrokers supportedBrokersAnnotation = getClass().getAnnotation(SupportedBrokers.class);
+            final SupportedBrokers supportedBrokersAnnotation =
+                    getClass().getAnnotation(SupportedBrokers.class);
             mBroker = BrokerTestHelper.createBrokerFromFlavor(supportedBrokersAnnotation);
         }
         return mBroker;

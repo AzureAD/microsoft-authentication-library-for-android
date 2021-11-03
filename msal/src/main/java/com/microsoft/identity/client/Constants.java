@@ -31,8 +31,7 @@ import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 final class Constants {
 
     // Private constructor to prevent class from being initialized.
-    private Constants() {
-    }
+    private Constants() {}
 
     public static final String REQUEST_URL_KEY = "com.microsoft.identity.request.url.key";
 
@@ -42,7 +41,8 @@ final class Constants {
 
     public static final String CUSTOM_TAB_REDIRECT = "com.microsoft.identity.customtab.redirect";
 
-    public static final String AUTHORIZATION_FINAL_URL = AuthenticationConstants.Browser.RESPONSE_FINAL_URL;
+    public static final String AUTHORIZATION_FINAL_URL =
+            AuthenticationConstants.Browser.RESPONSE_FINAL_URL;
 
     public static final String WEBVIEW_SELECTION = "com.microsoft.identity.webview.selection";
 
@@ -59,12 +59,14 @@ final class Constants {
     }
 
     static final class MsalErrorMessage {
-        static final String AUTHORIZATION_SERVER_INVALID_RESPONSE = "The authorization server returned an invalid "
-                + "response.";
+        static final String AUTHORIZATION_SERVER_INVALID_RESPONSE =
+                "The authorization server returned an invalid " + "response.";
 
-        static final String USER_CANCELLED_FLOW = "User pressed device back button to cancel the flow.";
+        static final String USER_CANCELLED_FLOW =
+                "User pressed device back button to cancel the flow.";
 
-        static final String STATE_NOT_THE_SAME = "Returned state from authorize endpoint is not the same as the one sent";
+        static final String STATE_NOT_THE_SAME =
+                "Returned state from authorize endpoint is not the same as the one sent";
 
         static final String STATE_NOT_RETURNED = "State is not returned";
     }

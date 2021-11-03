@@ -39,24 +39,31 @@ interface INotifyOperationResultCallback<T> {
 }
 
 abstract class MsalWrapper {
-    public static void create(@NonNull final Context context,
-                              @NonNull final int configFileResourceId,
-                              @NonNull final INotifyOperationResultCallback<MsalWrapper> callback) {
-        PublicClientApplication.create(context,
+    public static void create(
+            @NonNull final Context context,
+            @NonNull final int configFileResourceId,
+            @NonNull final INotifyOperationResultCallback<MsalWrapper> callback) {
+        PublicClientApplication.create(
+                context,
                 configFileResourceId,
                 new PublicClientApplication.ApplicationCreatedListener() {
                     @Override
                     public void onCreated(IPublicClientApplication application) {
                         if (application instanceof ISingleAccountPublicClientApplication) {
-                            callback.onSuccess(new SingleAccountModeWrapper((ISingleAccountPublicClientApplication) application));
+                            callback.onSuccess(
+                                    new SingleAccountModeWrapper(
+                                            (ISingleAccountPublicClientApplication) application));
                         } else {
-                            callback.onSuccess(new MultipleAccountModeWrapper((IMultipleAccountPublicClientApplication) application));
+                            callback.onSuccess(
+                                    new MultipleAccountModeWrapper(
+                                            (IMultipleAccountPublicClientApplication) application));
                         }
                     }
 
                     @Override
                     public void onError(MsalException exception) {
-                        callback.showMessage("Failed to load MSAL Application: " + exception.getMessage());
+                        callback.showMessage(
+                                "Failed to load MSAL Application: " + exception.getMessage());
                     }
                 });
     }
@@ -65,35 +72,35 @@ abstract class MsalWrapper {
 
     public abstract String getMode();
 
-    public abstract void loadAccounts(@NonNull final INotifyOperationResultCallback<List<IAccount>> callback);
+    public abstract void loadAccounts(
+            @NonNull final INotifyOperationResultCallback<List<IAccount>> callback);
 
-    public abstract void removeAccount(@NonNull IAccount account,
-                                       @NonNull final INotifyOperationResultCallback<Void> callback);
+    public abstract void removeAccount(
+            @NonNull IAccount account,
+            @NonNull final INotifyOperationResultCallback<Void> callback);
 
-    public void acquireToken(@NonNull final Activity activity,
-                             @NonNull final RequestOptions requestOptions,
-                             @NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback) {
+    public void acquireToken(
+            @NonNull final Activity activity,
+            @NonNull final RequestOptions requestOptions,
+            @NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback) {
 
-        final AcquireTokenParameters.Builder builder = getAcquireTokenParametersBuilder(activity, requestOptions, callback);
+        final AcquireTokenParameters.Builder builder =
+                getAcquireTokenParametersBuilder(activity, requestOptions, callback);
         builder.withScopes(Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")));
         builder.withOtherScopesToAuthorize(
-                Arrays.asList(
-                        requestOptions
-                                .getExtraScope()
-                                .toLowerCase()
-                                .split(" ")
-                )
-        );
+                Arrays.asList(requestOptions.getExtraScope().toLowerCase().split(" ")));
 
         final AcquireTokenParameters parameters = builder.build();
         acquireTokenAsyncInternal(parameters);
     }
 
-    public void acquireTokenWithResource(@NonNull final Activity activity,
-                                         @NonNull final RequestOptions requestOptions,
-                                         @NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback) {
+    public void acquireTokenWithResource(
+            @NonNull final Activity activity,
+            @NonNull final RequestOptions requestOptions,
+            @NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback) {
 
-        final AcquireTokenParameters.Builder builder = getAcquireTokenParametersBuilder(activity, requestOptions, callback);
+        final AcquireTokenParameters.Builder builder =
+                getAcquireTokenParametersBuilder(activity, requestOptions, callback);
         builder.withAuthorizationQueryStringParameters(null);
         builder.withResource(requestOptions.getScopes().trim());
 
@@ -101,9 +108,10 @@ abstract class MsalWrapper {
         acquireTokenAsyncInternal(parameters);
     }
 
-    private AcquireTokenParameters.Builder getAcquireTokenParametersBuilder(@NonNull Activity activity,
-                                                                            @NonNull RequestOptions requestOptions,
-                                                                            @NonNull INotifyOperationResultCallback<IAuthenticationResult> callback) {
+    private AcquireTokenParameters.Builder getAcquireTokenParametersBuilder(
+            @NonNull Activity activity,
+            @NonNull RequestOptions requestOptions,
+            @NonNull INotifyOperationResultCallback<IAuthenticationResult> callback) {
         final AcquireTokenParameters.Builder builder = new AcquireTokenParameters.Builder();
         builder.startAuthorizationFromActivity(activity)
                 .withLoginHint(requestOptions.getLoginHint())
@@ -116,7 +124,8 @@ abstract class MsalWrapper {
         }
 
         if (requestOptions.getClaims() != null && !requestOptions.getClaims().isEmpty()) {
-            builder.withClaims(ClaimsRequest.getClaimsRequestFromJsonString(requestOptions.getClaims()));
+            builder.withClaims(
+                    ClaimsRequest.getClaimsRequestFromJsonString(requestOptions.getClaims()));
         }
 
         if (requestOptions.getAuthScheme() == Constants.AuthScheme.POP) {
@@ -126,8 +135,7 @@ abstract class MsalWrapper {
                                 .withHttpMethod(requestOptions.getPopHttpMethod())
                                 .withClientClaims(requestOptions.getPoPClientClaims())
                                 .withUrl(new URL(requestOptions.getPopResourceUrl()))
-                                .build()
-                );
+                                .build());
             } catch (MalformedURLException e) {
                 callback.showMessage("Unexpected error." + e.getMessage());
             }
@@ -138,37 +146,43 @@ abstract class MsalWrapper {
 
     abstract void acquireTokenAsyncInternal(@NonNull final AcquireTokenParameters parameters);
 
-    public void acquireTokenSilent(@NonNull RequestOptions requestOptions,
-                                   @NonNull INotifyOperationResultCallback<IAuthenticationResult> callback) {
+    public void acquireTokenSilent(
+            @NonNull RequestOptions requestOptions,
+            @NonNull INotifyOperationResultCallback<IAuthenticationResult> callback) {
         if (requestOptions.getAccount() == null) {
             callback.showMessage("Account is null.");
             return;
         }
 
-        final AcquireTokenSilentParameters.Builder builder = getAcquireTokenSilentParametersBuilder(requestOptions, callback);
+        final AcquireTokenSilentParameters.Builder builder =
+                getAcquireTokenSilentParametersBuilder(requestOptions, callback);
         builder.withScopes(Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")));
 
         final AcquireTokenSilentParameters parameters = builder.build();
         acquireTokenSilentAsyncInternal(parameters);
     }
 
-    public void acquireTokenSilentWithResource(@NonNull RequestOptions requestOptions,
-                                               @NonNull INotifyOperationResultCallback<IAuthenticationResult> callback) {
+    public void acquireTokenSilentWithResource(
+            @NonNull RequestOptions requestOptions,
+            @NonNull INotifyOperationResultCallback<IAuthenticationResult> callback) {
         if (requestOptions.getAccount() == null) {
             callback.showMessage("Account is null.");
             return;
         }
 
-        final AcquireTokenSilentParameters.Builder builder = getAcquireTokenSilentParametersBuilder(requestOptions, callback);
+        final AcquireTokenSilentParameters.Builder builder =
+                getAcquireTokenSilentParametersBuilder(requestOptions, callback);
         builder.withResource(requestOptions.getScopes().toLowerCase().trim());
 
         final AcquireTokenSilentParameters parameters = builder.build();
         acquireTokenSilentAsyncInternal(parameters);
     }
 
-    private AcquireTokenSilentParameters.Builder getAcquireTokenSilentParametersBuilder(@NonNull RequestOptions requestOptions,
-                                                                                        @NonNull INotifyOperationResultCallback<IAuthenticationResult> callback) {
-        final AcquireTokenSilentParameters.Builder builder = new AcquireTokenSilentParameters.Builder();
+    private AcquireTokenSilentParameters.Builder getAcquireTokenSilentParametersBuilder(
+            @NonNull RequestOptions requestOptions,
+            @NonNull INotifyOperationResultCallback<IAuthenticationResult> callback) {
+        final AcquireTokenSilentParameters.Builder builder =
+                new AcquireTokenSilentParameters.Builder();
         builder.forAccount(requestOptions.getAccount())
                 .forceRefresh(requestOptions.isForceRefresh())
                 .withCallback(getAuthenticationCallback(callback));
@@ -185,8 +199,8 @@ abstract class MsalWrapper {
                         PoPAuthenticationScheme.builder()
                                 .withHttpMethod(requestOptions.getPopHttpMethod())
                                 .withClientClaims(requestOptions.getPoPClientClaims())
-                                .withUrl(new URL(requestOptions.getPopResourceUrl())).build()
-                );
+                                .withUrl(new URL(requestOptions.getPopResourceUrl()))
+                                .build());
             } catch (MalformedURLException e) {
                 callback.showMessage("Unexpected error." + e.getMessage());
                 return null;
@@ -196,24 +210,34 @@ abstract class MsalWrapper {
         return builder;
     }
 
-    abstract void acquireTokenSilentAsyncInternal(@NonNull final AcquireTokenSilentParameters parameters);
+    abstract void acquireTokenSilentAsyncInternal(
+            @NonNull final AcquireTokenSilentParameters parameters);
 
-    public void acquireTokenWithDeviceCodeFlow(@NonNull RequestOptions requestOptions,
-                                               @NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback) {
+    public void acquireTokenWithDeviceCodeFlow(
+            @NonNull RequestOptions requestOptions,
+            @NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback) {
 
         acquireTokenWithDeviceCodeFlowInternal(
                 requestOptions.getScopes().toLowerCase().split(" "),
                 new IPublicClientApplication.DeviceCodeFlowCallback() {
                     @Override
-                    public void onUserCodeReceived(@NonNull String vUri,
-                                                   @NonNull String userCode,
-                                                   @NonNull String message,
-                                                   @NonNull Date sessionExpirationDate) {
+                    public void onUserCodeReceived(
+                            @NonNull String vUri,
+                            @NonNull String userCode,
+                            @NonNull String message,
+                            @NonNull Date sessionExpirationDate) {
                         callback.showMessage(
-                                "Uri: " + vUri + "\n" +
-                                        "UserCode: " + userCode + "\n" +
-                                        "Message: " + message + "\n" +
-                                        "sessionExpirationDate: " + sessionExpirationDate);
+                                "Uri: "
+                                        + vUri
+                                        + "\n"
+                                        + "UserCode: "
+                                        + userCode
+                                        + "\n"
+                                        + "Message: "
+                                        + message
+                                        + "\n"
+                                        + "sessionExpirationDate: "
+                                        + sessionExpirationDate);
                     }
 
                     @Override
@@ -228,9 +252,12 @@ abstract class MsalWrapper {
                 });
     }
 
-    abstract void acquireTokenWithDeviceCodeFlowInternal(@NonNull String[] scopes, @NonNull final IPublicClientApplication.DeviceCodeFlowCallback callback);
+    abstract void acquireTokenWithDeviceCodeFlowInternal(
+            @NonNull String[] scopes,
+            @NonNull final IPublicClientApplication.DeviceCodeFlowCallback callback);
 
-    AuthenticationCallback getAuthenticationCallback(@NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback) {
+    AuthenticationCallback getAuthenticationCallback(
+            @NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback) {
         return new AuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
@@ -242,25 +269,34 @@ abstract class MsalWrapper {
                 String message = "CorrelationID: " + exception.getCorrelationId() + "\n";
                 // Check the exception type.
                 if (exception instanceof MsalClientException) {
-                    // This means errors happened in the sdk itself, could be network, Json parse, etc. Check MsalError.java
+                    // This means errors happened in the sdk itself, could be network, Json parse,
+                    // etc. Check MsalError.java
                     // for detailed list of the errors.
                     message += "MsalClientException.\n" + exception.getMessage();
                 } else if (exception instanceof MsalServiceException) {
-                    // This means something is wrong when the sdk is communication to the service, mostly likely it's the client
+                    // This means something is wrong when the sdk is communication to the service,
+                    // mostly likely it's the client
                     // configuration.
                     message += "MsalServiceException.\n" + exception.getMessage();
                 } else if (exception instanceof MsalArgumentException) {
                     message += "MsalArgumentException.\n" + exception.getMessage();
                 } else if (exception instanceof MsalUiRequiredException) {
-                    // This explicitly indicates that developer needs to prompt the user, it could be refresh token is expired, revoked
-                    // or user changes the password; or it could be that no token was found in the token cache.
+                    // This explicitly indicates that developer needs to prompt the user, it could
+                    // be refresh token is expired, revoked
+                    // or user changes the password; or it could be that no token was found in the
+                    // token cache.
                     message += "MsalUiRequiredException.\n" + exception.getMessage();
                 } else if (exception instanceof MsalDeclinedScopeException) {
                     // Declined scope implies that not all scopes requested have been granted.
-                    // Developer can either continue with Authentication by calling acquireTokenSilent
-                    message += "MsalDeclinedScopeException.\n" +
-                            "Granted Scope:" + ((MsalDeclinedScopeException) exception).getGrantedScopes() + "\n" +
-                            "Declined Scope:" + ((MsalDeclinedScopeException) exception).getDeclinedScopes();
+                    // Developer can either continue with Authentication by calling
+                    // acquireTokenSilent
+                    message +=
+                            "MsalDeclinedScopeException.\n"
+                                    + "Granted Scope:"
+                                    + ((MsalDeclinedScopeException) exception).getGrantedScopes()
+                                    + "\n"
+                                    + "Declined Scope:"
+                                    + ((MsalDeclinedScopeException) exception).getDeclinedScopes();
                 }
 
                 callback.showMessage(message);
@@ -273,8 +309,9 @@ abstract class MsalWrapper {
         };
     }
 
-    public void generateSignedHttpRequest(@NonNull final RequestOptions currentRequestOptions,
-                                          @NonNull final INotifyOperationResultCallback<String> generateShrCallback) {
+    public void generateSignedHttpRequest(
+            @NonNull final RequestOptions currentRequestOptions,
+            @NonNull final INotifyOperationResultCallback<String> generateShrCallback) {
         // Build up the params we want/need
         final IAccount currentAccount = currentRequestOptions.getAccount();
         final HttpMethod popHttpMethod = currentRequestOptions.getPopHttpMethod();
@@ -297,27 +334,26 @@ abstract class MsalWrapper {
 
             Log.d(
                     MsalWrapper.class.getSimpleName() + ":generateSHR",
-                    "Account: " + currentAccount.getUsername()
+                    "Account: "
+                            + currentAccount.getUsername()
                             + "\n"
-                            + "HttpMethod: " + popHttpMethod
+                            + "HttpMethod: "
+                            + popHttpMethod
                             + "\n"
-                            + "Resource URL: " + resourceUrl
+                            + "Resource URL: "
+                            + resourceUrl
                             + "\n"
-                            + "Client Claims: " + clientClaims
-            );
+                            + "Client Claims: "
+                            + clientClaims);
 
-            generateSignedHttpRequestInternal(
-                    currentAccount,
-                    popParams,
-                    generateShrCallback
-            );
+            generateSignedHttpRequestInternal(currentAccount, popParams, generateShrCallback);
         } catch (MalformedURLException e) {
             generateShrCallback.showMessage("Invalid URL.");
         }
     }
 
-    public abstract void generateSignedHttpRequestInternal(@NonNull final IAccount account,
-                                                           @NonNull final PoPAuthenticationScheme params,
-                                                           @NonNull final INotifyOperationResultCallback<String> generateShrCallback
-    );
+    public abstract void generateSignedHttpRequestInternal(
+            @NonNull final IAccount account,
+            @NonNull final PoPAuthenticationScheme params,
+            @NonNull final INotifyOperationResultCallback<String> generateShrCallback);
 }

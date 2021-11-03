@@ -42,8 +42,7 @@ public final class MsalExceptionTest {
 
     @Test
     public void testWithErrorCode() {
-        final MsalException msalException = new MsalException(
-                MsalClientException.INVALID_JWT);
+        final MsalException msalException = new MsalException(MsalClientException.INVALID_JWT);
         Assert.assertTrue(msalException.getErrorCode().equals(MsalClientException.INVALID_JWT));
         Assert.assertTrue(msalException.getMessage().isEmpty());
         Assert.assertNull(msalException.getCause());
@@ -51,8 +50,8 @@ public final class MsalExceptionTest {
 
     @Test
     public void testWithErrorCodeAndDescription() {
-        final MsalException msalException = new MsalException(
-                MsalServiceException.ACCESS_DENIED, TEST_ERROR_DESCRIPTION);
+        final MsalException msalException =
+                new MsalException(MsalServiceException.ACCESS_DENIED, TEST_ERROR_DESCRIPTION);
         Assert.assertTrue(msalException.getErrorCode().equals(MsalServiceException.ACCESS_DENIED));
         Assert.assertTrue(msalException.getMessage().equals(TEST_ERROR_DESCRIPTION));
         Assert.assertNull(msalException.getCause());
@@ -61,9 +60,15 @@ public final class MsalExceptionTest {
     @Test
     public void testWithErrorCodeAndDescriptAndCause() {
         final Throwable throwable = new Throwable(TEST_ERROR_DESCRIPTION);
-        final MsalException msalException = new MsalException(
-                MsalClientException.AUTHORITY_VALIDATION_NOT_SUPPORTED, TEST_ERROR_DESCRIPTION, throwable);
-        Assert.assertTrue(msalException.getErrorCode().equals(MsalClientException.AUTHORITY_VALIDATION_NOT_SUPPORTED));
+        final MsalException msalException =
+                new MsalException(
+                        MsalClientException.AUTHORITY_VALIDATION_NOT_SUPPORTED,
+                        TEST_ERROR_DESCRIPTION,
+                        throwable);
+        Assert.assertTrue(
+                msalException
+                        .getErrorCode()
+                        .equals(MsalClientException.AUTHORITY_VALIDATION_NOT_SUPPORTED));
         Assert.assertTrue(msalException.getMessage().equals(TEST_ERROR_DESCRIPTION));
         Assert.assertNotNull(msalException.getCause());
         Assert.assertTrue(msalException.getCause().getMessage().equals(TEST_ERROR_DESCRIPTION));

@@ -30,5 +30,4 @@ import com.microsoft.identity.client.ui.automation.interaction.b2c.B2CProvider;
 public interface IB2CTest {
 
     B2CProvider getB2cProvider();
-
 }

@@ -105,19 +105,23 @@ public final class Logger {
 
         switch (logLevel) {
             case ERROR:
-                logger.setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.ERROR);
+                logger.setLogLevel(
+                        com.microsoft.identity.common.internal.logging.Logger.LogLevel.ERROR);
                 break;
 
             case WARNING:
-                logger.setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.WARN);
+                logger.setLogLevel(
+                        com.microsoft.identity.common.internal.logging.Logger.LogLevel.WARN);
                 break;
 
             case INFO:
-                logger.setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.INFO);
+                logger.setLogLevel(
+                        com.microsoft.identity.common.internal.logging.Logger.LogLevel.INFO);
                 break;
 
             case VERBOSE:
-                logger.setLogLevel(com.microsoft.identity.common.internal.logging.Logger.LogLevel.VERBOSE);
+                logger.setLogLevel(
+                        com.microsoft.identity.common.internal.logging.Logger.LogLevel.VERBOSE);
                 break;
 
             default:
@@ -142,35 +146,41 @@ public final class Logger {
             throw new IllegalStateException("External logger is already set, cannot be set again.");
         }
 
-        // If mExternalLogger is not set. Then implement the ILoggerCallback interface in common-core.
+        // If mExternalLogger is not set. Then implement the ILoggerCallback interface in
+        // common-core.
         final com.microsoft.identity.common.internal.logging.Logger logger =
                 com.microsoft.identity.common.internal.logging.Logger.getInstance();
 
-        logger.setExternalLogger(new com.microsoft.identity.common.internal.logging.ILoggerCallback() {
-            @Override
-            public void log(String tag, com.microsoft.identity.common.internal.logging.Logger.LogLevel logLevel, String message, boolean containsPII) {
-                switch (logLevel) {
-                    case ERROR:
-                        mExternalLogger.log(tag, LogLevel.ERROR, message, containsPII);
-                        break;
+        logger.setExternalLogger(
+                new com.microsoft.identity.common.internal.logging.ILoggerCallback() {
+                    @Override
+                    public void log(
+                            String tag,
+                            com.microsoft.identity.common.internal.logging.Logger.LogLevel logLevel,
+                            String message,
+                            boolean containsPII) {
+                        switch (logLevel) {
+                            case ERROR:
+                                mExternalLogger.log(tag, LogLevel.ERROR, message, containsPII);
+                                break;
 
-                    case WARN:
-                        mExternalLogger.log(tag, LogLevel.WARNING, message, containsPII);
-                        break;
+                            case WARN:
+                                mExternalLogger.log(tag, LogLevel.WARNING, message, containsPII);
+                                break;
 
-                    case VERBOSE:
-                        mExternalLogger.log(tag, LogLevel.VERBOSE, message, containsPII);
-                        break;
+                            case VERBOSE:
+                                mExternalLogger.log(tag, LogLevel.VERBOSE, message, containsPII);
+                                break;
 
-                    case INFO:
-                        mExternalLogger.log(tag, LogLevel.INFO, message, containsPII);
-                        break;
+                            case INFO:
+                                mExternalLogger.log(tag, LogLevel.INFO, message, containsPII);
+                                break;
 
-                    default:
-                        throw new IllegalArgumentException("Unknown logLevel");
-                }
-            }
-        });
+                            default:
+                                throw new IllegalArgumentException("Unknown logLevel");
+                        }
+                    }
+                });
 
         mExternalLogger = externalLogger;
     }

@@ -43,6 +43,4 @@ public interface ICurrentAccountResult {
      * @return
      */
     boolean didAccountChange();
-
-
 }

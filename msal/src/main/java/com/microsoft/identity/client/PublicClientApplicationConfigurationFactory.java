@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArgument;
+
 import android.content.Context;
 
 import androidx.annotation.NonNull;
@@ -33,14 +35,14 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer;
 import com.microsoft.identity.common.AndroidPlatformComponents;
+import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudienceDeserializer;
 import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.authorities.AuthorityDeserializer;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudience;
-import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudienceDeserializer;
 import com.microsoft.identity.common.java.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.java.configuration.LibraryConfiguration;
-import com.microsoft.identity.msal.R;
 import com.microsoft.identity.common.logging.Logger;
+import com.microsoft.identity.msal.R;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -48,16 +50,16 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
-import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArgument;
-
 public class PublicClientApplicationConfigurationFactory {
-    private static final String TAG = PublicClientApplicationConfigurationFactory.class.getSimpleName();
+    private static final String TAG =
+            PublicClientApplicationConfigurationFactory.class.getSimpleName();
 
     /**
      * Initializes a default PublicClientApplicationConfiguration object.
      **/
     @WorkerThread
-    public static PublicClientApplicationConfiguration initializeConfiguration(@NonNull final Context context) {
+    public static PublicClientApplicationConfiguration initializeConfiguration(
+            @NonNull final Context context) {
         return initializeConfigurationInternal(context, null);
     }
 
@@ -66,9 +68,10 @@ public class PublicClientApplicationConfigurationFactory {
      * and merge it to the default config object.
      **/
     @WorkerThread
-    public static PublicClientApplicationConfiguration initializeConfiguration(@NonNull final Context context,
-                                                                               final int configResourceId) {
-        return initializeConfigurationInternal(context, loadConfiguration(context, configResourceId));
+    public static PublicClientApplicationConfiguration initializeConfiguration(
+            @NonNull final Context context, final int configResourceId) {
+        return initializeConfigurationInternal(
+                context, loadConfiguration(context, configResourceId));
     }
 
     /**
@@ -76,15 +79,16 @@ public class PublicClientApplicationConfigurationFactory {
      * and merge it to the default config object.
      **/
     @WorkerThread
-    public static PublicClientApplicationConfiguration initializeConfiguration(@NonNull final Context context,
-                                                                               @NonNull final File configFile) {
+    public static PublicClientApplicationConfiguration initializeConfiguration(
+            @NonNull final Context context, @NonNull final File configFile) {
         validateNonNullArgument(configFile, "configFile");
         return initializeConfigurationInternal(context, loadConfiguration(configFile));
     }
 
     @WorkerThread
-    private static PublicClientApplicationConfiguration initializeConfigurationInternal(@NonNull final Context context,
-                                                                                        @Nullable final PublicClientApplicationConfiguration developerConfig) {
+    private static PublicClientApplicationConfiguration initializeConfigurationInternal(
+            @NonNull final Context context,
+            @Nullable final PublicClientApplicationConfiguration developerConfig) {
         validateNonNullArgument(context, "context");
 
         final PublicClientApplicationConfiguration config = loadDefaultConfiguration(context);
@@ -93,19 +97,25 @@ public class PublicClientApplicationConfigurationFactory {
             config.validateConfiguration();
         }
 
-        //Initialize internal library configuration
-        final LibraryConfiguration libraryConfiguration = LibraryConfiguration.builder().authorizationInCurrentTask((config.authorizationInCurrentTask())).build();
+        // Initialize internal library configuration
+        final LibraryConfiguration libraryConfiguration =
+                LibraryConfiguration.builder()
+                        .authorizationInCurrentTask((config.authorizationInCurrentTask()))
+                        .build();
         LibraryConfiguration.intializeLibraryConfiguration(libraryConfiguration);
 
-        config.setOAuth2TokenCache(MsalOAuth2TokenCache.create(AndroidPlatformComponents.createFromContext(context)));
+        config.setOAuth2TokenCache(
+                MsalOAuth2TokenCache.create(AndroidPlatformComponents.createFromContext(context)));
         return config;
     }
 
     @WorkerThread
-    private static PublicClientApplicationConfiguration loadDefaultConfiguration(@NonNull final Context context) {
+    private static PublicClientApplicationConfiguration loadDefaultConfiguration(
+            @NonNull final Context context) {
         final String methodName = ":loadDefaultConfiguration";
         Logger.verbose(TAG + methodName, "Loading default configuration");
-        final PublicClientApplicationConfiguration config = loadConfiguration(context, R.raw.msal_default_config);
+        final PublicClientApplicationConfiguration config =
+                loadConfiguration(context, R.raw.msal_default_config);
         config.setAppContext(context);
 
         return config;
@@ -113,8 +123,8 @@ public class PublicClientApplicationConfigurationFactory {
 
     @VisibleForTesting
     @WorkerThread
-    static PublicClientApplicationConfiguration loadConfiguration(@NonNull final Context context,
-                                                                  final int configResourceId) {
+    static PublicClientApplicationConfiguration loadConfiguration(
+            @NonNull final Context context, final int configResourceId) {
         final InputStream configStream = context.getResources().openRawResource(configResourceId);
         boolean useDefaultConfigResourceId = configResourceId == R.raw.msal_default_config;
         return loadConfiguration(configStream, useDefaultConfigResourceId);
@@ -126,13 +136,14 @@ public class PublicClientApplicationConfigurationFactory {
         try {
             return loadConfiguration(new FileInputStream(configFile), false);
         } catch (FileNotFoundException e) {
-            throw new IllegalArgumentException("Provided configuration file path=" + configFile.getPath() + " not found.");
+            throw new IllegalArgumentException(
+                    "Provided configuration file path=" + configFile.getPath() + " not found.");
         }
     }
 
     @WorkerThread
-    private static PublicClientApplicationConfiguration loadConfiguration(final @NonNull InputStream configStream,
-                                                                          final boolean isDefaultConfiguration) {
+    private static PublicClientApplicationConfiguration loadConfiguration(
+            final @NonNull InputStream configStream, final boolean isDefaultConfiguration) {
         byte[] buffer;
 
         try {
@@ -142,22 +153,23 @@ public class PublicClientApplicationConfigurationFactory {
             if (isDefaultConfiguration) {
                 throw new IllegalStateException("Unable to open default configuration file.", e);
             } else {
-                throw new IllegalArgumentException("Unable to open provided configuration file.", e);
+                throw new IllegalArgumentException(
+                        "Unable to open provided configuration file.", e);
             }
         } finally {
             try {
                 configStream.close();
             } catch (IOException e) {
                 if (isDefaultConfiguration) {
-                    Logger.warn(TAG + "loadConfiguration",
-                            "Unable to close default configuration file. " +
-                                    "This can cause memory leak."
-                    );
+                    Logger.warn(
+                            TAG + "loadConfiguration",
+                            "Unable to close default configuration file. "
+                                    + "This can cause memory leak.");
                 } else {
-                    Logger.warn(TAG + "loadConfiguration",
-                            "Unable to close provided configuration file. " +
-                                    "This can cause memory leak."
-                    );
+                    Logger.warn(
+                            TAG + "loadConfiguration",
+                            "Unable to close provided configuration file. "
+                                    + "This can cause memory leak.");
                 }
             }
         }
@@ -177,18 +189,13 @@ public class PublicClientApplicationConfigurationFactory {
 
     private static Gson getGsonForLoadingConfiguration() {
         return new GsonBuilder()
-                .registerTypeAdapter(
-                        Authority.class,
-                        new AuthorityDeserializer()
-                )
+                .registerTypeAdapter(Authority.class, new AuthorityDeserializer())
                 .registerTypeAdapter(
                         AzureActiveDirectoryAudience.class,
-                        new AzureActiveDirectoryAudienceDeserializer()
-                )
+                        new AzureActiveDirectoryAudienceDeserializer())
                 .registerTypeAdapter(
                         com.microsoft.identity.client.Logger.LogLevel.class,
-                        new LogLevelDeserializer()
-                )
+                        new LogLevelDeserializer())
                 .create();
     }
 }

@@ -74,20 +74,14 @@ public final class MsalUtilTest {
     public void setUp() {
         System.setProperty(
                 "dexmaker.dexcache",
-                androidx.test.platform.app.InstrumentationRegistry
-                        .getInstrumentation()
+                androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
                         .getTargetContext()
                         .getCacheDir()
-                        .getPath()
-        );
+                        .getPath());
 
         System.setProperty(
                 "org.mockito.android.target",
-                ApplicationProvider
-                        .getApplicationContext()
-                        .getCacheDir()
-                        .getPath()
-        );
+                ApplicationProvider.getApplicationContext().getCacheDir().getPath());
     }
 
     @Test
@@ -127,16 +121,17 @@ public final class MsalUtilTest {
         try {
             MsalUtils.extractJsonObjectIntoMap("test");
             Assert.fail("Expect Json exception");
-            //CHECKSTYLE:OFF: checkstyle:EmptyBlock
+            // CHECKSTYLE:OFF: checkstyle:EmptyBlock
         } catch (final JSONException e) {
-            //CHECKSTYLE:ON: checkstyle:EmptyBlock
+            // CHECKSTYLE:ON: checkstyle:EmptyBlock
         }
     }
 
     @Test
     public void testExtractJsonObjectIntoMapHappyPath() {
         try {
-            final Map<String, String> result = MsalUtils.extractJsonObjectIntoMap("{\"JsonKey\":\"JsonValue\"}");
+            final Map<String, String> result =
+                    MsalUtils.extractJsonObjectIntoMap("{\"JsonKey\":\"JsonValue\"}");
             Assert.assertNotNull(result);
             Assert.assertTrue(result.get("JsonKey").equals("JsonValue"));
         } catch (JSONException e) {
@@ -179,16 +174,19 @@ public final class MsalUtilTest {
 
     @Test
     public void testGetScopesAsSet() {
-        // Verify that if the input scope array only contains one scope, it's correctly converted into the set.
+        // Verify that if the input scope array only contains one scope, it's correctly converted
+        // into the set.
         final String singleScope = "scope";
         final Set<String> singleScopeSet = MsalUtils.getScopesAsSet(singleScope);
         Assert.assertNotNull(singleScopeSet);
         Assert.assertTrue(singleScopeSet.size() == EXPECTED_SINGLE_SCOPE_SIZE);
         Assert.assertTrue(singleScopeSet.contains(singleScope));
 
-        // Verify if the scopes array has multiple space in the input string, it's corretly converted into the set.
+        // Verify if the scopes array has multiple space in the input string, it's corretly
+        // converted into the set.
         final String singleScopeWithTrailingSpace = singleScope + "   ";
-        final Set<String> singleScopeSetWithTrailingSpace = MsalUtils.getScopesAsSet(singleScopeWithTrailingSpace);
+        final Set<String> singleScopeSetWithTrailingSpace =
+                MsalUtils.getScopesAsSet(singleScopeWithTrailingSpace);
         Assert.assertNotNull(singleScopeSetWithTrailingSpace);
         Assert.assertTrue(singleScopeSetWithTrailingSpace.size() == EXPECTED_SINGLE_SCOPE_SIZE);
         Assert.assertTrue(singleScopeSetWithTrailingSpace.contains(singleScope));
@@ -214,14 +212,21 @@ public final class MsalUtilTest {
         // resolveInfo list is empty
         final PackageManager mockedPackageManager = Mockito.mock(PackageManager.class);
         Mockito.when(mockedContext.getPackageManager()).thenReturn(mockedPackageManager);
-        Mockito.when(mockedPackageManager.queryIntentActivities(Matchers.any(Intent.class),
-                Matchers.eq(PackageManager.GET_RESOLVED_FILTER))).thenReturn(Collections.<ResolveInfo>emptyList());
+        Mockito.when(
+                        mockedPackageManager.queryIntentActivities(
+                                Matchers.any(Intent.class),
+                                Matchers.eq(PackageManager.GET_RESOLVED_FILTER)))
+                .thenReturn(Collections.<ResolveInfo>emptyList());
         Assert.assertFalse(MsalUtils.hasCustomTabRedirectActivity(mockedContext, url));
 
-        // resolve info list contains single item, and the activity name is BrowserTabActivity class name.
+        // resolve info list contains single item, and the activity name is BrowserTabActivity class
+        // name.
         final List<ResolveInfo> resolveInfos = new ArrayList<>();
-        Mockito.when(mockedPackageManager.queryIntentActivities(Matchers.any(Intent.class),
-                Matchers.eq(PackageManager.GET_RESOLVED_FILTER))).thenReturn(resolveInfos);
+        Mockito.when(
+                        mockedPackageManager.queryIntentActivities(
+                                Matchers.any(Intent.class),
+                                Matchers.eq(PackageManager.GET_RESOLVED_FILTER)))
+                .thenReturn(resolveInfos);
 
         final ResolveInfo mockedResolveInfo1 = Mockito.mock(ResolveInfo.class);
         final ActivityInfo mockedActivityInfo1 = Mockito.mock(ActivityInfo.class);
@@ -250,14 +255,18 @@ public final class MsalUtilTest {
         final PackageManager mockedPackageManager = Mockito.mock(PackageManager.class);
 
         // if not custom tab service exists
-        Mockito.when(mockedPackageManager.queryIntentServices(Matchers.any(Intent.class),
-                Matchers.eq(0))).thenReturn(null);
+        Mockito.when(
+                        mockedPackageManager.queryIntentServices(
+                                Matchers.any(Intent.class), Matchers.eq(0)))
+                .thenReturn(null);
         Assert.assertNull(MsalUtils.getChromePackageWithCustomTabSupport(mockedContext));
 
         final List<ResolveInfo> resolvedInfos = new ArrayList<>();
         Mockito.when(mockedContext.getPackageManager()).thenReturn(mockedPackageManager);
-        Mockito.when(mockedPackageManager.queryIntentServices(Matchers.any(Intent.class),
-                Matchers.eq(0))).thenReturn(resolvedInfos);
+        Mockito.when(
+                        mockedPackageManager.queryIntentServices(
+                                Matchers.any(Intent.class), Matchers.eq(0)))
+                .thenReturn(resolvedInfos);
 
         // If custom tab service exists, but it's not belonging to chrome package
         final ResolveInfo mockedResolveInfo = Mockito.mock(ResolveInfo.class);
@@ -273,7 +282,8 @@ public final class MsalUtilTest {
         mockedServiceInfoForChrome.packageName = MsalUtils.CHROME_PACKAGE;
         mockedResolveInfoForChrome.serviceInfo = mockedServiceInfoForChrome;
         resolvedInfos.add(mockedResolveInfoForChrome);
-        final String chromePackageNameWithCustomTabSupport = MsalUtils.getChromePackageWithCustomTabSupport(mockedContext);
+        final String chromePackageNameWithCustomTabSupport =
+                MsalUtils.getChromePackageWithCustomTabSupport(mockedContext);
         Assert.assertNotNull(chromePackageNameWithCustomTabSupport);
         Assert.assertTrue(chromePackageNameWithCustomTabSupport.equals(MsalUtils.CHROME_PACKAGE));
     }
@@ -289,16 +299,22 @@ public final class MsalUtilTest {
         // no chrome package exists
         final PackageManager mockedPackageManager = Mockito.mock(PackageManager.class);
         Mockito.when(mockedContext.getPackageManager()).thenReturn(mockedPackageManager);
-        Mockito.when(mockedPackageManager.getPackageInfo(Matchers.refEq(MsalUtils.CHROME_PACKAGE),
-                Matchers.eq(PackageManager.GET_ACTIVITIES))).thenThrow(PackageManager.NameNotFoundException.class);
+        Mockito.when(
+                        mockedPackageManager.getPackageInfo(
+                                Matchers.refEq(MsalUtils.CHROME_PACKAGE),
+                                Matchers.eq(PackageManager.GET_ACTIVITIES)))
+                .thenThrow(PackageManager.NameNotFoundException.class);
 
         Assert.assertNull(MsalUtils.getChromePackage(mockedContext));
 
-        //Chrome package exists in the device but is disabled
+        // Chrome package exists in the device but is disabled
         final PackageInfo mockedPackageInfo = Mockito.mock(PackageInfo.class);
         final ApplicationInfo mockedApplicationInfo = Mockito.mock(ApplicationInfo.class);
-        Mockito.when(mockedPackageManager.getPackageInfo(Matchers.refEq(MsalUtils.CHROME_PACKAGE),
-                Matchers.eq(PackageManager.GET_ACTIVITIES))).thenReturn(mockedPackageInfo);
+        Mockito.when(
+                        mockedPackageManager.getPackageInfo(
+                                Matchers.refEq(MsalUtils.CHROME_PACKAGE),
+                                Matchers.eq(PackageManager.GET_ACTIVITIES)))
+                .thenReturn(mockedPackageInfo);
 
         mockedPackageInfo.applicationInfo = mockedApplicationInfo;
         mockedApplicationInfo.enabled = false;
@@ -306,7 +322,8 @@ public final class MsalUtilTest {
 
         // The three chrome package all exists on the device, return the stable chrome package name.
         mockedApplicationInfo.enabled = true;
-        Assert.assertTrue(MsalUtils.getChromePackage(mockedContext).equals(MsalUtils.CHROME_PACKAGE));
+        Assert.assertTrue(
+                MsalUtils.getChromePackage(mockedContext).equals(MsalUtils.CHROME_PACKAGE));
     }
 
     @Test
@@ -349,7 +366,7 @@ public final class MsalUtilTest {
     @Test
     public void testConvertStringToSet() {
         final String scope1 = "scope1";
-        final String[] scopes = new String[]{" ", scope1, "   "};
+        final String[] scopes = new String[] {" ", scope1, "   "};
         final Set<String> convertedScope = MsalUtils.convertArrayToSet(scopes);
 
         Assert.assertNotNull(convertedScope);
@@ -358,7 +375,7 @@ public final class MsalUtilTest {
 
         final String scope2 = "scope2";
         final String scope3 = "scope3";
-        final String[] scopesTest2 = new String[]{scope1, scope2, scope3};
+        final String[] scopesTest2 = new String[] {scope1, scope2, scope3};
         final Set<String> convertedScope2 = MsalUtils.convertArrayToSet(scopesTest2);
 
         Assert.assertNotNull(convertedScope2);
@@ -371,36 +388,48 @@ public final class MsalUtilTest {
     @Test
     public void testBase64Encode() {
         String stringToEncode = "a+b@c.com";
-        Assert.assertTrue(base64Decode(MsalUtils.base64UrlEncodeToString(stringToEncode)).equals(stringToEncode));
+        Assert.assertTrue(
+                base64Decode(MsalUtils.base64UrlEncodeToString(stringToEncode))
+                        .equals(stringToEncode));
 
         stringToEncode = "a$c@b.com";
-        Assert.assertTrue(base64Decode(MsalUtils.base64UrlEncodeToString(stringToEncode)).equals(stringToEncode));
+        Assert.assertTrue(
+                base64Decode(MsalUtils.base64UrlEncodeToString(stringToEncode))
+                        .equals(stringToEncode));
     }
 
     @Test
     public void testAppendQueryParam() throws UnsupportedEncodingException {
-        final String authorityUrl = "https://login.microsoftonline.com/common/v2/authorize?p=testpolicy";
+        final String authorityUrl =
+                "https://login.microsoftonline.com/common/v2/authorize?p=testpolicy";
         final Map<String, String> queryParamteters = new HashMap<>();
         queryParamteters.put("qp1", "someqp1");
 
-        final String appendedAuthority = MsalUtils.appendQueryParameterToUrl(authorityUrl, queryParamteters);
-        Assert.assertTrue(appendedAuthority.equals(
-                "https://login.microsoftonline.com/common/v2/authorize?p=testpolicy&qp1=someqp1"));
+        final String appendedAuthority =
+                MsalUtils.appendQueryParameterToUrl(authorityUrl, queryParamteters);
+        Assert.assertTrue(
+                appendedAuthority.equals(
+                        "https://login.microsoftonline.com/common/v2/authorize?p=testpolicy&qp1=someqp1"));
     }
 
     @Test
     public void testAppendQueryParamWithQueryStringDelimiter() throws UnsupportedEncodingException {
-        final String authorityUrl = "https://login.microsoftonline.com/common/v2/authorize?p=testpolicy&";
+        final String authorityUrl =
+                "https://login.microsoftonline.com/common/v2/authorize?p=testpolicy&";
         final Map<String, String> queryParamteters = new HashMap<>();
         queryParamteters.put("qp1", "someqp1");
 
-        final String appendedAuthority = MsalUtils.appendQueryParameterToUrl(authorityUrl, queryParamteters);
-        Assert.assertTrue(appendedAuthority.equals(
-                "https://login.microsoftonline.com/common/v2/authorize?p=testpolicy&qp1=someqp1"));
-
+        final String appendedAuthority =
+                MsalUtils.appendQueryParameterToUrl(authorityUrl, queryParamteters);
+        Assert.assertTrue(
+                appendedAuthority.equals(
+                        "https://login.microsoftonline.com/common/v2/authorize?p=testpolicy&qp1=someqp1"));
     }
 
     private String base64Decode(final String encodedString) {
-        return new String(Base64.decode(encodedString.getBytes(Charset.forName(MsalUtils.ENCODING_UTF8)), Base64.NO_PADDING | Base64.URL_SAFE));
+        return new String(
+                Base64.decode(
+                        encodedString.getBytes(Charset.forName(MsalUtils.ENCODING_UTF8)),
+                        Base64.NO_PADDING | Base64.URL_SAFE));
     }
 }

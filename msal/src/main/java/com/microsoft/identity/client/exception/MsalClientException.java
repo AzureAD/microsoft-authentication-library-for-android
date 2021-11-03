@@ -64,12 +64,14 @@ public final class MsalClientException extends MsalException {
      * or refresh token from the cache. Likely it's a bug in the sdk when caching tokens or authority
      * is not proviced in the silent request and multiple tokens were found.
      */
-    public static final String MULTIPLE_MATCHING_TOKENS_DETECTED = ClientException.MULTIPLE_MATCHING_TOKENS_DETECTED;
+    public static final String MULTIPLE_MATCHING_TOKENS_DETECTED =
+            ClientException.MULTIPLE_MATCHING_TOKENS_DETECTED;
 
     /**
      * No active network is available on the device.
      */
-    public static final String DEVICE_NETWORK_NOT_AVAILABLE = ClientException.DEVICE_NETWORK_NOT_AVAILABLE;
+    public static final String DEVICE_NETWORK_NOT_AVAILABLE =
+            ClientException.DEVICE_NETWORK_NOT_AVAILABLE;
 
     /**
      * A scope is required when making a token request
@@ -126,7 +128,8 @@ public final class MsalClientException extends MsalException {
      * The authority is not supported for authority validation. The sdk supports b2c authority, but we don't support b2c authority validation yet.
      * Only well-known host will be supported.
      */
-    public static final String AUTHORITY_VALIDATION_NOT_SUPPORTED = ClientException.AUTHORITY_VALIDATION_NOT_SUPPORTED;
+    public static final String AUTHORITY_VALIDATION_NOT_SUPPORTED =
+            ClientException.AUTHORITY_VALIDATION_NOT_SUPPORTED;
 
     /**
      * Note: after MSAL 0.2.0 this error is no longer relevant.
@@ -143,7 +146,8 @@ public final class MsalClientException extends MsalException {
     /**
      * Extra query parameters set by the client app is already sent by the sdk.
      */
-    public static final String DUPLICATE_QUERY_PARAMETER = ClientException.DUPLICATE_QUERY_PARAMETER;
+    public static final String DUPLICATE_QUERY_PARAMETER =
+            ClientException.DUPLICATE_QUERY_PARAMETER;
 
     /**
      * Failed to bind the service in broker app.
@@ -165,17 +169,20 @@ public final class MsalClientException extends MsalException {
      */
     public static final String NOT_ELIGIBLE_TO_USE_BROKER = "not_eligible_to_use_broker";
 
-     /**
+    /**
      * No account currently signed in to SingleAccountPublicClientApplication
      */
-     public static final String NO_CURRENT_ACCOUNT = "no_current_account";
+    public static final String NO_CURRENT_ACCOUNT = "no_current_account";
+
     public static final String NO_CURRENT_ACCOUNT_ERROR_MESSAGE = "There is no signed in account.";
 
     /**
      * The account that is being signed in does not match with the provided account.
      */
     public static final String CURRENT_ACCOUNT_MISMATCH = "current_account_mismatch";
-    public static final String CURRENT_ACCOUNT_MISMATCH_ERROR_MESSAGE = "The signed in account does not match with the provided account.";
+
+    public static final String CURRENT_ACCOUNT_MISMATCH_ERROR_MESSAGE =
+            "The signed in account does not match with the provided account.";
 
     /**
      * Duplicate command.  The same command is already be processed.
@@ -191,7 +198,8 @@ public final class MsalClientException extends MsalException {
      * More than one app is listening for the custom URL scheme determined by the Redirect URI in
      * the AndroidManifest.
      */
-    public static final String MULTIPLE_APPS_LISTENING_CUSTOM_URL_SCHEME = "multiple_apps_listening_url_scheme";
+    public static final String MULTIPLE_APPS_LISTENING_CUSTOM_URL_SCHEME =
+            "multiple_apps_listening_url_scheme";
 
     /**
      * Developer error. The redirect URI in the configuration file doesn't match with the one generated with package name and signature hash.
@@ -207,7 +215,8 @@ public final class MsalClientException extends MsalException {
     /**
      * Configuration error. SingleAccount apps cannot be used with multiple B2C policies, as each policy creates a separate Account.
      */
-    public static final String SAPCA_USE_WITH_MULTI_POLICY_B2C = "SingleAccountPublicClientApplication cannot be used with multiple B2C policies.";
+    public static final String SAPCA_USE_WITH_MULTI_POLICY_B2C =
+            "SingleAccountPublicClientApplication cannot be used with multiple B2C policies.";
 
     public MsalClientException(final String errorCode) {
         super(errorCode);
@@ -217,7 +226,8 @@ public final class MsalClientException extends MsalException {
         super(errorCode, errorMessage);
     }
 
-    public MsalClientException(final String errorCode, final String errorMessage, final Throwable throwable) {
+    public MsalClientException(
+            final String errorCode, final String errorMessage, final Throwable throwable) {
         super(errorCode, errorMessage, throwable);
     }
 }

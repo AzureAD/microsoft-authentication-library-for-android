@@ -34,9 +34,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class StartActivity extends AppCompatActivity {
 
-    //private static final String TAG = StartActivity.class.getSimpleName();
+    // private static final String TAG = StartActivity.class.getSimpleName();
     private Button mStartTaskButton;
-
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -45,28 +44,28 @@ public class StartActivity extends AppCompatActivity {
 
         mStartTaskButton = findViewById(R.id.btnStartTask);
 
-        mStartTaskButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent startMainIntent = new Intent(getApplicationContext(), MainActivity.class);
+        mStartTaskButton.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent startMainIntent =
+                                new Intent(getApplicationContext(), MainActivity.class);
 
-                /*
-                https://developer.android.com/reference/android/content/Intent#FLAG_ACTIVITY_MULTIPLE_TASK
+                        /*
+                        https://developer.android.com/reference/android/content/Intent#FLAG_ACTIVITY_MULTIPLE_TASK
 
-                Using the Multiple_Task flag skips a search for a matching activity in existing tasks and always
-                creates a new task.
-                 */
-                startMainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
-                startActivity(startMainIntent);
-
-            }
-        });
-
+                        Using the Multiple_Task flag skips a search for a matching activity in existing tasks and always
+                        creates a new task.
+                         */
+                        startMainIntent.setFlags(
+                                Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+                        startActivity(startMainIntent);
+                    }
+                });
     }
 
     @Override
     public View onCreateView(View parent, String name, Context context, AttributeSet attrs) {
-
 
         return super.onCreateView(parent, name, context, attrs);
     }

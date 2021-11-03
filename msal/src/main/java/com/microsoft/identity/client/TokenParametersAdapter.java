@@ -31,16 +31,21 @@ import com.microsoft.identity.common.java.result.ILocalAuthenticationResult;
  */
 public class TokenParametersAdapter {
 
-    public static AcquireTokenSilentParameters silentParametersFromInteractive(@NonNull final AcquireTokenParameters acquireTokenParameters,
-                                                                               @NonNull final ILocalAuthenticationResult localAuthenticationResult){
-        final IAccount account = AccountAdapter.adapt(localAuthenticationResult.getCacheRecordWithTenantProfileData()).get(0);
-        AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .withCallback(acquireTokenParameters.getCallback())
-                .fromAuthority(acquireTokenParameters.getAuthority())
-                .withClaims(acquireTokenParameters.getClaimsRequest())
-                .withScopes(acquireTokenParameters.getScopes())
-                .forAccount(account)
-                .build();
+    public static AcquireTokenSilentParameters silentParametersFromInteractive(
+            @NonNull final AcquireTokenParameters acquireTokenParameters,
+            @NonNull final ILocalAuthenticationResult localAuthenticationResult) {
+        final IAccount account =
+                AccountAdapter.adapt(
+                                localAuthenticationResult.getCacheRecordWithTenantProfileData())
+                        .get(0);
+        AcquireTokenSilentParameters silentParameters =
+                new AcquireTokenSilentParameters.Builder()
+                        .withCallback(acquireTokenParameters.getCallback())
+                        .fromAuthority(acquireTokenParameters.getAuthority())
+                        .withClaims(acquireTokenParameters.getClaimsRequest())
+                        .withScopes(acquireTokenParameters.getScopes())
+                        .forAccount(account)
+                        .build();
         return silentParameters;
     }
 }

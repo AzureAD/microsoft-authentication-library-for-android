@@ -45,5 +45,4 @@ public class HttpConfiguration {
     public void setConnectTimeout(int timeout) {
         this.mConnectTimeout = timeout;
     }
-
 }

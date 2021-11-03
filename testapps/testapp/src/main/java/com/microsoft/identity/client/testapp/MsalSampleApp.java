@@ -38,7 +38,6 @@ import java.util.Map;
 /**
  * MSAL sample app.
  */
-
 public class MsalSampleApp extends Application {
     private static final int LOG_SIZE = 1024 * 1024;
     private StringBuilder mLogs;
@@ -49,20 +48,29 @@ public class MsalSampleApp extends Application {
         super.onCreate();
         mLogs = new StringBuilder();
 
-        // Logging can be turned on four different levels: error, warning, info, and verbose. By default the sdk is turning on
-        // verbose level logging. Any apps can use Logger.getInstance().setLogLevel(Loglevel) to enable different level of logging.
-        Logger.getInstance().setExternalLogger(new ILoggerCallback() {
-            @Override
-            public void log(String tag, Logger.LogLevel logLevel, String message, boolean containsPII) {
-                // contains PII indicates that if the log message contains PII information. If Pii logging is
-                // disabled, the sdk never returns back logs with Pii.
-                mLogSize = mLogs.toString().getBytes().length;
-                if (mLogSize + message.getBytes().length >= LOG_SIZE) {
-                    clearLogs();
-                }
-                mLogs.append(message).append('\n');
-            }
-        });
+        // Logging can be turned on four different levels: error, warning, info, and verbose. By
+        // default the sdk is turning on
+        // verbose level logging. Any apps can use Logger.getInstance().setLogLevel(Loglevel) to
+        // enable different level of logging.
+        Logger.getInstance()
+                .setExternalLogger(
+                        new ILoggerCallback() {
+                            @Override
+                            public void log(
+                                    String tag,
+                                    Logger.LogLevel logLevel,
+                                    String message,
+                                    boolean containsPII) {
+                                // contains PII indicates that if the log message contains PII
+                                // information. If Pii logging is
+                                // disabled, the sdk never returns back logs with Pii.
+                                mLogSize = mLogs.toString().getBytes().length;
+                                if (mLogSize + message.getBytes().length >= LOG_SIZE) {
+                                    clearLogs();
+                                }
+                                mLogs.append(message).append('\n');
+                            }
+                        });
 
         // to add one observer
         Telemetry.getInstance().addObserver(new TelemetryAggregatedObserver());

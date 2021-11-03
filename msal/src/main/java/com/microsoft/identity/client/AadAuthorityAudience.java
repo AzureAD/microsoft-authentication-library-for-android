@@ -56,8 +56,7 @@ public enum AadAuthorityAudience {
      */
     AzureAdMyOrg(null);
 
-    @Nullable
-    private String audienceValue;
+    @Nullable private String audienceValue;
 
     AadAuthorityAudience(@Nullable String audienceValue) {
         this.audienceValue = audienceValue;
@@ -67,5 +66,4 @@ public enum AadAuthorityAudience {
     public String getAudienceValue() {
         return audienceValue;
     }
-
 }

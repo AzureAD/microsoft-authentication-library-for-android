@@ -30,17 +30,24 @@ import com.google.gson.JsonSerializer;
 
 import java.lang.reflect.Type;
 
-class RequestClaimAdditionalInformationSerializer implements JsonSerializer<RequestedClaimAdditionalInformation> {
+class RequestClaimAdditionalInformationSerializer
+        implements JsonSerializer<RequestedClaimAdditionalInformation> {
 
     @Override
-    public JsonElement serialize(RequestedClaimAdditionalInformation src, Type typeOfSrc, JsonSerializationContext context) {
+    public JsonElement serialize(
+            RequestedClaimAdditionalInformation src,
+            Type typeOfSrc,
+            JsonSerializationContext context) {
 
         JsonObject info = new JsonObject();
 
-        info.addProperty(RequestedClaimAdditionalInformation.SerializedNames.ESSENTIAL, src.getEssential());
+        info.addProperty(
+                RequestedClaimAdditionalInformation.SerializedNames.ESSENTIAL, src.getEssential());
 
         if (src.getValue() != null) {
-            info.addProperty(RequestedClaimAdditionalInformation.SerializedNames.VALUE, src.getValue().toString());
+            info.addProperty(
+                    RequestedClaimAdditionalInformation.SerializedNames.VALUE,
+                    src.getValue().toString());
         }
 
         if (src.getValues().size() > 0) {

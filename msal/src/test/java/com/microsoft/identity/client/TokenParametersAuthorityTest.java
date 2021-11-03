@@ -22,13 +22,14 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
+
 import android.app.Activity;
 import android.content.Context;
 
 import androidx.test.core.app.ApplicationProvider;
 
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
-import com.microsoft.identity.internal.testutils.TestUtils;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -41,8 +42,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
-
-import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
 
 /**
  * This class tests the fromAuthority builder of {@link TokenParameters} using audiences
@@ -61,9 +60,10 @@ public class TokenParametersAuthorityTest {
 
     private static final String testTenant = UUID.randomUUID().toString();
 
-    public TokenParametersAuthorityTest(final AzureCloudInstance azureCloudInstance,
-                                        final AadAuthorityAudience aadAuthorityAudience,
-                                        final String expectedAuthorityUrl) {
+    public TokenParametersAuthorityTest(
+            final AzureCloudInstance azureCloudInstance,
+            final AadAuthorityAudience aadAuthorityAudience,
+            final String expectedAuthorityUrl) {
         this.azureCloudInstance = azureCloudInstance;
         this.aadAuthorityAudience = aadAuthorityAudience;
         this.expectedAuthorityUrl = expectedAuthorityUrl;
@@ -71,21 +71,69 @@ public class TokenParametersAuthorityTest {
 
     @ParameterizedRobolectricTestRunner.Parameters(name = "cloud = {0}, audience = {1}")
     public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][]{
-                {AzureCloudInstance.AzurePublic, AadAuthorityAudience.AzureAdAndPersonalMicrosoftAccount, "https://login.microsoftonline.com/common"},
-                {AzureCloudInstance.AzurePublic, AadAuthorityAudience.AzureAdMultipleOrgs, "https://login.microsoftonline.com/organizations"},
-                {AzureCloudInstance.AzurePublic, AadAuthorityAudience.PersonalMicrosoftAccount, "https://login.microsoftonline.com/consumers"},
-                {AzureCloudInstance.AzureChina, AadAuthorityAudience.AzureAdAndPersonalMicrosoftAccount, "https://login.partner.microsoftonline.cn/common"},
-                {AzureCloudInstance.AzureChina, AadAuthorityAudience.AzureAdMultipleOrgs, "https://login.partner.microsoftonline.cn/organizations"},
-                {AzureCloudInstance.AzureChina, AadAuthorityAudience.PersonalMicrosoftAccount, "https://login.partner.microsoftonline.cn/consumers"},
-                {AzureCloudInstance.AzureGermany, AadAuthorityAudience.AzureAdAndPersonalMicrosoftAccount, "https://login.microsoftonline.de/common"},
-                {AzureCloudInstance.AzureGermany, AadAuthorityAudience.AzureAdMultipleOrgs, "https://login.microsoftonline.de/organizations"},
-                {AzureCloudInstance.AzureGermany, AadAuthorityAudience.PersonalMicrosoftAccount, "https://login.microsoftonline.de/consumers"},
-                {AzureCloudInstance.AzureUsGov, AadAuthorityAudience.AzureAdAndPersonalMicrosoftAccount, "https://login.microsoftonline.us/common"},
-                {AzureCloudInstance.AzureUsGov, AadAuthorityAudience.AzureAdMultipleOrgs, "https://login.microsoftonline.us/organizations"},
-                {AzureCloudInstance.AzureUsGov, AadAuthorityAudience.PersonalMicrosoftAccount, "https://login.microsoftonline.us/consumers"},
-
-        });
+        return Arrays.asList(
+                new Object[][] {
+                    {
+                        AzureCloudInstance.AzurePublic,
+                        AadAuthorityAudience.AzureAdAndPersonalMicrosoftAccount,
+                        "https://login.microsoftonline.com/common"
+                    },
+                    {
+                        AzureCloudInstance.AzurePublic,
+                        AadAuthorityAudience.AzureAdMultipleOrgs,
+                        "https://login.microsoftonline.com/organizations"
+                    },
+                    {
+                        AzureCloudInstance.AzurePublic,
+                        AadAuthorityAudience.PersonalMicrosoftAccount,
+                        "https://login.microsoftonline.com/consumers"
+                    },
+                    {
+                        AzureCloudInstance.AzureChina,
+                        AadAuthorityAudience.AzureAdAndPersonalMicrosoftAccount,
+                        "https://login.partner.microsoftonline.cn/common"
+                    },
+                    {
+                        AzureCloudInstance.AzureChina,
+                        AadAuthorityAudience.AzureAdMultipleOrgs,
+                        "https://login.partner.microsoftonline.cn/organizations"
+                    },
+                    {
+                        AzureCloudInstance.AzureChina,
+                        AadAuthorityAudience.PersonalMicrosoftAccount,
+                        "https://login.partner.microsoftonline.cn/consumers"
+                    },
+                    {
+                        AzureCloudInstance.AzureGermany,
+                        AadAuthorityAudience.AzureAdAndPersonalMicrosoftAccount,
+                        "https://login.microsoftonline.de/common"
+                    },
+                    {
+                        AzureCloudInstance.AzureGermany,
+                        AadAuthorityAudience.AzureAdMultipleOrgs,
+                        "https://login.microsoftonline.de/organizations"
+                    },
+                    {
+                        AzureCloudInstance.AzureGermany,
+                        AadAuthorityAudience.PersonalMicrosoftAccount,
+                        "https://login.microsoftonline.de/consumers"
+                    },
+                    {
+                        AzureCloudInstance.AzureUsGov,
+                        AadAuthorityAudience.AzureAdAndPersonalMicrosoftAccount,
+                        "https://login.microsoftonline.us/common"
+                    },
+                    {
+                        AzureCloudInstance.AzureUsGov,
+                        AadAuthorityAudience.AzureAdMultipleOrgs,
+                        "https://login.microsoftonline.us/organizations"
+                    },
+                    {
+                        AzureCloudInstance.AzureUsGov,
+                        AadAuthorityAudience.PersonalMicrosoftAccount,
+                        "https://login.microsoftonline.us/consumers"
+                    },
+                });
     }
 
     @Before
@@ -97,36 +145,39 @@ public class TokenParametersAuthorityTest {
 
     @Test
     public void testCreateAuthorityFromUrl() {
-        final AcquireTokenParameters tokenParameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withScopes(SCOPES)
-                .fromAuthority(expectedAuthorityUrl)
-                .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
-                .build();
+        final AcquireTokenParameters tokenParameters =
+                new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(mActivity)
+                        .withScopes(SCOPES)
+                        .fromAuthority(expectedAuthorityUrl)
+                        .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
+                        .build();
 
         Assert.assertEquals(expectedAuthorityUrl, tokenParameters.getAuthority());
     }
 
     @Test
     public void testCreateAuthorityFromCloudAndAudience() {
-        final AcquireTokenParameters tokenParameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withScopes(SCOPES)
-                .fromAuthority(azureCloudInstance, aadAuthorityAudience)
-                .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
-                .build();
+        final AcquireTokenParameters tokenParameters =
+                new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(mActivity)
+                        .withScopes(SCOPES)
+                        .fromAuthority(azureCloudInstance, aadAuthorityAudience)
+                        .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
+                        .build();
 
         Assert.assertEquals(expectedAuthorityUrl, tokenParameters.getAuthority());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testCreateAuthorityFromCloudAndAudienceFailsIfTenantSpecifiedAndAudienceNotMyOrg() {
-        final AcquireTokenParameters tokenParameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withScopes(SCOPES)
-                .fromAuthority(azureCloudInstance, aadAuthorityAudience, testTenant)
-                .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
-                .build();
+        final AcquireTokenParameters tokenParameters =
+                new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(mActivity)
+                        .withScopes(SCOPES)
+                        .fromAuthority(azureCloudInstance, aadAuthorityAudience, testTenant)
+                        .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
+                        .build();
 
         Assert.assertEquals(expectedAuthorityUrl, tokenParameters.getAuthority());
     }

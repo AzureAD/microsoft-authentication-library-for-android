@@ -34,9 +34,8 @@ public class MsalIntuneAppProtectionPolicyRequiredException extends MsalServiceE
     private String mTenantId;
     private String mAuthorityUrl;
 
-
     public MsalIntuneAppProtectionPolicyRequiredException(
-            @NonNull final IntuneAppProtectionPolicyRequiredException exception){
+            @NonNull final IntuneAppProtectionPolicyRequiredException exception) {
 
         super(exception.getErrorCode(), exception.getMessage(), exception);
 
@@ -77,5 +76,4 @@ public class MsalIntuneAppProtectionPolicyRequiredException extends MsalServiceE
     public String getAuthorityUrl() {
         return mAuthorityUrl;
     }
-
 }

@@ -31,7 +31,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-
 import java.io.IOException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -43,7 +42,6 @@ import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Semaphore;
 
-
 public class MainActivity extends AppCompatActivity {
 
     private MainThreadMarshaller<String> mThreadMarshaller = new MainThreadMarshaller<>();
@@ -54,8 +52,7 @@ public class MainActivity extends AppCompatActivity {
 
     private List<IDevicePopManager> mPopMgrs = new ArrayList<>();
 
-    private TextView
-            mTvManufacturer,
+    private TextView mTvManufacturer,
             mTvModel,
             mTvOsVer,
             mTvApiLevel,
@@ -84,42 +81,51 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void executeBenchmarks() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                final int iterations = 20;
-                int thisIteration = iterations;
+        new Thread(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                final int iterations = 20;
+                                int thisIteration = iterations;
 
-                while (thisIteration >= 1) {
-                    final int finalThisIteration = thisIteration;
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mBtn_Restart.setText("Remaining iterations: " + finalThisIteration + " of: " + iterations);
-                        }
-                    });
-                    populateViews();
-                    thisIteration--;
-                }
+                                while (thisIteration >= 1) {
+                                    final int finalThisIteration = thisIteration;
+                                    runOnUiThread(
+                                            new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    mBtn_Restart.setText(
+                                                            "Remaining iterations: "
+                                                                    + finalThisIteration
+                                                                    + " of: "
+                                                                    + iterations);
+                                                }
+                                            });
+                                    populateViews();
+                                    thisIteration--;
+                                }
 
-                computeAverages();
+                                computeAverages();
 
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        // Clean up
-                        for (final IDevicePopManager devicePopManager : mPopMgrs) {
-                            devicePopManager.clearAsymmetricKey();
-                        }
-                        mPopMgrs.clear();
+                                runOnUiThread(
+                                        new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                // Clean up
+                                                for (final IDevicePopManager devicePopManager :
+                                                        mPopMgrs) {
+                                                    devicePopManager.clearAsymmetricKey();
+                                                }
+                                                mPopMgrs.clear();
 
-                        // Enable our button
-                        mBtn_Restart.setText("Restart");
-                        mBtn_Restart.setEnabled(true);
-                    }
-                });
-            }
-        }).start();
+                                                // Enable our button
+                                                mBtn_Restart.setText("Restart");
+                                                mBtn_Restart.setEnabled(true);
+                                            }
+                                        });
+                            }
+                        })
+                .start();
     }
 
     private void computeAverages() {
@@ -152,16 +158,17 @@ public class MainActivity extends AppCompatActivity {
         mTvHardwareIsolated = findViewById(R.id.disp_hardware_iso);
         mBtn_Restart = findViewById(R.id.btn_restart);
         mBtn_Restart.setEnabled(false);
-        mBtn_Restart.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (v.isEnabled()) {
-                    v.setEnabled(false);
+        mBtn_Restart.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (v.isEnabled()) {
+                            v.setEnabled(false);
 
-                    restartBenchmarks();
-                }
-            }
-        });
+                            restartBenchmarks();
+                        }
+                    }
+                });
     }
 
     private void restartBenchmarks() {
@@ -187,50 +194,57 @@ public class MainActivity extends AppCompatActivity {
             crash(e);
         }
         final LinkedList<Runnable> tasks = new LinkedList<>();
-        tasks.add(new Runnable() {
-            @Override
-            public void run() {
-                getKeyLoadTiming(new AsyncResultCallback<String>() {
+        tasks.add(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        getKeyLoadTiming(
+                                new AsyncResultCallback<String>() {
+                                    @Override
+                                    public void onDone(String result) {
+                                        tasks.remove().run();
+                                    }
+                                });
+                    }
+                });
+
+        tasks.add(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        getSigningTiming(
+                                new AsyncResultCallback<String>() {
+                                    @Override
+                                    public void onDone(String result) {
+                                        tasks.remove().run();
+                                    }
+                                });
+                    }
+                });
+
+        tasks.add(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        getIsHardwareIsolated(
+                                new AsyncResultCallback<String>() {
+                                    @Override
+                                    public void onDone(String result) {
+                                        setText(mTvHardwareIsolated, result);
+                                        // Done!
+                                        sLOCK.release();
+                                    }
+                                });
+                    }
+                });
+
+        getKeyGenerationTiming(
+                new AsyncResultCallback<String>() {
                     @Override
                     public void onDone(String result) {
                         tasks.remove().run();
                     }
                 });
-            }
-        });
-
-        tasks.add(new Runnable() {
-            @Override
-            public void run() {
-                getSigningTiming(new AsyncResultCallback<String>() {
-                    @Override
-                    public void onDone(String result) {
-                        tasks.remove().run();
-                    }
-                });
-            }
-        });
-
-        tasks.add(new Runnable() {
-            @Override
-            public void run() {
-                getIsHardwareIsolated(new AsyncResultCallback<String>() {
-                    @Override
-                    public void onDone(String result) {
-                        setText(mTvHardwareIsolated, result);
-                        // Done!
-                        sLOCK.release();
-                    }
-                });
-            }
-        });
-
-        getKeyGenerationTiming(new AsyncResultCallback<String>() {
-            @Override
-            public void onDone(String result) {
-                tasks.remove().run();
-            }
-        });
     }
 
     private IDevicePopManager getRandomPopMgr() {
@@ -238,7 +252,10 @@ public class MainActivity extends AppCompatActivity {
             final IDevicePopManager popManager = new DevicePopManager(UUID.randomUUID().toString());
             mPopMgrs.add(popManager);
             return popManager;
-        } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException e) {
+        } catch (KeyStoreException
+                | CertificateException
+                | NoSuchAlgorithmException
+                | IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -247,13 +264,15 @@ public class MainActivity extends AppCompatActivity {
         try {
             final IDevicePopManager devicePopManager = getRandomPopMgr();
             devicePopManager.generateAsymmetricKey(MainActivity.this);
-            final Timer.TimerResult<Boolean> result = Timer.execute(new Callable<Boolean>() {
-                @Override
-                public Boolean call() throws Exception {
-                    return SecureHardwareState.TRUE_UNATTESTED
-                            == devicePopManager.getSecureHardwareState();
-                }
-            });
+            final Timer.TimerResult<Boolean> result =
+                    Timer.execute(
+                            new Callable<Boolean>() {
+                                @Override
+                                public Boolean call() throws Exception {
+                                    return SecureHardwareState.TRUE_UNATTESTED
+                                            == devicePopManager.getSecureHardwareState();
+                                }
+                            });
             mThreadMarshaller.postResult(result.mResult.toString(), callback);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -264,16 +283,17 @@ public class MainActivity extends AppCompatActivity {
         try {
             final IDevicePopManager tmpPoPMgr = getRandomPopMgr();
             tmpPoPMgr.generateAsymmetricKey(MainActivity.this);
-            final Timer.TimerResult<Void> result = Timer.execute(new Callable<Void>() {
-                @Override
-                public Void call() throws Exception {
-                    tmpPoPMgr.sign(
-                            IDevicePopManager.SigningAlgorithm.SHA_256_WITH_RSA,
-                            "The quick brown fox jumped over the lazy dog."
-                    );
-                    return null;
-                }
-            });
+            final Timer.TimerResult<Void> result =
+                    Timer.execute(
+                            new Callable<Void>() {
+                                @Override
+                                public Void call() throws Exception {
+                                    tmpPoPMgr.sign(
+                                            IDevicePopManager.SigningAlgorithm.SHA_256_WITH_RSA,
+                                            "The quick brown fox jumped over the lazy dog.");
+                                    return null;
+                                }
+                            });
             mSigningTimings.add(result.mDuration);
             mThreadMarshaller.postResult(String.valueOf(result.mDuration), callback);
         } catch (Exception e) {
@@ -288,13 +308,15 @@ public class MainActivity extends AppCompatActivity {
             final IDevicePopManager devicePopManager = new DevicePopManager(uuid);
             devicePopManager.generateAsymmetricKey(MainActivity.this);
             mPopMgrs.add(devicePopManager);
-            final Timer.TimerResult<Void> result = Timer.execute(new Callable<Void>() {
-                @Override
-                public Void call() throws Exception {
-                    new DevicePopManager(uuid);
-                    return null;
-                }
-            });
+            final Timer.TimerResult<Void> result =
+                    Timer.execute(
+                            new Callable<Void>() {
+                                @Override
+                                public Void call() throws Exception {
+                                    new DevicePopManager(uuid);
+                                    return null;
+                                }
+                            });
             mKeyLoadTimings.add(result.mDuration);
             mThreadMarshaller.postResult(String.valueOf(result.mDuration), callback);
         } catch (Exception e) {
@@ -304,17 +326,19 @@ public class MainActivity extends AppCompatActivity {
 
     private void getKeyGenerationTiming(@NonNull final AsyncResultCallback<String> callback) {
         final IDevicePopManager tmpPopMgr = getRandomPopMgr();
-        final Timer.TimerResult<Void> result = Timer.execute(new Callable<Void>() {
-            @Override
-            public Void call() {
-                try {
-                    tmpPopMgr.generateAsymmetricKey(MainActivity.this);
-                    return null;
-                } catch (ClientException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        });
+        final Timer.TimerResult<Void> result =
+                Timer.execute(
+                        new Callable<Void>() {
+                            @Override
+                            public Void call() {
+                                try {
+                                    tmpPopMgr.generateAsymmetricKey(MainActivity.this);
+                                    return null;
+                                } catch (ClientException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                        });
         mKeyGenerationTimings.add(result.mDuration);
         mThreadMarshaller.postResult(String.valueOf(result.mDuration), callback);
     }
@@ -324,14 +348,14 @@ public class MainActivity extends AppCompatActivity {
         throw new RuntimeException(e);
     }
 
-    private void setText(@NonNull final TextView textView,
-                         @NonNull final Object result) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                textView.setText(result.toString());
-            }
-        });
+    private void setText(@NonNull final TextView textView, @NonNull final Object result) {
+        runOnUiThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        textView.setText(result.toString());
+                    }
+                });
     }
 
     interface AsyncResultCallback<T> {
@@ -339,14 +363,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     class MainThreadMarshaller<T> {
-        void postResult(final T result,
-                        final AsyncResultCallback<T> callback) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    callback.onDone(result);
-                }
-            });
+        void postResult(final T result, final AsyncResultCallback<T> callback) {
+            runOnUiThread(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onDone(result);
+                        }
+                    });
         }
     }
 }

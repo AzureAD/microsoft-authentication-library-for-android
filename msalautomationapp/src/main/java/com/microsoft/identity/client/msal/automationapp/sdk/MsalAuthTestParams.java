@@ -26,12 +26,13 @@ import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.ui.automation.sdk.AuthTestParams;
 
-import java.util.List;
-
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 
-// MSAL Test Parameters Class which has all the parameters required for MSAL with or w/o Broker Automation TestCases
+import java.util.List;
+
+// MSAL Test Parameters Class which has all the parameters required for MSAL with or w/o Broker
+// Automation TestCases
 @Getter
 @SuperBuilder
 public class MsalAuthTestParams extends AuthTestParams {

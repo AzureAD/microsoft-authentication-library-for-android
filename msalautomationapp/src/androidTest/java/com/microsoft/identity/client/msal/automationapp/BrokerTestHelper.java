@@ -24,7 +24,6 @@ package com.microsoft.identity.client.msal.automationapp;
 
 import androidx.annotation.Nullable;
 
-import com.microsoft.identity.client.msal.automationapp.BuildConfig;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
@@ -35,7 +34,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class BrokerTestHelper {
-    public static ITestBroker createBrokerFromFlavor(@Nullable final SupportedBrokers supportedBrokersAnnotation) {
+    public static ITestBroker createBrokerFromFlavor(
+            @Nullable final SupportedBrokers supportedBrokersAnnotation) {
         switch (BuildConfig.SELECTED_BROKER) {
             case BuildConfig.BrokerHost:
                 return new BrokerHost();
@@ -43,18 +43,20 @@ public class BrokerTestHelper {
                 return new BrokerMicrosoftAuthenticator();
             case BuildConfig.BrokerCompanyPortal:
                 return new BrokerCompanyPortal();
-            case BuildConfig.AutoBroker: {
-                if (supportedBrokersAnnotation == null) {
-                    return new BrokerMicrosoftAuthenticator();
+            case BuildConfig.AutoBroker:
+                {
+                    if (supportedBrokersAnnotation == null) {
+                        return new BrokerMicrosoftAuthenticator();
+                    }
+                    final List<Class<? extends ITestBroker>> supportedBrokerClasses =
+                            Arrays.asList(supportedBrokersAnnotation.brokers());
+                    if (BuildConfig.FLAVOR_main.equals("dist")
+                            && supportedBrokerClasses.contains(BrokerCompanyPortal.class)) {
+                        return new BrokerCompanyPortal();
+                    } else {
+                        return new BrokerMicrosoftAuthenticator();
+                    }
                 }
-                final List<Class<? extends ITestBroker>> supportedBrokerClasses =
-                        Arrays.asList(supportedBrokersAnnotation.brokers());
-                if (BuildConfig.FLAVOR_main.equals("dist") && supportedBrokerClasses.contains(BrokerCompanyPortal.class)) {
-                    return new BrokerCompanyPortal();
-                } else {
-                    return new BrokerMicrosoftAuthenticator();
-                }
-            }
             default:
                 throw new UnsupportedOperationException("Unsupported broker :(");
         }

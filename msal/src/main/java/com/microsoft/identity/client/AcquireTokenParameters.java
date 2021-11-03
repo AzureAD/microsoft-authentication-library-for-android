@@ -142,7 +142,8 @@ public class AcquireTokenParameters extends TokenParameters {
         private List<Map.Entry<String, String>> mExtraQueryStringParameters;
         private AuthenticationCallback mCallback;
 
-        public AcquireTokenParameters.Builder startAuthorizationFromActivity(final Activity activity) {
+        public AcquireTokenParameters.Builder startAuthorizationFromActivity(
+                final Activity activity) {
             mActivity = activity;
             return self();
         }
@@ -188,5 +189,4 @@ public class AcquireTokenParameters extends TokenParameters {
             return new AcquireTokenParameters(this);
         }
     }
-
 }

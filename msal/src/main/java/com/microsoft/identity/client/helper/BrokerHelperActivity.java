@@ -22,17 +22,18 @@ import java.net.URLEncoder;
  */
 public class BrokerHelperActivity extends Activity {
 
-    private final String MANIFEST_TEMPLATE = "<activity android:name=\"com.microsoft.identity.client.BrowserTabActivity\">\n" +
-            "    <intent-filter>\n" +
-            "        <action android:name=\"android.intent.action.VIEW\" />\n" +
-            "        <category android:name=\"android.intent.category.DEFAULT\" />\n" +
-            "        <category android:name=\"android.intent.category.BROWSABLE\" />\n" +
-            "        <data\n" +
-            "            android:host=\"%s\"\n" +
-            "            android:path=\"/%s\"\n" +
-            "            android:scheme=\"msauth\" />\n" +
-            "    </intent-filter>\n" +
-            "</activity>";
+    private final String MANIFEST_TEMPLATE =
+            "<activity android:name=\"com.microsoft.identity.client.BrowserTabActivity\">\n"
+                    + "    <intent-filter>\n"
+                    + "        <action android:name=\"android.intent.action.VIEW\" />\n"
+                    + "        <category android:name=\"android.intent.category.DEFAULT\" />\n"
+                    + "        <category android:name=\"android.intent.category.BROWSABLE\" />\n"
+                    + "        <data\n"
+                    + "            android:host=\"%s\"\n"
+                    + "            android:path=\"/%s\"\n"
+                    + "            android:scheme=\"msauth\" />\n"
+                    + "    </intent-filter>\n"
+                    + "</activity>";
     TextView mPackageName;
     TextView mSignature;
     TextView mRedirect;
@@ -54,26 +55,37 @@ public class BrokerHelperActivity extends Activity {
         mManifest = findViewById(R.id.txtManifest);
 
         mSignature.append(getSignature(false));
-        mRedirect.append(BrokerValidator.getBrokerRedirectUri(this.getApplicationContext(), this.getPackageName()));
-        mManifest.append(String.format(MANIFEST_TEMPLATE, this.getPackageName(), getSignature(false)));
+        mRedirect.append(
+                BrokerValidator.getBrokerRedirectUri(
+                        this.getApplicationContext(), this.getPackageName()));
+        mManifest.append(
+                String.format(MANIFEST_TEMPLATE, this.getPackageName(), getSignature(false)));
         mPackageName.append(this.getPackageName());
     }
 
     private String getSignature(final boolean urlEncode) {
 
-        final PackageHelper info = new PackageHelper(this.getApplicationContext().getPackageManager());
+        final PackageHelper info =
+                new PackageHelper(this.getApplicationContext().getPackageManager());
         final String signatureDigest = info.getCurrentSignatureForPackage(this.getPackageName());
         String signature = "";
 
         try {
             if (urlEncode) {
-                signature = URLEncoder.encode(signatureDigest, AuthenticationConstants.ENCODING_UTF8);
+                signature =
+                        URLEncoder.encode(signatureDigest, AuthenticationConstants.ENCODING_UTF8);
             } else {
                 signature = signatureDigest;
             }
         } catch (UnsupportedEncodingException e) {
-            Log.e("getSignature", "Character encoding " + AuthenticationConstants.ENCODING_UTF8 + " is not supported.", e);
-            throw new RuntimeException("Unexpected: Unable to get the signature for this application package.");
+            Log.e(
+                    "getSignature",
+                    "Character encoding "
+                            + AuthenticationConstants.ENCODING_UTF8
+                            + " is not supported.",
+                    e);
+            throw new RuntimeException(
+                    "Unexpected: Unable to get the signature for this application package.");
         }
 
         return signature;

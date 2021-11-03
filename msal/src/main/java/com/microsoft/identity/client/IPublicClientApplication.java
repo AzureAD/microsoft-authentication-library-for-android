@@ -50,10 +50,10 @@ public interface IPublicClientApplication {
      *                 3) All the other errors will be sent back via
      *                 {@link AuthenticationCallback#onError(MsalException)}.
      */
-    void acquireToken(@NonNull final Activity activity,
-                      @NonNull final String[] scopes,
-                      @NonNull final AuthenticationCallback callback
-    );
+    void acquireToken(
+            @NonNull final Activity activity,
+            @NonNull final String[] scopes,
+            @NonNull final AuthenticationCallback callback);
 
     /**
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
@@ -65,7 +65,6 @@ public interface IPublicClientApplication {
      */
     void acquireToken(@NonNull final AcquireTokenParameters acquireTokenParameters);
 
-
     /**
      * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
      * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
@@ -73,7 +72,8 @@ public interface IPublicClientApplication {
      *
      * @param acquireTokenSilentParameters
      */
-    void acquireTokenSilentAsync(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters);
+    void acquireTokenSilentAsync(
+            @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters);
 
     /**
      * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
@@ -83,7 +83,9 @@ public interface IPublicClientApplication {
      * @param acquireTokenSilentParameters
      */
     @WorkerThread
-    IAuthenticationResult acquireTokenSilent(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) throws InterruptedException, MsalException;
+    IAuthenticationResult acquireTokenSilent(
+            @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters)
+            throws InterruptedException, MsalException;
 
     /**
      * Perform the Device Code Flow (DCF) protocol to allow a device without input capability to authenticate and get a new access token.
@@ -92,7 +94,8 @@ public interface IPublicClientApplication {
      * @param scopes   the desired access scopes
      * @param callback callback object used to communicate with the API throughout the protocol
      */
-    void acquireTokenWithDeviceCode(@NonNull String[] scopes, @NonNull final DeviceCodeFlowCallback callback);
+    void acquireTokenWithDeviceCode(
+            @NonNull String[] scopes, @NonNull final DeviceCodeFlowCallback callback);
 
     /**
      * Returns the PublicClientConfiguration for this instance of PublicClientApplication.
@@ -121,9 +124,9 @@ public interface IPublicClientApplication {
      * @return The resulting SHR.
      */
     @NonNull
-    String generateSignedHttpRequest(@NonNull final IAccount account,
-                                     @NonNull final PoPAuthenticationScheme popParameters
-    ) throws MsalException;
+    String generateSignedHttpRequest(
+            @NonNull final IAccount account, @NonNull final PoPAuthenticationScheme popParameters)
+            throws MsalException;
 
     /**
      * Signs the provided {@link PoPAuthenticationScheme} parameters into a JWT on behalf of the
@@ -137,15 +140,16 @@ public interface IPublicClientApplication {
      * @param callback      The callback object to receive the result (or error).
      * @return The resulting SHR.
      */
-    void generateSignedHttpRequest(@NonNull final IAccount account,
-                                   @NonNull final PoPAuthenticationScheme popParameters,
-                                   @NonNull final SignedHttpRequestRequestCallback callback
-    );
+    void generateSignedHttpRequest(
+            @NonNull final IAccount account,
+            @NonNull final PoPAuthenticationScheme popParameters,
+            @NonNull final SignedHttpRequestRequestCallback callback);
 
     /**
      * Callback used to receive the result of {@link #generateSignedHttpRequest(IAccount, PoPAuthenticationScheme)}.
      */
-    interface SignedHttpRequestRequestCallback extends TaskCompletedCallbackWithError<String, MsalException> {
+    interface SignedHttpRequestRequestCallback
+            extends TaskCompletedCallbackWithError<String, MsalException> {
 
         /**
          * Called after signing of the supplied properties has finished.
@@ -162,7 +166,8 @@ public interface IPublicClientApplication {
         void onError(MsalException exception);
     }
 
-    interface LoadAccountsCallback extends TaskCompletedCallbackWithError<List<IAccount>, MsalException> {
+    interface LoadAccountsCallback
+            extends TaskCompletedCallbackWithError<List<IAccount>, MsalException> {
         /**
          * Called once succeed and pass the result object.
          *
@@ -178,7 +183,6 @@ public interface IPublicClientApplication {
         void onError(MsalException exception);
     }
 
-
     /**
      * Listener callback for asynchronous initialization of IPublicClientApplication object.
      */
@@ -193,7 +197,6 @@ public interface IPublicClientApplication {
          */
         void onError(final MsalException exception);
     }
-
 
     /**
      * Listener callback for asynchronous initialization of ISingleAccountPublicClientApplication object.
@@ -248,10 +251,11 @@ public interface IPublicClientApplication {
          *                              When the session expires, onError() will return an exception with DEVICE_CODE_FLOW_EXPIRED_TOKEN_ERROR_CODE.
          *                              Please rely on that exception for non-UX purposes.
          */
-        void onUserCodeReceived(@NonNull final String vUri,
-                                @NonNull final String userCode,
-                                @NonNull final String message,
-                                @NonNull final Date sessionExpirationDate);
+        void onUserCodeReceived(
+                @NonNull final String vUri,
+                @NonNull final String userCode,
+                @NonNull final String message,
+                @NonNull final Date sessionExpirationDate);
 
         /**
          * Invoked once token is received and passes the {@link AuthenticationResult} object.
@@ -267,5 +271,4 @@ public interface IPublicClientApplication {
          */
         void onError(@NonNull final MsalException exception);
     }
-
 }

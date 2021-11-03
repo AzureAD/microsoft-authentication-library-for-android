@@ -70,14 +70,13 @@ public class ShadowAuthorityForMockHttpResponse {
         return true;
     }
 
-    private static Authority createAadAuthority(@NonNull final Uri authorityUri,
-                                                @NonNull final List<String> pathSegments) {
-        AzureActiveDirectoryAudience audience = AzureActiveDirectoryAudience.getAzureActiveDirectoryAudience(
-                authorityUri.getScheme() + "://" + authorityUri.getHost(),
-                pathSegments.get(0)
-        );
+    private static Authority createAadAuthority(
+            @NonNull final Uri authorityUri, @NonNull final List<String> pathSegments) {
+        AzureActiveDirectoryAudience audience =
+                AzureActiveDirectoryAudience.getAzureActiveDirectoryAudience(
+                        authorityUri.getScheme() + "://" + authorityUri.getHost(),
+                        pathSegments.get(0));
 
         return new MockAuthorityHttpResponse(audience);
     }
-
 }

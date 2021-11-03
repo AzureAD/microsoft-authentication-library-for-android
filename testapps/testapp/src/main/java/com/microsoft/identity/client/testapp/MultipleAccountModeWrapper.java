@@ -54,34 +54,41 @@ public class MultipleAccountModeWrapper extends MsalWrapper {
     @Override
     public String getDefaultBrowser() {
         try {
-            return BrowserSelector.select(mApp.getConfiguration().getAppContext(), mApp.getConfiguration().getBrowserSafeList()).getPackageName();
+            return BrowserSelector.select(
+                            mApp.getConfiguration().getAppContext(),
+                            mApp.getConfiguration().getBrowserSafeList())
+                    .getPackageName();
         } catch (ClientException e) {
             return "Unknown";
         }
     }
 
     @Override
-    public void loadAccounts(@NonNull final INotifyOperationResultCallback<List<IAccount>> callback) {
-        mApp.getAccounts(new IPublicClientApplication.LoadAccountsCallback() {
-            @Override
-            public void onTaskCompleted(List<IAccount> result) {
-                callback.onSuccess(result);
-            }
+    public void loadAccounts(
+            @NonNull final INotifyOperationResultCallback<List<IAccount>> callback) {
+        mApp.getAccounts(
+                new IPublicClientApplication.LoadAccountsCallback() {
+                    @Override
+                    public void onTaskCompleted(List<IAccount> result) {
+                        callback.onSuccess(result);
+                    }
 
-            @Override
-            public void onError(MsalException exception) {
-                callback.showMessage(
-                        "Failed to load account from broker. "
-                                + "Error code: " + exception.getErrorCode()
-                                + " Error Message: " + exception.getMessage()
-                );
-            }
-        });
+                    @Override
+                    public void onError(MsalException exception) {
+                        callback.showMessage(
+                                "Failed to load account from broker. "
+                                        + "Error code: "
+                                        + exception.getErrorCode()
+                                        + " Error Message: "
+                                        + exception.getMessage());
+                    }
+                });
     }
 
     @Override
-    public void removeAccount(@NonNull IAccount account,
-                              @NonNull final INotifyOperationResultCallback<Void> callback) {
+    public void removeAccount(
+            @NonNull IAccount account,
+            @NonNull final INotifyOperationResultCallback<Void> callback) {
         mApp.removeAccount(
                 account,
                 new IMultipleAccountPublicClientApplication.RemoveAccountCallback() {
@@ -109,15 +116,17 @@ public class MultipleAccountModeWrapper extends MsalWrapper {
     }
 
     @Override
-    void acquireTokenWithDeviceCodeFlowInternal(@NonNull String[] scopes,
-                                                @NonNull final IPublicClientApplication.DeviceCodeFlowCallback callback) {
+    void acquireTokenWithDeviceCodeFlowInternal(
+            @NonNull String[] scopes,
+            @NonNull final IPublicClientApplication.DeviceCodeFlowCallback callback) {
         mApp.acquireTokenWithDeviceCode(scopes, callback);
     }
 
     @Override
-    public void generateSignedHttpRequestInternal(@NonNull final IAccount account,
-                                                  @NonNull final PoPAuthenticationScheme params,
-                                                  @NonNull final INotifyOperationResultCallback<String> generateShrCallback) {
+    public void generateSignedHttpRequestInternal(
+            @NonNull final IAccount account,
+            @NonNull final PoPAuthenticationScheme params,
+            @NonNull final INotifyOperationResultCallback<String> generateShrCallback) {
         mApp.generateSignedHttpRequest(
                 account,
                 params,
@@ -131,7 +140,6 @@ public class MultipleAccountModeWrapper extends MsalWrapper {
                     public void onError(MsalException exception) {
                         generateShrCallback.showMessage(exception.getMessage());
                     }
-                }
-        );
+                });
     }
 }

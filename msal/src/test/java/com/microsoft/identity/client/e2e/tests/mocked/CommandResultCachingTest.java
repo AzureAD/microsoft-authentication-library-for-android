@@ -22,24 +22,31 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.mocked;
 
+import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
+import static com.microsoft.identity.internal.testutils.TestConstants.Authorities.AAD_MOCK_AUTHORITY;
+import static com.microsoft.identity.internal.testutils.TestConstants.Authorities.AAD_MOCK_DELAYED_RESPONSE_AUTHORITY;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
+import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.claims.ClaimsRequest;
-import com.microsoft.identity.client.e2e.shadows.ShadowAuthority;
+import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
 import com.microsoft.identity.client.e2e.shadows.ShadowMockAuthority;
 import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
+import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
+import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
+import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
+import com.microsoft.identity.client.e2e.utils.CacheCountAuthenticationCallback;
 import com.microsoft.identity.common.java.net.HttpClient;
 import com.microsoft.identity.common.java.net.HttpResponse;
 import com.microsoft.identity.internal.testutils.HttpRequestInterceptor;
 import com.microsoft.identity.internal.testutils.HttpRequestMatcher;
 import com.microsoft.identity.internal.testutils.shadows.ShadowHttpClient;
-import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
-import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
-import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
-import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
-import com.microsoft.identity.client.e2e.utils.CacheCountAuthenticationCallback;
-import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper;
 
 import org.junit.Before;
 import org.junit.Ignore;
@@ -54,39 +61,34 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Map;
 
-import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
-import static com.microsoft.identity.internal.testutils.TestConstants.Authorities.AAD_MOCK_AUTHORITY;
-import static com.microsoft.identity.internal.testutils.TestConstants.Authorities.AAD_MOCK_DELAYED_RESPONSE_AUTHORITY;
-import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
-import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 // TODO: re-enable this oncd we re-enable command caching.
 @Ignore
 @RunWith(RobolectricTestRunner.class)
-@Config(shadows = {
-        ShadowAndroidSdkStorageEncryptionManager.class,
-        ShadowMockAuthority.class,
-        ShadowHttpClient.class,
-        ShadowPublicClientApplicationConfiguration.class,
-        ShadowOpenIdProviderConfigurationClient.class
-})
+@Config(
+        shadows = {
+            ShadowAndroidSdkStorageEncryptionManager.class,
+            ShadowMockAuthority.class,
+            ShadowHttpClient.class,
+            ShadowPublicClientApplicationConfiguration.class,
+            ShadowOpenIdProviderConfigurationClient.class
+        })
 public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
 
     @Before
     public void before() {
         super.setup();
         mockHttpClient.intercept(
-                HttpRequestMatcher.builder().isPOST().build(), new HttpRequestInterceptor() {
+                HttpRequestMatcher.builder().isPOST().build(),
+                new HttpRequestInterceptor() {
                     @Override
                     public HttpResponse performIntercept(
                             @NonNull HttpClient.HttpMethod httpMethod,
                             @NonNull URL requestUrl,
                             @NonNull Map<String, String> requestHeaders,
-                            @Nullable byte[] requestContent) throws IOException {
-                        throw new IOException("Sending requests to server has been disabled for mocked unit tests");
+                            @Nullable byte[] requestContent)
+                            throws IOException {
+                        throw new IOException(
+                                "Sending requests to server has been disabled for mocked unit tests");
                     }
                 });
 
@@ -105,36 +107,39 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
     public void testAcquireTokenCache2DifferentRequests() throws InterruptedException {
         final String username = "fake@test.com";
 
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(username)
-                .withScopes(Arrays.asList(mScopes))
-                .fromAuthority(AAD_MOCK_AUTHORITY)
-                .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
-                .build();
+        final AcquireTokenParameters parameters =
+                new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(mActivity)
+                        .withLoginHint(username)
+                        .withScopes(Arrays.asList(mScopes))
+                        .fromAuthority(AAD_MOCK_AUTHORITY)
+                        .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
+                        .build();
 
         mApplication.acquireToken(parameters);
         flushScheduler();
 
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .forAccount(AcquireTokenTestHelper.getAccount())
-                .withScopes(Arrays.asList(mScopes))
-                .forceRefresh(false)
-                .fromAuthority(AAD_MOCK_AUTHORITY)
-                .withCallback(new CacheCountAuthenticationCallback(1))
-                .build();
+        final AcquireTokenSilentParameters silentParameters =
+                new AcquireTokenSilentParameters.Builder()
+                        .forAccount(AcquireTokenTestHelper.getAccount())
+                        .withScopes(Arrays.asList(mScopes))
+                        .forceRefresh(false)
+                        .fromAuthority(AAD_MOCK_AUTHORITY)
+                        .withCallback(new CacheCountAuthenticationCallback(1))
+                        .build();
 
         ClaimsRequest cr = new ClaimsRequest();
         cr.requestClaimInAccessToken("device_id", null);
 
-        final AcquireTokenSilentParameters modifiedSilentParameters = new AcquireTokenSilentParameters.Builder()
-                .forAccount(AcquireTokenTestHelper.getAccount())
-                .withScopes(Arrays.asList(mScopes))
-                .forceRefresh(false)
-                .fromAuthority(AAD_MOCK_AUTHORITY)
-                .withClaims(cr)
-                .withCallback(new CacheCountAuthenticationCallback(2))
-                .build();
+        final AcquireTokenSilentParameters modifiedSilentParameters =
+                new AcquireTokenSilentParameters.Builder()
+                        .forAccount(AcquireTokenTestHelper.getAccount())
+                        .withScopes(Arrays.asList(mScopes))
+                        .forceRefresh(false)
+                        .fromAuthority(AAD_MOCK_AUTHORITY)
+                        .withClaims(cr)
+                        .withCallback(new CacheCountAuthenticationCallback(2))
+                        .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
         Thread.sleep(500);
@@ -150,24 +155,26 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
     public void testAcquireTokenCache2IdenticalRequests() throws InterruptedException {
         final String username = "fake@test.com";
 
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(username)
-                .withScopes(Arrays.asList(mScopes))
-                .fromAuthority(AAD_MOCK_AUTHORITY)
-                .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
-                .build();
+        final AcquireTokenParameters parameters =
+                new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(mActivity)
+                        .withLoginHint(username)
+                        .withScopes(Arrays.asList(mScopes))
+                        .fromAuthority(AAD_MOCK_AUTHORITY)
+                        .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
+                        .build();
 
         mApplication.acquireToken(parameters);
         flushScheduler();
 
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .forAccount(AcquireTokenTestHelper.getAccount())
-                .withScopes(Arrays.asList(mScopes))
-                .forceRefresh(false)
-                .fromAuthority(AAD_MOCK_AUTHORITY)
-                .withCallback(new CacheCountAuthenticationCallback(1))
-                .build();
+        final AcquireTokenSilentParameters silentParameters =
+                new AcquireTokenSilentParameters.Builder()
+                        .forAccount(AcquireTokenTestHelper.getAccount())
+                        .withScopes(Arrays.asList(mScopes))
+                        .forceRefresh(false)
+                        .fromAuthority(AAD_MOCK_AUTHORITY)
+                        .withCallback(new CacheCountAuthenticationCallback(1))
+                        .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
         Thread.sleep(200);
@@ -182,33 +189,37 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
     public void testAcquireTokenCache2IdenticalRequestsConcurrent() {
         final String username = "fake@test.com";
 
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(username)
-                .withScopes(Arrays.asList(mScopes))
-                .fromAuthority(AAD_MOCK_AUTHORITY)
-                .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
-                .build();
+        final AcquireTokenParameters parameters =
+                new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(mActivity)
+                        .withLoginHint(username)
+                        .withScopes(Arrays.asList(mScopes))
+                        .fromAuthority(AAD_MOCK_AUTHORITY)
+                        .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
+                        .build();
 
         mApplication.acquireToken(parameters);
         flushScheduler();
 
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .forAccount(AcquireTokenTestHelper.getAccount())
-                .withScopes(Arrays.asList(mScopes))
-                .forceRefresh(false)
-                .fromAuthority(AAD_MOCK_AUTHORITY)
-                .withCallback(new CacheCountAuthenticationCallback(1))
-                .build();
+        final AcquireTokenSilentParameters silentParameters =
+                new AcquireTokenSilentParameters.Builder()
+                        .forAccount(AcquireTokenTestHelper.getAccount())
+                        .withScopes(Arrays.asList(mScopes))
+                        .forceRefresh(false)
+                        .fromAuthority(AAD_MOCK_AUTHORITY)
+                        .withCallback(new CacheCountAuthenticationCallback(1))
+                        .build();
 
-        final AcquireTokenSilentParameters silentParameters1 = new AcquireTokenSilentParameters.Builder()
-                .forAccount(AcquireTokenTestHelper.getAccount())
-                .withScopes(Arrays.asList(mScopes))
-                .forceRefresh(false)
-                .fromAuthority(AAD_MOCK_DELAYED_RESPONSE_AUTHORITY)
-                .withCallback(AcquireTokenTestHelper.failedSilentRequestDuplicateCommandCallback())
-                .build();
-
+        final AcquireTokenSilentParameters silentParameters1 =
+                new AcquireTokenSilentParameters.Builder()
+                        .forAccount(AcquireTokenTestHelper.getAccount())
+                        .withScopes(Arrays.asList(mScopes))
+                        .forceRefresh(false)
+                        .fromAuthority(AAD_MOCK_DELAYED_RESPONSE_AUTHORITY)
+                        .withCallback(
+                                AcquireTokenTestHelper
+                                        .failedSilentRequestDuplicateCommandCallback())
+                        .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
         mApplication.acquireTokenSilentAsync(silentParameters1);
@@ -223,13 +234,14 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
     public void testAcquireTokenExceedCacheMaxItems() throws InterruptedException {
         final String username = "fake@test.com";
 
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(username)
-                .withScopes(Arrays.asList(mScopes))
-                .fromAuthority(AAD_MOCK_AUTHORITY)
-                .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
-                .build();
+        final AcquireTokenParameters parameters =
+                new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(mActivity)
+                        .withLoginHint(username)
+                        .withScopes(Arrays.asList(mScopes))
+                        .fromAuthority(AAD_MOCK_AUTHORITY)
+                        .withCallback(AcquireTokenTestHelper.successfulInteractiveCallback())
+                        .build();
 
         Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
         mApplication.acquireToken(parameters);
@@ -241,14 +253,15 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
             ClaimsRequest cr = new ClaimsRequest();
             cr.requestClaimInAccessToken("device_" + Integer.toString(i), null);
 
-            final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                    .forAccount(AcquireTokenTestHelper.getAccount())
-                    .withScopes(Arrays.asList(mScopes))
-                    .forceRefresh(false)
-                    .fromAuthority(AAD_MOCK_AUTHORITY)
-                    .withClaims(cr)
-                    .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
-                    .build();
+            final AcquireTokenSilentParameters silentParameters =
+                    new AcquireTokenSilentParameters.Builder()
+                            .forAccount(AcquireTokenTestHelper.getAccount())
+                            .withScopes(Arrays.asList(mScopes))
+                            .forceRefresh(false)
+                            .fromAuthority(AAD_MOCK_AUTHORITY)
+                            .withClaims(cr)
+                            .withCallback(AcquireTokenTestHelper.successfulSilentCallback())
+                            .build();
 
             mApplication.acquireTokenSilentAsync(silentParameters);
             Thread.sleep(100);
@@ -258,14 +271,15 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
         ClaimsRequest cr = new ClaimsRequest();
         cr.requestClaimInAccessToken("device_10", null);
 
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .forAccount(AcquireTokenTestHelper.getAccount())
-                .withScopes(Arrays.asList(mScopes))
-                .forceRefresh(false)
-                .fromAuthority(AAD_MOCK_AUTHORITY)
-                .withClaims(cr)
-                .withCallback(new CacheCountAuthenticationCallback(250))
-                .build();
+        final AcquireTokenSilentParameters silentParameters =
+                new AcquireTokenSilentParameters.Builder()
+                        .forAccount(AcquireTokenTestHelper.getAccount())
+                        .withScopes(Arrays.asList(mScopes))
+                        .forceRefresh(false)
+                        .fromAuthority(AAD_MOCK_AUTHORITY)
+                        .withClaims(cr)
+                        .withCallback(new CacheCountAuthenticationCallback(250))
+                        .build();
 
         flushScheduler();
 
