@@ -72,7 +72,7 @@ public abstract class AbstractWpjTest extends AbstractMsalUiTest implements IBro
     protected ITestBroker mBroker = getBroker();
     @Nullable
     protected abstract IAppInstaller brokerInstallationSource();
-    @Nullable
+    @NonNull
     protected abstract String brokerHostApkName();
 
     @NonNull
