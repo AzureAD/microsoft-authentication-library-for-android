@@ -38,12 +38,15 @@ import java.util.Arrays;
 import java.util.List;
 
 public class BrokerTestHelper {
+
     public static ITestBroker createBrokerFromFlavor(@Nullable final SupportedBrokers supportedBrokersAnnotation, @NonNull final IAppInstaller appSource) {
         return internalCreateBrokerFromFlavor(supportedBrokersAnnotation, appSource);
     }
+
     public static ITestBroker createBrokerFromFlavor(@Nullable final SupportedBrokers supportedBrokersAnnotation){
         return internalCreateBrokerFromFlavor(supportedBrokersAnnotation, AbstractTestBroker.DEFAULT_BROKER_APP_INSTALLER);
     }
+
     private static ITestBroker internalCreateBrokerFromFlavor(@Nullable final SupportedBrokers supportedBrokersAnnotation, @NonNull final IAppInstaller appSource) {
         switch (BuildConfig.SELECTED_BROKER) {
             case BuildConfig.BrokerHost:

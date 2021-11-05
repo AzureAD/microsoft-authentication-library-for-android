@@ -35,7 +35,6 @@ import com.microsoft.identity.client.msal.automationapp.MsalLoggingRule;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
-import com.microsoft.identity.client.ui.automation.BuildConfig;
 import com.microsoft.identity.client.ui.automation.IBrokerHostTest;
 import com.microsoft.identity.client.ui.automation.IBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
@@ -50,6 +49,14 @@ import com.microsoft.identity.client.ui.automation.rules.RulesHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.internal.testutils.BuildConfig;
+import com.microsoft.identity.labapi.utilities.authentication.LabApiAuthenticationClient;
+import com.microsoft.identity.labapi.utilities.client.LabAccount;
+import com.microsoft.identity.labapi.utilities.client.LabClient;
+import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.UserRole;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
+import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
 import org.junit.Rule;
 import org.junit.rules.RuleChain;
@@ -73,8 +80,7 @@ public abstract class AbstractWpjTest extends AbstractMsalUiTest implements IBro
     public BrokerHost getBrokerHost() {
         // only initialize once....so calling getBrokerHost from anywhere returns the same instance
         if (mBrokerHost == null) {
-            final String brokerHostApkName = brokerHostApkName();
-            mBrokerHost = new BrokerHost(brokerHostApkName);
+            mBrokerHost = new BrokerHost(brokerHostApkName());
         }
         return mBrokerHost;
     }
@@ -92,19 +98,29 @@ public abstract class AbstractWpjTest extends AbstractMsalUiTest implements IBro
     }
 
     /**
-     * Run LabUserQuery to get a cloud device administrator user
+     * Run LabUserQuery to get a cloud device administrator user.
      *
-     * @return cloud device administrator user
+     * @return cloud device administrator user.
      */
     public String getLabUserForCloudDeviceAdmin() {
-        final LabUserQuery query = new LabUserQuery();
-        query.userRole = LabConstants.UserRole.CLOUD_DEVICE_ADMINISTRATOR;
-        return LabUserHelper.loadUserForTest(query);
+        final LabApiAuthenticationClient authenticationClient =
+                new LabApiAuthenticationClient(BuildConfig.LAB_CLIENT_SECRET);
+        final LabClient labClient = new LabClient(authenticationClient);
+        final LabQuery query = LabQuery.builder()
+                .userRole(UserRole.CLOUD_DEVICE_ADMINISTRATOR)
+                .build();
+        try{
+        final LabAccount labAccount = labClient.getLabAccount(query);
+            return labAccount.getUsername();
+        } catch (final LabApiException e) {
+            throw new AssertionError(e);
+        }
     }
 
 
     /**
-     * Build MSAL acquire token parameters with default configuration for WPJ test cases
+     * Build MSAL acquire token parameters for WPJ test cases using default msal configuration.
+     * @see com.microsoft.identity.client.msal.automationapp.R.raw.msal_config_default
      */
     public final MsalAuthTestParams getBasicAuthTestParams() {
         return MsalAuthTestParams.builder()
@@ -117,7 +133,7 @@ public abstract class AbstractWpjTest extends AbstractMsalUiTest implements IBro
     }
 
     /**
-     * Build MSAL acquire token parameters required to perform Client TLS
+     * Build MSAL acquire token parameters required to perform Client TLS.
      * https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1162698
      */
     public final MsalAuthTestParams getTlsAuthTestParams() {
