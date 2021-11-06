@@ -70,6 +70,9 @@ public abstract class AbstractWpjTest extends AbstractMsalUiTest implements IBro
 
     protected BrokerHost mBrokerHost = getBrokerHost();
     protected ITestBroker mBroker = getBroker();
+    protected final LabApiAuthenticationClient authenticationClient =
+            new LabApiAuthenticationClient(BuildConfig.LAB_CLIENT_SECRET);
+    protected final LabClient labClient = new LabClient(authenticationClient);
     @Nullable
     protected abstract IAppInstaller brokerInstallationSource();
     @NonNull
@@ -103,9 +106,6 @@ public abstract class AbstractWpjTest extends AbstractMsalUiTest implements IBro
      * @return cloud device administrator user.
      */
     public String getLabUserForCloudDeviceAdmin() {
-        final LabApiAuthenticationClient authenticationClient =
-                new LabApiAuthenticationClient(BuildConfig.LAB_CLIENT_SECRET);
-        final LabClient labClient = new LabClient(authenticationClient);
         final LabQuery query = LabQuery.builder()
                 .userRole(UserRole.CLOUD_DEVICE_ADMINISTRATOR)
                 .build();

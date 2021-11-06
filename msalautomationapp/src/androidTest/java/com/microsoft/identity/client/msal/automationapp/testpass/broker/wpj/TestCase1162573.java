@@ -149,8 +149,4 @@ public class TestCase1162573 extends AbstractWpjTest{
             Assert.assertTrue(e.getCode() == 400);
         }
     }
-
-
 }
-
-
