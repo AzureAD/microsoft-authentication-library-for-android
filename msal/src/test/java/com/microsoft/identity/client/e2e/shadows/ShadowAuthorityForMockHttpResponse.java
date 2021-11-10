@@ -22,14 +22,19 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.shadows;
 
-import com.microsoft.identity.common.internal.authorities.AccountsInOneOrganization;
-import com.microsoft.identity.common.internal.authorities.Authority;
-import com.microsoft.identity.internal.testutils.TestConstants;
+import android.net.Uri;
+
+import androidx.annotation.NonNull;
+
+import com.microsoft.identity.common.java.authorities.Authority;
+import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.internal.testutils.authorities.MockAuthorityHttpResponse;
 
 import org.robolectric.annotation.Implements;
 
 import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.List;
 
 /**
  * A Robolectric shadow for the {@link Authority} class. This shadow will always use the
@@ -49,14 +54,30 @@ public class ShadowAuthorityForMockHttpResponse {
      * @throws MalformedURLException
      */
     public static Authority getAuthorityFromAuthorityUrl(String authorityUrl) {
-        return new MockAuthorityHttpResponse(new AccountsInOneOrganization(
-                TestConstants.Authorities.AAD_MOCK_AUTHORITY_HTTP_RESPONSE,
-                TestConstants.Authorities.AAD_MOCK_HTTP_RESPONSE_AUTHORITY_TENANT
-        ));
+        URL authUrl;
+        try {
+            authUrl = new URL(authorityUrl);
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException("Invalid authority URL");
+        }
+
+        final Uri authorityUri = Uri.parse(authUrl.toString());
+        final List<String> pathSegments = authorityUri.getPathSegments();
+        return createAadAuthority(authorityUri, pathSegments);
     }
 
     public static boolean isKnownAuthority(Authority authority) {
         return true;
+    }
+
+    private static Authority createAadAuthority(@NonNull final Uri authorityUri,
+                                                @NonNull final List<String> pathSegments) {
+        AzureActiveDirectoryAudience audience = AzureActiveDirectoryAudience.getAzureActiveDirectoryAudience(
+                authorityUri.getScheme() + "://" + authorityUri.getHost(),
+                pathSegments.get(0)
+        );
+
+        return new MockAuthorityHttpResponse(audience);
     }
 
 }

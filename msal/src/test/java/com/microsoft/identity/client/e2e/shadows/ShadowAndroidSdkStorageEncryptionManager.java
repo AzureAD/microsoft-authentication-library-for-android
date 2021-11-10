@@ -22,31 +22,28 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.shadows;
 
-import com.microsoft.identity.client.e2e.tests.mocked.AcquireTokenMockedTelemetryTest;
-import com.microsoft.identity.common.internal.net.HttpRequest;
-import com.microsoft.identity.common.internal.net.HttpResponse;
-import com.microsoft.identity.internal.testutils.MockHttpResponse;
+import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager;
+import com.microsoft.identity.common.java.crypto.key.PredefinedKeyLoader;
+import com.microsoft.identity.common.java.crypto.key.AES256KeyLoader;
 
 import org.robolectric.annotation.Implements;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
-@Implements(HttpRequest.class)
-public class ShadowHttpRequestForTelemetry {
+@Implements(AndroidAuthSdkStorageEncryptionManager.class)
+public class ShadowAndroidSdkStorageEncryptionManager {
 
-    // mocking this to avoid accidentally sending malformed requests to the server
-    public static HttpResponse sendPost(final URL requestUrl, final Map<String, String> requestHeaders,
-                                        final byte[] requestContent, final String requestContentType)
-            throws IOException {
+    final byte[] encryptionKey = new byte[]{22, 78, -69, -66, 84, -65, 119, -9, -34, -80, 60, 67, -12, -117, 86, -47, -84, -24, -18, 121, 70, 32, -110, 51, -93, -10, -93, -110, 124, -68, -42, -119};
+    final AES256KeyLoader mUserDefinedKey = new PredefinedKeyLoader("MOCK_ALIAS", encryptionKey);
 
-        final String correlationId = requestHeaders.get("client-request-id");
+    public  AES256KeyLoader getKeyLoaderForEncryption() {
+        return mUserDefinedKey;
+    }
 
-        AcquireTokenMockedTelemetryTest.addCorrelationId(correlationId);
-
-        AcquireTokenMockedTelemetryTest.setTelemetryHeaders(requestHeaders);
-
-        return MockHttpResponse.getHttpResponse();
+    public List<AES256KeyLoader> getKeyLoaderForDecryption(byte[] cipherText) {
+        return new ArrayList<AES256KeyLoader>() {{
+            add(mUserDefinedKey);
+        }};
     }
 }

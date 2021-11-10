@@ -20,10 +20,10 @@ When an SHR is created by the client, a timestamp (`ts`) claim is embedded in th
 Yes! PoP and Bearer flows may be used interchangeably with MSAL and with supported broker versions **so long as the targeted resource supports it**.
 
 ## Which devices support PoP?
-MSAL supports PoP on Android devices running Android 4.3 Jelly Bean (API 18) or higher.
+MSAL supports PoP on Android devices running Android 4.3 Jelly Bean (API 18) or higher subject to OEM/device-specific compatibility requirements and API support.
 
 ## Configure MSAL for use with PoP
-In order to use PoP with MSAL, the `minimum_required_broker_protocol_version` must be `"4.0"`. If your application only makes use of Bearer flows, `"3.0"` will work.
+In order to use PoP with MSAL, the `minimum_required_broker_protocol_version` must be `"4.0"` or higher. If your application only makes use of Bearer flows, `"3.0"` will work.
 
 `app_config.json`
 ```json

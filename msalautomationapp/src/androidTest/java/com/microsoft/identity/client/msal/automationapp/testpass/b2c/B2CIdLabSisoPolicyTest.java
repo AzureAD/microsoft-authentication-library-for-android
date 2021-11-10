@@ -24,28 +24,29 @@ package com.microsoft.identity.client.msal.automationapp.testpass.b2c;
 
 import androidx.annotation.NonNull;
 
-import com.microsoft.identity.client.AcquireTokenParameters;
-import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
-import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
-import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
+import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
+import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
+import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.app.IApp;
+import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.b2c.B2CPromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.b2c.B2CProvider;
 import com.microsoft.identity.client.ui.automation.interaction.b2c.IdLabB2cSisoPolicyPromptHandler;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
 
+@RunWith(Parameterized.class)
 public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
 
     final static B2CProvider[] b2CProviders = new B2CProvider[]{
@@ -71,82 +72,73 @@ public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
         return mB2cProvider;
     }
 
-    public void testCanLoginWithLocalAndSocialAccounts() {
-        final TokenRequestLatch latch = new TokenRequestLatch(1);
+    @Test
+    public void testCanLoginWithLocalAndSocialAccounts() throws Throwable {
+        final String username = mLoginHint;
+        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(mLoginHint)
-                .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulInteractiveCallback(latch))
-                .withPrompt(Prompt.SELECT_ACCOUNT)
+        final MsalSdk msalSdk = new MsalSdk();
+
+        final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .loginHint(mLoginHint)
+                .scopes(Arrays.asList(mScopes))
+                .promptParameter(Prompt.SELECT_ACCOUNT)
+                .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
+        final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
+            @Override
+            public void handleUserInteraction() {
+                ((IApp) mBrowser).handleFirstRun();
 
-        final InteractiveRequest interactiveRequest = new InteractiveRequest(
-                mApplication,
-                parameters,
-                new OnInteractionRequired() {
-                    @Override
-                    public void handleUserInteraction() {
-                        ((IApp) mBrowser).handleFirstRun();
+                final B2CPromptHandlerParameters promptHandlerParameters = B2CPromptHandlerParameters.builder()
+                        .prompt(PromptParameter.SELECT_ACCOUNT)
+                        .loginHint(mLoginHint)
+                        .sessionExpected(false)
+                        .consentPageExpected(false)
+                        .speedBumpExpected(false)
+                        .broker(null)
+                        .expectingBrokerAccountChooserActivity(false)
+                        .b2cProvider(getB2cProvider())
+                        .build();
 
-                        final String username = mLoginHint;
-                        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+                new IdLabB2cSisoPolicyPromptHandler(promptHandlerParameters)
+                        .handlePrompt(username, password);
+            }
+        },TokenRequestTimeout.MEDIUM);
 
-                        final B2CPromptHandlerParameters promptHandlerParameters = B2CPromptHandlerParameters.builder()
-                                .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHint(mLoginHint)
-                                .sessionExpected(false)
-                                .consentPageExpected(false)
-                                .speedBumpExpected(false)
-                                .broker(null)
-                                .expectingBrokerAccountChooserActivity(false)
-                                .b2cProvider(getB2cProvider())
-                                .build();
-
-                        new IdLabB2cSisoPolicyPromptHandler(promptHandlerParameters)
-                                .handlePrompt(username, password);
-                    }
-                }
-        );
-
-        interactiveRequest.execute();
-        latch.await(TokenRequestTimeout.MEDIUM);
+        authResult.assertSuccess();
 
         // ------ do silent request ------
 
-        IAccount account = getAccount();
 
-        final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
-
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .forAccount(account)
-                .fromAuthority(getAuthority())
+        final MsalAuthTestParams authTestSilentParams = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .authority(getAuthority())
+                .loginHint(username)
                 .forceRefresh(false)
-                .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulSilentCallback(silentLatch))
+                .scopes(Arrays.asList(mScopes))
+                .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-        mApplication.acquireTokenSilentAsync(silentParameters);
-        silentLatch.await(TokenRequestTimeout.SILENT);
+        final MsalAuthResult authSilentResult = msalSdk.acquireTokenSilent(authTestSilentParams, TokenRequestTimeout.SILENT);
+        authSilentResult.assertSuccess();
 
         // ------ do force refresh silent request ------
 
-        account = getAccount();
 
-        final TokenRequestLatch silentForceLatch = new TokenRequestLatch(1);
-
-        final AcquireTokenSilentParameters silentForceParameters = new AcquireTokenSilentParameters.Builder()
-                .forAccount(account)
-                .fromAuthority(getAuthority())
+        final MsalAuthTestParams silentForceParams = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .authority(getAuthority())
+                .loginHint(username)
                 .forceRefresh(true)
-                .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulSilentCallback(silentForceLatch))
+                .scopes(Arrays.asList(mScopes))
+                .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-        mApplication.acquireTokenSilentAsync(silentForceParameters);
-        silentForceLatch.await(TokenRequestTimeout.SILENT);
+        final MsalAuthResult authSilentForceResult = msalSdk.acquireTokenSilent(silentForceParams, TokenRequestTimeout.SILENT);
+        authSilentForceResult.assertSuccess();
     }
 
     @Override

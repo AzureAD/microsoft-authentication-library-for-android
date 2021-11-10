@@ -28,6 +28,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,6 +53,7 @@ import com.microsoft.identity.client.PublicClientApplication;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static com.microsoft.identity.client.testapp.R.id.enablePII;
 
@@ -66,6 +68,8 @@ public class AcquireTokenFragment extends Fragment {
     private EditText mScope;
     private EditText mExtraScope;
     private EditText mClaims;
+    private Button mAddDeviceIdClaimButton;
+    private Button mAddNgcMfaClaimButton;
     private Switch mEnablePII;
     private Switch mForceRefresh;
     private Button mGetUsers;
@@ -109,6 +113,27 @@ public class AcquireTokenFragment extends Fragment {
         mScope = view.findViewById(R.id.scope);
         mExtraScope = view.findViewById(R.id.extraScope);
         mClaims = view.findViewById(R.id.claims);
+        mAddDeviceIdClaimButton = view.findViewById(R.id.btn_deviceIdClaim);
+        mAddDeviceIdClaimButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final String str = "{\"access_token\":{\"deviceid\":{\"essential\":true}}}";
+                mClaims.setText(str);
+            }
+        });
+
+        // Force MFA to be done in the last x mins (5? I can't remember the exact number)
+        // This is what authapp uses to acquire token for NGC registration.
+        // We can use this to test interrupt flow.
+        mAddNgcMfaClaimButton = view.findViewById(R.id.btn_ngcMfaClaim);
+        mAddNgcMfaClaimButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final String str = "{\"access_token\":{\"deviceid\":{\"essential\":true},\"amr\":{\"values\":[\"ngcmfa\"]}}}";
+                mClaims.setText(str);
+            }
+        });
+
         mEnablePII = view.findViewById(enablePII);
         mForceRefresh = view.findViewById(R.id.forceRefresh);
         mSelectAccount = view.findViewById(R.id.select_user);
@@ -269,16 +294,16 @@ public class AcquireTokenFragment extends Fragment {
         final INotifyOperationResultCallback<String> generateShrCallback =
                 new INotifyOperationResultCallback<String>() {
 
-            @Override
-            public void onSuccess(String result) {
-                mOnFragmentInteractionListener.onGetStringResult(result);
-            }
+                    @Override
+                    public void onSuccess(String result) {
+                        mOnFragmentInteractionListener.onGetStringResult(result);
+                    }
 
-            @Override
-            public void showMessage(String message) {
-                AcquireTokenFragment.this.showMessage(message);
-            }
-        };
+                    @Override
+                    public void showMessage(String message) {
+                        AcquireTokenFragment.this.showMessage(message);
+                    }
+                };
 
         mGenerateSHR.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -461,7 +486,7 @@ public class AcquireTokenFragment extends Fragment {
     }
 
     private void loadMsalApplicationFromRequestParameters(final RequestOptions requestOptions) {
-        boolean enablePiiLogging = requestOptions.mEnablePII;
+        boolean enablePiiLogging = requestOptions.isEnablePII();
         // The sample app is having the PII enable setting on the MainActivity. Ideally, app should decide to enable Pii or not,
         // if it's enabled, it should be set when the application is onCreate.
         Logger.getInstance().setEnableLogcatLog(enablePiiLogging);

@@ -23,6 +23,7 @@ android {
     final String BROKER_HOST = "BrokerHost"
     final String BROKER_MICROSOFT_AUTHENTICATOR = "BrokerMicrosoftAuthenticator"
     final String BROKER_COMPANY_PORTAL = "BrokerCompanyPortal"
+    final String AUTO_BROKER = "AutoBroker"
     final String SELECTED_BROKER = "SELECTED_BROKER"
 
     signingConfigs {
@@ -61,6 +62,7 @@ android {
         buildConfigField("String", BROKER_MICROSOFT_AUTHENTICATOR, "\"$BROKER_MICROSOFT_AUTHENTICATOR\"")
         buildConfigField("String", BROKER_COMPANY_PORTAL, "\"$BROKER_COMPANY_PORTAL\"")
         buildConfigField("String", BROKER_HOST, "\"$BROKER_HOST\"")
+        buildConfigField("String", AUTO_BROKER, "\"$AUTO_BROKER\"")
     }
 
     testOptions {
@@ -120,6 +122,11 @@ android {
             dimension "broker"
             buildConfigField("String", SELECTED_BROKER, "\"$BROKER_HOST\"")
         }
+
+        AutoBroker {
+            dimension "broker"
+            buildConfigField("String", SELECTED_BROKER, "\"$AUTO_BROKER\"")
+        }
     }
 
     variantFilter { variant ->
@@ -140,6 +147,11 @@ android {
             // Gradle ignores any variants that satisfy the conditions above.
             setIgnore(true)
         }
+
+        if (flavorName.contains("local") && flavorName.contains("AutoBroker")) {
+            // Gradle ignores any variants that satisfy the conditions above.
+            setIgnore(true)
+        }
     }
 
     sourceSets {
@@ -149,7 +161,7 @@ android {
         }
 
         androidTest {
-            manifest.srcFile 'src/main/AndroidManifest.xml'
+            manifest.srcFile 'src/androidTest/AndroidManifest.xml'
             res.srcDirs = ['src/main/res']
         }
     }
@@ -167,7 +179,7 @@ ext.createCoverageTask = { buildVariant, testType ->
     def androidTestFile = "outputs/code_coverage/${buildVariant}AndroidTest/connected/*.ec"
 
     // Task to generate coverage report for particular build variant, that depends on additional tasks(androidTestTask)
-    task "${buildVariant}Msal${testType}CoverageReport" (type:JacocoReport, dependsOn: [androidTestTask]) {
+    task "${buildVariant}Msal${testType}CoverageReport"(type: JacocoReport, dependsOn: [androidTestTask]) {
         group = "Code Coverage MsalAutomation"
         description = "Generate Msal Coverage Reports(${testType}) on the ${buildVariant.capitalize()}"
 
@@ -189,8 +201,8 @@ ext.createCoverageTask = { buildVariant, testType ->
                 "${projectDir}/../common/common/src/main/java",
         ]
         def additionalJavaClasses = [
-                fileTree( dir: "${buildDir}/../${commonFilePath}/intermediates/javac/${commonBuild}/classes", excludes: fileFilter),
-                fileTree( dir: "${buildDir}/../${msalFilePath}/intermediates/javac/${msalBuild}/classes", excludes: fileFilter)
+                fileTree(dir: "${buildDir}/../${commonFilePath}/intermediates/javac/${commonBuild}/classes", excludes: fileFilter),
+                fileTree(dir: "${buildDir}/../${msalFilePath}/intermediates/javac/${msalBuild}/classes", excludes: fileFilter)
         ]
 
         //Include all those directories for source files and additional source files defined above

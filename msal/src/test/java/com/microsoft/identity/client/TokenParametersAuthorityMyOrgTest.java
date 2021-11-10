@@ -34,6 +34,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.robolectric.ParameterizedRobolectricTestRunner;
 
 import java.util.Arrays;
@@ -47,6 +48,7 @@ import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USE
  * This class tests the fromAuthority builder of {@link TokenParameters} using the AzureAdMyOrg
  * audience. The tests for other audiences are located in {@link TokenParametersAuthorityTest}
  */
+@SuppressWarnings("unchecked")
 @RunWith(ParameterizedRobolectricTestRunner.class)
 public class TokenParametersAuthorityMyOrgTest {
 
@@ -78,7 +80,8 @@ public class TokenParametersAuthorityMyOrgTest {
     @Before
     public void setup() {
         mContext = ApplicationProvider.getApplicationContext();
-        mActivity = TestUtils.getMockActivity(mContext);
+        mActivity = Mockito.mock(Activity.class);
+        Mockito.when(mActivity.getApplicationContext()).thenReturn(mContext);
     }
 
     @Test

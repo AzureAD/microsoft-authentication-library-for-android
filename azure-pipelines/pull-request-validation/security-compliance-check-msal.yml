@@ -1,0 +1,23 @@
+# File: azure-pipelines\pull-request-validation\security-compliance-check-msal.yml
+# Description: Run Credscan and PoliCheck
+name: $(date:yyyyMMdd)$(rev:.r)
+
+trigger:
+  branches:
+    include:
+    - dev
+    - master
+    - release/*
+  batch: True
+
+resources:
+  repositories:
+  - repository: common
+    type: github
+    name: AzureAD/microsoft-authentication-library-common-for-android
+    ref: dev
+    endpoint: ANDROID_GITHUB
+
+jobs:
+- template: azure-pipelines/templates/steps/security-compliance-check.yml@common
+...

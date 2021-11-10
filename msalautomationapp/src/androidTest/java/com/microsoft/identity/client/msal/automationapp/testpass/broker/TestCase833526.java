@@ -22,23 +22,21 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
-import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
-import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
-import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
+import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
+import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
+import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.IMdmAgent;
-import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.UiResponse;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
@@ -46,7 +44,6 @@ import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.concurrent.CountDownLatch;
 
 // Broker Auth for MDM account
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833526
@@ -55,95 +52,80 @@ import java.util.concurrent.CountDownLatch;
 public class TestCase833526 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_833526() {
+    public void test_833526() throws Throwable {
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
-        final TokenRequestLatch latch = new TokenRequestLatch(1);
+        final MsalSdk msalSdk = new MsalSdk();
 
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(username)
-                .withScopes(Arrays.asList(mScopes))
-                .withCallback(cancelInteractiveCallback(latch))
-                .withPrompt(Prompt.SELECT_ACCOUNT)
+        final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .loginHint(username)
+                .scopes(Arrays.asList(mScopes))
+                .promptParameter(Prompt.SELECT_ACCOUNT)
+                .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
         // start interactive token request in MSAL
         // we expect to see enroll page as device is not enrolled
-        final InteractiveRequest interactiveRequest = new InteractiveRequest(
-                mApplication,
-                parameters,
-                new OnInteractionRequired() {
-                    @Override
-                    public void handleUserInteraction() {
-                        final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                                .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHint(username)
-                                .sessionExpected(false)
-                                .consentPageExpected(false)
-                                .speedBumpExpected(false)
-                                .broker(mBroker)
-                                .expectingBrokerAccountChooserActivity(false)
-                                .enrollPageExpected(true)
-                                // cancel enroll here to short circuit as enroll will be started manually from CP anyway
-                                .enrollPageResponse(UiResponse.DECLINE)
-                                .build();
+        final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
+            @Override
+            public void handleUserInteraction() {
+                final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
+                        .prompt(PromptParameter.SELECT_ACCOUNT)
+                        .loginHint(username)
+                        .sessionExpected(false)
+                        .consentPageExpected(false)
+                        .speedBumpExpected(false)
+                        .broker(mBroker)
+                        .expectingBrokerAccountChooserActivity(false)
+                        .enrollPageExpected(true)
+                        // cancel enroll here to short circuit as enroll will be started manually from CP anyway
+                        .enrollPageResponse(UiResponse.DECLINE)
+                        .build();
 
-                        new AadPromptHandler(promptHandlerParameters)
-                                .handlePrompt(username, password);
-                    }
-                }
-        );
+                new AadPromptHandler(promptHandlerParameters)
+                        .handlePrompt(username, password);
+            }
+        }, TokenRequestTimeout.MEDIUM);
 
-        interactiveRequest.execute();
-        latch.await(TokenRequestTimeout.LONG);
+        authResult.assertFailure();
 
         // enroll device with CP
-
         final IMdmAgent mdmAgent = (IMdmAgent) mBroker;
         mdmAgent.enrollDevice(username, password);
 
-        // SECOND REQUEST WITH LOGIN HINT
-
-        final TokenRequestLatch latchTryAcquireAgain = new TokenRequestLatch(1);
-
         // try another interactive token request in MSAL
         // we should not see enroll page and request should succeed as device is already enrolled
-        final AcquireTokenParameters parametersTryAcquireAgain = new AcquireTokenParameters.Builder()
-                .withLoginHint(username)
-                .startAuthorizationFromActivity(mActivity)
-                .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulInteractiveCallback(latchTryAcquireAgain))
-                .withPrompt(Prompt.SELECT_ACCOUNT)
+        final MsalAuthTestParams tryAcquireAgainParams = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .loginHint(username)
+                .scopes(Arrays.asList(mScopes))
+                .promptParameter(Prompt.SELECT_ACCOUNT)
+                .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
+        // SECOND REQUEST WITH LOGIN HINT
+        final MsalAuthResult tryAcquireAgainResult = msalSdk.acquireTokenInteractive(tryAcquireAgainParams, new OnInteractionRequired() {
+            @Override
+            public void handleUserInteraction() {
+                final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
+                        .prompt(PromptParameter.SELECT_ACCOUNT)
+                        .loginHint(username)
+                        .sessionExpected(true)
+                        .consentPageExpected(false)
+                        .speedBumpExpected(false)
+                        .broker(mBroker)
+                        .expectingBrokerAccountChooserActivity(true)
+                        .enrollPageExpected(false)
+                        .build();
 
-        final InteractiveRequest interactiveRequestTryAgain = new InteractiveRequest(
-                mApplication,
-                parametersTryAcquireAgain,
-                new OnInteractionRequired() {
-                    @Override
-                    public void handleUserInteraction() {
-                        final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                                .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHint(username)
-                                .sessionExpected(true)
-                                .consentPageExpected(false)
-                                .speedBumpExpected(false)
-                                .broker(mBroker)
-                                .expectingBrokerAccountChooserActivity(true)
-                                .enrollPageExpected(false)
-                                .build();
+                new AadPromptHandler(promptHandlerParameters)
+                        .handlePrompt(username, password);
+            }
+        }, TokenRequestTimeout.MEDIUM);
 
-                        new AadPromptHandler(promptHandlerParameters)
-                                .handlePrompt(username, password);
-                    }
-                }
-        );
-
-        interactiveRequestTryAgain.execute();
-        latchTryAcquireAgain.await(TokenRequestTimeout.MEDIUM);
+        tryAcquireAgainResult.assertSuccess();
     }
 
 

@@ -25,8 +25,8 @@ package com.microsoft.identity.client;
 import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
-import com.microsoft.identity.common.internal.logging.Logger;
-import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
+import com.microsoft.identity.common.java.result.ILocalAuthenticationResult;
+import com.microsoft.identity.common.logging.Logger;
 
 import java.util.ArrayList;
 import java.util.Arrays;

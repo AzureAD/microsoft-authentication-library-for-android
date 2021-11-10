@@ -23,6 +23,7 @@
 package com.microsoft.identity.client.msal.automationapp.sdk;
 
 import com.microsoft.identity.client.Prompt;
+import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.ui.automation.sdk.AuthTestParams;
 
 import java.util.List;
@@ -39,4 +40,5 @@ public class MsalAuthTestParams extends AuthTestParams {
     private final boolean forceRefresh;
     private final int msalConfigResourceId;
     private final List<String> scopes;
+    private final ClaimsRequest claims;
 }

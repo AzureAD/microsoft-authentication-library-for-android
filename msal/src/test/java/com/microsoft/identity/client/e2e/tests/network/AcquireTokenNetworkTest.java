@@ -26,8 +26,8 @@ import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.e2e.rules.NetworkTestsRuleChain;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthority;
-import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
-import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
+import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
+import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.ErrorCodes;
@@ -52,7 +52,7 @@ import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.suc
 import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(shadows = {ShadowStorageHelper.class, ShadowAuthority.class, ShadowMsalUtils.class})
+@Config(shadows = {ShadowAndroidSdkStorageEncryptionManager.class, ShadowAuthority.class, ShadowPublicClientApplicationConfiguration.class})
 public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest implements IAcquireTokenNetworkTest {
 
     private String mUsername;

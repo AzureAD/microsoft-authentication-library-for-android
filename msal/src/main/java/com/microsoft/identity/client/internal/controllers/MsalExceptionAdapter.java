@@ -29,13 +29,13 @@ import com.microsoft.identity.client.exception.MsalIntuneAppProtectionPolicyRequ
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.client.exception.MsalUserCancelException;
-import com.microsoft.identity.common.exception.ArgumentException;
-import com.microsoft.identity.common.exception.BaseException;
-import com.microsoft.identity.common.exception.ClientException;
-import com.microsoft.identity.common.exception.IntuneAppProtectionPolicyRequiredException;
-import com.microsoft.identity.common.exception.ServiceException;
-import com.microsoft.identity.common.exception.UiRequiredException;
-import com.microsoft.identity.common.exception.UserCancelException;
+import com.microsoft.identity.common.java.exception.ArgumentException;
+import com.microsoft.identity.common.java.exception.BaseException;
+import com.microsoft.identity.common.java.exception.ClientException;
+import com.microsoft.identity.common.java.exception.IntuneAppProtectionPolicyRequiredException;
+import com.microsoft.identity.common.java.exception.ServiceException;
+import com.microsoft.identity.common.java.exception.UiRequiredException;
+import com.microsoft.identity.common.java.exception.UserCancelException;
 
 public class MsalExceptionAdapter {
 

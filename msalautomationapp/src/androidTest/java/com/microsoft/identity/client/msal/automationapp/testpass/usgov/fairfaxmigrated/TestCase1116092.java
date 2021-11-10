@@ -22,15 +22,15 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.usgov.fairfaxmigrated;
 
-import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
-import com.microsoft.identity.client.msal.automationapp.interaction.InteractiveRequest;
-import com.microsoft.identity.client.msal.automationapp.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
+import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
+import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
+import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.app.IApp;
+import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
@@ -38,56 +38,46 @@ import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
-import org.junit.Ignore;
-import org.junit.Test;
-
 import java.util.Arrays;
-import java.util.concurrent.CountDownLatch;
 
 // Interactive token acquisition with instance_aware=true, login hint present, and cloud account,
 // and WW organizations authority
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1116092
 public class TestCase1116092 extends AbstractMsalUiTest {
 
-    public void test_1116092() {
-        final TokenRequestLatch latch = new TokenRequestLatch(1);
+    public void test_1116092() throws Throwable {
+        final String username = mLoginHint;
+        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .withLoginHint(mLoginHint)
-                .startAuthorizationFromActivity(mActivity)
-                .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulInteractiveCallback(latch))
-                .withPrompt(Prompt.SELECT_ACCOUNT)
+        final MsalSdk msalSdk = new MsalSdk();
+
+        final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
+                .loginHint(mLoginHint)
+                .activity(mActivity)
+                .scopes(Arrays.asList(mScopes))
+                .promptParameter(Prompt.SELECT_ACCOUNT)
+                .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
+        final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
+            @Override
+            public void handleUserInteraction() {
+                ((IApp) mBrowser).handleFirstRun();
 
-        final InteractiveRequest interactiveRequest = new InteractiveRequest(
-                mApplication,
-                parameters,
-                new OnInteractionRequired() {
-                    @Override
-                    public void handleUserInteraction() {
-                        ((IApp) mBrowser).handleFirstRun();
+                final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
+                        .prompt(PromptParameter.SELECT_ACCOUNT)
+                        .loginHint(mLoginHint)
+                        .sessionExpected(false)
+                        .consentPageExpected(false)
+                        .speedBumpExpected(false)
+                        .build();
 
-                        final String username = mLoginHint;
-                        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+                new AadPromptHandler(promptHandlerParameters)
+                        .handlePrompt(username, password);
+            }
+        },TokenRequestTimeout.MEDIUM);
 
-                        final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                                .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHint(mLoginHint)
-                                .sessionExpected(false)
-                                .consentPageExpected(false)
-                                .speedBumpExpected(false)
-                                .build();
-
-                        new AadPromptHandler(promptHandlerParameters)
-                                .handlePrompt(username, password);
-                    }
-                }
-        );
-
-        interactiveRequest.execute();
-        latch.await(TokenRequestTimeout.MEDIUM);
+        authResult.assertSuccess();
     }
 
     @Override

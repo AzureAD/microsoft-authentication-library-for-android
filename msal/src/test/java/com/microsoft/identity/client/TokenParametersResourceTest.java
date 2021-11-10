@@ -20,27 +20,31 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.e2e.shadows;
+package com.microsoft.identity.client;
 
-import com.microsoft.identity.common.internal.net.HttpRequest;
-import com.microsoft.identity.common.internal.net.HttpResponse;
-import com.microsoft.identity.internal.testutils.MockHttpResponse;
 
-import org.robolectric.annotation.Implements;
+import android.util.Log;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.Map;
+import org.junit.Test;
 
-@Implements(HttpRequest.class)
-public class ShadowHttpRequestForMockedTest {
+import static org.junit.Assert.assertEquals;
 
-    // mocking this to avoid accidentally sending malformed requests to the server
-    // and to return the response defined during the test by MockHttpResponse
-    public static HttpResponse sendPost(final URL requestUrl, final Map<String, String> requestHeaders,
-                                        final byte[] requestContent, final String requestContentType)
-            throws IOException {
-        // return the response that was declared to be used
-        return MockHttpResponse.getHttpResponse();
+
+public class TokenParametersResourceTest {
+
+    public final static String RESOURCE_MIXED_CASE = "https://SomeAADApi.aadgraph.onmicrosoft.com";
+    public final static String RESOURCE_MIXED_CASE_DEFAULT_APPENDED = RESOURCE_MIXED_CASE + "/.default";
+
+    /**
+     * Verify that the casing of the provided resource is not altered by the building of the parameters.
+     * In addition verify that the /.default value was added to the reosource to convert it to a scope for the purposes of the v2 endpoint.
+     */
+    @Test
+    public void testVerifyScopeIsAsProvided() {
+
+        AcquireTokenParameters acquireTokenParameters = new AcquireTokenParameters.Builder().withResource(RESOURCE_MIXED_CASE).build();
+
+        assertEquals(RESOURCE_MIXED_CASE_DEFAULT_APPENDED, acquireTokenParameters.getScopes().get(0));
+
     }
 }

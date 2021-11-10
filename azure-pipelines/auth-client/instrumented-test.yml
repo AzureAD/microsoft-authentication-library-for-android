@@ -1,0 +1,25 @@
+# File: azure-pipelines\auth-client\instrumented-test.yml
+# Description: Run instrumented test for MSAL in a docker container
+name: Instrumented Tests
+
+trigger:
+- main
+
+pool:
+ name: 1ESDockerBuild
+
+resources:
+ repositories:
+ - repository: common
+   type: github
+   name: AzureAD/microsoft-authentication-library-common-for-android
+   ref: dev
+   endpoint: ANDROID_GITHUB
+
+jobs:
+- job: instrumentedTest
+  displayName: Instrumented Test MSAL
+  workspace:
+    clean: all
+  steps:
+  - template: azure-pipelines/templates/steps/auth-client/docker-tasks.yml@common
