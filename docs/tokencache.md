@@ -33,7 +33,7 @@ Refresh Token -> Credential
 
 ### Relationships
 
-1 Account has 0 or more credentials
+1 Account has 1 or more credentials (minimum, the `AccountRecord` + `RefreshTokenRecord`)
 1 Credential belongs to 1 account
 
 ## OAuth 2 Token Cache
