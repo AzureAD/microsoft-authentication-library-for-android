@@ -22,10 +22,10 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import com.microsoft.identity.common.internal.cache.CacheRecord;
-import com.microsoft.identity.common.internal.cache.ICacheRecord;
-import com.microsoft.identity.common.internal.dto.AccountRecord;
-import com.microsoft.identity.common.internal.dto.IdTokenRecord;
+import com.microsoft.identity.common.java.cache.CacheRecord;
+import com.microsoft.identity.common.java.cache.ICacheRecord;
+import com.microsoft.identity.common.java.dto.AccountRecord;
+import com.microsoft.identity.common.java.dto.IdTokenRecord;
 import com.microsoft.identity.internal.testutils.mocks.MockTokenCreator;
 
 import org.junit.Assert;
@@ -56,7 +56,7 @@ public class AuthenticationResultTest {
         idTokenRecord.setSecret(MockTokenCreator.createMockIdToken());
 
         final CacheRecord.CacheRecordBuilder cacheRecord = CacheRecord.builder();
-        cacheRecord.mAccount(accountRecord);
+        cacheRecord.account(accountRecord);
         cacheRecord.idToken(idTokenRecord);
 
         cacheRecords.add(cacheRecord.build());

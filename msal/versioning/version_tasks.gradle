@@ -3,7 +3,7 @@ def getVersionFile() {
 }
 
 def getVersionProps() {
-    def versionProps = new Properties();
+    def versionProps = new Properties()
     getVersionFile().withInputStream {stream -> versionProps.load(stream)}
     return versionProps
 }
@@ -25,7 +25,7 @@ ext.getAppVersionCode = {
 }
 
 ext.getAppVersionName = {
-    getVersionProps()['versionName'].toString()
+    project.findProperty('projVersion') ?: getVersionProps()['versionName'].toString()
 }
 
 private void saveChanges(String versionName) {

@@ -161,7 +161,7 @@ android {
         }
 
         androidTest {
-            manifest.srcFile 'src/main/AndroidManifest.xml'
+            manifest.srcFile 'src/androidTest/AndroidManifest.xml'
             res.srcDirs = ['src/main/res']
         }
     }

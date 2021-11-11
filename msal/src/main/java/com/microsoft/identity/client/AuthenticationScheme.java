@@ -24,7 +24,7 @@ package com.microsoft.identity.client;
 
 import androidx.annotation.NonNull;
 
-import com.microsoft.identity.common.internal.authscheme.INameable;
+import com.microsoft.identity.common.java.authscheme.INameable;
 
 public abstract class AuthenticationScheme implements INameable {
 

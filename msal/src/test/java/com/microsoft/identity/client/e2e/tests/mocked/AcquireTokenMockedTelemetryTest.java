@@ -28,24 +28,23 @@ import androidx.annotation.Nullable;
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.e2e.shadows.ShadowMockAuthority;
-import com.microsoft.identity.client.e2e.shadows.ShadowMsalUtils;
+import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
-import com.microsoft.identity.client.e2e.shadows.ShadowStorageHelper;
+import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper;
-import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
-import com.microsoft.identity.common.internal.eststelemetry.SchemaConstants;
-import com.microsoft.identity.common.internal.net.HttpClient;
-import com.microsoft.identity.common.internal.net.HttpResponse;
+import com.microsoft.identity.common.java.eststelemetry.PublicApiId;
+import com.microsoft.identity.common.java.eststelemetry.EstsTelemetry;
+import com.microsoft.identity.common.java.eststelemetry.SchemaConstants;
+import com.microsoft.identity.common.java.net.HttpClient;
+import com.microsoft.identity.common.java.net.HttpResponse;
 import com.microsoft.identity.internal.testutils.HttpRequestInterceptor;
 import com.microsoft.identity.internal.testutils.HttpRequestMatcher;
-import com.microsoft.identity.internal.testutils.MockHttpClient;
 import com.microsoft.identity.internal.testutils.TestConstants;
 import com.microsoft.identity.internal.testutils.mocks.MockServerResponse;
 import com.microsoft.identity.internal.testutils.shadows.ShadowHttpClient;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -66,9 +65,9 @@ import static com.microsoft.identity.internal.testutils.TestConstants.Configurat
 
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {
-        ShadowStorageHelper.class,
+        ShadowAndroidSdkStorageEncryptionManager.class,
         ShadowMockAuthority.class,
-        ShadowMsalUtils.class,
+        ShadowPublicClientApplicationConfiguration.class,
         ShadowHttpClient.class,
         ShadowOpenIdProviderConfigurationClient.class
 })
@@ -107,7 +106,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         mockHttpClient.intercept(postRequestMatcher,
                 new HttpRequestInterceptor() {
                     @Override
-                    public HttpResponse intercept(
+                    public HttpResponse performIntercept(
                             @NonNull HttpClient.HttpMethod httpMethod,
                             @NonNull URL requestUrl,
                             @NonNull Map<String, String> requestHeaders,
@@ -127,6 +126,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
     public void setup() {
         sTelemetryHeaders = null;
         sCorrelationIdList.clear();
+        EstsTelemetry.getInstance().clear();
         super.setup();
     }
 

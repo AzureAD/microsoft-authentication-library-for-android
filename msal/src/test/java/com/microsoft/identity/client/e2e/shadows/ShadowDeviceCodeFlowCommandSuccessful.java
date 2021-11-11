@@ -22,15 +22,15 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.shadows;
 
-import com.microsoft.identity.common.internal.cache.CacheRecord;
-import com.microsoft.identity.common.internal.cache.ICacheRecord;
+import com.microsoft.identity.common.java.cache.CacheRecord;
+import com.microsoft.identity.common.java.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommandCallback;
-import com.microsoft.identity.common.internal.dto.AccountRecord;
-import com.microsoft.identity.common.internal.request.SdkType;
-import com.microsoft.identity.common.internal.result.AcquireTokenResult;
-import com.microsoft.identity.common.internal.result.ILocalAuthenticationResult;
-import com.microsoft.identity.common.internal.result.LocalAuthenticationResult;
+import com.microsoft.identity.common.java.dto.AccountRecord;
+import com.microsoft.identity.common.java.request.SdkType;
+import com.microsoft.identity.common.java.result.AcquireTokenResult;
+import com.microsoft.identity.common.java.result.ILocalAuthenticationResult;
+import com.microsoft.identity.common.java.result.LocalAuthenticationResult;
 
 import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
@@ -66,7 +66,7 @@ public class ShadowDeviceCodeFlowCommandSuccessful {
         // Create parameters for dummy authentication result
         final CacheRecord.CacheRecordBuilder recordBuilder = CacheRecord.builder();
         final AccountRecord accountRecord = new AccountRecord();
-        recordBuilder.mAccount(accountRecord);
+        recordBuilder.account(accountRecord);
         accountRecord.setHomeAccountId("abcd");
         accountRecord.setLocalAccountId("abcd");
         final List<ICacheRecord> cacheRecordList = new ArrayList<>();

@@ -28,7 +28,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
 
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.common.internal.controllers.TaskCompletedCallbackWithError;
+import com.microsoft.identity.common.java.util.TaskCompletedCallbackWithError;
 
 import java.util.Date;
 import java.util.List;
@@ -231,7 +231,7 @@ public interface IPublicClientApplication {
      * 1). Receiving authentication information (user_code, verification_uri, and instruction message)
      * via {@link DeviceCodeFlowCallback#onUserCodeReceived(String, String, String, Date)}.
      * 2). Receiving a successful authentication result containing a fresh access token
-     * via {@link DeviceCodeFlowCallback#onTokenReceived(AuthenticationResult)}.
+     * via {@link DeviceCodeFlowCallback#onTokenReceived(IAuthenticationResult)}.
      * 3). Receiving an exception detailing what went wrong in the protocol
      * via {@link DeviceCodeFlowCallback#onError(MsalException)}.
      * <p>
@@ -258,14 +258,14 @@ public interface IPublicClientApplication {
          *
          * @param authResult the authentication result
          */
-        void onTokenReceived(@NonNull final AuthenticationResult authResult);
+        void onTokenReceived(@NonNull final IAuthenticationResult authResult);
 
         /**
          * Invoked if an error is encountered during the device code flow and passes the exception object.
          *
-         * @param error error exception
+         * @param exception error exception
          */
-        void onError(@NonNull final MsalException error);
+        void onError(@NonNull final MsalException exception);
     }
 
 }

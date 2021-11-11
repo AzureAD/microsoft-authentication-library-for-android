@@ -35,7 +35,8 @@ import androidx.browser.customtabs.CustomTabsSession;
 
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.internal.MsalUtils;
-import com.microsoft.identity.common.exception.ErrorStrings;
+import com.microsoft.identity.common.java.exception.ErrorStrings;
+import com.microsoft.identity.common.logging.Logger;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.CountDownLatch;
@@ -66,16 +67,10 @@ public class MsalChromeCustomTabManager {
 
     protected void verifyChromeTabOrBrowser() throws MsalClientException {
         if (mChromePackageWithCustomTabSupport == null) {
-            com.microsoft.identity.common.internal.logging.Logger.warn(
-                    TAG,
-                    "Custom tab is not supported by Chrome."
-            );
+            Logger.warn(TAG, "Custom tab is not supported by Chrome.");
 
         } else if (MsalUtils.getChromePackage(mParentActivity.getApplicationContext()) == null) {
-            com.microsoft.identity.common.internal.logging.Logger.warn(
-                    TAG,
-                    "Chrome is not installed."
-            );
+            Logger.warn(TAG, "Chrome is not installed.");
             throw new MsalClientException(ErrorStrings.CHROME_NOT_INSTALLED, "Chrome is not installed.");
         }
     }
@@ -113,23 +108,16 @@ public class MsalChromeCustomTabManager {
         try {
             // await returns true if count is 0, false if action times out
             // invert this boolean to indicate if we should skip warming up
-            boolean timedOut = !latch.await(CUSTOM_TABS_MAX_CONNECTION_TIMEOUT, TimeUnit.SECONDS);
+            final boolean timedOut = !latch.await(CUSTOM_TABS_MAX_CONNECTION_TIMEOUT, TimeUnit.SECONDS);
             if (timedOut) {
                 // if the request timed out, we don't actually know whether or not the service connected.
                 // to be safe, we'll skip warmup and rely on mCustomTabsServiceIsBound
                 // to unbind the Service when onStop() is called.
                 connectionEstablished = false;
-                com.microsoft.identity.common.internal.logging.Logger.warn(
-                        TAG,
-                        "Connection to CustomTabs timed out. Skipping warmup."
-                );
+                Logger.warn(TAG, "Connection to CustomTabs timed out. Skipping warmup.");
             }
-        } catch (InterruptedException e) {
-            com.microsoft.identity.common.internal.logging.Logger.error(
-                    TAG,
-                    "Failed to connect to CustomTabs. Skipping warmup.",
-                    e
-            );
+        } catch (final InterruptedException e) {
+            Logger.error(TAG, "Failed to connect to CustomTabs. Skipping warmup.", e);
             connectionEstablished = false;
         }
         return connectionEstablished;
@@ -154,16 +142,10 @@ public class MsalChromeCustomTabManager {
      */
     public void launchChromeTabOrBrowserForUrl(String requestUrl) {
         if (mChromePackageWithCustomTabSupport != null && mCustomTabsIntent != null) {
-            com.microsoft.identity.common.internal.logging.Logger.info(
-                    TAG,
-                    "ChromeCustomTab support is available, launching chrome tab."
-            );
+            Logger.info(TAG, "ChromeCustomTab support is available, launching chrome tab.");
             mCustomTabsIntent.launchUrl(mParentActivity, Uri.parse(requestUrl));
         } else {
-            com.microsoft.identity.common.internal.logging.Logger.info(
-                    TAG,
-                    "Chrome tab support is not available, launching chrome browser."
-            );
+            Logger.info(TAG, "Chrome tab support is not available, launching chrome browser.");
             final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(requestUrl));
             ////TODO: Can move MsalUtils chrome specific util method to common when refactoring.
             browserIntent.setPackage(MsalUtils.getChromePackage(mParentActivity.getApplicationContext()));
@@ -188,7 +170,8 @@ public class MsalChromeCustomTabManager {
         }
 
         @Override
-        public void onCustomTabsServiceConnected(ComponentName name, CustomTabsClient client) {
+        public void onCustomTabsServiceConnected(final ComponentName name,
+                                                 final CustomTabsClient client) {
             final CountDownLatch latch = mLatchWeakReference.get();
 
             mCustomTabsServiceIsBound = true;
@@ -202,7 +185,7 @@ public class MsalChromeCustomTabManager {
         }
 
         @Override
-        public void onServiceDisconnected(ComponentName componentName) {
+        public void onServiceDisconnected(final ComponentName componentName) {
             unbindCustomTabsService();
         }
 

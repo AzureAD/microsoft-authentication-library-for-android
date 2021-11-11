@@ -23,13 +23,15 @@
 
 package com.microsoft.identity.client;
 
-import com.microsoft.identity.common.internal.net.HttpUrlConnectionFactory;
+import com.microsoft.identity.common.java.net.HttpUrlConnectionFactory;
 
 import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
+
+import javax.net.ssl.HttpsURLConnection;
 
 /**
  * Util class for mocking.
@@ -39,8 +41,8 @@ public final class AndroidTestMockUtil {
     private AndroidTestMockUtil() {
     }
 
-    static HttpURLConnection getMockedConnectionWithSuccessResponse(final String message) throws IOException {
-        final HttpURLConnection mockedHttpUrlConnection = getCommonHttpUrlConnection();
+    static HttpsURLConnection getMockedConnectionWithSuccessResponse(final String message) throws IOException {
+        final HttpsURLConnection mockedHttpUrlConnection = getCommonHttpUrlConnection();
 
         Mockito.when(mockedHttpUrlConnection.getInputStream()).thenReturn(AndroidTestUtil.createInputStream(message));
         Mockito.when(mockedHttpUrlConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
@@ -48,9 +50,9 @@ public final class AndroidTestMockUtil {
         return mockedHttpUrlConnection;
     }
 
-    static HttpURLConnection getMockedConnectionWithFailureResponse(final int statusCode, final String errorMessage)
+    static HttpsURLConnection getMockedConnectionWithFailureResponse(final int statusCode, final String errorMessage)
             throws IOException {
-        final HttpURLConnection mockedHttpUrlConnection = getCommonHttpUrlConnection();
+        final HttpsURLConnection mockedHttpUrlConnection = getCommonHttpUrlConnection();
 
         Mockito.when(mockedHttpUrlConnection.getInputStream()).thenThrow(IOException.class);
         Mockito.when(mockedHttpUrlConnection.getErrorStream()).thenReturn(AndroidTestUtil.createInputStream(errorMessage));
@@ -59,39 +61,39 @@ public final class AndroidTestMockUtil {
         return mockedHttpUrlConnection;
     }
 
-    static HttpURLConnection getMockedConnectionWithSocketTimeout() throws IOException {
-        final HttpURLConnection mockedUrlConnection = getCommonHttpUrlConnection();
+    static HttpsURLConnection getMockedConnectionWithSocketTimeout() throws IOException {
+        final HttpsURLConnection mockedUrlConnection = getCommonHttpUrlConnection();
 
         Mockito.when(mockedUrlConnection.getInputStream()).thenThrow(SocketTimeoutException.class);
         return mockedUrlConnection;
     }
 
-    static HttpURLConnection getCommonHttpUrlConnection() throws IOException {
-        final HttpURLConnection mockedConnection = Mockito.mock(HttpURLConnection.class);
+    static HttpsURLConnection getCommonHttpUrlConnection() throws IOException {
+        final HttpsURLConnection mockedConnection = Mockito.mock(HttpsURLConnection.class);
         Mockito.doNothing().when(mockedConnection).setConnectTimeout(Mockito.anyInt());
         Mockito.doNothing().when(mockedConnection).setDoInput(Mockito.anyBoolean());
         return mockedConnection;
     }
 
     static void mockSuccessInstanceDiscovery(final String tenantDiscoveryEndpoint) throws IOException {
-        final HttpURLConnection mockedConnection = getMockedConnectionWithSuccessResponse(
+        final HttpsURLConnection mockedConnection = getMockedConnectionWithSuccessResponse(
                 AndroidTestUtil.getSuccessInstanceDiscoveryResponse(tenantDiscoveryEndpoint));
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
     }
 
     static void mockSuccessInstanceDiscoveryAPIVersion1_1() throws IOException {
-        final HttpURLConnection mockedConnection = getMockedConnectionWithSuccessResponse(
+        final HttpsURLConnection mockedConnection = getMockedConnectionWithSuccessResponse(
                 AndroidTestUtil.getSuccessInstanceDiscoveryResponseAPIVersion1_1());
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
     }
 
     static void mockFailedGetRequest(int statusCode, final String errorResponse) throws IOException {
-        final HttpURLConnection mockedConnection = getMockedConnectionWithFailureResponse(statusCode, errorResponse);
+        final HttpsURLConnection mockedConnection = getMockedConnectionWithFailureResponse(statusCode, errorResponse);
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
     }
 
     static void mockSuccessTenantDiscovery(final String authorizeEndpoint, final String tokenEndpoint) throws IOException {
-        final HttpURLConnection mockedConnection = getMockedConnectionWithSuccessResponse(AndroidTestUtil.getSuccessTenantDiscoveryResponse(authorizeEndpoint, tokenEndpoint));
+        final HttpsURLConnection mockedConnection = getMockedConnectionWithSuccessResponse(AndroidTestUtil.getSuccessTenantDiscoveryResponse(authorizeEndpoint, tokenEndpoint));
         HttpUrlConnectionFactory.addMockedConnection(mockedConnection);
     }
 }

@@ -31,7 +31,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.microsoft.identity.common.exception.ClientException;
 
 import java.io.IOException;
 import java.security.KeyStoreException;
