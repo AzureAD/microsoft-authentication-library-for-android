@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.network;
 
+import android.util.Log;
+
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.AuthenticationCallback;
@@ -104,16 +106,19 @@ public abstract class BaseMsalUiNetworkTest extends AbstractMsalUiTest {
                 .withCallback(new AuthenticationCallback() {
                     @Override
                     public void onCancel() {
+                        Log.e("Network", "Request cancelled");
                         resultFuture.setException(new Exception("Interactive flow cancelled by user."));
                     }
 
                     @Override
                     public void onSuccess(IAuthenticationResult authenticationResult) {
+                        Log.e("Network", "Authentication result: " + authenticationResult.getAccessToken());
                         resultFuture.setResult(authenticationResult);
                     }
 
                     @Override
                     public void onError(MsalException exception) {
+                        Log.e("Network", "Request failed", exception);
                         resultFuture.setException(exception);
                     }
                 })

@@ -185,6 +185,8 @@ dependencies {
     compileOnly "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
     annotationProcessor "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
 
+    androidTestImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
+
     implementation(project(":testutils")) {
         exclude module: 'common'
         exclude module: 'appcompat'
