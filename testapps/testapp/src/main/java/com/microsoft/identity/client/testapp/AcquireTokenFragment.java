@@ -28,19 +28,20 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import androidx.fragment.app.Fragment;
 
@@ -50,10 +51,10 @@ import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.common.internal.broker.BrokerValidator;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import static com.microsoft.identity.client.testapp.R.id.enablePII;
 
@@ -94,6 +95,8 @@ public class AcquireTokenFragment extends Fragment {
 
     private LinearLayout mPopSection;
     private LinearLayout mLoginHintSection;
+
+    private ToggleButton mDebugBrokers;
 
     private OnFragmentInteractionListener mOnFragmentInteractionListener;
     private MsalWrapper mMsalWrapper;
@@ -155,6 +158,10 @@ public class AcquireTokenFragment extends Fragment {
         mPopHttpMethod = view.findViewById(R.id.pop_http_method);
         mPopResourceUrl = view.findViewById(R.id.pop_resource_url);
         mPopClientClaims = view.findViewById(R.id.pop_client_claims);
+        mDebugBrokers = view.findViewById(R.id.btn_trust_debug_brkr);
+        mDebugBrokers.setTextOff("Prod Brokers");
+        mDebugBrokers.setTextOn("Debug Brokers");
+        mDebugBrokers.setChecked(BrokerValidator.getShouldTrustDebugBrokers());
 
         mPopSection = view.findViewById(R.id.pop_section);
         mLoginHintSection = view.findViewById(R.id.login_hint_section);
@@ -312,6 +319,12 @@ public class AcquireTokenFragment extends Fragment {
             }
         });
 
+        mDebugBrokers.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton v, boolean debugBrokers) {
+                BrokerValidator.setShouldTrustDebugBrokers(debugBrokers);
+            }
+        });
 
         loadMsalApplicationFromRequestParameters(getCurrentRequestOptions());
         return view;
