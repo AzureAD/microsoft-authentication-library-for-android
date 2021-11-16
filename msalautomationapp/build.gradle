@@ -75,7 +75,7 @@ android {
 
         debug {
             // testCoverageEnabled flag is set to true to get coverage reports for Android Tests
-            testCoverageEnabled true
+            testCoverageEnabled false
             multiDexKeepProguard file('proguard-multidex-rules.pro')
         }
     }

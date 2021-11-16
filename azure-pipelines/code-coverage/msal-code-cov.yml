@@ -21,11 +21,11 @@ resources:
   repositories:
   - repository: self
     type: git
-    ref: paul/code-coverage
+    ref: dev
   - repository: common
     type: github
     name: AzureAD/microsoft-authentication-library-common-for-android
-    ref: paul/code-coverage
+    ref: dev
     endpoint: ANDROID_GITHUB
 
 jobs:
