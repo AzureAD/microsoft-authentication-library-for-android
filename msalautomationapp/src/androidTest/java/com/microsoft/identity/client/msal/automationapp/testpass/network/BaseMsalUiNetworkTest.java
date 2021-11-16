@@ -22,14 +22,11 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.network;
 
-import android.util.Log;
-
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
-import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
 import com.microsoft.identity.client.exception.MsalException;
@@ -43,6 +40,7 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.rules.NetworkTestRule;
 import com.microsoft.identity.client.ui.automation.sdk.ResultFuture;
+import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
@@ -63,8 +61,7 @@ public abstract class BaseMsalUiNetworkTest extends AbstractMsalUiTest {
     @Override
     public void setup() {
         super.setup();
-        Logger.getInstance()
-                .setEnableLogcatLog(true);
+        UiAutomatorUtils.resetUIElementTimeout();
     }
 
     @Override
@@ -106,19 +103,16 @@ public abstract class BaseMsalUiNetworkTest extends AbstractMsalUiTest {
                 .withCallback(new AuthenticationCallback() {
                     @Override
                     public void onCancel() {
-                        Log.e("Network", "Request cancelled");
                         resultFuture.setException(new Exception("Interactive flow cancelled by user."));
                     }
 
                     @Override
                     public void onSuccess(IAuthenticationResult authenticationResult) {
-                        Log.e("Network", "Authentication result: " + authenticationResult.getAccessToken());
                         resultFuture.setResult(authenticationResult);
                     }
 
                     @Override
                     public void onError(MsalException exception) {
-                        Log.e("Network", "Request failed", exception);
                         resultFuture.setException(exception);
                     }
                 })
