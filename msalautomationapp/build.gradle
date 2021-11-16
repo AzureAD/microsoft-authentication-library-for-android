@@ -63,9 +63,6 @@ android {
 
     testOptions {
         execution 'ANDROIDX_TEST_ORCHESTRATOR'
-        unitTests {
-            includeAndroidResources = true
-        }
     }
 
     buildTypes {
@@ -184,8 +181,6 @@ dependencies {
     androidTestImplementation "androidx.test.uiautomator:uiautomator:$rootProject.ext.uiAutomatorVersion"
     compileOnly "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
     annotationProcessor "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
-
-    androidTestImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
 
     implementation(project(":testutils")) {
         exclude module: 'common'
