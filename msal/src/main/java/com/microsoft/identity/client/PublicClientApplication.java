@@ -83,7 +83,7 @@ import com.microsoft.identity.common.java.controllers.CommandDispatcher;
 import com.microsoft.identity.common.java.controllers.ExceptionAdapter;
 import com.microsoft.identity.common.internal.controllers.LocalMSALController;
 import com.microsoft.identity.common.java.dto.AccountRecord;
-import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
+import com.microsoft.identity.common.java.eststelemetry.PublicApiId;
 import com.microsoft.identity.common.internal.migration.AdalMigrationAdapter;
 import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
 import com.microsoft.identity.common.internal.migration.TokenMigrationUtility;
@@ -132,8 +132,8 @@ import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_A
 import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_CODE;
 import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_MESSAGE;
 import static com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudience.isHomeTenantAlias;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST;
-import static com.microsoft.identity.common.internal.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST_ASYNC;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST_ASYNC;
 import static com.microsoft.identity.common.java.providers.microsoft.MicrosoftIdToken.TENANT_ID;
 import static com.microsoft.identity.common.java.util.StringUtil.isUuid;
 
@@ -1879,7 +1879,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         };
     }
 
-    private DeviceCodeFlowCommandCallback getDeviceCodeFlowCommandCallback(@NonNull final DeviceCodeFlowCallback callback) {
+    protected DeviceCodeFlowCommandCallback getDeviceCodeFlowCommandCallback(@NonNull final DeviceCodeFlowCallback callback) {
         return new DeviceCodeFlowCommandCallback<LocalAuthenticationResult, BaseException>() {
 
             @Override
@@ -1891,36 +1891,16 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             }
 
             @Override
-            public void onTaskCompleted(LocalAuthenticationResult tokenResult) {
+            public void onTaskCompleted(@NonNull final LocalAuthenticationResult tokenResult) {
                 // Convert tokenResult to an AuthenticationResult object
                 final IAuthenticationResult convertedResult = AuthenticationResultAdapter.adapt(
                         tokenResult);
-
-                // Type cast the interface object
-                final AuthenticationResult authResult = (AuthenticationResult) convertedResult;
-
-                callback.onTokenReceived(authResult);
+                callback.onTokenReceived(convertedResult);
             }
 
             @Override
-            public void onError(BaseException error) {
-                final MsalException msalException;
-
-                if (error instanceof ServiceException) {
-                    msalException = new MsalServiceException(
-                            error.getErrorCode(),
-                            error.getMessage(),
-                            ((ServiceException) error).getHttpStatusCode(),
-                            error
-                    );
-                } else {
-                    msalException = new MsalClientException(
-                            error.getErrorCode(),
-                            error.getMessage(),
-                            error
-                    );
-                }
-
+            public void onError(@NonNull final BaseException exception) {
+                final MsalException msalException = MsalExceptionAdapter.msalExceptionFromBaseException(exception);
                 callback.onError(msalException);
             }
 
