@@ -84,14 +84,14 @@ android {
         debug {
 //            testCoverageEnabled true
             debuggable true
-            buildConfigField("String", "VERSION_NAME", "\"${versionName}\"")
+            buildConfigField("String", "VERSION_NAME", "\"${project.version}\"")
         }
         release {
 //            testCoverageEnabled true
             minifyEnabled false
             debuggable false
             consumerProguardFiles 'consumer-rules.pro'
-            buildConfigField("String", "VERSION_NAME", "\"${versionName}\"")
+            buildConfigField("String", "VERSION_NAME", "\"${project.version}\"")
         }
     }
 
