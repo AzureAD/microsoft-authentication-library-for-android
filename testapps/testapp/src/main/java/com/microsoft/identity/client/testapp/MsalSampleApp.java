@@ -58,6 +58,8 @@ public class MsalSampleApp extends Application {
             }
         });
 
+        Logger.getInstance().setEnableLogcatLog(true);
+
         final AriaTelemetryRelayClient ariaTelemetryRelayClient =
                 new AriaTelemetryRelayClient(this, "2a5412f83c0a4e369fcf6b22b9602164-294c4d18-7fc4-4dcc-938d-a25efe34fda1-7588");
 //
