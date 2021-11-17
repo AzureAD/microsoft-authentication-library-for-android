@@ -11,5 +11,10 @@
         "type": "AzureADMultipleOrgs"
       }
     }
-  ]
+  ],
+  "telemetry" : {
+    "pii_enabled": true,
+    "notify_on_failure_only": false,
+    "debug_enabled": true
+  }
 }

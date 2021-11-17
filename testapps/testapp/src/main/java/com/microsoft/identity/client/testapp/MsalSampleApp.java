@@ -23,17 +23,11 @@
 package com.microsoft.identity.client.testapp;
 
 import android.app.Application;
-import android.util.Log;
 
 import com.microsoft.identity.client.ILoggerCallback;
 import com.microsoft.identity.client.Logger;
-import com.microsoft.identity.common.internal.telemetry.Telemetry;
-import com.microsoft.identity.common.internal.telemetry.observers.ITelemetryAggregatedObserver;
-import com.microsoft.identity.common.internal.telemetry.observers.ITelemetryDefaultObserver;
-
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import com.microsoft.identity.common.internal.telemetry.relay.AriaTelemetryRelayClient;
+import com.microsoft.identity.common.java.telemetry.Telemetry;
 
 /**
  * MSAL sample app.
@@ -64,35 +58,10 @@ public class MsalSampleApp extends Application {
             }
         });
 
-        // to add one observer
-        Telemetry.getInstance().addObserver(new TelemetryAggregatedObserver());
-        Telemetry.getInstance().addObserver(new TelemetryDefaultObserver());
-        // to remove one type of observer
-        Telemetry.getInstance().removeObserver(TelemetryDefaultObserver.class);
-    }
-
-    class TelemetryDefaultObserver implements ITelemetryDefaultObserver {
-        public void onReceived(List<Map<String, String>> telemetryData) {
-            for (Map properties : telemetryData) {
-                final Iterator iterator = properties.entrySet().iterator();
-                while (iterator.hasNext()) {
-                    final Map.Entry pair = (Map.Entry) iterator.next();
-                    Log.e("", pair.getKey() + ":" + pair.getValue());
-                }
-                Log.e("", "====================================" + '\n');
-            }
-        }
-    }
-
-    class TelemetryAggregatedObserver implements ITelemetryAggregatedObserver {
-        public void onReceived(Map<String, String> telemetryData) {
-            final Iterator iterator = telemetryData.entrySet().iterator();
-            while (iterator.hasNext()) {
-                final Map.Entry pair = (Map.Entry) iterator.next();
-                Log.e("", pair.getKey() + ":" + pair.getValue());
-            }
-            Log.e("", "====================================" + '\n');
-        }
+        final AriaTelemetryRelayClient ariaTelemetryRelayClient =
+                new AriaTelemetryRelayClient(this, "2a5412f83c0a4e369fcf6b22b9602164-294c4d18-7fc4-4dcc-938d-a25efe34fda1-7588");
+//
+        Telemetry.getInstance().addObserver(ariaTelemetryRelayClient);
     }
 
     String getLogs() {
