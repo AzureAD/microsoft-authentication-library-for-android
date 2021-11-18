@@ -1,0 +1,117 @@
+# run UI automation testcases for network
+# Variable: 'ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME' was defined in the Variables tab
+# Variable: 'gCloudProjectId' was defined in the Variables tab
+# Variable: 'mvnAccessToken' was defined in the Variables tab
+name: $(Build.BuildId)_$(Build.DefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger: none
+pr: none
+
+variables:
+  engineeringProjectId: 'fac9d424-53d2-45c0-91b5-ef6ba7a6bf26'
+  brokerHostPipelineId: 1432
+  azureSamplePipelineId: 1458
+  app: msalAutomationApp.apk
+  testApp: msalAutomationAppAndroidTest.apk
+  deviceId: flame
+  deviceAndroidVersion: 29
+  firebaseTimeout: 45m
+  resultsHistoryName: Network test
+  resultsDir: "network-test-$(Build.BuildId)-$(Build.BuildNumber)"
+
+pool:
+  vmImage: ubuntu-latest
+
+
+jobs:
+  - job: one
+    displayName: E2E Network test run
+    timeoutInMinutes: 60
+    steps:
+      # Setup
+      - checkout: self
+        clean: true
+        submodules: recursive
+        persistCredentials: True
+      - task: AzureKeyVault@2
+        displayName: 'Get Key vault AndroidAutomationRunnerAppSecret'
+        inputs:
+          azureSubscription: 'MSIDLABS_ANDROID_KV'
+          KeyVaultName: 'ADALTestInfo'
+          SecretsFilter: 'AndroidAutomationRunnerAppSecret'
+          RunAsPreJob: false
+      - task: DownloadSecureFile@1
+        displayName: 'Download Firebase Service Account Key File'
+        name: gcServiceAccountKey
+        inputs:
+          secureFile: AndroidFirebaseServiceAccountKey.json
+          retryCount: 5
+      - task: CmdLine@1
+        displayName: 'Set MVN Access Token in Environment'
+        inputs:
+          filename: echo
+          arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN]$(mvnAccessToken)'
+      # Assemble MSAL Automation apks
+      - task: Gradle@1
+        displayName: 'Assemble MSAL Automation App'
+        inputs:
+          tasks: 'clean msalautomationapp:assembleLocalBrokerMicrosoftAuthenticator -PlabSecret=$(AndroidAutomationRunnerAppSecret)'
+          publishJUnitResults: false
+      - task: Gradle@1
+        displayName: 'Assemble MSAL Automation App Instrumented Tests'
+        inputs:
+          tasks: 'msalautomationapp:assembleLocalBrokerMicrosoftAuthenticatorDebugAndroidTest -PlabSecret=$(AndroidAutomationRunnerAppSecret)'
+          publishJUnitResults: false
+      - script: |
+          baseApkPath="$(Build.SourcesDirectory)/msalautomationapp/build/outputs/apk"
+          appApk="$baseApkPath/localBrokerMicrosoftAuthenticator/debug/*.apk"
+          testApk="$baseApkPath/androidTest/localBrokerMicrosoftAuthenticator/debug/*.apk"
+          mv $appApk $(app)
+          mv $testApk $(testApp)
+          mv azuresample/*.apk $(azureSampleApk)
+          rm -r azuresample
+          mv prod/*.apk $(brokerHostProdApk)
+          rm -r prod
+          mv rc/*.apk $(brokerHostRcApk)
+          rm -r rc
+          ls -lh *.apk
+        displayName: 'Rename APKs'
+        workingDirectory: '$(Build.StagingDirectory)'
+      # Firebase tasks
+      - script: gcloud version
+        displayName: 'Check gcloud version'
+      - task: Bash@3
+        displayName: Run UI Automation on Firebase
+        inputs:
+          targetType: inline
+          script: |
+            gcloud auth activate-service-account --key-file "$(gcServiceAccountKey.secureFilePath)"
+            gcloud config set project $(gCloudProjectId)
+            gcloud firebase test android run \
+              --type instrumentation \
+              --app $(Build.StagingDirectory)/$(app) \
+              --test $(Build.StagingDirectory)/$(testApp) \
+              --device "model=$(deviceId),version=$(deviceAndroidVersion)" \
+              --timeout "$(firebaseTimeout)" \
+              --other-files \
+              "/data/local/tmp/$(brokerHostRcApk)=$(Build.StagingDirectory)/$(brokerHostRcApk),\
+              /data/local/tmp/$(brokerHostprodApk)=$(Build.StagingDirectory)/$(brokerHostprodApk),\
+              /data/local/tmp/$(companyPortalApk)=$(Build.StagingDirectory)/$(companyPortalApk),\
+              /data/local/tmp/$(authenticatorApk)=$(Build.StagingDirectory)/$(authenticatorApk),\
+              /data/local/tmp/$(azureSampleApk)=$(Build.StagingDirectory)/$(azureSampleApk)" \
+              --results-dir $(resultsDir) \
+              --directories-to-pull "/sdcard" \
+              --use-orchestrator \
+              --environment-variables clearPackageData=true \
+              --results-history-name "$(resultsHistoryName)" \
+              --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.network"
+      - script: gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml $(Build.SourcesDirectory)
+        displayName: Download Test Result File
+        condition: succeededOrFailed()
+      - task: PublishTestResults@2
+        displayName: Publish Test Results to ADO
+        condition: succeededOrFailed()
+        inputs:
+          testResultsFiles: '*test_result*.xml'
+          searchFolder: $(Build.SourcesDirectory)
+          testRunTitle: 'MSAL Network Automation - Build # $(Build.BuildNumber)'
