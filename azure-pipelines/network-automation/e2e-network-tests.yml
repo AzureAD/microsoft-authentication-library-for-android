@@ -76,22 +76,21 @@ jobs:
         displayName: 'Check gcloud version'
       - task: Bash@3
         displayName: Run UI Automation on Firebase
-        inputs:
-          script: |
-            gcloud auth activate-service-account --key-file "$(gcServiceAccountKey.secureFilePath)"
-            gcloud config set project $(gCloudProjectId)
-            gcloud firebase test android run \
-              --type instrumentation \
-              --app $(Build.StagingDirectory)/$(app) \
-              --test $(Build.StagingDirectory)/$(testApp) \
-              --device "model=$(deviceId),version=$(deviceAndroidVersion)" \
-              --timeout "$(firebaseTimeout)" \
-              --results-dir $(resultsDir) \
-              --directories-to-pull "/sdcard" \
-              --use-orchestrator \
-              --environment-variables clearPackageData=true \
-              --results-history-name "$(resultsHistoryName)" \
-              --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.network"
+        script: |
+          gcloud auth activate-service-account --key-file "$(gcServiceAccountKey.secureFilePath)"
+          gcloud config set project $(gCloudProjectId)
+          gcloud firebase test android run \
+            --type instrumentation \
+            --app $(Build.StagingDirectory)/$(app) \
+            --test $(Build.StagingDirectory)/$(testApp) \
+            --device "model=$(deviceId),version=$(deviceAndroidVersion)" \
+            --timeout "$(firebaseTimeout)" \
+            --results-dir $(resultsDir) \
+            --directories-to-pull "/sdcard" \
+            --use-orchestrator \
+            --environment-variables clearPackageData=true \
+            --results-history-name "$(resultsHistoryName)" \
+            --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.network"
       - script: gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml $(Build.SourcesDirectory)
         displayName: Download Test Result File
         condition: succeededOrFailed()
