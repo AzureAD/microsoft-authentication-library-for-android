@@ -52,6 +52,11 @@ jobs:
           filename: echo
           arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN]$(mvnAccessToken)'
       # Assemble MSAL Automation apks
+      - script: |
+          gcloud auth activate-service-account --key-file "$(gcServiceAccountKey.secureFilePath)"
+          gcloud config set project $(gCloudProjectId)
+          gcloud firebase test network-profiles list
+        displayName: "Network profiles"
       - task: Gradle@1
         displayName: 'Assemble MSAL Automation App'
         inputs:
