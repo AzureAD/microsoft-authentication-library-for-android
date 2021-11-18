@@ -68,12 +68,6 @@ jobs:
           testApk="$baseApkPath/androidTest/localBrokerMicrosoftAuthenticator/debug/*.apk"
           mv $appApk $(app)
           mv $testApk $(testApp)
-          mv azuresample/*.apk $(azureSampleApk)
-          rm -r azuresample
-          mv prod/*.apk $(brokerHostProdApk)
-          rm -r prod
-          mv rc/*.apk $(brokerHostRcApk)
-          rm -r rc
           ls -lh *.apk
         displayName: 'Rename APKs'
         workingDirectory: '$(Build.StagingDirectory)'
@@ -83,7 +77,6 @@ jobs:
       - task: Bash@3
         displayName: Run UI Automation on Firebase
         inputs:
-          targetType: inline
           script: |
             gcloud auth activate-service-account --key-file "$(gcServiceAccountKey.secureFilePath)"
             gcloud config set project $(gCloudProjectId)
