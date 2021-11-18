@@ -16,7 +16,7 @@ variables:
   deviceId: flame
   deviceAndroidVersion: 29
   firebaseTimeout: 45m
-  resultsHistoryName: Network test
+  resultsHistoryName: "Network test"
   resultsDir: "network-test-$(Build.BuildId)-$(Build.BuildNumber)"
 
 pool:
@@ -74,11 +74,7 @@ jobs:
       # Firebase tasks
       - script: gcloud version
         displayName: 'Check gcloud version'
-      - task: Bash@3
-        displayName: Run UI Automation on Firebase
-        inputs:
-          targetType: inline
-          script: |
+      - script: |
             gcloud auth activate-service-account --key-file "$(gcServiceAccountKey.secureFilePath)"
             gcloud config set project $(gCloudProjectId)
             gcloud firebase test android run \
@@ -93,6 +89,7 @@ jobs:
               --environment-variables clearPackageData=true \
               --results-history-name "$(resultsHistoryName)" \
               --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.network"
+        displayName: "Run UI Automation on Firebase"
       - script: gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml $(Build.SourcesDirectory)
         displayName: Download Test Result File
         condition: succeededOrFailed()
