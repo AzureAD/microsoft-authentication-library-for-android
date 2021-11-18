@@ -2,6 +2,7 @@
 # Variable: 'ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME' was defined in the Variables tab
 # Variable: 'gCloudProjectId' was defined in the Variables tab
 # Variable: 'mvnAccessToken' was defined in the Variables tab
+# Variable: 'networkProfile' was defined in the Variables tab
 name: $(Build.BuildId)_$(Build.DefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
 
 trigger: none
@@ -92,7 +93,7 @@ jobs:
               --use-orchestrator \
               --environment-variables clearPackageData=true \
               --results-history-name "$(resultsHistoryName)" \
-              --network-profile GPRS
+              --network-profile $(networkProfile)
               --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.network"
       - script: gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml $(Build.SourcesDirectory)
         displayName: Download Test Result File
