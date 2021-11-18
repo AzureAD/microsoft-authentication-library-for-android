@@ -81,6 +81,7 @@ jobs:
           script: |
             gcloud auth activate-service-account --key-file "$(gcServiceAccountKey.secureFilePath)"
             gcloud config set project $(gCloudProjectId)
+            gcloud firebase test network-profiles list
             gcloud firebase test android run \
               --type instrumentation \
               --app $(Build.StagingDirectory)/$(app) \
