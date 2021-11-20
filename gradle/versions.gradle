@@ -39,7 +39,7 @@ ext {
     powerMockVersion = "1.6.6"
     runnerVersion = "1.2.0"
     rulesVersion = "1.2.0"
-    robolectricVersion = "4.3.1"
+    robolectricVersion = "4.7.1"
     uiAutomatorVersion = "2.2.0"
     mseberaApacheHttpClientVersion = "4.5.8"
     msal4jVersion = "1.10.0"
