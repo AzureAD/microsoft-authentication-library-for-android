@@ -294,6 +294,10 @@ class AccountAdapter {
                     getIdToken(homeCacheRecord)
             );
 
+            ((MultiTenantAccount) rootAccount).setHomeAccountId(
+                    homeCacheRecord.getAccount().getHomeAccountId()
+            );
+
             // Set the tenant_id
             ((MultiTenantAccount) rootAccount).setTenantId(
                     StringUtil.getTenantInfo(
