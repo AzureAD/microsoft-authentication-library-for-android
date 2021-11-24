@@ -56,7 +56,7 @@ jobs:
   - task: Gradle@2
     displayName: Run msal code coverage
     inputs:
-      tasks: msal:localDebugMsalUnitTestCoverageReport -Plabtest -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}}
+      tasks: msal:localDebugMsalUnitTestCoverageReport -Plabtest -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PcodeCoverageEnabled=true
   - task: PublishCodeCoverageResults@1
     displayName: 'Publish code coverage report'
     inputs:

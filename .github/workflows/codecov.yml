@@ -26,7 +26,7 @@ jobs:
         run: ./gradlew clean msal:assembleLocal
 
       - name: Run Coverage
-        run: ./gradlew msal:localDebugMsalUnitTestCoverageReport -ProbolectricSdkVersion=$ROBOELECTRIC_SDK_VERSION
+        run: ./gradlew msal:localDebugMsalUnitTestCoverageReport -ProbolectricSdkVersion=$ROBOELECTRIC_SDK_VERSION -PcodeCoverageEnabled=true
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
