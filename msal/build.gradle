@@ -169,6 +169,8 @@ task sourcesJar(type: Jar) {
     destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
 }
 
+String commonVersion = project.hasProperty("distCommonVersion") ? project.distCommonVersion : "0.0.+"
+
 dependencies {
     testImplementation project(path: ':common4j')
 
@@ -204,10 +206,10 @@ dependencies {
         transitive = true
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.6.2', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: commonVersion, changing: true)
 
-    distApi("com.microsoft.identity:common:3.6.2") {
-        transitive = false
+    distApi("com.microsoft.identity:${commonVersion}") {
+        transitive = true
     }
 
 }
@@ -343,6 +345,14 @@ publishing {
             credentials {
                 username System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") : project.findProperty("vstsUsername")
                 password System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
+            }
+        }
+        maven {
+            name "AuthSdkAndroidCI"
+            url "https://identitydivision.pkgs.visualstudio.com/_packaging/AuthSdkAndroidCI/maven/v1"
+            credentials {
+                username project.vstsUsername
+                password project.vstsMavenAccessToken
             }
         }
     }
