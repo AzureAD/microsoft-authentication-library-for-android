@@ -37,8 +37,8 @@ allprojects {
             name "AuthSdkAndroidCI"
             url "https://identitydivision.pkgs.visualstudio.com/_packaging/AuthSdkAndroidCI/maven/v1"
             credentials {
-                username project.vstsUsername
-                password project.vstsMavenAccessToken
+                username project.ext.vstsUsername
+                password project.ext.vstsPassword
             }
         }
     }
