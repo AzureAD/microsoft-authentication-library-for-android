@@ -351,8 +351,8 @@ publishing {
             name "AuthSdkAndroidCI"
             url "https://identitydivision.pkgs.visualstudio.com/_packaging/AuthSdkAndroidCI/maven/v1"
             credentials {
-                username project.ext.vstsUsername
-                password System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
+                username System.getenv("ENV_VSTS_MVN_AuthSdkAndroidCI_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_AuthSdkAndroidCI_USERNAME") : project.findProperty("vstsUsername")
+                password System.getenv("ENV_VSTS_MVN_AuthSdkAndroidCI_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_AuthSdkAndroidCI_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
             }
         }
     }
