@@ -3,11 +3,11 @@ package com.microsoft.identity.client.msal.automationapp.testpass.claims;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
+import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
-import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
@@ -20,15 +20,15 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
-public class ClaimsRequestTest extends AbstractMsalBrokerTest {
+public class ClaimsRequestTest extends AbstractMsalUiTest {
 
     @Test
     public void testAcquireTokenSilentlyWithClaims() throws Throwable {
         ClaimsRequest claimsRequest = new ClaimsRequest();
         RequestedClaimAdditionalInformation additionalInformation = new RequestedClaimAdditionalInformation();
         additionalInformation.setEssential(true);
-        claimsRequest.requestClaimInAccessToken("email", additionalInformation);
-        claimsRequest.requestClaimInAccessToken("email_verified", additionalInformation);
+        additionalInformation.setValue("650d9495-66a1-4f6b-bcd7-4f0add50c81a");
+        claimsRequest.requestClaimInAccessToken("device_id", additionalInformation);
 
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
@@ -52,7 +52,6 @@ public class ClaimsRequestTest extends AbstractMsalBrokerTest {
                         .sessionExpected(false)
                         .consentPageExpected(false)
                         .speedBumpExpected(false)
-                        .broker(mBroker)
                         .build();
 
                 new AadPromptHandler(promptHandlerParameters)
