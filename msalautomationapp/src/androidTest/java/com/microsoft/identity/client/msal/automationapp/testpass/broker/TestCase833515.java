@@ -129,7 +129,6 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         final AadLoginComponentHandler aadLoginComponentHandler = new AadLoginComponentHandler();
         aadLoginComponentHandler.handleEmailField(username);
         aadLoginComponentHandler.handlePasswordField(password);
-        aadLoginComponentHandler.handleNextButton(); // keep me signed in
 
         //signing out from the application.
         ((SingleAccountPublicClientApplication) mApplication).signOut();
