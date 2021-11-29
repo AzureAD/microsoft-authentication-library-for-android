@@ -22,6 +22,9 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp;
 
+import static com.microsoft.identity.client.ui.automation.rules.LoadLabUserTestRule.TEMP_USER_WAIT_TIME;
+import static org.junit.Assert.fail;
+
 import android.app.Activity;
 import android.content.Context;
 import android.text.TextUtils;
@@ -55,9 +58,6 @@ import org.junit.rules.RuleChain;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
-import static com.microsoft.identity.client.ui.automation.rules.LoadLabUserTestRule.TEMP_USER_WAIT_TIME;
-import static org.junit.Assert.fail;
-
 /**
  * A base model for an E2E MSAL UI Test. This class will apply all the rules required for an MSAL
  * test and will get everything setup for use by child classes.
@@ -79,9 +79,6 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
     @Rule(order = 1)
     public ActivityTestRule<MainActivity> mActivityRule =
             new ActivityTestRule(MainActivity.class);
-
-    @Rule(order = 2)
-    public MsalLoggingRule msalLoggingRule = new MsalLoggingRule();
 
     @Before
     public void setup() {
