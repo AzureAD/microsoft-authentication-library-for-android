@@ -80,6 +80,9 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
     public ActivityTestRule<MainActivity> mActivityRule =
             new ActivityTestRule(MainActivity.class);
 
+    @Rule(order = 2)
+    public MsalLoggingRule msalLoggingRule = new MsalLoggingRule();
+
     @Before
     public void setup() {
         mActivity = mActivityRule.getActivity();
