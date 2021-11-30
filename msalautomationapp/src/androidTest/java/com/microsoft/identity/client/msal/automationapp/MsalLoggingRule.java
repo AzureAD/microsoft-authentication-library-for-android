@@ -97,8 +97,9 @@ public class MsalLoggingRule implements TestRule {
                     msalFileLogAppender.append(level, tag, message, null);
                 }
             });
-        } catch (IllegalStateException ex) {
-            // External logger is already set,
+        } catch (final IllegalStateException ex) {
+            // External logger is already set
+            System.out.println(ex.getMessage());
         }
 
         return msalFileLogAppender;
