@@ -43,7 +43,6 @@ jobs:
       sqAnalysisBreakBuildIfQualityGateFailed: false
   - task: Gradle@2
     displayName: Publish
-    enabled: false
     inputs:
       tasks: msal:publish
       publishJUnitResults: false
