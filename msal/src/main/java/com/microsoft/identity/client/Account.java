@@ -95,6 +95,8 @@ public class Account implements IAccount {
         }
 
         if (StringUtil.isEmpty(id)) {
+            // This could happen because the ID token that we have for WPJ accounts may not contain
+            // oid claim because we used to not ask for PROFILE scope in that token. 
             com.microsoft.identity.common.logging.Logger.warn(
                     TAG + methodName,
                     "Unable to get account id from either ClientInfo or IdToken. Attempting to obtain from home account id."
