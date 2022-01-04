@@ -433,6 +433,15 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
     @Override
     public void acquireToken(@NonNull final Activity activity,
+                             @NonNull final List<String> scopes,
+                             @Nullable final String loginHint,
+                             @NonNull final AuthenticationCallback callback) {
+        final String[] scopesAsArray = (String[]) scopes.toArray();
+        acquireToken(activity, scopesAsArray, loginHint, callback);
+    }
+
+    @Override
+    public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @Nullable final String loginHint,
                              @NonNull final AuthenticationCallback callback) {

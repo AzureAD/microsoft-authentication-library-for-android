@@ -1382,6 +1382,14 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     @Override
     public void acquireToken(@NonNull final Activity activity,
+                             @NonNull final List<String> scopes,
+                             @NonNull final AuthenticationCallback callback) {
+        final String[] scopesAsArray = (String[]) scopes.toArray();
+        acquireToken(activity, scopesAsArray, callback);
+    }
+
+    @Override
+    public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @NonNull final AuthenticationCallback callback) {
         AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
@@ -1781,6 +1789,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     e
             );
         }
+    }
+
+    public void acquireTokenWithDeviceCode(@Nullable List<String> scopes, @NonNull final DeviceCodeFlowCallback callback) {
+        final String[] scopesAsArray = (String[]) scopes.toArray();
+        acquireTokenWithDeviceCode(scopesAsArray, callback);
     }
 
     public void acquireTokenWithDeviceCode(@Nullable String[] scopes, @NonNull final DeviceCodeFlowCallback callback) {

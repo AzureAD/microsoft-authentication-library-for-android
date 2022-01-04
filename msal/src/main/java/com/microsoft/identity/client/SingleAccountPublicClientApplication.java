@@ -553,6 +553,14 @@ public class SingleAccountPublicClientApplication
 
     @Override
     public void acquireToken(@NonNull final Activity activity,
+                             @NonNull final List<String> scopes,
+                             @NonNull final AuthenticationCallback callback) {
+        final String[] scopesAsArray = (String[]) scopes.toArray();
+        acquireToken(activity, scopesAsArray, callback);
+    }
+
+    @Override
+    public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @NonNull final AuthenticationCallback callback) {
         final IAccount persistedAccount = getPersistedCurrentAccount();

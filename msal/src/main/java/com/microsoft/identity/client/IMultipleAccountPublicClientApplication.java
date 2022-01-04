@@ -110,6 +110,28 @@ public interface IMultipleAccountPublicClientApplication extends IPublicClientAp
      *                  {@link AuthenticationCallback#onError(MsalException)}.
      */
     void acquireToken(@NonNull final Activity activity,
+                      @NonNull final List<String> scopes,
+                      @Nullable final String loginHint,
+                      @NonNull final AuthenticationCallback callback
+    );
+
+    /**
+     * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
+     *
+     * @param activity  Non-null {@link Activity} that will be used as the parent activity for launching the {@link com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity}.
+     * @param scopes    The non-null array of scopes to be requested for the access token.
+     *                  MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     * @param loginHint Optional. If provided, will be used as the query parameter sent for authenticating the user,
+     *                  which will have the UPN pre-populated.
+     * @param callback  The Non-null {@link AuthenticationCallback} to receive the result back.
+     *                  1) If user cancels the flow by pressing the device back button, the result will be sent
+     *                  back via {@link AuthenticationCallback#onCancel()}.
+     *                  2) If the sdk successfully receives the token back, result will be sent back via
+     *                  {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
+     *                  3) All the other errors will be sent back via
+     *                  {@link AuthenticationCallback#onError(MsalException)}.
+     */
+    void acquireToken(@NonNull final Activity activity,
                       @NonNull final String[] scopes,
                       @Nullable final String loginHint,
                       @NonNull final AuthenticationCallback callback
