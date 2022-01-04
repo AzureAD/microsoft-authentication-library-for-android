@@ -9,6 +9,14 @@ name: $(date:yyyyMMdd)$(rev:.r)
 trigger: none
 pr: none
 
+resources:
+  repositories:
+    - repository: common
+      type: github
+      name: AzureAD/microsoft-authentication-library-common-for-android
+      ref: dev
+      endpoint: ANDROID_GITHUB
+
 jobs:
 - job: vsts_release
   displayName: Publish msal to internal feed
@@ -38,6 +46,11 @@ jobs:
     inputs:
       tasks: msal:publish
       publishJUnitResults: false
+  - template: azure-pipelines/templates/steps/generate-sbom.yml@common
+    parameters:
+      project: msal
+      buildDropPath: $(Build.SourcesDirectory)/msal/build/
+      configuration: distReleaseRuntimeClasspath
   - task: CopyFiles@2
     name: CopyFiles1
     displayName: Copy Files to Artifact Staging Directory

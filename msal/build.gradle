@@ -179,6 +179,8 @@ task sourcesJar(type: Jar) {
     destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
 }
 
+String commonVersion = project.hasProperty("distCommonVersion") ? project.distCommonVersion : "0.0.+"
+
 dependencies {
     testImplementation project(path: ':common4j')
 
@@ -214,10 +216,10 @@ dependencies {
         transitive = true
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '3.6.2', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: commonVersion, changing: true)
 
-    distApi("com.microsoft.identity:common:3.6.2") {
-        transitive = false
+    distApi("com.microsoft.identity:common:${commonVersion}") {
+        transitive = true
     }
 
 }
