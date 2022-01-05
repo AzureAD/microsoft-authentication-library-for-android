@@ -1,5 +1,10 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
+Version 2.2.3
+----------
+- Remove the broker check for MSA FRT saving function (#1571)
+- Picks up common@3.6.6
+
 Version 2.2.2
 ----------
 - Picks up common@3.6.3
