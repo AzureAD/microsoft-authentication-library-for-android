@@ -105,9 +105,10 @@ public class Account implements IAccount {
         }
 
         if (StringUtil.isEmpty(id)) {
-            com.microsoft.identity.common.logging.Logger.warn(
+            com.microsoft.identity.common.logging.Logger.error(
                     TAG + methodName,
-                    "Account ID is empty. Returning MISSING_FROM_THE_TOKEN_RESPONSE."
+                    "Account ID is empty. Returning MISSING_FROM_THE_TOKEN_RESPONSE.",
+                    new NullPointerException("Account id is null or empty")
             );
 
             id = MISSING_FROM_THE_TOKEN_RESPONSE;
