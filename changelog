@@ -3,7 +3,8 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 Version 2.2.3
 ----------
 - Remove the broker check for MSA FRT saving function (#1571)
-- Picks up common@3.6.6
+- Fix msal get account crash in Account Matcher due to NPE because account id was missing (#1558)
+- Picks up common@3.6.7
 
 Version 2.2.2
 ----------
