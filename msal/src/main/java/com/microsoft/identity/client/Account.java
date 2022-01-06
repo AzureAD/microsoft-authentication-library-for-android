@@ -31,6 +31,7 @@ import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.providers.microsoft.MicrosoftIdToken;
 import com.microsoft.identity.common.internal.providers.microsoft.azureactivedirectory.AzureActiveDirectoryIdToken;
 import com.microsoft.identity.common.internal.providers.oauth2.IDToken;
+import com.microsoft.identity.common.internal.util.AccountUtil;
 import com.microsoft.identity.common.internal.util.StringUtil;
 
 import java.util.Map;
@@ -47,6 +48,7 @@ public class Account implements IAccount {
     private String mHomeOid;
     private String mHomeTenantId;
     private String mEnvironment;
+    private String mHomeAccountId;
 
     public Account(
             @Nullable final String clientInfo,
@@ -69,6 +71,7 @@ public class Account implements IAccount {
     @NonNull
     @Override
     public String getId() {
+        final String methodName = ":getId";
         String id;
 
         ClientInfo clientInfo = null;
@@ -91,6 +94,24 @@ public class Account implements IAccount {
             id = (String) mIdTokenClaims.get(MicrosoftIdToken.OBJECT_ID);
         } else {
             id = mHomeOid;
+        }
+
+        if (StringUtil.isEmpty(id)) {
+            com.microsoft.identity.common.logging.Logger.warn(
+                    TAG + methodName,
+                    "Unable to get account id from either ClientInfo or IdToken. Attempting to obtain from home account id."
+            );
+            id = AccountUtil.getUIdFromHomeAccountId(mHomeAccountId);
+        }
+
+        if (StringUtil.isEmpty(id)) {
+            com.microsoft.identity.common.logging.Logger.error(
+                    TAG + methodName,
+                    "Account ID is empty. Returning MISSING_FROM_THE_TOKEN_RESPONSE.",
+                    null
+            );
+
+            id = MISSING_FROM_THE_TOKEN_RESPONSE;
         }
 
         return id;
@@ -161,5 +182,9 @@ public class Account implements IAccount {
         }
 
         return MISSING_FROM_THE_TOKEN_RESPONSE;
+    }
+
+    public void setHomeAccountId(@NonNull final String homeAccountId) {
+        mHomeAccountId = homeAccountId;
     }
 }
