@@ -23,4 +23,3 @@ integration_tests.properties
 /**/*.pom
 .settings
 .project
-jacoco-agent.properties

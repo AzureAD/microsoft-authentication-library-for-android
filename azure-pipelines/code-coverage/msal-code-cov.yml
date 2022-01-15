@@ -7,6 +7,11 @@ name: $(date:yyyyMMdd)$(rev:.r)
 
 trigger: none
 
+pr:
+  branches:
+    include:
+      - '*'
+
 variables:
 - name: BuildParameters.jdkVersion
   value: 1.8
@@ -21,7 +26,6 @@ resources:
   repositories:
   - repository: self
     type: git
-    ref: dev
   - repository: common
     type: github
     name: AzureAD/microsoft-authentication-library-common-for-android
@@ -29,13 +33,13 @@ resources:
     endpoint: ANDROID_GITHUB
 
 jobs:
-- job: msalCodeCoverage
-  displayName: Msal code coverage
+- job: msal_code_coverage
+  displayName: MSAL Code Coverage
   pool:
     name: Hosted Windows 2019 with VS2019
   steps:
   - checkout: self
-    displayName: Checkout msal repository
+    displayName: Checkout MSAL Repository
     clean: true
     submodules: recursive
     persistCredentials: True
@@ -54,14 +58,17 @@ jobs:
       jdkArchitecture: $(BuildParameters.jdkArchitecture)
       sqGradlePluginVersion: 2.0.1
   - task: Gradle@2
-    displayName: Run msal code coverage
+    displayName: Run MSAL Code Coverage
     inputs:
-      tasks: msal:localDebugMsalUnitTestCoverageReport -Plabtest -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}}
+      tasks: msal:localDebugMsalUnitTestCoverageReport -Plabtest -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PcodeCoverageEnabled=true
   - task: PublishCodeCoverageResults@1
-    displayName: 'Publish code coverage report'
+    displayName: Publish Code Coverage Report
     inputs:
       summaryFileLocation: '$(Build.SourcesDirectory)\msal\build\reports\jacoco\localDebugMsalUnitTestCoverageReport\localDebugMsalUnitTestCoverageReport.xml'
       reportDirectory: '$(Build.SourcesDirectory)\msal\build\reports\jacoco\localDebugMsalUnitTestCoverageReport\html'
       javaHomeSelection: $(BuildParameters.javaHomeSelection)
       jdkVersion: 1.11
-...
+  - bash: |
+      curl -Os https://uploader.codecov.io/latest/windows/codecov.exe
+      ./codecov.exe -v -t '$(codecovToken)' -B '$(System.PullRequest.SourceBranch)' -P '$(System.PullRequest.PullRequestNumber)' -f "./msal/build/reports/jacoco/localDebugMsalUnitTestCoverageReport/localDebugMsalUnitTestCoverageReport.xml"
+    displayName: Upload Code Coverage to Codecov and the PR
