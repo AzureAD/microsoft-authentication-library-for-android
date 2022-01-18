@@ -93,7 +93,7 @@ jobs:
               --use-orchestrator \
               --environment-variables clearPackageData=true \
               --results-history-name "$(resultsHistoryName)" \
-              --network-profile $(networkProfile)
+              --network-profile "$(networkProfile)" \
               --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.network"
       - script: gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml $(Build.SourcesDirectory)
         displayName: Download Test Result File
