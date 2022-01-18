@@ -14,8 +14,8 @@ variables:
   azureSamplePipelineId: 1458
   app: msalAutomationApp.apk
   testApp: msalAutomationAppAndroidTest.apk
-  deviceId: Pixel2
-  deviceAndroidVersion: 29
+  deviceId: Pixel3
+  deviceAndroidVersion: 30
   firebaseTimeout: 45m
   resultsHistoryName: "Network test"
   resultsDir: "network-test-$(Build.BuildId)-$(Build.BuildNumber)"
