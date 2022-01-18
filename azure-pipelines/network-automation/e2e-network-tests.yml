@@ -101,6 +101,13 @@ jobs:
       - script: gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml $(Build.SourcesDirectory)/test_result_lte.xml
         displayName: Download Test Result File
         condition: succeededOrFailed()
+      - task: PublishTestResults@2
+        displayName: Publish Test Results to ADO
+        condition: succeededOrFailed()
+        inputs:
+          testResultsFiles: '*test_result*.xml'
+          searchFolder: $(Build.SourcesDirectory)
+          testRunTitle: '[LTE] MSAL Network Automation - Build # $(Build.BuildNumber)'
       - task: Bash@3
         displayName: Run Network automation with HSPA
         inputs:
@@ -117,7 +124,7 @@ jobs:
               --use-orchestrator \
               --environment-variables clearPackageData=true \
               --results-history-name "$(resultsHistoryName)" \
-              --network-profile "LTE" \
+              --network-profile "HSPA" \
               --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.network"
       - script: gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml $(Build.SourcesDirectory)/test_result_hspa.xml
         displayName: Download Test Result File
@@ -128,4 +135,32 @@ jobs:
         inputs:
           testResultsFiles: '*test_result*.xml'
           searchFolder: $(Build.SourcesDirectory)
-          testRunTitle: 'MSAL Network Automation - Build # $(Build.BuildNumber)'
+          testRunTitle: '[HSPA] MSAL Network Automation - Build # $(Build.BuildNumber)'
+      - task: Bash@3
+        displayName: Run Network automation with EDGE
+        inputs:
+          targettype: inline
+          script: |
+            gcloud firebase test android run \
+              --type instrumentation \
+              --app $(Build.StagingDirectory)/$(app) \
+              --test $(Build.StagingDirectory)/$(testApp) \
+              --device "model=$(deviceId),version=$(deviceAndroidVersion)" \
+              --timeout "$(firebaseTimeout)" \
+              --results-dir $(resultsDir) \
+              --directories-to-pull "/sdcard" \
+              --use-orchestrator \
+              --environment-variables clearPackageData=true \
+              --results-history-name "$(resultsHistoryName)" \
+              --network-profile "EDGE" \
+              --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.network"
+      - script: gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml $(Build.SourcesDirectory)/test_result_edge.xml
+        displayName: Download Test Result File
+        condition: succeededOrFailed()
+      - task: PublishTestResults@2
+        displayName: Publish Test Results to ADO
+        condition: succeededOrFailed()
+        inputs:
+          testResultsFiles: '*test_result*.xml'
+          searchFolder: $(Build.SourcesDirectory)
+          testRunTitle: '[EDGE] MSAL Network Automation - Build # $(Build.BuildNumber)'
