@@ -53,25 +53,25 @@ jobs:
           filename: echo
           arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDADACCOUNTS_ACCESSTOKEN]$(mvnAccessToken)'
       # Assemble MSAL Automation apks
-      - task: Gradle@1
-        displayName: 'Assemble MSAL Automation App'
-        inputs:
-          tasks: 'clean msalautomationapp:assembleLocalBrokerMicrosoftAuthenticator -PlabSecret=$(AndroidAutomationRunnerAppSecret)'
-          publishJUnitResults: false
-      - task: Gradle@1
-        displayName: 'Assemble MSAL Automation App Instrumented Tests'
-        inputs:
-          tasks: 'msalautomationapp:assembleLocalBrokerMicrosoftAuthenticatorDebugAndroidTest -PlabSecret=$(AndroidAutomationRunnerAppSecret)'
-          publishJUnitResults: false
-      - script: |
-          baseApkPath="$(Build.SourcesDirectory)/msalautomationapp/build/outputs/apk"
-          appApk="$baseApkPath/localBrokerMicrosoftAuthenticator/debug/*.apk"
-          testApk="$baseApkPath/androidTest/localBrokerMicrosoftAuthenticator/debug/*.apk"
-          mv $appApk $(app)
-          mv $testApk $(testApp)
-          ls -lh *.apk
-        displayName: 'Rename APKs'
-        workingDirectory: '$(Build.StagingDirectory)'
+#      - task: Gradle@1
+#        displayName: 'Assemble MSAL Automation App'
+#        inputs:
+#          tasks: 'clean msalautomationapp:assembleLocalBrokerMicrosoftAuthenticator -PlabSecret=$(AndroidAutomationRunnerAppSecret)'
+#          publishJUnitResults: false
+#      - task: Gradle@1
+#        displayName: 'Assemble MSAL Automation App Instrumented Tests'
+#        inputs:
+#          tasks: 'msalautomationapp:assembleLocalBrokerMicrosoftAuthenticatorDebugAndroidTest -PlabSecret=$(AndroidAutomationRunnerAppSecret)'
+#          publishJUnitResults: false
+#      - script: |
+#          baseApkPath="$(Build.SourcesDirectory)/msalautomationapp/build/outputs/apk"
+#          appApk="$baseApkPath/localBrokerMicrosoftAuthenticator/debug/*.apk"
+#          testApk="$baseApkPath/androidTest/localBrokerMicrosoftAuthenticator/debug/*.apk"
+#          mv $appApk $(app)
+#          mv $testApk $(testApp)
+#          ls -lh *.apk
+#        displayName: 'Rename APKs'
+#        workingDirectory: '$(Build.StagingDirectory)'
       # Firebase tasks
       - script: gcloud version
         displayName: 'Check gcloud version'
@@ -80,21 +80,7 @@ jobs:
         inputs:
           targettype: inline
           script: |
-            gcloud auth activate-service-account --key-file "$(gcServiceAccountKey.secureFilePath)"
-            gcloud config set project $(gCloudProjectId)
-            gcloud firebase test android run \
-              --type instrumentation \
-              --app $(Build.StagingDirectory)/$(app) \
-              --test $(Build.StagingDirectory)/$(testApp) \
-              --device "model=$(deviceId),version=$(deviceAndroidVersion)" \
-              --timeout "$(firebaseTimeout)" \
-              --results-dir $(resultsDir) \
-              --directories-to-pull "/sdcard" \
-              --use-orchestrator \
-              --environment-variables clearPackageData=true \
-              --results-history-name "$(resultsHistoryName)" \
-              --network-profile "$(networkProfile)" \
-              --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.network"
+            gcloud firebase test android models list
       - script: gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml $(Build.SourcesDirectory)
         displayName: Download Test Result File
         condition: succeededOrFailed()
