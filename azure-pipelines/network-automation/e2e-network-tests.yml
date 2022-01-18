@@ -14,8 +14,8 @@ variables:
   azureSamplePipelineId: 1458
   app: msalAutomationApp.apk
   testApp: msalAutomationAppAndroidTest.apk
-  deviceId: Pixel3
-  deviceAndroidVersion: 30
+  deviceId: flame
+  deviceAndroidVersion: 29
   firebaseTimeout: 45m
   resultsHistoryName: "Network test"
   resultsDir: "network-test-$(Build.BuildId)-$(Build.BuildNumber)"
@@ -93,7 +93,20 @@ jobs:
               --use-orchestrator \
               --environment-variables clearPackageData=true \
               --results-history-name "$(resultsHistoryName)" \
-              --network-profile "$(networkProfile)" \
+              --network-profile "LTE" \
+              --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.network"
+            gcloud firebase test android run \
+              --type instrumentation \
+              --app $(Build.StagingDirectory)/$(app) \
+              --test $(Build.StagingDirectory)/$(testApp) \
+              --device "model=$(deviceId),version=$(deviceAndroidVersion)" \
+              --timeout "$(firebaseTimeout)" \
+              --results-dir $(resultsDir) \
+              --directories-to-pull "/sdcard" \
+              --use-orchestrator \
+              --environment-variables clearPackageData=true \
+              --results-history-name "$(resultsHistoryName)" \
+              --network-profile "HSPA" \
               --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.network"
       - script: gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml $(Build.SourcesDirectory)
         displayName: Download Test Result File

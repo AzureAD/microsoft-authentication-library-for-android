@@ -45,17 +45,6 @@ public class TestCaseNetwork extends BaseMsalUiNetworkTest {
     }
 
     @Test
-    public void test_acquireTokenInteractiveWithMobileData() throws Throwable {
-        NetworkMarkerManager
-                .useNetworkCondition(NetworkCodeMarkers.ACQUIRE_TOKEN_INTERACTIVE, "CELLULAR");
-
-        final IAuthenticationResult result = runAcquireTokenInteractive();
-
-        assertNotNull(result);
-        assertNotNull(result.getAccessToken());
-    }
-
-    @Test
     public void test_acquireTokenSilentWithNoInternetConnection() {
         NetworkMarkerManager
                 .useNetworkCondition(NetworkCodeMarkers.ACQUIRE_TOKEN_SILENT, "NONE");
@@ -82,15 +71,6 @@ public class TestCaseNetwork extends BaseMsalUiNetworkTest {
     public void test_acquireTokenSilentWithWIFI() throws Throwable {
         NetworkMarkerManager.useNetworkCondition(NetworkCodeMarkers.ACQUIRE_TOKEN_SILENT, "WIFI");
 
-        final IAuthenticationResult result = runAcquireTokenSilent(true);
-
-        assertNotNull(result);
-        assertNotNull(result.getAccessToken());
-    }
-
-    @Test
-    public void test_acquireTokenSilentWithMobileData() throws Throwable {
-        NetworkMarkerManager.useNetworkCondition(NetworkCodeMarkers.ACQUIRE_TOKEN_SILENT, "CELLULAR");
         final IAuthenticationResult result = runAcquireTokenSilent(true);
 
         assertNotNull(result);
