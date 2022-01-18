@@ -73,15 +73,18 @@ jobs:
         displayName: 'Rename APKs'
         workingDirectory: '$(Build.StagingDirectory)'
       # Firebase tasks
-      - script: gcloud version
-        displayName: 'Check gcloud version'
       - task: Bash@3
-        displayName: Run UI Automation on Firebase
+        displayName: Configure gcloud
         inputs:
           targettype: inline
           script: |
             gcloud auth activate-service-account --key-file "$(gcServiceAccountKey.secureFilePath)"
             gcloud config set project $(gCloudProjectId)
+      - task: Bash@3
+        displayName: Run Network automation with LTE
+        inputs:
+          targettype: inline
+          script: |
             gcloud firebase test android run \
               --type instrumentation \
               --app $(Build.StagingDirectory)/$(app) \
@@ -95,6 +98,14 @@ jobs:
               --results-history-name "$(resultsHistoryName)" \
               --network-profile "LTE" \
               --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.network"
+      - script: gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml $(Build.SourcesDirectory)/test_result_lte.xml
+        displayName: Download Test Result File
+        condition: succeededOrFailed()
+      - task: Bash@3
+        displayName: Run Network automation with HSPA
+        inputs:
+          targettype: inline
+          script: |
             gcloud firebase test android run \
               --type instrumentation \
               --app $(Build.StagingDirectory)/$(app) \
@@ -106,9 +117,9 @@ jobs:
               --use-orchestrator \
               --environment-variables clearPackageData=true \
               --results-history-name "$(resultsHistoryName)" \
-              --network-profile "HSPA" \
+              --network-profile "LTE" \
               --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.network"
-      - script: gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml $(Build.SourcesDirectory)
+      - script: gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml $(Build.SourcesDirectory)/test_result_hspa.xml
         displayName: Download Test Result File
         condition: succeededOrFailed()
       - task: PublishTestResults@2
