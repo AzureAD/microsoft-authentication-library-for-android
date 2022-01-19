@@ -97,8 +97,8 @@ public class TestCasePerfBrokered extends AbstractMsalBrokerTest {
         codeMarkerManager.setEnableCodeMarker(true);
         //Setting up scenario code. 100 -> Non Brokered, 200 -> Brokered
         codeMarkerManager.setPrefixScenarioCode(PerfConstants.ScenarioConstants.SCENARIO_BROKERED_ACQUIRE_TOKEN_SILENTLY);
-        //acquiring token silently
 
+        //acquiring token silently
         for(int i = 0; i < numberOfOccurrenceOfTest; i++) {
             codeMarkerManager.clearMarkers();
             final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
