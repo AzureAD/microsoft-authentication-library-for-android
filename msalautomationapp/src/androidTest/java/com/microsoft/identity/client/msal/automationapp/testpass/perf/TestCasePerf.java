@@ -73,23 +73,20 @@ public class TestCasePerf extends AbstractMsalUiTest {
         final InteractiveRequest interactiveRequest = new InteractiveRequest(
                 mApplication,
                 parameters,
-                new OnInteractionRequired() {
-                    @Override
-                    public void handleUserInteraction() {
-                        final String username = mLoginHint;
-                        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+                () -> {
+                    final String username = mLoginHint;
+                    final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
-                        final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                                .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHint(mLoginHint)
-                                .sessionExpected(false)
-                                .consentPageExpected(false)
-                                .speedBumpExpected(false)
-                                .build();
+                    final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
+                            .prompt(PromptParameter.SELECT_ACCOUNT)
+                            .loginHint(mLoginHint)
+                            .sessionExpected(false)
+                            .consentPageExpected(false)
+                            .speedBumpExpected(false)
+                            .build();
 
-                        new AadPromptHandler(promptHandlerParameters)
-                                .handlePrompt(username, password);
-                    }
+                    new AadPromptHandler(promptHandlerParameters)
+                            .handlePrompt(username, password);
                 }
         );
 

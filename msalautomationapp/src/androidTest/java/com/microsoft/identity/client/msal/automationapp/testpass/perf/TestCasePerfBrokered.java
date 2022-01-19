@@ -73,23 +73,20 @@ public class TestCasePerfBrokered extends AbstractMsalBrokerTest {
         final InteractiveRequest interactiveRequest = new InteractiveRequest(
                 mApplication,
                 parameters,
-                new OnInteractionRequired() {
-                    @Override
-                    public void handleUserInteraction() {
-                        final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                                .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHint(mLoginHint)
-                                .sessionExpected(false)
-                                .consentPageExpected(false)
-                                .speedBumpExpected(false)
-                                .broker(mBroker)
-                                .expectingBrokerAccountChooserActivity(false)
-                                .registerPageExpected(true)
-                                .build();
+                () -> {
+                    final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
+                            .prompt(PromptParameter.SELECT_ACCOUNT)
+                            .loginHint(mLoginHint)
+                            .sessionExpected(false)
+                            .consentPageExpected(false)
+                            .speedBumpExpected(false)
+                            .broker(mBroker)
+                            .expectingBrokerAccountChooserActivity(false)
+                            .registerPageExpected(true)
+                            .build();
 
-                        new AadPromptHandler(promptHandlerParameters)
-                                .handlePrompt(username, password);
-                    }
+                    new AadPromptHandler(promptHandlerParameters)
+                            .handlePrompt(username, password);
                 }
         );
 
