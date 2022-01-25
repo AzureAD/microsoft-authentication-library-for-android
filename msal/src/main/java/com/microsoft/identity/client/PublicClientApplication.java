@@ -1188,7 +1188,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     @Override
     public void saveMsaFamilyRefreshToken(@NonNull final String refreshToken) throws MsalClientException {
         validateNonNullArgument(refreshToken, "refreshToken");
-        validateBrokerNotInUse();
+
+        // todo: Re-enable this when MSA SSO is fully supported by Broker (PRTv3)
+        //validateBrokerNotInUse();
 
         try {
             mTokenShareUtility.saveMsaFamilyRefreshToken(refreshToken);
