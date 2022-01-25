@@ -91,14 +91,14 @@ jobs:
               --test $(Build.StagingDirectory)/$(testApp) \
               --device "model=$(deviceId),version=$(deviceAndroidVersion)" \
               --timeout "$(firebaseTimeout)" \
-              --results-dir $(resultsDir) \
+              --results-dir $(resultsDir)/lte \
               --directories-to-pull "/sdcard" \
               --use-orchestrator \
               --environment-variables clearPackageData=true \
               --results-history-name "$(resultsHistoryName)" \
               --network-profile "LTE" \
               --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.network"
-      - script: gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml $(Build.SourcesDirectory)/test_result_lte.xml
+      - script: gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/lte/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml $(Build.SourcesDirectory)/test_result_lte.xml
         displayName: Download Test Result File
         condition: succeededOrFailed()
       - task: PublishTestResults@2
@@ -119,14 +119,14 @@ jobs:
               --test $(Build.StagingDirectory)/$(testApp) \
               --device "model=$(deviceId),version=$(deviceAndroidVersion)" \
               --timeout "$(firebaseTimeout)" \
-              --results-dir $(resultsDir) \
+              --results-dir $(resultsDir)/hspa \
               --directories-to-pull "/sdcard" \
               --use-orchestrator \
               --environment-variables clearPackageData=true \
               --results-history-name "$(resultsHistoryName)" \
               --network-profile "HSPA" \
               --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.network"
-      - script: gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml $(Build.SourcesDirectory)/test_result_hspa.xml
+      - script: gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/hspa/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml $(Build.SourcesDirectory)/test_result_hspa.xml
         displayName: Download Test Result File
         condition: succeededOrFailed()
       - task: PublishTestResults@2
@@ -147,14 +147,14 @@ jobs:
               --test $(Build.StagingDirectory)/$(testApp) \
               --device "model=$(deviceId),version=$(deviceAndroidVersion)" \
               --timeout "$(firebaseTimeout)" \
-              --results-dir $(resultsDir) \
+              --results-dir $(resultsDir)/edge \
               --directories-to-pull "/sdcard" \
               --use-orchestrator \
               --environment-variables clearPackageData=true \
               --results-history-name "$(resultsHistoryName)" \
               --network-profile "EDGE" \
               --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.network"
-      - script: gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml $(Build.SourcesDirectory)/test_result_edge.xml
+      - script: gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/edge/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml $(Build.SourcesDirectory)/test_result_edge.xml
         displayName: Download Test Result File
         condition: succeededOrFailed()
       - task: PublishTestResults@2
@@ -164,3 +164,31 @@ jobs:
           testResultsFiles: '*test_result*.xml'
           searchFolder: $(Build.SourcesDirectory)
           testRunTitle: '[EDGE] MSAL Network Automation - Build # $(Build.BuildNumber)'
+      - task: Bash@3
+        displayName: Run Network automation with GPRS
+        inputs:
+          targettype: inline
+          script: |
+            gcloud firebase test android run \
+              --type instrumentation \
+              --app $(Build.StagingDirectory)/$(app) \
+              --test $(Build.StagingDirectory)/$(testApp) \
+              --device "model=$(deviceId),version=$(deviceAndroidVersion)" \
+              --timeout "$(firebaseTimeout)" \
+              --results-dir $(resultsDir)/gprs \
+              --directories-to-pull "/sdcard" \
+              --use-orchestrator \
+              --environment-variables clearPackageData=true \
+              --results-history-name "$(resultsHistoryName)" \
+              --network-profile "GPRS" \
+              --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.network"
+      - script: gsutil cp gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/gprs/$(deviceId)-$(deviceAndroidVersion)-en-portrait/test_result_1.xml $(Build.SourcesDirectory)/test_result_gprs.xml
+        displayName: Download Test Result File
+        condition: succeededOrFailed()
+      - task: PublishTestResults@2
+        displayName: Publish Test Results to ADO
+        condition: succeededOrFailed()
+        inputs:
+          testResultsFiles: '*test_result*.xml'
+          searchFolder: $(Build.SourcesDirectory)
+          testRunTitle: '[GPRS] MSAL Network Automation - Build # $(Build.BuildNumber)'
