@@ -22,48 +22,24 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import android.Manifest;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.ActivityInfo;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
-import android.content.pm.Signature;
-import android.net.Uri;
-import android.text.TextUtils;
-import android.util.Base64;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.VisibleForTesting;
-
 import com.google.gson.annotations.SerializedName;
 import com.microsoft.identity.client.configuration.AccountMode;
 import com.microsoft.identity.client.configuration.HttpConfiguration;
 import com.microsoft.identity.client.configuration.LoggerConfiguration;
 import com.microsoft.identity.client.exception.MsalClientException;
-import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
+import com.microsoft.identity.common.internal.authorities.UnknownAudience;
+import com.microsoft.identity.common.internal.broker.PackageHelper;
+import com.microsoft.identity.common.internal.logging.Logger;
+import com.microsoft.identity.common.internal.telemetry.TelemetryConfiguration;
 import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.java.authorities.Environment;
-import com.microsoft.identity.common.internal.authorities.UnknownAudience;
 import com.microsoft.identity.common.java.authorities.UnknownAuthority;
-import com.microsoft.identity.common.internal.broker.PackageHelper;
 import com.microsoft.identity.common.java.configuration.LibraryConfiguration;
-import com.microsoft.identity.common.internal.logging.Logger;
-import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
-import com.microsoft.identity.common.internal.telemetry.TelemetryConfiguration;
 import com.microsoft.identity.common.java.ui.AuthorizationAgent;
 import com.microsoft.identity.common.java.ui.BrowserDescriptor;
-
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.crypto.SecretKey;
 
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.ACCOUNT_MODE;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORITIES;
@@ -86,33 +62,31 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEB_VIEW_ZOOM_ENABLED;
 import static com.microsoft.identity.client.exception.MsalClientException.APP_MANIFEST_VALIDATION_ERROR;
 
-public class PublicClientApplicationConfiguration {
-    private static final String TAG = PublicClientApplicationConfiguration.class.getSimpleName();
+import android.Manifest;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.content.pm.Signature;
+import android.net.Uri;
+import android.text.TextUtils;
+import android.util.Base64;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.List;
+
+import javax.crypto.SecretKey;
+
+public class GlobalSettingsConfiguration {
+    private static final String TAG = GlobalSettingsConfiguration.class.getSimpleName();
     private static final String BROKER_REDIRECT_URI_SCHEME_AND_SEPARATOR = "msauth://";
     public static final String INVALID_REDIRECT_MSG = "Invalid, null, or malformed redirect_uri supplied";
-
-    public static final class SerializedNames {
-        static final String CLIENT_ID = "client_id";
-        static final String REDIRECT_URI = "redirect_uri";
-        static final String AUTHORITIES = "authorities";
-        static final String AUTHORIZATION_USER_AGENT = "authorization_user_agent";
-        static final String HTTP = "http";
-        static final String LOGGING = "logging";
-        static final String MULTIPLE_CLOUDS_SUPPORTED = "multiple_clouds_supported";
-        static final String USE_BROKER = "broker_redirect_uri_registered";
-        static final String ENVIRONMENT = "environment";
-        static final String REQUIRED_BROKER_PROTOCOL_VERSION = "minimum_required_broker_protocol_version";
-        static final String TELEMETRY = "telemetry";
-        static final String BROWSER_SAFE_LIST = "browser_safelist";
-        static final String ACCOUNT_MODE = "account_mode";
-        static final String CLIENT_CAPABILITIES = "client_capabilities";
-        static final String WEB_VIEW_ZOOM_CONTROLS_ENABLED = "web_view_zoom_controls_enabled";
-        static final String WEB_VIEW_ZOOM_ENABLED = "web_view_zoom_enabled";
-        static final String POWER_OPT_CHECK_FOR_NETWORK_REQUEST_ENABLED = "power_opt_check_for_network_req_enabled";
-        static final String HANDLE_TASKS_WITH_NULL_TASKAFFINITY = "handle_null_taskaffinity";
-        static final String AUTHORIZATION_IN_CURRENT_TASK = "authorization_in_current_task";
-    }
 
     @SerializedName(CLIENT_ID)
     private String mClientId;
@@ -175,13 +149,11 @@ public class PublicClientApplicationConfiguration {
     @SerializedName(AUTHORIZATION_IN_CURRENT_TASK)
     private Boolean isAuthorizationInCurrentTask;
 
-    transient private OAuth2TokenCache mOAuth2TokenCache;
-
     transient private Context mAppContext;
 
     transient private boolean mIsSharedDevice = false;
 
-    transient private List<Authority> mKnownAuthorities = new ArrayList<>();
+    public static final String MISSING_GLOBAL_CONFIGURATION_MSG = "Warning message telling user they did not initialize the global configuration";
 
     /**
      * Sets the secret key bytes to use when encrypting/decrypting cache entries.
@@ -350,14 +322,6 @@ public class PublicClientApplicationConfiguration {
         mAppContext = applicationContext;
     }
 
-    OAuth2TokenCache getOAuth2TokenCache() {
-        return mOAuth2TokenCache;
-    }
-
-    void setOAuth2TokenCache(OAuth2TokenCache tokenCache) {
-        mOAuth2TokenCache = tokenCache;
-    }
-
     public boolean getIsSharedDevice() {
         return mIsSharedDevice;
     }
@@ -366,11 +330,11 @@ public class PublicClientApplicationConfiguration {
         mIsSharedDevice = isSharedDevice;
     }
 
-    public boolean isWebViewZoomControlsEnabled() {
+    public Boolean isWebViewZoomControlsEnabled() {
         return webViewZoomControlsEnabled;
     }
 
-    public boolean isWebViewZoomEnabled() {
+    public Boolean isWebViewZoomEnabled() {
         return webViewZoomEnabled;
     }
 
@@ -455,62 +419,6 @@ public class PublicClientApplicationConfiguration {
         }
     }
 
-    void mergeConfiguration(PublicClientApplicationConfiguration config) {
-        this.mClientId = config.mClientId == null ? this.mClientId : config.mClientId;
-        this.mRedirectUri = config.mRedirectUri == null ? this.mRedirectUri : config.mRedirectUri;
-        this.mAuthorities = config.mAuthorities == null ? this.mAuthorities : config.mAuthorities;
-        this.mAuthorizationAgent = config.mAuthorizationAgent == null ? this.mAuthorizationAgent : config.mAuthorizationAgent;
-        this.mEnvironment = config.mEnvironment == null ? this.mEnvironment : config.mEnvironment;
-        this.mHttpConfiguration = config.mHttpConfiguration == null ? this.mHttpConfiguration : config.mHttpConfiguration;
-        this.mMultipleCloudsSupported = config.mMultipleCloudsSupported == null ? this.mMultipleCloudsSupported : config.mMultipleCloudsSupported;
-        this.mUseBroker = config.mUseBroker == null ? this.mUseBroker : config.mUseBroker;
-        this.mTelemetryConfiguration = config.mTelemetryConfiguration == null ? this.mTelemetryConfiguration : config.mTelemetryConfiguration;
-        this.mRequiredBrokerProtocolVersion = config.mRequiredBrokerProtocolVersion == null ? this.mRequiredBrokerProtocolVersion : config.mRequiredBrokerProtocolVersion;
-        if (this.mBrowserSafeList == null) {
-            this.mBrowserSafeList = config.mBrowserSafeList;
-        } else if (config.mBrowserSafeList != null) {
-            this.mBrowserSafeList.addAll(config.mBrowserSafeList);
-        }
-        // Multiple is the default mode.
-        this.mAccountMode = config.mAccountMode != AccountMode.MULTIPLE ? config.mAccountMode : this.mAccountMode;
-        this.mClientCapabilities = config.mClientCapabilities == null ? this.mClientCapabilities : config.mClientCapabilities;
-        this.mIsSharedDevice = config.mIsSharedDevice == true ? this.mIsSharedDevice : config.mIsSharedDevice;
-        this.mLoggerConfiguration = config.mLoggerConfiguration == null ? this.mLoggerConfiguration : config.mLoggerConfiguration;
-        this.webViewZoomControlsEnabled = config.webViewZoomControlsEnabled == null ? this.webViewZoomControlsEnabled : config.webViewZoomControlsEnabled;
-        this.webViewZoomEnabled = config.webViewZoomEnabled == null ? this.webViewZoomEnabled : config.webViewZoomEnabled;
-        this.powerOptCheckEnabled = config.powerOptCheckEnabled == null ? this.powerOptCheckEnabled : config.powerOptCheckEnabled;
-        this.handleNullTaskAffinity = config.handleNullTaskAffinity == null ? this.handleNullTaskAffinity : config.handleNullTaskAffinity;
-        this.isAuthorizationInCurrentTask = config.isAuthorizationInCurrentTask == null ? this.isAuthorizationInCurrentTask : config.isAuthorizationInCurrentTask;
-    }
-
-    void mergeGlobalConfiguration(GlobalSettingsConfiguration globalConfig) {
-        this.mClientId = globalConfig.getClientId() == null ? this.mClientId : globalConfig.getClientId();
-        this.mRedirectUri = globalConfig.getRedirectUri() == null ? this.mRedirectUri : globalConfig.getRedirectUri();
-        this.mAuthorities = globalConfig.getAuthorities() == null ? this.mAuthorities : globalConfig.getAuthorities();
-        this.mAuthorizationAgent = globalConfig.getAuthorizationAgent() == null ? this.mAuthorizationAgent : globalConfig.getAuthorizationAgent();
-        this.mEnvironment = globalConfig.getEnvironment() == null ? this.mEnvironment : globalConfig.getEnvironment();
-        this.mHttpConfiguration = globalConfig.getHttpConfiguration() == null ? this.mHttpConfiguration : globalConfig.getHttpConfiguration();
-        this.mMultipleCloudsSupported = globalConfig.getMultipleCloudsSupported() == null ? this.mMultipleCloudsSupported : globalConfig.getMultipleCloudsSupported();
-        this.mUseBroker = globalConfig.getUseBroker() == null ? this.mUseBroker : globalConfig.getUseBroker();
-        this.mTelemetryConfiguration = globalConfig.getTelemetryConfiguration() == null ? this.mTelemetryConfiguration : globalConfig.getTelemetryConfiguration();
-        this.mRequiredBrokerProtocolVersion = globalConfig.getRequiredBrokerProtocolVersion() == null ? this.mRequiredBrokerProtocolVersion : globalConfig.getRequiredBrokerProtocolVersion();
-        if (this.mBrowserSafeList == null) {
-            this.mBrowserSafeList = globalConfig.getBrowserSafeList();
-        } else if (globalConfig.getBrowserSafeList() != null) {
-            this.mBrowserSafeList.addAll(globalConfig.getBrowserSafeList());
-        }
-        // Multiple is the default mode.
-        this.mAccountMode = globalConfig.getAccountMode() != AccountMode.MULTIPLE ? globalConfig.getAccountMode() : this.mAccountMode;
-        this.mClientCapabilities = globalConfig.getClientCapabilities() == null ? this.mClientCapabilities : globalConfig.getClientCapabilities();
-        this.mIsSharedDevice = globalConfig.getIsSharedDevice() == true ? this.mIsSharedDevice : globalConfig.getIsSharedDevice();
-        this.mLoggerConfiguration = globalConfig.getLoggerConfiguration() == null ? this.mLoggerConfiguration : globalConfig.getLoggerConfiguration();
-        this.webViewZoomControlsEnabled = globalConfig.isWebViewZoomControlsEnabled() == null ? this.webViewZoomControlsEnabled : globalConfig.isWebViewZoomControlsEnabled();
-        this.webViewZoomEnabled = globalConfig.isWebViewZoomEnabled() == null ? this.webViewZoomEnabled : globalConfig.isWebViewZoomEnabled();
-        this.powerOptCheckEnabled = globalConfig.isPowerOptCheckForEnabled() == null ? this.powerOptCheckEnabled : globalConfig.isPowerOptCheckForEnabled();
-        this.handleNullTaskAffinity = globalConfig.isHandleNullTaskAffinityEnabled() == null ? this.handleNullTaskAffinity : globalConfig.isHandleNullTaskAffinityEnabled();
-        this.isAuthorizationInCurrentTask = globalConfig.authorizationInCurrentTask() == null ? this.isAuthorizationInCurrentTask : globalConfig.authorizationInCurrentTask();
-    }
-
     void validateConfiguration() {
         validateRedirectUri(mRedirectUri);
         nullConfigurationCheck(CLIENT_ID, mClientId);
@@ -559,7 +467,7 @@ public class PublicClientApplicationConfiguration {
             final boolean hasAuthority = !TextUtils.isEmpty(parsedRedirectUri.getAuthority());
             return hasScheme && hasAuthority;
         } catch (final NullPointerException e) {
-            Logger.errorPII(TAG, INVALID_REDIRECT_MSG, e);
+            com.microsoft.identity.common.internal.logging.Logger.errorPII(TAG, INVALID_REDIRECT_MSG, e);
         }
 
         return false;
@@ -615,7 +523,7 @@ public class PublicClientApplicationConfiguration {
                 }
             }
         } catch (PackageManager.NameNotFoundException | NoSuchAlgorithmException e) {
-            Logger.error(TAG, "Unexpected error in verifyRedirectUriWithAppSignature()", e);
+            com.microsoft.identity.common.internal.logging.Logger.error(TAG, "Unexpected error in verifyRedirectUriWithAppSignature()", e);
             throw new MsalClientException(MsalClientException.UNKNOWN_ERROR, "Unexpected error in verifyRedirectUriWithAppSignature()", e);
         }
     }
@@ -733,7 +641,7 @@ public class PublicClientApplicationConfiguration {
         if (mAppContext != null && !isBrokerRedirectUri(mRedirectUri, mAppContext.getPackageName())) {
             // This means that the app is still using the legacy local-only MSAL Redirect uri (already removed from the new portal).
             // If this is the case, we can assume that the user doesn't need Broker support.
-            Logger.warn(TAG, "The app is still using legacy MSAL redirect uri. Switch to MSAL local auth."
+            com.microsoft.identity.common.internal.logging.Logger.warn(TAG, "The app is still using legacy MSAL redirect uri. Switch to MSAL local auth."
                     + "  For brokered auth, the redirect URI is expected to conform to 'msauth://<authority>/.*' where the authority in "
                     + "that uri is the package name of the app. This package name is listed as 'applicationId' in the build.gradle file.");
             mUseBroker = false;
@@ -758,7 +666,7 @@ public class PublicClientApplicationConfiguration {
                 md.update(signature.toByteArray());
                 final String signatureHash = Base64.encodeToString(md.digest(), Base64.NO_WRAP);
                 if (AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_RELEASE_SIGNATURE.equalsIgnoreCase(signatureHash)
-                    || AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_DEBUG_SIGNATURE.equalsIgnoreCase(signatureHash)) {
+                        || AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_DEBUG_SIGNATURE.equalsIgnoreCase(signatureHash)) {
                     final Uri.Builder builder = new Uri.Builder();
                     final Uri uri = builder.scheme("msauth")
                             .authority(mAppContext.getPackageName())

@@ -93,12 +93,27 @@ public class PublicClientApplicationConfigurationFactory {
             config.validateConfiguration();
         }
 
+        final PublicClientApplicationConfiguration configWithGlobal = mergeConfigurationWithGlobal(config);
+
         //Initialize internal library configuration
-        final LibraryConfiguration libraryConfiguration = LibraryConfiguration.builder().authorizationInCurrentTask((config.authorizationInCurrentTask())).build();
+        final LibraryConfiguration libraryConfiguration = LibraryConfiguration.builder().authorizationInCurrentTask((configWithGlobal.authorizationInCurrentTask())).build();
         LibraryConfiguration.intializeLibraryConfiguration(libraryConfiguration);
 
-        config.setOAuth2TokenCache(MsalOAuth2TokenCache.create(AndroidPlatformComponents.createFromContext(context)));
-        return config;
+        configWithGlobal.setOAuth2TokenCache(MsalOAuth2TokenCache.create(AndroidPlatformComponents.createFromContext(context)));
+        return configWithGlobal;
+    }
+
+    @WorkerThread
+    private static PublicClientApplicationConfiguration mergeConfigurationWithGlobal(final @NonNull PublicClientApplicationConfiguration developerConfig) {
+        if (!GlobalSettings.isGlobalSettingsInitialized()){
+            Logger.warn(TAG + "mergeConfigurationWithGlobal",
+                    GlobalSettings.NO_GLOBAL_SETTINGS_WARNING);
+            return developerConfig;
+        }
+
+        developerConfig.mergeGlobalConfiguration(GlobalSettings.getGlobalSettingsConfiguration());
+
+        return developerConfig;
     }
 
     @WorkerThread
