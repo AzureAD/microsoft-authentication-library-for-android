@@ -50,6 +50,7 @@ import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
 import com.microsoft.identity.common.java.util.ResultFuture;
 import com.microsoft.identity.common.logging.Logger;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -448,7 +449,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         final AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
                 activity,
                 null,
-                scopes,
+                Arrays.asList(scopes),
                 null, // account
                 null, // uiBehavior
                 null, // extraQueryParams

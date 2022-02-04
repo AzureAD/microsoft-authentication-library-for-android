@@ -1384,14 +1384,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final List<String> scopes,
                              @NonNull final AuthenticationCallback callback) {
-        final String[] scopesAsArray = (String[]) scopes.toArray();
-        acquireToken(activity, scopesAsArray, callback);
-    }
-
-    @Override
-    public void acquireToken(@NonNull final Activity activity,
-                             @NonNull final String[] scopes,
-                             @NonNull final AuthenticationCallback callback) {
         AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
                 activity,
                 null,
@@ -1409,10 +1401,36 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         acquireTokenInternal(acquireTokenParameters, PublicApiId.PCA_ACQUIRE_TOKEN_WITH_ACTIVITY_SCOPES_CALLBACK);
     }
 
+    /**
+     * @deprecated This method will be replaced with {@link PublicClientApplication#acquireToken(Activity, List, AuthenticationCallback)}
+     *             in the next major MSAL release.
+     */
+    @Override
+    @Deprecated
+    public void acquireToken(@NonNull final Activity activity,
+                             @NonNull final String[] scopes,
+                             @NonNull final AuthenticationCallback callback) {
+        AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
+                activity,
+                null,
+                Arrays.asList(scopes),
+                null, // account
+                null, // uiBehavior
+                null, // extraQueryParams
+                null, // extraScopes
+                null, // authority
+                callback,
+                null, // loginHint
+                null // claimsRequest
+        );
+
+        acquireTokenInternal(acquireTokenParameters, PublicApiId.PCA_ACQUIRE_TOKEN_WITH_ACTIVITY_SCOPES_CALLBACK);
+    }
+
     AcquireTokenParameters buildAcquireTokenParameters(
             @NonNull final Activity activity,
             @Nullable final Fragment fragment,
-            @NonNull final String[] scopes,
+            @NonNull final List<String> scopes,
             @Nullable final IAccount account,
             @Nullable final Prompt uiBehavior,
             @Nullable final List<Map.Entry<String, String>> extraQueryParameters,
@@ -1430,7 +1448,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         AcquireTokenParameters acquireTokenParameters = builder.startAuthorizationFromActivity(activity)
                 .withFragment(fragment)
                 .forAccount(account)
-                .withScopes(Arrays.asList(scopes))
+                .withScopes(scopes)
                 .withPrompt(uiBehavior)
                 .withAuthorizationQueryStringParameters(extraQueryParameters)
                 .withOtherScopesToAuthorize(
@@ -1792,11 +1810,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     public void acquireTokenWithDeviceCode(@Nullable List<String> scopes, @NonNull final DeviceCodeFlowCallback callback) {
-        final String[] scopesAsArray = (String[]) scopes.toArray();
-        acquireTokenWithDeviceCode(scopesAsArray, callback);
-    }
-
-    public void acquireTokenWithDeviceCode(@Nullable String[] scopes, @NonNull final DeviceCodeFlowCallback callback) {
         // Create a DeviceCodeFlowCommandParameters object that takes in the desired scopes and the callback object
         // Use CommandParametersAdapter
         final DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter
@@ -1804,6 +1817,36 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                         mPublicClientConfiguration,
                         mPublicClientConfiguration.getOAuth2TokenCache(),
                         scopes);
+
+        // Create a CommandCallback object from the DeviceCodeFlowCallback object
+        final DeviceCodeFlowCommandCallback deviceCodeFlowCommandCallback = getDeviceCodeFlowCommandCallback(callback);
+
+        // Create a DeviceCodeFlowCommand object
+        // Pass the command parameters, default controller, and command callback
+        // Telemetry with DEVICE_CODE_FLOW_CALLBACK
+        final DeviceCodeFlowCommand deviceCodeFlowCommand = new DeviceCodeFlowCommand(
+                commandParameters,
+                new LocalMSALController(),
+                deviceCodeFlowCommandCallback,
+                PublicApiId.DEVICE_CODE_FLOW_WITH_CALLBACK
+        );
+
+        CommandDispatcher.submitSilent(deviceCodeFlowCommand);
+    }
+
+    /**
+     * @deprecated This method will be replaced with {@link PublicClientApplication#acquireTokenWithDeviceCode(List, DeviceCodeFlowCallback)}
+     *             in the next major MSAL release.
+     */
+    @Deprecated
+    public void acquireTokenWithDeviceCode(@Nullable String[] scopes, @NonNull final DeviceCodeFlowCallback callback) {
+        // Create a DeviceCodeFlowCommandParameters object that takes in the desired scopes and the callback object
+        // Use CommandParametersAdapter
+        final DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter
+                .createDeviceCodeFlowCommandParameters(
+                        mPublicClientConfiguration,
+                        mPublicClientConfiguration.getOAuth2TokenCache(),
+                        Arrays.asList(scopes));
 
         // Create a CommandCallback object from the DeviceCodeFlowCallback object
         final DeviceCodeFlowCommandCallback deviceCodeFlowCommandCallback = getDeviceCodeFlowCommandCallback(callback);

@@ -75,11 +75,14 @@ import static junit.framework.TestCase.fail;
 public final class PublicClientApplicationTest {
     private Context mAppContext;
     private static final String CLIENT_ID = "client-id";
-    private static final String[] SCOPE = {"scope1", "scope2"};
+    private static final List<String> SCOPE = new ArrayList<>();
     public static final String TEST_REDIRECT_URI = "msauth://com.microsoft.identity.client.sample.local/signature";
 
     @Before
     public void setUp() {
+        SCOPE.add("scope1");
+        SCOPE.add("scope2");
+
         System.setProperty(
                 "dexmaker.dexcache",
                 androidx.test.platform.app.InstrumentationRegistry

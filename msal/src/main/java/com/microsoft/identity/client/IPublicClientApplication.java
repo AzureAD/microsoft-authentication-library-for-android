@@ -264,7 +264,7 @@ public interface IPublicClientApplication {
      * 3). Receiving an exception detailing what went wrong in the protocol
      * via {@link DeviceCodeFlowCallback#onError(MsalException)}.
      * <p>
-     * Refer to {@link PublicClientApplication#acquireTokenWithDeviceCode(String[], DeviceCodeFlowCallback)}.
+     * Refer to {@link PublicClientApplication#acquireTokenWithDeviceCode(List, DeviceCodeFlowCallback)}.
      */
     interface DeviceCodeFlowCallback {
         /**

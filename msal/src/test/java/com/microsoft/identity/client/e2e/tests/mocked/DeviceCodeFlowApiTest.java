@@ -56,7 +56,9 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.SINGLE_ACCOUNT_DCF_TEST_CONFIG_FILE_PATH;
@@ -243,7 +245,8 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
     @Test
     @Config(shadows = {ShadowDeviceCodeFlowCommandAuthError.class})
     public void testDeviceCodeFlowAuthFailure() {
-        String[] scope = {"user.read"};
+        List<String> scope = new ArrayList<>();
+        scope.add("user.read");
         mApplication.acquireTokenWithDeviceCode(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
             @Override
             public void onUserCodeReceived(@NonNull String vUri,
@@ -274,7 +277,8 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
     @Test
     @Config(shadows = {ShadowDeviceCodeFlowCommandTokenError.class})
     public void testDeviceCodeFlowTokenFailure() {
-        String[] scope = {"user.read"};
+        List<String> scope = new ArrayList<>();
+        scope.add("user.read");
         mApplication.acquireTokenWithDeviceCode(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
             @Override
             public void onUserCodeReceived(@NonNull String vUri,
@@ -311,7 +315,8 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
     @Test
     @Config(shadows = {ShadowDeviceCodeFlowCommandSuccessful.class})
     public void testDeviceCodeFlowSuccess() {
-        String[] scope = {"user.read"};
+        List<String> scope = new ArrayList<>();
+        scope.add("user.read");
         mApplication.acquireTokenWithDeviceCode(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
             @Override
             public void onUserCodeReceived(@NonNull String vUri,

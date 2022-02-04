@@ -368,7 +368,7 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
                         .build(),
                 MockServerResponse.getMockDeviceCodeFlowAuthorizationHttpResponse()
         );
-        mSingleAccountPCA.acquireTokenWithDeviceCode(mScopes, new IPublicClientApplication.DeviceCodeFlowCallback() {
+        mSingleAccountPCA.acquireTokenWithDeviceCode(Arrays.asList(mScopes), new IPublicClientApplication.DeviceCodeFlowCallback() {
             @Override
             public void onUserCodeReceived(final @NonNull String vUri,
                                            final @NonNull String userCode,

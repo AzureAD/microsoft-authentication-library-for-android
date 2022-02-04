@@ -58,6 +58,7 @@ import com.microsoft.identity.common.java.result.LocalAuthenticationResult;
 import com.microsoft.identity.common.java.util.ResultFuture;
 import com.microsoft.identity.common.logging.Logger;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -256,7 +257,7 @@ public class SingleAccountPublicClientApplication
         final AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
                 activity,
                 null,
-                scopes,
+                Arrays.asList(scopes),
                 null, // account
                 null, // uiBehavior
                 null, // extraQueryParams
@@ -291,7 +292,7 @@ public class SingleAccountPublicClientApplication
         final AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
                 activity,
                 null,
-                scopes,
+                Arrays.asList(scopes),
                 null, // account
                 prompt, // prompt
                 null, // extraQueryParams
@@ -321,7 +322,7 @@ public class SingleAccountPublicClientApplication
         final AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
                 activity,
                 null,
-                scopes,
+                Arrays.asList(scopes),
                 persistedCurrentAccount, // account
                 prompt, // prompt
                 null, // extraQueryParams
@@ -555,11 +556,39 @@ public class SingleAccountPublicClientApplication
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final List<String> scopes,
                              @NonNull final AuthenticationCallback callback) {
-        final String[] scopesAsArray = (String[]) scopes.toArray();
-        acquireToken(activity, scopesAsArray, callback);
+        final IAccount persistedAccount = getPersistedCurrentAccount();
+        if (persistedAccount == null) {
+            callback.onError(new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT,
+                    MsalClientException.NO_CURRENT_ACCOUNT_ERROR_MESSAGE));
+            return;
+        }
+
+        final AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
+                activity,
+                null,
+                scopes,
+                getPersistedCurrentAccount(), // account, could be null.
+                null, // uiBehavior
+                null, // extraQueryParams
+                null, // extraScopes
+                null, // authority
+                callback,
+                null, // loginHint
+                null // claimsRequest
+        );
+
+        acquireTokenInternal(
+                acquireTokenParameters,
+                SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_ACTIVITY_SCOPES_CALLBACK
+        );
     }
 
+    /**
+     * @deprecated This method will be replaced with {@link SingleAccountPublicClientApplication#acquireToken(Activity, List, AuthenticationCallback)}
+     *             in the next major MSAL release.
+     */
     @Override
+    @Deprecated
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
                              @NonNull final AuthenticationCallback callback) {
@@ -573,7 +602,7 @@ public class SingleAccountPublicClientApplication
         final AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
                 activity,
                 null,
-                scopes,
+                Arrays.asList(scopes),
                 getPersistedCurrentAccount(), // account, could be null.
                 null, // uiBehavior
                 null, // extraQueryParams

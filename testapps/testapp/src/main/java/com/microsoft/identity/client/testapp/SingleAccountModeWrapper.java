@@ -36,6 +36,7 @@ import com.microsoft.identity.common.internal.ui.browser.BrowserSelector;
 import com.microsoft.identity.common.java.exception.ClientException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class SingleAccountModeWrapper extends MsalWrapper {
@@ -128,7 +129,7 @@ public class SingleAccountModeWrapper extends MsalWrapper {
     @Override
     void acquireTokenWithDeviceCodeFlowInternal(@NonNull String[] scopes,
                                                 @NonNull final IPublicClientApplication.DeviceCodeFlowCallback callback) {
-        mApp.acquireTokenWithDeviceCode(scopes, callback);
+        mApp.acquireTokenWithDeviceCode(Arrays.asList(scopes), callback);
     }
 
     @Override
