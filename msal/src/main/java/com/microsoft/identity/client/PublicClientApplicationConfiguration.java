@@ -499,8 +499,8 @@ public class PublicClientApplicationConfiguration {
         } else if (globalConfig.getBrowserSafeList() != null) {
             this.mBrowserSafeList.addAll(globalConfig.getBrowserSafeList());
         }
-        // Multiple is the default mode.
-        this.mAccountMode = globalConfig.getAccountMode() != AccountMode.MULTIPLE ? globalConfig.getAccountMode() : this.mAccountMode;
+        // Multiple as default will be handled when PCA is merged with the default PCA, here, just check if developer specified anything in global
+        this.mAccountMode = globalConfig.getAccountMode() != null ? globalConfig.getAccountMode() : this.mAccountMode;
         this.mClientCapabilities = globalConfig.getClientCapabilities() == null ? this.mClientCapabilities : globalConfig.getClientCapabilities();
         this.mIsSharedDevice = globalConfig.getIsSharedDevice() == true ? this.mIsSharedDevice : globalConfig.getIsSharedDevice();
         this.mLoggerConfiguration = globalConfig.getLoggerConfiguration() == null ? this.mLoggerConfiguration : globalConfig.getLoggerConfiguration();

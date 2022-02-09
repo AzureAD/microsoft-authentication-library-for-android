@@ -46,6 +46,7 @@ public class GlobalSettings {
 
     private static GlobalSettingsConfiguration mGlobalSettingsConfiguration;
     private static boolean mGlobalSettingsInitialized = false;
+    private static Object mGlobalSettingsLock = new Object();
     public static final String NO_GLOBAL_SETTINGS_WARNING = "Global settings have not been initialized before the creation of this PCA Configuration.";
 
     /**
@@ -63,10 +64,12 @@ public class GlobalSettings {
         runOnBackground(new Runnable() {
             @Override
             public void run() {
-                setGlobalConfiguration(
-                        initializeGlobalConfiguration(context, configFileResourceId),
-                        listener
-                );
+                synchronized (mGlobalSettingsLock) {
+                    setGlobalConfiguration(
+                            initializeGlobalConfiguration(context, configFileResourceId),
+                            listener
+                    );
+                }
             }
         });
     }
@@ -132,6 +135,10 @@ public class GlobalSettings {
 
     protected static boolean isGlobalSettingsInitialized() {
         return mGlobalSettingsInitialized;
+    }
+
+    protected static Object getGlobalSettingsLock() {
+        return mGlobalSettingsLock;
     }
 
     public interface GlobalSettingsListener {

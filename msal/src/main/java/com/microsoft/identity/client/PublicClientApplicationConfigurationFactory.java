@@ -105,15 +105,17 @@ public class PublicClientApplicationConfigurationFactory {
 
     @WorkerThread
     private static PublicClientApplicationConfiguration mergeConfigurationWithGlobal(final @NonNull PublicClientApplicationConfiguration developerConfig) {
-        if (!GlobalSettings.isGlobalSettingsInitialized()){
-            Logger.warn(TAG + "mergeConfigurationWithGlobal",
-                    GlobalSettings.NO_GLOBAL_SETTINGS_WARNING);
+        synchronized (GlobalSettings.getGlobalSettingsLock()) {
+            if (!GlobalSettings.isGlobalSettingsInitialized()) {
+                Logger.warn(TAG + "mergeConfigurationWithGlobal",
+                        GlobalSettings.NO_GLOBAL_SETTINGS_WARNING);
+                return developerConfig;
+            }
+
+            developerConfig.mergeGlobalConfiguration(GlobalSettings.getGlobalSettingsConfiguration());
+
             return developerConfig;
         }
-
-        developerConfig.mergeGlobalConfiguration(GlobalSettings.getGlobalSettingsConfiguration());
-
-        return developerConfig;
     }
 
     @WorkerThread
