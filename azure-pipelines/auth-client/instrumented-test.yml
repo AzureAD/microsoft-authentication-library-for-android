@@ -6,7 +6,9 @@ trigger:
 - main
 
 pool:
-  vmImage: azure-pipeline-win-2019-compliant
+  name: 1ESDockerBuild
+  demands:
+  - Agent.Name -eqauls azure-pipeline-win-2019-compliant
 
 resources:
  repositories:
