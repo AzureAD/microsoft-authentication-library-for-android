@@ -27,3 +27,4 @@ jobs:
     envVstsMvnAndroidAccessTokenVar: ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN
     assembleTask: assembleDistRelease
     publishTask: publish
+    sbomConfiguration: distReleaseRuntimeClasspath
