@@ -17,7 +17,7 @@ resources:
   - repository: common
     type: github
     name: AzureAD/microsoft-authentication-library-common-for-android
-    ref: pedroro/eoc-agents
+    ref: dev
     endpoint: ANDROID_GITHUB
 
 jobs:
