@@ -43,6 +43,7 @@ import com.microsoft.identity.common.logging.Logger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 public class CommandParametersAdapter {
@@ -204,7 +205,7 @@ public class CommandParametersAdapter {
     public static DeviceCodeFlowCommandParameters createDeviceCodeFlowCommandParameters(
             @NonNull final PublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
-            @NonNull String[] scopes) {
+            @NonNull List<String> scopes) {
 
         // TODO: Consider implementing support for PoP
 
@@ -225,7 +226,7 @@ public class CommandParametersAdapter {
                 .sdkVersion(PublicClientApplication.getSdkVersion())
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .authenticationScheme(authenticationScheme)
-                .scopes(new HashSet<>(Arrays.asList(scopes)))
+                .scopes(new HashSet<>(scopes))
                 .authority(authority)
                 .build();
 

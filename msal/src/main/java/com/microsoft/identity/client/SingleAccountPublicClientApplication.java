@@ -236,6 +236,9 @@ public class SingleAccountPublicClientApplication
         callback.onAccountLoaded(newAccount);
     }
 
+    //TODO: Add signIn(@NonNull final SignInParameters)
+
+    //TODO: Deprecate
     @Override
     public void signIn(@NonNull final Activity activity,
                        @Nullable final String loginHint,
@@ -270,6 +273,7 @@ public class SingleAccountPublicClientApplication
         acquireTokenInternal(acquireTokenParameters, SINGLE_ACCOUNT_PCA_SIGN_IN);
     }
 
+    //TODO: Deprecate
     @Override
     public void signIn(@NonNull final Activity activity,
                        @Nullable final String loginHint,
@@ -305,6 +309,7 @@ public class SingleAccountPublicClientApplication
         acquireTokenInternal(acquireTokenParameters, SINGLE_ACCOUNT_PCA_SIGN_IN_WITH_PROMPT);
     }
 
+    //TODO: Deprecate
     @Override
     public void signInAgain(@NonNull final Activity activity,
                             @NonNull final String[] scopes,
@@ -551,6 +556,7 @@ public class SingleAccountPublicClientApplication
         return (MultiTenantAccount) account.get(0);
     }
 
+    //TODO: Deprecate
     @Override
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
@@ -622,6 +628,7 @@ public class SingleAccountPublicClientApplication
         acquireTokenInternal(acquireTokenParameters, SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS);
     }
 
+    //TODO: Deprecate
     @Override
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                         @NonNull final String authority,
@@ -648,6 +655,11 @@ public class SingleAccountPublicClientApplication
         );
     }
 
+    /**
+     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of TokenParameter subclasses as the
+     *              parameters for the API. Use {@link SingleAccountPublicClientApplication#acquireTokenSilent(AcquireTokenSilentParameters)} instead.
+     */
+    @Deprecated
     @WorkerThread
     public IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
                                                     @NonNull final String authority) throws MsalException, InterruptedException {

@@ -65,11 +65,17 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         super(config);
     }
 
+    //TODO: Add acquireTokenSilent(AcquireTokenSilentParameters)
+
+    //TODO: Deprecate
     @Override
     public IAuthenticationResult acquireTokenSilent(@NonNull String[] scopes, @NonNull IAccount account, @NonNull String authority) throws MsalException, InterruptedException {
         return acquireTokenSilentSyncInternal(scopes, authority, account, false, PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_WITH_SCOPES_ACCOUNT_AUTHORITY);
     }
 
+    //TODO: Add acquireTokenSilentAsync(AcquireTokenSilentParameters)
+
+    //TODO: Deprecate
     @Override
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                         @NonNull final IAccount account,
@@ -431,6 +437,9 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         }
     }
 
+    //TODO: Add acquireToken(AcquireTokenParameters)
+
+    //TODO: Deprecate
     @Override
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,

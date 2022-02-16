@@ -179,16 +179,15 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
                                  @NonNull final SilentAuthenticationCallback callback
     );
 
+    @WorkerThread
+    IAuthenticationResult acquireTokenSilent(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) throws InterruptedException, MsalException;
+
     /**
-     * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
-     * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
-     * or it fails the refresh, exception will be sent back via callback.
-     *
-     * @param scopes    The non-null array of scopes to be requested for the access token.
-     *                  MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
-     * @param authority Authority to issue the token.
+     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of TokenParameter subclasses as the
+     *              parameters for the API. Use {@link IPublicClientApplication#acquireTokenSilent(AcquireTokenSilentParameters)} instead.
      */
     @WorkerThread
+    @Deprecated
     IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
                                              @NonNull final String authority) throws MsalException, InterruptedException;
 

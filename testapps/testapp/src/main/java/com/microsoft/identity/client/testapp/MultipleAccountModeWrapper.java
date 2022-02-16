@@ -109,7 +109,7 @@ public class MultipleAccountModeWrapper extends MsalWrapper {
     }
 
     @Override
-    void acquireTokenWithDeviceCodeFlowInternal(@NonNull String[] scopes,
+    void acquireTokenWithDeviceCodeFlowInternal(@NonNull List<String> scopes,
                                                 @NonNull final IPublicClientApplication.DeviceCodeFlowCallback callback) {
         mApp.acquireTokenWithDeviceCode(scopes, callback);
     }

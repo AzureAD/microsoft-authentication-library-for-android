@@ -36,20 +36,10 @@ import java.util.List;
 public interface IPublicClientApplication {
 
     /**
-     * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
-     * Default value for {@link Prompt} is {@link Prompt#SELECT_ACCOUNT}.
-     *
-     * @param activity Non-null {@link Activity} that is used as the parent activity for launching the {@link com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity}.
-     * @param scopes   The non-null array of scopes to be requested for the access token.
-     *                 MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
-     * @param callback The {@link AuthenticationCallback} to receive the result back.
-     *                 1) If user cancels the flow by pressing the device back button, the result will be sent
-     *                 back via {@link AuthenticationCallback#onCancel()}.
-     *                 2) If the sdk successfully receives the token back, result will be sent back via
-     *                 {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
-     *                 3) All the other errors will be sent back via
-     *                 {@link AuthenticationCallback#onError(MsalException)}.
+     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of TokenParameter subclasses as the
+     *              parameters for the API. Use {@link IPublicClientApplication#acquireToken(AcquireTokenParameters)} instead.
      */
+    @Deprecated
     void acquireToken(@NonNull final Activity activity,
                       @NonNull final String[] scopes,
                       @NonNull final AuthenticationCallback callback
@@ -92,6 +82,16 @@ public interface IPublicClientApplication {
      * @param scopes   the desired access scopes
      * @param callback callback object used to communicate with the API throughout the protocol
      */
+    void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback);
+
+    /**
+     * @deprecated  This method is now deprecated. The library is moving away from using an array for scopes.
+     *              Use {@link IPublicClientApplication#acquireTokenWithDeviceCode(List, DeviceCodeFlowCallback)} instead.
+     *
+     * @param scopes   the desired access scopes
+     * @param callback callback object used to communicate with the API throughout the protocol
+     */
+    @Deprecated
     void acquireTokenWithDeviceCode(@NonNull String[] scopes, @NonNull final DeviceCodeFlowCallback callback);
 
     /**
@@ -235,7 +235,7 @@ public interface IPublicClientApplication {
      * 3). Receiving an exception detailing what went wrong in the protocol
      * via {@link DeviceCodeFlowCallback#onError(MsalException)}.
      * <p>
-     * Refer to {@link PublicClientApplication#acquireTokenWithDeviceCode(String[], DeviceCodeFlowCallback)}.
+     * Refer to {@link PublicClientApplication#acquireTokenWithDeviceCode(List, DeviceCodeFlowCallback)}.
      */
     interface DeviceCodeFlowCallback {
         /**

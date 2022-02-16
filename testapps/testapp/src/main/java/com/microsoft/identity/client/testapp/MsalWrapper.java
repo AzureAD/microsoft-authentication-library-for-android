@@ -202,7 +202,7 @@ abstract class MsalWrapper {
                                                @NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback) {
 
         acquireTokenWithDeviceCodeFlowInternal(
-                requestOptions.getScopes().toLowerCase().split(" "),
+                Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")),
                 new IPublicClientApplication.DeviceCodeFlowCallback() {
                     @Override
                     public void onUserCodeReceived(@NonNull String vUri,
@@ -228,7 +228,7 @@ abstract class MsalWrapper {
                 });
     }
 
-    abstract void acquireTokenWithDeviceCodeFlowInternal(@NonNull String[] scopes, @NonNull final IPublicClientApplication.DeviceCodeFlowCallback callback);
+    abstract void acquireTokenWithDeviceCodeFlowInternal(@NonNull List<String> scopes, @NonNull final IPublicClientApplication.DeviceCodeFlowCallback callback);
 
     AuthenticationCallback getAuthenticationCallback(@NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback) {
         return new AuthenticationCallback() {
