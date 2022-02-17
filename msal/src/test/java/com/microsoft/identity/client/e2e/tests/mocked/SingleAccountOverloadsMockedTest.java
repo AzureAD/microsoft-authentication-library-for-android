@@ -36,6 +36,7 @@ import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.Prompt;
+import com.microsoft.identity.client.SignInParameters;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthorityForMockHttpResponse;
 import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
@@ -116,11 +117,44 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
     }
 
     @Test
+    public void testSignInOnlyAllowedOnceWithParameters() {
+        final SignInParameters signInParameters = SignInParameters.builder()
+                .withActivity(mActivity)
+                .withLoginHint(mUsername)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(getSuccessExpectedCallback())
+                .build();
+        mSingleAccountPCA.signIn(signInParameters);
+        RoboTestUtils.flushScheduler();
+
+        signInParameters.setCallback(getInvalidParameterExpectedCallback());
+
+        mSingleAccountPCA.signIn(signInParameters);
+    }
+
+    @Test
     public void testSignInWithPromptOnlyAllowedOnce() {
         mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, Prompt.LOGIN, getSuccessExpectedCallback());
         RoboTestUtils.flushScheduler();
 
         mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, Prompt.LOGIN, getInvalidParameterExpectedCallback());
+    }
+
+    @Test
+    public void testSignInWithPromptOnlyAllowedOnceWithParameters() {
+        final SignInParameters signInParameters = SignInParameters.builder()
+                .withActivity(mActivity)
+                .withLoginHint(mUsername)
+                .withScopes(Arrays.asList(mScopes))
+                .withPrompt(Prompt.LOGIN)
+                .withCallback(getSuccessExpectedCallback())
+                .build();
+        mSingleAccountPCA.signIn(signInParameters);
+        RoboTestUtils.flushScheduler();
+
+        signInParameters.setCallback(getInvalidParameterExpectedCallback());
+
+        mSingleAccountPCA.signIn(signInParameters);
     }
 
     @Test
@@ -133,13 +167,67 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
     }
 
     @Test
+    public void testSignInAgainAllowsSignInAgainWithParameters() {
+        final SignInParameters signInParameters = SignInParameters.builder()
+                .withActivity(mActivity)
+                .withLoginHint(mUsername)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(getSuccessExpectedCallback())
+                .build();
+        mSingleAccountPCA.signIn(signInParameters);
+        RoboTestUtils.flushScheduler();
+
+        signInParameters.setLoginHint(null);
+        signInParameters.setPrompt(Prompt.LOGIN);
+        mSingleAccountPCA.signInAgain(signInParameters);
+        RoboTestUtils.flushScheduler();
+    }
+
+    @Test
     public void testCannotSignInAgainIfNeverSignedInBefore() {
         mSingleAccountPCA.signInAgain(mActivity, mScopes, Prompt.LOGIN, getNoCurrentAccountExpectedCallback());
     }
 
     @Test
+    public void testCannotSignInAgainIfNeverSignedInBeforeWithParameters() {
+        final SignInParameters signInParameters = SignInParameters.builder()
+                .withActivity(mActivity)
+                .withScopes(Arrays.asList(mScopes))
+                .withPrompt(Prompt.LOGIN)
+                .withCallback(getNoCurrentAccountExpectedCallback())
+                .build();
+        mSingleAccountPCA.signInAgain(signInParameters);
+    }
+
+    @Test
     public void testCanSignOutIfAlreadySignedIn() {
         mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
+        RoboTestUtils.flushScheduler();
+
+        mSingleAccountPCA.signOut(new ISingleAccountPublicClientApplication.SignOutCallback() {
+            @Override
+            public void onSignOut() {
+                Assert.assertTrue("Successfully signed out", true);
+            }
+
+            @Override
+            public void onError(@NonNull MsalException exception) {
+                fail(exception.getMessage());
+            }
+        });
+
+        RoboTestUtils.flushScheduler();
+    }
+
+    @Test
+    public void testCanSignOutIfAlreadySignedInWithParameters() {
+        final SignInParameters signInParameters = SignInParameters.builder()
+                .withActivity(mActivity)
+                .withLoginHint(mUsername)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(getSuccessExpectedCallback())
+                .build();
+        mSingleAccountPCA.signIn(signInParameters);
         RoboTestUtils.flushScheduler();
 
         mSingleAccountPCA.signOut(new ISingleAccountPublicClientApplication.SignOutCallback() {
@@ -183,6 +271,26 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
     }
 
     @Test
+    public void testCanAcquireTokenIfAlreadySignInWithParameters() {
+        final SignInParameters signInParameters = SignInParameters.builder()
+                .withActivity(mActivity)
+                .withLoginHint(mUsername)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(getSuccessExpectedCallback())
+                .build();
+        mSingleAccountPCA.signIn(signInParameters);
+        RoboTestUtils.flushScheduler();
+
+        final AcquireTokenParameters acquireTokenParameters = new AcquireTokenParameters.Builder()
+                .startAuthorizationFromActivity(mActivity)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(getSuccessExpectedCallback())
+                .build();
+        mSingleAccountPCA.acquireToken(acquireTokenParameters);
+        RoboTestUtils.flushScheduler();
+    }
+
+    @Test
     public void testCannotAcquireTokenIfNotSignedIn() {
         mSingleAccountPCA.acquireToken(mActivity, mScopes, getNoCurrentAccountExpectedCallback());
     }
@@ -194,6 +302,26 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
     @Test
     public void testCannotAcquireTokenWithParametersIfNoLoginHintNoAccountProvided() {
         mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
+        RoboTestUtils.flushScheduler();
+
+        final AcquireTokenParameters acquireTokenParameters = new AcquireTokenParameters.Builder()
+                .startAuthorizationFromActivity(mActivity)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(getAccountMismatchExpectedCallback())
+                .build();
+
+        mSingleAccountPCA.acquireToken(acquireTokenParameters);
+    }
+
+    @Test
+    public void testCannotAcquireTokenWithParametersIfNoLoginHintNoAccountProvidedWithSignInParameters() {
+        final SignInParameters signInParameters = SignInParameters.builder()
+                .withActivity(mActivity)
+                .withLoginHint(mUsername)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(getSuccessExpectedCallback())
+                .build();
+        mSingleAccountPCA.signIn(signInParameters);
         RoboTestUtils.flushScheduler();
 
         final AcquireTokenParameters acquireTokenParameters = new AcquireTokenParameters.Builder()
@@ -221,8 +349,52 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
     }
 
     @Test
+    public void testCannotAcquireTokenWithParametersIfLoginHintDoesNotMatchWithSignInParameters() {
+        final SignInParameters signInParameters = SignInParameters.builder()
+                .withActivity(mActivity)
+                .withLoginHint(mUsername)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(getSuccessExpectedCallback())
+                .build();
+        mSingleAccountPCA.signIn(signInParameters);
+        RoboTestUtils.flushScheduler();
+
+        final AcquireTokenParameters acquireTokenParameters = new AcquireTokenParameters.Builder()
+                .startAuthorizationFromActivity(mActivity)
+                .withScopes(Arrays.asList(mScopes))
+                .withLoginHint("someOtherAccount@test.com")
+                .withCallback(getAccountMismatchExpectedCallback())
+                .build();
+
+        mSingleAccountPCA.acquireToken(acquireTokenParameters);
+    }
+
+    @Test
     public void testCannotAcquireTokenWithParametersIfAccountDoesNotMatch() {
         mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
+        RoboTestUtils.flushScheduler();
+
+        final IAccount fakeOtherAccount = getFakeOtherAccount();
+
+        final AcquireTokenParameters acquireTokenParameters = new AcquireTokenParameters.Builder()
+                .startAuthorizationFromActivity(mActivity)
+                .withScopes(Arrays.asList(mScopes))
+                .forAccount(fakeOtherAccount)
+                .withCallback(getAccountMismatchExpectedCallback())
+                .build();
+
+        mSingleAccountPCA.acquireToken(acquireTokenParameters);
+    }
+
+    @Test
+    public void testCannotAcquireTokenWithParametersIfAccountDoesNotMatchWithSignInParameters() {
+        final SignInParameters signInParameters = SignInParameters.builder()
+                .withActivity(mActivity)
+                .withLoginHint(mUsername)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(getSuccessExpectedCallback())
+                .build();
+        mSingleAccountPCA.signIn(signInParameters);
         RoboTestUtils.flushScheduler();
 
         final IAccount fakeOtherAccount = getFakeOtherAccount();
@@ -254,8 +426,52 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
     }
 
     @Test
+    public void testCanAcquireTokenWithParametersIfLoginHintMatchesWithSignInParameters() {
+        final SignInParameters signInParameters = SignInParameters.builder()
+                .withActivity(mActivity)
+                .withLoginHint(mUsername)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(getSuccessExpectedCallback())
+                .build();
+        mSingleAccountPCA.signIn(signInParameters);
+        RoboTestUtils.flushScheduler();
+
+        final AcquireTokenParameters acquireTokenParameters = new AcquireTokenParameters.Builder()
+                .startAuthorizationFromActivity(mActivity)
+                .withScopes(Arrays.asList(mScopes))
+                .withLoginHint(mUsername)
+                .withCallback(getSuccessExpectedCallback())
+                .build();
+
+        mSingleAccountPCA.acquireToken(acquireTokenParameters);
+        RoboTestUtils.flushScheduler();
+    }
+
+    @Test
     public void testCanAcquireTokenWithParametersIfAccountMatches() {
         mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
+        RoboTestUtils.flushScheduler();
+
+        final AcquireTokenParameters acquireTokenParameters = new AcquireTokenParameters.Builder()
+                .startAuthorizationFromActivity(mActivity)
+                .withScopes(Arrays.asList(mScopes))
+                .forAccount(AcquireTokenTestHelper.getAccount())
+                .withCallback(getSuccessExpectedCallback())
+                .build();
+
+        mSingleAccountPCA.acquireToken(acquireTokenParameters);
+        RoboTestUtils.flushScheduler();
+    }
+
+    @Test
+    public void testCanAcquireTokenWithParametersIfAccountMatchesWithSignInParameters() {
+        final SignInParameters signInParameters = SignInParameters.builder()
+                .withActivity(mActivity)
+                .withLoginHint(mUsername)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(getSuccessExpectedCallback())
+                .build();
+        mSingleAccountPCA.signIn(signInParameters);
         RoboTestUtils.flushScheduler();
 
         final AcquireTokenParameters acquireTokenParameters = new AcquireTokenParameters.Builder()
@@ -280,6 +496,27 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
         RoboTestUtils.flushScheduler();
 
         mSingleAccountPCA.acquireTokenSilentAsync(mScopes, getAuthority(), getSuccessExpectedCallback());
+        RoboTestUtils.flushScheduler();
+    }
+
+    @Test
+    public void testCanAcquireTokenSilentlyIfAlreadySignedInWithParameters() {
+        final SignInParameters signInParameters = SignInParameters.builder()
+                .withActivity(mActivity)
+                .withLoginHint(mUsername)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(getSuccessExpectedCallback())
+                .build();
+        mSingleAccountPCA.signIn(signInParameters);
+        RoboTestUtils.flushScheduler();
+
+        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                .withScopes(Arrays.asList(mScopes))
+                .forAccount(AcquireTokenTestHelper.getAccount())
+                .fromAuthority(getAuthority())
+                .withCallback(getSuccessExpectedCallback())
+                .build();
+        mSingleAccountPCA.acquireTokenSilentAsync(silentParameters);
         RoboTestUtils.flushScheduler();
     }
 
@@ -312,6 +549,28 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
     }
 
     @Test
+    public void testCanAcquireTokenSilentlyWithParametersIfAlreadySignedInWithSignInParameters() {
+        final SignInParameters signInParameters = SignInParameters.builder()
+                .withActivity(mActivity)
+                .withLoginHint(mUsername)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(getSuccessExpectedCallback())
+                .build();
+        mSingleAccountPCA.signIn(signInParameters);
+        RoboTestUtils.flushScheduler();
+
+        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                .withScopes(Arrays.asList(mScopes))
+                .forAccount(AcquireTokenTestHelper.getAccount())
+                .fromAuthority(getAuthority())
+                .withCallback(getSuccessExpectedCallback())
+                .build();
+
+        mSingleAccountPCA.acquireTokenSilentAsync(silentParameters);
+        RoboTestUtils.flushScheduler();
+    }
+
+    @Test
     public void testCannotAcquireTokenSilentlyWithParametersIfAccountDoesNotMatch() {
         mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
         RoboTestUtils.flushScheduler();
@@ -329,8 +588,63 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
     }
 
     @Test
+    public void testCannotAcquireTokenSilentlyWithParametersIfAccountDoesNotMatchWithSignInParameters() {
+        final SignInParameters signInParameters = SignInParameters.builder()
+                .withActivity(mActivity)
+                .withLoginHint(mUsername)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(getSuccessExpectedCallback())
+                .build();
+        mSingleAccountPCA.signIn(signInParameters);
+        RoboTestUtils.flushScheduler();
+
+        final IAccount fakeOtherAccount = getFakeOtherAccount();
+
+        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                .withScopes(Arrays.asList(mScopes))
+                .forAccount(fakeOtherAccount)
+                .fromAuthority(getAuthority())
+                .withCallback(getAccountMismatchExpectedCallback())
+                .build();
+
+        mSingleAccountPCA.acquireTokenSilentAsync(silentParameters);
+    }
+
+    @Test
     public void testCanGetCurrentAccountIfAlreadySignedIn() {
         mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
+        RoboTestUtils.flushScheduler();
+
+        mSingleAccountPCA.getCurrentAccountAsync(new ISingleAccountPublicClientApplication.CurrentAccountCallback() {
+            @Override
+            public void onAccountLoaded(@Nullable IAccount activeAccount) {
+                assert activeAccount != null;
+                Assert.assertEquals(activeAccount.getId(), AcquireTokenTestHelper.getAccount().getId());
+            }
+
+            @Override
+            public void onAccountChanged(@Nullable IAccount priorAccount, @Nullable IAccount currentAccount) {
+                Assert.fail();
+            }
+
+            @Override
+            public void onError(@NonNull MsalException exception) {
+                Assert.fail(exception.getMessage());
+            }
+        });
+
+        RoboTestUtils.flushScheduler();
+    }
+
+    @Test
+    public void testCanGetCurrentAccountIfAlreadySignedInWithParameters() {
+        final SignInParameters signInParameters = SignInParameters.builder()
+                .withActivity(mActivity)
+                .withLoginHint(mUsername)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(getSuccessExpectedCallback())
+                .build();
+        mSingleAccountPCA.signIn(signInParameters);
         RoboTestUtils.flushScheduler();
 
         mSingleAccountPCA.getCurrentAccountAsync(new ISingleAccountPublicClientApplication.CurrentAccountCallback() {

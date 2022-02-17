@@ -198,6 +198,9 @@ dependencies {
     implementation "cz.msebera.android:httpclient:$rootProject.ext.mseberaApacheHttpClientVersion"
     implementation "androidx.constraintlayout:constraintlayout:$rootProject.ext.constraintLayoutVersion"
 
+    compileOnly "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
+    annotationProcessor "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
+
     // test dependencies
     testImplementation "junit:junit:$rootProject.ext.junitVersion"
     //mockito-inline was introduced in mockito 2.7.6

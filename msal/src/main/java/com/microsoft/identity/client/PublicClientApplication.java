@@ -1392,7 +1392,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
                 activity,
                 null,
-                scopes,
+                Arrays.asList(scopes),
                 null, // account
                 null, // uiBehavior
                 null, // extraQueryParams
@@ -1406,6 +1406,47 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         acquireTokenInternal(acquireTokenParameters, PublicApiId.PCA_ACQUIRE_TOKEN_WITH_ACTIVITY_SCOPES_CALLBACK);
     }
 
+    AcquireTokenParameters buildAcquireTokenParameters(
+            @NonNull final Activity activity,
+            @Nullable final Fragment fragment,
+            @NonNull final List<String> scopes,
+            @Nullable final IAccount account,
+            @Nullable final Prompt uiBehavior,
+            @Nullable final List<Map.Entry<String, String>> extraQueryParameters,
+            @Nullable final String[] extraScopesToConsent,
+            @Nullable final String authority,
+            @NonNull final AuthenticationCallback callback,
+            @Nullable final String loginHint,
+            @Nullable final ClaimsRequest claimsRequest) {
+
+        validateNonNullArgument(activity, NONNULL_CONSTANTS.ACTIVITY);
+        validateNonNullArgument(scopes, NONNULL_CONSTANTS.SCOPES);
+        validateNonNullArgument(callback, NONNULL_CONSTANTS.CALLBACK);
+
+        AcquireTokenParameters.Builder builder = new AcquireTokenParameters.Builder();
+        AcquireTokenParameters acquireTokenParameters = builder.startAuthorizationFromActivity(activity)
+                .withFragment(fragment)
+                .forAccount(account)
+                .withScopes(scopes)
+                .withPrompt(uiBehavior)
+                .withAuthorizationQueryStringParameters(extraQueryParameters)
+                .withOtherScopesToAuthorize(
+                        Arrays.asList(
+                                null == extraScopesToConsent
+                                        ? new String[]{}
+                                        : extraScopesToConsent
+                        )
+                )
+                .fromAuthority(authority)
+                .withCallback(callback)
+                .withLoginHint(loginHint)
+                .withClaims(claimsRequest)
+                .build();
+
+        return acquireTokenParameters;
+    }
+
+    @Deprecated
     AcquireTokenParameters buildAcquireTokenParameters(
             @NonNull final Activity activity,
             @Nullable final Fragment fragment,
