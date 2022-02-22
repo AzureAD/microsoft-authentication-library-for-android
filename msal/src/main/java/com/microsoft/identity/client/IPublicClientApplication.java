@@ -38,6 +38,20 @@ public interface IPublicClientApplication {
     /**
      * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of TokenParameter subclasses as the
      *              parameters for the API. Use {@link IPublicClientApplication#acquireToken(AcquireTokenParameters)} instead.
+     *
+     * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
+     * Default value for {@link Prompt} is {@link Prompt#SELECT_ACCOUNT}.
+     *
+     * @param activity Non-null {@link Activity} that is used as the parent activity for launching the {@link com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity}.
+     * @param scopes   The non-null array of scopes to be requested for the access token.
+     *                 MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     * @param callback The {@link AuthenticationCallback} to receive the result back.
+     *                 1) If user cancels the flow by pressing the device back button, the result will be sent
+     *                 back via {@link AuthenticationCallback#onCancel()}.
+     *                 2) If the sdk successfully receives the token back, result will be sent back via
+     *                 {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}
+     *                 3) All the other errors will be sent back via
+     *                 {@link AuthenticationCallback#onError(MsalException)}.
      */
     @Deprecated
     void acquireToken(@NonNull final Activity activity,
@@ -87,6 +101,9 @@ public interface IPublicClientApplication {
     /**
      * @deprecated  This method is now deprecated. The library is moving away from using an array for scopes.
      *              Use {@link IPublicClientApplication#acquireTokenWithDeviceCode(List, DeviceCodeFlowCallback)} instead.
+     *
+     * Perform the Device Code Flow (DCF) protocol to allow a device without input capability to authenticate and get a new access token.
+     * Currently, flow is only supported in local MSAL. No Broker support.
      *
      * @param scopes   the desired access scopes
      * @param callback callback object used to communicate with the API throughout the protocol

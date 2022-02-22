@@ -79,6 +79,26 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
     /**
      * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of TokenParameter subclasses as the
      *              parameters for the API. Use {@link ISingleAccountPublicClientApplication#signIn(SignInParameters)} instead.
+     *
+     * Allows a user to sign in to your application with one of their accounts. This method may only
+     * be called once: once a user is signed in, they must first be signed out before another user
+     * may sign in. If you wish to prompt the existing user for credentials use
+     * {@link #signInAgain(SignInParameters)} or
+     * {@link #acquireToken(AcquireTokenParameters)}.
+     * <p>
+     * Note: The authority used to make the sign in request will be either the MSAL default: https://login.microsoftonline.com/common
+     * or the default authority specified by you in your configuration.
+     *
+     * @param activity  Non-null {@link Activity} that is used as the parent activity for launching the {@link com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity}.
+     * @param loginHint Optional. If provided, will be used as the query parameter sent for authenticating the user,
+     *                  which will have the UPN pre-populated.
+     * @param scopes    The non-null array of scopes to be consented to during sign in.
+     *                  MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     *                  The access token returned is for MS Graph and will allow you to query for additional information about the signed in account.
+     * @param callback  {@link AuthenticationCallback} that is used to send the result back. The success result will be
+     *                  sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
+     *                  Failure case will be sent back via {
+     * @link AuthenticationCallback#onError(MsalException)}.
      */
     @Deprecated
     void signIn(@NonNull final Activity activity,
@@ -90,6 +110,26 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
     /**
      * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of TokenParameter subclasses as the
      *              parameters for the API. Use {@link ISingleAccountPublicClientApplication#signIn(SignInParameters)} instead.
+     *
+     * Allows a user to sign in to your application with one of their accounts. This method may only
+     * be called once: once a user is signed in, they must first be signed out before another user
+     * may sign in. If you wish to prompt the existing user for credentials use
+     * {@link #signInAgain(SignInParameters)} or
+     * {@link #acquireToken(AcquireTokenParameters)}.
+     * <p>
+     * Note: The authority used to make the sign in request will be either the MSAL default: https://login.microsoftonline.com/common
+     * or the default authority specified by you in your configuration
+     *
+     * @param activity  Non-null {@link Activity} that is used as the parent activity for launching the {@link com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity}.
+     * @param loginHint Optional. If provided, will be used as the query parameter sent for authenticating the user,
+     *                  which will have the UPN pre-populated.
+     * @param scopes    The non-null array of scopes to be consented to during sign in.
+     *                  MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     *                  The access token returned is for MS Graph and will allow you to query for additional information about the signed in account.
+     * @param callback  {@link AuthenticationCallback} that is used to send the result back. The success result will be
+     *                  sent back via {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
+     *                  Failure case will be sent back via {
+     * @link AuthenticationCallback#onError(MsalException)}.
      */
     @Deprecated
     void signIn(@NonNull final Activity activity,
@@ -113,6 +153,27 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
     /**
      * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of TokenParameter subclasses as the
      *              parameters for the API. Use {@link ISingleAccountPublicClientApplication#signInAgain(SignInParameters)} instead.
+     *
+     * Reauthorizes the current account according to the supplied scopes and prompt behavior.
+     * <p>
+     * Note: The authority used to make the sign in request will be either the MSAL default:
+     * https://login.microsoftonline.com/common or the default authority specified by you in your
+     * configuration.
+     * configuration. This flow requires activity, scopes, and callback. Prompt is optional.
+     *
+     * @param activity Non-null {@link Activity} that is used as the parent activity for
+     *                 launching the {@link com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity}.
+     * @param scopes   The non-null array of scopes to be consented to during sign in.
+     *                 MSAL always sends the scopes 'openid profile offline_access'. Do
+     *                 not include any of these scopes in the scope parameter. The access
+     *                 token returned is for MS Graph and will allow you to query for
+     *                 additional information about the signed in account.
+     * @param prompt   Nullable. Indicates the type of user interaction that is required.
+     *                 If no argument is supplied the default behavior will be used.
+     * @param callback {@link AuthenticationCallback} that is used to send the result back.
+     *                 The success result will be sent back via
+     *                 {@link AuthenticationCallback#onSuccess(IAuthenticationResult)}.
+     *                 Failure case will be sent back via {@link AuthenticationCallback#onError(MsalException)}.
      */
     @Deprecated
     void signInAgain(@NonNull final Activity activity,
@@ -150,6 +211,18 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
     /**
      * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of TokenParameter subclasses as the
      *              parameters for the API. Use {@link ISingleAccountPublicClientApplication#acquireTokenSilentAsync(AcquireTokenSilentParameters)} instead.
+     *
+     * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
+     * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
+     * or it fails the refresh, exception will be sent back via callback.
+     *
+     * @param scopes    The non-null array of scopes to be requested for the access token.
+     *                  MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     * @param authority Authority to issue the token.
+     * @param callback  {@link SilentAuthenticationCallback} that is used to send the result back. The success result will be
+     *                  sent back via {@link SilentAuthenticationCallback#onSuccess(IAuthenticationResult)}.
+     *                  Failure case will be sent back via {
+     * @link AuthenticationCallback#onError(MsalException)}.
      */
     @Deprecated
     void acquireTokenSilentAsync(@NonNull final String[] scopes,
@@ -170,6 +243,14 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
     /**
      * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of TokenParameter subclasses as the
      *              parameters for the API. Use {@link ISingleAccountPublicClientApplication#acquireTokenSilent(AcquireTokenSilentParameters)} instead.
+     *
+     * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
+     * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
+     * or it fails the refresh, exception will be sent back via callback.
+     *
+     * @param scopes    The non-null array of scopes to be requested for the access token.
+     *                  MSAL always sends the scopes 'openid profile offline_access'.  Do not include any of these scopes in the scope parameter.
+     * @param authority Authority to issue the token.
      */
     @WorkerThread
     @Deprecated
