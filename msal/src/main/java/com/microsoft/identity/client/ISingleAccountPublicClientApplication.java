@@ -72,7 +72,7 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      * Note: The authority used to make the sign in request will be either the MSAL default: https://login.microsoftonline.com/common
      * or the default authority specified by you in your configuration.
      *
-     * @param signInParameters the {@link SignInParameters} containing the needed fields for signIn flow.
+     * @param signInParameters the {@link SignInParameters} containing the needed fields for signIn flow. Activity, scopes, and callback must be non-null. loginHint and prompt are nullable
      */
     void signIn(@NonNull final SignInParameters signInParameters);
 
@@ -146,7 +146,7 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      * https://login.microsoftonline.com/common or the default authority specified by you in your
      * configuration. This flow requires activity, scopes, and callback. Prompt is optional.
      *
-     * @param signInParameters the {@link SignInParameters} containing the needed fields for signIn flow.
+     * @param signInParameters the {@link SignInParameters} containing the needed fields for signIn flow. Activity, scopes, and callback must be non-null.
      */
     void signInAgain(@NonNull final SignInParameters signInParameters);
 
@@ -204,7 +204,7 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
      * or it fails the refresh, exception will be sent back via callback.
      *
-     * @param acquireTokenSilentParameters the {@link AcquireTokenSilentParameters} containing the needed fields for acquireTokenSilent flow.
+     * @param acquireTokenSilentParameters the {@link AcquireTokenSilentParameters} containing the needed fields for acquireTokenSilent flow. Scopes, authority, and callback must be non-null.
      */
     void acquireTokenSilentAsync(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters);
 
@@ -235,7 +235,7 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
      * or it fails the refresh, exception will be sent back via callback.
      *
-     * @param acquireTokenSilentParameters the {@link AcquireTokenSilentParameters} containing the needed parameters for acquireTokenSilent flow.
+     * @param acquireTokenSilentParameters the {@link AcquireTokenSilentParameters} containing the needed parameters for acquireTokenSilent flow. Scopes and authority must be non-null.
      */
     @WorkerThread
     IAuthenticationResult acquireTokenSilent(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) throws InterruptedException, MsalException;

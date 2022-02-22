@@ -28,6 +28,7 @@ import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
 
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
@@ -66,17 +67,23 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         super(config);
     }
 
-    //TODO: Add acquireTokenSilent(AcquireTokenSilentParameters)
+    @Override
+    public IAuthenticationResult acquireTokenSilent(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) throws MsalException, InterruptedException {
+        return acquireTokenSilentInternal(acquireTokenSilentParameters, PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_WITH_PARAMETERS);
+    }
 
-    //TODO: Deprecate
+    @Deprecated
     @Override
     public IAuthenticationResult acquireTokenSilent(@NonNull String[] scopes, @NonNull IAccount account, @NonNull String authority) throws MsalException, InterruptedException {
         return acquireTokenSilentSyncInternal(scopes, authority, account, false, PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_WITH_SCOPES_ACCOUNT_AUTHORITY);
     }
 
-    //TODO: Add acquireTokenSilentAsync(AcquireTokenSilentParameters)
+    @Override
+    public void acquireTokenSilentAsync(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
+        acquireTokenSilentAsyncInternal(acquireTokenSilentParameters, PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS);
+    }
 
-    //TODO: Deprecate
+    @Deprecated
     @Override
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                         @NonNull final IAccount account,
@@ -438,9 +445,11 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         }
     }
 
-    //TODO: Add acquireToken(AcquireTokenParameters)
+    public void acquireToken(@NonNull final AcquireTokenParameters acquireTokenParameters) {
+        acquireTokenInternal(acquireTokenParameters, PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS);
+    }
 
-    //TODO: Deprecate
+    @Deprecated
     @Override
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
