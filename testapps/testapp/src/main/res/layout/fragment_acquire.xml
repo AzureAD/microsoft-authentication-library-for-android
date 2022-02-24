@@ -499,6 +499,13 @@
                 android:gravity="center"
                 android:text="@string/btn_removeUser" />
 
+            <Button
+                android:id="@+id/button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="5"
+                android:text="Button" />
+
         </LinearLayout>
 
         <LinearLayout
@@ -600,6 +607,19 @@
                 android:gravity="center"
                 android:text="Generate SHR (sans AT)" />
 
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <ToggleButton
+                android:id="@+id/btn_trust_debug_brkr"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="@string/trust_debug_broker" />
         </LinearLayout>
 
     </LinearLayout>

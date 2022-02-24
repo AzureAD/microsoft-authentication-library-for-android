@@ -78,13 +78,13 @@ android {
         debug {
             testCoverageEnabled enableCodeCoverage
             debuggable true
-            buildConfigField("String", "VERSION_NAME", "\"${versionName}\"")
+            buildConfigField("String", "VERSION_NAME", "\"${project.version}\"")
         }
         release {
             minifyEnabled false
             debuggable false
             consumerProguardFiles 'consumer-rules.pro'
-            buildConfigField("String", "VERSION_NAME", "\"${versionName}\"")
+            buildConfigField("String", "VERSION_NAME", "\"${project.version}\"")
         }
     }
 
