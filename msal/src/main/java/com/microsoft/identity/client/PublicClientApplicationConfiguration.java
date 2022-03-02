@@ -486,7 +486,16 @@ public class PublicClientApplicationConfiguration {
     void mergeGlobalConfiguration(GlobalSettingsConfiguration globalConfig) {
         this.mClientId = globalConfig.getClientId() == null ? this.mClientId : globalConfig.getClientId();
         this.mRedirectUri = globalConfig.getRedirectUri() == null ? this.mRedirectUri : globalConfig.getRedirectUri();
-        this.mAuthorities = globalConfig.getAuthorities() == null ? this.mAuthorities : globalConfig.getAuthorities();
+        // Change this to add global authorities to this PCA's authorities
+        if (globalConfig.getAuthorities() != null) {
+            if (this.mAuthorities != null) {
+                this.mAuthorities.addAll(globalConfig.getAuthorities());
+            }
+            else {
+                this.mAuthorities = globalConfig.getAuthorities();
+            }
+        }
+//        this.mAuthorities = globalConfig.getAuthorities() == null ? this.mAuthorities : globalConfig.getAuthorities();
         this.mAuthorizationAgent = globalConfig.getAuthorizationAgent() == null ? this.mAuthorizationAgent : globalConfig.getAuthorizationAgent();
         this.mEnvironment = globalConfig.getEnvironment() == null ? this.mEnvironment : globalConfig.getEnvironment();
         this.mHttpConfiguration = globalConfig.getHttpConfiguration() == null ? this.mHttpConfiguration : globalConfig.getHttpConfiguration();
