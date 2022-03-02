@@ -77,8 +77,9 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
     void signIn(@NonNull final SignInParameters signInParameters);
 
     /**
-     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of TokenParameter subclasses as the
-     *              parameters for the API. Use {@link ISingleAccountPublicClientApplication#signIn(SignInParameters)} instead.
+     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of {@link SignInParameters} as the
+     *              parameters for the SingleAccountPublicClientApplication API.
+     *              Use {@link ISingleAccountPublicClientApplication#signIn(SignInParameters)} instead.
      *
      * Allows a user to sign in to your application with one of their accounts. This method may only
      * be called once: once a user is signed in, they must first be signed out before another user
@@ -108,8 +109,9 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
     );
 
     /**
-     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of TokenParameter subclasses as the
-     *              parameters for the API. Use {@link ISingleAccountPublicClientApplication#signIn(SignInParameters)} instead.
+     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of {@link SignInParameters} as the
+     *              parameters for the SingleAccountPublicClientApplication API.
+     *              Use {@link ISingleAccountPublicClientApplication#signIn(SignInParameters)} instead.
      *
      * Allows a user to sign in to your application with one of their accounts. This method may only
      * be called once: once a user is signed in, they must first be signed out before another user
@@ -151,8 +153,9 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
     void signInAgain(@NonNull final SignInParameters signInParameters);
 
     /**
-     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of TokenParameter subclasses as the
-     *              parameters for the API. Use {@link ISingleAccountPublicClientApplication#signInAgain(SignInParameters)} instead.
+     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of {@link SignInParameters} as the
+     *              parameters for the SingleAccountPublicClientApplication API.
+     *              Use {@link ISingleAccountPublicClientApplication#signInAgain(SignInParameters)} instead.
      *
      * Reauthorizes the current account according to the supplied scopes and prompt behavior.
      * <p>
@@ -209,8 +212,9 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
     void acquireTokenSilentAsync(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters);
 
     /**
-     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of TokenParameter subclasses as the
-     *              parameters for the API. Use {@link ISingleAccountPublicClientApplication#acquireTokenSilentAsync(AcquireTokenSilentParameters)} instead.
+     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of {@link SignInParameters} as the
+     *              parameters for the SingleAccountPublicClientApplication API.
+     *              Use {@link ISingleAccountPublicClientApplication#acquireTokenSilentAsync(AcquireTokenSilentParameters)} instead.
      *
      * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
      * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist
@@ -241,8 +245,9 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
     IAuthenticationResult acquireTokenSilent(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) throws InterruptedException, MsalException;
 
     /**
-     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of TokenParameter subclasses as the
-     *              parameters for the API. Use {@link ISingleAccountPublicClientApplication#acquireTokenSilent(AcquireTokenSilentParameters)} instead.
+     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of {@link SignInParameters} as the
+     *              parameters for the SingleAccountPublicClientApplication API.
+     *              Use {@link ISingleAccountPublicClientApplication#acquireTokenSilent(AcquireTokenSilentParameters)} instead.
      *
      * Perform acquire token silent call. If there is a valid access token in the cache, the sdk will return the access token; If
      * no valid access token exists, the sdk will try to find a refresh token and use the refresh token to get a new access token. If refresh token does not exist

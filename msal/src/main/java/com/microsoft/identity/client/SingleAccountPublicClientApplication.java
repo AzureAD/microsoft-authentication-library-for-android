@@ -73,11 +73,13 @@ import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGL
 import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS;
 import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_EXISTING_SIGN_IN_WITH_PROMPT;
 import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_EXISTING_SIGN_IN_WITH_PARAMETERS;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_EXISTING_SIGN_IN_WITH_PARAMETERS_PROMPT;
 import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_GET_CURRENT_ACCOUNT;
 import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_GET_CURRENT_ACCOUNT_ASYNC;
 import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_IN;
 import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_IN_WITH_PROMPT;
 import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_IN_WITH_PARAMETERS;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_IN_WITH_PARAMETERS_PROMPT;
 import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_OUT;
 import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_OUT_WITH_CALLBACK;
 
@@ -268,17 +270,18 @@ public class SingleAccountPublicClientApplication
         );
 
         if (signInParameters.getPrompt() == null) {
-            acquireTokenInternal(acquireTokenParameters, SINGLE_ACCOUNT_PCA_SIGN_IN);
+            acquireTokenInternal(acquireTokenParameters, SINGLE_ACCOUNT_PCA_SIGN_IN_WITH_PARAMETERS);
         }
         else {
-            acquireTokenInternal(acquireTokenParameters, SINGLE_ACCOUNT_PCA_SIGN_IN_WITH_PARAMETERS);
+            acquireTokenInternal(acquireTokenParameters, SINGLE_ACCOUNT_PCA_SIGN_IN_WITH_PARAMETERS_PROMPT);
         }
 
     }
 
     /**
-     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of TokenParameter subclasses as the
-     *              parameters for the API. Use {@link SingleAccountPublicClientApplication#signIn(SignInParameters)} instead.
+     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of {@link SignInParameters} as the
+     *              parameters for the SingleAccountPublicClientApplication API.
+     *              Use {@link SingleAccountPublicClientApplication#signIn(SignInParameters)} instead.
      */
     @Deprecated
     @Override
@@ -316,8 +319,9 @@ public class SingleAccountPublicClientApplication
     }
 
     /**
-     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of TokenParameter subclasses as the
-     *              parameters for the API. Use {@link SingleAccountPublicClientApplication#signIn(SignInParameters)} instead.
+     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of {@link SignInParameters} as the
+     *              parameters for the SingleAccountPublicClientApplication API.
+     *              Use {@link SingleAccountPublicClientApplication#signIn(SignInParameters)} instead.
      */
     @Deprecated
     @Override
@@ -379,13 +383,19 @@ public class SingleAccountPublicClientApplication
                 null // claimsRequest
         );
 
-        acquireTokenInternal(acquireTokenParameters, SINGLE_ACCOUNT_PCA_EXISTING_SIGN_IN_WITH_PARAMETERS);
+        if (signInParameters.getPrompt() == null) {
+            acquireTokenInternal(acquireTokenParameters, SINGLE_ACCOUNT_PCA_EXISTING_SIGN_IN_WITH_PARAMETERS);
+        }
+        else {
+            acquireTokenInternal(acquireTokenParameters, SINGLE_ACCOUNT_PCA_EXISTING_SIGN_IN_WITH_PARAMETERS_PROMPT);
+        }
     }
 
 
     /**
-     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of TokenParameter subclasses as the
-     *              parameters for the API. Use {@link SingleAccountPublicClientApplication#signInAgain(SignInParameters)} instead.
+     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of {@link SignInParameters} as the
+     *              parameters for the SingleAccountPublicClientApplication API.
+     *              Use {@link SingleAccountPublicClientApplication#signInAgain(SignInParameters)} instead.
      */
     @Deprecated
     @Override
@@ -675,8 +685,9 @@ public class SingleAccountPublicClientApplication
     }
 
     /**
-     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of TokenParameter subclasses as the
-     *              parameters for the API. Use {@link SingleAccountPublicClientApplication#acquireToken(AcquireTokenParameters)} instead.
+     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of {@link SignInParameters} as the
+     *              parameters for the SingleAccountPublicClientApplication API.
+     *              Use {@link SingleAccountPublicClientApplication#acquireToken(AcquireTokenParameters)} instead.
      */
     @Override
     @Deprecated
@@ -711,8 +722,9 @@ public class SingleAccountPublicClientApplication
     }
 
     /**
-     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of TokenParameter subclasses as the
-     *              parameters for the API. Use {@link SingleAccountPublicClientApplication#acquireTokenSilentAsync(AcquireTokenSilentParameters)} instead.
+     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of {@link SignInParameters} as the
+     *              parameters for the SingleAccountPublicClientApplication API.
+     *              Use {@link SingleAccountPublicClientApplication#acquireTokenSilentAsync(AcquireTokenSilentParameters)} instead.
      */
     @Deprecated
     @Override
@@ -742,8 +754,9 @@ public class SingleAccountPublicClientApplication
     }
 
     /**
-     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of TokenParameter subclasses as the
-     *              parameters for the API. Use {@link SingleAccountPublicClientApplication#acquireTokenSilent(AcquireTokenSilentParameters)} instead.
+     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of {@link SignInParameters} as the
+     *              parameters for the SingleAccountPublicClientApplication API.
+     *              Use {@link SingleAccountPublicClientApplication#acquireTokenSilent(AcquireTokenSilentParameters)} instead.
      */
     @Deprecated
     @WorkerThread
