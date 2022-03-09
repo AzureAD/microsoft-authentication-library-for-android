@@ -23,7 +23,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Objects;
 
-public class ClaimsRequestTest extends AbstractMsalBrokerTest {
+public class ClaimsRequestE2ETest extends AbstractMsalBrokerTest {
 
     @Test
     public void testAcquireTokenSilentlyWithClaims() throws Throwable {
