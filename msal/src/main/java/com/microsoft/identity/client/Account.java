@@ -46,6 +46,7 @@ public class Account implements IAccount {
     private String mHomeOid;
     private String mHomeTenantId;
     private String mEnvironment;
+    private String mHomeAccountId;
 
     public Account(
             @Nullable final String clientInfo,
@@ -68,6 +69,7 @@ public class Account implements IAccount {
     @NonNull
     @Override
     public String getId() {
+        final String methodName = ":getId";
         String id;
 
         ClientInfo clientInfo = null;
@@ -90,6 +92,26 @@ public class Account implements IAccount {
             id = (String) mIdTokenClaims.get(MicrosoftIdToken.OBJECT_ID);
         } else {
             id = mHomeOid;
+        }
+
+        if (StringUtil.isEmpty(id)) {
+            // This could happen because the ID token that we have for WPJ accounts may not contain
+            // oid claim because we used to not ask for PROFILE scope in that token. 
+            com.microsoft.identity.common.logging.Logger.warn(
+                    TAG + methodName,
+                    "Unable to get account id from either ClientInfo or IdToken. Attempting to obtain from home account id."
+            );
+            id = com.microsoft.identity.common.java.util.StringUtil.getUIdFromHomeAccountId(mHomeAccountId);
+        }
+
+        if (StringUtil.isEmpty(id)) {
+            com.microsoft.identity.common.logging.Logger.warn(
+                    TAG + methodName,
+                    "Account ID is empty. Returning MISSING_FROM_THE_TOKEN_RESPONSE."
+            );
+
+            // must return something because the method is marked as non-null
+            id = MISSING_FROM_THE_TOKEN_RESPONSE;
         }
 
         return id;
@@ -160,5 +182,9 @@ public class Account implements IAccount {
         }
 
         return MISSING_FROM_THE_TOKEN_RESPONSE;
+    }
+
+    public void setHomeAccountId(@NonNull final String homeAccountId) {
+        mHomeAccountId = homeAccountId;
     }
 }

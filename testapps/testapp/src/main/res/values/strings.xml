@@ -63,4 +63,5 @@
     <string name="claims">Claims</string>
     <string name="status">Status:</string>
     <string name="pop_client_claims">PoP client claims</string>
+    <string name="trust_debug_broker">DebugBroker?</string>
 </resources>
