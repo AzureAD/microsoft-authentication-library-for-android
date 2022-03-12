@@ -33,6 +33,7 @@ import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
+import com.microsoft.identity.client.ICurrentAccountResult;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.Prompt;
@@ -281,13 +282,29 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
         mSingleAccountPCA.signIn(signInParameters);
         RoboTestUtils.flushScheduler();
 
-        final AcquireTokenParameters acquireTokenParameters = new AcquireTokenParameters.Builder()
-                .startAuthorizationFromActivity(mActivity)
-                .withScopes(Arrays.asList(mScopes))
-                .withCallback(getSuccessExpectedCallback())
-                .build();
-        mSingleAccountPCA.acquireToken(acquireTokenParameters);
-        RoboTestUtils.flushScheduler();
+        mSingleAccountPCA.getCurrentAccountAsync(new ISingleAccountPublicClientApplication.CurrentAccountCallback() {
+            @Override
+            public void onAccountLoaded(@Nullable IAccount activeAccount) {
+                final AcquireTokenParameters acquireTokenParameters = new AcquireTokenParameters.Builder()
+                        .startAuthorizationFromActivity(mActivity)
+                        .withScopes(Arrays.asList(mScopes))
+                        .forAccount(activeAccount)
+                        .withCallback(getSuccessExpectedCallback())
+                        .build();
+                mSingleAccountPCA.acquireToken(acquireTokenParameters);
+                RoboTestUtils.flushScheduler();
+            }
+
+            @Override
+            public void onAccountChanged(@Nullable IAccount priorAccount, @Nullable IAccount currentAccount) {
+                // Nothing
+            }
+
+            @Override
+            public void onError(@NonNull MsalException exception) {
+                Assert.fail(exception.getMessage());
+            }
+        });
     }
 
     @Test
