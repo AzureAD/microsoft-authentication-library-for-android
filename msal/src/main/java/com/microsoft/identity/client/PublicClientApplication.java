@@ -1831,7 +1831,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         }
     }
 
-    public void acquireTokenWithDeviceCode(@Nullable List<String> scopes, @NonNull final DeviceCodeFlowCallback callback) {
+    public void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback) {
         // Create a DeviceCodeFlowCommandParameters object that takes in the desired scopes and the callback object
         // Use CommandParametersAdapter
         final DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter
@@ -1861,7 +1861,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      *              Use {@link PublicClientApplication#acquireTokenWithDeviceCode(List, DeviceCodeFlowCallback)} instead.
      */
     @Deprecated
-    public void acquireTokenWithDeviceCode(@Nullable String[] scopes, @NonNull final DeviceCodeFlowCallback callback) {
+    public void acquireTokenWithDeviceCode(@NonNull String[] scopes, @NonNull final DeviceCodeFlowCallback callback) {
         // Create a DeviceCodeFlowCommandParameters object that takes in the desired scopes and the callback object
         // Use CommandParametersAdapter
         final DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter
