@@ -117,21 +117,21 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
         mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, getInvalidParameterExpectedCallback());
     }
 
-//    @Test
-//    public void testSignInOnlyAllowedOnceWithParameters() {
-//        final SignInParameters signInParameters = SignInParameters.builder()
-//                .withActivity(mActivity)
-//                .withLoginHint(mUsername)
-//                .withScopes(Arrays.asList(mScopes))
-//                .withCallback(getSuccessExpectedCallback())
-//                .build();
-//        mSingleAccountPCA.signIn(signInParameters);
-//        RoboTestUtils.flushScheduler();
-//
-//        signInParameters.setCallback(getInvalidParameterExpectedCallback());
-//
-//        mSingleAccountPCA.signIn(signInParameters);
-//    }
+    @Test
+    public void testSignInOnlyAllowedOnceWithParameters() {
+        final SignInParameters signInParameters = SignInParameters.builder()
+                .withActivity(mActivity)
+                .withLoginHint(mUsername)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(getSuccessExpectedCallback())
+                .build();
+        mSingleAccountPCA.signIn(signInParameters);
+        RoboTestUtils.flushScheduler();
+
+        signInParameters.setCallback(getInvalidParameterExpectedCallback());
+
+        mSingleAccountPCA.signIn(signInParameters);
+    }
 
     @Test
     public void testSignInWithPromptOnlyAllowedOnce() {
