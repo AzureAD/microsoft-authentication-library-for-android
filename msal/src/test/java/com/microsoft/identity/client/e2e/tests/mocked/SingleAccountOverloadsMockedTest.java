@@ -128,9 +128,14 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
         mSingleAccountPCA.signIn(signInParameters);
         RoboTestUtils.flushScheduler();
 
-        signInParameters.setCallback(getInvalidParameterExpectedCallback());
+        final SignInParameters secondSignInParameters = SignInParameters.builder()
+                .withActivity(mActivity)
+                .withLoginHint(mUsername)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(getInvalidParameterExpectedCallback())
+                .build();
 
-        mSingleAccountPCA.signIn(signInParameters);
+        mSingleAccountPCA.signIn(secondSignInParameters);
     }
 
     @Test
@@ -153,9 +158,15 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
         mSingleAccountPCA.signIn(signInParameters);
         RoboTestUtils.flushScheduler();
 
-        signInParameters.setCallback(getInvalidParameterExpectedCallback());
+        final SignInParameters secondSignInParameters = SignInParameters.builder()
+                .withActivity(mActivity)
+                .withLoginHint(mUsername)
+                .withScopes(Arrays.asList(mScopes))
+                .withPrompt(Prompt.LOGIN)
+                .withCallback(getInvalidParameterExpectedCallback())
+                .build();
 
-        mSingleAccountPCA.signIn(signInParameters);
+        mSingleAccountPCA.signIn(secondSignInParameters);
     }
 
     @Test
@@ -178,9 +189,14 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
         mSingleAccountPCA.signIn(signInParameters);
         RoboTestUtils.flushScheduler();
 
-        signInParameters.setLoginHint(null);
-        signInParameters.setPrompt(Prompt.LOGIN);
-        mSingleAccountPCA.signInAgain(signInParameters);
+        final SignInParameters secondSignInParameters = SignInParameters.builder()
+                .withActivity(mActivity)
+                .withScopes(Arrays.asList(mScopes))
+                .withPrompt(Prompt.LOGIN)
+                .withCallback(getSuccessExpectedCallback())
+                .build();
+
+        mSingleAccountPCA.signInAgain(secondSignInParameters);
         RoboTestUtils.flushScheduler();
     }
 
