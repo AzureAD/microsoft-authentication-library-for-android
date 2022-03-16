@@ -88,14 +88,19 @@ public class MsalLoggingRule implements TestRule {
         final FileAppender msalFileLogAppender = new FileAppender(msalLogFileName, new LogcatLikeFormatter());
         Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
         Logger.getInstance().setEnableLogcatLog(false);
-        Logger.getInstance().setExternalLogger(new ILoggerCallback() {
-            @Override
-            public void log(final String tag, final Logger.LogLevel logLevel,
-                            final String message, boolean containsPII) {
-                final LogLevel level = convertMsalLogLevelToInternalLogLevel(logLevel);
-                msalFileLogAppender.append(level, tag, message, null);
-            }
-        });
+        try {
+            Logger.getInstance().setExternalLogger(new ILoggerCallback() {
+                @Override
+                public void log(final String tag, final Logger.LogLevel logLevel,
+                                final String message, boolean containsPII) {
+                    final LogLevel level = convertMsalLogLevelToInternalLogLevel(logLevel);
+                    msalFileLogAppender.append(level, tag, message, null);
+                }
+            });
+        } catch (final IllegalStateException ex) {
+            // External logger is already set
+            System.out.println(ex.getMessage());
+        }
 
         return msalFileLogAppender;
     }
