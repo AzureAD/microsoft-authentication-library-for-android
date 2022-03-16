@@ -58,7 +58,9 @@ public class PublicClientApplicationConfigurationFactory {
      **/
     @WorkerThread
     public static PublicClientApplicationConfiguration initializeConfiguration(@NonNull final Context context) {
-        return initializeConfigurationInternal(context, null);
+        synchronized (GlobalSettings.getGlobalSettingsLock()) {
+            return initializeConfigurationInternal(context, null);
+        }
     }
 
     /**
@@ -68,7 +70,9 @@ public class PublicClientApplicationConfigurationFactory {
     @WorkerThread
     public static PublicClientApplicationConfiguration initializeConfiguration(@NonNull final Context context,
                                                                                final int configResourceId) {
-        return initializeConfigurationInternal(context, loadConfiguration(context, configResourceId));
+        synchronized (GlobalSettings.getGlobalSettingsLock()) {
+            return initializeConfigurationInternal(context, loadConfiguration(context, configResourceId));
+        }
     }
 
     /**
@@ -78,8 +82,10 @@ public class PublicClientApplicationConfigurationFactory {
     @WorkerThread
     public static PublicClientApplicationConfiguration initializeConfiguration(@NonNull final Context context,
                                                                                @NonNull final File configFile) {
-        validateNonNullArgument(configFile, "configFile");
-        return initializeConfigurationInternal(context, loadConfiguration(configFile));
+        synchronized (GlobalSettings.getGlobalSettingsLock()) {
+            validateNonNullArgument(configFile, "configFile");
+            return initializeConfigurationInternal(context, loadConfiguration(configFile));
+        }
     }
 
     @WorkerThread
@@ -105,17 +111,15 @@ public class PublicClientApplicationConfigurationFactory {
 
     @WorkerThread
     private static PublicClientApplicationConfiguration mergeConfigurationWithGlobal(final @NonNull PublicClientApplicationConfiguration developerConfig) {
-        synchronized (GlobalSettings.getGlobalSettingsLock()) {
-            if (!GlobalSettings.isGlobalSettingsInitialized()) {
-                Logger.warn(TAG + "mergeConfigurationWithGlobal",
-                        GlobalSettings.NO_GLOBAL_SETTINGS_WARNING);
-                return developerConfig;
-            }
-
-            developerConfig.mergeGlobalConfiguration(GlobalSettings.getGlobalSettingsConfiguration());
-
+        if (!GlobalSettings.isGlobalSettingsInitialized()) {
+            Logger.warn(TAG + "mergeConfigurationWithGlobal",
+                    GlobalSettings.NO_GLOBAL_SETTINGS_WARNING);
             return developerConfig;
         }
+
+        developerConfig.mergeGlobalConfiguration(GlobalSettings.getGlobalSettingsConfiguration());
+
+        return developerConfig;
     }
 
     @WorkerThread
@@ -183,7 +187,9 @@ public class PublicClientApplicationConfigurationFactory {
         final Gson gson = getGsonForLoadingConfiguration();
 
         try {
-            return gson.fromJson(config, PublicClientApplicationConfiguration.class);
+            final PublicClientApplicationConfiguration configuration = gson.fromJson(config, PublicClientApplicationConfiguration.class);
+            GlobalSettings.pcaHasBeenInitiated();
+            return configuration;
         } catch (final Exception e) {
             if (e instanceof InterruptedException) {
                 Thread.currentThread().interrupt();
