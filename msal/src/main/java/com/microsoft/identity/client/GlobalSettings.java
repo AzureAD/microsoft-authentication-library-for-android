@@ -43,14 +43,14 @@ import java.io.File;
  */
 public class GlobalSettings {
     private static final String TAG = GlobalSettings.class.getSimpleName();
+    public static final String NO_GLOBAL_SETTINGS_WARNING = "Global settings have not been initialized before the creation of this PCA Configuration.";
+    public static final String GLOBAL_INIT_AFTER_PCA = "pca_created_before_global";
+    public static final String GLOBAL_INIT_AFTER_PCA_ERROR_MESSAGE = "Global initialization was attempted after a PublicClientApplicationConfiguration instance was already created. Please initialize global settings before any PublicClientApplicationConfiguration instance is created.";
 
     private static GlobalSettingsConfiguration mGlobalSettingsConfiguration;
     private static boolean pcaCreated = false;
     private static boolean mGlobalSettingsInitialized = false;
     private static Object mGlobalSettingsLock = new Object();
-    public static final String NO_GLOBAL_SETTINGS_WARNING = "Global settings have not been initialized before the creation of this PCA Configuration.";
-    public static final String PCA_CREATED_FIRST_ERROR = "pca_created_before_global";
-    public static final String PCA_CREATED_FIRST_ERROR_MESSAGE = "Global initialization was attempted after a PublicClientApplicationConfiguration instance was already created. Please initialize global settings before any PublicClientApplicationConfiguration instance is created.";
 
     /**
      * Load the global configuration file using the context, resource id of the configuration file, and a listener.
@@ -102,8 +102,8 @@ public class GlobalSettings {
     private static void setGlobalConfiguration(@NonNull final GlobalSettingsConfiguration globalConfiguration,
                                                @NonNull final GlobalSettingsListener listener) {
         if (pcaCreated) {
-            listener.onError(new MsalClientException(PCA_CREATED_FIRST_ERROR,
-                    PCA_CREATED_FIRST_ERROR_MESSAGE));
+            listener.onError(new MsalClientException(GLOBAL_INIT_AFTER_PCA,
+                    GLOBAL_INIT_AFTER_PCA_ERROR_MESSAGE));
         }
 
         try {
