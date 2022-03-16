@@ -2,6 +2,7 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+- [PATCH] Update gson version to 2.8.9
 
 Version 3.0.1
 -------------
