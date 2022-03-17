@@ -48,7 +48,7 @@ public class GlobalSettings {
     public static final String GLOBAL_INIT_AFTER_PCA_ERROR_MESSAGE = "Global initialization was attempted after a PublicClientApplicationConfiguration instance was already created. Please initialize global settings before any PublicClientApplicationConfiguration instance is created.";
 
     private static GlobalSettingsConfiguration mGlobalSettingsConfiguration;
-    private static boolean pcaCreated = false;
+    private static boolean mPCAConfigCreated = false;
     private static boolean mGlobalSettingsInitialized = false;
     private static Object mGlobalSettingsLock = new Object();
 
@@ -101,7 +101,7 @@ public class GlobalSettings {
 
     private static void setGlobalConfiguration(@NonNull final GlobalSettingsConfiguration globalConfiguration,
                                                @NonNull final GlobalSettingsListener listener) {
-        if (pcaCreated) {
+        if (mPCAConfigCreated) {
             listener.onError(new MsalClientException(GLOBAL_INIT_AFTER_PCA,
                     GLOBAL_INIT_AFTER_PCA_ERROR_MESSAGE));
         }
@@ -148,7 +148,7 @@ public class GlobalSettings {
     }
 
     protected static void pcaHasBeenInitiated() {
-        pcaCreated = true;
+        mPCAConfigCreated = true;
     }
 
     protected static Object getGlobalSettingsLock() {

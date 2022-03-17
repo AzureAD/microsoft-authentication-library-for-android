@@ -495,6 +495,11 @@ public class PublicClientApplicationConfiguration {
                 this.mAuthorities = globalConfig.getAuthorities();
             }
         }
+        if (this.mAuthorities == null) {
+            this.mAuthorities = globalConfig.getAuthorities();
+        } else if (globalConfig.getAuthorities() != null) {
+            this.mAuthorities.addAll(globalConfig.getAuthorities());
+        }
 //        this.mAuthorities = globalConfig.getAuthorities() == null ? this.mAuthorities : globalConfig.getAuthorities();
         this.mAuthorizationAgent = globalConfig.getAuthorizationAgent() == null ? this.mAuthorizationAgent : globalConfig.getAuthorizationAgent();
         this.mEnvironment = globalConfig.getEnvironment() == null ? this.mEnvironment : globalConfig.getEnvironment();
