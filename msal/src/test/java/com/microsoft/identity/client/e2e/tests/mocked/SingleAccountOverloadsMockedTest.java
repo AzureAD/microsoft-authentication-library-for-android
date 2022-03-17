@@ -115,6 +115,7 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
         RoboTestUtils.flushScheduler();
 
         mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, getInvalidParameterExpectedCallback());
+        RoboTestUtils.flushScheduler();
     }
 
     @Test
@@ -136,6 +137,7 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
                 .build();
 
         mSingleAccountPCA.signIn(secondSignInParameters);
+        RoboTestUtils.flushScheduler();
     }
 
     @Test
@@ -144,6 +146,7 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
         RoboTestUtils.flushScheduler();
 
         mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, Prompt.LOGIN, getInvalidParameterExpectedCallback());
+        RoboTestUtils.flushScheduler();
     }
 
     @Test
@@ -167,6 +170,7 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
                 .build();
 
         mSingleAccountPCA.signIn(secondSignInParameters);
+        RoboTestUtils.flushScheduler();
     }
 
     @Test
@@ -203,6 +207,7 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
     @Test
     public void testCannotSignInAgainIfNeverSignedInBefore() {
         mSingleAccountPCA.signInAgain(mActivity, mScopes, Prompt.LOGIN, getNoCurrentAccountExpectedCallback());
+        RoboTestUtils.flushScheduler();
     }
 
     @Test
@@ -214,6 +219,7 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
                 .withCallback(getNoCurrentAccountExpectedCallback())
                 .build();
         mSingleAccountPCA.signInAgain(signInParameters);
+        RoboTestUtils.flushScheduler();
     }
 
     @Test
@@ -276,6 +282,7 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
                 Assert.assertEquals(exception.getErrorCode(), MsalClientException.NO_CURRENT_ACCOUNT);
             }
         });
+        RoboTestUtils.flushScheduler();
     }
 
     @Test
@@ -326,6 +333,7 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
     @Test
     public void testCannotAcquireTokenIfNotSignedIn() {
         mSingleAccountPCA.acquireToken(mActivity, mScopes, getNoCurrentAccountExpectedCallback());
+        RoboTestUtils.flushScheduler();
     }
 
     public void testCannotAcquireTokenWithParametersIfNotSignedIn() {
@@ -344,6 +352,7 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
                 .build();
 
         mSingleAccountPCA.acquireToken(acquireTokenParameters);
+        RoboTestUtils.flushScheduler();
     }
 
     @Test
@@ -364,6 +373,7 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
                 .build();
 
         mSingleAccountPCA.acquireToken(acquireTokenParameters);
+        RoboTestUtils.flushScheduler();
     }
 
     @Test
@@ -379,6 +389,7 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
                 .build();
 
         mSingleAccountPCA.acquireToken(acquireTokenParameters);
+        RoboTestUtils.flushScheduler();
     }
 
     @Test
@@ -400,6 +411,7 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
                 .build();
 
         mSingleAccountPCA.acquireToken(acquireTokenParameters);
+        RoboTestUtils.flushScheduler();
     }
 
     @Test
@@ -417,6 +429,7 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
                 .build();
 
         mSingleAccountPCA.acquireToken(acquireTokenParameters);
+        RoboTestUtils.flushScheduler();
     }
 
     @Test
@@ -440,6 +453,7 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
                 .build();
 
         mSingleAccountPCA.acquireToken(acquireTokenParameters);
+        RoboTestUtils.flushScheduler();
     }
 
     @Test
@@ -521,6 +535,7 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
     @Test
     public void testCannotAcquireTokenSilentlyIfNotSignedIn() {
         mSingleAccountPCA.acquireTokenSilentAsync(mScopes, getAuthority(), getNoCurrentAccountExpectedCallback());
+        RoboTestUtils.flushScheduler();
     }
 
     @Test
@@ -563,6 +578,7 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
                 .build();
 
         mSingleAccountPCA.acquireTokenSilentAsync(silentParameters);
+        RoboTestUtils.flushScheduler();
     }
 
     @Test
@@ -618,6 +634,7 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
                 .build();
 
         mSingleAccountPCA.acquireTokenSilentAsync(silentParameters);
+        RoboTestUtils.flushScheduler();
     }
 
     @Test
@@ -641,6 +658,7 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
                 .build();
 
         mSingleAccountPCA.acquireTokenSilentAsync(silentParameters);
+        RoboTestUtils.flushScheduler();
     }
 
     @Test
