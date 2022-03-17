@@ -277,12 +277,7 @@ public class SingleAccountPublicClientApplication
         }
 
     }
-
-    /**
-     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of {@link SignInParameters} as the
-     *              parameters for the SingleAccountPublicClientApplication API.
-     *              Use {@link SingleAccountPublicClientApplication#signIn(SignInParameters)} instead.
-     */
+    
     @Deprecated
     @Override
     public void signIn(@NonNull final Activity activity,
