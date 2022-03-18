@@ -22,6 +22,7 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.mocked;
 
+import android.os.Looper;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
@@ -63,7 +64,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.LooperMode;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -119,6 +122,7 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
 
     @Test
     public void testSignInOnlyAllowedOnceWithParameters() {
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
         final SignInParameters signInParameters = SignInParameters.builder()
                 .withActivity(mActivity)
                 .withLoginHint(mUsername)
@@ -128,6 +132,7 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
         mSingleAccountPCA.signIn(signInParameters);
         RoboTestUtils.flushScheduler();
 
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
         final SignInParameters secondSignInParameters = SignInParameters.builder()
                 .withActivity(mActivity)
                 .withLoginHint(mUsername)
