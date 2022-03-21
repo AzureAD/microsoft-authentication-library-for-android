@@ -88,25 +88,28 @@ public class SingleAccountOverloadsWithParametersMockedTest extends AcquireToken
 
     @Test
     public void testSignInOnlyAllowedOnceWithParameters() {
-        Shadows.shadowOf(Looper.getMainLooper()).idle();
-        final SignInParameters signInParameters = SignInParameters.builder()
-                .withActivity(mActivity)
-                .withLoginHint(mUsername)
-                .withScopes(getScopesList())
-                .withCallback(getSuccessExpectedCallback())
-                .build();
-        mSingleAccountPCA.signIn(signInParameters);
+        mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
         RoboTestUtils.flushScheduler();
 
-        Shadows.shadowOf(Looper.getMainLooper()).idle();
-        final SignInParameters secondSignInParameters = SignInParameters.builder()
-                .withActivity(mActivity)
-                .withLoginHint(mUsername)
-                .withScopes(Arrays.asList(mScopes))
-                .withCallback(getInvalidParameterExpectedCallback())
-                .build();
-
-        mSingleAccountPCA.signIn(secondSignInParameters);
+        mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, getInvalidParameterExpectedCallback());
+//        Shadows.shadowOf(Looper.getMainLooper()).idle();
+//        final SignInParameters signInParameters = SignInParameters.builder()
+//                .withActivity(mActivity)
+//                .withLoginHint(mUsername)
+//                .withScopes(getScopesList())
+//                .withCallback(getSuccessExpectedCallback())
+//                .build();
+//        mSingleAccountPCA.signIn(signInParameters);
+//        RoboTestUtils.flushScheduler();
+//
+//        Shadows.shadowOf(Looper.getMainLooper()).idle();
+//        final SignInParameters secondSignInParameters = SignInParameters.builder()
+//                .withActivity(mActivity)
+//                .withLoginHint(mUsername)
+//                .withScopes(Arrays.asList(mScopes))
+//                .withCallback(getInvalidParameterExpectedCallback())
+//                .build();
+//        mSingleAccountPCA.signIn(secondSignInParameters);
     }
 
     @Test
