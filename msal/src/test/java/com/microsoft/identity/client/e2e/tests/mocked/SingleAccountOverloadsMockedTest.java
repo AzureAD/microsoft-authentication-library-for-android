@@ -284,18 +284,6 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
     }
 
     @Test
-    public void testCannotAcquireTokenSilentlyWithParametersIfNotSignedIn() {
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .withScopes(Arrays.asList(mScopes))
-                .forAccount(AcquireTokenTestHelper.getAccount())
-                .fromAuthority(getAuthority())
-                .withCallback(getNoCurrentAccountExpectedCallback())
-                .build();
-
-        mSingleAccountPCA.acquireTokenSilentAsync(silentParameters);
-    }
-
-    @Test
     public void testCanAcquireTokenSilentlyWithParametersIfAlreadySignedIn() {
         mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
         RoboTestUtils.flushScheduler();

@@ -336,6 +336,18 @@ public class SingleAccountOverloadsWithParametersMockedTest extends AcquireToken
     }
 
     @Test
+    public void testCannotAcquireTokenSilentlyWithParametersIfNotSignedIn() {
+        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                .withScopes(Arrays.asList(mScopes))
+                .forAccount(AcquireTokenTestHelper.getAccount())
+                .fromAuthority(getAuthority())
+                .withCallback(getNoCurrentAccountExpectedCallback())
+                .build();
+
+        mSingleAccountPCA.acquireTokenSilentAsync(silentParameters);
+    }
+
+    @Test
     public void testCanAcquireTokenSilentlyIfAlreadySignedInWithParameters() {
         final SignInParameters signInParameters = SignInParameters.builder()
                 .withActivity(mActivity)
