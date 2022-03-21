@@ -161,7 +161,6 @@ public interface ISingleAccountPublicClientApplication extends IPublicClientAppl
      * <p>
      * Note: The authority used to make the sign in request will be either the MSAL default:
      * https://login.microsoftonline.com/common or the default authority specified by you in your
-     * configuration.
      * configuration. This flow requires activity, scopes, and callback. Prompt is optional.
      *
      * @param activity Non-null {@link Activity} that is used as the parent activity for
