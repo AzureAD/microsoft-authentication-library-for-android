@@ -28,6 +28,7 @@ import android.util.Base64;
 
 import androidx.annotation.NonNull;
 
+import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
@@ -38,6 +39,7 @@ import com.microsoft.identity.client.e2e.shadows.ShadowAuthorityForMockHttpRespo
 import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
+import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.java.cache.IMultiTypeNameValueStorage;
@@ -426,6 +428,160 @@ public class CrossCloudGuestAccountTest extends AcquireTokenAbstractTest {
 
         // act and assert
         try {
+            mMultipleAccountPCA.acquireTokenSilentAsync(
+                    getScopes(),
+                    accountsUnderTest.get(0),
+                    mTestCaseData.userAccountsData.get(0).authority +
+                            "/" + mTestCaseData.userAccountsData.get(0).tenantId,
+                    silentAuthenticationCallback);
+        } catch (Exception e) {
+            fail(e.getMessage());
+        }
+
+        RoboTestUtils.flushScheduler();
+    }
+
+    @Test
+    public void testAcquireTokenSilentReturnsAccessTokenForCrossCloudAccountWithSilentParameters() {
+        // arrange
+        final UserAccountData lastSignedInAccount =
+                mTestCaseData.userAccountsData.get(mTestCaseData.userAccountsData.size() - 1);
+
+        final SilentAuthenticationCallback silentAuthenticationCallback = new SilentAuthenticationCallback() {
+            @Override
+            public void onSuccess(IAuthenticationResult authenticationResult) {
+                // verify access token value from the authentication result matches the expected
+                // access token as set in the test case data
+                assertEquals("Verify accessToken value from authenticationResult matches mocked access token",
+                        lastSignedInAccount.getFakeAccessToken(), authenticationResult.getAccessToken());
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                fail(exception.getMessage());
+            }
+        };
+
+        // act and assert
+        try {
+            final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                    .withScopes(Arrays.asList(getScopes()))
+                    .forAccount(getAccount())
+                    .fromAuthority(lastSignedInAccount.authority +
+                            "/" + lastSignedInAccount.tenantId)
+                    .forceRefresh(false)
+                    .withClaims(null)
+                    .withCallback(silentAuthenticationCallback)
+                    .build();
+
+            mMultipleAccountPCA.acquireTokenSilentAsync(silentParameters);
+        } catch (Exception e) {
+            fail(e.getMessage());
+        }
+
+        RoboTestUtils.flushScheduler();
+    }
+
+    @Test
+    public void testAcquireTokenSilentReturnsAccessTokenForCrossCloudAccountRetrievedUsingGetAccountWithSilentParameters() {
+        // arrange
+        final IAccount[] accountUnderTest = {null};
+        mMultipleAccountPCA.getAccount(mTestCaseData.homeAccountId, new IMultipleAccountPublicClientApplication.GetAccountCallback() {
+            @Override
+            public void onTaskCompleted(IAccount result) {
+                accountUnderTest[0] = result;
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                fail(exception.getMessage());
+            }
+        });
+
+        RoboTestUtils.flushScheduler();
+
+        final SilentAuthenticationCallback silentAuthenticationCallback = new SilentAuthenticationCallback() {
+            @Override
+            public void onSuccess(IAuthenticationResult authenticationResult) {
+                // verify access token value from the authentication result matches the expected
+                // access token as set in the test case data
+                assertEquals("Verify accessToken value from authenticationResult matches mocked access token",
+                        mTestCaseData.userAccountsData.get(0).getFakeAccessToken(), authenticationResult.getAccessToken());
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                fail(exception.getMessage());
+            }
+        };
+
+        // act and assert
+        try {
+            final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                    .withScopes(Arrays.asList(getScopes()))
+                    .forAccount(accountUnderTest[0])
+                    .fromAuthority(mTestCaseData.userAccountsData.get(0).authority +
+                            "/" + mTestCaseData.userAccountsData.get(0).tenantId)
+                    .forceRefresh(false)
+                    .withClaims(null)
+                    .withCallback(silentAuthenticationCallback)
+                    .build();
+
+            mMultipleAccountPCA.acquireTokenSilentAsync(silentParameters);
+        } catch (Exception e) {
+            fail(e.getMessage());
+        }
+
+        RoboTestUtils.flushScheduler();
+    }
+
+    @Test
+    public void testAcquireTokenSilentReturnsAccessTokenForCrossCloudAccountRetrievedUsingGetAccountsWithSilentParameters() {
+        // arrange
+        final List<IAccount> accountsUnderTest = new ArrayList<>();
+        mMultipleAccountPCA.getAccounts(new IPublicClientApplication.LoadAccountsCallback() {
+            @Override
+            public void onTaskCompleted(List<IAccount> result) {
+                accountsUnderTest.addAll(result);
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                fail(exception.getMessage());
+            }
+        });
+
+        RoboTestUtils.flushScheduler();
+
+        final SilentAuthenticationCallback silentAuthenticationCallback = new SilentAuthenticationCallback() {
+            @Override
+            public void onSuccess(IAuthenticationResult authenticationResult) {
+                // verify access token value from the authentication result matches the expected
+                // access token as set in the test case data
+                assertEquals("Verify accessToken value from authenticationResult matches mocked access token",
+                        mTestCaseData.userAccountsData.get(0).getFakeAccessToken(), authenticationResult.getAccessToken());
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                fail(exception.getMessage());
+            }
+        };
+
+        // act and assert
+        try {
+            final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+                    .withScopes(Arrays.asList(getScopes()))
+                    .forAccount(accountsUnderTest.get(0))
+                    .fromAuthority(mTestCaseData.userAccountsData.get(0).authority +
+                            "/" + mTestCaseData.userAccountsData.get(0).tenantId)
+                    .forceRefresh(false)
+                    .withClaims(null)
+                    .withCallback(silentAuthenticationCallback)
+                    .build();
+
+            mMultipleAccountPCA.acquireTokenSilentAsync(silentParameters);
+
             mMultipleAccountPCA.acquireTokenSilentAsync(
                     getScopes(),
                     accountsUnderTest.get(0),
