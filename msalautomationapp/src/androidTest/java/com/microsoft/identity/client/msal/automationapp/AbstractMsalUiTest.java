@@ -91,13 +91,6 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
         mScopes = getScopes();
         mBrowser = getBrowser();
 
-        // clear all cookies in the browser and in the WebView
-        try {
-            mBrowser.clear();
-            CommonUtils.clearCookiesSync(mActivity);
-        } catch (InterruptedException ignored) {
-        }
-
         mContext = ApplicationProvider.getApplicationContext();
         setupPCA();
     }
