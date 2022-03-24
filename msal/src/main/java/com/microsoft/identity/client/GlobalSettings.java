@@ -24,7 +24,6 @@ package com.microsoft.identity.client;
 
 import static com.microsoft.identity.client.GlobalSettingsConfigurationFactory.initializeGlobalConfiguration;
 import static com.microsoft.identity.client.exception.MsalClientException.SAPCA_USE_WITH_MULTI_POLICY_B2C;
-import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArgument;
 
 import android.content.Context;
 
@@ -39,18 +38,27 @@ import com.microsoft.identity.common.logging.Logger;
 import java.io.File;
 
 /**
- * Class used to initialize global configurations for the library.
+ * Singleton class used to initialize global configurations for the library.
  */
 public class GlobalSettings {
     private static final String TAG = GlobalSettings.class.getSimpleName();
     public static final String NO_GLOBAL_SETTINGS_WARNING = "Global settings have not been initialized before the creation of this PCA Configuration.";
-    public static final String GLOBAL_INIT_AFTER_PCA = "pca_created_before_global";
+    public static final String GLOBAL_INIT_AFTER_PCA_ERROR_CODE = "pca_created_before_global";
     public static final String GLOBAL_INIT_AFTER_PCA_ERROR_MESSAGE = "Global initialization was attempted after a PublicClientApplicationConfiguration instance was already created. Please initialize global settings before any PublicClientApplicationConfiguration instance is created.";
 
-    private static GlobalSettingsConfiguration mGlobalSettingsConfiguration;
-    private static boolean mPCAConfigCreated = false;
-    private static boolean mGlobalSettingsInitialized = false;
-    private static Object mGlobalSettingsLock = new Object();
+    private final static GlobalSettings mGlobalSettingsSingleton = new GlobalSettings();
+
+    private GlobalSettingsConfiguration mGlobalSettingsConfiguration;
+    private boolean mPCAConfigCreated = false;
+    private boolean mGlobalSettingsInitialized = false;
+    private final Object mGlobalSettingsLock = new Object();
+
+    /**
+     * Private Constructor for Singleton
+     */
+    private GlobalSettings() {
+        // Do nothing
+    }
 
     /**
      * Load the global configuration file using the context, resource id of the configuration file, and a listener.
@@ -62,12 +70,10 @@ public class GlobalSettings {
     public static void loadGlobalConfigurationFile(@NonNull final Context context,
                                                    final int configFileResourceId,
                                                    @NonNull final GlobalSettingsListener listener) {
-        validateNonNullArgument(context, PublicClientApplication.NONNULL_CONSTANTS.CONTEXT);
-        validateNonNullArgument(listener, PublicClientApplication.NONNULL_CONSTANTS.LISTENER);
         runOnBackground(new Runnable() {
             @Override
             public void run() {
-                synchronized (mGlobalSettingsLock) {
+                synchronized (mGlobalSettingsSingleton.mGlobalSettingsLock) {
                     setGlobalConfiguration(
                             initializeGlobalConfiguration(context, configFileResourceId),
                             listener
@@ -85,11 +91,10 @@ public class GlobalSettings {
      */
     public static void loadGlobalConfigurationFile(@NonNull final File configFile,
                                                    @NonNull final GlobalSettingsListener listener) {
-        validateNonNullArgument(listener, PublicClientApplication.NONNULL_CONSTANTS.LISTENER);
         runOnBackground(new Runnable() {
             @Override
             public void run() {
-                synchronized (mGlobalSettingsLock) {
+                synchronized (mGlobalSettingsSingleton.mGlobalSettingsLock) {
                     setGlobalConfiguration(
                             initializeGlobalConfiguration(configFile),
                             listener
@@ -101,8 +106,8 @@ public class GlobalSettings {
 
     private static void setGlobalConfiguration(@NonNull final GlobalSettingsConfiguration globalConfiguration,
                                                @NonNull final GlobalSettingsListener listener) {
-        if (mPCAConfigCreated) {
-            listener.onError(new MsalClientException(GLOBAL_INIT_AFTER_PCA,
+        if (mGlobalSettingsSingleton.mGlobalSettingsInitialized) {
+            listener.onError(new MsalClientException(GLOBAL_INIT_AFTER_PCA_ERROR_CODE,
                     GLOBAL_INIT_AFTER_PCA_ERROR_MESSAGE));
         }
 
@@ -113,8 +118,8 @@ public class GlobalSettings {
             return;
         }
 
-        mGlobalSettingsConfiguration = globalConfiguration;
-        mGlobalSettingsInitialized = true;
+        mGlobalSettingsSingleton.mGlobalSettingsConfiguration = globalConfiguration;
+        mGlobalSettingsSingleton.mGlobalSettingsInitialized = true;
 
         listener.onSuccess("Global configuration initialized.");
     }
@@ -139,20 +144,30 @@ public class GlobalSettings {
         }
     }
 
-    protected static GlobalSettingsConfiguration getGlobalSettingsConfiguration() {
-        return mGlobalSettingsConfiguration;
+    protected GlobalSettingsConfiguration getGlobalSettingsConfiguration() {
+        synchronized (mGlobalSettingsLock) {
+            return mGlobalSettingsConfiguration;
+        }
     }
 
-    protected static boolean isGlobalSettingsInitialized() {
-        return mGlobalSettingsInitialized;
+    protected boolean isGlobalSettingsInitialized() {
+        synchronized (mGlobalSettingsLock) {
+            return mGlobalSettingsInitialized;
+        }
     }
 
-    protected static void pcaHasBeenInitiated() {
-        mPCAConfigCreated = true;
+    protected void pcaHasBeenInitiated() {
+        synchronized (mGlobalSettingsLock) {
+            mPCAConfigCreated = true;
+        }
     }
 
-    protected static Object getGlobalSettingsLock() {
+    protected Object getGlobalSettingsLock() {
         return mGlobalSettingsLock;
+    }
+
+    protected static GlobalSettings getInstance() {
+        return mGlobalSettingsSingleton;
     }
 
     public interface GlobalSettingsListener {

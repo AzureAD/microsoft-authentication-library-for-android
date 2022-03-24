@@ -52,13 +52,14 @@ import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullAr
 
 public class PublicClientApplicationConfigurationFactory {
     private static final String TAG = PublicClientApplicationConfigurationFactory.class.getSimpleName();
+    private static final GlobalSettings globalSettings = GlobalSettings.getInstance();
 
     /**
      * Initializes a default PublicClientApplicationConfiguration object.
      **/
     @WorkerThread
     public static PublicClientApplicationConfiguration initializeConfiguration(@NonNull final Context context) {
-        synchronized (GlobalSettings.getGlobalSettingsLock()) {
+        synchronized (globalSettings.getGlobalSettingsLock()) {
             return initializeConfigurationInternal(context, null);
         }
     }
@@ -70,7 +71,7 @@ public class PublicClientApplicationConfigurationFactory {
     @WorkerThread
     public static PublicClientApplicationConfiguration initializeConfiguration(@NonNull final Context context,
                                                                                final int configResourceId) {
-        synchronized (GlobalSettings.getGlobalSettingsLock()) {
+        synchronized (globalSettings.getGlobalSettingsLock()) {
             return initializeConfigurationInternal(context, loadConfiguration(context, configResourceId));
         }
     }
@@ -82,7 +83,7 @@ public class PublicClientApplicationConfigurationFactory {
     @WorkerThread
     public static PublicClientApplicationConfiguration initializeConfiguration(@NonNull final Context context,
                                                                                @NonNull final File configFile) {
-        synchronized (GlobalSettings.getGlobalSettingsLock()) {
+        synchronized (globalSettings.getGlobalSettingsLock()) {
             validateNonNullArgument(configFile, "configFile");
             return initializeConfigurationInternal(context, loadConfiguration(configFile));
         }
@@ -111,13 +112,13 @@ public class PublicClientApplicationConfigurationFactory {
 
     @WorkerThread
     private static PublicClientApplicationConfiguration mergeConfigurationWithGlobal(final @NonNull PublicClientApplicationConfiguration developerConfig) {
-        if (!GlobalSettings.isGlobalSettingsInitialized()) {
+        if (!globalSettings.isGlobalSettingsInitialized()) {
             Logger.warn(TAG + "mergeConfigurationWithGlobal",
                     GlobalSettings.NO_GLOBAL_SETTINGS_WARNING);
             return developerConfig;
         }
 
-        developerConfig.mergeGlobalConfiguration(GlobalSettings.getGlobalSettingsConfiguration());
+        developerConfig.mergeGlobalConfiguration(globalSettings.getGlobalSettingsConfiguration());
 
         return developerConfig;
     }
@@ -188,7 +189,7 @@ public class PublicClientApplicationConfigurationFactory {
 
         try {
             final PublicClientApplicationConfiguration configuration = gson.fromJson(config, PublicClientApplicationConfiguration.class);
-            GlobalSettings.pcaHasBeenInitiated();
+            globalSettings.pcaHasBeenInitiated();
             return configuration;
         } catch (final Exception e) {
             if (e instanceof InterruptedException) {

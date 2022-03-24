@@ -486,21 +486,12 @@ public class PublicClientApplicationConfiguration {
     void mergeGlobalConfiguration(GlobalSettingsConfiguration globalConfig) {
         this.mClientId = globalConfig.getClientId() == null ? this.mClientId : globalConfig.getClientId();
         this.mRedirectUri = globalConfig.getRedirectUri() == null ? this.mRedirectUri : globalConfig.getRedirectUri();
-        // Change this to add global authorities to this PCA's authorities
-        if (globalConfig.getAuthorities() != null) {
-            if (this.mAuthorities != null) {
-                this.mAuthorities.addAll(globalConfig.getAuthorities());
-            }
-            else {
-                this.mAuthorities = globalConfig.getAuthorities();
-            }
-        }
+        // Changed to add global authorities to this PCA's authorities
         if (this.mAuthorities == null) {
             this.mAuthorities = globalConfig.getAuthorities();
         } else if (globalConfig.getAuthorities() != null) {
             this.mAuthorities.addAll(globalConfig.getAuthorities());
         }
-//        this.mAuthorities = globalConfig.getAuthorities() == null ? this.mAuthorities : globalConfig.getAuthorities();
         this.mAuthorizationAgent = globalConfig.getAuthorizationAgent() == null ? this.mAuthorizationAgent : globalConfig.getAuthorizationAgent();
         this.mEnvironment = globalConfig.getEnvironment() == null ? this.mEnvironment : globalConfig.getEnvironment();
         this.mHttpConfiguration = globalConfig.getHttpConfiguration() == null ? this.mHttpConfiguration : globalConfig.getHttpConfiguration();
@@ -520,7 +511,7 @@ public class PublicClientApplicationConfiguration {
         this.mLoggerConfiguration = globalConfig.getLoggerConfiguration() == null ? this.mLoggerConfiguration : globalConfig.getLoggerConfiguration();
         this.webViewZoomControlsEnabled = globalConfig.isWebViewZoomControlsEnabled() == null ? this.webViewZoomControlsEnabled : globalConfig.isWebViewZoomControlsEnabled();
         this.webViewZoomEnabled = globalConfig.isWebViewZoomEnabled() == null ? this.webViewZoomEnabled : globalConfig.isWebViewZoomEnabled();
-        this.powerOptCheckEnabled = globalConfig.isPowerOptCheckForEnabled() == null ? this.powerOptCheckEnabled : globalConfig.isPowerOptCheckForEnabled();
+        this.powerOptCheckEnabled = globalConfig.isPowerOptCheckEnabled() == null ? this.powerOptCheckEnabled : globalConfig.isPowerOptCheckEnabled();
         this.handleNullTaskAffinity = globalConfig.isHandleNullTaskAffinityEnabled() == null ? this.handleNullTaskAffinity : globalConfig.isHandleNullTaskAffinityEnabled();
         this.isAuthorizationInCurrentTask = globalConfig.authorizationInCurrentTask() == null ? this.isAuthorizationInCurrentTask : globalConfig.authorizationInCurrentTask();
     }

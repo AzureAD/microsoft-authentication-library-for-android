@@ -83,59 +83,141 @@ import java.util.List;
 
 import javax.crypto.SecretKey;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
 public class GlobalSettingsConfiguration {
     private static final String TAG = GlobalSettingsConfiguration.class.getSimpleName();
     private static final String BROKER_REDIRECT_URI_SCHEME_AND_SEPARATOR = "msauth://";
     public static final String INVALID_REDIRECT_MSG = "Invalid, null, or malformed redirect_uri supplied";
 
+    /**
+     * The currently configured client id for use with the {@link PublicClientApplication}.
+     */
+    @Getter
+    @Setter
+    @Accessors(prefix = "m")
     @SerializedName(CLIENT_ID)
     private String mClientId;
 
+    /**
+     * The currently configured redirect uri for use with the {@link PublicClientApplication}.
+     */
+    @Getter
+    @Setter
+    @Accessors(prefix = "m")
     @SerializedName(REDIRECT_URI)
     private String mRedirectUri;
 
+    /**
+     * The list of authorities configured by the developer for use with the {@link PublicClientApplication}.
+     */
+    @Getter
+    @Accessors(prefix = "m")
     @SerializedName(AUTHORITIES)
     private List<Authority> mAuthorities;
 
+    /**
+     * The currently configured {@link AuthorizationAgent} for use with the {@link PublicClientApplication}.
+     */
+    @Getter
+    @Accessors(prefix = "m")
     @SerializedName(AUTHORIZATION_USER_AGENT)
     private AuthorizationAgent mAuthorizationAgent;
 
+    /**
+     * The currently configured {@link HttpConfiguration} for use with the {@link PublicClientApplication}.
+     */
+    @Getter
+    @Accessors(prefix = "m")
     @SerializedName(HTTP)
     private HttpConfiguration mHttpConfiguration;
 
+    /**
+     * The currently configured {@link LoggerConfiguration} for use with the {@link PublicClientApplication}.
+     */
+    @Getter
+    @Accessors(prefix = "m")
     @SerializedName(LOGGING)
     private LoggerConfiguration mLoggerConfiguration;
 
+    /**
+     * Indicates whether the {@link PublicClientApplication} supports multiple clouds.  Automatic redirection to the cloud
+     * associated with the authenticated user.
+     */
+    @Getter
+    @Accessors(prefix = "m")
     @SerializedName(MULTIPLE_CLOUDS_SUPPORTED)
     private Boolean mMultipleCloudsSupported;
 
+    /**
+     * Indicates whether the {@link PublicClientApplication} would like to leverage the broker if available.
+     * <p>
+     * The client must have registered the device.
+     */
+    @Getter
+    @Accessors(prefix = "m")
     @SerializedName(USE_BROKER)
     private Boolean mUseBroker;
 
+    /**
+     * The {@link Environment} (Production, PPE) that the {@link PublicClientApplication} is registered in.
+     */
+    @Getter
+    @Accessors(prefix = "m")
     @SerializedName(ENVIRONMENT)
     private Environment mEnvironment;
 
+    /**
+     * The minimum required broker protocol version number.
+     */
+    @Getter
+    @Accessors(prefix = "m")
     @SerializedName(REQUIRED_BROKER_PROTOCOL_VERSION)
     private String mRequiredBrokerProtocolVersion;
 
+    /**
+     * The list of safe browsers.
+     */
     @SerializedName(BROWSER_SAFE_LIST)
+    @Getter
+    @Accessors(prefix = "m")
     private List<BrowserDescriptor> mBrowserSafeList;
 
+    /**
+     * The currently configured {@link TelemetryConfiguration} for the {@link PublicClientApplication}.
+     */
+    @Getter
+    @Accessors(prefix = "m")
     @SerializedName(TELEMETRY)
     private TelemetryConfiguration mTelemetryConfiguration;
 
+    /**
+     * The currently configured {@link AccountMode} for the {@link PublicClientApplication}.
+     */
+    @Getter
+    @Accessors(prefix = "m")
     @SerializedName(ACCOUNT_MODE)
     private AccountMode mAccountMode;
 
+    /**
+     * The currently configured capabilities for the {@link PublicClientApplication}.
+     */
+    @Getter
+    @Accessors(prefix = "m")
     @SerializedName(CLIENT_CAPABILITIES)
     private String mClientCapabilities;
 
+    @Setter
     @SerializedName(WEB_VIEW_ZOOM_CONTROLS_ENABLED)
     private Boolean webViewZoomControlsEnabled;
 
+    @Setter
     @SerializedName(WEB_VIEW_ZOOM_ENABLED)
     private Boolean webViewZoomEnabled;
 
+    @Setter
     @SerializedName(POWER_OPT_CHECK_FOR_NETWORK_REQUEST_ENABLED)
     private Boolean powerOptCheckEnabled;
 
@@ -149,9 +231,15 @@ public class GlobalSettingsConfiguration {
     @SerializedName(AUTHORIZATION_IN_CURRENT_TASK)
     private Boolean isAuthorizationInCurrentTask;
 
+    @Getter
+    @Setter
+    @Accessors(prefix = "m")
     transient private Context mAppContext;
 
-    transient private boolean mIsSharedDevice = false;
+    @Getter
+    @Setter
+    @Accessors(prefix = "m")
+    transient private Boolean mIsSharedDevice = false;
 
     /**
      * Sets the secret key bytes to use when encrypting/decrypting cache entries.
@@ -164,170 +252,6 @@ public class GlobalSettingsConfiguration {
         AuthenticationSettings.INSTANCE.setSecretKey(rawKey);
     }
 
-    /**
-     * Gets the list of browser safe list.
-     *
-     * @return The list of browser which are allowed to use for auth flow.
-     */
-    public List<BrowserDescriptor> getBrowserSafeList() {
-        return mBrowserSafeList;
-    }
-
-    /**
-     * Gets the currently configured client id for the PublicClientApplication.
-     *
-     * @return The configured clientId.
-     */
-    public String getClientId() {
-        return mClientId;
-    }
-
-    /**
-     * Sets the configured client id for the PublicClientApplication.
-     *
-     * @@param The configured clientId.
-     */
-    public void setClientId(final String clientId) {
-        mClientId = clientId;
-    }
-
-    /**
-     * Gets the list of authorities configured by the developer for use with the
-     * PublicClientApplication.
-     *
-     * @return The List of current Authorities.
-     */
-    public List<Authority> getAuthorities() {
-        return mAuthorities;
-    }
-
-    /**
-     * Gets the environment (Production, PPE) that the public client application is registered in
-     *
-     * @return The environment
-     */
-    public Environment getEnvironment() {
-        return mEnvironment;
-    }
-
-    /**
-     * Gets the currently configured {@link HttpConfiguration} for the PublicClientApplication.
-     *
-     * @return The HttpConfiguration to use.
-     */
-    public HttpConfiguration getHttpConfiguration() {
-        return this.mHttpConfiguration;
-    }
-
-    /**
-     * Gets the currently configured {@link LoggerConfiguration} for the PublicClientApplication.
-     *
-     * @return The LoggerConfiguration to use.
-     */
-    public LoggerConfiguration getLoggerConfiguration() {
-        return mLoggerConfiguration;
-    }
-
-    /**
-     * Gets the currently configured {@link TelemetryConfiguration} for the PublicClientApplication.
-     *
-     * @return The TelemetryConfiguration to use.
-     */
-    public TelemetryConfiguration getTelemetryConfiguration() {
-        return mTelemetryConfiguration;
-    }
-
-    /**
-     * Gets the currently configured redirect uri for the PublicClientApplication.
-     *
-     * @return The redirectUri to use.
-     */
-    public String getRedirectUri() {
-        return this.mRedirectUri;
-    }
-
-    /**
-     * Sets the configured redirect uri for the PublicClientApplication.
-     *
-     * @param redirectUri The redirectUri to use.
-     */
-    public void setRedirectUri(@NonNull final String redirectUri) {
-        this.mRedirectUri = redirectUri;
-    }
-
-    /**
-     * Gets the currently configured {@link AuthorizationAgent} for the PublicClientApplication.
-     *
-     * @return The AuthorizationAgent to use.
-     */
-    public AuthorizationAgent getAuthorizationAgent() {
-        return this.mAuthorizationAgent;
-    }
-
-    /**
-     * Indicates whether the PublicClientApplication supports multiple clouds.  Automatic redirection to the cloud
-     * associated with the authenticated user
-     *
-     * @return The boolean indicator of whether multiple clouds are supported by this application.
-     */
-    public Boolean getMultipleCloudsSupported() {
-        return mMultipleCloudsSupported;
-    }
-
-    /**
-     * Indicates whether the PublicClientApplication would like to leverage the broker if available.
-     * <p>
-     * The client must have registered
-     *
-     * @return The boolean indicator of whether or not to use the broker.
-     */
-    public Boolean getUseBroker() {
-        return mUseBroker;
-    }
-
-    /**
-     * Gets the currently configured {@link AccountMode} for the PublicClientApplication.
-     *
-     * @return The AccountMode supported by this application.
-     */
-    public AccountMode getAccountMode() {
-        return this.mAccountMode;
-    }
-
-    /**
-     * Gets the currently configured capabilities for the PublicClientApplication.
-     *
-     * @return The capabilities supported by this application.
-     */
-    public String getClientCapabilities() {
-        return this.mClientCapabilities;
-    }
-
-    /**
-     * Indicates the minimum required broker protocol version number.
-     *
-     * @return String of broker protocol version
-     */
-    public String getRequiredBrokerProtocolVersion() {
-        return mRequiredBrokerProtocolVersion;
-    }
-
-    public Context getAppContext() {
-        return mAppContext;
-    }
-
-    void setAppContext(Context applicationContext) {
-        mAppContext = applicationContext;
-    }
-
-    public boolean getIsSharedDevice() {
-        return mIsSharedDevice;
-    }
-
-    void setIsSharedDevice(boolean isSharedDevice) {
-        mIsSharedDevice = isSharedDevice;
-    }
-
     public Boolean isWebViewZoomControlsEnabled() {
         return webViewZoomControlsEnabled;
     }
@@ -336,20 +260,8 @@ public class GlobalSettingsConfiguration {
         return webViewZoomEnabled;
     }
 
-    public void setWebViewZoomControlsEnabled(boolean webViewZoomControlsEnabled) {
-        this.webViewZoomControlsEnabled = webViewZoomControlsEnabled;
-    }
-
-    public void setWebViewZoomEnabled(boolean webViewZoomEnabled) {
-        this.webViewZoomEnabled = webViewZoomEnabled;
-    }
-
-    public Boolean isPowerOptCheckForEnabled() {
+    public Boolean isPowerOptCheckEnabled() {
         return powerOptCheckEnabled;
-    }
-
-    public void setPowerOptCheckEnabled(Boolean powerOptCheckEnabled) {
-        this.powerOptCheckEnabled = powerOptCheckEnabled;
     }
 
     public Boolean isHandleNullTaskAffinityEnabled() {
@@ -377,299 +289,9 @@ public class GlobalSettingsConfiguration {
         }
     }
 
-//    private void checkManifestPermissions() {
-//        if (this.handleNullTaskAffinity != null && this.handleNullTaskAffinity) {
-//            final PackageManager packageManager = mAppContext.getPackageManager();
-//            final int reorderTasksGranted = packageManager.checkPermission(Manifest.permission.REORDER_TASKS, mAppContext.getPackageName());
-//            if (reorderTasksGranted != PackageManager.PERMISSION_GRANTED) {
-//                throw new IllegalStateException("You requested that we handle null taskAffinity but your manifest does not include the REORDER_TASKS permission");
-//            }
-//        }
-//    }
-
-//    private void checkDefaultAuthoritySpecified() {
-//        if (mAuthorities != null && mAuthorities.size() > 1) {
-//            int defaultCount = 0;
-//
-//            for (Authority authority : mAuthorities) {
-//                if (authority.getDefault()) {
-//                    defaultCount++;
-//                }
-//            }
-//
-//            if (defaultCount == 0) {
-//                throw new IllegalArgumentException("One authority in your configuration must be marked as default.");
-//            }
-//
-//            if (defaultCount > 1) {
-//                throw new IllegalArgumentException("More than one authority in your configuration is marked as default.  Only one authority may be default.");
-//            }
-//        }
-//    }
-
-//    void validateConfiguration() {
-//        validateRedirectUri(mRedirectUri);
-//        nullConfigurationCheck(CLIENT_ID, mClientId);
-//        checkDefaultAuthoritySpecified();
-//        checkManifestPermissions();
-//
-//        // Only validate the browser safe list configuration
-//        // when the authorization agent is set either DEFAULT or BROWSER.
-//        if (!mAuthorizationAgent.equals(AuthorizationAgent.WEBVIEW)
-//                && (mBrowserSafeList == null || mBrowserSafeList.isEmpty())) {
-//            throw new IllegalArgumentException(
-//                    "Null browser safe list configured."
-//            );
-//        }
-//
-//        for (final Authority authority : mAuthorities) {
-//            if (authority instanceof UnknownAuthority) {
-//                throw new IllegalArgumentException(
-//                        "Unrecognized authority type -- null, invalid or unknown type specified."
-//                );
-//            }
-//
-//            // validate the audience type of this Authority
-//            if (authority instanceof AzureActiveDirectoryAuthority) {
-//                validateAzureActiveDirectoryAuthority((AzureActiveDirectoryAuthority) authority);
-//            }
-//        }
-//    }
-
-//    private void validateRedirectUri(@NonNull final String redirectUri) {
-//        boolean isInvalid = false;
-//        if (mAppContext!= null && AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME.equalsIgnoreCase(mAppContext.getPackageName())) {
-//            isInvalid = !isValidAuthenticatorRedirectUri();
-//        } else {
-//            isInvalid = TextUtils.isEmpty(redirectUri) || !hasSchemeAndAuthority(redirectUri);
-//        }
-//        if (isInvalid) {
-//            throw new IllegalArgumentException(INVALID_REDIRECT_MSG);
-//        }
-//    }
-
-//    private boolean hasSchemeAndAuthority(@NonNull final String redirectUri) {
-//        try {
-//            final Uri parsedRedirectUri = Uri.parse(redirectUri);
-//            final boolean hasScheme = !TextUtils.isEmpty(parsedRedirectUri.getScheme());
-//            final boolean hasAuthority = !TextUtils.isEmpty(parsedRedirectUri.getAuthority());
-//            return hasScheme && hasAuthority;
-//        } catch (final NullPointerException e) {
-//            com.microsoft.identity.common.internal.logging.Logger.errorPII(TAG, INVALID_REDIRECT_MSG, e);
-//        }
-//
-//        return false;
-//    }
-
-//    private void validateAzureActiveDirectoryAuthority(@NonNull final AzureActiveDirectoryAuthority azureActiveDirectoryAuthority) {
-//        if (null != azureActiveDirectoryAuthority.mAudience
-//                && azureActiveDirectoryAuthority.mAudience instanceof UnknownAudience) {
-//            throw new IllegalArgumentException(
-//                    "Unrecognized audience type for AzureActiveDirectoryAuthority -- null, invalid, or unknown type specified"
-//            );
-//        }
-//    }
-
-//    private static void nullConfigurationCheck(String configKey, String configValue) {
-//        if (TextUtils.isEmpty(configValue)) {
-//            throw new IllegalArgumentException(configKey + " cannot be null.  Invalid configuration.");
-//        }
-//    }
-
     @VisibleForTesting
     public static boolean isBrokerRedirectUri(final @NonNull String redirectUri, final @NonNull String packageName) {
         final String potentialPrefix = BROKER_REDIRECT_URI_SCHEME_AND_SEPARATOR + packageName + "/";
         return redirectUri != null && redirectUri.startsWith(potentialPrefix);
     }
-
-    // Verifies broker redirect URI against the app's signature, to make sure that this is legit.
-//    private void verifyRedirectUriWithAppSignature() throws MsalClientException {
-//        final String packageName = mAppContext.getPackageName();
-//        try {
-//            final PackageInfo info = PackageHelper.getPackageInfo(mAppContext.getPackageManager(), packageName);
-//            Signature[] signatures = PackageHelper.getSignatures(info);
-//            for (final Signature signature : signatures) {
-//                final MessageDigest messageDigest = MessageDigest.getInstance("SHA");
-//                messageDigest.update(signature.toByteArray());
-//                final String signatureHash = Base64.encodeToString(messageDigest.digest(), Base64.NO_WRAP);
-//                final Uri.Builder builder = new Uri.Builder();
-//                final Uri uri = builder.scheme("msauth")
-//                        .authority(packageName)
-//                        .appendPath(signatureHash)
-//                        .build();
-//
-//                if (mRedirectUri.equalsIgnoreCase(uri.toString())) {
-//                    // Life is good.
-//                    return;
-//                } else {
-//                    throw new MsalClientException(
-//                            MsalClientException.REDIRECT_URI_VALIDATION_ERROR,
-//                            "The redirect URI in the configuration file doesn't match with the one " +
-//                                    "generated with package name and signature hash. Please verify " +
-//                                    "the uri in the config file and your app registration in Azure portal." +
-//                                    "We expected '" + uri.toString() + "' and we received '" + mRedirectUri + "'.");
-//                }
-//            }
-//        } catch (PackageManager.NameNotFoundException | NoSuchAlgorithmException e) {
-//            com.microsoft.identity.common.internal.logging.Logger.error(TAG, "Unexpected error in verifyRedirectUriWithAppSignature()", e);
-//            throw new MsalClientException(MsalClientException.UNKNOWN_ERROR, "Unexpected error in verifyRedirectUriWithAppSignature()", e);
-//        }
-//    }
-
-//    /**
-//     * Ensures that the developer has properly configured their
-//     * AndroidManifest to expose the BrowserTabActivity.
-//     *
-//     * @param context the context of the application
-//     * @param url     the redirect uri of the app
-//     * @return a boolean indicating if BrowserTabActivity is configured or not
-//     */
-//    private static boolean validateCustomTabRedirectActivity(@NonNull final Context context,
-//                                                             @NonNull final String url) throws MsalClientException {
-//        final String methodName = ":validateCustomTabRedirectActivity";
-//        final PackageManager packageManager = context.getPackageManager();
-//
-//        if (packageManager == null) {
-//            return false;
-//        }
-//
-//        final Intent intent = new Intent();
-//        intent.setAction(Intent.ACTION_VIEW);
-//        intent.addCategory(Intent.CATEGORY_DEFAULT);
-//        intent.addCategory(Intent.CATEGORY_BROWSABLE);
-//        intent.setDataAndNormalize(Uri.parse(url));
-//
-//        final List<ResolveInfo> resolveInfoList = packageManager.queryIntentActivities(
-//                intent,
-//                PackageManager.GET_RESOLVED_FILTER
-//        );
-//
-//        // resolve info list will never be null, if no matching activities are found, empty list will be returned.
-//        boolean hasActivity = false;
-//
-//        for (final ResolveInfo info : resolveInfoList) {
-//            final ActivityInfo activityInfo = info.activityInfo;
-//            String activityClassName = BrowserTabActivity.class.getName();
-//
-//            //If we're using authorization in current task... then we need to look for that activity
-//            if(LibraryConfiguration.getInstance().isAuthorizationInCurrentTask()){
-//                activityClassName = CurrentTaskBrowserTabActivity.class.getName();
-//            }
-//
-//            if (activityInfo.name.equals(activityClassName) &&
-//                    activityInfo.packageName.equals(context.getPackageName())) {
-//                hasActivity = true;
-//            } else {
-//                // another application is listening for this url scheme, don't open
-//                // Custom Tab for security reasons
-//                com.microsoft.identity.common.logging.Logger.warn(
-//                        TAG + methodName,
-//                        String.format("Another application %s is listening for the URL scheme %s", activityInfo.packageName, url)
-//                );
-//                throw new MsalClientException(
-//                        MsalClientException.MULTIPLE_APPS_LISTENING_CUSTOM_URL_SCHEME,
-//                        "More than one app is listening for the URL scheme defined for BrowserTabActivity in the AndroidManifest." +
-//                                " The package name of this other app is: " + activityInfo.packageName
-//                );
-//            }
-//        }
-//
-//        return hasActivity;
-//    }
-
-//    @SuppressWarnings("PMD")
-//    public void checkIntentFilterAddedToAppManifestForBrokerFlow() throws MsalClientException {
-//        if ((getAuthorizationAgent() == AuthorizationAgent.DEFAULT
-//                || getAuthorizationAgent() == AuthorizationAgent.BROWSER)) {
-//
-//            final boolean hasCustomTabRedirectActivity = validateCustomTabRedirectActivity(
-//                    mAppContext,
-//                    mRedirectUri
-//            );
-//
-//            if (!hasCustomTabRedirectActivity) {
-//                String activityClassName = BrowserTabActivity.class.getSimpleName();
-//
-//                if (LibraryConfiguration.getInstance().isAuthorizationInCurrentTask()){
-//                    activityClassName = CurrentTaskBrowserTabActivity.class.getSimpleName();
-//                }
-//
-//                final Uri redirectUri = Uri.parse(mRedirectUri);
-//
-//                throw new MsalClientException(
-//                        APP_MANIFEST_VALIDATION_ERROR,
-//                        "Intent filter for: " +
-//                                activityClassName +
-//                                " is missing. " +
-//                                " Please make sure you have the following activity in your AndroidManifest.xml \n\n" +
-//                                "<activity android:name=\"com.microsoft.identity.client." + activityClassName + "\">" + "\n" +
-//                                "\t" + "<intent-filter>" + "\n" +
-//                                "\t\t" + "<action android:name=\"android.intent.action.VIEW\" />" + "\n" +
-//                                "\t\t" + "<category android:name=\"android.intent.category.DEFAULT\" />" + "\n" +
-//                                "\t\t" + "<category android:name=\"android.intent.category.BROWSABLE\" />" + "\n" +
-//                                "\t\t" + "<data" + "\n" +
-//                                "\t\t\t" + "android:host=\"" + redirectUri.getHost() + "\"" + "\n" +
-//                                "\t\t\t" + "android:path=\"" + redirectUri.getPath() + "\"" + "\n" +
-//                                "\t\t\t" + "android:scheme=\"" + redirectUri.getScheme() + "\" />" + "\n" +
-//                                "\t" + "</intent-filter>" + "\n" +
-//                                "</activity>" + "\n");
-//            }
-//        }
-//
-//        if (!mUseBroker) {
-//            return;
-//        }
-//
-//        if (mAppContext!=null && AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME.equalsIgnoreCase(mAppContext.getPackageName())) {
-//            if (isValidAuthenticatorRedirectUri()) {
-//                return;
-//            }
-//        }
-//
-//        if (mAppContext != null && !isBrokerRedirectUri(mRedirectUri, mAppContext.getPackageName())) {
-//            // This means that the app is still using the legacy local-only MSAL Redirect uri (already removed from the new portal).
-//            // If this is the case, we can assume that the user doesn't need Broker support.
-//            com.microsoft.identity.common.internal.logging.Logger.warn(TAG, "The app is still using legacy MSAL redirect uri. Switch to MSAL local auth."
-//                    + "  For brokered auth, the redirect URI is expected to conform to 'msauth://<authority>/.*' where the authority in "
-//                    + "that uri is the package name of the app. This package name is listed as 'applicationId' in the build.gradle file.");
-//            mUseBroker = false;
-//            return;
-//        }
-//
-//        verifyRedirectUriWithAppSignature();
-//    }
-
-//    private boolean isValidAuthenticatorRedirectUri() {
-//        // This is a temporary fix to allow authenticator to migrate to MSAL
-//        // For Legacy reason Authenticator still needs to pass in the old redirect uri to be able to
-//        // have backward compatibility with older versions of BrokerHost (Company Portal)
-//        // We should remove this check after the new Broker Host apps are released to >90% of production
-//        // customer.
-//        // ADO workitem for tracking: https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1576096
-//        try {
-//            final PackageInfo info = mAppContext.getPackageManager().getPackageInfo(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, PackageManager.GET_SIGNATURES);
-//            if (info != null && info.signatures != null && info.signatures.length > 0) {
-//                final Signature signature = info.signatures[0];
-//                MessageDigest md = MessageDigest.getInstance("SHA");
-//                md.update(signature.toByteArray());
-//                final String signatureHash = Base64.encodeToString(md.digest(), Base64.NO_WRAP);
-//                if (AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_RELEASE_SIGNATURE.equalsIgnoreCase(signatureHash)
-//                        || AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_DEBUG_SIGNATURE.equalsIgnoreCase(signatureHash)) {
-//                    final Uri.Builder builder = new Uri.Builder();
-//                    final Uri uri = builder.scheme("msauth")
-//                            .authority(mAppContext.getPackageName())
-//                            .appendPath(signatureHash)
-//                            .build();
-//
-//                    if (mRedirectUri.equalsIgnoreCase(uri.toString()) || mRedirectUri.equalsIgnoreCase(AuthenticationConstants.Broker.BROKER_REDIRECT_URI)) {
-//                        return true;
-//                    }
-//                }
-//            }
-//        } catch (final PackageManager.NameNotFoundException | NoSuchAlgorithmException e) {
-//            Logger.error(TAG, "Unexpected error in getting package info/signature for Authenticator", e);
-//        }
-//
-//        return false;
-//    }
 }
