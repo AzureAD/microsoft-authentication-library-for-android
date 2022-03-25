@@ -88,6 +88,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 
 public class GlobalSettingsConfiguration {
+    @SuppressWarnings("PMD")
     private static final String TAG = GlobalSettingsConfiguration.class.getSimpleName();
     private static final String BROKER_REDIRECT_URI_SCHEME_AND_SEPARATOR = "msauth://";
     public static final String INVALID_REDIRECT_MSG = "Invalid, null, or malformed redirect_uri supplied";

@@ -55,8 +55,6 @@ public class GlobalSettingsConfigurationFactory {
     public static GlobalSettingsConfiguration initializeGlobalConfiguration(@NonNull final Context context,
                                                                             final int configResourceId) {
         GlobalSettingsConfiguration globalConfiguration = loadConfiguration(context, configResourceId);
-//        globalConfiguration.validateConfiguration();
-
         return globalConfiguration;
     }
 
@@ -65,10 +63,7 @@ public class GlobalSettingsConfigurationFactory {
      **/
     @WorkerThread
     public static GlobalSettingsConfiguration initializeGlobalConfiguration(@NonNull final File configFile) {
-        validateNonNullArgument(configFile, "configFile");
         GlobalSettingsConfiguration globalConfiguration = loadConfiguration(configFile);
-//        globalConfiguration.validateConfiguration();
-
         return globalConfiguration;
     }
 

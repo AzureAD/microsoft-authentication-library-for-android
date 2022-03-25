@@ -181,8 +181,6 @@ public class PublicClientApplicationConfiguration {
 
     transient private boolean mIsSharedDevice = false;
 
-    transient private List<Authority> mKnownAuthorities = new ArrayList<>();
-
     /**
      * Sets the secret key bytes to use when encrypting/decrypting cache entries.
      * {@link java.security.spec.KeySpec} algorithm is AES.
