@@ -35,6 +35,7 @@ import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAu
 import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.authorities.AuthorityDeserializer;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudience;
+import com.microsoft.identity.common.java.util.StringUtil;
 import com.microsoft.identity.common.logging.Logger;
 
 import java.io.File;
@@ -42,6 +43,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 public class GlobalSettingsConfigurationFactory {
     private static final String TAG = GlobalSettingsConfigurationFactory.class.getSimpleName();
@@ -101,7 +103,7 @@ public class GlobalSettingsConfigurationFactory {
             }
         }
 
-        final String config = new String(buffer);
+        final String config = StringUtil.fromByteArray(buffer);
         final Gson gson = getGsonForLoadingConfiguration();
 
         try {
