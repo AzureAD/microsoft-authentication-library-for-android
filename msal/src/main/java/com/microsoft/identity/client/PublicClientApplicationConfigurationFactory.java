@@ -39,6 +39,7 @@ import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudien
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudienceDeserializer;
 import com.microsoft.identity.common.java.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.java.configuration.LibraryConfiguration;
+import com.microsoft.identity.common.java.util.StringUtil;
 import com.microsoft.identity.msal.R;
 import com.microsoft.identity.common.logging.Logger;
 
@@ -184,7 +185,7 @@ public class PublicClientApplicationConfigurationFactory {
             }
         }
 
-        final String config = new String(buffer);
+        final String config = StringUtil.fromByteArray(buffer);
         final Gson gson = getGsonForLoadingConfiguration();
 
         try {
