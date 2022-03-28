@@ -22,8 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArgument;
-
 import android.content.Context;
 
 import androidx.annotation.NonNull;
@@ -54,8 +52,7 @@ public class GlobalSettingsConfigurationFactory {
     @WorkerThread
     public static GlobalSettingsConfiguration initializeGlobalConfiguration(@NonNull final Context context,
                                                                             final int configResourceId) {
-        GlobalSettingsConfiguration globalConfiguration = loadConfiguration(context, configResourceId);
-        return globalConfiguration;
+        return loadConfiguration(context, configResourceId);
     }
 
     /**
@@ -63,8 +60,7 @@ public class GlobalSettingsConfigurationFactory {
      **/
     @WorkerThread
     public static GlobalSettingsConfiguration initializeGlobalConfiguration(@NonNull final File configFile) {
-        GlobalSettingsConfiguration globalConfiguration = loadConfiguration(configFile);
-        return globalConfiguration;
+        return loadConfiguration(configFile);
     }
 
     @VisibleForTesting
@@ -111,9 +107,6 @@ public class GlobalSettingsConfigurationFactory {
         try {
             return gson.fromJson(config, GlobalSettingsConfiguration.class);
         } catch (final Exception e) {
-            if (e instanceof InterruptedException) {
-                Thread.currentThread().interrupt();
-            }
             throw new IllegalArgumentException("Error while processing global configuration", e);
         }
     }
