@@ -27,6 +27,7 @@ import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
+import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.e2e.shadows.ShadowMockAuthority;
 import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
@@ -152,7 +153,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         flushScheduler();
 
         // assert telem
-        String expectedCurrent = "2|" + PublicApiId.PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|,,,,,";
+        String expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|,,,,,";
         String expectedLast = "2|0|||1";
         assertTelemetry(expectedCurrent, expectedLast);
 
@@ -196,7 +197,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         flushScheduler();
 
         // assert telem
-        expectedCurrent = "2|" + PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + ",1|1,1,1,1,0,1";
+        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + ",1|1,1,1,1,0,1";
         expectedLast = "2|2|||1";
         assertTelemetry(expectedCurrent, expectedLast);
 
@@ -218,8 +219,8 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         flushScheduler();
 
         // assert telem
-        expectedCurrent = "2|" + PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + ",1|1,1,1,1,0,1";
-        expectedLast = "2|0|" + PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + "," +
+        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + ",1|1,1,1,1,0,1";
+        expectedLast = "2|0|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + "," +
                 sCorrelationIdList.get(networkRequestIndex - 1) + "|invalid_grant|1";
         assertTelemetry(expectedCurrent, expectedLast);
 
@@ -241,8 +242,8 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         flushScheduler();
 
         // assert telem
-        expectedCurrent = "2|" + PublicApiId.PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|,,,,,";
-        expectedLast = "2|0|" + PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + "," +
+        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|,,,,,";
+        expectedLast = "2|0|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + "," +
                 sCorrelationIdList.get(networkRequestIndex - 1) + "|invalid_scope|1";
         assertTelemetry(expectedCurrent, expectedLast);
 
@@ -257,10 +258,10 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         flushScheduler();
 
         // assert telem
-        expectedCurrent = "2|" + PublicApiId.PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|,,,,,";
+        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|,,,,,";
         expectedLast = "2|0|" +
-                PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + "," + sCorrelationIdList.get(networkRequestIndex - 2) +
-                "," + PublicApiId.PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + "," + sCorrelationIdList.get(networkRequestIndex - 1) +
+                PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + "," + sCorrelationIdList.get(networkRequestIndex - 2) +
+                "," + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + "," + sCorrelationIdList.get(networkRequestIndex - 1) +
                 "|invalid_scope,service_unavailable|1";
         assertTelemetry(expectedCurrent, expectedLast);
 
@@ -283,7 +284,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         flushScheduler();
 
         // assert telem
-        expectedCurrent = "2|" + PublicApiId.PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + ",1|1,1,1,1,0,1";
+        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + ",1|1,1,1,1,0,1";
         expectedLast = "2|0|||1";
         assertTelemetry(expectedCurrent, expectedLast);
 
@@ -348,7 +349,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
 
         // all data should now be sent
         // assert telem
-        expectedCurrent = "2|" + PublicApiId.PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|,,,,,";
+        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|,,,,,";
         expectedLast = "2|0|||1";
         assertTelemetry(expectedCurrent, expectedLast);
 
