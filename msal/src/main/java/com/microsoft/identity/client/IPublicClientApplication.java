@@ -36,6 +36,9 @@ import java.util.List;
 public interface IPublicClientApplication {
 
     /**
+     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of TokenParameter subclasses as the
+     *              parameters for the API. Use {@link IPublicClientApplication#acquireToken(AcquireTokenParameters)} instead.
+     *
      * Acquire token interactively, will pop-up webUI. Interactive flow will skip the cache lookup.
      * Default value for {@link Prompt} is {@link Prompt#SELECT_ACCOUNT}.
      *
@@ -50,6 +53,7 @@ public interface IPublicClientApplication {
      *                 3) All the other errors will be sent back via
      *                 {@link AuthenticationCallback#onError(MsalException)}.
      */
+    @Deprecated
     void acquireToken(@NonNull final Activity activity,
                       @NonNull final String[] scopes,
                       @NonNull final AuthenticationCallback callback
@@ -92,6 +96,19 @@ public interface IPublicClientApplication {
      * @param scopes   the desired access scopes
      * @param callback callback object used to communicate with the API throughout the protocol
      */
+    void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback);
+
+    /**
+     * @deprecated  This method is now deprecated. The library is moving away from using an array for scopes.
+     *              Use {@link IPublicClientApplication#acquireTokenWithDeviceCode(List, DeviceCodeFlowCallback)} instead.
+     *
+     * Perform the Device Code Flow (DCF) protocol to allow a device without input capability to authenticate and get a new access token.
+     * Currently, flow is only supported in local MSAL. No Broker support.
+     *
+     * @param scopes   the desired access scopes
+     * @param callback callback object used to communicate with the API throughout the protocol
+     */
+    @Deprecated
     void acquireTokenWithDeviceCode(@NonNull String[] scopes, @NonNull final DeviceCodeFlowCallback callback);
 
     /**
@@ -235,7 +252,7 @@ public interface IPublicClientApplication {
      * 3). Receiving an exception detailing what went wrong in the protocol
      * via {@link DeviceCodeFlowCallback#onError(MsalException)}.
      * <p>
-     * Refer to {@link PublicClientApplication#acquireTokenWithDeviceCode(String[], DeviceCodeFlowCallback)}.
+     * Refer to {@link PublicClientApplication#acquireTokenWithDeviceCode(List, DeviceCodeFlowCallback)}.
      */
     interface DeviceCodeFlowCallback {
         /**

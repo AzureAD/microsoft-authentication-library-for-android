@@ -58,6 +58,7 @@ import com.microsoft.identity.common.java.result.LocalAuthenticationResult;
 import com.microsoft.identity.common.java.util.ResultFuture;
 import com.microsoft.identity.common.logging.Logger;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -71,10 +72,14 @@ import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGL
 import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_ACTIVITY_SCOPES_CALLBACK;
 import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS;
 import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_EXISTING_SIGN_IN_WITH_PROMPT;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_EXISTING_SIGN_IN_WITH_PARAMETERS;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_EXISTING_SIGN_IN_WITH_PARAMETERS_PROMPT;
 import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_GET_CURRENT_ACCOUNT;
 import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_GET_CURRENT_ACCOUNT_ASYNC;
 import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_IN;
 import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_IN_WITH_PROMPT;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_IN_WITH_PARAMETERS;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_IN_WITH_PARAMETERS_PROMPT;
 import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_OUT;
 import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_OUT_WITH_CALLBACK;
 
@@ -237,6 +242,44 @@ public class SingleAccountPublicClientApplication
     }
 
     @Override
+    public void signIn(@NonNull SignInParameters signInParameters) {
+        final IAccount persistedAccount = getPersistedCurrentAccount();
+
+        if (persistedAccount != null) {
+            signInParameters.getCallback().onError(
+                    new MsalClientException(
+                            MsalClientException.INVALID_PARAMETER,
+                            "An account is already signed in."
+                    )
+            );
+            return;
+        }
+
+        final AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
+                signInParameters.getActivity(),
+                null,
+                signInParameters.getScopes(),
+                null, // account
+                signInParameters.getPrompt(), // prompt
+                null, // extraQueryParams
+                null,
+                null, // authority
+                signInParameters.getCallback(),
+                signInParameters.getLoginHint(),// loginHint
+                null // claimsRequest
+        );
+
+        if (signInParameters.getPrompt() == null) {
+            acquireTokenInternal(acquireTokenParameters, SINGLE_ACCOUNT_PCA_SIGN_IN_WITH_PARAMETERS);
+        }
+        else {
+            acquireTokenInternal(acquireTokenParameters, SINGLE_ACCOUNT_PCA_SIGN_IN_WITH_PARAMETERS_PROMPT);
+        }
+
+    }
+    
+    @Deprecated
+    @Override
     public void signIn(@NonNull final Activity activity,
                        @Nullable final String loginHint,
                        @NonNull final String[] scopes,
@@ -256,7 +299,7 @@ public class SingleAccountPublicClientApplication
         final AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
                 activity,
                 null,
-                scopes,
+                Arrays.asList(scopes),
                 null, // account
                 null, // uiBehavior
                 null, // extraQueryParams
@@ -270,6 +313,12 @@ public class SingleAccountPublicClientApplication
         acquireTokenInternal(acquireTokenParameters, SINGLE_ACCOUNT_PCA_SIGN_IN);
     }
 
+    /**
+     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of {@link SignInParameters} as the
+     *              parameters for the SingleAccountPublicClientApplication API.
+     *              Use {@link SingleAccountPublicClientApplication#signIn(SignInParameters)} instead.
+     */
+    @Deprecated
     @Override
     public void signIn(@NonNull final Activity activity,
                        @Nullable final String loginHint,
@@ -291,7 +340,7 @@ public class SingleAccountPublicClientApplication
         final AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
                 activity,
                 null,
-                scopes,
+                Arrays.asList(scopes),
                 null, // account
                 prompt, // prompt
                 null, // extraQueryParams
@@ -305,6 +354,45 @@ public class SingleAccountPublicClientApplication
         acquireTokenInternal(acquireTokenParameters, SINGLE_ACCOUNT_PCA_SIGN_IN_WITH_PROMPT);
     }
 
+    @Override
+    public void signInAgain(@NonNull SignInParameters signInParameters) {
+        final MultiTenantAccount persistedCurrentAccount = getPersistedCurrentAccount();
+
+        if (persistedCurrentAccount == null) {
+            signInParameters.getCallback().onError(new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT,
+                    MsalClientException.NO_CURRENT_ACCOUNT_ERROR_MESSAGE));
+            return;
+        }
+
+        final AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
+                signInParameters.getActivity(),
+                null,
+                signInParameters.getScopes(),
+                persistedCurrentAccount, // account
+                signInParameters.getPrompt(), // prompt
+                null, // extraQueryParams
+                null,
+                null, // authority
+                signInParameters.getCallback(),
+                null, // loginHint
+                null // claimsRequest
+        );
+
+        if (signInParameters.getPrompt() == null) {
+            acquireTokenInternal(acquireTokenParameters, SINGLE_ACCOUNT_PCA_EXISTING_SIGN_IN_WITH_PARAMETERS);
+        }
+        else {
+            acquireTokenInternal(acquireTokenParameters, SINGLE_ACCOUNT_PCA_EXISTING_SIGN_IN_WITH_PARAMETERS_PROMPT);
+        }
+    }
+
+
+    /**
+     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of {@link SignInParameters} as the
+     *              parameters for the SingleAccountPublicClientApplication API.
+     *              Use {@link SingleAccountPublicClientApplication#signInAgain(SignInParameters)} instead.
+     */
+    @Deprecated
     @Override
     public void signInAgain(@NonNull final Activity activity,
                             @NonNull final String[] scopes,
@@ -321,7 +409,7 @@ public class SingleAccountPublicClientApplication
         final AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
                 activity,
                 null,
-                scopes,
+                Arrays.asList(scopes),
                 persistedCurrentAccount, // account
                 prompt, // prompt
                 null, // extraQueryParams
@@ -552,37 +640,6 @@ public class SingleAccountPublicClientApplication
     }
 
     @Override
-    public void acquireToken(@NonNull final Activity activity,
-                             @NonNull final String[] scopes,
-                             @NonNull final AuthenticationCallback callback) {
-        final IAccount persistedAccount = getPersistedCurrentAccount();
-        if (persistedAccount == null) {
-            callback.onError(new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT,
-                    MsalClientException.NO_CURRENT_ACCOUNT_ERROR_MESSAGE));
-            return;
-        }
-
-        final AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
-                activity,
-                null,
-                scopes,
-                getPersistedCurrentAccount(), // account, could be null.
-                null, // uiBehavior
-                null, // extraQueryParams
-                null, // extraScopes
-                null, // authority
-                callback,
-                null, // loginHint
-                null // claimsRequest
-        );
-
-        acquireTokenInternal(
-                acquireTokenParameters,
-                SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_ACTIVITY_SCOPES_CALLBACK
-        );
-    }
-
-    @Override
     public void acquireToken(@NonNull final AcquireTokenParameters acquireTokenParameters) {
         final IAccount persistedAccount = getPersistedCurrentAccount();
 
@@ -622,6 +679,49 @@ public class SingleAccountPublicClientApplication
         acquireTokenInternal(acquireTokenParameters, SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS);
     }
 
+    /**
+     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of {@link SignInParameters} as the
+     *              parameters for the SingleAccountPublicClientApplication API.
+     *              Use {@link SingleAccountPublicClientApplication#acquireToken(AcquireTokenParameters)} instead.
+     */
+    @Override
+    @Deprecated
+    public void acquireToken(@NonNull final Activity activity,
+                             @NonNull final String[] scopes,
+                             @NonNull final AuthenticationCallback callback) {
+        final IAccount persistedAccount = getPersistedCurrentAccount();
+        if (persistedAccount == null) {
+            callback.onError(new MsalClientException(MsalClientException.NO_CURRENT_ACCOUNT,
+                    MsalClientException.NO_CURRENT_ACCOUNT_ERROR_MESSAGE));
+            return;
+        }
+
+        final AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
+                activity,
+                null,
+                Arrays.asList(scopes),
+                getPersistedCurrentAccount(), // account, could be null.
+                null, // uiBehavior
+                null, // extraQueryParams
+                null, // extraScopes
+                null, // authority
+                callback,
+                null, // loginHint
+                null // claimsRequest
+        );
+
+        acquireTokenInternal(
+                acquireTokenParameters,
+                SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_ACTIVITY_SCOPES_CALLBACK
+        );
+    }
+
+    /**
+     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of {@link SignInParameters} as the
+     *              parameters for the SingleAccountPublicClientApplication API.
+     *              Use {@link SingleAccountPublicClientApplication#acquireTokenSilentAsync(AcquireTokenSilentParameters)} instead.
+     */
+    @Deprecated
     @Override
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                         @NonNull final String authority,
@@ -648,6 +748,12 @@ public class SingleAccountPublicClientApplication
         );
     }
 
+    /**
+     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of {@link SignInParameters} as the
+     *              parameters for the SingleAccountPublicClientApplication API.
+     *              Use {@link SingleAccountPublicClientApplication#acquireTokenSilent(AcquireTokenSilentParameters)} instead.
+     */
+    @Deprecated
     @WorkerThread
     public IAuthenticationResult acquireTokenSilent(@NonNull final String[] scopes,
                                                     @NonNull final String authority) throws MsalException, InterruptedException {

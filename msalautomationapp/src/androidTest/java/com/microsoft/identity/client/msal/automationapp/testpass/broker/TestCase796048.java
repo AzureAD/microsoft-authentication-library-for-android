@@ -102,7 +102,7 @@ public class TestCase796048 extends AbstractMsalBrokerTest {
     @Override
     public LabUserQuery getLabUserQuery() {
         final LabUserQuery query = new LabUserQuery();
-        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_GERMANY_CLOUD;
+        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT;
         return query;
     }
 
@@ -118,7 +118,7 @@ public class TestCase796048 extends AbstractMsalBrokerTest {
 
     @Override
     public String getAuthority() {
-        return "https://login.microsoftonline.de/common";
+        return "https://login.microsoftonline.us/common";
     }
 
     @Override

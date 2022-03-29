@@ -284,18 +284,6 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
     }
 
     @Test
-    public void testCannotAcquireTokenSilentlyWithParametersIfNotSignedIn() {
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .withScopes(Arrays.asList(mScopes))
-                .forAccount(AcquireTokenTestHelper.getAccount())
-                .fromAuthority(getAuthority())
-                .withCallback(getNoCurrentAccountExpectedCallback())
-                .build();
-
-        mSingleAccountPCA.acquireTokenSilentAsync(silentParameters);
-    }
-
-    @Test
     public void testCanAcquireTokenSilentlyWithParametersIfAlreadySignedIn() {
         mSingleAccountPCA.signIn(mActivity, mUsername, mScopes, getSuccessExpectedCallback());
         RoboTestUtils.flushScheduler();
@@ -369,6 +357,63 @@ public class SingleAccountOverloadsMockedTest extends AcquireTokenAbstractTest {
                 MockServerResponse.getMockDeviceCodeFlowAuthorizationHttpResponse()
         );
         mSingleAccountPCA.acquireTokenWithDeviceCode(mScopes, new IPublicClientApplication.DeviceCodeFlowCallback() {
+            @Override
+            public void onUserCodeReceived(final @NonNull String vUri,
+                                           final @NonNull String userCode,
+                                           final @NonNull String message,
+                                           final @NonNull Date sessionExpirationDate) {
+                // Assert that the protocol returns the userCode and others after successful authorization
+                Assert.assertFalse(StringUtil.isNullOrEmpty(vUri));
+                Assert.assertFalse(StringUtil.isNullOrEmpty(userCode));
+                Assert.assertFalse(StringUtil.isNullOrEmpty(message));
+                Assert.assertNotNull(sessionExpirationDate);
+
+                // Load Token interceptor
+                mockHttpClient.intercept(
+                        HttpRequestMatcher.builder()
+                                .isPOST()
+                                .urlPattern(MOCK_TOKEN_URL_REGEX)
+                                .build(),
+                        MockServerResponse.getMockTokenSuccessResponse()
+                );
+            }
+
+            @Override
+            public void onTokenReceived(@NonNull IAuthenticationResult authResult) {
+                Assert.assertNotNull(authResult);
+                Assert.assertNotNull(authResult.getAccount());
+                Assert.assertFalse(StringUtil.isNullOrEmpty(authResult.getAccount().getIdToken()));
+                Assert.assertNotNull(authResult.getAccessToken());
+                AcquireTokenTestHelper.setAccount(authResult.getAccount());
+            }
+
+            @Override
+            public void onError(@NonNull MsalException exception) {
+                // This shouldn't run
+                throw new AssertionError(exception);
+            }
+        });
+        RoboTestUtils.flushScheduler();
+
+        mSingleAccountPCA.acquireTokenSilentAsync(mScopes, getAuthority(), getSuccessExpectedCallback());
+        RoboTestUtils.flushScheduler();
+    }
+
+    @Test
+    public void testCanAcquireTokenSilentlyAfterDeviceCodeWithList() {
+        // Test sometimes fails because the url is sometimes matched to the token url in MOCK_TOKEN_URL_REGEX
+        // Test case will clear all previous matchers in HttpsClient and reload them as test goes on.
+        mockHttpClient.uninstall();
+
+        // Load Device Code Flow Authorization interceptor
+        mockHttpClient.intercept(
+                HttpRequestMatcher.builder()
+                        .isPOST()
+                        .urlPattern(DEVICE_CODE_FLOW_AUTHORIZATION_REGEX)
+                        .build(),
+                MockServerResponse.getMockDeviceCodeFlowAuthorizationHttpResponse()
+        );
+        mSingleAccountPCA.acquireTokenWithDeviceCode(Arrays.asList(mScopes), new IPublicClientApplication.DeviceCodeFlowCallback() {
             @Override
             public void onUserCodeReceived(final @NonNull String vUri,
                                            final @NonNull String userCode,
