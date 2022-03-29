@@ -281,7 +281,7 @@ public class GlobalSettingsConfiguration {
                         return authority;
                     }
                 }
-                return null; //This shouldn't happen since authority configuration is validated to ensure that one authority is marked as default/only one
+                return null;
             } else {
                 return mAuthorities.get(0);
             }

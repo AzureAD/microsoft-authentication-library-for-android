@@ -60,9 +60,7 @@ public class PublicClientApplicationConfigurationFactory {
      **/
     @WorkerThread
     public static PublicClientApplicationConfiguration initializeConfiguration(@NonNull final Context context) {
-        synchronized (globalSettings.getGlobalSettingsLock()) {
-            return initializeConfigurationInternal(context, null);
-        }
+        return initializeConfigurationInternal(context, null);
     }
 
     /**
@@ -72,9 +70,7 @@ public class PublicClientApplicationConfigurationFactory {
     @WorkerThread
     public static PublicClientApplicationConfiguration initializeConfiguration(@NonNull final Context context,
                                                                                final int configResourceId) {
-        synchronized (globalSettings.getGlobalSettingsLock()) {
-            return initializeConfigurationInternal(context, loadConfiguration(context, configResourceId));
-        }
+        return initializeConfigurationInternal(context, loadConfiguration(context, configResourceId));
     }
 
     /**
@@ -84,10 +80,8 @@ public class PublicClientApplicationConfigurationFactory {
     @WorkerThread
     public static PublicClientApplicationConfiguration initializeConfiguration(@NonNull final Context context,
                                                                                @NonNull final File configFile) {
-        synchronized (globalSettings.getGlobalSettingsLock()) {
-            validateNonNullArgument(configFile, "configFile");
-            return initializeConfigurationInternal(context, loadConfiguration(configFile));
-        }
+        validateNonNullArgument(configFile, "configFile");
+        return initializeConfigurationInternal(context, loadConfiguration(configFile));
     }
 
     @WorkerThread
@@ -101,7 +95,7 @@ public class PublicClientApplicationConfigurationFactory {
             config.validateConfiguration();
         }
 
-        final PublicClientApplicationConfiguration configWithGlobal = mergeConfigurationWithGlobal(config);
+        final PublicClientApplicationConfiguration configWithGlobal = globalSettings.mergeConfigurationWithGlobal(config);
 
         //Initialize internal library configuration
         final LibraryConfiguration libraryConfiguration = LibraryConfiguration.builder().authorizationInCurrentTask((configWithGlobal.authorizationInCurrentTask())).build();
@@ -109,19 +103,6 @@ public class PublicClientApplicationConfigurationFactory {
 
         configWithGlobal.setOAuth2TokenCache(MsalOAuth2TokenCache.create(AndroidPlatformComponents.createFromContext(context)));
         return configWithGlobal;
-    }
-
-    @WorkerThread
-    private static PublicClientApplicationConfiguration mergeConfigurationWithGlobal(final @NonNull PublicClientApplicationConfiguration developerConfig) {
-        if (!globalSettings.isGlobalSettingsInitialized()) {
-            Logger.warn(TAG + "mergeConfigurationWithGlobal",
-                    GlobalSettings.NO_GLOBAL_SETTINGS_WARNING);
-            return developerConfig;
-        }
-
-        developerConfig.mergeGlobalConfiguration(globalSettings.getGlobalSettingsConfiguration());
-
-        return developerConfig;
     }
 
     @WorkerThread
@@ -189,9 +170,7 @@ public class PublicClientApplicationConfigurationFactory {
         final Gson gson = getGsonForLoadingConfiguration();
 
         try {
-            final PublicClientApplicationConfiguration configuration = gson.fromJson(config, PublicClientApplicationConfiguration.class);
-            globalSettings.pcaHasBeenInitiated();
-            return configuration;
+            return gson.fromJson(config, PublicClientApplicationConfiguration.class);
         } catch (final Exception e) {
             if (e instanceof InterruptedException) {
                 Thread.currentThread().interrupt();

@@ -28,6 +28,7 @@ import static com.microsoft.identity.client.exception.MsalClientException.SAPCA_
 import android.content.Context;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.WorkerThread;
 
 import com.microsoft.identity.client.configuration.AccountMode;
 import com.microsoft.identity.client.exception.MsalClientException;
@@ -45,6 +46,8 @@ public class GlobalSettings {
     public static final String NO_GLOBAL_SETTINGS_WARNING = "Global settings have not been initialized before the creation of this PCA Configuration.";
     public static final String GLOBAL_INIT_AFTER_PCA_ERROR_CODE = "pca_created_before_global";
     public static final String GLOBAL_INIT_AFTER_PCA_ERROR_MESSAGE = "Global initialization was attempted after a PublicClientApplicationConfiguration instance was already created. Please initialize global settings before any PublicClientApplicationConfiguration instance is created.";
+    public static final String GLOBAL_ALREADY_INITIALIZED_ERROR_CODE = "global_already_initialized";
+    public static final String GLOBAL_ALREADY_INITIALIZED_ERROR_MESSAGE = "Attempting to load global configuration after it has already been initialized.";
 
     /**
      * Singleton instance for this class, already initialized.
@@ -57,14 +60,17 @@ public class GlobalSettings {
     private GlobalSettingsConfiguration mGlobalSettingsConfiguration;
 
     /**
-     * Boolean showing if a pca has been created.
-     */
-    private boolean mPCAConfigCreated = false;
-
-    /**
      * Boolean showing if the global settings have been initialized.
      */
     private boolean mGlobalSettingsInitialized = false;
+
+    /**
+     * Boolean showing that a {@link PublicClientApplicationConfiguration} was created and tried to merge with global before global was initialized.
+     * If loadGlobalConfigurationFile() is called after this, throw an exception.
+     *
+     * Global cannot be initialized if a {@link PublicClientApplicationConfiguration} was already created.
+     */
+    private boolean mPCAMergeAttempted = false;
 
     /**
      * Lock object for synchronizing pca creation and global settings initialization.
@@ -85,20 +91,26 @@ public class GlobalSettings {
      * @param configFileResourceId Resource Id for the configuration file.
      * @param listener Handles success and error messages.
      */
+    @WorkerThread
     public static void loadGlobalConfigurationFile(@NonNull final Context context,
                                                    final int configFileResourceId,
                                                    @NonNull final GlobalSettingsListener listener) {
-        runOnBackground(new Runnable() {
-            @Override
-            public void run() {
-                synchronized (mGlobalSettingsSingleton.mGlobalSettingsLock) {
-                    setGlobalConfiguration(
-                            initializeGlobalConfiguration(context, configFileResourceId),
-                            listener
-                    );
-                }
+        synchronized (mGlobalSettingsSingleton.mGlobalSettingsLock) {
+            if (mGlobalSettingsSingleton.mGlobalSettingsInitialized) {
+                listener.onError(new MsalClientException(GLOBAL_ALREADY_INITIALIZED_ERROR_CODE,
+                        GLOBAL_ALREADY_INITIALIZED_ERROR_MESSAGE));
             }
-        });
+
+            if (mGlobalSettingsSingleton.mPCAMergeAttempted) {
+                listener.onError(new MsalClientException(GLOBAL_INIT_AFTER_PCA_ERROR_CODE,
+                        GLOBAL_INIT_AFTER_PCA_ERROR_MESSAGE));
+            }
+
+            setGlobalConfiguration(
+                    initializeGlobalConfiguration(context, configFileResourceId),
+                    listener
+            );
+        }
     }
 
     /**
@@ -107,81 +119,49 @@ public class GlobalSettings {
      * @param configFile Configuration file.
      * @param listener Handles success and error messages.
      */
+    @WorkerThread
     public static void loadGlobalConfigurationFile(@NonNull final File configFile,
                                                    @NonNull final GlobalSettingsListener listener) {
-        runOnBackground(new Runnable() {
-            @Override
-            public void run() {
-                synchronized (mGlobalSettingsSingleton.mGlobalSettingsLock) {
-                    setGlobalConfiguration(
-                            initializeGlobalConfiguration(configFile),
-                            listener
-                    );
-                }
+        synchronized (mGlobalSettingsSingleton.mGlobalSettingsLock) {
+            if (mGlobalSettingsSingleton.mGlobalSettingsInitialized) {
+                listener.onError(new MsalClientException(GLOBAL_ALREADY_INITIALIZED_ERROR_CODE,
+                        GLOBAL_ALREADY_INITIALIZED_ERROR_MESSAGE));
             }
-        });
+
+            if (mGlobalSettingsSingleton.mPCAMergeAttempted) {
+                listener.onError(new MsalClientException(GLOBAL_INIT_AFTER_PCA_ERROR_CODE,
+                        GLOBAL_INIT_AFTER_PCA_ERROR_MESSAGE));
+            }
+
+            setGlobalConfiguration(
+                    initializeGlobalConfiguration(configFile),
+                    listener
+            );
+        }
     }
 
     private static void setGlobalConfiguration(@NonNull final GlobalSettingsConfiguration globalConfiguration,
                                                @NonNull final GlobalSettingsListener listener) {
-        if (mGlobalSettingsSingleton.mPCAConfigCreated) {
-            listener.onError(new MsalClientException(GLOBAL_INIT_AFTER_PCA_ERROR_CODE,
-                    GLOBAL_INIT_AFTER_PCA_ERROR_MESSAGE));
-        }
-
-        try {
-            validateAccountModeConfiguration(globalConfiguration);
-        } catch (final MsalClientException e) {
-            listener.onError(e);
-            return;
-        }
-
         mGlobalSettingsSingleton.mGlobalSettingsConfiguration = globalConfiguration;
         mGlobalSettingsSingleton.mGlobalSettingsInitialized = true;
-
         listener.onSuccess("Global configuration initialized.");
     }
 
-    private static void runOnBackground(@NonNull final Runnable runnable) {
-        new Thread(runnable).start();
-    }
+    @WorkerThread
+    protected PublicClientApplicationConfiguration mergeConfigurationWithGlobal(final @NonNull PublicClientApplicationConfiguration developerConfig) {
+        synchronized (mGlobalSettingsSingleton.mGlobalSettingsLock) {
+            mPCAMergeAttempted = true;
 
-    private static void validateAccountModeConfiguration(@NonNull final GlobalSettingsConfiguration config) throws MsalClientException {
-        if (config.getAccountMode() == AccountMode.SINGLE
-                && null != config.getDefaultAuthority()
-                && config.getDefaultAuthority() instanceof AzureActiveDirectoryB2CAuthority) {
-            Logger.warn(
-                    TAG,
-                    "Warning! B2C applications should use MultipleAccountPublicClientApplication. "
-                            + "Use of SingleAccount mode with multiple IEF policies is unsupported."
-            );
-
-            if (config.getAuthorities().size() > 1) {
-                throw new MsalClientException(SAPCA_USE_WITH_MULTI_POLICY_B2C);
+            if (!mGlobalSettingsSingleton.mGlobalSettingsInitialized) {
+                Logger.warn(TAG + "mergeConfigurationWithGlobal",
+                        GlobalSettings.NO_GLOBAL_SETTINGS_WARNING);
+                return developerConfig;
             }
-        }
-    }
 
-    protected GlobalSettingsConfiguration getGlobalSettingsConfiguration() {
-        synchronized (mGlobalSettingsLock) {
-            return mGlobalSettingsConfiguration;
+            developerConfig.mergeGlobalConfiguration(mGlobalSettingsSingleton.mGlobalSettingsConfiguration);
+            developerConfig.validateConfiguration();
+            return developerConfig;
         }
-    }
-
-    protected boolean isGlobalSettingsInitialized() {
-        synchronized (mGlobalSettingsLock) {
-            return mGlobalSettingsInitialized;
-        }
-    }
-
-    protected void pcaHasBeenInitiated() {
-        synchronized (mGlobalSettingsLock) {
-            mPCAConfigCreated = true;
-        }
-    }
-
-    protected Object getGlobalSettingsLock() {
-        return mGlobalSettingsLock;
     }
 
     protected static GlobalSettings getInstance() {
