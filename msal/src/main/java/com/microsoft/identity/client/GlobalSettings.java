@@ -28,6 +28,7 @@ import static com.microsoft.identity.client.exception.MsalClientException.SAPCA_
 import android.content.Context;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 import androidx.annotation.WorkerThread;
 
 import com.microsoft.identity.client.configuration.AccountMode;
@@ -47,7 +48,7 @@ public class GlobalSettings {
     public static final String GLOBAL_INIT_AFTER_PCA_ERROR_CODE = "pca_created_before_global";
     public static final String GLOBAL_INIT_AFTER_PCA_ERROR_MESSAGE = "Global initialization was attempted after a PublicClientApplicationConfiguration instance was already created. Please initialize global settings before any PublicClientApplicationConfiguration instance is created.";
     public static final String GLOBAL_ALREADY_INITIALIZED_ERROR_CODE = "global_already_initialized";
-    public static final String GLOBAL_ALREADY_INITIALIZED_ERROR_MESSAGE = "Attempting to load global configuration after it has already been initialized.";
+    public static final String GLOBAL_ALREADY_INITIALIZED_ERROR_MESSAGE = "Attempting to load global settings configuration after it has already been initialized.";
 
     /**
      * Singleton instance for this class, already initialized.
@@ -99,11 +100,13 @@ public class GlobalSettings {
             if (mGlobalSettingsSingleton.mGlobalSettingsInitialized) {
                 listener.onError(new MsalClientException(GLOBAL_ALREADY_INITIALIZED_ERROR_CODE,
                         GLOBAL_ALREADY_INITIALIZED_ERROR_MESSAGE));
+                return;
             }
 
             if (mGlobalSettingsSingleton.mPCAMergeAttempted) {
                 listener.onError(new MsalClientException(GLOBAL_INIT_AFTER_PCA_ERROR_CODE,
                         GLOBAL_INIT_AFTER_PCA_ERROR_MESSAGE));
+                return;
             }
 
             setGlobalConfiguration(
@@ -126,11 +129,13 @@ public class GlobalSettings {
             if (mGlobalSettingsSingleton.mGlobalSettingsInitialized) {
                 listener.onError(new MsalClientException(GLOBAL_ALREADY_INITIALIZED_ERROR_CODE,
                         GLOBAL_ALREADY_INITIALIZED_ERROR_MESSAGE));
+                return;
             }
 
             if (mGlobalSettingsSingleton.mPCAMergeAttempted) {
                 listener.onError(new MsalClientException(GLOBAL_INIT_AFTER_PCA_ERROR_CODE,
                         GLOBAL_INIT_AFTER_PCA_ERROR_MESSAGE));
+                return;
             }
 
             setGlobalConfiguration(
@@ -140,6 +145,7 @@ public class GlobalSettings {
         }
     }
 
+    @WorkerThread
     private static void setGlobalConfiguration(@NonNull final GlobalSettingsConfiguration globalConfiguration,
                                                @NonNull final GlobalSettingsListener listener) {
         mGlobalSettingsSingleton.mGlobalSettingsConfiguration = globalConfiguration;

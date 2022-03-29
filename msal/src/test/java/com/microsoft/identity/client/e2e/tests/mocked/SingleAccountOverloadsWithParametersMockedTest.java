@@ -1,8 +1,6 @@
 package com.microsoft.identity.client.e2e.tests.mocked;
 
-import android.os.Looper;
 import android.text.TextUtils;
-
 
 import com.microsoft.identity.client.Account;
 import com.microsoft.identity.client.AcquireTokenParameters;
@@ -46,13 +44,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {
