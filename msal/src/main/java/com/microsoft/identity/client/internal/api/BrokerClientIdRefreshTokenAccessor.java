@@ -62,7 +62,7 @@ public final class BrokerClientIdRefreshTokenAccessor {
     public static @Nullable
     String get(@NonNull final Context context,
                @NonNull final String accountObjectId) throws MsalClientException {
-        final String methodTag = TAG + ":getBrokerRefreshToken";
+        final String methodTag = TAG + ":get";
 
         throwIfNotValidBroker(context);
 
