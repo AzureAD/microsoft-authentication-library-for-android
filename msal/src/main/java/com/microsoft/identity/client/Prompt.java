@@ -50,7 +50,10 @@ public enum Prompt {
     CONSENT,
 
     /**
-     * acquireToken will send prompt=create to the authorize endpoint.  The use will be prompted to create a new account.
+     * acquireToken will send prompt=create to the /authorize endpoint.  The user will be prompted to create a new account.
+     * Requires configuring authority as type "AzureADMyOrg" with a tenant_id.
+     * <p>
+     * Prerequisite: https://docs.microsoft.com/en-us/azure/active-directory/external-identities/self-service-sign-up-user-flow
      */
     CREATE,
 
