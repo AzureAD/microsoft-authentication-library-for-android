@@ -55,6 +55,13 @@ public class PromptTest {
     }
 
     @Test
+    public void testOpenIdConnectParameterCreate() {
+        prompt = Prompt.CREATE;
+        final OpenIdConnectPromptParameter promptValue = prompt.toOpenIdConnectPromptParameter();
+        Assert.assertEquals(promptValue, OpenIdConnectPromptParameter.CREATE);
+    }
+
+    @Test
     public void testOpenIdConnectParameterWhenRequired() {
         prompt = Prompt.WHEN_REQUIRED;
         final OpenIdConnectPromptParameter promptValue = prompt.toOpenIdConnectPromptParameter();
