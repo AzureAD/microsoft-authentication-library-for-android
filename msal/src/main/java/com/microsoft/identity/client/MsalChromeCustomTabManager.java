@@ -66,11 +66,13 @@ public class MsalChromeCustomTabManager {
     }
 
     protected void verifyChromeTabOrBrowser() throws MsalClientException {
+        final String methodTag = TAG +":verifyChromeTabOrBrowser";
+
         if (mChromePackageWithCustomTabSupport == null) {
-            Logger.warn(TAG, "Custom tab is not supported by Chrome.");
+            Logger.warn(methodTag, "Custom tab is not supported by Chrome.");
 
         } else if (MsalUtils.getChromePackage(mParentActivity.getApplicationContext()) == null) {
-            Logger.warn(TAG, "Chrome is not installed.");
+            Logger.warn(methodTag, "Chrome is not installed.");
             throw new MsalClientException(ErrorStrings.CHROME_NOT_INSTALLED, "Chrome is not installed.");
         }
     }
@@ -104,6 +106,8 @@ public class MsalChromeCustomTabManager {
      * Helper method to wait for MsalCustomTabsServiceConnection to establish.
      */
     private boolean waitForServiceConnectionToEstablish(CountDownLatch latch) {
+        final String methodTag = TAG + ":waitForServiceConnectionToEstablish";
+
         boolean connectionEstablished = true;
         try {
             // await returns true if count is 0, false if action times out
@@ -114,10 +118,10 @@ public class MsalChromeCustomTabManager {
                 // to be safe, we'll skip warmup and rely on mCustomTabsServiceIsBound
                 // to unbind the Service when onStop() is called.
                 connectionEstablished = false;
-                Logger.warn(TAG, "Connection to CustomTabs timed out. Skipping warmup.");
+                Logger.warn(methodTag, "Connection to CustomTabs timed out. Skipping warmup.");
             }
         } catch (final InterruptedException e) {
-            Logger.error(TAG, "Failed to connect to CustomTabs. Skipping warmup.", e);
+            Logger.error(methodTag, "Failed to connect to CustomTabs. Skipping warmup.", e);
             connectionEstablished = false;
         }
         return connectionEstablished;
@@ -141,11 +145,12 @@ public class MsalChromeCustomTabManager {
      * @param requestUrl URL to be loaded.
      */
     public void launchChromeTabOrBrowserForUrl(String requestUrl) {
+        final String methodTag = TAG + ":launchChromeTabOrBrowserForUrl";
         if (mChromePackageWithCustomTabSupport != null && mCustomTabsIntent != null) {
-            Logger.info(TAG, "ChromeCustomTab support is available, launching chrome tab.");
+            Logger.info(methodTag, "ChromeCustomTab support is available, launching chrome tab.");
             mCustomTabsIntent.launchUrl(mParentActivity, Uri.parse(requestUrl));
         } else {
-            Logger.info(TAG, "Chrome tab support is not available, launching chrome browser.");
+            Logger.info(methodTag, "Chrome tab support is not available, launching chrome browser.");
             final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(requestUrl));
             ////TODO: Can move MsalUtils chrome specific util method to common when refactoring.
             browserIntent.setPackage(MsalUtils.getChromePackage(mParentActivity.getApplicationContext()));

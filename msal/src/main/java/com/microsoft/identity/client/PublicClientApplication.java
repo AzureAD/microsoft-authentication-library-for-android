@@ -42,7 +42,6 @@ import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.client.helper.BrokerHelperActivity;
 import com.microsoft.identity.client.internal.AsyncResult;
@@ -53,24 +52,24 @@ import com.microsoft.identity.common.AndroidPlatformComponents;
 import com.microsoft.identity.common.adal.internal.tokensharing.ITokenShareResultInternal;
 import com.microsoft.identity.common.adal.internal.tokensharing.TokenShareUtility;
 import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager;
-import com.microsoft.identity.common.java.exception.BaseException;
-import com.microsoft.identity.common.java.exception.ClientException;
-import com.microsoft.identity.common.java.exception.ErrorStrings;
-import com.microsoft.identity.common.java.exception.ServiceException;
-import com.microsoft.identity.common.java.authorities.Authority;
-import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthority;
-import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryB2CAuthority;
-import com.microsoft.identity.common.java.cache.ICacheRecord;
-import com.microsoft.identity.common.java.cache.IShareSingleSignOnState;
-import com.microsoft.identity.common.java.cache.IMultiTypeNameValueStorage;
-import com.microsoft.identity.common.java.cache.MsalOAuth2TokenCache;
-import com.microsoft.identity.common.java.util.SchemaUtil;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
-import com.microsoft.identity.common.java.commands.CommandCallback;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommandCallback;
 import com.microsoft.identity.common.internal.commands.GenerateShrCommand;
 import com.microsoft.identity.common.internal.commands.GetDeviceModeCommand;
+import com.microsoft.identity.common.internal.controllers.LocalMSALController;
+import com.microsoft.identity.common.internal.migration.AdalMigrationAdapter;
+import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
+import com.microsoft.identity.common.internal.migration.TokenMigrationUtility;
+import com.microsoft.identity.common.internal.net.cache.HttpCache;
+import com.microsoft.identity.common.java.authorities.Authority;
+import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthority;
+import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryB2CAuthority;
+import com.microsoft.identity.common.java.cache.ICacheRecord;
+import com.microsoft.identity.common.java.cache.IMultiTypeNameValueStorage;
+import com.microsoft.identity.common.java.cache.IShareSingleSignOnState;
+import com.microsoft.identity.common.java.cache.MsalOAuth2TokenCache;
+import com.microsoft.identity.common.java.commands.CommandCallback;
 import com.microsoft.identity.common.java.commands.InteractiveTokenCommand;
 import com.microsoft.identity.common.java.commands.SilentTokenCommand;
 import com.microsoft.identity.common.java.commands.parameters.CommandParameters;
@@ -81,13 +80,12 @@ import com.microsoft.identity.common.java.commands.parameters.SilentTokenCommand
 import com.microsoft.identity.common.java.controllers.BaseController;
 import com.microsoft.identity.common.java.controllers.CommandDispatcher;
 import com.microsoft.identity.common.java.controllers.ExceptionAdapter;
-import com.microsoft.identity.common.internal.controllers.LocalMSALController;
 import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId;
-import com.microsoft.identity.common.internal.migration.AdalMigrationAdapter;
-import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
-import com.microsoft.identity.common.internal.migration.TokenMigrationUtility;
-import com.microsoft.identity.common.internal.net.cache.HttpCache;
+import com.microsoft.identity.common.java.exception.BaseException;
+import com.microsoft.identity.common.java.exception.ClientException;
+import com.microsoft.identity.common.java.exception.ErrorStrings;
+import com.microsoft.identity.common.java.exception.ServiceException;
 import com.microsoft.identity.common.java.providers.microsoft.MicrosoftAccount;
 import com.microsoft.identity.common.java.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
@@ -96,6 +94,7 @@ import com.microsoft.identity.common.java.result.GenerateShrResult;
 import com.microsoft.identity.common.java.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.java.result.LocalAuthenticationResult;
 import com.microsoft.identity.common.java.util.ResultFuture;
+import com.microsoft.identity.common.java.util.SchemaUtil;
 import com.microsoft.identity.common.logging.Logger;
 import com.microsoft.identity.msal.BuildConfig;
 
@@ -118,6 +117,9 @@ import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread
 import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArg;
 import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArgument;
 import static com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter.msalExceptionFromBaseException;
+import static com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudience.isHomeTenantAlias;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST_ASYNC;
 import static com.microsoft.identity.common.java.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
 import static com.microsoft.identity.common.java.exception.ClientException.TOKEN_SHARING_DESERIALIZATION_ERROR;
 import static com.microsoft.identity.common.java.exception.ClientException.TOKEN_SHARING_MSA_PERSISTENCE_ERROR;
@@ -131,9 +133,6 @@ import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_A
 import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_MESSAGE;
 import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_CODE;
 import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_MESSAGE;
-import static com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudience.isHomeTenantAlias;
-import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST;
-import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST_ASYNC;
 import static com.microsoft.identity.common.java.providers.microsoft.MicrosoftIdToken.TENANT_ID;
 import static com.microsoft.identity.common.java.util.StringUtil.isUuid;
 
@@ -956,11 +955,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     private static void validateAccountModeConfiguration(@NonNull final PublicClientApplicationConfiguration config) throws MsalClientException {
+        final String methodTag = TAG + ":validateAccountModeConfiguration";
         if (config.getAccountMode() == AccountMode.SINGLE
                 && null != config.getDefaultAuthority()
                 && config.getDefaultAuthority() instanceof AzureActiveDirectoryB2CAuthority) {
             Logger.warn(
-                    TAG,
+                    methodTag,
                     "Warning! B2C applications should use MultipleAccountPublicClientApplication. "
                             + "Use of SingleAccount mode with multiple IEF policies is unsupported."
             );
@@ -1058,7 +1058,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     private void initializeApplication() throws MsalClientException {
-        final String methodName = ":initializeApplication";
+        final String methodTag = TAG + ":initializeApplication";
 
         final Context context = mPublicClientConfiguration.getAppContext();
         setupTelemetry(context, mPublicClientConfiguration);
@@ -1079,7 +1079,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         // Init HTTP cache
         HttpCache.initialize(context.getCacheDir());
 
-        Logger.info(TAG + methodName, "Create new public client application.");
+        Logger.info(methodTag, "Create new public client application.");
     }
 
     private void initializeLoggerSettings(@Nullable final LoggerConfiguration loggerConfig) {
@@ -1113,10 +1113,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     private void setupTelemetry(@NonNull final Context context,
                                 @NonNull final PublicClientApplicationConfiguration developerConfig) {
+        final String methodTag = TAG + ":setupTelemetry";
         if (null != developerConfig.getTelemetryConfiguration()) {
-            Logger.verbose(TAG, "Telemetry configuration is set. Telemetry is enabled.");
+            Logger.verbose(methodTag, "Telemetry configuration is set. Telemetry is enabled.");
         } else {
-            Logger.verbose(TAG, "Telemetry configuration is null. Telemetry is disabled.");
+            Logger.verbose(methodTag, "Telemetry configuration is null. Telemetry is disabled.");
         }
 
         new com.microsoft.identity.common.internal.telemetry.Telemetry.Builder()
@@ -1661,6 +1662,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             @NonNull final PublicClientApplicationConfiguration pcaConfig,
             @NonNull final TokenParameters tokenParameters)
             throws ServiceException, ClientException {
+        final String methodTag = TAG + ":selectAccountRecordForTokenRequest";
+
         // If not authority was provided in the request, fallback to the default authority...
         if (TextUtils.isEmpty(tokenParameters.getAuthority())) {
             tokenParameters.setAuthority(
@@ -1756,7 +1759,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             }
             // We should never hit this flow as IAccount should always have a home profile or at least one tenant profile on it.
             if (accountForRequest == null) {
-                Logger.warnPII(TAG,
+                Logger.warnPII(methodTag,
                         "No account record found for IAccount with request tenantId: " + tenantId
                 );
                 throw new ClientException(
