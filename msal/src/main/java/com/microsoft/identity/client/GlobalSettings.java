@@ -23,18 +23,14 @@
 package com.microsoft.identity.client;
 
 import static com.microsoft.identity.client.GlobalSettingsConfigurationFactory.initializeGlobalConfiguration;
-import static com.microsoft.identity.client.exception.MsalClientException.SAPCA_USE_WITH_MULTI_POLICY_B2C;
 
 import android.content.Context;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.VisibleForTesting;
 import androidx.annotation.WorkerThread;
 
-import com.microsoft.identity.client.configuration.AccountMode;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryB2CAuthority;
 import com.microsoft.identity.common.logging.Logger;
 
 import java.io.File;
@@ -172,6 +168,12 @@ public class GlobalSettings {
 
     protected static GlobalSettings getInstance() {
         return mGlobalSettingsSingleton;
+    }
+
+    protected static void resetInstance() {
+        mGlobalSettingsSingleton.mGlobalSettingsConfiguration = null;
+        mGlobalSettingsSingleton.mGlobalSettingsInitialized = false;
+        mGlobalSettingsSingleton.mPCAMergeAttempted = false;
     }
 
     public interface GlobalSettingsListener {

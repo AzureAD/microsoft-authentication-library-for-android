@@ -8,8 +8,20 @@ import android.content.Context;
 
 import androidx.annotation.NonNull;
 import androidx.test.core.app.ApplicationProvider;
+
+import com.microsoft.identity.client.GlobalSettings;
+import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
+import com.microsoft.identity.client.IPublicClientApplication;
+import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
+import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
+import com.microsoft.identity.client.e2e.shadows.ShadowAuthorityForMockHttpResponse;
+import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
+import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.common.AndroidPlatformComponents;
 import com.microsoft.identity.internal.testutils.TestUtils;
+import com.microsoft.identity.internal.testutils.shadows.ShadowHttpClient;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -18,6 +30,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
+import org.robolectric.annotation.LooperMode;
 
 import java.io.File;
 import java.util.concurrent.CountDownLatch;
@@ -26,6 +40,14 @@ import java.util.concurrent.CountDownLatch;
  * Tests for {@link GlobalSettings}.
  */
 @RunWith(RobolectricTestRunner.class)
+@Config(shadows = {
+        ShadowAndroidSdkStorageEncryptionManager.class,
+        ShadowAuthorityForMockHttpResponse.class,
+        ShadowPublicClientApplicationConfiguration.class,
+        ShadowHttpClient.class,
+        ShadowOpenIdProviderConfigurationClient.class
+})
+@LooperMode(LooperMode.Mode.LEGACY)
 public class GlobalSettingsTest {
     private Context mContext;
     private Activity mActivity;
@@ -37,11 +59,13 @@ public class GlobalSettingsTest {
         mContext = ApplicationProvider.getApplicationContext();
         mActivity = Mockito.mock(Activity.class);
         Mockito.when(mActivity.getApplicationContext()).thenReturn(mContext);
+        mSingleAccountApplication = null;
+        mMultipleAccountApplication = null;
     }
 
     @After
     public void tearDown() {
-        TestUtils.clearCache("com.microsoft.identity.client.account_credential_cache");
+        GlobalSettings.resetInstance();
     }
 
     @Test
@@ -62,24 +86,37 @@ public class GlobalSettingsTest {
     //region Single Account Tests
     @Test
     public void testCanCreateSingleAccountPcaWithoutGlobalInit() throws InterruptedException {
-        final CountDownLatch countDownLatch = new CountDownLatch(1);
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        createPCA("src/test/res/raw/single_account_aad_test_config.json", countDownLatch);
+        countDownLatch.await();
+        Assert.assertNotNull(mSingleAccountApplication);
+    }
+
+    @Test
+    public void testCannotInitGlobalIfSingleAccountPcaHasBeenCreated() throws InterruptedException {
+        CountDownLatch countDownLatch = new CountDownLatch(1);
         createSAPCAFromConfigPath("src/test/res/raw/single_account_aad_test_config.json", countDownLatch);
         countDownLatch.await();
+        Assert.assertNotNull(mSingleAccountApplication);
+
+        final File anotherGlobalConfigFile = new File("src/test/res/raw/test_split_config_global_config.json");
+        GlobalSettings.loadGlobalConfigurationFile(anotherGlobalConfigFile, getGlobalAfterPcaFailureGlobalListener());
     }
 
     @Test
-    public void testCannotInitGlobalIfSingleAccountPcaHasBeenCreated() {
+    public void testCanCreateSingleAccountPcaAfterGlobalInit() throws InterruptedException {
+        final File globalConfigFile = new File("src/test/res/raw/test_split_config_global_config.json");
+        GlobalSettings.loadGlobalConfigurationFile(globalConfigFile, getSuccessGlobalListener());
 
-    }
-
-    @Test
-    public void testCanCreateSingleAccountPcaAfterGlobalInit() {
-
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        createSAPCAFromConfigPath("src/test/res/raw/single_account_aad_test_config.json", countDownLatch);
+        countDownLatch.await();
+        Assert.assertNotNull(mSingleAccountApplication);
     }
 
     @Test
     public void testGlobalFieldsOverrideSingleAccountPCAFields() {
-
+        Assert.fail("Intended failure in GlobalSettingsTest.");
     }
     //endregion
 
@@ -112,6 +149,40 @@ public class GlobalSettingsTest {
                 Assert.assertEquals(exception.getMessage(), GlobalSettings.GLOBAL_ALREADY_INITIALIZED_ERROR_MESSAGE);
             }
         };
+    }
+
+    private GlobalSettings.GlobalSettingsListener getGlobalAfterPcaFailureGlobalListener() {
+        return new GlobalSettings.GlobalSettingsListener() {
+            @Override
+            public void onSuccess(@NonNull String message) {
+                Assert.fail("Second initialization was allowed.");
+            }
+
+            @Override
+            public void onError(@NonNull MsalException exception) {
+                Assert.assertEquals(exception.getErrorCode(), GlobalSettings.GLOBAL_INIT_AFTER_PCA_ERROR_CODE);
+                Assert.assertEquals(exception.getMessage(), GlobalSettings.GLOBAL_INIT_AFTER_PCA_ERROR_MESSAGE);
+            }
+        };
+    }
+
+    private void createPCA(final String configPath, final CountDownLatch countDownLatch){
+        final File configFile = new File(configPath);
+
+        PublicClientApplication.create(mContext, configFile, new PublicClientApplication.ApplicationCreatedListener() {
+            @Override
+            public void onCreated(IPublicClientApplication application) {
+                mSingleAccountApplication = (ISingleAccountPublicClientApplication) application;
+                countDownLatch.countDown();
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                fail(exception.getMessage());
+            }
+        });
+
+        flushScheduler();
     }
 
     private void createSAPCAFromConfigPath(final String configPath, final CountDownLatch countDownLatch){
