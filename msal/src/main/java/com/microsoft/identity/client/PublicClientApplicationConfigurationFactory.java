@@ -107,8 +107,8 @@ public class PublicClientApplicationConfigurationFactory {
 
     @WorkerThread
     private static PublicClientApplicationConfiguration loadDefaultConfiguration(@NonNull final Context context) {
-        final String methodName = ":loadDefaultConfiguration";
-        Logger.verbose(TAG + methodName, "Loading default configuration");
+        final String methodTag = TAG + ":loadDefaultConfiguration";
+        Logger.verbose(methodTag, "Loading default configuration");
         final PublicClientApplicationConfiguration config = loadConfiguration(context, R.raw.msal_default_config);
         config.setAppContext(context);
 
@@ -137,6 +137,7 @@ public class PublicClientApplicationConfigurationFactory {
     @WorkerThread
     private static PublicClientApplicationConfiguration loadConfiguration(final @NonNull InputStream configStream,
                                                                           final boolean isDefaultConfiguration) {
+        final String methodTag = TAG + ":loadConfiguration";
         byte[] buffer;
 
         try {
@@ -153,12 +154,12 @@ public class PublicClientApplicationConfigurationFactory {
                 configStream.close();
             } catch (IOException e) {
                 if (isDefaultConfiguration) {
-                    Logger.warn(TAG + "loadConfiguration",
+                    Logger.warn(methodTag,
                             "Unable to close default configuration file. " +
                                     "This can cause memory leak."
                     );
                 } else {
-                    Logger.warn(TAG + "loadConfiguration",
+                    Logger.warn(methodTag,
                             "Unable to close provided configuration file. " +
                                     "This can cause memory leak."
                     );

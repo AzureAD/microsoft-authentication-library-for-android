@@ -290,9 +290,10 @@ public final class MsalUtils {
      * @return The available package name for chrome. Will return null if no chrome package existed on the device.
      */
     public static String getChromePackageWithCustomTabSupport(final Context context) {
+        final String methodTag = TAG + ":getChromePackageWithCustomTabSupport";
         if (context.getPackageManager() == null) {
             com.microsoft.identity.common.internal.logging.Logger.warn(
-                    TAG,
+                    methodTag,
                     "getPackageManager() returned null."
             );
             return null;
@@ -305,7 +306,7 @@ public final class MsalUtils {
         // queryIntentServices could return null or an empty list if no matching service existed.
         if (resolveInfoList == null || resolveInfoList.isEmpty()) {
             com.microsoft.identity.common.internal.logging.Logger.warn(
-                    TAG,
+                    methodTag,
                     "No Service responded to Intent: " + CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION
             );
             return null;
@@ -319,7 +320,7 @@ public final class MsalUtils {
         }
 
         com.microsoft.identity.common.internal.logging.Logger.warn(
-                TAG,
+                methodTag,
                 "No pkg with CustomTab support found."
         );
 
@@ -334,6 +335,7 @@ public final class MsalUtils {
      * @return The chrome package name that exists on the device.
      */
     public static String getChromePackage(final Context context) {
+        final String methodTag = TAG + ":getChromePackage";
         final PackageManager packageManager = context.getPackageManager();
         if (packageManager == null) {
             return null;
@@ -349,7 +351,7 @@ public final class MsalUtils {
         } catch (final PackageManager.NameNotFoundException e) {
             // swallow this exception. If the package is not existed, the exception will be thrown.
             com.microsoft.identity.common.internal.logging.Logger.error(
-                    TAG,
+                    methodTag,
                     "Failed to retrieve chrome package info.",
                     e
             );
@@ -366,6 +368,7 @@ public final class MsalUtils {
      * @return The Map of the items decoded with the given delimiter.
      */
     public static Map<String, String> decodeUrlToMap(final String url, final String delimiter) {
+        final String methodTag = TAG + ":decodeUrlToMap";
         final Map<String, String> decodedUrlMap = new HashMap<>();
 
         // delimiter can be " "
@@ -391,7 +394,7 @@ public final class MsalUtils {
                 }
             } catch (final UnsupportedEncodingException e) {
                 com.microsoft.identity.common.internal.logging.Logger.errorPII(
-                        TAG,
+                        methodTag,
                         "URL form decode failed.",
                         e
                 );

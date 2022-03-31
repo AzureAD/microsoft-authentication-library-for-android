@@ -388,14 +388,14 @@ public class CommandParametersAdapter {
     }
 
     private static boolean getBrokerBrowserSupportEnabled(@NonNull final AcquireTokenParameters parameters) {
-        final String methodName = ":getBrokerBrowserSupportEnabled";
+        final String methodTag = TAG + ":getBrokerBrowserSupportEnabled";
 
         // Special case only for Intune COBO app, where they use Intune AcquireTokenParameters (an internal class)
         // to set browser support in broker to share SSO from System WebView login.
         if (parameters instanceof IntuneAcquireTokenParameters) {
             boolean brokerBrowserEnabled = ((IntuneAcquireTokenParameters) parameters)
                     .isBrokerBrowserSupportEnabled();
-            Logger.info(TAG + methodName,
+            Logger.info(methodTag,
                     " IntuneAcquireTokenParameters instance, broker browser enabled : "
                             + brokerBrowserEnabled
             );

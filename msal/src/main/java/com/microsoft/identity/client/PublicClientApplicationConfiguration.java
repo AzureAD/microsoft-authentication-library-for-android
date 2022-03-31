@@ -556,13 +556,14 @@ public class PublicClientApplicationConfiguration {
     }
 
     private boolean hasSchemeAndAuthority(@NonNull final String redirectUri) {
+        final String methodTag = TAG + ":hasSchemeAndAuthority";
         try {
             final Uri parsedRedirectUri = Uri.parse(redirectUri);
             final boolean hasScheme = !TextUtils.isEmpty(parsedRedirectUri.getScheme());
             final boolean hasAuthority = !TextUtils.isEmpty(parsedRedirectUri.getAuthority());
             return hasScheme && hasAuthority;
         } catch (final NullPointerException e) {
-            Logger.errorPII(TAG, INVALID_REDIRECT_MSG, e);
+            Logger.errorPII(methodTag, INVALID_REDIRECT_MSG, e);
         }
 
         return false;
@@ -591,6 +592,7 @@ public class PublicClientApplicationConfiguration {
 
     // Verifies broker redirect URI against the app's signature, to make sure that this is legit.
     private void verifyRedirectUriWithAppSignature() throws MsalClientException {
+        final String methodTag = TAG + ":verifyRedirectUriWithAppSignature";
         final String packageName = mAppContext.getPackageName();
         try {
             final PackageInfo info = PackageHelper.getPackageInfo(mAppContext.getPackageManager(), packageName);
@@ -618,7 +620,7 @@ public class PublicClientApplicationConfiguration {
                 }
             }
         } catch (PackageManager.NameNotFoundException | NoSuchAlgorithmException e) {
-            Logger.error(TAG, "Unexpected error in verifyRedirectUriWithAppSignature()", e);
+            Logger.error(methodTag, "Unexpected error in verifyRedirectUriWithAppSignature()", e);
             throw new MsalClientException(MsalClientException.UNKNOWN_ERROR, "Unexpected error in verifyRedirectUriWithAppSignature()", e);
         }
     }
@@ -633,7 +635,7 @@ public class PublicClientApplicationConfiguration {
      */
     private static boolean validateCustomTabRedirectActivity(@NonNull final Context context,
                                                              @NonNull final String url) throws MsalClientException {
-        final String methodName = ":validateCustomTabRedirectActivity";
+        final String methodTag = TAG + ":validateCustomTabRedirectActivity";
         final PackageManager packageManager = context.getPackageManager();
 
         if (packageManager == null) {
@@ -670,7 +672,7 @@ public class PublicClientApplicationConfiguration {
                 // another application is listening for this url scheme, don't open
                 // Custom Tab for security reasons
                 com.microsoft.identity.common.logging.Logger.warn(
-                        TAG + methodName,
+                        methodTag,
                         String.format("Another application %s is listening for the URL scheme %s", activityInfo.packageName, url)
                 );
                 throw new MsalClientException(
@@ -686,6 +688,7 @@ public class PublicClientApplicationConfiguration {
 
     @SuppressWarnings("PMD")
     public void checkIntentFilterAddedToAppManifestForBrokerFlow() throws MsalClientException {
+        final String methodTag = TAG + ":checkIntentFilterAddedToAppManifestForBrokerFlow";
         if ((getAuthorizationAgent() == AuthorizationAgent.DEFAULT
                 || getAuthorizationAgent() == AuthorizationAgent.BROWSER)) {
 
@@ -736,7 +739,7 @@ public class PublicClientApplicationConfiguration {
         if (mAppContext != null && !isBrokerRedirectUri(mRedirectUri, mAppContext.getPackageName())) {
             // This means that the app is still using the legacy local-only MSAL Redirect uri (already removed from the new portal).
             // If this is the case, we can assume that the user doesn't need Broker support.
-            Logger.warn(TAG, "The app is still using legacy MSAL redirect uri. Switch to MSAL local auth."
+            Logger.warn(methodTag, "The app is still using legacy MSAL redirect uri. Switch to MSAL local auth."
                     + "  For brokered auth, the redirect URI is expected to conform to 'msauth://<authority>/.*' where the authority in "
                     + "that uri is the package name of the app. This package name is listed as 'applicationId' in the build.gradle file.");
             mUseBroker = false;
@@ -747,6 +750,7 @@ public class PublicClientApplicationConfiguration {
     }
 
     private boolean isValidAuthenticatorRedirectUri() {
+        final String methodTag = TAG + ":isValidAuthenticatorRedirectUri";
         // This is a temporary fix to allow authenticator to migrate to MSAL
         // For Legacy reason Authenticator still needs to pass in the old redirect uri to be able to
         // have backward compatibility with older versions of BrokerHost (Company Portal)
@@ -774,7 +778,7 @@ public class PublicClientApplicationConfiguration {
                 }
             }
         } catch (final PackageManager.NameNotFoundException | NoSuchAlgorithmException e) {
-            Logger.error(TAG, "Unexpected error in getting package info/signature for Authenticator", e);
+            Logger.error(methodTag, "Unexpected error in getting package info/signature for Authenticator", e);
         }
 
         return false;
