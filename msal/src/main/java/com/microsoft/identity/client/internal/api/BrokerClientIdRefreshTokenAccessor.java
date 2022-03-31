@@ -62,7 +62,7 @@ public final class BrokerClientIdRefreshTokenAccessor {
     public static @Nullable
     String get(@NonNull final Context context,
                @NonNull final String accountObjectId) throws MsalClientException {
-        final String methodName = "getBrokerRefreshToken";
+        final String methodTag = TAG + ":get";
 
         throwIfNotValidBroker(context);
 
@@ -70,7 +70,7 @@ public final class BrokerClientIdRefreshTokenAccessor {
         final ICacheRecord cacheRecord = getCacheRecordForIdentifier(tokenCache, accountObjectId);
 
         if (cacheRecord == null) {
-            Logger.verbose(TAG + methodName, "No cache record found.");
+            Logger.verbose(methodTag, "No cache record found.");
             return null;
         }
 
@@ -80,7 +80,7 @@ public final class BrokerClientIdRefreshTokenAccessor {
         tokenCache.removeCredential(cacheRecord.getAccessToken());
 
         if (cacheRecord.getRefreshToken() == null) {
-            Logger.verbose(TAG + methodName, "Refresh token record is empty.");
+            Logger.verbose(methodTag, "Refresh token record is empty.");
             return null;
         }
 

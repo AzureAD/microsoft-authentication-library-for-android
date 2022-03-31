@@ -620,7 +620,7 @@ public class SingleAccountPublicClientApplication
      */
     @Nullable
     private MultiTenantAccount getAccountFromICacheRecordList(@NonNull final List<ICacheRecord> cacheRecords) {
-        final String methodName = ":getAccountFromICacheRecords";
+        final String methodTag = TAG + ":getAccountFromICacheRecords";
 
         if (cacheRecords == null || cacheRecords.size() == 0) {
             return null;
@@ -630,7 +630,7 @@ public class SingleAccountPublicClientApplication
 
         if (account.size() != 1) {
             Logger.verbose(
-                    TAG + methodName,
+                    methodTag,
                     "Returned cacheRecords were adapted into multiple IAccount. " +
                             "This is unexpected in Single account mode." +
                             "Returning the first adapted account.");

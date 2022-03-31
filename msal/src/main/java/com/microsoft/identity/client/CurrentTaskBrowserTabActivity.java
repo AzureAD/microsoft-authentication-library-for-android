@@ -80,6 +80,7 @@ public final class CurrentTaskBrowserTabActivity extends Activity {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        final String methodTag = TAG + ":onCreate";
         final String response = getIntent().getDataString();
 
         if (savedInstanceState == null
@@ -91,7 +92,7 @@ public final class CurrentTaskBrowserTabActivity extends Activity {
             if (responseIntent != null) {
                 startActivityForResult(responseIntent, REDIRECT_RECEIVED_CODE);
             } else {
-                Logger.warn(TAG, "Received NULL response intent. Unable to complete authorization.");
+                Logger.warn(methodTag, "Received NULL response intent. Unable to complete authorization.");
                 Toast.makeText(getApplicationContext(), "Unable to complete authorization as there is no interactive call in progress. This can be due to closing the app while the authorization was in process.", Toast.LENGTH_LONG).show();
             }
         }
@@ -100,6 +101,8 @@ public final class CurrentTaskBrowserTabActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
+        final String methodTag = TAG + ":onActivityResult";
 
         if (resultCode == RESULT_CANCELED) {
             // We weren't able to open CurrentTaskAuthorizationActivity from the back stack. Send a broadcast
@@ -121,7 +124,7 @@ public final class CurrentTaskBrowserTabActivity extends Activity {
                             hasNullTaskAffinity = true;
                         }
                     } catch (final PackageManager.NameNotFoundException e) {
-                        Logger.warn(TAG, null, "Package name not found for: " + CurrentTaskBrowserTabActivity.this.getComponentName());
+                        Logger.warn(methodTag, null, "Package name not found for: " + CurrentTaskBrowserTabActivity.this.getComponentName());
                     }
 
                     finishActivity(REDIRECT_RECEIVED_CODE);

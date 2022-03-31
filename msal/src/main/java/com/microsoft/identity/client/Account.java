@@ -69,7 +69,7 @@ public class Account implements IAccount {
     @NonNull
     @Override
     public String getId() {
-        final String methodName = ":getId";
+        final String methodTag = TAG + ":getId";
         String id;
 
         ClientInfo clientInfo = null;
@@ -79,7 +79,7 @@ public class Account implements IAccount {
                 clientInfo = new ClientInfo(mClientInfo);
             } catch (final MsalClientException e) {
                 Logger.error(
-                        TAG,
+                        methodTag,
                         "Failed to parse ClientInfo",
                         e
                 );
@@ -98,7 +98,7 @@ public class Account implements IAccount {
             // This could happen because the ID token that we have for WPJ accounts may not contain
             // oid claim because we used to not ask for PROFILE scope in that token. 
             com.microsoft.identity.common.logging.Logger.warn(
-                    TAG + methodName,
+                    methodTag,
                     "Unable to get account id from either ClientInfo or IdToken. Attempting to obtain from home account id."
             );
             id = com.microsoft.identity.common.java.util.StringUtil.getUIdFromHomeAccountId(mHomeAccountId);
@@ -106,7 +106,7 @@ public class Account implements IAccount {
 
         if (StringUtil.isEmpty(id)) {
             com.microsoft.identity.common.logging.Logger.warn(
-                    TAG + methodName,
+                    methodTag,
                     "Account ID is empty. Returning MISSING_FROM_THE_TOKEN_RESPONSE."
             );
 
