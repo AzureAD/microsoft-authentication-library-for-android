@@ -58,7 +58,7 @@ class AuthenticationResultAdapter {
     static MsalDeclinedScopeException declinedScopeExceptionFromResult(@NonNull final ILocalAuthenticationResult localAuthenticationResult,
                                                                        @NonNull final List<String> declinedScopes,
                                                                        @NonNull final TokenParameters requestParameters) {
-        final String methodTag= TAG + ":declinedScopeExceptionFromResult";
+        final String methodTag = TAG + ":declinedScopeExceptionFromResult";
         final List<String> grantedScopes = Arrays.asList(localAuthenticationResult.getScope());
         Logger.warn(methodTag,
                 "Returning DeclinedScopeException as not all requested scopes are granted," +

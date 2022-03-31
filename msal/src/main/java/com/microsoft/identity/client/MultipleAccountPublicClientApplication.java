@@ -218,7 +218,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     private void getAccountInternal(@NonNull final String identifier,
                                     @NonNull final GetAccountCallback callback,
                                     @NonNull final String publicApiId) {
-        final String methodTag= TAG + ":getAccountInternal";
+        final String methodTag = TAG + ":getAccountInternal";
 
         if (callback == null) {
             throw new IllegalArgumentException("callback cannot be null or empty");

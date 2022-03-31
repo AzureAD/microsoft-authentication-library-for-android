@@ -1058,7 +1058,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     private void initializeApplication() throws MsalClientException {
-        final String methodTag= TAG + ":initializeApplication";
+        final String methodTag = TAG + ":initializeApplication";
 
         final Context context = mPublicClientConfiguration.getAppContext();
         setupTelemetry(context, mPublicClientConfiguration);

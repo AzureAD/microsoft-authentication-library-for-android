@@ -126,7 +126,7 @@ public final class AuthenticationResult implements IAuthenticationResult {
 
     @Nullable
     private UUID sanitizeCorrelationId(@Nullable final String correlationId) {
-        final String methodTag= TAG + ":sanitizeCorrelationId";
+        final String methodTag = TAG + ":sanitizeCorrelationId";
 
         if (TextUtils.isEmpty(correlationId)) {
             Logger.warn(methodTag, "Correlation id was empty, returning null.");
