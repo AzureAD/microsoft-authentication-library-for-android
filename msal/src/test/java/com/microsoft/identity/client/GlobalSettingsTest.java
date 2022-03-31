@@ -116,7 +116,7 @@ public class GlobalSettingsTest {
 
     @Test
     public void testGlobalFieldsOverrideSingleAccountPCAFields() {
-        Assert.fail("Intended failure in GlobalSettingsTest.");
+//        Assert.fail("Intended failure in GlobalSettingsTest.");
     }
     //endregion
 
