@@ -9,19 +9,14 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.test.core.app.ApplicationProvider;
 
-import com.microsoft.identity.client.GlobalSettings;
-import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
-import com.microsoft.identity.client.IPublicClientApplication;
-import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
-import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthorityForMockHttpResponse;
 import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
 import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.common.AndroidPlatformComponents;
-import com.microsoft.identity.internal.testutils.TestUtils;
 import com.microsoft.identity.internal.testutils.shadows.ShadowHttpClient;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.SINGLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -54,6 +49,8 @@ public class GlobalSettingsTest {
     private ISingleAccountPublicClientApplication mSingleAccountApplication;
     private IMultipleAccountPublicClientApplication mMultipleAccountApplication;
 
+    public static final String TEST_SPLIT_CONFIG_GLOBAL_CONFIG_FILE_PATH = "src/test/res/raw/test_split_config_global_config.json";
+
     @Before
     public void setup() {
         mContext = ApplicationProvider.getApplicationContext();
@@ -70,16 +67,16 @@ public class GlobalSettingsTest {
 
     @Test
     public void testCanInitializeGlobal() {
-        final File globalConfigFile = new File("src/test/res/raw/test_split_config_global_config.json");
+        final File globalConfigFile = new File(TEST_SPLIT_CONFIG_GLOBAL_CONFIG_FILE_PATH);
         GlobalSettings.loadGlobalConfigurationFile(globalConfigFile, getSuccessGlobalListener());
     }
 
     @Test
     public void testCannotInitializeGlobalTwice() {
-        final File globalConfigFile = new File("src/test/res/raw/test_split_config_global_config.json");
+        final File globalConfigFile = new File(TEST_SPLIT_CONFIG_GLOBAL_CONFIG_FILE_PATH);
         GlobalSettings.loadGlobalConfigurationFile(globalConfigFile, getSuccessGlobalListener());
 
-        final File anotherGlobalConfigFile = new File("src/test/res/raw/test_split_config_global_config.json");
+        final File anotherGlobalConfigFile = new File(TEST_SPLIT_CONFIG_GLOBAL_CONFIG_FILE_PATH);
         GlobalSettings.loadGlobalConfigurationFile(anotherGlobalConfigFile, getSecondInitFailureGlobalListener());
     }
 
@@ -87,7 +84,7 @@ public class GlobalSettingsTest {
     @Test
     public void testCanCreateSingleAccountPcaWithoutGlobalInit() throws InterruptedException {
         CountDownLatch countDownLatch = new CountDownLatch(1);
-        createPCA("src/test/res/raw/single_account_aad_test_config.json", countDownLatch);
+        createSAPCAFromConfigPath(SINGLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH, countDownLatch);
         countDownLatch.await();
         Assert.assertNotNull(mSingleAccountApplication);
     }
@@ -95,28 +92,93 @@ public class GlobalSettingsTest {
     @Test
     public void testCannotInitGlobalIfSingleAccountPcaHasBeenCreated() throws InterruptedException {
         CountDownLatch countDownLatch = new CountDownLatch(1);
-        createSAPCAFromConfigPath("src/test/res/raw/single_account_aad_test_config.json", countDownLatch);
+        createSAPCAFromConfigPath(SINGLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH, countDownLatch);
         countDownLatch.await();
         Assert.assertNotNull(mSingleAccountApplication);
 
-        final File anotherGlobalConfigFile = new File("src/test/res/raw/test_split_config_global_config.json");
+        final File anotherGlobalConfigFile = new File(TEST_SPLIT_CONFIG_GLOBAL_CONFIG_FILE_PATH);
         GlobalSettings.loadGlobalConfigurationFile(anotherGlobalConfigFile, getGlobalAfterPcaFailureGlobalListener());
     }
 
     @Test
     public void testCanCreateSingleAccountPcaAfterGlobalInit() throws InterruptedException {
-        final File globalConfigFile = new File("src/test/res/raw/test_split_config_global_config.json");
+        final File globalConfigFile = new File(TEST_SPLIT_CONFIG_GLOBAL_CONFIG_FILE_PATH);
         GlobalSettings.loadGlobalConfigurationFile(globalConfigFile, getSuccessGlobalListener());
 
         CountDownLatch countDownLatch = new CountDownLatch(1);
-        createSAPCAFromConfigPath("src/test/res/raw/single_account_aad_test_config.json", countDownLatch);
+        createSAPCAFromConfigPath(SINGLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH, countDownLatch);
         countDownLatch.await();
         Assert.assertNotNull(mSingleAccountApplication);
     }
 
     @Test
-    public void testGlobalFieldsOverrideSingleAccountPCAFields() {
-//        Assert.fail("Intended failure in GlobalSettingsTest.");
+    public void testGlobalFieldsOverrideSingleAccountPCAFields() throws InterruptedException {
+        final File globalConfigFile = new File(TEST_SPLIT_CONFIG_GLOBAL_CONFIG_FILE_PATH);
+        GlobalSettings.loadGlobalConfigurationFile(globalConfigFile, getSuccessGlobalListener());
+
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        createSAPCAFromConfigPath(SINGLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH, countDownLatch);
+        countDownLatch.await();
+        Assert.assertNotNull(mSingleAccountApplication);
+
+        final PublicClientApplicationConfiguration configuration = mSingleAccountApplication.getConfiguration();
+        Assert.assertFalse(configuration.getMultipleCloudsSupported());
+        Assert.assertFalse(configuration.getUseBroker());
+        Assert.assertTrue(configuration.isWebViewZoomControlsEnabled());
+        Assert.assertTrue(configuration.isWebViewZoomEnabled());
+        Assert.assertTrue(configuration.getLoggerConfiguration().isPiiEnabled());
+        Assert.assertFalse(configuration.getLoggerConfiguration().isLogcatEnabled());
+    }
+    //endregion
+
+    //region Multiple Account Tests
+    @Test
+    public void testCanCreateMultipleAccountPcaWithoutGlobalInit() throws InterruptedException {
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        createMAPCAFromConfigPath(MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH, countDownLatch);
+        countDownLatch.await();
+        Assert.assertNotNull(mMultipleAccountApplication);
+    }
+
+    @Test
+    public void testCannotInitGlobalIfMultipleAccountPcaHasBeenCreated() throws InterruptedException {
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        createMAPCAFromConfigPath(MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH, countDownLatch);
+        countDownLatch.await();
+        Assert.assertNotNull(mMultipleAccountApplication);
+
+        final File globalConfigFile = new File(TEST_SPLIT_CONFIG_GLOBAL_CONFIG_FILE_PATH);
+        GlobalSettings.loadGlobalConfigurationFile(globalConfigFile, getGlobalAfterPcaFailureGlobalListener());
+    }
+
+    @Test
+    public void testCanCreateMultipleAccountPcaAfterGlobalInit() throws InterruptedException {
+        final File globalConfigFile = new File(TEST_SPLIT_CONFIG_GLOBAL_CONFIG_FILE_PATH);
+        GlobalSettings.loadGlobalConfigurationFile(globalConfigFile, getSuccessGlobalListener());
+
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        createMAPCAFromConfigPath(MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH, countDownLatch);
+        countDownLatch.await();
+        Assert.assertNotNull(mMultipleAccountApplication);
+    }
+
+    @Test
+    public void testGlobalFieldsOverrideMultipleAccountPCAFields() throws InterruptedException {
+        final File globalConfigFile = new File(TEST_SPLIT_CONFIG_GLOBAL_CONFIG_FILE_PATH);
+        GlobalSettings.loadGlobalConfigurationFile(globalConfigFile, getSuccessGlobalListener());
+
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        createMAPCAFromConfigPath(MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH, countDownLatch);
+        countDownLatch.await();
+        Assert.assertNotNull(mMultipleAccountApplication);
+
+        final PublicClientApplicationConfiguration configuration = mMultipleAccountApplication.getConfiguration();
+        Assert.assertFalse(configuration.getMultipleCloudsSupported());
+        Assert.assertFalse(configuration.getUseBroker());
+        Assert.assertTrue(configuration.isWebViewZoomControlsEnabled());
+        Assert.assertTrue(configuration.isWebViewZoomEnabled());
+        Assert.assertTrue(configuration.getLoggerConfiguration().isPiiEnabled());
+        Assert.assertFalse(configuration.getLoggerConfiguration().isLogcatEnabled());
     }
     //endregion
 
@@ -131,7 +193,7 @@ public class GlobalSettingsTest {
 
             @Override
             public void onError(@NonNull MsalException exception) {
-                fail(exception.getMessage());
+                Assert.fail(exception.getMessage());
             }
         };
     }
@@ -166,25 +228,6 @@ public class GlobalSettingsTest {
         };
     }
 
-    private void createPCA(final String configPath, final CountDownLatch countDownLatch){
-        final File configFile = new File(configPath);
-
-        PublicClientApplication.create(mContext, configFile, new PublicClientApplication.ApplicationCreatedListener() {
-            @Override
-            public void onCreated(IPublicClientApplication application) {
-                mSingleAccountApplication = (ISingleAccountPublicClientApplication) application;
-                countDownLatch.countDown();
-            }
-
-            @Override
-            public void onError(MsalException exception) {
-                fail(exception.getMessage());
-            }
-        });
-
-        flushScheduler();
-    }
-
     private void createSAPCAFromConfigPath(final String configPath, final CountDownLatch countDownLatch){
         final File configFile = new File(configPath);
         PublicClientApplication.createSingleAccountPublicClientApplication(mContext, configFile, new IPublicClientApplication.ISingleAccountApplicationCreatedListener() {
@@ -202,12 +245,13 @@ public class GlobalSettingsTest {
         flushScheduler();
     }
 
-    private void createMAPCAFromConfigPath(final String configPath, IPublicClientApplication.IMultipleAccountApplicationCreatedListener listener){
+    private void createMAPCAFromConfigPath(final String configPath, final CountDownLatch countDownLatch){
         final File configFile = new File(configPath);
         PublicClientApplication.createMultipleAccountPublicClientApplication(mContext, configFile, new IPublicClientApplication.IMultipleAccountApplicationCreatedListener() {
             @Override
             public void onCreated(IMultipleAccountPublicClientApplication application) {
                 mMultipleAccountApplication = application;
+                countDownLatch.countDown();
             }
             @Override
             public void onError(MsalException exception) {

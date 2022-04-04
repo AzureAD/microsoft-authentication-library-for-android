@@ -1,4 +1,11 @@
 {
-  "authorization_user_agent": "DEFAULT",
-  "multiple_clouds_supported": false
+  "multiple_clouds_supported": false,
+  "broker_redirect_uri_registered": false,
+  "web_view_zoom_controls_enabled": true,
+  "web_view_zoom_enabled": true,
+  "logging": {
+    "pii_enabled": true,
+    "log_level": "WARNING",
+    "logcat_enabled": false
+  }
 }
