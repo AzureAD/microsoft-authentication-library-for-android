@@ -37,28 +37,34 @@ public class PromptTest {
     public void testOpenIdConnectParameterSelectAccount() {
         prompt = Prompt.SELECT_ACCOUNT;
         final OpenIdConnectPromptParameter promptValue = prompt.toOpenIdConnectPromptParameter();
-        Assert.assertEquals(promptValue, OpenIdConnectPromptParameter.SELECT_ACCOUNT);
+        Assert.assertEquals(OpenIdConnectPromptParameter.SELECT_ACCOUNT, promptValue);
     }
 
     @Test
     public void testOpenIdConnectParameterLogin() {
         prompt = Prompt.LOGIN;
         final OpenIdConnectPromptParameter promptValue = prompt.toOpenIdConnectPromptParameter();
-        Assert.assertEquals(promptValue, OpenIdConnectPromptParameter.LOGIN);
+        Assert.assertEquals(OpenIdConnectPromptParameter.LOGIN, promptValue);
     }
 
     @Test
     public void testOpenIdConnectParameterConsent() {
         prompt = Prompt.CONSENT;
         final OpenIdConnectPromptParameter promptValue = prompt.toOpenIdConnectPromptParameter();
-        Assert.assertEquals(promptValue, OpenIdConnectPromptParameter.CONSENT);
+        Assert.assertEquals(OpenIdConnectPromptParameter.CONSENT, promptValue);
+    }
+
+    @Test
+    public void testOpenIdConnectParameterCreate() {
+        prompt = Prompt.CREATE;
+        final OpenIdConnectPromptParameter promptValue = prompt.toOpenIdConnectPromptParameter();
+        Assert.assertEquals(OpenIdConnectPromptParameter.CREATE, promptValue);
     }
 
     @Test
     public void testOpenIdConnectParameterWhenRequired() {
         prompt = Prompt.WHEN_REQUIRED;
         final OpenIdConnectPromptParameter promptValue = prompt.toOpenIdConnectPromptParameter();
-        Assert.assertEquals(promptValue, OpenIdConnectPromptParameter.UNSET);
+        Assert.assertEquals(OpenIdConnectPromptParameter.UNSET, promptValue);
     }
-
 }

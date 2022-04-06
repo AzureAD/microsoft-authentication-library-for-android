@@ -50,6 +50,14 @@ public enum Prompt {
     CONSENT,
 
     /**
+     * acquireToken will send prompt=create to the /authorize endpoint.  The user will be prompted to create a new account.
+     * Requires configuring authority as type "AzureADMyOrg" with a tenant_id.
+     * <p>
+     * Prerequisite: https://docs.microsoft.com/en-us/azure/active-directory/external-identities/self-service-sign-up-user-flow
+     */
+    CREATE,
+
+    /**
      * acquireToken will not send the prompt parameter to the authorize endpoint.  The user may be prompted to login or to consent as required by the request.
      */
     WHEN_REQUIRED;
@@ -65,6 +73,8 @@ public enum Prompt {
                 return CONSENT.name().toLowerCase(Locale.ROOT);
             case WHEN_REQUIRED:
                 return WHEN_REQUIRED.name().toLowerCase(Locale.ROOT);
+            case CREATE:
+                return CREATE.name().toLowerCase(Locale.ROOT);
             default:
                 throw new IllegalArgumentException();
         }
@@ -78,6 +88,8 @@ public enum Prompt {
                 return OpenIdConnectPromptParameter.CONSENT;
             case WHEN_REQUIRED:
                 return OpenIdConnectPromptParameter.UNSET;
+            case CREATE:
+                return OpenIdConnectPromptParameter.CREATE;
             case SELECT_ACCOUNT:
             default:
                 return OpenIdConnectPromptParameter.SELECT_ACCOUNT;
