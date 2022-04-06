@@ -31,6 +31,7 @@ public final class UIBehaviorTest {
     public final static String LOGIN = "login";
     public final static String CONSENT = "consent";
     public final static String SELECT_ACCOUNT = "select_account";
+    public final static String CREATE = "create";
 
 
     @Test
@@ -49,5 +50,11 @@ public final class UIBehaviorTest {
     public void testToStringSelectAccount() {
         Prompt behavior = Prompt.SELECT_ACCOUNT;
         Assert.assertEquals(behavior.toString(), SELECT_ACCOUNT);
+    }
+
+    @Test
+    public void testToStringCreate() {
+        Prompt behavior = Prompt.CREATE;
+        Assert.assertEquals(behavior.toString(), CREATE);
     }
 }
