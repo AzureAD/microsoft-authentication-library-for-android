@@ -481,7 +481,7 @@ public class PublicClientApplicationConfiguration {
         this.isAuthorizationInCurrentTask = config.isAuthorizationInCurrentTask == null ? this.isAuthorizationInCurrentTask : config.isAuthorizationInCurrentTask;
     }
 
-    void mergeGlobalConfiguration(GlobalSettingsConfiguration globalConfig) {
+    protected void mergeGlobalConfiguration(final @NonNull GlobalSettingsConfiguration globalConfig) {
         this.mClientId = globalConfig.getClientId() == null ? this.mClientId : globalConfig.getClientId();
         this.mRedirectUri = globalConfig.getRedirectUri() == null ? this.mRedirectUri : globalConfig.getRedirectUri();
         // Changed to add global authorities to this PCA's authorities

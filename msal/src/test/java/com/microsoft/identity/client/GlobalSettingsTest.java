@@ -32,6 +32,7 @@ import org.robolectric.annotation.LooperMode;
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Tests for {@link GlobalSettings}.
@@ -47,7 +48,6 @@ import java.util.concurrent.CountDownLatch;
 @LooperMode(LooperMode.Mode.LEGACY)
 public class GlobalSettingsTest {
     private Context mContext;
-    private Activity mActivity;
     private ISingleAccountPublicClientApplication mSingleAccountApplication;
     private IMultipleAccountPublicClientApplication mMultipleAccountApplication;
 
@@ -59,7 +59,7 @@ public class GlobalSettingsTest {
     @Before
     public void setup() {
         mContext = ApplicationProvider.getApplicationContext();
-        mActivity = Mockito.mock(Activity.class);
+        final Activity mActivity = Mockito.mock(Activity.class);
         Mockito.when(mActivity.getApplicationContext()).thenReturn(mContext);
         mSingleAccountApplication = null;
         mMultipleAccountApplication = null;
@@ -90,7 +90,7 @@ public class GlobalSettingsTest {
     public void testCanCreateSingleAccountPcaWithoutGlobalInit() throws InterruptedException {
         CountDownLatch countDownLatch = new CountDownLatch(1);
         createSAPCAFromConfigPath(SINGLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH, countDownLatch);
-        countDownLatch.await();
+        countDownLatch.await(5, TimeUnit.SECONDS);
         Assert.assertNotNull(mSingleAccountApplication);
     }
 
@@ -98,7 +98,7 @@ public class GlobalSettingsTest {
     public void testCannotInitGlobalIfSingleAccountPcaHasBeenCreated() throws InterruptedException {
         CountDownLatch countDownLatch = new CountDownLatch(1);
         createSAPCAFromConfigPath(SINGLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH, countDownLatch);
-        countDownLatch.await();
+        countDownLatch.await(5, TimeUnit.SECONDS);
         Assert.assertNotNull(mSingleAccountApplication);
 
         final File anotherGlobalConfigFile = new File(TEST_SPLIT_CONFIG_GLOBAL_CONFIG_FILE_PATH);
@@ -112,7 +112,7 @@ public class GlobalSettingsTest {
 
         CountDownLatch countDownLatch = new CountDownLatch(1);
         createSAPCAFromConfigPath(SINGLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH, countDownLatch);
-        countDownLatch.await();
+        countDownLatch.await(5, TimeUnit.SECONDS);
         Assert.assertNotNull(mSingleAccountApplication);
     }
 
@@ -123,7 +123,7 @@ public class GlobalSettingsTest {
 
         CountDownLatch countDownLatch = new CountDownLatch(1);
         createSAPCAFromConfigPath(SINGLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH, countDownLatch);
-        countDownLatch.await();
+        countDownLatch.await(5, TimeUnit.SECONDS);
         Assert.assertNotNull(mSingleAccountApplication);
 
         final PublicClientApplicationConfiguration configuration = mSingleAccountApplication.getConfiguration();
@@ -142,7 +142,7 @@ public class GlobalSettingsTest {
 
         CountDownLatch countDownLatch = new CountDownLatch(1);
         createSAPCAFromConfigPath(SINGLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH, countDownLatch);
-        countDownLatch.await();
+        countDownLatch.await(5, TimeUnit.SECONDS);
         Assert.assertNotNull(mSingleAccountApplication);
 
         final List<Authority> authorities = mSingleAccountApplication.getConfiguration().getAuthorities();
@@ -157,7 +157,7 @@ public class GlobalSettingsTest {
     public void testCanCreateMultipleAccountPcaWithoutGlobalInit() throws InterruptedException {
         CountDownLatch countDownLatch = new CountDownLatch(1);
         createMAPCAFromConfigPath(MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH, countDownLatch);
-        countDownLatch.await();
+        countDownLatch.await(5, TimeUnit.SECONDS);
         Assert.assertNotNull(mMultipleAccountApplication);
     }
 
@@ -165,7 +165,7 @@ public class GlobalSettingsTest {
     public void testCannotInitGlobalIfMultipleAccountPcaHasBeenCreated() throws InterruptedException {
         CountDownLatch countDownLatch = new CountDownLatch(1);
         createMAPCAFromConfigPath(MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH, countDownLatch);
-        countDownLatch.await();
+        countDownLatch.await(5, TimeUnit.SECONDS);
         Assert.assertNotNull(mMultipleAccountApplication);
 
         final File globalConfigFile = new File(TEST_SPLIT_CONFIG_GLOBAL_CONFIG_FILE_PATH);
@@ -179,7 +179,7 @@ public class GlobalSettingsTest {
 
         CountDownLatch countDownLatch = new CountDownLatch(1);
         createMAPCAFromConfigPath(MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH, countDownLatch);
-        countDownLatch.await();
+        countDownLatch.await(5, TimeUnit.SECONDS);
         Assert.assertNotNull(mMultipleAccountApplication);
     }
 
@@ -190,7 +190,7 @@ public class GlobalSettingsTest {
 
         CountDownLatch countDownLatch = new CountDownLatch(1);
         createMAPCAFromConfigPath(MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH, countDownLatch);
-        countDownLatch.await();
+        countDownLatch.await(5, TimeUnit.SECONDS);
         Assert.assertNotNull(mMultipleAccountApplication);
 
         final PublicClientApplicationConfiguration configuration = mMultipleAccountApplication.getConfiguration();
@@ -209,7 +209,7 @@ public class GlobalSettingsTest {
 
         CountDownLatch countDownLatch = new CountDownLatch(1);
         createMAPCAFromConfigPath(MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH, countDownLatch);
-        countDownLatch.await();
+        countDownLatch.await(5, TimeUnit.SECONDS);
         Assert.assertNotNull(mMultipleAccountApplication);
 
         final List<Authority> authorities = mMultipleAccountApplication.getConfiguration().getAuthorities();
@@ -275,6 +275,7 @@ public class GlobalSettingsTest {
             }
             @Override
             public void onError(MsalException exception) {
+                countDownLatch.countDown();
                 Assert.fail(exception.getMessage());
             }
         });
@@ -292,6 +293,7 @@ public class GlobalSettingsTest {
             }
             @Override
             public void onError(MsalException exception) {
+                countDownLatch.countDown();
                 Assert.fail(exception.getMessage());
             }
         });
