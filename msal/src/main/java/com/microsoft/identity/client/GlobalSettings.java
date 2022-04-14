@@ -150,7 +150,7 @@ public class GlobalSettings {
     }
 
     @WorkerThread
-    protected PublicClientApplicationConfiguration mergeConfigurationWithGlobal(final @NonNull PublicClientApplicationConfiguration developerConfig) {
+    PublicClientApplicationConfiguration mergeConfigurationWithGlobal(final @NonNull PublicClientApplicationConfiguration developerConfig) {
         synchronized (mGlobalSettingsSingleton.mGlobalSettingsLock) {
             mPCAMergeAttempted = true;
 
@@ -166,14 +166,14 @@ public class GlobalSettings {
         }
     }
 
-    protected static GlobalSettings getInstance() {
+    static GlobalSettings getInstance() {
         return mGlobalSettingsSingleton;
     }
 
     /**
-     * Used for reseting the static singleton instance when testing.
+     * Used for resetting the static singleton instance when testing.
      */
-    protected static void resetInstance() {
+    static void resetInstance() {
         mGlobalSettingsSingleton.mGlobalSettingsConfiguration = null;
         mGlobalSettingsSingleton.mGlobalSettingsInitialized = false;
         mGlobalSettingsSingleton.mPCAMergeAttempted = false;
