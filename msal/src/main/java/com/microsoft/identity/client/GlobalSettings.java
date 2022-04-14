@@ -170,6 +170,9 @@ public class GlobalSettings {
         return mGlobalSettingsSingleton;
     }
 
+    /**
+     * Used for reseting the static singleton instance when testing.
+     */
     protected static void resetInstance() {
         mGlobalSettingsSingleton.mGlobalSettingsConfiguration = null;
         mGlobalSettingsSingleton.mGlobalSettingsInitialized = false;
