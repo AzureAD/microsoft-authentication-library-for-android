@@ -23,117 +23,29 @@
 package com.microsoft.identity.client;
 
 import com.google.gson.annotations.SerializedName;
-import com.microsoft.identity.client.configuration.AccountMode;
-import com.microsoft.identity.client.configuration.HttpConfiguration;
 import com.microsoft.identity.client.configuration.LoggerConfiguration;
-import com.microsoft.identity.client.exception.MsalClientException;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
-import com.microsoft.identity.common.internal.authorities.UnknownAudience;
-import com.microsoft.identity.common.internal.broker.PackageHelper;
-import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.internal.telemetry.TelemetryConfiguration;
-import com.microsoft.identity.common.java.authorities.Authority;
-import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthority;
-import com.microsoft.identity.common.java.authorities.Environment;
-import com.microsoft.identity.common.java.authorities.UnknownAuthority;
-import com.microsoft.identity.common.java.configuration.LibraryConfiguration;
-import com.microsoft.identity.common.java.ui.AuthorizationAgent;
 import com.microsoft.identity.common.java.ui.BrowserDescriptor;
 
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.ACCOUNT_MODE;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORITIES;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORIZATION_IN_CURRENT_TASK;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORIZATION_USER_AGENT;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.BROWSER_SAFE_LIST;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.CLIENT_CAPABILITIES;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.CLIENT_ID;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.ENVIRONMENT;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.HANDLE_TASKS_WITH_NULL_TASKAFFINITY;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.HTTP;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.LOGGING;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.MULTIPLE_CLOUDS_SUPPORTED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.POWER_OPT_CHECK_FOR_NETWORK_REQUEST_ENABLED;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REDIRECT_URI;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REQUIRED_BROKER_PROTOCOL_VERSION;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.TELEMETRY;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.USE_BROKER;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEB_VIEW_ZOOM_CONTROLS_ENABLED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEB_VIEW_ZOOM_ENABLED;
-import static com.microsoft.identity.client.exception.MsalClientException.APP_MANIFEST_VALIDATION_ERROR;
-
-import android.Manifest;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.ActivityInfo;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
-import android.content.pm.Signature;
-import android.net.Uri;
-import android.text.TextUtils;
-import android.util.Base64;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.VisibleForTesting;
-
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
-import javax.crypto.SecretKey;
-
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
 public class GlobalSettingsConfiguration {
     @SuppressWarnings("PMD")
     private static final String TAG = GlobalSettingsConfiguration.class.getSimpleName();
-    private static final String BROKER_REDIRECT_URI_SCHEME_AND_SEPARATOR = "msauth://";
-    public static final String INVALID_REDIRECT_MSG = "Invalid, null, or malformed redirect_uri supplied";
-
-    /**
-     * The currently configured client id for use with the {@link PublicClientApplication}.
-     */
-    @Getter
-    @Setter
-    @Accessors(prefix = "m")
-    @SerializedName(CLIENT_ID)
-    private String mClientId;
-
-    /**
-     * The currently configured redirect uri for use with the {@link PublicClientApplication}.
-     */
-    @Getter
-    @Setter
-    @Accessors(prefix = "m")
-    @SerializedName(REDIRECT_URI)
-    private String mRedirectUri;
-
-    /**
-     * The list of authorities configured by the developer for use with the {@link PublicClientApplication}.
-     */
-    @Getter
-    @Accessors(prefix = "m")
-    @SerializedName(AUTHORITIES)
-    private List<Authority> mAuthorities;
-
-    /**
-     * The currently configured {@link AuthorizationAgent} for use with the {@link PublicClientApplication}.
-     */
-    @Getter
-    @Accessors(prefix = "m")
-    @SerializedName(AUTHORIZATION_USER_AGENT)
-    private AuthorizationAgent mAuthorizationAgent;
-
-    /**
-     * The currently configured {@link HttpConfiguration} for use with the {@link PublicClientApplication}.
-     */
-    @Getter
-    @Accessors(prefix = "m")
-    @SerializedName(HTTP)
-    private HttpConfiguration mHttpConfiguration;
 
     /**
      * The currently configured {@link LoggerConfiguration} for use with the {@link PublicClientApplication}.
@@ -142,33 +54,6 @@ public class GlobalSettingsConfiguration {
     @Accessors(prefix = "m")
     @SerializedName(LOGGING)
     private LoggerConfiguration mLoggerConfiguration;
-
-    /**
-     * Indicates whether the {@link PublicClientApplication} supports multiple clouds.  Automatic redirection to the cloud
-     * associated with the authenticated user.
-     */
-    @Getter
-    @Accessors(prefix = "m")
-    @SerializedName(MULTIPLE_CLOUDS_SUPPORTED)
-    private Boolean mMultipleCloudsSupported;
-
-    /**
-     * Indicates whether the {@link PublicClientApplication} would like to leverage the broker if available.
-     * <p>
-     * The client must have registered the device.
-     */
-    @Getter
-    @Accessors(prefix = "m")
-    @SerializedName(USE_BROKER)
-    private Boolean mUseBroker;
-
-    /**
-     * The {@link Environment} (Production, PPE) that the {@link PublicClientApplication} is registered in.
-     */
-    @Getter
-    @Accessors(prefix = "m")
-    @SerializedName(ENVIRONMENT)
-    private Environment mEnvironment;
 
     /**
      * The minimum required broker protocol version number.
@@ -194,22 +79,6 @@ public class GlobalSettingsConfiguration {
     @SerializedName(TELEMETRY)
     private TelemetryConfiguration mTelemetryConfiguration;
 
-    /**
-     * The currently configured {@link AccountMode} for the {@link PublicClientApplication}.
-     */
-    @Getter
-    @Accessors(prefix = "m")
-    @SerializedName(ACCOUNT_MODE)
-    private AccountMode mAccountMode;
-
-    /**
-     * The currently configured capabilities for the {@link PublicClientApplication}.
-     */
-    @Getter
-    @Accessors(prefix = "m")
-    @SerializedName(CLIENT_CAPABILITIES)
-    private String mClientCapabilities;
-
     @Setter
     @SerializedName(WEB_VIEW_ZOOM_CONTROLS_ENABLED)
     private Boolean webViewZoomControlsEnabled;
@@ -230,28 +99,7 @@ public class GlobalSettingsConfiguration {
      * Current default as of MSAL 2.0.12 is to use a new task
      */
     @SerializedName(AUTHORIZATION_IN_CURRENT_TASK)
-    private Boolean isAuthorizationInCurrentTask;
-
-    @Getter
-    @Setter
-    @Accessors(prefix = "m")
-    transient private Context mAppContext;
-
-    @Getter
-    @Setter
-    @Accessors(prefix = "m")
-    transient private Boolean mIsSharedDevice = false;
-
-    /**
-     * Sets the secret key bytes to use when encrypting/decrypting cache entries.
-     * {@link java.security.spec.KeySpec} algorithm is AES.
-     *
-     * @param rawKey The SecretKey to use in its primary encoding format.
-     * @see SecretKey#getEncoded()
-     */
-    public void setTokenCacheSecretKeys(@NonNull final byte[] rawKey) {
-        AuthenticationSettings.INSTANCE.setSecretKey(rawKey);
-    }
+    private Boolean authorizationInCurrentTask;
 
     public Boolean isWebViewZoomControlsEnabled() {
         return webViewZoomControlsEnabled;
@@ -269,30 +117,19 @@ public class GlobalSettingsConfiguration {
         return handleNullTaskAffinity;
     }
 
-    public Boolean authorizationInCurrentTask() {
-        return isAuthorizationInCurrentTask;
+    public Boolean isAuthorizationInCurrentTask() {
+        return authorizationInCurrentTask;
     }
 
-    public Authority getDefaultAuthority() {
-        if (mAuthorities != null) {
-            if (mAuthorities.size() > 1) {
-                for (Authority authority : mAuthorities) {
-                    if (authority.getDefault()) {
-                        return authority;
-                    }
-                }
-                return null;
-            } else {
-                return mAuthorities.get(0);
-            }
-        } else {
-            return null;
-        }
-    }
-
-    @VisibleForTesting
-    public static boolean isBrokerRedirectUri(final @NonNull String redirectUri, final @NonNull String packageName) {
-        final String potentialPrefix = BROKER_REDIRECT_URI_SCHEME_AND_SEPARATOR + packageName + "/";
-        return redirectUri != null && redirectUri.startsWith(potentialPrefix);
+    void mergeConfiguration(final @NonNull GlobalSettingsConfiguration globalConfig) {
+        this.mTelemetryConfiguration = globalConfig.getTelemetryConfiguration() == null ? this.mTelemetryConfiguration : globalConfig.getTelemetryConfiguration();
+        this.mRequiredBrokerProtocolVersion = globalConfig.getRequiredBrokerProtocolVersion() == null ? this.mRequiredBrokerProtocolVersion : globalConfig.getRequiredBrokerProtocolVersion();
+        this.mBrowserSafeList = globalConfig.getBrowserSafeList() == null ? this.mBrowserSafeList : globalConfig.getBrowserSafeList();
+        this.mLoggerConfiguration = globalConfig.getLoggerConfiguration() == null ? this.mLoggerConfiguration : globalConfig.getLoggerConfiguration();
+        this.webViewZoomControlsEnabled = globalConfig.isWebViewZoomControlsEnabled() == null ? this.webViewZoomControlsEnabled : globalConfig.isWebViewZoomControlsEnabled();
+        this.webViewZoomEnabled = globalConfig.isWebViewZoomEnabled() == null ? this.webViewZoomEnabled : globalConfig.isWebViewZoomEnabled();
+        this.powerOptCheckEnabled = globalConfig.isPowerOptCheckEnabled() == null ? this.powerOptCheckEnabled : globalConfig.isPowerOptCheckEnabled();
+        this.handleNullTaskAffinity = globalConfig.isHandleNullTaskAffinityEnabled() == null ? this.handleNullTaskAffinity : globalConfig.isHandleNullTaskAffinityEnabled();
+        this.authorizationInCurrentTask = globalConfig.isAuthorizationInCurrentTask() == null ? this.authorizationInCurrentTask : globalConfig.isAuthorizationInCurrentTask();
     }
 }

@@ -92,10 +92,10 @@ public class PublicClientApplicationConfigurationFactory {
         final PublicClientApplicationConfiguration config = loadDefaultConfiguration(context);
         if (developerConfig != null) {
             config.mergeConfiguration(developerConfig);
-            config.validateConfiguration();
         }
 
         final PublicClientApplicationConfiguration configWithGlobal = globalSettings.mergeConfigurationWithGlobal(config);
+        configWithGlobal.validateConfiguration();
 
         //Initialize internal library configuration
         final LibraryConfiguration libraryConfiguration = LibraryConfiguration.builder().authorizationInCurrentTask((configWithGlobal.authorizationInCurrentTask())).build();

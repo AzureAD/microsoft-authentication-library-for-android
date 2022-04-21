@@ -23,7 +23,6 @@
 package com.microsoft.identity.client;
 
 import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
-import static org.junit.Assert.fail;
 
 import android.app.Activity;
 import android.content.Context;
@@ -36,7 +35,6 @@ import com.microsoft.identity.client.e2e.shadows.ShadowAuthorityForMockHttpRespo
 import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
 import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.internal.testutils.shadows.ShadowHttpClient;
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.SINGLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
@@ -52,9 +50,6 @@ import org.robolectric.annotation.Config;
 import org.robolectric.annotation.LooperMode;
 
 import java.io.File;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Tests for {@link GlobalSettings}.
@@ -74,9 +69,6 @@ public class GlobalSettingsTest {
     private IMultipleAccountPublicClientApplication mMultipleAccountApplication;
 
     public static final String TEST_SPLIT_CONFIG_GLOBAL_CONFIG_FILE_PATH = "src/test/res/raw/test_split_config_global_config.json";
-    public static final String TEST_SPLIT_CONFIG_GLOBAL_CONFIG_WITH_AUTHORITY_FILE_PATH = "src/test/res/raw/test_split_config_global_config_with_authority.json";
-    public static final String AUTHORITY_URL_COMMON = "https://login.microsoftonline.com/common";
-    public static final String AUTHORITY_URL_TENANTED = "https://login.microsoftonline.com/b0090585-9611-40d4-901c-c2a42cc8ab89";
 
     @Before
     public void setup() {
@@ -95,16 +87,16 @@ public class GlobalSettingsTest {
     @Test
     public void testCanInitializeGlobal() {
         final File globalConfigFile = new File(TEST_SPLIT_CONFIG_GLOBAL_CONFIG_FILE_PATH);
-        GlobalSettings.loadGlobalConfigurationFile(globalConfigFile, getSuccessGlobalListener());
+        GlobalSettings.loadGlobalConfigurationFile(mContext, globalConfigFile, getSuccessGlobalListener());
     }
 
     @Test
     public void testCannotInitializeGlobalTwice() {
         final File globalConfigFile = new File(TEST_SPLIT_CONFIG_GLOBAL_CONFIG_FILE_PATH);
-        GlobalSettings.loadGlobalConfigurationFile(globalConfigFile, getSuccessGlobalListener());
+        GlobalSettings.loadGlobalConfigurationFile(mContext, globalConfigFile, getSuccessGlobalListener());
 
         final File anotherGlobalConfigFile = new File(TEST_SPLIT_CONFIG_GLOBAL_CONFIG_FILE_PATH);
-        GlobalSettings.loadGlobalConfigurationFile(anotherGlobalConfigFile, getSecondInitFailureGlobalListener());
+        GlobalSettings.loadGlobalConfigurationFile(mContext, anotherGlobalConfigFile, getSecondInitFailureGlobalListener());
     }
 
     //region Single Account Tests
@@ -120,13 +112,13 @@ public class GlobalSettingsTest {
         Assert.assertNotNull(mSingleAccountApplication);
 
         final File anotherGlobalConfigFile = new File(TEST_SPLIT_CONFIG_GLOBAL_CONFIG_FILE_PATH);
-        GlobalSettings.loadGlobalConfigurationFile(anotherGlobalConfigFile, getGlobalAfterPcaFailureGlobalListener());
+        GlobalSettings.loadGlobalConfigurationFile(mContext, anotherGlobalConfigFile, getGlobalAfterPcaFailureGlobalListener());
     }
 
     @Test
     public void testCanCreateSingleAccountPcaAfterGlobalInit() {
         final File globalConfigFile = new File(TEST_SPLIT_CONFIG_GLOBAL_CONFIG_FILE_PATH);
-        GlobalSettings.loadGlobalConfigurationFile(globalConfigFile, getSuccessGlobalListener());
+        GlobalSettings.loadGlobalConfigurationFile(mContext, globalConfigFile, getSuccessGlobalListener());
 
         createSAPCAFromConfigPath(SINGLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH);
         Assert.assertNotNull(mSingleAccountApplication);
@@ -135,32 +127,16 @@ public class GlobalSettingsTest {
     @Test
     public void testGlobalFieldsOverrideSingleAccountPCAFields() {
         final File globalConfigFile = new File(TEST_SPLIT_CONFIG_GLOBAL_CONFIG_FILE_PATH);
-        GlobalSettings.loadGlobalConfigurationFile(globalConfigFile, getSuccessGlobalListener());
+        GlobalSettings.loadGlobalConfigurationFile(mContext, globalConfigFile, getSuccessGlobalListener());
 
         createSAPCAFromConfigPath(SINGLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH);
         Assert.assertNotNull(mSingleAccountApplication);
 
         final PublicClientApplicationConfiguration configuration = mSingleAccountApplication.getConfiguration();
-        Assert.assertFalse(configuration.getMultipleCloudsSupported());
-        Assert.assertFalse(configuration.getUseBroker());
         Assert.assertTrue(configuration.isWebViewZoomControlsEnabled());
         Assert.assertTrue(configuration.isWebViewZoomEnabled());
         Assert.assertTrue(configuration.getLoggerConfiguration().isPiiEnabled());
         Assert.assertFalse(configuration.getLoggerConfiguration().isLogcatEnabled());
-    }
-
-    @Test
-    public void testGlobalAuthorityAddedWhenSingleAccountPcaHasOne() {
-        final File globalConfigFile = new File(TEST_SPLIT_CONFIG_GLOBAL_CONFIG_WITH_AUTHORITY_FILE_PATH);
-        GlobalSettings.loadGlobalConfigurationFile(globalConfigFile, getSuccessGlobalListener());
-
-        createSAPCAFromConfigPath(SINGLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH);
-        Assert.assertNotNull(mSingleAccountApplication);
-
-        final List<Authority> authorities = mSingleAccountApplication.getConfiguration().getAuthorities();
-        Assert.assertEquals(2, authorities.size());
-        Assert.assertEquals(AUTHORITY_URL_COMMON, authorities.get(0).getAuthorityURL().toString());
-        Assert.assertEquals(AUTHORITY_URL_TENANTED, authorities.get(1).getAuthorityURL().toString());
     }
     //endregion
 
@@ -177,13 +153,13 @@ public class GlobalSettingsTest {
         Assert.assertNotNull(mMultipleAccountApplication);
 
         final File globalConfigFile = new File(TEST_SPLIT_CONFIG_GLOBAL_CONFIG_FILE_PATH);
-        GlobalSettings.loadGlobalConfigurationFile(globalConfigFile, getGlobalAfterPcaFailureGlobalListener());
+        GlobalSettings.loadGlobalConfigurationFile(mContext, globalConfigFile, getGlobalAfterPcaFailureGlobalListener());
     }
 
     @Test
     public void testCanCreateMultipleAccountPcaAfterGlobalInit() {
         final File globalConfigFile = new File(TEST_SPLIT_CONFIG_GLOBAL_CONFIG_FILE_PATH);
-        GlobalSettings.loadGlobalConfigurationFile(globalConfigFile, getSuccessGlobalListener());
+        GlobalSettings.loadGlobalConfigurationFile(mContext, globalConfigFile, getSuccessGlobalListener());
 
         createMAPCAFromConfigPath(MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH);
         Assert.assertNotNull(mMultipleAccountApplication);
@@ -192,32 +168,16 @@ public class GlobalSettingsTest {
     @Test
     public void testGlobalFieldsOverrideMultipleAccountPCAFields() {
         final File globalConfigFile = new File(TEST_SPLIT_CONFIG_GLOBAL_CONFIG_FILE_PATH);
-        GlobalSettings.loadGlobalConfigurationFile(globalConfigFile, getSuccessGlobalListener());
+        GlobalSettings.loadGlobalConfigurationFile(mContext, globalConfigFile, getSuccessGlobalListener());
 
         createMAPCAFromConfigPath(MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH);
         Assert.assertNotNull(mMultipleAccountApplication);
 
         final PublicClientApplicationConfiguration configuration = mMultipleAccountApplication.getConfiguration();
-        Assert.assertFalse(configuration.getMultipleCloudsSupported());
-        Assert.assertFalse(configuration.getUseBroker());
         Assert.assertTrue(configuration.isWebViewZoomControlsEnabled());
         Assert.assertTrue(configuration.isWebViewZoomEnabled());
         Assert.assertTrue(configuration.getLoggerConfiguration().isPiiEnabled());
         Assert.assertFalse(configuration.getLoggerConfiguration().isLogcatEnabled());
-    }
-
-    @Test
-    public void testGlobalAuthorityAddedWhenMultipleAccountPcaHasOne() {
-        final File globalConfigFile = new File(TEST_SPLIT_CONFIG_GLOBAL_CONFIG_WITH_AUTHORITY_FILE_PATH);
-        GlobalSettings.loadGlobalConfigurationFile(globalConfigFile, getSuccessGlobalListener());
-
-        createMAPCAFromConfigPath(MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH);
-        Assert.assertNotNull(mMultipleAccountApplication);
-
-        final List<Authority> authorities = mMultipleAccountApplication.getConfiguration().getAuthorities();
-        Assert.assertEquals(2, authorities.size());
-        Assert.assertEquals(AUTHORITY_URL_COMMON, authorities.get(0).getAuthorityURL().toString());
-        Assert.assertEquals(AUTHORITY_URL_TENANTED, authorities.get(1).getAuthorityURL().toString());
     }
     //endregion
 
@@ -246,8 +206,8 @@ public class GlobalSettingsTest {
 
             @Override
             public void onError(@NonNull MsalException exception) {
-                Assert.assertEquals(exception.getErrorCode(), GlobalSettings.GLOBAL_ALREADY_INITIALIZED_ERROR_CODE);
-                Assert.assertEquals(exception.getMessage(), GlobalSettings.GLOBAL_ALREADY_INITIALIZED_ERROR_MESSAGE);
+                Assert.assertEquals(GlobalSettings.GLOBAL_ALREADY_INITIALIZED_ERROR_CODE, exception.getErrorCode());
+                Assert.assertEquals(GlobalSettings.GLOBAL_ALREADY_INITIALIZED_ERROR_MESSAGE, exception.getMessage());
             }
         };
     }
@@ -261,8 +221,8 @@ public class GlobalSettingsTest {
 
             @Override
             public void onError(@NonNull MsalException exception) {
-                Assert.assertEquals(exception.getErrorCode(), GlobalSettings.GLOBAL_INIT_AFTER_PCA_ERROR_CODE);
-                Assert.assertEquals(exception.getMessage(), GlobalSettings.GLOBAL_INIT_AFTER_PCA_ERROR_MESSAGE);
+                Assert.assertEquals(GlobalSettings.GLOBAL_INIT_AFTER_PCA_ERROR_CODE, exception.getErrorCode());
+                Assert.assertEquals(GlobalSettings.GLOBAL_INIT_AFTER_PCA_ERROR_MESSAGE, exception.getMessage());
             }
         };
     }

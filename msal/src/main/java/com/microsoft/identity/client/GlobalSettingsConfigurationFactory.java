@@ -25,6 +25,7 @@ package com.microsoft.identity.client;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.annotation.WorkerThread;
 
@@ -37,6 +38,7 @@ import com.microsoft.identity.common.java.authorities.AuthorityDeserializer;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.common.java.util.StringUtil;
 import com.microsoft.identity.common.logging.Logger;
+import com.microsoft.identity.msal.R;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -51,17 +53,45 @@ public class GlobalSettingsConfigurationFactory {
      * Initializes a GlobalSettingsConfiguration from the given configResourceId, if there is any.
      **/
     @WorkerThread
+    public static GlobalSettingsConfiguration initializeGlobalConfiguration(@NonNull final Context context) {
+        return initializeGlobalConfigurationInternal(context, null);
+    }
+
+    /**
+     * Initializes a GlobalSettingsConfiguration from the given configResourceId, if there is any.
+     **/
+    @WorkerThread
     public static GlobalSettingsConfiguration initializeGlobalConfiguration(@NonNull final Context context,
                                                                             final int configResourceId) {
-        return loadConfiguration(context, configResourceId);
+        return initializeGlobalConfigurationInternal(context, loadConfiguration(context, configResourceId));
     }
 
     /**
      * Initializes a GlobalSettingsConfiguration from the given file, if there is any.
      **/
     @WorkerThread
-    public static GlobalSettingsConfiguration initializeGlobalConfiguration(@NonNull final File configFile) {
-        return loadConfiguration(configFile);
+    public static GlobalSettingsConfiguration initializeGlobalConfiguration(@NonNull final Context context,
+                                                                            @NonNull final File configFile) {
+        return initializeGlobalConfigurationInternal(context, loadConfiguration(configFile));
+    }
+
+    @WorkerThread
+    private static GlobalSettingsConfiguration initializeGlobalConfigurationInternal(@NonNull final Context context,
+                                                                                     @Nullable final GlobalSettingsConfiguration developerConfig) {
+        final GlobalSettingsConfiguration config = loadDefaultGlobalConfiguration(context);
+
+        if (developerConfig != null){
+            config.mergeConfiguration(developerConfig);
+        }
+
+        return config;
+    }
+
+    @WorkerThread
+    private static GlobalSettingsConfiguration loadDefaultGlobalConfiguration(@NonNull final Context context) {
+        final String methodTag = TAG + ":loadDefaultGlobalConfiguration";
+        Logger.verbose(methodTag, "Loading default global configuration");
+        return loadConfiguration(context, R.raw.msal_default_global_config);
     }
 
     @VisibleForTesting
@@ -69,36 +99,50 @@ public class GlobalSettingsConfigurationFactory {
     static GlobalSettingsConfiguration loadConfiguration(@NonNull final Context context,
                                                          final int configResourceId) {
         final InputStream configStream = context.getResources().openRawResource(configResourceId);
-        return loadConfiguration(configStream);
+        boolean useDefaultConfigResourceId = configResourceId == R.raw.msal_default_global_config;
+        return loadConfiguration(configStream, useDefaultConfigResourceId);
     }
 
     @VisibleForTesting
     @WorkerThread
     static GlobalSettingsConfiguration loadConfiguration(@NonNull final File configFile) {
         try {
-            return loadConfiguration(new FileInputStream(configFile));
+            return loadConfiguration(new FileInputStream(configFile), false);
         } catch (FileNotFoundException e) {
             throw new IllegalArgumentException("Provided global configuration file path=" + configFile.getPath() + " not found.");
         }
     }
 
     @WorkerThread
-    private static GlobalSettingsConfiguration loadConfiguration(final @NonNull InputStream configStream) {
+    private static GlobalSettingsConfiguration loadConfiguration(final @NonNull InputStream configStream,
+                                                                 final boolean isDefaultConfiguration) {
+        final String methodTag = TAG + ":loadConfiguration";
         byte[] buffer;
 
         try {
             buffer = new byte[configStream.available()];
             configStream.read(buffer);
         } catch (IOException e) {
-            throw new IllegalArgumentException("Unable to open provided global configuration file.", e);
+            if (isDefaultConfiguration) {
+                throw new IllegalStateException("Unable to open default global configuration file.", e);
+            } else {
+                throw new IllegalArgumentException("Unable to open provided global configuration file.", e);
+            }
         } finally {
             try {
                 configStream.close();
             } catch (IOException e) {
-                Logger.warn(TAG + "loadConfiguration",
-                        "Unable to close provided global configuration file. " +
-                                "This can cause memory leak."
-                );
+                if (isDefaultConfiguration) {
+                    Logger.warn(methodTag,
+                            "Unable to close default global configuration file. " +
+                                    "This can cause memory leak."
+                    );
+                } else {
+                    Logger.warn(methodTag,
+                            "Unable to close provided global configuration file. " +
+                                    "This can cause memory leak."
+                    );
+                }
             }
         }
 

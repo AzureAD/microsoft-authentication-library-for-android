@@ -114,6 +114,7 @@ public class PublicClientApplicationConfiguration {
         static final String AUTHORIZATION_IN_CURRENT_TASK = "authorization_in_current_task";
     }
 
+    // region PCA-Specific fields
     @SerializedName(CLIENT_ID)
     private String mClientId;
 
@@ -126,20 +127,28 @@ public class PublicClientApplicationConfiguration {
     @SerializedName(AUTHORIZATION_USER_AGENT)
     private AuthorizationAgent mAuthorizationAgent;
 
-    @SerializedName(HTTP)
-    private HttpConfiguration mHttpConfiguration;
-
-    @SerializedName(LOGGING)
-    private LoggerConfiguration mLoggerConfiguration;
-
     @SerializedName(MULTIPLE_CLOUDS_SUPPORTED)
     private Boolean mMultipleCloudsSupported;
 
     @SerializedName(USE_BROKER)
     private Boolean mUseBroker;
 
+    @SerializedName(ACCOUNT_MODE)
+    private AccountMode mAccountMode;
+
+    @SerializedName(CLIENT_CAPABILITIES)
+    private String mClientCapabilities;
+
+    @SerializedName(HTTP)
+    private HttpConfiguration mHttpConfiguration;
+
     @SerializedName(ENVIRONMENT)
     private Environment mEnvironment;
+    // endregion
+
+    // region "Global" fields
+    @SerializedName(LOGGING)
+    private LoggerConfiguration mLoggerConfiguration;
 
     @SerializedName(REQUIRED_BROKER_PROTOCOL_VERSION)
     private String mRequiredBrokerProtocolVersion;
@@ -149,12 +158,6 @@ public class PublicClientApplicationConfiguration {
 
     @SerializedName(TELEMETRY)
     private TelemetryConfiguration mTelemetryConfiguration;
-
-    @SerializedName(ACCOUNT_MODE)
-    private AccountMode mAccountMode;
-
-    @SerializedName(CLIENT_CAPABILITIES)
-    private String mClientCapabilities;
 
     @SerializedName(WEB_VIEW_ZOOM_CONTROLS_ENABLED)
     private Boolean webViewZoomControlsEnabled;
@@ -174,6 +177,7 @@ public class PublicClientApplicationConfiguration {
      */
     @SerializedName(AUTHORIZATION_IN_CURRENT_TASK)
     private Boolean isAuthorizationInCurrentTask;
+    // endregion
 
     transient private OAuth2TokenCache mOAuth2TokenCache;
 
@@ -481,37 +485,32 @@ public class PublicClientApplicationConfiguration {
         this.isAuthorizationInCurrentTask = config.isAuthorizationInCurrentTask == null ? this.isAuthorizationInCurrentTask : config.isAuthorizationInCurrentTask;
     }
 
-    protected void mergeGlobalConfiguration(final @NonNull GlobalSettingsConfiguration globalConfig) {
-        this.mClientId = globalConfig.getClientId() == null ? this.mClientId : globalConfig.getClientId();
-        this.mRedirectUri = globalConfig.getRedirectUri() == null ? this.mRedirectUri : globalConfig.getRedirectUri();
-        // Changed to add global authorities to this PCA's authorities
-        if (this.mAuthorities == null) {
-            this.mAuthorities = globalConfig.getAuthorities();
-        } else if (globalConfig.getAuthorities() != null) {
-            this.mAuthorities.addAll(globalConfig.getAuthorities());
-        }
-        this.mAuthorizationAgent = globalConfig.getAuthorizationAgent() == null ? this.mAuthorizationAgent : globalConfig.getAuthorizationAgent();
-        this.mEnvironment = globalConfig.getEnvironment() == null ? this.mEnvironment : globalConfig.getEnvironment();
-        this.mHttpConfiguration = globalConfig.getHttpConfiguration() == null ? this.mHttpConfiguration : globalConfig.getHttpConfiguration();
-        this.mMultipleCloudsSupported = globalConfig.getMultipleCloudsSupported() == null ? this.mMultipleCloudsSupported : globalConfig.getMultipleCloudsSupported();
-        this.mUseBroker = globalConfig.getUseBroker() == null ? this.mUseBroker : globalConfig.getUseBroker();
-        this.mTelemetryConfiguration = globalConfig.getTelemetryConfiguration() == null ? this.mTelemetryConfiguration : globalConfig.getTelemetryConfiguration();
-        this.mRequiredBrokerProtocolVersion = globalConfig.getRequiredBrokerProtocolVersion() == null ? this.mRequiredBrokerProtocolVersion : globalConfig.getRequiredBrokerProtocolVersion();
-        if (this.mBrowserSafeList == null) {
-            this.mBrowserSafeList = globalConfig.getBrowserSafeList();
-        } else if (globalConfig.getBrowserSafeList() != null) {
-            this.mBrowserSafeList.addAll(globalConfig.getBrowserSafeList());
-        }
-        // Multiple as default will be handled when PCA is merged with the default PCA, here, just check if developer specified anything in global
-        this.mAccountMode = globalConfig.getAccountMode() != null ? globalConfig.getAccountMode() : this.mAccountMode;
-        this.mClientCapabilities = globalConfig.getClientCapabilities() == null ? this.mClientCapabilities : globalConfig.getClientCapabilities();
-        this.mIsSharedDevice = globalConfig.getIsSharedDevice() == true ? this.mIsSharedDevice : globalConfig.getIsSharedDevice();
-        this.mLoggerConfiguration = globalConfig.getLoggerConfiguration() == null ? this.mLoggerConfiguration : globalConfig.getLoggerConfiguration();
-        this.webViewZoomControlsEnabled = globalConfig.isWebViewZoomControlsEnabled() == null ? this.webViewZoomControlsEnabled : globalConfig.isWebViewZoomControlsEnabled();
-        this.webViewZoomEnabled = globalConfig.isWebViewZoomEnabled() == null ? this.webViewZoomEnabled : globalConfig.isWebViewZoomEnabled();
-        this.powerOptCheckEnabled = globalConfig.isPowerOptCheckEnabled() == null ? this.powerOptCheckEnabled : globalConfig.isPowerOptCheckEnabled();
-        this.handleNullTaskAffinity = globalConfig.isHandleNullTaskAffinityEnabled() == null ? this.handleNullTaskAffinity : globalConfig.isHandleNullTaskAffinityEnabled();
-        this.isAuthorizationInCurrentTask = globalConfig.authorizationInCurrentTask() == null ? this.isAuthorizationInCurrentTask : globalConfig.authorizationInCurrentTask();
+    void mergeGlobalConfiguration(final @NonNull GlobalSettingsConfiguration globalConfig) {
+        // If user initialized global settings, replace all global fields in the PCAConfiguration with fields from global.
+        // This will be removed once the separation between Global and PCA-specific is finalized.
+        this.mTelemetryConfiguration = globalConfig.getTelemetryConfiguration();
+        this.mRequiredBrokerProtocolVersion = globalConfig.getRequiredBrokerProtocolVersion();
+        this.mBrowserSafeList = globalConfig.getBrowserSafeList();
+        this.mLoggerConfiguration = globalConfig.getLoggerConfiguration();
+        this.webViewZoomControlsEnabled = globalConfig.isWebViewZoomControlsEnabled();
+        this.webViewZoomEnabled = globalConfig.isWebViewZoomEnabled();
+        this.powerOptCheckEnabled = globalConfig.isPowerOptCheckEnabled();
+        this.handleNullTaskAffinity = globalConfig.isHandleNullTaskAffinityEnabled();
+        this.isAuthorizationInCurrentTask = globalConfig.isAuthorizationInCurrentTask();
+    }
+
+    void mergeDefaultGlobalConfiguration(final @NonNull GlobalSettingsConfiguration globalConfig) {
+        // If user did not specify any global fields in their PCA config file, supply them from default global settings.
+        // This will be removed once the separation between Global and PCA-specific is finalized.
+        this.mTelemetryConfiguration = this.mTelemetryConfiguration != null ? this.mTelemetryConfiguration : globalConfig.getTelemetryConfiguration();
+        this.mRequiredBrokerProtocolVersion = this.mRequiredBrokerProtocolVersion != null ? this.mRequiredBrokerProtocolVersion : globalConfig.getRequiredBrokerProtocolVersion();
+        this.mBrowserSafeList = this.mBrowserSafeList != null ? this.mBrowserSafeList : globalConfig.getBrowserSafeList();
+        this.mLoggerConfiguration = this.mLoggerConfiguration != null ? this.mLoggerConfiguration : globalConfig.getLoggerConfiguration();
+        this.webViewZoomControlsEnabled = this.webViewZoomControlsEnabled != null ? this.webViewZoomControlsEnabled : globalConfig.isWebViewZoomControlsEnabled();
+        this.webViewZoomEnabled = this.webViewZoomEnabled != null ? this.webViewZoomEnabled : globalConfig.isWebViewZoomEnabled();
+        this.powerOptCheckEnabled = this.powerOptCheckEnabled != null ? this.powerOptCheckEnabled : globalConfig.isPowerOptCheckEnabled();
+        this.handleNullTaskAffinity = this.handleNullTaskAffinity != null ? this.handleNullTaskAffinity : globalConfig.isHandleNullTaskAffinityEnabled();
+        this.isAuthorizationInCurrentTask = this.isAuthorizationInCurrentTask != null ? this.isAuthorizationInCurrentTask : globalConfig.isAuthorizationInCurrentTask();
     }
 
     void validateConfiguration() {

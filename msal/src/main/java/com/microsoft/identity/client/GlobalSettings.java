@@ -40,11 +40,11 @@ import java.io.File;
  */
 public class GlobalSettings {
     private static final String TAG = GlobalSettings.class.getSimpleName();
-    public static final String NO_GLOBAL_SETTINGS_WARNING = "Global settings have not been initialized before the creation of this PCA Configuration.";
+    public static final String NO_GLOBAL_SETTINGS_WARNING = "Global settings have not been initialized before the creation of PCA Configuration. Initializing global setting using default MSAL global configuration file.";
     public static final String GLOBAL_INIT_AFTER_PCA_ERROR_CODE = "pca_created_before_global";
     public static final String GLOBAL_INIT_AFTER_PCA_ERROR_MESSAGE = "Global initialization was attempted after a PublicClientApplicationConfiguration instance was already created. Please initialize global settings before any PublicClientApplicationConfiguration instance is created.";
     public static final String GLOBAL_ALREADY_INITIALIZED_ERROR_CODE = "global_already_initialized";
-    public static final String GLOBAL_ALREADY_INITIALIZED_ERROR_MESSAGE = "Attempting to load global settings configuration after it has already been initialized.";
+    public static final String GLOBAL_ALREADY_INITIALIZED_ERROR_MESSAGE = "Attempting to load global settings again after it has already been initialized.";
 
     /**
      * Singleton instance for this class, already initialized.
@@ -62,12 +62,9 @@ public class GlobalSettings {
     private boolean mGlobalSettingsInitialized = false;
 
     /**
-     * Boolean showing that a {@link PublicClientApplicationConfiguration} was created and tried to merge with global before global was initialized.
-     * If loadGlobalConfigurationFile() is called after this, throw an exception.
-     *
-     * Global cannot be initialized if a {@link PublicClientApplicationConfiguration} was already created.
+     * Shows if the global settings were initialized with the default configuration file.
      */
-    private boolean mPCAMergeAttempted = false;
+    private boolean mIsDefaulted = false;
 
     /**
      * Lock object for synchronizing pca creation and global settings initialization.
@@ -75,7 +72,7 @@ public class GlobalSettings {
     private final Object mGlobalSettingsLock = new Object();
 
     /**
-     * Private Constructor for Singleton
+     * Private Constructor for Singleton.
      */
     private GlobalSettings() {
         // Do nothing
@@ -93,13 +90,13 @@ public class GlobalSettings {
                                                    final int configFileResourceId,
                                                    @NonNull final GlobalSettingsListener listener) {
         synchronized (mGlobalSettingsSingleton.mGlobalSettingsLock) {
-            if (mGlobalSettingsSingleton.mGlobalSettingsInitialized) {
+            if (mGlobalSettingsSingleton.mGlobalSettingsInitialized && !mGlobalSettingsSingleton.mIsDefaulted) {
                 listener.onError(new MsalClientException(GLOBAL_ALREADY_INITIALIZED_ERROR_CODE,
                         GLOBAL_ALREADY_INITIALIZED_ERROR_MESSAGE));
                 return;
             }
 
-            if (mGlobalSettingsSingleton.mPCAMergeAttempted) {
+            if (mGlobalSettingsSingleton.mIsDefaulted) {
                 listener.onError(new MsalClientException(GLOBAL_INIT_AFTER_PCA_ERROR_CODE,
                         GLOBAL_INIT_AFTER_PCA_ERROR_MESSAGE));
                 return;
@@ -119,24 +116,39 @@ public class GlobalSettings {
      * @param listener Handles success and error messages.
      */
     @WorkerThread
-    public static void loadGlobalConfigurationFile(@NonNull final File configFile,
+    public static void loadGlobalConfigurationFile(@NonNull final Context context,
+                                                   @NonNull final File configFile,
                                                    @NonNull final GlobalSettingsListener listener) {
         synchronized (mGlobalSettingsSingleton.mGlobalSettingsLock) {
-            if (mGlobalSettingsSingleton.mGlobalSettingsInitialized) {
+            if (mGlobalSettingsSingleton.mGlobalSettingsInitialized && !mGlobalSettingsSingleton.mIsDefaulted) {
                 listener.onError(new MsalClientException(GLOBAL_ALREADY_INITIALIZED_ERROR_CODE,
                         GLOBAL_ALREADY_INITIALIZED_ERROR_MESSAGE));
                 return;
             }
 
-            if (mGlobalSettingsSingleton.mPCAMergeAttempted) {
+            if (mGlobalSettingsSingleton.mIsDefaulted) {
                 listener.onError(new MsalClientException(GLOBAL_INIT_AFTER_PCA_ERROR_CODE,
                         GLOBAL_INIT_AFTER_PCA_ERROR_MESSAGE));
                 return;
             }
 
             setGlobalConfiguration(
-                    initializeGlobalConfiguration(configFile),
+                    initializeGlobalConfiguration(context, configFile),
                     listener
+            );
+        }
+    }
+
+    /**
+     * Load global configuration file using the default configuration file.
+     *
+     * @param context Context of the App.
+     */
+    @WorkerThread
+    private static void loadDefaultGlobalConfiguration(@NonNull final Context context) {
+        synchronized (mGlobalSettingsSingleton.mGlobalSettingsLock) {
+            setDefaultGlobalConfiguration(
+                    initializeGlobalConfiguration(context)
             );
         }
     }
@@ -150,18 +162,34 @@ public class GlobalSettings {
     }
 
     @WorkerThread
-    PublicClientApplicationConfiguration mergeConfigurationWithGlobal(final @NonNull PublicClientApplicationConfiguration developerConfig) {
-        synchronized (mGlobalSettingsSingleton.mGlobalSettingsLock) {
-            mPCAMergeAttempted = true;
+    private static void setDefaultGlobalConfiguration(@NonNull final GlobalSettingsConfiguration globalConfiguration) {
+        mGlobalSettingsSingleton.mGlobalSettingsConfiguration = globalConfiguration;
+        mGlobalSettingsSingleton.mGlobalSettingsInitialized = true;
+        mGlobalSettingsSingleton.mIsDefaulted = true;
+    }
 
-            if (!mGlobalSettingsSingleton.mGlobalSettingsInitialized) {
+    public GlobalSettingsConfiguration getGlobalSettingsConfiguration() {
+        return mGlobalSettingsConfiguration;
+    }
+
+    @WorkerThread
+    PublicClientApplicationConfiguration mergeConfigurationWithGlobal(final @NonNull PublicClientApplicationConfiguration developerConfig) {
+        synchronized (mGlobalSettingsLock) {
+            // If global has not been initialized, log warning and init with default configuration file
+            if (!mGlobalSettingsInitialized) {
                 Logger.warn(TAG + "mergeConfigurationWithGlobal",
                         GlobalSettings.NO_GLOBAL_SETTINGS_WARNING);
-                return developerConfig;
+
+                loadDefaultGlobalConfiguration(developerConfig.getAppContext());
             }
 
-            developerConfig.mergeGlobalConfiguration(mGlobalSettingsSingleton.mGlobalSettingsConfiguration);
-            developerConfig.validateConfiguration();
+            if (mIsDefaulted) {
+                developerConfig.mergeDefaultGlobalConfiguration(mGlobalSettingsConfiguration);
+            }
+            else {
+                developerConfig.mergeGlobalConfiguration(mGlobalSettingsConfiguration);
+            }
+
             return developerConfig;
         }
     }
@@ -176,7 +204,7 @@ public class GlobalSettings {
     static void resetInstance() {
         mGlobalSettingsSingleton.mGlobalSettingsConfiguration = null;
         mGlobalSettingsSingleton.mGlobalSettingsInitialized = false;
-        mGlobalSettingsSingleton.mPCAMergeAttempted = false;
+        mGlobalSettingsSingleton.mIsDefaulted = false;
     }
 
     public interface GlobalSettingsListener {
