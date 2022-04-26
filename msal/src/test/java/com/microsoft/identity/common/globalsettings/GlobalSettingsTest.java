@@ -20,7 +20,7 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client;
+package com.microsoft.identity.common.globalsettings;
 
 import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
 
@@ -30,11 +30,17 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.test.core.app.ApplicationProvider;
 
+import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
+import com.microsoft.identity.client.IPublicClientApplication;
+import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
+import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
 import com.microsoft.identity.client.e2e.shadows.ShadowAuthorityForMockHttpResponse;
 import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
 import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.internal.testutils.shadows.ShadowHttpClient;
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.SINGLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
@@ -191,7 +197,7 @@ public class GlobalSettingsTest {
             }
 
             @Override
-            public void onError(@NonNull MsalException exception) {
+            public void onError(@NonNull ClientException exception) {
                 Assert.fail(exception.getMessage());
             }
         };
@@ -205,7 +211,7 @@ public class GlobalSettingsTest {
             }
 
             @Override
-            public void onError(@NonNull MsalException exception) {
+            public void onError(@NonNull ClientException exception) {
                 Assert.assertEquals(GlobalSettings.GLOBAL_ALREADY_INITIALIZED_ERROR_CODE, exception.getErrorCode());
                 Assert.assertEquals(GlobalSettings.GLOBAL_ALREADY_INITIALIZED_ERROR_MESSAGE, exception.getMessage());
             }
@@ -220,7 +226,7 @@ public class GlobalSettingsTest {
             }
 
             @Override
-            public void onError(@NonNull MsalException exception) {
+            public void onError(@NonNull ClientException exception) {
                 Assert.assertEquals(GlobalSettings.GLOBAL_INIT_AFTER_PCA_ERROR_CODE, exception.getErrorCode());
                 Assert.assertEquals(GlobalSettings.GLOBAL_INIT_AFTER_PCA_ERROR_MESSAGE, exception.getMessage());
             }

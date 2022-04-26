@@ -38,10 +38,10 @@ import com.microsoft.identity.common.java.authorities.AuthorityDeserializer;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudienceDeserializer;
 import com.microsoft.identity.common.java.cache.MsalOAuth2TokenCache;
-import com.microsoft.identity.common.java.configuration.LibraryConfiguration;
 import com.microsoft.identity.common.java.util.StringUtil;
 import com.microsoft.identity.msal.R;
 import com.microsoft.identity.common.logging.Logger;
+import com.microsoft.identity.common.globalsettings.GlobalSettings;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -94,15 +94,25 @@ public class PublicClientApplicationConfigurationFactory {
             config.mergeConfiguration(developerConfig);
         }
 
-        final PublicClientApplicationConfiguration configWithGlobal = globalSettings.mergeConfigurationWithGlobal(config);
+        final PublicClientApplicationConfiguration configWithGlobal = mergeConfigurationWithGlobal(config);
         configWithGlobal.validateConfiguration();
-
-        //Initialize internal library configuration
-        final LibraryConfiguration libraryConfiguration = LibraryConfiguration.builder().authorizationInCurrentTask((configWithGlobal.authorizationInCurrentTask())).build();
-        LibraryConfiguration.intializeLibraryConfiguration(libraryConfiguration);
 
         configWithGlobal.setOAuth2TokenCache(MsalOAuth2TokenCache.create(AndroidPlatformComponents.createFromContext(context)));
         return configWithGlobal;
+    }
+
+    @WorkerThread
+    private static PublicClientApplicationConfiguration mergeConfigurationWithGlobal(@NonNull final PublicClientApplicationConfiguration developerConfig) {
+        globalSettings.checkIfGlobalInit(developerConfig.getAppContext());
+
+        if (globalSettings.isDefaulted()) {
+            developerConfig.mergeDefaultGlobalConfiguration(globalSettings.getGlobalSettingsConfiguration());
+        }
+        else {
+            developerConfig.mergeGlobalConfiguration(globalSettings.getGlobalSettingsConfiguration());
+        }
+
+        return developerConfig;
     }
 
     @WorkerThread

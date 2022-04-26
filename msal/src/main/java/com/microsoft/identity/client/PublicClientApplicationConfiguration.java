@@ -40,9 +40,9 @@ import androidx.annotation.VisibleForTesting;
 import com.google.gson.annotations.SerializedName;
 import com.microsoft.identity.client.configuration.AccountMode;
 import com.microsoft.identity.client.configuration.HttpConfiguration;
-import com.microsoft.identity.client.configuration.LoggerConfiguration;
+import com.microsoft.identity.common.globalsettings.GlobalSettings;
+import com.microsoft.identity.common.internal.logging.LoggerConfiguration;
 import com.microsoft.identity.client.exception.MsalClientException;
-import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
 import com.microsoft.identity.common.java.authorities.Authority;
@@ -51,7 +51,6 @@ import com.microsoft.identity.common.java.authorities.Environment;
 import com.microsoft.identity.common.internal.authorities.UnknownAudience;
 import com.microsoft.identity.common.java.authorities.UnknownAuthority;
 import com.microsoft.identity.common.internal.broker.PackageHelper;
-import com.microsoft.identity.common.java.configuration.LibraryConfiguration;
 import com.microsoft.identity.common.internal.logging.Logger;
 import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.telemetry.TelemetryConfiguration;
@@ -60,30 +59,30 @@ import com.microsoft.identity.common.java.ui.BrowserDescriptor;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.crypto.SecretKey;
 
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.ACCOUNT_MODE;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORITIES;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORIZATION_IN_CURRENT_TASK;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORIZATION_USER_AGENT;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.BROWSER_SAFE_LIST;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.CLIENT_CAPABILITIES;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.CLIENT_ID;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.ENVIRONMENT;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.HANDLE_TASKS_WITH_NULL_TASKAFFINITY;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.HTTP;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.LOGGING;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.MULTIPLE_CLOUDS_SUPPORTED;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.POWER_OPT_CHECK_FOR_NETWORK_REQUEST_ENABLED;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REDIRECT_URI;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REQUIRED_BROKER_PROTOCOL_VERSION;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.TELEMETRY;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.USE_BROKER;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEB_VIEW_ZOOM_CONTROLS_ENABLED;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEB_VIEW_ZOOM_ENABLED;
+import com.microsoft.identity.common.globalsettings.GlobalSettingsConfiguration;
+import static com.microsoft.identity.common.globalsettings.GlobalSettingsConfiguration.SerializedNames.ACCOUNT_MODE;
+import static com.microsoft.identity.common.globalsettings.GlobalSettingsConfiguration.SerializedNames.AUTHORITIES;
+import static com.microsoft.identity.common.globalsettings.GlobalSettingsConfiguration.SerializedNames.AUTHORIZATION_IN_CURRENT_TASK;
+import static com.microsoft.identity.common.globalsettings.GlobalSettingsConfiguration.SerializedNames.AUTHORIZATION_USER_AGENT;
+import static com.microsoft.identity.common.globalsettings.GlobalSettingsConfiguration.SerializedNames.BROWSER_SAFE_LIST;
+import static com.microsoft.identity.common.globalsettings.GlobalSettingsConfiguration.SerializedNames.CLIENT_CAPABILITIES;
+import static com.microsoft.identity.common.globalsettings.GlobalSettingsConfiguration.SerializedNames.CLIENT_ID;
+import static com.microsoft.identity.common.globalsettings.GlobalSettingsConfiguration.SerializedNames.ENVIRONMENT;
+import static com.microsoft.identity.common.globalsettings.GlobalSettingsConfiguration.SerializedNames.HANDLE_TASKS_WITH_NULL_TASKAFFINITY;
+import static com.microsoft.identity.common.globalsettings.GlobalSettingsConfiguration.SerializedNames.HTTP;
+import static com.microsoft.identity.common.globalsettings.GlobalSettingsConfiguration.SerializedNames.LOGGING;
+import static com.microsoft.identity.common.globalsettings.GlobalSettingsConfiguration.SerializedNames.MULTIPLE_CLOUDS_SUPPORTED;
+import static com.microsoft.identity.common.globalsettings.GlobalSettingsConfiguration.SerializedNames.POWER_OPT_CHECK_FOR_NETWORK_REQUEST_ENABLED;
+import static com.microsoft.identity.common.globalsettings.GlobalSettingsConfiguration.SerializedNames.REDIRECT_URI;
+import static com.microsoft.identity.common.globalsettings.GlobalSettingsConfiguration.SerializedNames.REQUIRED_BROKER_PROTOCOL_VERSION;
+import static com.microsoft.identity.common.globalsettings.GlobalSettingsConfiguration.SerializedNames.TELEMETRY;
+import static com.microsoft.identity.common.globalsettings.GlobalSettingsConfiguration.SerializedNames.USE_BROKER;
+import static com.microsoft.identity.common.globalsettings.GlobalSettingsConfiguration.SerializedNames.WEB_VIEW_ZOOM_CONTROLS_ENABLED;
+import static com.microsoft.identity.common.globalsettings.GlobalSettingsConfiguration.SerializedNames.WEB_VIEW_ZOOM_ENABLED;
 import static com.microsoft.identity.client.exception.MsalClientException.APP_MANIFEST_VALIDATION_ERROR;
 
 public class PublicClientApplicationConfiguration {
@@ -396,7 +395,7 @@ public class PublicClientApplicationConfiguration {
         return handleNullTaskAffinity;
     }
 
-    public Boolean authorizationInCurrentTask() {
+    public Boolean isAuthorizationInCurrentTask() {
         return isAuthorizationInCurrentTask;
     }
 
@@ -660,7 +659,7 @@ public class PublicClientApplicationConfiguration {
             String activityClassName = BrowserTabActivity.class.getName();
 
             //If we're using authorization in current task... then we need to look for that activity
-            if(LibraryConfiguration.getInstance().isAuthorizationInCurrentTask()){
+            if(GlobalSettings.getInstance().isAuthorizationInCurrentTask()){
                 activityClassName = CurrentTaskBrowserTabActivity.class.getName();
             }
 
@@ -699,7 +698,7 @@ public class PublicClientApplicationConfiguration {
             if (!hasCustomTabRedirectActivity) {
                 String activityClassName = BrowserTabActivity.class.getSimpleName();
 
-                if (LibraryConfiguration.getInstance().isAuthorizationInCurrentTask()){
+                if (GlobalSettings.getInstance().isAuthorizationInCurrentTask()){
                     activityClassName = CurrentTaskBrowserTabActivity.class.getSimpleName();
                 }
 

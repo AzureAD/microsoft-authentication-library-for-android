@@ -43,7 +43,7 @@ import androidx.browser.customtabs.CustomTabsService;
 import com.microsoft.identity.client.BrowserTabActivity;
 import com.microsoft.identity.client.CurrentTaskBrowserTabActivity;
 import com.microsoft.identity.client.exception.MsalArgumentException;
-import com.microsoft.identity.common.java.configuration.LibraryConfiguration;
+import com.microsoft.identity.common.globalsettings.GlobalSettings;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -263,7 +263,7 @@ public final class MsalUtils {
         String activityClassName = BrowserTabActivity.class.getName();
 
         //If we're using authorization in current task... then we need to look for that activity
-        if(LibraryConfiguration.getInstance().isAuthorizationInCurrentTask()){
+        if(GlobalSettings.getInstance().isAuthorizationInCurrentTask()){
             activityClassName = CurrentTaskBrowserTabActivity.class.getName();
         }
 
