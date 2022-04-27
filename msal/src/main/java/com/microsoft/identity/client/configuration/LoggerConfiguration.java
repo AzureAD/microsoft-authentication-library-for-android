@@ -62,12 +62,16 @@ public class LoggerConfiguration {
         switch (globalLoggerConfig.getLogLevel()) {
             case ERROR:
                 mLogLevel = Logger.LogLevel.ERROR;
+                break;
             case WARN:
                 mLogLevel = Logger.LogLevel.WARNING;
+                break;
             case VERBOSE:
                 mLogLevel = Logger.LogLevel.VERBOSE;
+                break;
             case INFO:
                 mLogLevel = Logger.LogLevel.INFO;
+                break;
         }
     }
 
