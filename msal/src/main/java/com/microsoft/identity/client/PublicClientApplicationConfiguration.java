@@ -41,7 +41,7 @@ import com.google.gson.annotations.SerializedName;
 import com.microsoft.identity.client.configuration.AccountMode;
 import com.microsoft.identity.client.configuration.HttpConfiguration;
 import com.microsoft.identity.common.globalsettings.GlobalSettings;
-import com.microsoft.identity.common.internal.logging.LoggerConfiguration;
+import com.microsoft.identity.client.configuration.LoggerConfiguration;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
@@ -484,13 +484,16 @@ public class PublicClientApplicationConfiguration {
         this.isAuthorizationInCurrentTask = config.isAuthorizationInCurrentTask == null ? this.isAuthorizationInCurrentTask : config.isAuthorizationInCurrentTask;
     }
 
-    void mergeGlobalConfiguration(final @NonNull GlobalSettingsConfiguration globalConfig) {
+    void mergeGlobalConfiguration() {
+        final GlobalSettingsConfiguration globalConfig= GlobalSettings.getInstance().getGlobalSettingsConfiguration();
+
         // If user initialized global settings, replace all global fields in the PCAConfiguration with fields from global.
         // This will be removed once the separation between Global and PCA-specific is finalized.
         this.mTelemetryConfiguration = globalConfig.getTelemetryConfiguration();
         this.mRequiredBrokerProtocolVersion = globalConfig.getRequiredBrokerProtocolVersion();
         this.mBrowserSafeList = globalConfig.getBrowserSafeList();
-        this.mLoggerConfiguration = globalConfig.getLoggerConfiguration();
+        this.mLoggerConfiguration = new LoggerConfiguration();
+        mLoggerConfiguration.loadFromGlobalLoggerConfiguration();
         this.webViewZoomControlsEnabled = globalConfig.isWebViewZoomControlsEnabled();
         this.webViewZoomEnabled = globalConfig.isWebViewZoomEnabled();
         this.powerOptCheckEnabled = globalConfig.isPowerOptCheckEnabled();
@@ -498,13 +501,17 @@ public class PublicClientApplicationConfiguration {
         this.isAuthorizationInCurrentTask = globalConfig.isAuthorizationInCurrentTask();
     }
 
-    void mergeDefaultGlobalConfiguration(final @NonNull GlobalSettingsConfiguration globalConfig) {
+    void mergeDefaultGlobalConfiguration() {
+        final GlobalSettingsConfiguration globalConfig= GlobalSettings.getInstance().getGlobalSettingsConfiguration();
         // If user did not specify any global fields in their PCA config file, supply them from default global settings.
         // This will be removed once the separation between Global and PCA-specific is finalized.
         this.mTelemetryConfiguration = this.mTelemetryConfiguration != null ? this.mTelemetryConfiguration : globalConfig.getTelemetryConfiguration();
         this.mRequiredBrokerProtocolVersion = this.mRequiredBrokerProtocolVersion != null ? this.mRequiredBrokerProtocolVersion : globalConfig.getRequiredBrokerProtocolVersion();
         this.mBrowserSafeList = this.mBrowserSafeList != null ? this.mBrowserSafeList : globalConfig.getBrowserSafeList();
-        this.mLoggerConfiguration = this.mLoggerConfiguration != null ? this.mLoggerConfiguration : globalConfig.getLoggerConfiguration();
+        if (this.mLoggerConfiguration == null) {
+            mLoggerConfiguration = new LoggerConfiguration();
+            mLoggerConfiguration.loadFromGlobalLoggerConfiguration();
+        }
         this.webViewZoomControlsEnabled = this.webViewZoomControlsEnabled != null ? this.webViewZoomControlsEnabled : globalConfig.isWebViewZoomControlsEnabled();
         this.webViewZoomEnabled = this.webViewZoomEnabled != null ? this.webViewZoomEnabled : globalConfig.isWebViewZoomEnabled();
         this.powerOptCheckEnabled = this.powerOptCheckEnabled != null ? this.powerOptCheckEnabled : globalConfig.isPowerOptCheckEnabled();
@@ -513,11 +520,20 @@ public class PublicClientApplicationConfiguration {
     }
 
     void validateConfiguration() {
+        validatePcaFields();
+        validateGlobalFields();
+    }
+
+    // Adding separate methods to validate pca and global fields due to case where redirect uri was being validated when loading default MSAL configuration
+    // This will be removed once we move towards final phase of split configuration where there are no global fields stored in PCAConfiguration.
+    void validatePcaFields() {
         validateRedirectUri(mRedirectUri);
         nullConfigurationCheck(CLIENT_ID, mClientId);
         checkDefaultAuthoritySpecified();
-        checkManifestPermissions();
+    }
 
+    void validateGlobalFields() {
+        checkManifestPermissions();
         // Only validate the browser safe list configuration
         // when the authorization agent is set either DEFAULT or BROWSER.
         if (!mAuthorizationAgent.equals(AuthorizationAgent.WEBVIEW)

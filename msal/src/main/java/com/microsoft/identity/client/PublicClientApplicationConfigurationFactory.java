@@ -92,10 +92,11 @@ public class PublicClientApplicationConfigurationFactory {
         final PublicClientApplicationConfiguration config = loadDefaultConfiguration(context);
         if (developerConfig != null) {
             config.mergeConfiguration(developerConfig);
+            config.validatePcaFields();
         }
 
         final PublicClientApplicationConfiguration configWithGlobal = mergeConfigurationWithGlobal(config);
-        configWithGlobal.validateConfiguration();
+        configWithGlobal.validateGlobalFields();
 
         configWithGlobal.setOAuth2TokenCache(MsalOAuth2TokenCache.create(AndroidPlatformComponents.createFromContext(context)));
         return configWithGlobal;
@@ -106,10 +107,10 @@ public class PublicClientApplicationConfigurationFactory {
         globalSettings.checkIfGlobalInit(developerConfig.getAppContext());
 
         if (globalSettings.isDefaulted()) {
-            developerConfig.mergeDefaultGlobalConfiguration(globalSettings.getGlobalSettingsConfiguration());
+            developerConfig.mergeDefaultGlobalConfiguration();
         }
         else {
-            developerConfig.mergeGlobalConfiguration(globalSettings.getGlobalSettingsConfiguration());
+            developerConfig.mergeGlobalConfiguration();
         }
 
         return developerConfig;

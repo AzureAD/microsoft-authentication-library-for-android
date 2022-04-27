@@ -24,6 +24,7 @@ package com.microsoft.identity.client.configuration;
 
 import com.google.gson.annotations.SerializedName;
 import com.microsoft.identity.client.Logger;
+import com.microsoft.identity.common.globalsettings.GlobalSettings;
 
 import static com.microsoft.identity.client.configuration.LoggerConfiguration.SerializedNames.LOGCAT_ENABLED;
 import static com.microsoft.identity.client.configuration.LoggerConfiguration.SerializedNames.LOG_LEVEL;
@@ -48,6 +49,27 @@ public class LoggerConfiguration {
 
     @SerializedName(LOGCAT_ENABLED)
     private boolean mLogcatEnabled;
+
+    /**
+     * Method to load configuration from global LoggerConfiguration in Common.
+     * Will be removed when global fields are fully removed from PCAConfiguration.
+     */
+    public void loadFromGlobalLoggerConfiguration() {
+        final com.microsoft.identity.common.internal.logging.LoggerConfiguration globalLoggerConfig = GlobalSettings.getInstance().getGlobalSettingsConfiguration().getLoggerConfiguration();
+
+        mPiiEnabled = globalLoggerConfig.isPiiEnabled();
+        mLogcatEnabled = globalLoggerConfig.isLogcatEnabled();
+        switch (globalLoggerConfig.getLogLevel()) {
+            case ERROR:
+                mLogLevel = Logger.LogLevel.ERROR;
+            case WARN:
+                mLogLevel = Logger.LogLevel.WARNING;
+            case VERBOSE:
+                mLogLevel = Logger.LogLevel.VERBOSE;
+            case INFO:
+                mLogLevel = Logger.LogLevel.INFO;
+        }
+    }
 
     /**
      * Gets the Pii Enabled state.

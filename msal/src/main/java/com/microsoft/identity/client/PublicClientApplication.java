@@ -37,7 +37,7 @@ import androidx.fragment.app.Fragment;
 
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.configuration.AccountMode;
-import com.microsoft.identity.common.internal.logging.LoggerConfiguration;
+import com.microsoft.identity.client.configuration.LoggerConfiguration;
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
@@ -1084,33 +1084,18 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     private void initializeLoggerSettings(@Nullable final LoggerConfiguration loggerConfig) {
         if (null != loggerConfig) {
-            final Logger.LogLevel configLogLevel = loggerConfig.getLogLevel();
+            final com.microsoft.identity.client.Logger.LogLevel configLogLevel = loggerConfig.getLogLevel();
             final boolean configPiiState = loggerConfig.isPiiEnabled();
             final boolean configLogcatState = loggerConfig.isLogcatEnabled();
 
             final com.microsoft.identity.client.Logger logger = com.microsoft.identity.client.Logger.getInstance();
 
             if (null != configLogLevel) {
-                logger.setLogLevel(convertCommonLogLevelToMSAL(configLogLevel));
+                logger.setLogLevel(configLogLevel);
             }
 
             logger.setEnablePII(configPiiState);
             logger.setEnableLogcatLog(configLogcatState);
-        }
-    }
-
-    // Adding this temporary method while we decide how to handle logging
-    // Convert common Logger.LogLevel to MSAL Logger.LogLevel
-    private com.microsoft.identity.client.Logger.LogLevel convertCommonLogLevelToMSAL(Logger.LogLevel level) {
-        switch(level) {
-            case ERROR:
-                return com.microsoft.identity.client.Logger.LogLevel.ERROR;
-            case WARN:
-                return com.microsoft.identity.client.Logger.LogLevel.WARNING;
-            case INFO:
-                return com.microsoft.identity.client.Logger.LogLevel.INFO;
-            default:
-                return com.microsoft.identity.client.Logger.LogLevel.VERBOSE;
         }
     }
 
