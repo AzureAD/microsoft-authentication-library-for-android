@@ -69,7 +69,7 @@ import java.io.File;
         ShadowOpenIdProviderConfigurationClient.class
 })
 @LooperMode(LooperMode.Mode.LEGACY)
-public class GlobalSettingsTest {
+public class GlobalSettingsPublicClientApplicationTest {
     private Context mContext;
     private ISingleAccountPublicClientApplication mSingleAccountApplication;
     private IMultipleAccountPublicClientApplication mMultipleAccountApplication;
@@ -88,21 +88,6 @@ public class GlobalSettingsTest {
     @After
     public void tearDown() {
         GlobalSettings.resetInstance();
-    }
-
-    @Test
-    public void testCanInitializeGlobal() {
-        final File globalConfigFile = new File(TEST_SPLIT_CONFIG_GLOBAL_CONFIG_FILE_PATH);
-        GlobalSettings.loadGlobalConfigurationFile(mContext, globalConfigFile, getSuccessGlobalListener());
-    }
-
-    @Test
-    public void testCannotInitializeGlobalTwice() {
-        final File globalConfigFile = new File(TEST_SPLIT_CONFIG_GLOBAL_CONFIG_FILE_PATH);
-        GlobalSettings.loadGlobalConfigurationFile(mContext, globalConfigFile, getSuccessGlobalListener());
-
-        final File anotherGlobalConfigFile = new File(TEST_SPLIT_CONFIG_GLOBAL_CONFIG_FILE_PATH);
-        GlobalSettings.loadGlobalConfigurationFile(mContext, anotherGlobalConfigFile, getSecondInitFailureGlobalListener());
     }
 
     //region Single Account Tests
@@ -186,8 +171,6 @@ public class GlobalSettingsTest {
         Assert.assertFalse(configuration.getLoggerConfiguration().isLogcatEnabled());
     }
     //endregion
-
-    // TODO: Once we figure out which fields should be global-only or pca-specific-only, add tests to make sure they can't be read in through other methods.
 
     private GlobalSettings.GlobalSettingsListener getSuccessGlobalListener() {
         return new GlobalSettings.GlobalSettingsListener() {
