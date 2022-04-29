@@ -91,28 +91,6 @@ public class PublicClientApplicationConfiguration {
     private static final String BROKER_REDIRECT_URI_SCHEME_AND_SEPARATOR = "msauth://";
     public static final String INVALID_REDIRECT_MSG = "Invalid, null, or malformed redirect_uri supplied";
 
-    public static final class SerializedNames {
-        static final String CLIENT_ID = "client_id";
-        static final String REDIRECT_URI = "redirect_uri";
-        static final String AUTHORITIES = "authorities";
-        static final String AUTHORIZATION_USER_AGENT = "authorization_user_agent";
-        static final String HTTP = "http";
-        static final String LOGGING = "logging";
-        static final String MULTIPLE_CLOUDS_SUPPORTED = "multiple_clouds_supported";
-        static final String USE_BROKER = "broker_redirect_uri_registered";
-        static final String ENVIRONMENT = "environment";
-        static final String REQUIRED_BROKER_PROTOCOL_VERSION = "minimum_required_broker_protocol_version";
-        static final String TELEMETRY = "telemetry";
-        static final String BROWSER_SAFE_LIST = "browser_safelist";
-        static final String ACCOUNT_MODE = "account_mode";
-        static final String CLIENT_CAPABILITIES = "client_capabilities";
-        static final String WEB_VIEW_ZOOM_CONTROLS_ENABLED = "web_view_zoom_controls_enabled";
-        static final String WEB_VIEW_ZOOM_ENABLED = "web_view_zoom_enabled";
-        static final String POWER_OPT_CHECK_FOR_NETWORK_REQUEST_ENABLED = "power_opt_check_for_network_req_enabled";
-        static final String HANDLE_TASKS_WITH_NULL_TASKAFFINITY = "handle_null_taskaffinity";
-        static final String AUTHORIZATION_IN_CURRENT_TASK = "authorization_in_current_task";
-    }
-
     // region PCA-Specific fields
     @SerializedName(CLIENT_ID)
     private String mClientId;
