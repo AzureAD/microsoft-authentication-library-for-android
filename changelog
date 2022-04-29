@@ -7,6 +7,10 @@ vNext
 - [MAJOR] Deprecate methods not using TokenParameters (#1595)
 - [PATCH] Update gson version to 2.8.9
 
+Version 3.0.2
+----------
+- [PATCH] Update common@4.0.2
+
 Version 3.0.1
 -------------
 - [PATCH] Fix msal get account crash in Account Matcher due to NPE because account id was missing (#1560)
