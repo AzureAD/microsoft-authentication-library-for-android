@@ -26,7 +26,7 @@ parameters:
   - name: firebaseDeviceAndroidVersion
     displayName: Firebase Device Android Version
     type: number
-    default: 29
+    default: 28
 
 stages:
   # msalautomationapp
