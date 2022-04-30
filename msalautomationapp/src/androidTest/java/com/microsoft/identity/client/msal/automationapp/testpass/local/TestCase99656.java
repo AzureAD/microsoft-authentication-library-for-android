@@ -40,6 +40,7 @@ import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -48,6 +49,7 @@ import java.util.concurrent.TimeUnit;
 // Interactive auth with force_login and step-up MFA
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99656
 @RetryOnFailure
+@Ignore("https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1886086")
 public class TestCase99656 extends AbstractMsalUiTest {
 
     private final String TAG = TestCase99656.class.getSimpleName();

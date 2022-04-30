@@ -38,6 +38,7 @@ import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -45,6 +46,7 @@ import java.util.Arrays;
 // Interactive auth w/ force_login w/ MFA
 // https://identitydivision.visualstudio.com/DefaultCollection/DevEx/_workitems/edit/497044
 @RetryOnFailure
+@Ignore("https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1886086")
 public class TestCase497044 extends AbstractMsalUiTest {
 
     @Test
