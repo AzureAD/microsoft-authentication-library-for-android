@@ -70,7 +70,7 @@ public class TestCase1616316 extends AbstractGuestAccountMsalUiTest {
     }
 
     @Test
-    public void test_acquire_token_from_home_cloud_after_acquiring_token_from_cross_cloud() throws Throwable {
+    public void test_1616316() throws Throwable {
         final String userName = mGuestUser.getHomeUpn();
         final String password = LabGuestAccountHelper.getPasswordForGuestUser(mGuestUser);
 
@@ -81,7 +81,7 @@ public class TestCase1616316 extends AbstractGuestAccountMsalUiTest {
                     PromptHandlerParameters.builder()
                             .prompt(PromptParameter.SELECT_ACCOUNT)
                             .loginHint(userName)
-                            .staySignedInPageExpected(true)
+                            .staySignedInPageExpected(false)
                             .speedBumpExpected(true)
                             .build();
             final AadPromptHandler promptHandler = new AadPromptHandler(promptHandlerParameters);
