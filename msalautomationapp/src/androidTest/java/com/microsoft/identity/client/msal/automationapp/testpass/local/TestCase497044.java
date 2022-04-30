@@ -48,7 +48,7 @@ import java.util.Arrays;
 public class TestCase497044 extends AbstractMsalUiTest {
 
     @Test
-    public void test_99652() throws Throwable {
+    public void test_497044() throws Throwable {
         final String username = mLoginHint;
         final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
 
