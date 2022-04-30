@@ -146,7 +146,7 @@ stages:
                   --device "model=${{ parameters.firebaseDeviceId }},version=${{ parameters.firebaseDeviceAndroidVersion }}" \
                   --timeout "$(firebaseTimeout)" \
                   --other-files \
-                  "/data/local/tmp/BrokerHost.apk=$(Pipeline.Workspace)/brokerapks/$(brokerHostApk),\
+                  "/data/local/tmp/BrokerHost.apk=$(Pipeline.Workspace)/brokerHost/$(brokerHostApk),\
                   /data/local/tmp/AzureSample.apk=$(Pipeline.Workspace)/azuresample/$(azureSampleApk)" \
                   --results-dir "$(resultsDir)" \
                   --directories-to-pull "/sdcard" \
