@@ -38,7 +38,7 @@ stages:
         pool:
           vmImage: ubuntu-latest
         steps:
-          - checkout: msal
+          - checkout: self
             clean: true
             submodules: recursive
             persistCredentials: True
