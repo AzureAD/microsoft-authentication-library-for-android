@@ -52,7 +52,7 @@ public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
     final static B2CProvider[] b2CProviders = new B2CProvider[]{
             B2CProvider.Local,
             B2CProvider.MSA,
-            B2CProvider.Google,
+            //B2CProvider.Google, //looks like this account is no longer valid in Lab
             B2CProvider.Facebook,
     };
 
