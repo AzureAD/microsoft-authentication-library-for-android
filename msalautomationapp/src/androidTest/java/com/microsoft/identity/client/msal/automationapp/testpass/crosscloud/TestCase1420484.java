@@ -83,7 +83,7 @@ public class TestCase1420484 extends AbstractGuestAccountMsalUiTest {
                     PromptHandlerParameters.builder()
                     .prompt(PromptParameter.SELECT_ACCOUNT)
                     .loginHint(userName)
-                    .staySignedInPageExpected(true)
+                    .staySignedInPageExpected(false)
                     .speedBumpExpected(true)
                     .build();
             final AadPromptHandler promptHandler = new AadPromptHandler(promptHandlerParameters);
