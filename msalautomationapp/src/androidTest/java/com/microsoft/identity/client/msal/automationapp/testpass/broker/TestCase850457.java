@@ -22,8 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
-import android.os.Parcelable;
-
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
@@ -38,7 +36,6 @@ import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
-
 
 import org.junit.Test;
 
@@ -82,12 +79,16 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
         }, TokenRequestTimeout.MEDIUM);
 
         authResult1.assertSuccess();
+
         /*
             Note that password reset doesn't take effect by ESTS at least user being logged in for 1 min.
             Therefore we have a Thread.sleep after first successful token acquisition before resetting password.
          */
-        Thread.sleep(TimeUnit.MINUTES.toMillis(2));
+        Thread.sleep(TimeUnit.MINUTES.toMillis(1));
         LabUserHelper.resetPassword(username);
+
+        // and then password reset also takes about a minute to be effective
+        Thread.sleep(TimeUnit.MINUTES.toMillis(1));
 
         TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
 
@@ -121,7 +122,6 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
         System.out.println("Completed acquireTokenInteractive");
 
         authResult2.assertSuccess();
-
     }
 
 
