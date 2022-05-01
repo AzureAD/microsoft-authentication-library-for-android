@@ -143,7 +143,7 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         Assert.assertTrue(signOutConfirmationUrl.exists());
 
         // can sometimes take a few seconds to actually be signed out
-        Thread.sleep(TimeUnit.SECONDS.toMillis(5));
+        Thread.sleep(TimeUnit.SECONDS.toMillis(8));
 
         //confirming account is signed out in google chrome.
         chrome.launch();
