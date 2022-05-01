@@ -53,7 +53,7 @@ public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
             B2CProvider.Local,
             B2CProvider.MSA,
             //B2CProvider.Google, //looks like this account is no longer valid in Lab
-            B2CProvider.Facebook,
+            //B2CProvider.Facebook, // seems like account gets blocked in automation
     };
 
     @Parameterized.Parameters(name = "{0}")
