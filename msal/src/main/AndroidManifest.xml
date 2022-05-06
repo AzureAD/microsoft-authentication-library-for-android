@@ -22,7 +22,7 @@
         <!-- Helper activity for displaying current broker redirect URI configuration -->
         <activity
             android:name="com.microsoft.identity.client.helper.BrokerHelperActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize|screenLayout|keyboard"
+            android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize|screenLayout"
             android:exported="false"
             android:launchMode="standard" />
 
