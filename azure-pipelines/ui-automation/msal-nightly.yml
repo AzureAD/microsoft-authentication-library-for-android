@@ -1,4 +1,4 @@
-# run broker UI automation testcases
+# run MSAL UI automation testcases
 # Variable: 'ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME' was defined in the Variables tab
 # Variable: 'gCloudProjectId' was defined in the Variables tab
 # Variable: 'mvnAccessToken' was defined in the Variables tab
