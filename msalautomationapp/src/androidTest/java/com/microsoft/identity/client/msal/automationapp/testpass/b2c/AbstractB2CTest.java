@@ -23,17 +23,18 @@
 package com.microsoft.identity.client.msal.automationapp.testpass.b2c;
 
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
-import com.microsoft.identity.internal.testutils.labutils.LabConstants;
-import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.B2CProvider;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 public abstract class AbstractB2CTest extends AbstractMsalUiTest implements IB2CTest {
 
     @Override
-    public LabUserQuery getLabUserQuery() {
-        final LabUserQuery query = new LabUserQuery();
-        query.userType = LabConstants.UserType.B2C;
-        query.b2cProvider = getB2cProvider().getProviderName();
-        return query;
+    public LabQuery getLabQuery() {
+        return LabQuery.builder()
+                .userType(UserType.B2C)
+                .b2cProvider(B2CProvider.valueOf(getB2cProvider().getProviderName()))
+                .build();
     }
 
     @Override

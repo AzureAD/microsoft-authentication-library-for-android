@@ -136,7 +136,7 @@ public class TestCase1616315 extends AbstractGuestAccountMsalUiTest {
     }
 
     @Override
-    public LabUserQuery getLabUserQuery() {
+    public LabUserQuery getLabQuery() {
         final LabUserQuery query = new LabUserQuery();
         query.userType = LabConstants.UserType.GUEST;
         query.guestHomeAzureEnvironment = mGuestHomeAzureEnvironment;

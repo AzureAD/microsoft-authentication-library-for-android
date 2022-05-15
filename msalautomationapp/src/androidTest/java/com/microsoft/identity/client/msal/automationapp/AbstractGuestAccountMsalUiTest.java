@@ -33,8 +33,10 @@ import com.microsoft.identity.client.ui.automation.browser.IBrowser;
 import com.microsoft.identity.client.ui.automation.rules.RulesHelper;
 import com.microsoft.identity.common.java.net.HttpResponse;
 import com.microsoft.identity.common.java.net.UrlConnectionHttpClient;
-import com.microsoft.identity.internal.testutils.labutils.LabGuest;
-import com.microsoft.identity.internal.testutils.labutils.LabGuestAccountHelper;
+import com.microsoft.identity.labapi.utilities.authentication.LabApiAuthenticationClient;
+import com.microsoft.identity.labapi.utilities.client.LabClient;
+import com.microsoft.identity.labapi.utilities.client.LabGuest;
+import com.microsoft.identity.labapi.utilities.client.LabGuestAccountHelper;
 
 import org.json.JSONObject;
 import org.junit.After;
@@ -61,7 +63,14 @@ public abstract class AbstractGuestAccountMsalUiTest implements IMsalTest, ILabT
     public void setup() {
         mActivity = mActivityRule.getActivity();
         mBrowser = new BrowserChrome();
-        mGuestUser = LabGuestAccountHelper.loadGuestAccountFromLab(getLabUserQuery());
+
+        final LabApiAuthenticationClient authenticationClient = new LabApiAuthenticationClient(
+                "Uav7Q~g06Hwymk8I5WVc1iMLv4UieVDa4XDpB"
+        );
+
+        final LabClient labClient = new LabClient(authenticationClient);
+
+        mGuestUser = LabGuestAccountHelper.loadGuestAccountFromLab(getLabQuery());
     }
 
     @After

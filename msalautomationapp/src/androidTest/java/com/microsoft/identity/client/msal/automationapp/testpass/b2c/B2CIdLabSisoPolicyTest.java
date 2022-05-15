@@ -37,9 +37,7 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.b2c.B2CPromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.b2c.B2CProvider;
 import com.microsoft.identity.client.ui.automation.interaction.b2c.IdLabB2cSisoPolicyPromptHandler;
-import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -75,7 +73,7 @@ public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
     @Test
     public void testCanLoginWithLocalAndSocialAccounts() throws Throwable {
         final String username = mLoginHint;
-        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+        final String password = mLabAccount.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
 

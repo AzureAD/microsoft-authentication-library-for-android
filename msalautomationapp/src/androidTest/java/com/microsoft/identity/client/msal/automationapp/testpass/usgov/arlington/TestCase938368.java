@@ -85,7 +85,7 @@ public class TestCase938368 extends AbstractMsalUiTest {
     }
 
     @Override
-    public LabUserQuery getLabUserQuery() {
+    public LabUserQuery getLabQuery() {
         final LabUserQuery query = new LabUserQuery();
         query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT;
         query.userType = LabConstants.UserType.FEDERATED;

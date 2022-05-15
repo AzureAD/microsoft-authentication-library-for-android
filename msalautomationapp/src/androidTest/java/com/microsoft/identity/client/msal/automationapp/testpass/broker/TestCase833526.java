@@ -130,7 +130,7 @@ public class TestCase833526 extends AbstractMsalBrokerTest {
 
 
     @Override
-    public LabUserQuery getLabUserQuery() {
+    public LabUserQuery getLabQuery() {
         final LabUserQuery query = new LabUserQuery();
         query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CLOUD;
         query.protectionPolicy = LabConstants.ProtectionPolicy.MDM_CA;

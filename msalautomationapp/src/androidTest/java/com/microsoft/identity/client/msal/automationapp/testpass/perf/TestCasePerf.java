@@ -143,7 +143,7 @@ public class TestCasePerf extends AbstractMsalUiTest {
 
 
     @Override
-    public LabUserQuery getLabUserQuery() {
+    public LabUserQuery getLabQuery() {
         final LabUserQuery query = new LabUserQuery();
         query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CLOUD;
         return query;

@@ -36,9 +36,8 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.UiResponse;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
-import com.microsoft.identity.internal.testutils.labutils.LabConfig;
-import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Test;
 
@@ -52,7 +51,7 @@ public class TestCase497038 extends AbstractMsalUiTest {
     @Test
     public void test_497038() throws Throwable {
         final String username = mLoginHint;
-        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+        final String password = mLabAccount.getPassword();
 
         // uninstall the Azure Sample app to ensure clean state
         AzureSampleApp azureSampleApp = new AzureSampleApp();
@@ -83,7 +82,7 @@ public class TestCase497038 extends AbstractMsalUiTest {
         azureSampleApp.signInWithSingleAccountFragment(username, password, getBrowser(), true, microsoftStsPromptHandlerParameters);
 
         // sleep as it can take a bit for UPN to appear in Azure Sample app
-        Thread.sleep(TimeUnit.SECONDS.toMillis(5));
+        Thread.sleep(TimeUnit.SECONDS.toMillis(10));
 
         // make sure we are sign in into the Azure Sample app
         azureSampleApp.confirmSignedIn(username);
@@ -123,13 +122,13 @@ public class TestCase497038 extends AbstractMsalUiTest {
 
 
     @Override
-    public LabUserQuery getLabUserQuery() {
+    public LabUserQuery getLabQuery() {
         return null;
     }
 
     @Override
     public String getTempUserType() {
-        return LabConstants.TempUserType.BASIC;
+        return TempUserType.BASIC.name();
     }
 
     @Override

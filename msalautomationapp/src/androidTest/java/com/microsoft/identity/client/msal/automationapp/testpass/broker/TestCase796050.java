@@ -23,7 +23,6 @@
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
 import androidx.test.uiautomator.UiObject;
-
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
@@ -38,10 +37,9 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerPara
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
-import com.microsoft.identity.internal.testutils.labutils.LabConfig;
-import com.microsoft.identity.internal.testutils.labutils.LabConstants;
-import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
-import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.labapi.utilities.client.LabAccount;
+import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -59,11 +57,12 @@ public class TestCase796050 extends AbstractMsalBrokerTest {
 
         // already created test user
         final String username1 = mLoginHint;
-        final String password1 = LabConfig.getCurrentLabConfig().getLabUserPassword();
+        final String password1 = mLabAccount.getPassword();
 
         // create another temp user
-        final String username2 = LabUserHelper.loadTempUser(getTempUserType());
-        final String password2 = LabConfig.getCurrentLabConfig().getLabUserPassword();
+        final LabAccount labAccount = mLabClient.createTempAccount(TempUserType.MAM_CA);
+        final String username2 = labAccount.getUsername();
+        final String password2 = labAccount.getPassword();
 
         Assert.assertNotEquals(username1, username2);
 
@@ -152,13 +151,13 @@ public class TestCase796050 extends AbstractMsalBrokerTest {
 
 
     @Override
-    public LabUserQuery getLabUserQuery() {
+    public LabQuery getLabQuery() {
         return null;
     }
 
     @Override
     public String getTempUserType() {
-        return LabConstants.TempUserType.MAMCA;
+        return TempUserType.MAM_CA.name();
     }
 
     @Override

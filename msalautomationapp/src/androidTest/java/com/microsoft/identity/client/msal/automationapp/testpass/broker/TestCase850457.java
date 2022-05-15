@@ -22,8 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
-import android.os.Parcelable;
-
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
@@ -34,12 +32,10 @@ import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.internal.testutils.labutils.LabConfig;
-import com.microsoft.identity.internal.testutils.labutils.LabConstants;
-import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
-import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
-
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -52,7 +48,7 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
     @Test
     public void test_850457() throws Throwable {
         final String username = mLoginHint;
-        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+        final String password = mLabAccount.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
@@ -87,7 +83,7 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
             Therefore we have a Thread.sleep after first successful token acquisition before resetting password.
          */
         Thread.sleep(TimeUnit.MINUTES.toMillis(2));
-        LabUserHelper.resetPassword(username);
+        Assert.assertTrue(mLabClient.resetPassword(username));
 
         TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
 
@@ -126,12 +122,12 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
 
 
     @Override
-    public LabUserQuery getLabUserQuery() {
+    public LabQuery getLabQuery() {
         return null;
     }
 
     @Override
-    public String getTempUserType() { return LabConstants.TempUserType.MAMCA; }
+    public String getTempUserType() { return TempUserType.MAM_CA.name(); }
 
     @Override
     public String[] getScopes() {
@@ -147,6 +143,4 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
     public int getConfigFileResourceId() {
         return R.raw.msal_config_default;
     }
-
-
 }

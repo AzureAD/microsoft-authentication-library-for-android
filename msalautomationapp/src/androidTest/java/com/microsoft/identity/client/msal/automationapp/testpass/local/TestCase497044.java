@@ -84,7 +84,7 @@ public class TestCase497044 extends AbstractMsalUiTest {
 
 
     @Override
-    public LabUserQuery getLabUserQuery() {
+    public LabUserQuery getLabQuery() {
         final LabUserQuery query = new LabUserQuery();
         query.mfa = LabConstants.Mfa.AUTO_MFA_ON_ALL;
         return query;

@@ -47,7 +47,11 @@ import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
 import com.microsoft.identity.client.ui.automation.browser.IBrowser;
 import com.microsoft.identity.client.ui.automation.rules.RulesHelper;
 import com.microsoft.identity.common.internal.util.StringUtil;
-import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
+import com.microsoft.identity.labapi.utilities.authentication.LabApiAuthenticationClient;
+import com.microsoft.identity.labapi.utilities.client.LabAccount;
+import com.microsoft.identity.labapi.utilities.client.LabClient;
+import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -71,6 +75,9 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
     protected String[] mScopes;
     protected IAccount mAccount;
     protected IBrowser mBrowser;
+
+    protected LabClient mLabClient;
+    protected LabAccount mLabAccount;
     protected String mLoginHint;
 
     @Rule(order = 0)
@@ -98,10 +105,21 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
     }
 
     private void loadLabUser() {
-        if (getLabUserQuery() != null) {
-            mLoginHint = LabUserHelper.loadUserForTest(getLabUserQuery());
+        createLabClient();
+        if (getLabQuery() != null) {
+            try {
+                mLabAccount = mLabClient.getLabAccount(getLabQuery());
+            } catch (final LabApiException e) {
+                throw new AssertionError(e);
+            }
+            mLoginHint = mLabAccount.getUsername();
         } else if (getTempUserType() != null) {
-            mLoginHint = LabUserHelper.loadTempUser(getTempUserType());
+            try {
+                mLabAccount = mLabClient.createTempAccount(TempUserType.valueOf(getTempUserType()));
+            } catch (final LabApiException e) {
+                throw new AssertionError(e);
+            }
+            mLoginHint = mLabAccount.getUsername();
             try {
                 // temp user takes some time to actually being created even though it may be
                 // returned by the LAB API. Adding a wait here before we proceed with the test.
@@ -110,8 +128,20 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
                 throw new AssertionError(e);
             }
         } else {
-            throw new IllegalArgumentException("Both Lab User query and temp user type were null.");
+            throw new IllegalArgumentException("Both Lab query and temp user type were null.");
         }
+    }
+
+    private void createLabClient() {
+        // TODO: Find out why TestBuildConfig is not accessible here "cannot find symbol"
+//        final LabApiAuthenticationClient authenticationClient = new LabApiAuthenticationClient(
+//                TestBuildConfig.LAB_CLIENT_SECRET
+//        );
+
+        final LabApiAuthenticationClient authenticationClient = new LabApiAuthenticationClient(
+                "Uav7Q~g06Hwymk8I5WVc1iMLv4UieVDa4XDpB"
+        );
+        mLabClient = new LabClient(authenticationClient);
     }
 
     @After

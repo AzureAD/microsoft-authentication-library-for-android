@@ -165,7 +165,7 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabUserQuery getLabUserQuery() {
+    public LabUserQuery getLabQuery() {
         final LabUserQuery query = new LabUserQuery();
         query.userRole = LabConstants.UserRole.CLOUD_DEVICE_ADMINISTRATOR;
         return query;

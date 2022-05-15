@@ -23,7 +23,6 @@
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
 import androidx.test.uiautomator.UiObject;
-
 import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
@@ -40,10 +39,11 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadLoginComponentHandler;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
-import com.microsoft.identity.internal.testutils.labutils.LabConfig;
-import com.microsoft.identity.internal.testutils.labutils.LabConstants;
-import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
-import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.labapi.utilities.client.LabAccount;
+import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.constants.UserRole;
+import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -59,7 +59,7 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
     final static String MY_APPS_URL = "myapps.microsoft.com";
 
     @Test
-    public void test_833515() throws MsalException, InterruptedException {
+    public void test_833515() throws MsalException, InterruptedException, LabApiException {
         // pca should be in MULTIPLE account mode starting out
         Assert.assertTrue(mApplication instanceof MultipleAccountPublicClientApplication);
 
@@ -68,7 +68,7 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
 
         // perform shared device registration
         mBroker.performSharedDeviceRegistration(
-                mLoginHint, LabConfig.getCurrentLabConfig().getLabUserPassword()
+                mLoginHint, mLabAccount.getPassword()
         );
 
         // re-create PCA after device registration
@@ -81,10 +81,10 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         Assert.assertTrue(mApplication.isSharedDevice());
 
         //creating a basic temp user account
-        final String username = LabUserHelper.loadTempUser(LabConstants.TempUserType.BASIC);
-        String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+        final LabAccount labAccount = mLabClient.createTempAccount(TempUserType.BASIC);
+        final String username = labAccount.getUsername();
+        final String password = labAccount.getPassword();
         Thread.sleep(TimeUnit.SECONDS.toMillis(30));
-
 
         final SingleAccountPublicClientApplication singleAccountPCA =
                 (SingleAccountPublicClientApplication) mApplication;
@@ -175,10 +175,10 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabUserQuery getLabUserQuery() {
-        final LabUserQuery query = new LabUserQuery();
-        query.userRole = LabConstants.UserRole.CLOUD_DEVICE_ADMINISTRATOR;
-        return query;
+    public LabQuery getLabQuery() {
+        return LabQuery.builder()
+                .userRole(UserRole.CLOUD_DEVICE_ADMINISTRATOR)
+                .build();
     }
 
     @Override
