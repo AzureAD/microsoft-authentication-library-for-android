@@ -62,7 +62,8 @@
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="stateHidden"
             android:taskAffinity=""
-            android:documentLaunchMode="always">
+            android:documentLaunchMode="always"
+            android:configChanges="keyboardHidden|keyboard">
         </activity>
 
         <activity
