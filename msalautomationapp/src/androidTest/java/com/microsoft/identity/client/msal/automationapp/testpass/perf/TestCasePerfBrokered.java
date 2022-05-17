@@ -39,9 +39,9 @@ import com.microsoft.identity.client.ui.automation.logging.formatter.SimpleTextF
 import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
 import com.microsoft.identity.common.java.marker.CodeMarkerManager;
 import com.microsoft.identity.common.java.marker.PerfConstants;
-import com.microsoft.identity.internal.testutils.labutils.LabConfig;
-import com.microsoft.identity.internal.testutils.labutils.LabConstants;
-import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
+import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy;
 
 import org.junit.Test;
 
@@ -58,7 +58,8 @@ public class TestCasePerfBrokered extends AbstractMsalBrokerTest {
         final int numberOfOccurrenceOfTest = 10;
         final String outputFilenamePrefix = "PerfDataTargetBrokerHostWR"; // With Resource
         final String username = mLoginHint;
-        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+        final String password = mLabAccount.getPassword();
+
         //acquiring token
         final TokenRequestLatch latch = new TokenRequestLatch(1);
 
@@ -143,11 +144,11 @@ public class TestCasePerfBrokered extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabUserQuery getLabQuery() {
-        final LabUserQuery query = new LabUserQuery();
-        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CLOUD;
-        query.protectionPolicy = LabConstants.ProtectionPolicy.MAM_CA;
-        return query;
+    public LabQuery getLabQuery() {
+        return LabQuery.builder()
+                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
+                .protectionPolicy(ProtectionPolicy.MAM_CA)
+                .build();
     }
 
     @Override

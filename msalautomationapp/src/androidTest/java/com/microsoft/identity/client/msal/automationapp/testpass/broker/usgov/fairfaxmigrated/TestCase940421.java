@@ -35,9 +35,9 @@ import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequ
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.internal.testutils.labutils.LabConfig;
-import com.microsoft.identity.internal.testutils.labutils.LabConstants;
-import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import java.util.Arrays;
 
@@ -48,7 +48,7 @@ public class TestCase940421 extends AbstractMsalBrokerTest {
 
     public void test_940421() throws Throwable {
         final String username = mLoginHint;
-        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+        final String password = mLabAccount.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
 
@@ -97,11 +97,11 @@ public class TestCase940421 extends AbstractMsalBrokerTest {
 
 
     @Override
-    public LabUserQuery getLabQuery() {
-        final LabUserQuery query = new LabUserQuery();
-        query.userType = LabConstants.UserType.CLOUD;
-        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT_MIGRATED;
-        return query;
+    public LabQuery getLabQuery() {
+        return LabQuery.builder()
+                .userType(UserType.CLOUD)
+                .azureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT_MIGRATED)
+                .build();
     }
 
     @Override

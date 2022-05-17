@@ -28,21 +28,20 @@ import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
-import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
-import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AdfsPromptHandler;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
-import com.microsoft.identity.internal.testutils.labutils.LabConfig;
-import com.microsoft.identity.internal.testutils.labutils.LabConstants;
-import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
-import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.labapi.utilities.client.LabAccount;
+import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.FederationProvider;
+import com.microsoft.identity.labapi.utilities.constants.UserRole;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
+import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -55,7 +54,7 @@ import org.junit.Test;
 public class TestCase833513 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_833513() throws MsalException, InterruptedException {
+    public void test_833513() throws MsalException, InterruptedException, LabApiException {
         // pca should be in MULTIPLE account mode starting out
         Assert.assertTrue(mApplication instanceof MultipleAccountPublicClientApplication);
 
@@ -64,7 +63,7 @@ public class TestCase833513 extends AbstractMsalBrokerTest {
 
         // perform shared device registration
         mBroker.performSharedDeviceRegistration(
-                mLoginHint, LabConfig.getCurrentLabConfig().getLabUserPassword()
+                mLoginHint, mLabAccount.getPassword()
         );
 
         // re-create PCA after device registration
@@ -77,12 +76,14 @@ public class TestCase833513 extends AbstractMsalBrokerTest {
         Assert.assertTrue(mApplication.isSharedDevice());
 
         // query to load a user from a different tenant that was used for WPJ
-        final LabUserQuery query = new LabUserQuery();
-        query.userType = LabConstants.UserType.FEDERATED;
-        query.federationProvider = LabConstants.FederationProvider.ADFS_V3;
+        final LabQuery query = LabQuery.builder()
+                .userType(UserType.FEDERATED)
+                .federationProvider(FederationProvider.ADFS_V3)
+                .build();
 
-        final String username = LabUserHelper.loadUserForTest(query);
-        String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+        final LabAccount user2 = mLabClient.getLabAccount(query);
+        final String username = user2.getUsername();
+        String password = user2.getPassword();
 
         final SingleAccountPublicClientApplication singleAccountPCA =
                 (SingleAccountPublicClientApplication) mApplication;
@@ -111,10 +112,10 @@ public class TestCase833513 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabUserQuery getLabQuery() {
-        final LabUserQuery query = new LabUserQuery();
-        query.userRole = LabConstants.UserRole.CLOUD_DEVICE_ADMINISTRATOR;
-        return query;
+    public LabQuery getLabQuery() {
+        return LabQuery.builder()
+                .userRole(UserRole.CLOUD_DEVICE_ADMINISTRATOR)
+                .build();
     }
 
     @Override

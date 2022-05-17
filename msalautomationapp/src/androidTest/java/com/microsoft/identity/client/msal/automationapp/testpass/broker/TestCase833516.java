@@ -36,10 +36,12 @@ import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthent
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.internal.testutils.labutils.LabConfig;
-import com.microsoft.identity.internal.testutils.labutils.LabConstants;
-import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
-import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.labapi.utilities.client.LabAccount;
+import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
+import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy;
+import com.microsoft.identity.labapi.utilities.constants.UserRole;
+import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -50,7 +52,7 @@ import org.junit.Test;
 public class TestCase833516 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_833516() throws MsalException, InterruptedException {
+    public void test_833516() throws MsalException, InterruptedException, LabApiException {
         // pca should be in MULTIPLE account mode starting out
         Assert.assertTrue(mApplication instanceof MultipleAccountPublicClientApplication);
 
@@ -59,7 +61,7 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
 
         // perform shared device registration
         mBroker.performSharedDeviceRegistration(
-                mLoginHint, LabConfig.getCurrentLabConfig().getLabUserPassword()
+                mLoginHint, mLabAccount.getPassword()
         );
 
         // re-create PCA after device registration
@@ -72,11 +74,13 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
         Assert.assertTrue(mApplication.isSharedDevice());
 
         // query to load a user from a same tenant that was used for WPJ
-        final LabUserQuery query = new LabUserQuery();
-        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CLOUD;
+        final LabQuery query = LabQuery.builder()
+                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
+                .build();
 
-        final String username = LabUserHelper.loadUserForTest(query);
-        String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+        final LabAccount user2 = mLabClient.getLabAccount(query);
+        final String username = user2.getUsername();
+        String password = user2.getPassword();
 
         final SingleAccountPublicClientApplication singleAccountPCA =
                 (SingleAccountPublicClientApplication) mApplication;
@@ -103,26 +107,28 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
         // try sign in with a different account - it should fail
 
         // query to load another user from the same tenant
-        final LabUserQuery query2 = new LabUserQuery();
-        query2.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CLOUD;
-        query2.protectionPolicy = LabConstants.ProtectionPolicy.MAM_CA;
+        final LabQuery query2 = LabQuery.builder()
+                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
+                .protectionPolicy(ProtectionPolicy.MAM_CA)
+                .build();
 
-        final String anotherUserFromSameTenant = LabUserHelper.loadUserForTest(query2);
-        password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+        final LabAccount user3 = mLabClient.getLabAccount(query2);
+        final String username2 = user3.getUsername();
+        password = user3.getPassword();
 
         final TokenRequestLatch latch2 = new TokenRequestLatch(1);
 
         // try sign in with an account from the same tenant
-        singleAccountPCA.signIn(mActivity, anotherUserFromSameTenant, mScopes, failureInteractiveCallback(latch2, ErrorCodes.INVALID_PARAMETER));
+        singleAccountPCA.signIn(mActivity, username2, mScopes, failureInteractiveCallback(latch2, ErrorCodes.INVALID_PARAMETER));
 
         latch2.await(TokenRequestTimeout.MEDIUM);
     }
 
     @Override
-    public LabUserQuery getLabQuery() {
-        final LabUserQuery query = new LabUserQuery();
-        query.userRole = LabConstants.UserRole.CLOUD_DEVICE_ADMINISTRATOR;
-        return query;
+    public LabQuery getLabQuery() {
+        return LabQuery.builder()
+                .userRole(UserRole.CLOUD_DEVICE_ADMINISTRATOR)
+                .build();
     }
 
     @Override

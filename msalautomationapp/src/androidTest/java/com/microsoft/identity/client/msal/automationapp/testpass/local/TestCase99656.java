@@ -36,9 +36,8 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerPara
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.common.java.util.ThreadUtils;
-import com.microsoft.identity.internal.testutils.labutils.LabConfig;
-import com.microsoft.identity.internal.testutils.labutils.LabConstants;
-import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.Mfa;
 
 import org.junit.Test;
 
@@ -55,7 +54,7 @@ public class TestCase99656 extends AbstractMsalUiTest {
     @Test
     public void test_99656() throws Throwable {
         final String username = mLoginHint;
-        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+        final String password = mLabAccount.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
 
@@ -137,10 +136,10 @@ public class TestCase99656 extends AbstractMsalUiTest {
 
 
     @Override
-    public LabUserQuery getLabQuery() {
-        final LabUserQuery query = new LabUserQuery();
-        query.mfa = LabConstants.Mfa.AUTO_MFA_ON_ALL;
-        return query;
+    public LabQuery getLabQuery() {
+        return LabQuery.builder()
+                .mfa(Mfa.AUTO_MFA_ON_ALL)
+                .build();
     }
 
     @Override

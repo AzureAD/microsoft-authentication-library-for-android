@@ -40,9 +40,8 @@ import com.microsoft.identity.client.ui.automation.logging.formatter.SimpleTextF
 import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
 import com.microsoft.identity.common.java.marker.PerfConstants;
 import com.microsoft.identity.common.java.marker.CodeMarkerManager;
-import com.microsoft.identity.internal.testutils.labutils.LabConfig;
-import com.microsoft.identity.internal.testutils.labutils.LabConstants;
-import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 
 import org.junit.Test;
 
@@ -77,7 +76,7 @@ public class TestCasePerf extends AbstractMsalUiTest {
                     @Override
                     public void handleUserInteraction() {
                         final String username = mLoginHint;
-                        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+                        final String password = mLabAccount.getPassword();
 
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.SELECT_ACCOUNT)
@@ -143,10 +142,10 @@ public class TestCasePerf extends AbstractMsalUiTest {
 
 
     @Override
-    public LabUserQuery getLabQuery() {
-        final LabUserQuery query = new LabUserQuery();
-        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CLOUD;
-        return query;
+    public LabQuery getLabQuery() {
+        return LabQuery.builder()
+                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
+                .build();
     }
 
     @Override

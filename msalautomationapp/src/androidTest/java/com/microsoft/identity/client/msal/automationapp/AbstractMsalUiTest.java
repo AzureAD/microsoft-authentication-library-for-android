@@ -47,6 +47,7 @@ import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
 import com.microsoft.identity.client.ui.automation.browser.IBrowser;
 import com.microsoft.identity.client.ui.automation.rules.RulesHelper;
 import com.microsoft.identity.common.internal.util.StringUtil;
+import com.microsoft.identity.labapi.utilities.BuildConfig;
 import com.microsoft.identity.labapi.utilities.authentication.LabApiAuthenticationClient;
 import com.microsoft.identity.labapi.utilities.client.LabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabClient;
@@ -133,14 +134,10 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
     }
 
     private void createLabClient() {
-        // TODO: Find out why TestBuildConfig is not accessible here "cannot find symbol"
-//        final LabApiAuthenticationClient authenticationClient = new LabApiAuthenticationClient(
-//                TestBuildConfig.LAB_CLIENT_SECRET
-//        );
-
         final LabApiAuthenticationClient authenticationClient = new LabApiAuthenticationClient(
-                "Uav7Q~g06Hwymk8I5WVc1iMLv4UieVDa4XDpB"
+                BuildConfig.LAB_CLIENT_SECRET
         );
+
         mLabClient = new LabClient(authenticationClient);
     }
 
