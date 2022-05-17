@@ -186,10 +186,6 @@ dependencies {
         exclude module: 'common'
         exclude module: 'appcompat'
     }
-//    implementation(project(":testutils")) {
-//        exclude module: 'common'
-//        exclude module: 'appcompat'
-//    }
     implementation(project(":uiautomationutilities")) {
         exclude module: 'common'
         exclude module: 'appcompat'
