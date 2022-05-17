@@ -2,6 +2,7 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+- [MINOR] Upgrade msalautomationapp to use LabApiUtilities instead of testutils. (#1622)
 - [MINOR] Add prompt=create support. (#1611)
 - [PATCH] Ensure consistent TAGs in the logger (#1612)
 - [MAJOR] Deprecate methods not using TokenParameters (#1595)
