@@ -82,9 +82,9 @@ public class TestCase833513 extends AbstractMsalBrokerTest {
                 .federationProvider(FederationProvider.ADFS_V3)
                 .build();
 
-        final LabAccount user2 = mLabClient.getLabAccount(query);
-        final String username = user2.getUsername();
-        String password = user2.getPassword();
+        final LabAccount difTenantAccount = mLabClient.getLabAccount(query);
+        final String username = difTenantAccount.getUsername();
+        String password = difTenantAccount.getPassword();
 
         final SingleAccountPublicClientApplication singleAccountPCA =
                 (SingleAccountPublicClientApplication) mApplication;

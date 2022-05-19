@@ -34,7 +34,7 @@ public abstract class AbstractB2CTest extends AbstractMsalUiTest implements IB2C
     public LabQuery getLabQuery() {
         return LabQuery.builder()
                 .userType(UserType.B2C)
-                .b2cProvider(B2CProvider.valueOf(getB2cProvider().getProviderName()))
+                .b2cProvider(B2CProvider.fromName(getB2cProvider().getProviderName()))
                 .build();
     }
 

@@ -79,9 +79,9 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
                 .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
                 .build();
 
-        final LabAccount user2 = mLabClient.getLabAccount(query);
-        final String username = user2.getUsername();
-        String password = user2.getPassword();
+        final LabAccount sameTenantUser = mLabClient.getLabAccount(query);
+        final String username = sameTenantUser.getUsername();
+        String password = sameTenantUser.getPassword();
 
         final SingleAccountPublicClientApplication singleAccountPCA =
                 (SingleAccountPublicClientApplication) mApplication;
@@ -113,14 +113,13 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
                 .protectionPolicy(ProtectionPolicy.MAM_CA)
                 .build();
 
-        final LabAccount user3 = mLabClient.getLabAccount(query2);
-        final String username2 = user3.getUsername();
-        password = user3.getPassword();
+        final LabAccount difTenantUser = mLabClient.getLabAccount(query2);
+        final String difTenantUsername = difTenantUser.getUsername();
 
         final TokenRequestLatch latch2 = new TokenRequestLatch(1);
 
         // try sign in with an account from the same tenant
-        singleAccountPCA.signIn(mActivity, username2, mScopes, failureInteractiveCallback(latch2, ErrorCodes.INVALID_PARAMETER));
+        singleAccountPCA.signIn(mActivity, difTenantUsername, mScopes, failureInteractiveCallback(latch2, ErrorCodes.INVALID_PARAMETER));
 
         latch2.await(TokenRequestTimeout.MEDIUM);
     }
