@@ -33,8 +33,10 @@ import com.microsoft.identity.client.ui.automation.browser.IBrowser;
 import com.microsoft.identity.client.ui.automation.rules.RulesHelper;
 import com.microsoft.identity.common.java.net.HttpResponse;
 import com.microsoft.identity.common.java.net.UrlConnectionHttpClient;
+import com.microsoft.identity.labapi.utilities.BuildConfig;
+import com.microsoft.identity.labapi.utilities.authentication.LabApiAuthenticationClient;
+import com.microsoft.identity.labapi.utilities.client.LabClient;
 import com.microsoft.identity.labapi.utilities.client.LabGuestAccount;
-import com.microsoft.identity.labapi.utilities.client.LabGuestAccountHelper;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
@@ -58,13 +60,19 @@ public abstract class AbstractGuestAccountMsalUiTest implements IMsalTest, ILabT
     protected Activity mActivity;
     protected IBrowser mBrowser;
     protected LabGuestAccount mGuestUser;
+    protected LabClient mLabClient;
 
     @Before
     public void setup() throws LabApiException {
         mActivity = mActivityRule.getActivity();
         mBrowser = new BrowserChrome();
 
-        mGuestUser = LabGuestAccountHelper.loadGuestAccountFromLab(getLabQuery());
+        final LabApiAuthenticationClient authenticationClient = new LabApiAuthenticationClient(
+                BuildConfig.LAB_CLIENT_SECRET
+        );
+        mLabClient = new LabClient(authenticationClient);
+
+        mGuestUser = mLabClient.loadGuestAccountFromLab(getLabQuery());
     }
 
     @After

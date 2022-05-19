@@ -35,7 +35,6 @@ import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequ
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.labapi.utilities.client.LabGuestAccountHelper;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.GuestHomeAzureEnvironment;
@@ -75,7 +74,7 @@ public class TestCase1616315 extends AbstractGuestAccountMsalUiTest {
     @Test
     public void test_acquire_token_from_cross_cloud_after_acquiring_token_from_home_cloud() throws Throwable {
         final String userName = mGuestUser.getHomeUpn();
-        final String password = LabGuestAccountHelper.getPasswordForGuestUser(mGuestUser);
+        final String password = mLabClient.getPasswordForGuestUser(mGuestUser);
         mBrowser.clear();
         final OnInteractionRequired homeCloudInteractionHandler = () -> {
             mBrowser.handleFirstRun();

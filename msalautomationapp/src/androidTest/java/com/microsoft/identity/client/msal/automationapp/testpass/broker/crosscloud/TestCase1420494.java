@@ -35,7 +35,6 @@ import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequ
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.labapi.utilities.client.LabGuestAccountHelper;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.GuestHomeAzureEnvironment;
@@ -76,7 +75,7 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
     @Test
     public void test_1420494() throws Throwable {
         final String userName = mGuestUser.getHomeUpn();
-        final String password = LabGuestAccountHelper.getPasswordForGuestUser(mGuestUser);
+        final String password = mLabClient.getPasswordForGuestUser(mGuestUser);
 
         // Handler for Interactive auth call
         final OnInteractionRequired interactionHandler = () -> {

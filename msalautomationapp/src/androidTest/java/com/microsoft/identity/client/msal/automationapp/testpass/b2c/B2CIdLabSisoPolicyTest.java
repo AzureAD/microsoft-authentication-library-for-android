@@ -24,7 +24,6 @@ package com.microsoft.identity.client.msal.automationapp.testpass.b2c;
 
 import androidx.annotation.NonNull;
 
-import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
@@ -35,7 +34,7 @@ import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.b2c.B2CPromptHandlerParameters;
-import com.microsoft.identity.client.ui.automation.interaction.b2c.B2CProvider;
+import com.microsoft.identity.client.ui.automation.interaction.b2c.B2CProviderWrapper;
 import com.microsoft.identity.client.ui.automation.interaction.b2c.IdLabB2cSisoPolicyPromptHandler;
 
 import org.junit.Test;
@@ -47,27 +46,27 @@ import java.util.Arrays;
 @RunWith(Parameterized.class)
 public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
 
-    final static B2CProvider[] b2CProviders = new B2CProvider[]{
-            B2CProvider.Local,
-            B2CProvider.MSA,
-            B2CProvider.Google,
-            B2CProvider.Facebook,
+    final static B2CProviderWrapper[] b2CProviderWrappers = new B2CProviderWrapper[]{
+            B2CProviderWrapper.Local,
+            B2CProviderWrapper.MSA,
+            B2CProviderWrapper.Google,
+            B2CProviderWrapper.Facebook,
     };
 
     @Parameterized.Parameters(name = "{0}")
-    public static B2CProvider[] data() {
-        return b2CProviders;
+    public static B2CProviderWrapper[] data() {
+        return b2CProviderWrappers;
     }
 
-    private final B2CProvider mB2cProvider;
+    private final B2CProviderWrapper mB2cProviderWrapper;
 
-    public B2CIdLabSisoPolicyTest(@NonNull final B2CProvider b2CProvider) {
-        mB2cProvider = b2CProvider;
+    public B2CIdLabSisoPolicyTest(@NonNull final B2CProviderWrapper b2CProvider) {
+        mB2cProviderWrapper = b2CProvider;
     }
 
     @Override
-    public B2CProvider getB2cProvider() {
-        return mB2cProvider;
+    public B2CProviderWrapper getB2cProvider() {
+        return mB2cProviderWrapper;
     }
 
     @Test
