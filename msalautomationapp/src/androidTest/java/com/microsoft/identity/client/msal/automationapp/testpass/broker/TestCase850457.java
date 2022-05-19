@@ -47,7 +47,7 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
 
     @Test
     public void test_850457() throws Throwable {
-        final String username = mLoginHint;
+        final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
@@ -64,7 +64,7 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
             public void handleUserInteraction() {
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
-                        .loginHint(mLoginHint)
+                        .loginHint(username)
                         .sessionExpected(false)
                         .consentPageExpected(false)
                         .speedBumpExpected(false)
@@ -100,7 +100,7 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
             public void handleUserInteraction() {
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                         .prompt(PromptParameter.WHEN_REQUIRED)
-                        .loginHint(mLoginHint)
+                        .loginHint(username)
                         .sessionExpected(true)
                         .consentPageExpected(false)
                         .speedBumpExpected(false)
@@ -127,7 +127,7 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
     }
 
     @Override
-    public String getTempUserType() { return TempUserType.MAM_CA.name(); }
+    public TempUserType getTempUserType() { return TempUserType.MAM_CA; }
 
     @Override
     public String[] getScopes() {

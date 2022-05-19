@@ -183,7 +183,6 @@ dependencies {
     annotationProcessor "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
 
     implementation(project(":LabApiUtilities")) {
-        exclude module: 'common'
         exclude module: 'appcompat'
     }
     implementation(project(":uiautomationutilities")) {

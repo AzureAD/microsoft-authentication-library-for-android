@@ -65,8 +65,8 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
     @Parameterized.Parameters(name = "{0}")
     public static Collection guestHomeAzureEnvironment() {
         return Arrays.asList(new Object[][]{
-                {"AZURE_CHINA_CLOUD", GuestHomeAzureEnvironment.AZURE_CHINA_CLOUD},
-                {"AZURE_US_GOV", GuestHomeAzureEnvironment.AZURE_US_GOVERNMENT},
+                {"AZURE_CHINA_CLOUD", GuestHomeAzureEnvironment.AZURE_CHINA_CLOUD.toString()},
+                {"AZURE_US_GOV", GuestHomeAzureEnvironment.AZURE_US_GOVERNMENT.toString()},
         });
     }
 

@@ -56,7 +56,7 @@ public class TestCase796050 extends AbstractMsalBrokerTest {
     public void test_796050() throws Throwable {
 
         // already created test user
-        final String username1 = mLoginHint;
+        final String username1 = mLabAccount.getUsername();
         final String password1 = mLabAccount.getPassword();
 
         // create another temp user
@@ -156,8 +156,8 @@ public class TestCase796050 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public String getTempUserType() {
-        return TempUserType.MAM_CA.name();
+    public TempUserType getTempUserType() {
+        return TempUserType.MAM_CA;
     }
 
     @Override

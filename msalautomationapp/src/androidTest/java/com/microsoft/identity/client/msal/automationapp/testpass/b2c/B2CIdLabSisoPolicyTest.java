@@ -72,14 +72,14 @@ public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
 
     @Test
     public void testCanLoginWithLocalAndSocialAccounts() throws Throwable {
-        final String username = mLoginHint;
+        final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
 
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .loginHint(mLoginHint)
+                .loginHint(username)
                 .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
@@ -92,7 +92,7 @@ public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
 
                 final B2CPromptHandlerParameters promptHandlerParameters = B2CPromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
-                        .loginHint(mLoginHint)
+                        .loginHint(username)
                         .sessionExpected(false)
                         .consentPageExpected(false)
                         .speedBumpExpected(false)

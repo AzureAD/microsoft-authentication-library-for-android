@@ -47,14 +47,14 @@ public class TestCase99652 extends AbstractMsalUiTest {
 
     @Test
     public void test_99652() throws Throwable {
-        final String username = mLoginHint;
+        final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
 
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .loginHint(mLoginHint)
+                .loginHint(username)
                 .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
@@ -65,7 +65,7 @@ public class TestCase99652 extends AbstractMsalUiTest {
             public void handleUserInteraction() {
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
-                        .loginHint(mLoginHint)
+                        .loginHint(username)
                         .sessionExpected(false)
                         .consentPageExpected(true)
                         .speedBumpExpected(false)
@@ -82,7 +82,7 @@ public class TestCase99652 extends AbstractMsalUiTest {
         // do second request
         final MsalAuthTestParams forceLoginParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .loginHint(mLoginHint)
+                .loginHint(username)
                 .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.LOGIN)
                 .msalConfigResourceId(getConfigFileResourceId())
@@ -93,7 +93,7 @@ public class TestCase99652 extends AbstractMsalUiTest {
             public void handleUserInteraction() {
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                         .prompt(PromptParameter.LOGIN)
-                        .loginHint(mLoginHint)
+                        .loginHint(username)
                         .sessionExpected(true)
                         .consentPageExpected(false)
                         .speedBumpExpected(false)
@@ -114,8 +114,8 @@ public class TestCase99652 extends AbstractMsalUiTest {
     }
 
     @Override
-    public String getTempUserType() {
-        return TempUserType.BASIC.name();
+    public TempUserType getTempUserType() {
+        return TempUserType.BASIC;
     }
 
     @Override

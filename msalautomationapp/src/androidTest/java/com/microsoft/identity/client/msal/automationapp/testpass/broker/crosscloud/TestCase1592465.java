@@ -40,7 +40,6 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.GuestHomeAzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.GuestHomedIn;
-import com.microsoft.identity.labapi.utilities.constants.UserRole;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
@@ -68,7 +67,7 @@ public class TestCase1592465 extends AbstractGuestAccountMsalBrokerUiTest {
     @Parameterized.Parameters(name = "{0}")
     public static Collection guestHomeAzureEnvironment() {
         return Arrays.asList(new Object[][]{
-                {"AZURE_US_GOV", GuestHomeAzureEnvironment.AZURE_US_GOVERNMENT, /*homeCloud*/"https://login.microsoftonline.us", /*crossCloud*/"https://login.microsoftonline.com"},
+                {"AZURE_US_GOV", GuestHomeAzureEnvironment.AZURE_US_GOVERNMENT.toString(), /*homeCloud*/"https://login.microsoftonline.us", /*crossCloud*/"https://login.microsoftonline.com"},
         });
     }
 

@@ -38,6 +38,7 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
+import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Test;
 
@@ -49,7 +50,7 @@ public class TestCase938383 extends AbstractMsalUiTest {
 
     @Test
     public void test_938383() throws Throwable {
-        final String username = mLoginHint;
+        final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
@@ -108,7 +109,7 @@ public class TestCase938383 extends AbstractMsalUiTest {
     }
 
     @Override
-    public String getTempUserType() {
+    public TempUserType getTempUserType() {
         return null;
     }
 

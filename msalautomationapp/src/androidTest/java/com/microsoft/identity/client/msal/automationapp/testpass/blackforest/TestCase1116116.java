@@ -38,6 +38,7 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadP
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
+import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import java.util.Arrays;
@@ -50,21 +51,13 @@ public class TestCase1116116 extends AbstractMsalUiTest {
     public void test_1116116() throws Throwable {
         final TokenRequestLatch latch = new TokenRequestLatch(1);
 
-        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-                .withLoginHint(mLoginHint)
-                .startAuthorizationFromActivity(mActivity)
-                .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulInteractiveCallback(latch))
-                .withPrompt(Prompt.SELECT_ACCOUNT)
-                .build();
-
-        final String username = mLoginHint;
+        final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
 
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
-                .loginHint(mLoginHint)
+                .loginHint(username)
                 .activity(mActivity)
                 .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
@@ -78,7 +71,7 @@ public class TestCase1116116 extends AbstractMsalUiTest {
 
                 final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
-                        .loginHint(mLoginHint)
+                        .loginHint(username)
                         .sessionExpected(false)
                         .consentPageExpected(false)
                         .speedBumpExpected(true)
@@ -102,7 +95,7 @@ public class TestCase1116116 extends AbstractMsalUiTest {
     }
 
     @Override
-    public String getTempUserType() {
+    public TempUserType getTempUserType() {
         return null;
     }
 

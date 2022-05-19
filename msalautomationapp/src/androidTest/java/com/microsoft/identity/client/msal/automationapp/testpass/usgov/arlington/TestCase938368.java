@@ -36,6 +36,7 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.Micr
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
+import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Test;
@@ -49,14 +50,14 @@ public class TestCase938368 extends AbstractMsalUiTest {
 
     @Test
     public void test_938368() throws Throwable {
-        final String username = mLoginHint;
+        final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
 
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .loginHint(mLoginHint)
+                .loginHint(username)
                 .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
@@ -69,7 +70,7 @@ public class TestCase938368 extends AbstractMsalUiTest {
 
                 final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
-                        .loginHint(mLoginHint)
+                        .loginHint(username)
                         .sessionExpected(false)
                         .consentPageExpected(false)
                         .speedBumpExpected(true)
@@ -93,7 +94,7 @@ public class TestCase938368 extends AbstractMsalUiTest {
     }
 
     @Override
-    public String getTempUserType() {
+    public TempUserType getTempUserType() {
         return null;
     }
 

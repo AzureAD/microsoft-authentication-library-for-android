@@ -50,7 +50,7 @@ public class TestCase497038 extends AbstractMsalUiTest {
 
     @Test
     public void test_497038() throws Throwable {
-        final String username = mLoginHint;
+        final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
         // uninstall the Azure Sample app to ensure clean state
@@ -127,8 +127,8 @@ public class TestCase497038 extends AbstractMsalUiTest {
     }
 
     @Override
-    public String getTempUserType() {
-        return TempUserType.BASIC.name();
+    public TempUserType getTempUserType() {
+        return TempUserType.BASIC;
     }
 
     @Override

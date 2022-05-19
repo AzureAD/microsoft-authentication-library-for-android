@@ -42,6 +42,7 @@ import com.microsoft.identity.common.java.marker.PerfConstants;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy;
+import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Test;
 
@@ -57,7 +58,7 @@ public class TestCasePerfBrokered extends AbstractMsalBrokerTest {
         CodeMarkerManager codeMarkerManager = CodeMarkerManager.getInstance();
         final int numberOfOccurrenceOfTest = 10;
         final String outputFilenamePrefix = "PerfDataTargetBrokerHostWR"; // With Resource
-        final String username = mLoginHint;
+        final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
         //acquiring token
@@ -65,7 +66,7 @@ public class TestCasePerfBrokered extends AbstractMsalBrokerTest {
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(mLoginHint)
+                .withLoginHint(username)
                 .withCallback(successfulInteractiveCallback(latch))
                 .withPrompt(Prompt.SELECT_ACCOUNT)
                 .withResource(mScopes[0])
@@ -79,7 +80,7 @@ public class TestCasePerfBrokered extends AbstractMsalBrokerTest {
                     public void handleUserInteraction() {
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHint(mLoginHint)
+                                .loginHint(username)
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
@@ -152,7 +153,7 @@ public class TestCasePerfBrokered extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public String getTempUserType() {
+    public TempUserType getTempUserType() {
         return null;
     }
 

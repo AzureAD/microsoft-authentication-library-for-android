@@ -42,6 +42,7 @@ import com.microsoft.identity.common.java.marker.PerfConstants;
 import com.microsoft.identity.common.java.marker.CodeMarkerManager;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
+import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Test;
 
@@ -60,9 +61,12 @@ public class TestCasePerf extends AbstractMsalUiTest {
         final int numberOfOccurrenceOfTest = 10;
         final String outputFilenamePrefix = "PerfDataTarget";
 
+        final String username = mLabAccount.getUsername();
+        final String password = mLabAccount.getPassword();
+
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
-                .withLoginHint(mLoginHint)
+                .withLoginHint(username)
                 .withScopes(Arrays.asList(mScopes))
                 .withCallback(successfulInteractiveCallback(latch))
                 .withPrompt(Prompt.SELECT_ACCOUNT)
@@ -75,12 +79,9 @@ public class TestCasePerf extends AbstractMsalUiTest {
                 new OnInteractionRequired() {
                     @Override
                     public void handleUserInteraction() {
-                        final String username = mLoginHint;
-                        final String password = mLabAccount.getPassword();
-
                         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                                 .prompt(PromptParameter.SELECT_ACCOUNT)
-                                .loginHint(mLoginHint)
+                                .loginHint(username)
                                 .sessionExpected(false)
                                 .consentPageExpected(false)
                                 .speedBumpExpected(false)
@@ -149,7 +150,7 @@ public class TestCasePerf extends AbstractMsalUiTest {
     }
 
     @Override
-    public String getTempUserType() {
+    public TempUserType getTempUserType() {
         return null;
     }
 

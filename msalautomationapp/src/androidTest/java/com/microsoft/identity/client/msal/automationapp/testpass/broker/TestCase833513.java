@@ -39,6 +39,7 @@ import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.labapi.utilities.client.LabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.FederationProvider;
+import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserRole;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 import com.microsoft.identity.labapi.utilities.exception.LabApiException;
@@ -63,7 +64,7 @@ public class TestCase833513 extends AbstractMsalBrokerTest {
 
         // perform shared device registration
         mBroker.performSharedDeviceRegistration(
-                mLoginHint, mLabAccount.getPassword()
+                mLabAccount.getUsername(), mLabAccount.getPassword()
         );
 
         // re-create PCA after device registration
@@ -119,7 +120,7 @@ public class TestCase833513 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public String getTempUserType() {
+    public TempUserType getTempUserType() {
         return null;
     }
 

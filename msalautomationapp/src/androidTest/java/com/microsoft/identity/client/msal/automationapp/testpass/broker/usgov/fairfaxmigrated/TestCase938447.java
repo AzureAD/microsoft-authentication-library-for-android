@@ -35,6 +35,7 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
+import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import java.util.Arrays;
@@ -44,7 +45,7 @@ import java.util.Arrays;
 public class TestCase938447 extends AbstractMsalBrokerTest {
 
     public void test_938447() throws Throwable {
-        final String username = mLoginHint;
+        final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
         // perform device registration (will obtain PRT in Broker for supplied account)
@@ -54,7 +55,7 @@ public class TestCase938447 extends AbstractMsalBrokerTest {
 
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .loginHint(mLoginHint)
+                .loginHint(username)
                 .scopes((Arrays.asList(mScopes)))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
@@ -93,7 +94,7 @@ public class TestCase938447 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public String getTempUserType() {
+    public TempUserType getTempUserType() {
         return null;
     }
 

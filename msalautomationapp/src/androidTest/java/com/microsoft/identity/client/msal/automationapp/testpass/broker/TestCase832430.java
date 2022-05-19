@@ -37,6 +37,7 @@ import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequ
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy;
+import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Test;
 
@@ -48,7 +49,7 @@ public class TestCase832430 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_832430() throws Throwable {
-        final String username = mLoginHint;
+        final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
@@ -56,7 +57,7 @@ public class TestCase832430 extends AbstractMsalBrokerTest {
         //acquiring token
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .loginHint(mLoginHint)
+                .loginHint(username)
                 .resource(mScopes[0])
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
@@ -67,7 +68,7 @@ public class TestCase832430 extends AbstractMsalBrokerTest {
             public void handleUserInteraction() {
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
-                        .loginHint(mLoginHint)
+                        .loginHint(username)
                         .sessionExpected(false)
                         .consentPageExpected(false)
                         .speedBumpExpected(false)
@@ -124,7 +125,7 @@ public class TestCase832430 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public String getTempUserType() {
+    public TempUserType getTempUserType() {
         return null;
     }
 

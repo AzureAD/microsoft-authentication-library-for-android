@@ -79,7 +79,6 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
 
     protected LabClient mLabClient;
     protected LabAccount mLabAccount;
-    protected String mLoginHint;
 
     @Rule(order = 0)
     public RuleChain primaryRules = getPrimaryRules();
@@ -93,6 +92,12 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
 
     @Before
     public void setup() {
+        final LabApiAuthenticationClient authenticationClient = new LabApiAuthenticationClient(
+                BuildConfig.LAB_CLIENT_SECRET
+        );
+
+        mLabClient = new LabClient(authenticationClient);
+
         mActivity = mActivityRule.getActivity();
         loadLabUser();
         mScopes = getScopes();
@@ -106,21 +111,18 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
     }
 
     private void loadLabUser() {
-        createLabClient();
         if (getLabQuery() != null) {
             try {
                 mLabAccount = mLabClient.getLabAccount(getLabQuery());
             } catch (final LabApiException e) {
                 throw new AssertionError(e);
             }
-            mLoginHint = mLabAccount.getUsername();
         } else if (getTempUserType() != null) {
             try {
-                mLabAccount = mLabClient.createTempAccount(TempUserType.valueOf(getTempUserType()));
+                mLabAccount = mLabClient.createTempAccount(getTempUserType());
             } catch (final LabApiException e) {
                 throw new AssertionError(e);
             }
-            mLoginHint = mLabAccount.getUsername();
             try {
                 // temp user takes some time to actually being created even though it may be
                 // returned by the LAB API. Adding a wait here before we proceed with the test.
@@ -131,14 +133,6 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
         } else {
             throw new IllegalArgumentException("Both Lab query and temp user type were null.");
         }
-    }
-
-    private void createLabClient() {
-        final LabApiAuthenticationClient authenticationClient = new LabApiAuthenticationClient(
-                BuildConfig.LAB_CLIENT_SECRET
-        );
-
-        mLabClient = new LabClient(authenticationClient);
     }
 
     @After

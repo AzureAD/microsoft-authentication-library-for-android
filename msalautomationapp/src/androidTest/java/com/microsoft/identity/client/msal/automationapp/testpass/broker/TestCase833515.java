@@ -68,7 +68,7 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
 
         // perform shared device registration
         mBroker.performSharedDeviceRegistration(
-                mLoginHint, mLabAccount.getPassword()
+                mLabAccount.getUsername(), mLabAccount.getPassword()
         );
 
         // re-create PCA after device registration
@@ -182,7 +182,7 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public String getTempUserType() {
+    public TempUserType getTempUserType() {
         return null;
     }
 }

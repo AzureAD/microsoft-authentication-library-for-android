@@ -25,6 +25,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.b2c;
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.B2CProvider;
+import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 public abstract class AbstractB2CTest extends AbstractMsalUiTest implements IB2CTest {
@@ -38,7 +39,7 @@ public abstract class AbstractB2CTest extends AbstractMsalUiTest implements IB2C
     }
 
     @Override
-    public String getTempUserType() {
+    public TempUserType getTempUserType() {
         return null;
     }
 
