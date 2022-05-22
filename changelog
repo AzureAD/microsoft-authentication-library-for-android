@@ -6,6 +6,7 @@ vNext
 - [PATCH] Ensure consistent TAGs in the logger (#1612)
 - [MAJOR] Deprecate methods not using TokenParameters (#1595)
 - [PATCH] Update gson version to 2.8.9
+- [MINOR] Updated test app to support shared device mode.
 
 Version 3.0.2
 ----------
