@@ -22,6 +22,10 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.testapp;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 
@@ -37,6 +41,7 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.util.Log;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.RelativeLayout;
@@ -77,11 +82,14 @@ public class MainActivity extends AppCompatActivity
         AcquireTokenFragment.OnFragmentInteractionListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
+    private static final String CURRENT_ACCOUNT_CHANGED_BROADCAST_IDENTIFIER = "com.microsoft.identity.client.sharedmode.CURRENT_ACCOUNT_CHANGED";
 
     private String mStringResult;
     private IAuthenticationResult mAuthResult;
 
     private RelativeLayout mContentMain;
+
+    private BroadcastReceiver mAccountChangedBroadcastReceiver;
 
     /**
      * When initializing the {@link PublicClientApplication}, all the apps should only provide us the application context instead of
@@ -156,6 +164,21 @@ public class MainActivity extends AppCompatActivity
             // auto select the first item
             onNavigationItemSelected(navigationView.getMenu().getItem(0));
         }
+
+        registerAccountChangeBroadcastReceiver();
+
+
+    }
+
+    private void registerAccountChangeBroadcastReceiver(){
+        mAccountChangedBroadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Log.i("BroadCastReceiver", "broadcast received");
+            }
+        };
+        IntentFilter filter = new IntentFilter(CURRENT_ACCOUNT_CHANGED_BROADCAST_IDENTIFIER);
+        this.registerReceiver(mAccountChangedBroadcastReceiver, filter);
     }
 
     private Fragment getCurrentFragment(){
@@ -264,4 +287,11 @@ public class MainActivity extends AppCompatActivity
             }
         });
     }
+
+    @Override
+    protected void onDestroy(){
+        super.onDestroy();
+        this.unregisterReceiver(mAccountChangedBroadcastReceiver);
+    }
+
 }
