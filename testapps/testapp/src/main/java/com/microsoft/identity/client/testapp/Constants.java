@@ -42,7 +42,8 @@ public class Constants {
         B2C,
         MSA,
         MSA_ONLY,
-        NO_ADMIN_CONSENT
+        NO_ADMIN_CONSENT,
+        SHARED_DEVICE_MODE
     }
 
     public static int getResourceIdFromConfigFile(ConfigFile configFile) {
@@ -85,6 +86,9 @@ public class Constants {
 
             case NO_ADMIN_CONSENT:
                 return R.raw.msal_config_no_admin_consent;
+
+            case SHARED_DEVICE_MODE:
+                return R.raw.msal_config_shared_device_mode;
         }
 
         return R.raw.msal_config_default;
