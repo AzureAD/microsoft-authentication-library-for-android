@@ -36,7 +36,7 @@ import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthent
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.labapi.utilities.client.LabAccount;
+import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy;
@@ -79,7 +79,7 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
                 .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
                 .build();
 
-        final LabAccount sameTenantUser = mLabClient.getLabAccount(query);
+        final ILabAccount sameTenantUser = mLabClient.getLabAccount(query);
         final String username = sameTenantUser.getUsername();
         String password = sameTenantUser.getPassword();
 
@@ -113,7 +113,7 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
                 .protectionPolicy(ProtectionPolicy.MAM_CA)
                 .build();
 
-        final LabAccount difTenantUser = mLabClient.getLabAccount(query2);
+        final ILabAccount difTenantUser = mLabClient.getLabAccount(query2);
         final String difTenantUsername = difTenantUser.getUsername();
 
         final TokenRequestLatch latch2 = new TokenRequestLatch(1);

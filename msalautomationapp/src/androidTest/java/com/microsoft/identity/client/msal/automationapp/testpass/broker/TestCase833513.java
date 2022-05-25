@@ -36,7 +36,7 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerPara
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AdfsPromptHandler;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
-import com.microsoft.identity.labapi.utilities.client.LabAccount;
+import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.FederationProvider;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
@@ -82,7 +82,7 @@ public class TestCase833513 extends AbstractMsalBrokerTest {
                 .federationProvider(FederationProvider.ADFS_V3)
                 .build();
 
-        final LabAccount difTenantAccount = mLabClient.getLabAccount(query);
+        final ILabAccount difTenantAccount = mLabClient.getLabAccount(query);
         final String username = difTenantAccount.getUsername();
         String password = difTenantAccount.getPassword();
 

@@ -49,9 +49,8 @@ import com.microsoft.identity.client.ui.automation.rules.RulesHelper;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.labapi.utilities.BuildConfig;
 import com.microsoft.identity.labapi.utilities.authentication.LabApiAuthenticationClient;
-import com.microsoft.identity.labapi.utilities.client.LabAccount;
+import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabClient;
-import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
 import org.junit.After;
@@ -78,7 +77,7 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
     protected IBrowser mBrowser;
 
     protected LabClient mLabClient;
-    protected LabAccount mLabAccount;
+    protected ILabAccount mLabAccount;
 
     @Rule(order = 0)
     public RuleChain primaryRules = getPrimaryRules();

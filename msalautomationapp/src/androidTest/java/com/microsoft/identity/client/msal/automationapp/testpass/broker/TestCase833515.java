@@ -39,7 +39,7 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadLoginComponentHandler;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
-import com.microsoft.identity.labapi.utilities.client.LabAccount;
+import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserRole;
@@ -81,7 +81,7 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         Assert.assertTrue(mApplication.isSharedDevice());
 
         //creating a basic temp user account
-        final LabAccount labAccount = mLabClient.createTempAccount(TempUserType.BASIC);
+        final ILabAccount labAccount = mLabClient.createTempAccount(TempUserType.BASIC);
         final String username = labAccount.getUsername();
         final String password = labAccount.getPassword();
         Thread.sleep(TimeUnit.SECONDS.toMillis(30));

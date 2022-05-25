@@ -41,7 +41,7 @@ import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
-import com.microsoft.identity.labapi.utilities.client.LabAccount;
+import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserRole;
@@ -86,7 +86,7 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
                 .build();
 
         // get username and password for this account
-        final LabAccount user2 = mLabClient.getLabAccount(query);
+        final ILabAccount user2 = mLabClient.getLabAccount(query);
         final String username = user2.getUsername();
         String password = user2.getPassword();
 

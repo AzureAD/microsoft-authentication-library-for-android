@@ -37,7 +37,7 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerPara
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
-import com.microsoft.identity.labapi.utilities.client.LabAccount;
+import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
@@ -60,7 +60,7 @@ public class TestCase796050 extends AbstractMsalBrokerTest {
         final String password1 = mLabAccount.getPassword();
 
         // create another temp user
-        final LabAccount labAccount = mLabClient.createTempAccount(TempUserType.MAM_CA);
+        final ILabAccount labAccount = mLabClient.createTempAccount(TempUserType.MAM_CA);
         final String username2 = labAccount.getUsername();
         final String password2 = labAccount.getPassword();
 
