@@ -33,9 +33,10 @@ import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.internal.testutils.labutils.LabConfig;
-import com.microsoft.identity.internal.testutils.labutils.LabConstants;
-import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
+import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+
 
 import org.junit.Test;
 
@@ -46,8 +47,8 @@ import java.util.Arrays;
 public class TestCase1561125 extends AbstractMsalBrokerTest {
     @Test
     public void test_1561125() throws Throwable {
-        final String username = mLoginHint;
-        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+        final String username = mLabAccount.getUsername();
+        final String password = mLabAccount.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
         // create claims request object
@@ -62,7 +63,7 @@ public class TestCase1561125 extends AbstractMsalBrokerTest {
 
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .loginHint(mLoginHint)
+                .loginHint(username)
                 .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.LOGIN)
                 .claims(claimsRequest)
@@ -93,14 +94,14 @@ public class TestCase1561125 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabUserQuery getLabUserQuery() {
-        final LabUserQuery query = new LabUserQuery();
-        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CLOUD;
-        return query;
+    public LabQuery getLabQuery() {
+        return LabQuery.builder()
+                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
+                .build();
     }
 
     @Override
-    public String getTempUserType() {
+    public TempUserType getTempUserType() {
         return null;
     }
 

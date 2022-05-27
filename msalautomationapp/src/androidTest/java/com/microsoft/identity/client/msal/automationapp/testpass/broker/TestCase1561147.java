@@ -35,9 +35,10 @@ import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequ
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
-import com.microsoft.identity.internal.testutils.labutils.LabConfig;
-import com.microsoft.identity.internal.testutils.labutils.LabConstants;
-import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
+import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Test;
 
@@ -49,14 +50,14 @@ import java.util.Arrays;
 public class TestCase1561147 extends AbstractMsalBrokerTest {
     @Test
     public void test_1561147() throws Throwable {
-        final String username = mLoginHint;
-        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+        final String username = mLabAccount.getUsername();
+        final String password = mLabAccount.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
 
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .loginHint(mLoginHint)
+                .loginHint(username)
                 .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
@@ -67,7 +68,7 @@ public class TestCase1561147 extends AbstractMsalBrokerTest {
             public void handleUserInteraction() {
                 final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
-                        .loginHint(mLoginHint)
+                        .loginHint(username)
                         .sessionExpected(false)
                         .consentPageExpected(false)
                         .isFederated(true)
@@ -96,15 +97,15 @@ public class TestCase1561147 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabUserQuery getLabUserQuery() {
-        final LabUserQuery query = new LabUserQuery();
-        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT;
-        query.userType = LabConstants.UserType.FEDERATED;
-        return query;
+    public LabQuery getLabQuery() {
+        return LabQuery.builder()
+                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
+                .userType(UserType.FEDERATED)
+                .build();
     }
 
     @Override
-    public String getTempUserType() {
+    public TempUserType getTempUserType() {
         return null;
     }
 

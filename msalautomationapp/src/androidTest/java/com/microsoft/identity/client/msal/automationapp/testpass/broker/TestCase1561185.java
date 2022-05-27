@@ -22,41 +22,27 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
-import static com.microsoft.identity.client.ui.automation.utils.CommonUtils.FIND_UI_ELEMENT_TIMEOUT;
-import static org.junit.Assert.fail;
-
-import androidx.test.uiautomator.UiObject;
-import androidx.test.uiautomator.UiObjectNotFoundException;
-
-import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
-import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
-import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
-import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.IMdmAgent;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.UiResponse;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler;
-import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
-import com.microsoft.identity.internal.testutils.labutils.LabConfig;
-import com.microsoft.identity.internal.testutils.labutils.LabConstants;
-import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
-import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
+import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy;
+import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 
 // [Joined][MSAL] PKeyAuth flow
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561185
@@ -64,14 +50,14 @@ import java.util.concurrent.TimeUnit;
 public class TestCase1561185 extends AbstractMsalBrokerTest {
     @Test
     public void test_1561185() throws Throwable {
-        final String username = mLoginHint;
-        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+        final String username = mLabAccount.getUsername();
+        final String password = mLabAccount.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
 
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .loginHint(mLoginHint)
+                .loginHint(username)
                 .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
@@ -142,15 +128,15 @@ public class TestCase1561185 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabUserQuery getLabUserQuery() {
-        final LabUserQuery query = new LabUserQuery();
-        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CLOUD;
-        query.protectionPolicy = LabConstants.ProtectionPolicy.MDM_CA;
-        return query;
+    public LabQuery getLabQuery() {
+        return LabQuery.builder()
+                .protectionPolicy(ProtectionPolicy.MDM_CA)
+                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
+                .build();
     }
 
     @Override
-    public String getTempUserType() {
+    public TempUserType getTempUserType() {
         return null;
     }
 
