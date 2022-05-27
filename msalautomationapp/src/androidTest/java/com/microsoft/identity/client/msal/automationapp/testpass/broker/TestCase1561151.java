@@ -46,7 +46,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
-//[Joined][MSAL] Password Change
+// [Joined][MSAL] Password Change
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561151
 @SupportedBrokers(brokers = BrokerCompanyPortal.class)
 public class TestCase1561151 extends AbstractMsalBrokerTest {
