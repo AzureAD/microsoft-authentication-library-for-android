@@ -33,11 +33,8 @@ import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
-import com.microsoft.identity.client.ui.automation.broker.IMdmAgent;
-import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
-import com.microsoft.identity.client.ui.automation.interaction.UiResponse;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.internal.testutils.labutils.LabConfig;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
@@ -49,8 +46,8 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
+//[Joined][MSAL] Password Change
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561151
-@RetryOnFailure(retryCount = 2)
 @SupportedBrokers(brokers = BrokerCompanyPortal.class)
 public class TestCase1561151 extends AbstractMsalBrokerTest {
     @Test
@@ -127,7 +124,7 @@ public class TestCase1561151 extends AbstractMsalBrokerTest {
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-        final MsalAuthResult authResult2 = msalSdk.acquireTokenInteractive(msalAuthTestParams2, new com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired() {
+        final MsalAuthResult authResultPostPwdChange = msalSdk.acquireTokenInteractive(msalAuthTestParams2, new com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
@@ -146,9 +143,9 @@ public class TestCase1561151 extends AbstractMsalBrokerTest {
             }
         }, TokenRequestTimeout.MEDIUM);
 
-        System.out.println("Completed acquireTokenInteractive");
+        System.out.println("Completed acquireTokenInteractive post password change");
 
-        authResult2.assertSuccess();
+        authResultPostPwdChange.assertSuccess();
     }
 
     @Override
