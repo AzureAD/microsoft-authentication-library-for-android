@@ -47,7 +47,6 @@ import java.util.Arrays;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561147
 @SupportedBrokers(brokers = BrokerCompanyPortal.class)
 public class TestCase1561147 extends AbstractMsalBrokerTest {
-
     @Test
     public void test_1561147() throws Throwable {
         final String username = mLoginHint;
