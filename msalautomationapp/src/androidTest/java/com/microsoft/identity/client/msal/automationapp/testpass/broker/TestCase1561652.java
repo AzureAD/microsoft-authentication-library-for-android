@@ -42,15 +42,15 @@ public class TestCase1561652 extends AbstractMsalBrokerTest {
 
         mBroker.performDeviceRegistration(username, password);
 
+        final String nonce = "testNonce";
         // Get SSO token and decode to confirm nonce
-        ((BrokerHost) mBroker).confirmNoncePresent();
+        final String ssoToken = ((BrokerHost) mBroker).acquireSSOToken(nonce);
+        ((BrokerHost) mBroker).decodeSSOTokenAndVerifyNonce(ssoToken, nonce);
     }
 
     @Override
     public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-                .build();
+        return null;
     }
 
     @Override

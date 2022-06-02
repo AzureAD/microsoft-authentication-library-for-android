@@ -1,6 +1,8 @@
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
 import com.microsoft.identity.client.msal.automationapp.R;
+import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
+import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
@@ -10,6 +12,7 @@ import org.junit.Test;
 
 // Flight settings
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561087
+@SupportedBrokers(brokers = BrokerHost.class)
 public class TestCase1561087  extends  AbstractMsalBrokerTest {
     @Test
     public void test_1561087() throws Throwable {

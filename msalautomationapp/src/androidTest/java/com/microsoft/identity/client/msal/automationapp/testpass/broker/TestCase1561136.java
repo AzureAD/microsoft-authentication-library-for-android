@@ -59,7 +59,6 @@ public class TestCase1561136 extends AbstractMsalBrokerTest {
 
         // Make an interactive call with MSAL
         final MsalSdk msalSdk = new MsalSdk();
-
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
@@ -105,9 +104,7 @@ public class TestCase1561136 extends AbstractMsalBrokerTest {
 
     @Override
     public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-                .build();
+        return null;
     }
 
     @Override

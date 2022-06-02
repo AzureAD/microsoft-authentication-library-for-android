@@ -32,55 +32,57 @@ import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+
 import org.junit.Test;
 
 // Invoke each API from non-allowed apps. the request should be blocked.
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1600567
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
-public class TestCase1600567 extends  AbstractMsalBrokerTest{
+public class TestCase1600567 extends AbstractMsalBrokerTest {
     @Test
     public void test_1600567() throws Throwable {
         final BrokerHost brokerHost = new BrokerHost();
         brokerHost.install();
         brokerHost.launch();
 
+        // verify getAccounts call gives calling app not verified
         UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/buttonGetAccounts");
         brokerHost.confirmCallingAppNotVerified();
 
-
-        UiAutomatorUtils.obtainChildInScrollable("someone@contoso.com");
-        UiAutomatorUtils.handleInput("com.microsoft.identity.testuserapp:id/editTextUsername", "test@microsoft.com");
+        // verify removeAccount call gives calling app not verified
+        final UiObject usernameTxt = UiAutomatorUtils.obtainChildInScrollable("someone@contoso.com");
+        usernameTxt.setText("test@microsoft.com");
         final UiObject removeAccount = UiAutomatorUtils.obtainUiObjectWithResourceId(
                 "com.microsoft.identity.testuserapp:id/buttonRemoveAccount"
         );
         removeAccount.click();
         brokerHost.confirmCallingAppNotVerified();
 
-        // update BRT
+        // verify update BRT call gives calling app not verified
         // fill BRT
-        UiAutomatorUtils.obtainChildInScrollable("Broker RT");
-        UiAutomatorUtils.handleInput("com.microsoft.identity.testuserapp:id/editTextBrokerRT", "5e0c0ce6-0f40-4738-b2d4-3d83a5a2b555");
+        final UiObject brokerRTTxt = UiAutomatorUtils.obtainChildInScrollable("Broker RT");
+        brokerRTTxt.setText("5e0c0ce6-0f40-4738-b2d4-3d83a5a2b555");
         // fill home authority
-        UiAutomatorUtils.obtainChildInScrollable("Update BRT in Broker");
-        UiAutomatorUtils.handleInput("com.microsoft.identity.testuserapp:id/editTextHomeAuthority", "https://login.microsoftonline.com/common");
-
+        final UiObject homeAuthorityTxt = UiAutomatorUtils.obtainChildInScrollable("Home Authority");
+        homeAuthorityTxt.setText("https://login.microsoftonline.com/common");
         // click on update BRT
         UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/buttonUpdateBRT");
         brokerHost.confirmCallingAppNotVerified();
 
+        // verify setFlights call gives calling app not verified
         brokerHost.setFlights("{test : true}");
         brokerHost.confirmCallingAppNotVerified();
-        UiAutomatorUtils.obtainChildInScrollable("Get Flights");
-        UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/getFlightsButton");
+
+        // verify getFlights call gives calling app not verified
+        final UiObject getFlightsBtn = UiAutomatorUtils.obtainChildInScrollable("Get Flights");
+        getFlightsBtn.click();
         brokerHost.confirmCallingAppNotVerified();
     }
 
 
     @Override
     public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-                .build();
+        return null;
     }
 
     @Override
