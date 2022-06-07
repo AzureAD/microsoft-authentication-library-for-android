@@ -31,6 +31,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
+import com.microsoft.identity.client.ui.automation.broker.IMdmAgent;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler;
@@ -53,13 +54,15 @@ public class TestCase1561147 extends AbstractMsalBrokerTest {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
+        // enroll device in MDM via the Company Portal app.
+        ((BrokerCompanyPortal) mBroker).enrollDevice(username, password, true);
         final MsalSdk msalSdk = new MsalSdk();
 
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
                 .scopes(Arrays.asList(mScopes))
-                .promptParameter(Prompt.SELECT_ACCOUNT)
+                .promptParameter(Prompt.LOGIN)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
@@ -67,7 +70,7 @@ public class TestCase1561147 extends AbstractMsalBrokerTest {
             @Override
             public void handleUserInteraction() {
                 final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
-                        .prompt(PromptParameter.SELECT_ACCOUNT)
+                        .prompt(PromptParameter.LOGIN)
                         .loginHint(username)
                         .sessionExpected(false)
                         .consentPageExpected(false)
@@ -77,7 +80,7 @@ public class TestCase1561147 extends AbstractMsalBrokerTest {
                 new MicrosoftStsPromptHandler(promptHandlerParameters)
                         .handlePrompt(username, password);
             }
-        }, TokenRequestTimeout.MEDIUM);
+        }, TokenRequestTimeout.LONG);
 
         authResult.assertSuccess();
 
