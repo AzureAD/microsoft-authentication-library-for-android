@@ -52,7 +52,7 @@ public class TestCase1561137 extends AbstractMsalBrokerTest {
 
         BrokerHost brokerHost = (BrokerHost) mBroker;
         // Check getAccounts returns 0 accounts initially
-        Assert.assertEquals(brokerHost.getAllAccounts(false).size(), 0);
+        Assert.assertEquals(0, brokerHost.getAllAccounts(false).size());
 
         final MsalSdk msalSdk = new MsalSdk();
 
@@ -82,12 +82,12 @@ public class TestCase1561137 extends AbstractMsalBrokerTest {
         authResult.assertSuccess();
 
         // Check getAccounts returns the account added
-        Assert.assertEquals(brokerHost.getAllAccounts(false).size(), 1);
+        Assert.assertEquals(1, brokerHost.getAllAccounts(false).size());
 
         // Remove the added account
         brokerHost.removeAccount(username);
         // Check getAccounts returns 0 accounts after removal
-        Assert.assertEquals(brokerHost.getAllAccounts(false).size(), 0);
+        Assert.assertEquals(0, brokerHost.getAllAccounts(false).size());
     }
 
     @Override

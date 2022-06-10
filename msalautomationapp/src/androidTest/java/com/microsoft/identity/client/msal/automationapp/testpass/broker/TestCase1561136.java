@@ -55,7 +55,7 @@ public class TestCase1561136 extends AbstractMsalBrokerTest {
 
         BrokerHost brokerHost = (BrokerHost) mBroker;
         // Get accounts without signing in, does not return any accounts
-        Assert.assertEquals(brokerHost.getAllAccounts(false).size(), 0);
+        Assert.assertEquals(0, brokerHost.getAllAccounts(false).size());
 
         // Make an interactive call with MSAL
         final MsalSdk msalSdk = new MsalSdk();
@@ -86,7 +86,7 @@ public class TestCase1561136 extends AbstractMsalBrokerTest {
 
         // Check get accounts returns the account signed in with MSAL
         List<String> accounts = brokerHost.getAllAccounts(false);
-        Assert.assertEquals(accounts.size(), 1);
+        Assert.assertEquals(1, accounts.size());
 
         // create another temp user
         final ILabAccount labAccount = mLabClient.createTempAccount(TempUserType.BASIC);
@@ -99,7 +99,7 @@ public class TestCase1561136 extends AbstractMsalBrokerTest {
 
         // get accounts this time must show two accounts - to verify this we have check for 2 dialog boxes
         accounts = brokerHost.getAllAccounts(true);
-        Assert.assertEquals(accounts.size(), 2);
+        Assert.assertEquals(2, accounts.size());
     }
 
     @Override
