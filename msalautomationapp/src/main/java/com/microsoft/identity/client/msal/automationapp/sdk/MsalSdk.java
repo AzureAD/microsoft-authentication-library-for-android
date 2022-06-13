@@ -31,23 +31,27 @@ import androidx.annotation.Nullable;
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.AuthenticationCallback;
+import com.microsoft.identity.client.HttpMethod;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
+import com.microsoft.identity.client.PoPAuthenticationScheme;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalUserCancelException;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.constants.AuthScheme;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.sdk.ResultFuture;
 import com.microsoft.identity.client.ui.automation.sdk.IAuthSdk;
 import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryB2CAuthority;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,7 +62,7 @@ import java.util.List;
  * parameters and get back the final result.
  */
 public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
-    
+
     @Override
     public MsalAuthResult acquireTokenInteractive(@NonNull MsalAuthTestParams authTestParams, final OnInteractionRequired interactionRequiredCallback, @NonNull final TokenRequestTimeout tokenRequestTimeout) throws Throwable {
         final IPublicClientApplication pca = setupPCA(
@@ -85,6 +89,17 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
             acquireTokenParametersBuilder.withClaims(authTestParams.getClaims());
         }
 
+        if (authTestParams.getAuthScheme() == AuthScheme.POP) {
+            acquireTokenParametersBuilder.withAuthenticationScheme(
+                    PoPAuthenticationScheme.builder()
+                            .withHttpMethod(HttpMethod.valueOf("GET"))
+                            .withClientClaims("")
+                            .withUrl(new URL("https://signedhttprequest.azurewebsites.net/api/validateSHR"))
+                            .build()
+            );
+        }
+
+
         final AcquireTokenParameters acquireTokenParameters = acquireTokenParametersBuilder.build();
 
         pca.acquireToken(acquireTokenParameters);
@@ -102,8 +117,8 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
     @Override
     public MsalAuthResult acquireTokenSilent(@NonNull MsalAuthTestParams authTestParams, @NonNull final TokenRequestTimeout tokenRequestTimeout) throws Throwable {
         final IPublicClientApplication pca = setupPCA(
-            authTestParams.getActivity(),
-            authTestParams.getMsalConfigResourceId()
+                authTestParams.getActivity(),
+                authTestParams.getMsalConfigResourceId()
         );
 
         final ResultFuture<IAuthenticationResult, Exception> future = new ResultFuture<>();
@@ -143,6 +158,16 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
 
         if (authTestParams.getClaims() != null) {
             acquireTokenParametersBuilder.withClaims(authTestParams.getClaims());
+        }
+
+        if (authTestParams.getAuthScheme() == AuthScheme.POP) {
+            acquireTokenParametersBuilder.withAuthenticationScheme(
+                    PoPAuthenticationScheme.builder()
+                            .withHttpMethod(HttpMethod.valueOf("GET"))
+                            .withClientClaims("")
+                            .withUrl(new URL("https://signedhttprequest.azurewebsites.net/api/validateSHR"))
+                            .build()
+            );
         }
 
         final AcquireTokenSilentParameters acquireTokenParameters = acquireTokenParametersBuilder.build();
@@ -186,8 +211,8 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
     }
 
     public IAccount getAccount(@NonNull final Activity activity,
-                                final int msalConfigResourceId,
-                                @NonNull final String username) {
+                               final int msalConfigResourceId,
+                               @NonNull final String username) {
         final IPublicClientApplication pca = setupPCA(
                 activity,
                 msalConfigResourceId
@@ -252,14 +277,11 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
         }
     }
 
-    private IAccount getAccountForPolicyName(@NonNull final MultipleAccountPublicClientApplication pca, @NonNull final String policyName)
-    {
+    private IAccount getAccountForPolicyName(@NonNull final MultipleAccountPublicClientApplication pca, @NonNull final String policyName) {
         try {
             List<IAccount> accounts = pca.getAccounts();
-            for(IAccount account : accounts)
-            {
-                if (policyName.equals(account.getClaims().get("tfp")))
-                {
+            for (IAccount account : accounts) {
+                if (policyName.equals(account.getClaims().get("tfp"))) {
                     return account;
                 }
             }
@@ -267,5 +289,50 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
             throw new AssertionError(exception);
         }
         return null;
+    }
+
+    public String generateSHR(@NonNull MsalAuthTestParams authTestParams, TokenRequestTimeout tokenRequestTimeout) throws Throwable {
+        final IPublicClientApplication pca = setupPCA(
+                authTestParams.getActivity(),
+                authTestParams.getMsalConfigResourceId()
+        );
+
+        final IAccount account = getAccount(
+                authTestParams.getActivity(),
+                authTestParams.getMsalConfigResourceId(),
+                authTestParams.getLoginHint()
+        );
+
+        if (null == account) {
+            // User must first sign-in
+            return null;
+        }
+        final ResultFuture<String, Exception> future = new ResultFuture<>();
+        final IPublicClientApplication.SignedHttpRequestRequestCallback callback = new IPublicClientApplication.SignedHttpRequestRequestCallback() {
+            @Override
+            public void onTaskCompleted(String result) {
+                future.setResult(result);
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                future.setException(exception);
+            }
+
+        };
+
+        if (authTestParams.getAuthScheme() == AuthScheme.POP) {
+            pca.generateSignedHttpRequest(account, PoPAuthenticationScheme.builder()
+                    .withHttpMethod(HttpMethod.valueOf("GET"))
+                    .withClientClaims("")
+                    .withUrl(new URL("https://signedhttprequest.azurewebsites.net/api/validateSHR"))
+                    .build(), callback);
+
+        }
+        try {
+            return future.get(tokenRequestTimeout.getTime(), tokenRequestTimeout.getTimeUnit());
+        } catch (final Exception exception) {
+           throw exception;
+        }
     }
 }
