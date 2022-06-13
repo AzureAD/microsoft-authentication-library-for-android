@@ -7,6 +7,14 @@ name: $(Build.BuildId)_$(Build.DefinitionName)_$(SourceBranchName)_$(Date:yyyyMM
 trigger: none
 pr: none
 
+schedules:
+  - cron: "0 5 * * 1-6" # 5:00 AM UTC everyday Mon-Sat
+    displayName: Auth Client Android SDK dev build
+    branches:
+      include:
+        - dev
+    always: true
+
 variables:
   engineeringProjectId: 'fac9d424-53d2-45c0-91b5-ef6ba7a6bf26'
   azureSamplePipelineId: 1458
