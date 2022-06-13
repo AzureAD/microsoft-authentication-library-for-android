@@ -27,7 +27,7 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.microsoft.identity.common.internal.authscheme.TokenAuthenticationScheme;
+import com.microsoft.identity.common.java.authscheme.TokenAuthenticationScheme;
 import com.microsoft.identity.common.java.cache.ICacheRecord;
 import com.microsoft.identity.common.java.dto.AccessTokenRecord;
 import com.microsoft.identity.common.logging.Logger;
@@ -126,17 +126,17 @@ public final class AuthenticationResult implements IAuthenticationResult {
 
     @Nullable
     private UUID sanitizeCorrelationId(@Nullable final String correlationId) {
-        final String methodName = "sanitizeCorrelationId";
+        final String methodTag = TAG + ":sanitizeCorrelationId";
 
         if (TextUtils.isEmpty(correlationId)) {
-            Logger.warn(TAG + methodName, "Correlation id was empty, returning null.");
+            Logger.warn(methodTag, "Correlation id was empty, returning null.");
             return null;
         }
 
         try {
             return UUID.fromString(correlationId);
         } catch (IllegalArgumentException e) {
-            Logger.error(TAG + methodName, "Correlation id is not a valid UUID.", e);
+            Logger.error(methodTag, "Correlation id is not a valid UUID.", e);
             return null;
         }
     }

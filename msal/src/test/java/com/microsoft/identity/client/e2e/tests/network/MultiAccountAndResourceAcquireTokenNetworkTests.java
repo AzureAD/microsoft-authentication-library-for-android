@@ -78,7 +78,6 @@ public class MultiAccountAndResourceAcquireTokenNetworkTests extends AcquireToke
 
         final LabUserQuery[] queries = new LabUserQuery[]{
                 new AcquireTokenAADTest.AzureWorldWideCloudUser().getLabUserQuery(),
-                new AcquireTokenAADTest.AzureGermanyCloudUser().getLabUserQuery(),
                 new AcquireTokenAADTest.AzureUsGovCloudUser().getLabUserQuery()};
 
         final IAccount[] accounts = new IAccount[queries.length];

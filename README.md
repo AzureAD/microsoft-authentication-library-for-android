@@ -79,7 +79,7 @@ Add to your app's build.gradle:
 
 ```gradle
 dependencies {
-    implementation 'com.microsoft.identity.client:msal:2.0.+'
+    implementation 'com.microsoft.identity.client:msal:3.0.+'
 }
 ```
 

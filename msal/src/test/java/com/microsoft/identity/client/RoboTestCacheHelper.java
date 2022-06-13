@@ -22,14 +22,15 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import com.microsoft.identity.common.AndroidPlatformComponents;
 import com.microsoft.identity.common.java.exception.ClientException;
-import com.microsoft.identity.common.internal.authorities.AccountsInOneOrganization;
-import com.microsoft.identity.common.internal.authorities.Authority;
+import com.microsoft.identity.common.java.authorities.AccountsInOneOrganization;
+import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.cache.ICacheRecord;
 import com.microsoft.identity.common.java.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
-import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
-import com.microsoft.identity.common.internal.providers.oauth2.OAuth2StrategyParameters;
-import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
+import com.microsoft.identity.common.java.providers.oauth2.OAuth2Strategy;
+import com.microsoft.identity.common.java.providers.oauth2.OAuth2StrategyParameters;
+import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.java.providers.oauth2.TokenResponse;
 import com.microsoft.identity.internal.testutils.TestConstants;
 import com.microsoft.identity.internal.testutils.authorities.MockAuthority;
@@ -48,8 +49,9 @@ public class RoboTestCacheHelper {
                 TestConstants.Authorities.AAD_MOCK_AUTHORITY,
                 TestConstants.Authorities.AAD_MOCK_AUTHORITY_TENANT)
         );
-        final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
-        strategyParameters.setContext(application.getConfiguration().getAppContext());
+        final OAuth2StrategyParameters strategyParameters = OAuth2StrategyParameters.builder()
+                .platformComponents(AndroidPlatformComponents.createFromContext(application.getConfiguration().getAppContext()))
+                .build();
         final OAuth2Strategy strategy = authority.createOAuth2Strategy(strategyParameters);
         final MicrosoftStsAuthorizationRequest mockAuthRequest = Mockito.mock(MicrosoftStsAuthorizationRequest.class);
         Mockito.when(mockAuthRequest.getAuthority()).thenReturn(authority.getAuthorityURL());

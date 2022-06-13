@@ -42,19 +42,21 @@ import com.microsoft.identity.client.configuration.AccountMode;
 import com.microsoft.identity.client.configuration.HttpConfiguration;
 import com.microsoft.identity.client.configuration.LoggerConfiguration;
 import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.client.internal.MsalUtils;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
-import com.microsoft.identity.common.internal.authorities.Authority;
-import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAuthority;
-import com.microsoft.identity.common.internal.authorities.Environment;
+import com.microsoft.identity.common.java.authorities.Authority;
+import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthority;
+import com.microsoft.identity.common.java.authorities.Environment;
 import com.microsoft.identity.common.internal.authorities.UnknownAudience;
-import com.microsoft.identity.common.internal.authorities.UnknownAuthority;
+import com.microsoft.identity.common.java.authorities.UnknownAuthority;
 import com.microsoft.identity.common.internal.broker.PackageHelper;
-import com.microsoft.identity.common.internal.configuration.LibraryConfiguration;
+import com.microsoft.identity.common.java.configuration.LibraryConfiguration;
 import com.microsoft.identity.common.internal.logging.Logger;
-import com.microsoft.identity.common.internal.providers.oauth2.OAuth2TokenCache;
+import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.internal.telemetry.TelemetryConfiguration;
-import com.microsoft.identity.common.internal.ui.AuthorizationAgent;
-import com.microsoft.identity.common.internal.ui.browser.BrowserDescriptor;
+import com.microsoft.identity.common.java.ui.AuthorizationAgent;
+import com.microsoft.identity.common.java.ui.BrowserDescriptor;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -64,6 +66,7 @@ import javax.crypto.SecretKey;
 
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.ACCOUNT_MODE;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORITIES;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORIZATION_IN_CURRENT_TASK;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORIZATION_USER_AGENT;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.BROWSER_SAFE_LIST;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.CLIENT_CAPABILITIES;
@@ -81,7 +84,6 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEB_VIEW_ZOOM_CONTROLS_ENABLED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEB_VIEW_ZOOM_ENABLED;
 import static com.microsoft.identity.client.exception.MsalClientException.APP_MANIFEST_VALIDATION_ERROR;
-import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORIZATION_IN_CURRENT_TASK;
 
 public class PublicClientApplicationConfiguration {
     private static final String TAG = PublicClientApplicationConfiguration.class.getSimpleName();
@@ -508,21 +510,26 @@ public class PublicClientApplicationConfiguration {
     }
 
     private void validateRedirectUri(@NonNull final String redirectUri) {
-        final boolean isInvalid = TextUtils.isEmpty(redirectUri) || !hasSchemeAndAuthority(redirectUri);
-
+        boolean isInvalid = false;
+        if (mAppContext!= null && AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME.equalsIgnoreCase(mAppContext.getPackageName())) {
+            isInvalid = !isValidAuthenticatorRedirectUri();
+        } else {
+            isInvalid = TextUtils.isEmpty(redirectUri) || !hasSchemeAndAuthority(redirectUri);
+        }
         if (isInvalid) {
             throw new IllegalArgumentException(INVALID_REDIRECT_MSG);
         }
     }
 
     private boolean hasSchemeAndAuthority(@NonNull final String redirectUri) {
+        final String methodTag = TAG + ":hasSchemeAndAuthority";
         try {
             final Uri parsedRedirectUri = Uri.parse(redirectUri);
             final boolean hasScheme = !TextUtils.isEmpty(parsedRedirectUri.getScheme());
             final boolean hasAuthority = !TextUtils.isEmpty(parsedRedirectUri.getAuthority());
             return hasScheme && hasAuthority;
         } catch (final NullPointerException e) {
-            Logger.errorPII(TAG, INVALID_REDIRECT_MSG, e);
+            Logger.errorPII(methodTag, INVALID_REDIRECT_MSG, e);
         }
 
         return false;
@@ -551,6 +558,7 @@ public class PublicClientApplicationConfiguration {
 
     // Verifies broker redirect URI against the app's signature, to make sure that this is legit.
     private void verifyRedirectUriWithAppSignature() throws MsalClientException {
+        final String methodTag = TAG + ":verifyRedirectUriWithAppSignature";
         final String packageName = mAppContext.getPackageName();
         try {
             final PackageInfo info = PackageHelper.getPackageInfo(mAppContext.getPackageManager(), packageName);
@@ -559,7 +567,6 @@ public class PublicClientApplicationConfiguration {
                 final MessageDigest messageDigest = MessageDigest.getInstance("SHA");
                 messageDigest.update(signature.toByteArray());
                 final String signatureHash = Base64.encodeToString(messageDigest.digest(), Base64.NO_WRAP);
-
                 final Uri.Builder builder = new Uri.Builder();
                 final Uri uri = builder.scheme("msauth")
                         .authority(packageName)
@@ -579,7 +586,7 @@ public class PublicClientApplicationConfiguration {
                 }
             }
         } catch (PackageManager.NameNotFoundException | NoSuchAlgorithmException e) {
-            Logger.error(TAG, "Unexpected error in verifyRedirectUriWithAppSignature()", e);
+            Logger.error(methodTag, "Unexpected error in verifyRedirectUriWithAppSignature()", e);
             throw new MsalClientException(MsalClientException.UNKNOWN_ERROR, "Unexpected error in verifyRedirectUriWithAppSignature()", e);
         }
     }
@@ -594,7 +601,7 @@ public class PublicClientApplicationConfiguration {
      */
     private static boolean validateCustomTabRedirectActivity(@NonNull final Context context,
                                                              @NonNull final String url) throws MsalClientException {
-        final String methodName = ":validateCustomTabRedirectActivity";
+        final String methodTag = TAG + ":validateCustomTabRedirectActivity";
         final PackageManager packageManager = context.getPackageManager();
 
         if (packageManager == null) {
@@ -631,7 +638,7 @@ public class PublicClientApplicationConfiguration {
                 // another application is listening for this url scheme, don't open
                 // Custom Tab for security reasons
                 com.microsoft.identity.common.logging.Logger.warn(
-                        TAG + methodName,
+                        methodTag,
                         String.format("Another application %s is listening for the URL scheme %s", activityInfo.packageName, url)
                 );
                 throw new MsalClientException(
@@ -647,6 +654,7 @@ public class PublicClientApplicationConfiguration {
 
     @SuppressWarnings("PMD")
     public void checkIntentFilterAddedToAppManifestForBrokerFlow() throws MsalClientException {
+        final String methodTag = TAG + ":checkIntentFilterAddedToAppManifestForBrokerFlow";
         if ((getAuthorizationAgent() == AuthorizationAgent.DEFAULT
                 || getAuthorizationAgent() == AuthorizationAgent.BROWSER)) {
 
@@ -688,10 +696,16 @@ public class PublicClientApplicationConfiguration {
             return;
         }
 
-        if (!isBrokerRedirectUri(mRedirectUri, mAppContext.getPackageName())) {
+        if (mAppContext!=null && AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME.equalsIgnoreCase(mAppContext.getPackageName())) {
+            if (isValidAuthenticatorRedirectUri()) {
+                return;
+            }
+        }
+
+        if (mAppContext != null && !isBrokerRedirectUri(mRedirectUri, mAppContext.getPackageName())) {
             // This means that the app is still using the legacy local-only MSAL Redirect uri (already removed from the new portal).
             // If this is the case, we can assume that the user doesn't need Broker support.
-            Logger.warn(TAG, "The app is still using legacy MSAL redirect uri. Switch to MSAL local auth."
+            Logger.warn(methodTag, "The app is still using legacy MSAL redirect uri. Switch to MSAL local auth."
                     + "  For brokered auth, the redirect URI is expected to conform to 'msauth://<authority>/.*' where the authority in "
                     + "that uri is the package name of the app. This package name is listed as 'applicationId' in the build.gradle file.");
             mUseBroker = false;
@@ -701,4 +715,38 @@ public class PublicClientApplicationConfiguration {
         verifyRedirectUriWithAppSignature();
     }
 
+    private boolean isValidAuthenticatorRedirectUri() {
+        final String methodTag = TAG + ":isValidAuthenticatorRedirectUri";
+        // This is a temporary fix to allow authenticator to migrate to MSAL
+        // For Legacy reason Authenticator still needs to pass in the old redirect uri to be able to
+        // have backward compatibility with older versions of BrokerHost (Company Portal)
+        // We should remove this check after the new Broker Host apps are released to >90% of production
+        // customer.
+        // ADO workitem for tracking: https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1576096
+        try {
+            final PackageInfo info = mAppContext.getPackageManager().getPackageInfo(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, PackageManager.GET_SIGNATURES);
+            if (info != null && info.signatures != null && info.signatures.length > 0) {
+                final Signature signature = info.signatures[0];
+                MessageDigest md = MessageDigest.getInstance("SHA");
+                md.update(signature.toByteArray());
+                final String signatureHash = Base64.encodeToString(md.digest(), Base64.NO_WRAP);
+                if (AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_RELEASE_SIGNATURE.equalsIgnoreCase(signatureHash)
+                    || AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_DEBUG_SIGNATURE.equalsIgnoreCase(signatureHash)) {
+                    final Uri.Builder builder = new Uri.Builder();
+                    final Uri uri = builder.scheme("msauth")
+                            .authority(mAppContext.getPackageName())
+                            .appendPath(signatureHash)
+                            .build();
+
+                    if (mRedirectUri.equalsIgnoreCase(uri.toString()) || mRedirectUri.equalsIgnoreCase(AuthenticationConstants.Broker.BROKER_REDIRECT_URI)) {
+                        return true;
+                    }
+                }
+            }
+        } catch (final PackageManager.NameNotFoundException | NoSuchAlgorithmException e) {
+            Logger.error(methodTag, "Unexpected error in getting package info/signature for Authenticator", e);
+        }
+
+        return false;
+    }
 }

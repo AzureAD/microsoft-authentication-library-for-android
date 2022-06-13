@@ -270,8 +270,27 @@
                 android:id="@+id/claims"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="7"
+                android:layout_weight="4"
                 android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/btn_deviceIdClaim"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top"
+                android:layout_weight="1.5"
+                android:text="device id claim"
+                android:textSize="10dp" />
+
+            <Button
+                android:id="@+id/btn_ngcMfaClaim"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top"
+                android:layout_weight="1.5"
+                android:text="MFA claim"
+                android:textSize="10dp" />
+
         </LinearLayout>
 
         <LinearLayout
@@ -480,6 +499,13 @@
                 android:gravity="center"
                 android:text="@string/btn_removeUser" />
 
+            <Button
+                android:id="@+id/button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="5"
+                android:text="Button" />
+
         </LinearLayout>
 
         <LinearLayout
@@ -581,6 +607,19 @@
                 android:gravity="center"
                 android:text="Generate SHR (sans AT)" />
 
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <ToggleButton
+                android:id="@+id/btn_trust_debug_brkr"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="@string/trust_debug_broker" />
         </LinearLayout>
 
     </LinearLayout>

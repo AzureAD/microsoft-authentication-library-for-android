@@ -28,6 +28,7 @@ import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
 
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
@@ -38,18 +39,19 @@ import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.common.java.exception.BaseException;
 import com.microsoft.identity.common.java.cache.ICacheRecord;
-import com.microsoft.identity.common.internal.commands.CommandCallback;
+import com.microsoft.identity.common.java.commands.CommandCallback;
 import com.microsoft.identity.common.internal.commands.LoadAccountCommand;
 import com.microsoft.identity.common.internal.commands.RemoveAccountCommand;
-import com.microsoft.identity.common.internal.commands.parameters.CommandParameters;
-import com.microsoft.identity.common.internal.commands.parameters.RemoveAccountCommandParameters;
-import com.microsoft.identity.common.internal.controllers.CommandDispatcher;
+import com.microsoft.identity.common.java.commands.parameters.CommandParameters;
+import com.microsoft.identity.common.java.commands.parameters.RemoveAccountCommandParameters;
+import com.microsoft.identity.common.java.controllers.CommandDispatcher;
 import com.microsoft.identity.common.java.dto.AccountRecord;
-import com.microsoft.identity.common.internal.eststelemetry.PublicApiId;
+import com.microsoft.identity.common.java.eststelemetry.PublicApiId;
 import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
 import com.microsoft.identity.common.java.util.ResultFuture;
 import com.microsoft.identity.common.logging.Logger;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -66,10 +68,22 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     }
 
     @Override
+    public IAuthenticationResult acquireTokenSilent(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) throws MsalException, InterruptedException {
+        return acquireTokenSilentInternal(acquireTokenSilentParameters, PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_WITH_PARAMETERS);
+    }
+
+    @Deprecated
+    @Override
     public IAuthenticationResult acquireTokenSilent(@NonNull String[] scopes, @NonNull IAccount account, @NonNull String authority) throws MsalException, InterruptedException {
         return acquireTokenSilentSyncInternal(scopes, authority, account, false, PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_WITH_SCOPES_ACCOUNT_AUTHORITY);
     }
 
+    @Override
+    public void acquireTokenSilentAsync(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) {
+        acquireTokenSilentAsyncInternal(acquireTokenSilentParameters, PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS);
+    }
+
+    @Deprecated
     @Override
     public void acquireTokenSilentAsync(@NonNull final String[] scopes,
                                         @NonNull final IAccount account,
@@ -204,6 +218,8 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     private void getAccountInternal(@NonNull final String identifier,
                                     @NonNull final GetAccountCallback callback,
                                     @NonNull final String publicApiId) {
+        final String methodTag = TAG + ":getAccountInternal";
+
         if (callback == null) {
             throw new IllegalArgumentException("callback cannot be null or empty");
         }
@@ -216,9 +232,8 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         TokenMigrationCallback migrationCallback = new TokenMigrationCallback() {
             @Override
             public void onMigrationFinished(int numberOfAccountsMigrated) {
-                final String methodName = ":getAccount";
 
-                Logger.verbose(TAG + methodName, "Get account with the identifier.");
+                Logger.verbose(methodTag, "Get account with the identifier.");
 
                 try {
                     final CommandParameters params = CommandParametersAdapter.createCommandParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
@@ -233,7 +248,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                                 @Override
                                 public void onTaskCompleted(final List<ICacheRecord> result) {
                                     if (null == result || result.size() == 0) {
-                                        Logger.verbose(TAG + methodName, "No account found.");
+                                        Logger.verbose(methodTag, "No account found.");
                                         callback.onTaskCompleted(null);
                                     } else {
                                         // First, transform the result into IAccount + TenantProfile form
@@ -267,7 +282,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
                                 @Override
                                 public void onError(final BaseException exception) {
-                                    Logger.error(TAG + methodName, exception.getMessage(), exception);
+                                    Logger.error(methodTag, exception.getMessage(), exception);
                                     callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(exception));
                                 }
 
@@ -281,7 +296,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
                     CommandDispatcher.submitSilent(loadAccountCommand);
                 } catch (final MsalClientException e) {
-                    Logger.error(TAG + methodName, e.getMessage(), e);
+                    Logger.error(methodTag, e.getMessage(), e);
                     callback.onError(e);
                 }
             }
@@ -335,12 +350,13 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
     private void removeAccountInternal(@Nullable final IAccount account,
                                        @NonNull final RemoveAccountCallback callback,
                                        @NonNull final String publicApiId) {
+        final String methodTag = TAG + ":removeAccountInternal";
         // First, cast the input IAccount to a MultiTenantAccount
         final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) account;
 
         //create the parameter
         if (null == multiTenantAccount) {
-            Logger.warn(TAG,
+            Logger.warn(methodTag,
                     "Requisite IAccount or IAccount fields were null. " +
                             "Insufficient criteria to remove IAccount."
             );
@@ -431,6 +447,11 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         }
     }
 
+    public void acquireToken(@NonNull final AcquireTokenParameters acquireTokenParameters) {
+        acquireTokenInternal(acquireTokenParameters, PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS);
+    }
+
+    @Deprecated
     @Override
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final String[] scopes,
@@ -439,7 +460,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         final AcquireTokenParameters acquireTokenParameters = buildAcquireTokenParameters(
                 activity,
                 null,
-                scopes,
+                Arrays.asList(scopes),
                 null, // account
                 null, // uiBehavior
                 null, // extraQueryParams

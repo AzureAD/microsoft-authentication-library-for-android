@@ -24,7 +24,7 @@ package com.microsoft.identity.client.e2e.tests.mocked;
 
 import androidx.annotation.NonNull;
 
-import com.microsoft.identity.client.AuthenticationResult;
+import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowDeviceCodeFlowCommandAuthError;
@@ -36,16 +36,17 @@ import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.exception.ErrorStrings;
-import com.microsoft.identity.common.internal.authorities.Authority;
+import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationErrorResponse;
 import com.microsoft.identity.common.java.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
 import com.microsoft.identity.common.java.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationResponse;
 import com.microsoft.identity.common.java.providers.microsoft.microsoftsts.MicrosoftStsTokenRequest;
 import com.microsoft.identity.common.java.providers.oauth2.AuthorizationResult;
-import com.microsoft.identity.common.internal.providers.oauth2.OAuth2Strategy;
-import com.microsoft.identity.common.internal.providers.oauth2.OAuth2StrategyParameters;
+import com.microsoft.identity.common.java.providers.oauth2.OAuth2Strategy;
+import com.microsoft.identity.common.java.providers.oauth2.OAuth2StrategyParameters;
 import com.microsoft.identity.common.java.providers.oauth2.TokenRequest;
 import com.microsoft.identity.common.java.providers.oauth2.TokenResult;
+import com.microsoft.identity.common.java.util.StringUtil;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -55,7 +56,9 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.SINGLE_ACCOUNT_DCF_TEST_CONFIG_FILE_PATH;
@@ -66,6 +69,7 @@ import static com.microsoft.identity.internal.testutils.TestConstants.Configurat
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {ShadowPublicClientApplicationConfiguration.class})
+@SuppressWarnings("unchecked")
 public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
     private boolean mUserCodeReceived;
@@ -85,7 +89,7 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
     //===========================================================================================================
     @Test
     public void testGetDeviceCodeSuccessResult() throws IOException, ClientException {
-        final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
+        final OAuth2StrategyParameters strategyParameters = OAuth2StrategyParameters.builder().build();
         final PublicClientApplicationConfiguration config = mApplication.getConfiguration();
         final OAuth2Strategy strategy = config.getDefaultAuthority().createOAuth2Strategy(strategyParameters);
 
@@ -109,7 +113,7 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
     @Test
     public void testGetDeviceCodeFailureNoClientId() throws IOException, ClientException {
-        final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
+        final OAuth2StrategyParameters strategyParameters = OAuth2StrategyParameters.builder().build();
         final PublicClientApplicationConfiguration config = mApplication.getConfiguration();
         final OAuth2Strategy strategy = config.getDefaultAuthority().createOAuth2Strategy(strategyParameters);
 
@@ -127,7 +131,7 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
     @Test
     public void testGetDeviceCodeFailureNoScope() throws IOException, ClientException {
-        final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
+        final OAuth2StrategyParameters strategyParameters = OAuth2StrategyParameters.builder().build();
         final PublicClientApplicationConfiguration config = mApplication.getConfiguration();
         final OAuth2Strategy strategy = config.getDefaultAuthority().createOAuth2Strategy(strategyParameters);
 
@@ -145,7 +149,7 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
     @Test
     public void testGetDeviceCodeFailureBadScope() throws IOException, ClientException {
-        final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
+        final OAuth2StrategyParameters strategyParameters = OAuth2StrategyParameters.builder().build();
         final PublicClientApplicationConfiguration config = mApplication.getConfiguration();
         final OAuth2Strategy strategy = config.getDefaultAuthority().createOAuth2Strategy(strategyParameters);
 
@@ -180,7 +184,7 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
     //===========================================================================================================x
     @Test
     public void testDeviceCodeFlowTokenInvalidRequest() throws IOException, ClientException {
-        final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
+        final OAuth2StrategyParameters strategyParameters = OAuth2StrategyParameters.builder().build();
         final PublicClientApplicationConfiguration config = mApplication.getConfiguration();
         final Authority defaultAuthority = config.getDefaultAuthority();
         Assert.assertNotNull("Default authority should not be null", defaultAuthority);
@@ -196,7 +200,7 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
     @Test
     public void testDeviceCodeFlowTokenExpiredToken() throws IOException, ClientException {
-        final OAuth2StrategyParameters strategyParameters = new OAuth2StrategyParameters();
+        final OAuth2StrategyParameters strategyParameters = OAuth2StrategyParameters.builder().build();
         final PublicClientApplicationConfiguration config = mApplication.getConfiguration();
         final Authority defaultAuthority = config.getDefaultAuthority();
         Assert.assertNotNull("Default authority should not be null", defaultAuthority);
@@ -251,16 +255,18 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
                 // This shouldn't run if authorization step fails
                 Assert.fail();
             }
+
             @Override
-            public void onTokenReceived(@NonNull AuthenticationResult authResult) {
+            public void onTokenReceived(@NonNull IAuthenticationResult authResult) {
                 // This shouldn't run if authorization step fails
                 Assert.fail();
             }
+
             @Override
-            public void onError(@NonNull MsalException error) {
+            public void onError(@NonNull MsalException exception) {
                 // Handle exception when authorization fails
                 Assert.assertFalse(mUserCodeReceived);
-                Assert.assertEquals(ErrorStrings.INVALID_SCOPE, error.getErrorCode());
+                Assert.assertEquals(ErrorStrings.INVALID_SCOPE, exception.getErrorCode());
             }
         });
 
@@ -278,24 +284,26 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
                                            @NonNull String message,
                                            @NonNull Date sessionExpirationDate) {
                 // Assert that the protocol returns the userCode and others after successful authorization
-                Assert.assertNotNull(vUri);
-                Assert.assertNotNull(userCode);
-                Assert.assertNotNull(message);
+                Assert.assertFalse(StringUtil.isNullOrEmpty(vUri));
+                Assert.assertFalse(StringUtil.isNullOrEmpty(userCode));
+                Assert.assertFalse(StringUtil.isNullOrEmpty(message));
                 Assert.assertNotNull(sessionExpirationDate);
 
                 Assert.assertFalse(mUserCodeReceived);
                 mUserCodeReceived = true;
             }
+
             @Override
-            public void onTokenReceived(@NonNull AuthenticationResult authResult) {
+            public void onTokenReceived(@NonNull IAuthenticationResult authResult) {
                 // This shouldn't run
                 Assert.fail();
             }
+
             @Override
-            public void onError(@NonNull MsalException error) {
+            public void onError(@NonNull MsalException exception) {
                 // Handle Exception
                 Assert.assertTrue(mUserCodeReceived);
-                Assert.assertEquals(ErrorStrings.DEVICE_CODE_FLOW_EXPIRED_TOKEN_ERROR_CODE, error.getErrorCode());
+                Assert.assertEquals(ErrorStrings.DEVICE_CODE_FLOW_EXPIRED_TOKEN_ERROR_CODE, exception.getErrorCode());
             }
         });
 
@@ -313,23 +321,132 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
                                            @NonNull String message,
                                            @NonNull Date sessionExpirationDate) {
                 // Assert that the protocol returns the userCode and others after successful authorization
-                Assert.assertNotNull(vUri);
-                Assert.assertNotNull(userCode);
-                Assert.assertNotNull(message);
+                Assert.assertFalse(StringUtil.isNullOrEmpty(vUri));
+                Assert.assertFalse(StringUtil.isNullOrEmpty(userCode));
+                Assert.assertFalse(StringUtil.isNullOrEmpty(message));
                 Assert.assertNotNull(sessionExpirationDate);
 
                 Assert.assertFalse(mUserCodeReceived);
                 mUserCodeReceived = true;
             }
+
             @Override
-            public void onTokenReceived(@NonNull AuthenticationResult authResult) {
+            public void onTokenReceived(@NonNull IAuthenticationResult authResult) {
                 Assert.assertTrue(mUserCodeReceived);
                 Assert.assertNotNull(authResult);
             }
+
             @Override
-            public void onError(@NonNull MsalException error) {
+            public void onError(@NonNull MsalException exception) {
+                // This shouldn't run
+                throw new AssertionError(exception);
+            }
+        });
+
+        RoboTestUtils.flushScheduler();
+    }
+
+    @Test
+    @Config(shadows = {ShadowDeviceCodeFlowCommandAuthError.class})
+    public void testDeviceCodeFlowAuthFailureWithList() {
+        List<String> scope = new ArrayList<>();
+        scope.add("user.read");
+        mApplication.acquireTokenWithDeviceCode(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
+            @Override
+            public void onUserCodeReceived(@NonNull String vUri,
+                                           @NonNull String userCode,
+                                           @NonNull String message,
+                                           @NonNull Date sessionExpirationDate) {
+                // This shouldn't run if authorization step fails
+                Assert.fail();
+            }
+
+            @Override
+            public void onTokenReceived(@NonNull IAuthenticationResult authResult) {
+                // This shouldn't run if authorization step fails
+                Assert.fail();
+            }
+
+            @Override
+            public void onError(@NonNull MsalException exception) {
+                // Handle exception when authorization fails
+                Assert.assertFalse(mUserCodeReceived);
+                Assert.assertEquals(ErrorStrings.INVALID_SCOPE, exception.getErrorCode());
+            }
+        });
+
+        RoboTestUtils.flushScheduler();
+    }
+
+    @Test
+    @Config(shadows = {ShadowDeviceCodeFlowCommandTokenError.class})
+    public void testDeviceCodeFlowTokenFailureWithList() {
+        List<String> scope = new ArrayList<>();
+        scope.add("user.read");
+        mApplication.acquireTokenWithDeviceCode(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
+            @Override
+            public void onUserCodeReceived(@NonNull String vUri,
+                                           @NonNull String userCode,
+                                           @NonNull String message,
+                                           @NonNull Date sessionExpirationDate) {
+                // Assert that the protocol returns the userCode and others after successful authorization
+                Assert.assertFalse(StringUtil.isNullOrEmpty(vUri));
+                Assert.assertFalse(StringUtil.isNullOrEmpty(userCode));
+                Assert.assertFalse(StringUtil.isNullOrEmpty(message));
+                Assert.assertNotNull(sessionExpirationDate);
+
+                Assert.assertFalse(mUserCodeReceived);
+                mUserCodeReceived = true;
+            }
+
+            @Override
+            public void onTokenReceived(@NonNull IAuthenticationResult authResult) {
                 // This shouldn't run
                 Assert.fail();
+            }
+
+            @Override
+            public void onError(@NonNull MsalException exception) {
+                // Handle Exception
+                Assert.assertTrue(mUserCodeReceived);
+                Assert.assertEquals(ErrorStrings.DEVICE_CODE_FLOW_EXPIRED_TOKEN_ERROR_CODE, exception.getErrorCode());
+            }
+        });
+
+        RoboTestUtils.flushScheduler();
+    }
+
+    @Test
+    @Config(shadows = {ShadowDeviceCodeFlowCommandSuccessful.class})
+    public void testDeviceCodeFlowSuccessWithList() {
+        List<String> scope = new ArrayList<>();
+        scope.add("user.read");
+        mApplication.acquireTokenWithDeviceCode(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
+            @Override
+            public void onUserCodeReceived(@NonNull String vUri,
+                                           @NonNull String userCode,
+                                           @NonNull String message,
+                                           @NonNull Date sessionExpirationDate) {
+                // Assert that the protocol returns the userCode and others after successful authorization
+                Assert.assertFalse(StringUtil.isNullOrEmpty(vUri));
+                Assert.assertFalse(StringUtil.isNullOrEmpty(userCode));
+                Assert.assertFalse(StringUtil.isNullOrEmpty(message));
+                Assert.assertNotNull(sessionExpirationDate);
+
+                Assert.assertFalse(mUserCodeReceived);
+                mUserCodeReceived = true;
+            }
+
+            @Override
+            public void onTokenReceived(@NonNull IAuthenticationResult authResult) {
+                Assert.assertTrue(mUserCodeReceived);
+                Assert.assertNotNull(authResult);
+            }
+
+            @Override
+            public void onError(@NonNull MsalException exception) {
+                // This shouldn't run
+                throw new AssertionError(exception);
             }
         });
 

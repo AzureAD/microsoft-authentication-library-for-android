@@ -25,7 +25,7 @@
 
 apply plugin: 'com.android.application'
 
-def msalVersion = "2.+"
+def msalVersion = "3.+"
 
 if (project.hasProperty("distMsalVersion")) {
     msalVersion = distMsalVersion
@@ -34,14 +34,17 @@ if (project.hasProperty("distMsalVersion")) {
 
 android {
 
-// Commented out becuase we haven't supported this in MSAL yet. Having this on could be misleading.
-//    compileOptions {
-//        // Flag to enable support for the new language APIs
-//        coreLibraryDesugaringEnabled true
-//        // Sets Java compatibility to Java 8
-//        sourceCompatibility JavaVersion.VERSION_1_8
-//        targetCompatibility JavaVersion.VERSION_1_8
-//    }
+// Bumping up to Java Version 8 due to the addition of YubiKit SDK,
+// which uses Version 8. Host apps that use libraries dependent on version 8
+// must also integrate version 8.
+    compileOptions {
+        // Flag to enable support for the new language APIs
+        //coreLibraryDesugaringEnabled true
+        // Sets Java compatibility to Java 8
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
 
     compileSdkVersion rootProject.ext.compileSdkVersion
     defaultConfig {

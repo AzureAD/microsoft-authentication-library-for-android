@@ -45,8 +45,8 @@ import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.sdk.ResultFuture;
 import com.microsoft.identity.client.ui.automation.sdk.IAuthSdk;
-import com.microsoft.identity.common.internal.authorities.Authority;
-import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryB2CAuthority;
+import com.microsoft.identity.common.java.authorities.Authority;
+import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryB2CAuthority;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -118,7 +118,8 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
         final IAccount account;
 
         if (authority instanceof AzureActiveDirectoryB2CAuthority) {
-            final String policyName = ((AzureActiveDirectoryB2CAuthority) authority).getB2CPolicyName();
+            final AzureActiveDirectoryB2CAuthority b2cAuthority = (AzureActiveDirectoryB2CAuthority) authority;
+            final String policyName = b2cAuthority.getB2CPolicyName();
             account = getAccountForPolicyName((MultipleAccountPublicClientApplication) pca, policyName);
         } else {
             account = getAccount(

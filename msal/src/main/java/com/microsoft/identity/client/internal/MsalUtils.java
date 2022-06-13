@@ -43,16 +43,12 @@ import androidx.browser.customtabs.CustomTabsService;
 import com.microsoft.identity.client.BrowserTabActivity;
 import com.microsoft.identity.client.CurrentTaskBrowserTabActivity;
 import com.microsoft.identity.client.exception.MsalArgumentException;
-import com.microsoft.identity.client.exception.MsalClientException;
-import com.microsoft.identity.common.logging.Logger;
-import com.microsoft.identity.common.internal.configuration.LibraryConfiguration;
+import com.microsoft.identity.common.java.configuration.LibraryConfiguration;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
@@ -294,9 +290,10 @@ public final class MsalUtils {
      * @return The available package name for chrome. Will return null if no chrome package existed on the device.
      */
     public static String getChromePackageWithCustomTabSupport(final Context context) {
+        final String methodTag = TAG + ":getChromePackageWithCustomTabSupport";
         if (context.getPackageManager() == null) {
             com.microsoft.identity.common.internal.logging.Logger.warn(
-                    TAG,
+                    methodTag,
                     "getPackageManager() returned null."
             );
             return null;
@@ -309,7 +306,7 @@ public final class MsalUtils {
         // queryIntentServices could return null or an empty list if no matching service existed.
         if (resolveInfoList == null || resolveInfoList.isEmpty()) {
             com.microsoft.identity.common.internal.logging.Logger.warn(
-                    TAG,
+                    methodTag,
                     "No Service responded to Intent: " + CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION
             );
             return null;
@@ -323,7 +320,7 @@ public final class MsalUtils {
         }
 
         com.microsoft.identity.common.internal.logging.Logger.warn(
-                TAG,
+                methodTag,
                 "No pkg with CustomTab support found."
         );
 
@@ -338,6 +335,7 @@ public final class MsalUtils {
      * @return The chrome package name that exists on the device.
      */
     public static String getChromePackage(final Context context) {
+        final String methodTag = TAG + ":getChromePackage";
         final PackageManager packageManager = context.getPackageManager();
         if (packageManager == null) {
             return null;
@@ -353,7 +351,7 @@ public final class MsalUtils {
         } catch (final PackageManager.NameNotFoundException e) {
             // swallow this exception. If the package is not existed, the exception will be thrown.
             com.microsoft.identity.common.internal.logging.Logger.error(
-                    TAG,
+                    methodTag,
                     "Failed to retrieve chrome package info.",
                     e
             );
@@ -370,6 +368,7 @@ public final class MsalUtils {
      * @return The Map of the items decoded with the given delimiter.
      */
     public static Map<String, String> decodeUrlToMap(final String url, final String delimiter) {
+        final String methodTag = TAG + ":decodeUrlToMap";
         final Map<String, String> decodedUrlMap = new HashMap<>();
 
         // delimiter can be " "
@@ -395,7 +394,7 @@ public final class MsalUtils {
                 }
             } catch (final UnsupportedEncodingException e) {
                 com.microsoft.identity.common.internal.logging.Logger.errorPII(
-                        TAG,
+                        methodTag,
                         "URL form decode failed.",
                         e
                 );
@@ -459,27 +458,6 @@ public final class MsalUtils {
             return new String(Base64.encode(digester.digest(msgInBytes), Base64.NO_WRAP), ENCODING_UTF8);
         }
         return msg;
-    }
-
-    /**
-     * create url from given endpoint. return null if format is not right.
-     *
-     * @param endpoint url as a string
-     * @return URL object for this string
-     */
-    public static URL getUrl(String endpoint) {
-        URL url = null;
-        try {
-            url = new URL(endpoint);
-        } catch (MalformedURLException e1) {
-            com.microsoft.identity.common.internal.logging.Logger.errorPII(
-                    TAG,
-                    "Url is invalid",
-                    e1
-            );
-        }
-
-        return url;
     }
 
     public static String getUniqueUserIdentifier(final String uid, final String utid) {

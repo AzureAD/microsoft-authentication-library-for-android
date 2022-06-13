@@ -32,12 +32,13 @@ import androidx.annotation.WorkerThread;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer;
-import com.microsoft.identity.common.internal.authorities.Authority;
-import com.microsoft.identity.common.internal.authorities.AuthorityDeserializer;
-import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudience;
+import com.microsoft.identity.common.AndroidPlatformComponents;
+import com.microsoft.identity.common.java.authorities.Authority;
+import com.microsoft.identity.common.java.authorities.AuthorityDeserializer;
+import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudience;
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudienceDeserializer;
-import com.microsoft.identity.common.internal.cache.MsalOAuth2TokenCache;
-import com.microsoft.identity.common.internal.configuration.LibraryConfiguration;
+import com.microsoft.identity.common.java.cache.MsalOAuth2TokenCache;
+import com.microsoft.identity.common.java.configuration.LibraryConfiguration;
 import com.microsoft.identity.msal.R;
 import com.microsoft.identity.common.logging.Logger;
 
@@ -96,14 +97,14 @@ public class PublicClientApplicationConfigurationFactory {
         final LibraryConfiguration libraryConfiguration = LibraryConfiguration.builder().authorizationInCurrentTask((config.authorizationInCurrentTask())).build();
         LibraryConfiguration.intializeLibraryConfiguration(libraryConfiguration);
 
-        config.setOAuth2TokenCache(MsalOAuth2TokenCache.create(context));
+        config.setOAuth2TokenCache(MsalOAuth2TokenCache.create(AndroidPlatformComponents.createFromContext(context)));
         return config;
     }
 
     @WorkerThread
     private static PublicClientApplicationConfiguration loadDefaultConfiguration(@NonNull final Context context) {
-        final String methodName = ":loadDefaultConfiguration";
-        Logger.verbose(TAG + methodName, "Loading default configuration");
+        final String methodTag = TAG + ":loadDefaultConfiguration";
+        Logger.verbose(methodTag, "Loading default configuration");
         final PublicClientApplicationConfiguration config = loadConfiguration(context, R.raw.msal_default_config);
         config.setAppContext(context);
 
@@ -132,6 +133,7 @@ public class PublicClientApplicationConfigurationFactory {
     @WorkerThread
     private static PublicClientApplicationConfiguration loadConfiguration(final @NonNull InputStream configStream,
                                                                           final boolean isDefaultConfiguration) {
+        final String methodTag = TAG + ":loadConfiguration";
         byte[] buffer;
 
         try {
@@ -148,12 +150,12 @@ public class PublicClientApplicationConfigurationFactory {
                 configStream.close();
             } catch (IOException e) {
                 if (isDefaultConfiguration) {
-                    Logger.warn(TAG + "loadConfiguration",
+                    Logger.warn(methodTag,
                             "Unable to close default configuration file. " +
                                     "This can cause memory leak."
                     );
                 } else {
-                    Logger.warn(TAG + "loadConfiguration",
+                    Logger.warn(methodTag,
                             "Unable to close provided configuration file. " +
                                     "This can cause memory leak."
                     );
