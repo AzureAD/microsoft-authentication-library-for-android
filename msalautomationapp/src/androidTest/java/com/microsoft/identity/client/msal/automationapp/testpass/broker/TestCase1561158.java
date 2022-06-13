@@ -30,6 +30,7 @@ import org.junit.Test;
 
 // [Non-joined][MSAL] Prompt.CONSENT
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/1561158
+// TODO: This is associated with bug https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1923085/
 @Ignore("Broker ignore prompt.CONSENT, just proceeds with silent")
 public class TestCase1561158 extends AbstractMsalBrokerTest {
     @Override
