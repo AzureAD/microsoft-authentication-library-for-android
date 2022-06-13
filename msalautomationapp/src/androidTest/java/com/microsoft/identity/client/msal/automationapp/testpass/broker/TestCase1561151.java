@@ -22,6 +22,8 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
+import android.util.Log;
+
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
@@ -47,7 +49,6 @@ import java.util.concurrent.TimeUnit;
 
 // [Joined][MSAL] Password Change
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561151
-@SupportedBrokers(brokers = BrokerCompanyPortal.class)
 public class TestCase1561151 extends AbstractMsalBrokerTest {
     @Test
     public void test_1561151() throws Throwable {
@@ -142,8 +143,6 @@ public class TestCase1561151 extends AbstractMsalBrokerTest {
             }
         }, TokenRequestTimeout.MEDIUM);
 
-        System.out.println("Completed acquireTokenInteractive post password change");
-
         authResultPostPwdChange.assertSuccess();
     }
 
@@ -173,4 +172,5 @@ public class TestCase1561151 extends AbstractMsalBrokerTest {
     public int getConfigFileResourceId() {
         return R.raw.msal_config_default;
     }
+
 }

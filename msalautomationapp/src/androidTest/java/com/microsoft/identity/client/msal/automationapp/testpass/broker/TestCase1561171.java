@@ -43,7 +43,6 @@ import java.util.Arrays;
 
 // [Joined][MSAL] Prompt.LOGIN
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561171
-@SupportedBrokers(brokers = BrokerCompanyPortal.class)
 public class TestCase1561171 extends AbstractMsalBrokerTest {
     @Test
     public void test_1561171() throws Throwable {
