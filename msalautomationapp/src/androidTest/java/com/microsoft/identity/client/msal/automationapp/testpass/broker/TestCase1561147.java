@@ -55,7 +55,7 @@ public class TestCase1561147 extends AbstractMsalBrokerTest {
         final String password = mLabAccount.getPassword();
 
         // enroll device in MDM via the Company Portal app.
-        ((BrokerCompanyPortal) mBroker).enrollDevice(username, password, true);
+        ((BrokerCompanyPortal) mBroker).performDeviceRegistrationFederatedUser(username, password, true);
         final MsalSdk msalSdk = new MsalSdk();
 
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
@@ -126,5 +126,4 @@ public class TestCase1561147 extends AbstractMsalBrokerTest {
     public int getConfigFileResourceId() {
         return R.raw.msal_config_instance_aware_common;
     }
-
 }

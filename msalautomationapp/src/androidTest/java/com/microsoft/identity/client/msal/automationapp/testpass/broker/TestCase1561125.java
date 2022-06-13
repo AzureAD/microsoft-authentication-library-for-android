@@ -33,14 +33,17 @@ import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.common.java.providers.oauth2.IDToken;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Map;
 
 // [Joined][MSAL] In-line WPJ: Perform Device registration with deviceid claim
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561125
@@ -91,6 +94,13 @@ public class TestCase1561125 extends AbstractMsalBrokerTest {
         }, TokenRequestTimeout.MEDIUM);
 
         authResult.assertSuccess();
+        Map<String, ?> tokens = IDToken.parseJWT(authResult.getAccessToken());
+        if (tokens.containsKey("deviceid")) {
+            Assert.assertNotNull(tokens.get("deviceid"));
+        }
+        else {
+            Assert.fail("decoded AccessToken does not contain the deviceId");
+        }
     }
 
     @Override
@@ -120,3 +130,4 @@ public class TestCase1561125 extends AbstractMsalBrokerTest {
         return R.raw.msal_config_default;
     }
 }
+
