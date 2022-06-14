@@ -48,6 +48,8 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Map;
 
+// [Non-Joined] Acquire PoP token interactive followed by Silent
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1922511
 public class TestCase1922511 extends AbstractMsalBrokerTest {
     @Test
     public void test_1922511() throws Throwable {
