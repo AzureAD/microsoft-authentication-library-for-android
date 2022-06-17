@@ -35,9 +35,11 @@ import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequ
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.internal.testutils.labutils.LabConstants;
-import com.microsoft.identity.internal.testutils.labutils.LabGuestAccountHelper;
-import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
+import com.microsoft.identity.labapi.utilities.constants.GuestHomeAzureEnvironment;
+import com.microsoft.identity.labapi.utilities.constants.GuestHomedIn;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.json.JSONObject;
 import org.junit.Assert;
@@ -62,8 +64,8 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
     @Parameterized.Parameters(name = "{0}")
     public static Collection guestHomeAzureEnvironment() {
         return Arrays.asList(new Object[][]{
-                {"AZURE_CHINA_CLOUD", LabConstants.GuestHomeAzureEnvironment.AZURE_CHINA_CLOUD},
-                {"AZURE_US_GOV", LabConstants.GuestHomeAzureEnvironment.AZURE_US_GOV},
+                {"AZURE_CHINA_CLOUD", GuestHomeAzureEnvironment.AZURE_CHINA_CLOUD.toString()},
+                {"AZURE_US_GOV", GuestHomeAzureEnvironment.AZURE_US_GOVERNMENT.toString()},
         });
     }
 
@@ -73,7 +75,7 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
     @Test
     public void test_1420494() throws Throwable {
         final String userName = mGuestUser.getHomeUpn();
-        final String password = LabGuestAccountHelper.getPasswordForGuestUser(mGuestUser);
+        final String password = mLabClient.getPasswordForGuestUser(mGuestUser);
 
         // Handler for Interactive auth call
         final OnInteractionRequired interactionHandler = () -> {
@@ -116,13 +118,13 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
     }
 
     @Override
-    public LabUserQuery getLabUserQuery() {
-        final LabUserQuery query = new LabUserQuery();
-        query.userType = LabConstants.UserType.GUEST;
-        query.guestHomeAzureEnvironment = mGuestHomeAzureEnvironment;
-        query.guestHomedIn = LabConstants.GuestHomedIn.HOST_AZURE_AD;
-        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CLOUD;
-        return query;
+    public LabQuery getLabQuery() {
+        return LabQuery.builder()
+                .userType(UserType.GUEST)
+                .guestHomeAzureEnvironment(GuestHomeAzureEnvironment.valueOf(mGuestHomeAzureEnvironment))
+                .guestHomedIn(GuestHomedIn.HOST_AZURE_AD)
+                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
+                .build();
     }
 
     @Override

@@ -22,13 +22,13 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.b2c;
 
-import com.microsoft.identity.client.ui.automation.interaction.b2c.B2CProvider;
+import com.microsoft.identity.client.ui.automation.interaction.b2c.B2CProviderWrapper;
 
 /**
  * An interface describing basic requirements to write a B2C e2e UI Test
  */
 public interface IB2CTest {
 
-    B2CProvider getB2cProvider();
+    B2CProviderWrapper getB2cProvider();
 
 }

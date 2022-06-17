@@ -20,41 +20,37 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.usgov.arlington;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
-import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
+import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
-import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Test;
 
 import java.util.Arrays;
 
-// Interactive token acquisition with instance_aware=true, login hint present, and federated account,
-// and WW common authority
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938368
-public class TestCase938368 extends AbstractMsalUiTest {
+// [Non-joined][MSAL] Prompt.LOGIN
+// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/1561169
+public class TestCase1561169 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_938368() throws Throwable {
+    public void test_1561169() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
 
+        // Interactive call
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
@@ -63,54 +59,76 @@ public class TestCase938368 extends AbstractMsalUiTest {
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-        final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
+        final MsalAuthResult authResult1 = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
-                ((IApp) mBrowser).handleFirstRun();
-
-                final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
+                final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
                         .loginHint(username)
                         .sessionExpected(false)
                         .consentPageExpected(false)
-                        .speedBumpExpected(true)
-                        .isFederated(true)
+                        .speedBumpExpected(false)
+                        .expectingBrokerAccountChooserActivity(false)
                         .build();
 
-                new MicrosoftStsPromptHandler(promptHandlerParameters)
+                new AadPromptHandler(promptHandlerParameters)
                         .handlePrompt(username, password);
             }
-        },TokenRequestTimeout.MEDIUM);
+        }, TokenRequestTimeout.MEDIUM);
 
-        authResult.assertSuccess();
+        authResult1.assertSuccess();
+
+        // Interactive call with Prompt.LOGIN
+        final MsalAuthTestParams anotherAuthTestParams = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .loginHint(username)
+                .scopes(Arrays.asList(mScopes))
+                .promptParameter(Prompt.LOGIN)
+                .msalConfigResourceId(getConfigFileResourceId())
+                .build();
+
+        final MsalAuthResult authResult2 = msalSdk.acquireTokenInteractive(anotherAuthTestParams, new OnInteractionRequired() {
+            @Override
+            public void handleUserInteraction() {
+                final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
+                        .prompt(PromptParameter.LOGIN)
+                        .loginHint(username)
+                        .sessionExpected(false)
+                        .consentPageExpected(false)
+                        .speedBumpExpected(false)
+                        .expectingBrokerAccountChooserActivity(false)
+                        .build();
+
+                new AadPromptHandler(promptHandlerParameters)
+                        .handlePrompt(username, password);
+            }
+        }, TokenRequestTimeout.MEDIUM);
+
+        authResult2.assertSuccess();
     }
 
     @Override
     public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT)
-                .userType(UserType.FEDERATED)
-                .build();
-    }
-
-    @Override
-    public TempUserType getTempUserType() {
         return null;
     }
 
     @Override
+    public TempUserType getTempUserType() {
+        return TempUserType.BASIC;
+    }
+
+    @Override
     public String[] getScopes() {
-        return new String[]{"User.read"};
+        return new String[]{"https://graph.windows.net/user.read"};
     }
 
     @Override
     public String getAuthority() {
-        return mApplication.getConfiguration().getDefaultAuthority().toString();
+        return "https://login.microsoftonline.us/common";
     }
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_instance_aware_common;
+        return R.raw.msal_config_default;
     }
-
 }

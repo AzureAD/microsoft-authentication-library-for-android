@@ -41,10 +41,12 @@ import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
-import com.microsoft.identity.internal.testutils.labutils.LabConfig;
-import com.microsoft.identity.internal.testutils.labutils.LabConstants;
-import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
-import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.labapi.utilities.client.ILabAccount;
+import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.constants.UserRole;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
+import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -57,7 +59,7 @@ import java.util.Arrays;
 public class TestCase833514 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_833514() throws MsalException, InterruptedException {
+    public void test_833514() throws MsalException, InterruptedException, LabApiException {
         // pca should be in MULTIPLE account mode starting out
         Assert.assertTrue(mApplication instanceof MultipleAccountPublicClientApplication);
 
@@ -66,7 +68,7 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
 
         // perform shared device registration
         mBroker.performSharedDeviceRegistration(
-                mLoginHint, LabConfig.getCurrentLabConfig().getLabUserPassword()
+                mLabAccount.getUsername(), mLabAccount.getPassword()
         );
 
         // re-create PCA after device registration
@@ -79,12 +81,14 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
         Assert.assertTrue(mApplication.isSharedDevice());
 
         // query to load a user from the same tenant that was used for WPJ
-        final LabUserQuery query = new LabUserQuery();
-        query.userType = LabConstants.UserType.CLOUD;
+        final LabQuery query = LabQuery.builder()
+                .userType(UserType.CLOUD)
+                .build();
 
         // get username and password for this account
-        final String username = LabUserHelper.loadUserForTest(query);
-        String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+        final ILabAccount user2 = mLabClient.getLabAccount(query);
+        final String username = user2.getUsername();
+        String password = user2.getPassword();
 
         // use azure sample app and make sure we do a fresh install
         final AzureSampleApp azureSampleApp = new AzureSampleApp();
@@ -165,14 +169,14 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
     }
 
     @Override
-    public LabUserQuery getLabUserQuery() {
-        final LabUserQuery query = new LabUserQuery();
-        query.userRole = LabConstants.UserRole.CLOUD_DEVICE_ADMINISTRATOR;
-        return query;
+    public LabQuery getLabQuery() {
+        return LabQuery.builder()
+                .userRole(UserRole.CLOUD_DEVICE_ADMINISTRATOR)
+                .build();
     }
 
     @Override
-    public String getTempUserType() {
+    public TempUserType getTempUserType() {
         return null;
     }
 

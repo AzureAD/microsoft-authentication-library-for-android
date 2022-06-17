@@ -20,41 +20,45 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.usgov.arlington;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
-import com.microsoft.identity.client.ui.automation.app.IApp;
+import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
+import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
+import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
-import com.microsoft.identity.labapi.utilities.constants.UserType;
-
+import org.junit.Assert;
 import org.junit.Test;
-
 import java.util.Arrays;
+import java.util.List;
 
-// Interactive token acquisition with instance_aware=true, login hint present, and federated account,
-// and WW common authority
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938368
-public class TestCase938368 extends AbstractMsalUiTest {
+// Get Broker Accounts
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561136
+@SupportedBrokers(brokers = BrokerHost.class)
+public class TestCase1561136 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_938368() throws Throwable {
+    public void test_1561136() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
-        final MsalSdk msalSdk = new MsalSdk();
+        BrokerHost brokerHost = (BrokerHost) mBroker;
+        // Get accounts without signing in, does not return any accounts
+        Assert.assertEquals(0, brokerHost.getAllAccounts(false).size());
 
+        // Make an interactive call with MSAL
+        final MsalSdk msalSdk = new MsalSdk();
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
@@ -66,36 +70,46 @@ public class TestCase938368 extends AbstractMsalUiTest {
         final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
-                ((IApp) mBrowser).handleFirstRun();
-
                 final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
                         .loginHint(username)
                         .sessionExpected(false)
                         .consentPageExpected(false)
-                        .speedBumpExpected(true)
-                        .isFederated(true)
                         .build();
 
                 new MicrosoftStsPromptHandler(promptHandlerParameters)
                         .handlePrompt(username, password);
             }
-        },TokenRequestTimeout.MEDIUM);
+        }, TokenRequestTimeout.MEDIUM);
 
         authResult.assertSuccess();
+
+        // Check get accounts returns the account signed in with MSAL
+        List<String> accounts = brokerHost.getAllAccounts(false);
+        Assert.assertEquals(1, accounts.size());
+
+        // create another temp user
+        final ILabAccount labAccount = mLabClient.createTempAccount(TempUserType.BASIC);
+        final String username2 = labAccount.getUsername();
+        final String password2 = labAccount.getPassword();
+
+        Assert.assertNotEquals(username, username2);
+        // user-based join
+        mBroker.performDeviceRegistration(username2, password2);
+
+        // get accounts this time must show two accounts - to verify this we have check for 2 dialog boxes
+        accounts = brokerHost.getAllAccounts(true);
+        Assert.assertEquals(2, accounts.size());
     }
 
     @Override
     public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT)
-                .userType(UserType.FEDERATED)
-                .build();
+        return null;
     }
 
     @Override
     public TempUserType getTempUserType() {
-        return null;
+        return TempUserType.BASIC;
     }
 
     @Override
@@ -105,12 +119,11 @@ public class TestCase938368 extends AbstractMsalUiTest {
 
     @Override
     public String getAuthority() {
-        return mApplication.getConfiguration().getDefaultAuthority().toString();
+        return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
     }
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_instance_aware_common;
+        return R.raw.msal_config_default;
     }
-
 }

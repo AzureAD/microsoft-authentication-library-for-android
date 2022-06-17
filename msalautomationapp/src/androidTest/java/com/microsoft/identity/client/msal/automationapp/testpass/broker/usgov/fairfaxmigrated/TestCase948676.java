@@ -33,9 +33,10 @@ import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequ
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.internal.testutils.labutils.LabConfig;
-import com.microsoft.identity.internal.testutils.labutils.LabConstants;
-import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
+import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import java.util.Arrays;
 
@@ -44,8 +45,8 @@ import java.util.Arrays;
 public class TestCase948676 extends AbstractMsalBrokerTest {
 
     public void test_948676() throws Throwable {
-        final String username = mLoginHint;
-        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+        final String username = mLabAccount.getUsername();
+        final String password = mLabAccount.getPassword();
 
         // perform device registration (will obtain PRT in Broker for supplied account)
         mBroker.performDeviceRegistration(username, password);
@@ -54,7 +55,7 @@ public class TestCase948676 extends AbstractMsalBrokerTest {
 
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .loginHint(mLoginHint)
+                .loginHint(username)
                 .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
@@ -85,15 +86,15 @@ public class TestCase948676 extends AbstractMsalBrokerTest {
 
 
     @Override
-    public LabUserQuery getLabUserQuery() {
-        final LabUserQuery query = new LabUserQuery();
-        query.userType = LabConstants.UserType.CLOUD;
-        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT_MIGRATED;
-        return query;
+    public LabQuery getLabQuery() {
+        return LabQuery.builder()
+                .userType(UserType.CLOUD)
+                .azureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT_MIGRATED)
+                .build();
     }
 
     @Override
-    public String getTempUserType() {
+    public TempUserType getTempUserType() {
         return null;
     }
 
