@@ -47,14 +47,13 @@ import java.util.Arrays;
 
 // [Joined][MSAL] Broker Auth - Federated User
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561147
-@SupportedBrokers(brokers = BrokerCompanyPortal.class)
 public class TestCase1561147 extends AbstractMsalBrokerTest {
     @Test
     public void test_1561147() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
-        ((BrokerCompanyPortal) mBroker).performDeviceRegistrationForFederatedUser(username, password, true);
+        mBroker.performDeviceRegistration(username, password, true);
         final MsalSdk msalSdk = new MsalSdk();
 
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()

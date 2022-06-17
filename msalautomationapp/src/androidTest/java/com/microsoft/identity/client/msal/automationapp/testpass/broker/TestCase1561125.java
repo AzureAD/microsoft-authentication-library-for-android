@@ -95,12 +95,7 @@ public class TestCase1561125 extends AbstractMsalBrokerTest {
 
         authResult.assertSuccess();
         Map<String, ?> tokens = IDToken.parseJWT(authResult.getAccessToken());
-        if (tokens.containsKey("deviceid")) {
-            Assert.assertNotNull(tokens.get("deviceid"));
-        }
-        else {
-            Assert.fail("decoded AccessToken does not contain the deviceId");
-        }
+        Assert.assertNotNull(tokens.get("deviceid"));
     }
 
     @Override
@@ -130,4 +125,5 @@ public class TestCase1561125 extends AbstractMsalBrokerTest {
         return R.raw.msal_config_default;
     }
 }
+
 
