@@ -20,22 +20,22 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.b2c;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
-import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.B2CProvider;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
-import com.microsoft.identity.labapi.utilities.constants.UserType;
 
-public abstract class AbstractB2CTest extends AbstractMsalUiTest implements IB2CTest {
+import org.junit.Ignore;
+import org.junit.Test;
 
+// [Non-joined][MSAL] Prompt.CONSENT
+// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/1561158
+// TODO: This is associated with bug https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1923085/
+@Ignore("Broker ignore prompt.CONSENT, just proceeds with silent")
+public class TestCase1561158 extends AbstractMsalBrokerTest {
     @Override
     public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .userType(UserType.B2C)
-                .b2cProvider(B2CProvider.fromName(getB2cProvider().getProviderName()))
-                .build();
+        return null;
     }
 
     @Override
@@ -45,11 +45,16 @@ public abstract class AbstractB2CTest extends AbstractMsalUiTest implements IB2C
 
     @Override
     public String[] getScopes() {
-        return new String[]{"https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"};
+        return new String[0];
     }
 
     @Override
     public String getAuthority() {
-        return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
+        return null;
+    }
+
+    @Override
+    public int getConfigFileResourceId() {
+        return 0;
     }
 }

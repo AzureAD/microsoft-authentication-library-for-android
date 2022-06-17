@@ -20,16 +20,16 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.usgov.arlington;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
-import com.microsoft.identity.client.ui.automation.app.IApp;
+import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
+import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler;
@@ -37,21 +37,22 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.Micr
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
-import com.microsoft.identity.labapi.utilities.constants.UserType;
-
+import org.junit.Assert;
 import org.junit.Test;
-
 import java.util.Arrays;
 
-// Interactive token acquisition with instance_aware=true, login hint present, and federated account,
-// and WW common authority
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938368
-public class TestCase938368 extends AbstractMsalUiTest {
-
+// Remove Broker Account
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561137
+@SupportedBrokers(brokers = BrokerHost.class)
+public class TestCase1561137 extends AbstractMsalBrokerTest {
     @Test
-    public void test_938368() throws Throwable {
+    public void test_1561137() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
+
+        BrokerHost brokerHost = (BrokerHost) mBroker;
+        // Check getAccounts returns 0 accounts initially
+        Assert.assertEquals(0, brokerHost.getAllAccounts(false).size());
 
         final MsalSdk msalSdk = new MsalSdk();
 
@@ -66,36 +67,37 @@ public class TestCase938368 extends AbstractMsalUiTest {
         final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
-                ((IApp) mBrowser).handleFirstRun();
-
                 final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
                         .loginHint(username)
                         .sessionExpected(false)
                         .consentPageExpected(false)
-                        .speedBumpExpected(true)
-                        .isFederated(true)
                         .build();
 
                 new MicrosoftStsPromptHandler(promptHandlerParameters)
                         .handlePrompt(username, password);
             }
-        },TokenRequestTimeout.MEDIUM);
+        }, TokenRequestTimeout.MEDIUM);
 
         authResult.assertSuccess();
+
+        // Check getAccounts returns the account added
+        Assert.assertEquals(1, brokerHost.getAllAccounts(false).size());
+
+        // Remove the added account
+        brokerHost.removeAccount(username);
+        // Check getAccounts returns 0 accounts after removal
+        Assert.assertEquals(0, brokerHost.getAllAccounts(false).size());
     }
 
     @Override
     public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT)
-                .userType(UserType.FEDERATED)
-                .build();
+        return null;
     }
 
     @Override
     public TempUserType getTempUserType() {
-        return null;
+        return TempUserType.BASIC;
     }
 
     @Override
@@ -105,12 +107,11 @@ public class TestCase938368 extends AbstractMsalUiTest {
 
     @Override
     public String getAuthority() {
-        return mApplication.getConfiguration().getDefaultAuthority().toString();
+        return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
     }
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_instance_aware_common;
+        return R.raw.msal_config_default;
     }
-
 }

@@ -20,36 +20,56 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.b2c;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
-import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
+import com.microsoft.identity.client.msal.automationapp.R;
+import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
+import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.B2CProvider;
+import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
-import com.microsoft.identity.labapi.utilities.constants.UserType;
 
-public abstract class AbstractB2CTest extends AbstractMsalUiTest implements IB2CTest {
+import org.junit.Test;
 
-    @Override
-    public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .userType(UserType.B2C)
-                .b2cProvider(B2CProvider.fromName(getB2cProvider().getProviderName()))
-                .build();
+// SSO Token Requests
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561652
+@SupportedBrokers(brokers = {BrokerHost.class})
+public class TestCase1561652 extends AbstractMsalBrokerTest {
+    @Test
+    public void test_1561652() throws Throwable {
+        final String username = mLabAccount.getUsername();
+        final String password = mLabAccount.getPassword();
+
+        mBroker.performDeviceRegistration(username, password);
+
+        final String nonce = "testNonce";
+        // Get SSO token and decode to confirm nonce
+        final String ssoToken = ((BrokerHost) mBroker).acquireSSOToken(nonce);
+        ((BrokerHost) mBroker).decodeSSOTokenAndVerifyNonce(ssoToken, nonce);
     }
 
     @Override
-    public TempUserType getTempUserType() {
+    public LabQuery getLabQuery() {
         return null;
     }
 
     @Override
+    public TempUserType getTempUserType() {
+        return TempUserType.BASIC;
+    }
+
+    @Override
     public String[] getScopes() {
-        return new String[]{"https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"};
+        return new String[]{"User.read"};
     }
 
     @Override
     public String getAuthority() {
         return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
+    }
+
+    @Override
+    public int getConfigFileResourceId() {
+        return R.raw.msal_config_default;
     }
 }

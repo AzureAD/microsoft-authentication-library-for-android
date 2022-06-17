@@ -34,9 +34,9 @@ import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequ
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.internal.testutils.labutils.LabConfig;
-import com.microsoft.identity.internal.testutils.labutils.LabConstants;
-import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
+import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import java.util.Arrays;
 
@@ -46,13 +46,13 @@ import java.util.Arrays;
 public class TestCase1116115 extends AbstractMsalUiTest {
 
     public void test_1116115() throws Throwable {
-        final String username = mLoginHint;
-        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+        final String username = mLabAccount.getUsername();
+        final String password = mLabAccount.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
 
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
-                .loginHint(mLoginHint)
+                .loginHint(username)
                 .activity(mActivity)
                 .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
@@ -66,7 +66,7 @@ public class TestCase1116115 extends AbstractMsalUiTest {
 
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
-                        .loginHint(mLoginHint)
+                        .loginHint(username)
                         .sessionExpected(false)
                         .consentPageExpected(false)
                         .speedBumpExpected(false)
@@ -81,14 +81,14 @@ public class TestCase1116115 extends AbstractMsalUiTest {
     }
 
     @Override
-    public LabUserQuery getLabUserQuery() {
-        final LabUserQuery query = new LabUserQuery();
-        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_GERMANY_CLOUD_MIGRATED;
-        return query;
+    public LabQuery getLabQuery() {
+        return LabQuery.builder()
+                .azureEnvironment(AzureEnvironment.AZURE_GERMANY_CLOUD_MIGRATED)
+                .build();
     }
 
     @Override
-    public String getTempUserType() {
+    public TempUserType getTempUserType() {
         return null;
     }
 

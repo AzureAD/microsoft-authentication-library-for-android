@@ -138,11 +138,6 @@ android {
             setIgnore(true)
         }
 
-        if (flavorName.contains("local") && flavorName.contains("BrokerCompanyPortal") && buildType.contains("debug")) {
-            // Gradle ignores any variants that satisfy the conditions above.
-            setIgnore(true)
-        }
-
         if (flavorName.contains("local") && flavorName.contains("AutoBroker")) {
             // Gradle ignores any variants that satisfy the conditions above.
             setIgnore(true)
@@ -182,10 +177,7 @@ dependencies {
     compileOnly "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
     annotationProcessor "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
 
-    implementation(project(":testutils")) {
-        exclude module: 'common'
-        exclude module: 'appcompat'
-    }
+    implementation(project(":LabApiUtilities"))
     implementation(project(":uiautomationutilities")) {
         exclude module: 'common'
         exclude module: 'appcompat'
