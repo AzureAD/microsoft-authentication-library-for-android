@@ -81,9 +81,11 @@ public class TestCase1922527 extends AbstractMsalBrokerTest {
         }, TokenRequestTimeout.MEDIUM);
 
         authResult.assertSuccess();
+        Assert.assertEquals(MsalAuthResult.atPopSuccessMsg, authResult.verifyATForPop(authResult.getAccessToken()));
 
         String shr = msalSdk.generateSHR(authTestParams, TokenRequestTimeout.SHORT);
         Assert.assertNotNull(shr);
+        Assert.assertEquals(MsalAuthResult.atPopSuccessMsg, authResult.verifyATForPop(shr));
     }
     @Override
     public LabQuery getLabQuery() {
@@ -111,5 +113,5 @@ public class TestCase1922527 extends AbstractMsalBrokerTest {
     public int getConfigFileResourceId() {
         return R.raw.msal_config_default;
     }
-
 }
+

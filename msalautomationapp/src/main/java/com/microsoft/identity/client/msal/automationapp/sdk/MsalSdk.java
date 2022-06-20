@@ -93,7 +93,6 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
             acquireTokenParametersBuilder.withAuthenticationScheme(
                     PoPAuthenticationScheme.builder()
                             .withHttpMethod(HttpMethod.valueOf("GET"))
-                            .withClientClaims("")
                             .withUrl(new URL("https://signedhttprequest.azurewebsites.net/api/validateSHR"))
                             .build()
             );
@@ -164,7 +163,6 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
             acquireTokenParametersBuilder.withAuthenticationScheme(
                     PoPAuthenticationScheme.builder()
                             .withHttpMethod(HttpMethod.valueOf("GET"))
-                            .withClientClaims("")
                             .withUrl(new URL("https://signedhttprequest.azurewebsites.net/api/validateSHR"))
                             .build()
             );
@@ -321,18 +319,15 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
 
         };
 
-        if (authTestParams.getAuthScheme() == AuthScheme.POP) {
-            pca.generateSignedHttpRequest(account, PoPAuthenticationScheme.builder()
-                    .withHttpMethod(HttpMethod.valueOf("GET"))
-                    .withClientClaims("")
-                    .withUrl(new URL("https://signedhttprequest.azurewebsites.net/api/validateSHR"))
-                    .build(), callback);
+        pca.generateSignedHttpRequest(account, PoPAuthenticationScheme.builder()
+                .withHttpMethod(HttpMethod.valueOf("GET"))
+                .withUrl(new URL("https://signedhttprequest.azurewebsites.net/api/validateSHR"))
+                .build(), callback);
 
-        }
         try {
             return future.get(tokenRequestTimeout.getTime(), tokenRequestTimeout.getTimeUnit());
         } catch (final Exception exception) {
-           throw exception;
+            throw exception;
         }
     }
 }

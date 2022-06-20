@@ -86,7 +86,7 @@ public class TestCase1922511 extends AbstractMsalBrokerTest {
         }, TokenRequestTimeout.MEDIUM);
 
         authResult.assertSuccess();
-        verifyATForPop(authResult);
+        Assert.assertEquals(MsalAuthResult.atPopSuccessMsg, authResult.verifyATForPop(authResult.getAccessToken()));
 
         // start silent token request in MSAL
         final MsalAuthTestParams authTestSilentParams = MsalAuthTestParams.builder()
@@ -100,30 +100,7 @@ public class TestCase1922511 extends AbstractMsalBrokerTest {
 
         final MsalAuthResult authSilentResult = msalSdk.acquireTokenSilent(authTestSilentParams, TokenRequestTimeout.MEDIUM);
         authSilentResult.assertSuccess();
-        verifyATForPop(authSilentResult);
-    }
-
-    private void verifyATForPop(@NonNull final MsalAuthResult authResult) throws ServiceException {
-        String rawIdToken = authResult.getAccessToken();
-        Map<String, ?> tokens = IDToken.parseJWT(rawIdToken);
-        // check for url
-        if (tokens.containsKey("u")) {
-            Assert.assertEquals("signedhttprequest.azurewebsites.net", tokens.get("u"));
-        } else {
-            Assert.fail("decoded AccessToken does not contain the PoPResourceUri");
-        }
-        // check for path
-        if (tokens.containsKey("p")) {
-            Assert.assertEquals("/api/validateSHR", tokens.get("p"));
-        } else {
-            Assert.fail("decoded AccessToken does not contain the PoPResource path");
-        }
-        // check for the http method
-        if (tokens.containsKey("m")) {
-            Assert.assertEquals("GET", tokens.get("m"));
-        } else {
-            Assert.fail("decoded AccessToken does not contain the specified HTTP method");
-        }
+        Assert.assertEquals(MsalAuthResult.atPopSuccessMsg, authSilentResult.verifyATForPop(authSilentResult.getAccessToken()));
     }
 
     @Override
@@ -153,3 +130,4 @@ public class TestCase1922511 extends AbstractMsalBrokerTest {
         return R.raw.msal_config_default;
     }
 }
+
