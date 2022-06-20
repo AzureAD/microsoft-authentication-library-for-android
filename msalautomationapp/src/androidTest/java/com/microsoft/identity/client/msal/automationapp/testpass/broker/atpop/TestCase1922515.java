@@ -116,4 +116,3 @@ public class TestCase1922515 extends AbstractMsalBrokerTest {
         return R.raw.msal_config_default;
     }
 }
-
