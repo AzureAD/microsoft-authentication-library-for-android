@@ -49,8 +49,8 @@ import org.junit.runners.Parameterized;
 import java.util.Arrays;
 import java.util.Collection;
 
-// https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1616315
 // [CrossCloud] AcquireToken from home Cloud after acquiring token from cross/foreign cloud
+// https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1616315
 @RunWith(Parameterized.class)
 public class TestCase1616316 extends AbstractGuestAccountMsalUiTest {
 
@@ -72,7 +72,7 @@ public class TestCase1616316 extends AbstractGuestAccountMsalUiTest {
     }
 
     @Test
-    public void test_acquire_token_from_home_cloud_after_acquiring_token_from_cross_cloud() throws Throwable {
+    public void test_1616316() throws Throwable {
         final String userName = mGuestUser.getHomeUpn();
         final String password = mLabClient.getPasswordForGuestUser(mGuestUser);
 

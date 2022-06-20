@@ -40,7 +40,6 @@ import com.microsoft.identity.client.ui.automation.interaction.b2c.IdLabB2cSisoP
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-
 import java.util.Arrays;
 
 @RunWith(Parameterized.class)
@@ -50,7 +49,7 @@ public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
             B2CProviderWrapper.Local,
             B2CProviderWrapper.MSA,
             B2CProviderWrapper.Google,
-            B2CProviderWrapper.Facebook,
+            // B2CProviderWrapper.Facebook, // This is currently breaking, "Facebook Login is currently unavailable for this app"
     };
 
     @Parameterized.Parameters(name = "{0}")
@@ -108,8 +107,6 @@ public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
         authResult.assertSuccess();
 
         // ------ do silent request ------
-
-
         final MsalAuthTestParams authTestSilentParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .authority(getAuthority())
@@ -123,8 +120,6 @@ public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
         authSilentResult.assertSuccess();
 
         // ------ do force refresh silent request ------
-
-
         final MsalAuthTestParams silentForceParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .authority(getAuthority())

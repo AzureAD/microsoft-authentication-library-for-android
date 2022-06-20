@@ -78,7 +78,6 @@ public class TestCase769049 extends AbstractMsalBrokerTest {
         authResult.assertSuccess();
 
         // SECOND REQUEST WITHOUT LOGIN HINT
-
         final MsalAuthTestParams noLoginHintParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .scopes(Arrays.asList(mScopes))

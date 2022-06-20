@@ -38,7 +38,7 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Test;
 
-// SovCloud: Interactive Auth w/o cache w/o MFA w/ Prompt Auto w/ Broker
+// [MSAL] BlackForest: Interactive Auth w/o cache w/o MFA w/ Prompt Auto w/ Broker
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/796049
 public class TestCase796049 extends AbstractMsalBrokerTest {
 
@@ -49,6 +49,7 @@ public class TestCase796049 extends AbstractMsalBrokerTest {
 
         final MsalSdk msalSdk = new MsalSdk();
 
+        // Interactive Call W/ Resource
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
@@ -76,37 +77,7 @@ public class TestCase796049 extends AbstractMsalBrokerTest {
         }, TokenRequestTimeout.MEDIUM);
 
         authResult.assertSuccess();
-
-        // SECOND REQUEST WITHOUT LOGIN HINT
-
-        final MsalAuthTestParams noLoginHintParams = MsalAuthTestParams.builder()
-                .activity(mActivity)
-                .resource(mScopes[0])
-                .promptParameter(Prompt.SELECT_ACCOUNT)
-                .msalConfigResourceId(getConfigFileResourceId())
-                .build();
-
-        final MsalAuthResult noLoginHintauthResult = msalSdk.acquireTokenInteractive(noLoginHintParams, new OnInteractionRequired() {
-            @Override
-            public void handleUserInteraction() {
-                final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                        .prompt(PromptParameter.SELECT_ACCOUNT)
-                        .loginHint(null)
-                        .sessionExpected(true)
-                        .consentPageExpected(false)
-                        .speedBumpExpected(false)
-                        .broker(mBroker)
-                        .expectingBrokerAccountChooserActivity(true)
-                        .build();
-
-                new AadPromptHandler(promptHandlerParameters)
-                        .handlePrompt(username, password);
-            }
-        }, TokenRequestTimeout.MEDIUM);
-
-        noLoginHintauthResult.assertSuccess();
     }
-
 
     @Override
     public LabQuery getLabQuery() {

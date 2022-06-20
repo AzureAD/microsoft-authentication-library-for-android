@@ -54,7 +54,6 @@ public class TestCase796050 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_796050() throws Throwable {
-
         // already created test user
         final String username1 = mLabAccount.getUsername();
         final String password1 = mLabAccount.getPassword();
@@ -124,11 +123,9 @@ public class TestCase796050 extends AbstractMsalBrokerTest {
         }
 
         // NOW change device time (advance clock by more than an hour)
-
         TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
 
         // SILENT REQUEST - start a acquireTokenSilent request in MSAL with the Account 2
-
         final IAccount account = msalSdk.getAccount(mActivity,getConfigFileResourceId(),username2);
 
         // Make sure we have the most recent account aka Account 2
@@ -143,12 +140,10 @@ public class TestCase796050 extends AbstractMsalBrokerTest {
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-
         // get a token silently
         final MsalAuthResult silentAuthResult = msalSdk.acquireTokenSilent(silentParams, TokenRequestTimeout.SILENT);
         silentAuthResult.assertSuccess();
     }
-
 
     @Override
     public LabQuery getLabQuery() {

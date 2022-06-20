@@ -36,13 +36,10 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerPara
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
-import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
 import org.junit.Test;
-
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 

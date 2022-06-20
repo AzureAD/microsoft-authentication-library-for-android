@@ -60,6 +60,9 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_833514() throws MsalException, InterruptedException, LabApiException {
+        final String username1 = mLabAccount.getUsername();
+        final String password1 = mLabAccount.getPassword();
+
         // pca should be in MULTIPLE account mode starting out
         Assert.assertTrue(mApplication instanceof MultipleAccountPublicClientApplication);
 
@@ -68,7 +71,7 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
 
         // perform shared device registration
         mBroker.performSharedDeviceRegistration(
-                mLabAccount.getUsername(), mLabAccount.getPassword()
+                username1, password1
         );
 
         // re-create PCA after device registration
@@ -87,8 +90,11 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
 
         // get username and password for this account
         final ILabAccount user2 = mLabClient.getLabAccount(query);
-        final String username = user2.getUsername();
-        String password = user2.getPassword();
+        final String username2 = user2.getUsername();
+        final String password2 = user2.getPassword();
+
+        // assert different accounts
+        Assert.assertNotEquals(username1, username2);
 
         // use azure sample app and make sure we do a fresh install
         final AzureSampleApp azureSampleApp = new AzureSampleApp();
@@ -114,10 +120,10 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
                         .build();
 
         // sign in into Azure Sample App
-        azureSampleApp.signInWithSingleAccountFragment(username, password, getBrowser(), false, microsoftStsPromptHandlerParameters);
+        azureSampleApp.signInWithSingleAccountFragment(username2, password2, getBrowser(), false, microsoftStsPromptHandlerParameters);
 
         // make sure we have successfully signed in
-        azureSampleApp.confirmSignedIn(username);
+        azureSampleApp.confirmSignedIn(username2);
 
         final SingleAccountPublicClientApplication singleAccountPCA =
                 (SingleAccountPublicClientApplication) mApplication;
@@ -131,7 +137,7 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
             @Override
             public void onAccountLoaded(@Nullable IAccount activeAccount) {
                 assert activeAccount != null;
-                Assert.assertEquals(activeAccount.getUsername(), username);
+                Assert.assertEquals(activeAccount.getUsername(), username2);
                 accounts[0] = activeAccount;
                 getAccountLatch.countDown();
             }
@@ -139,7 +145,7 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
             @Override
             public void onAccountChanged(@Nullable IAccount priorAccount, @Nullable IAccount currentAccount) {
                 assert currentAccount != null;
-                Assert.assertEquals(currentAccount.getUsername(), username);
+                Assert.assertEquals(currentAccount.getUsername(), username2);
                 accounts[0] = currentAccount;
                 getAccountLatch.countDown();
             }
@@ -194,5 +200,4 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
     public int getConfigFileResourceId() {
         return R.raw.msal_config_default;
     }
-
 }

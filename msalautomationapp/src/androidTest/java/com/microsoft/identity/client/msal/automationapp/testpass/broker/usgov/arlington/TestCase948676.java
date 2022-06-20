@@ -41,7 +41,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
-// Broker authentication with PRT with USGov account with instance_aware=true
+// [USGOV][Joined] Acquire token with USGov account, with instance_aware=true
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/948676
 public class TestCase948676 extends AbstractMsalBrokerTest {
 
@@ -50,12 +50,12 @@ public class TestCase948676 extends AbstractMsalBrokerTest {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
-        // perform device registration (will obtain PRT in Broker for supplied account)
+        // Perform device registration (will obtain PRT in Broker for supplied account)
         mBroker.performDeviceRegistration(username, password);
 
         final MsalSdk msalSdk = new MsalSdk();
 
-        //acquiring token
+        // Acquiring token
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
@@ -85,7 +85,6 @@ public class TestCase948676 extends AbstractMsalBrokerTest {
 
         authResult.assertSuccess();
     }
-
 
     @Override
     public LabQuery getLabQuery() {

@@ -109,5 +109,4 @@ public class TestCase938367 extends AbstractMsalUiTest {
     public int getConfigFileResourceId() {
         return R.raw.msal_config_instance_aware_organization;
     }
-
 }

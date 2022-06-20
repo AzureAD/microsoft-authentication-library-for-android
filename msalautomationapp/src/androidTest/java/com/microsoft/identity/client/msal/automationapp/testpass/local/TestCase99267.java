@@ -78,7 +78,6 @@ public class TestCase99267 extends AbstractMsalUiTest {
         }, TokenRequestTimeout.MEDIUM);
 
         authResult.assertSuccess();
-
     }
 
     @Override
@@ -105,5 +104,4 @@ public class TestCase99267 extends AbstractMsalUiTest {
     public int getConfigFileResourceId() {
         return R.raw.msal_config_no_admin_consent;
     }
-
 }

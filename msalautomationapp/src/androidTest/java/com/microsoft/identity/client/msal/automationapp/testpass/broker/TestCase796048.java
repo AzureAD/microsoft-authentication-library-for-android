@@ -39,7 +39,7 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Test;
 
-// [MSAL] SovCloud: Silent Auth w/o cache w/o MFA w/ Prompt Auto  w/ Broker
+// [MSAL] BlackForest: Silent Auth w/o cache w/o MFA w/ Prompt Auto  w/ Broker
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/796048
 public class TestCase796048 extends AbstractMsalBrokerTest {
 
@@ -50,6 +50,7 @@ public class TestCase796048 extends AbstractMsalBrokerTest {
 
         final MsalSdk msalSdk = new MsalSdk();
 
+        //Interactive call W/ Resource
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
@@ -79,11 +80,9 @@ public class TestCase796048 extends AbstractMsalBrokerTest {
         authResult.assertSuccess();
 
         // now expire AT
-
         TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
 
         // SILENT REQUEST
-
         final MsalAuthTestParams authTestSilentParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)

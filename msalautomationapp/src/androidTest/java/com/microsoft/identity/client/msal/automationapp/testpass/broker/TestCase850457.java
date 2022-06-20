@@ -51,6 +51,8 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
         final String password = mLabAccount.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
+
+        // Interactive call
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
@@ -78,15 +80,17 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
         }, TokenRequestTimeout.MEDIUM);
 
         authResult1.assertSuccess();
+
         /*
             Note that password reset doesn't take effect by ESTS at least user being logged in for 1 min.
             Therefore we have a Thread.sleep after first successful token acquisition before resetting password.
          */
-        Thread.sleep(TimeUnit.MINUTES.toMillis(2));
+        Thread.sleep(TimeUnit.MINUTES.toMillis(1));
         Assert.assertTrue(mLabClient.resetPassword(username));
 
         TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
 
+        // Interactive call
         final MsalAuthTestParams msalAuthTestParams2 = MsalAuthTestParams.builder()
                 .loginHint(username)
                 .activity(mActivity)
@@ -117,9 +121,7 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
         System.out.println("Completed acquireTokenInteractive");
 
         authResult2.assertSuccess();
-
     }
-
 
     @Override
     public LabQuery getLabQuery() {

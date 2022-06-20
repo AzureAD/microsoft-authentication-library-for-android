@@ -88,7 +88,6 @@ public class TestCase497038 extends AbstractMsalUiTest {
         azureSampleApp.confirmSignedIn(username);
 
         // NOW LOGIN INTO MSAL AUTOMATION APP
-
         final MsalSdk msalSdk = new MsalSdk();
 
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
@@ -120,7 +119,6 @@ public class TestCase497038 extends AbstractMsalUiTest {
         authResult.assertSuccess();
     }
 
-
     @Override
     public LabQuery getLabQuery() {
         return null;
@@ -145,5 +143,4 @@ public class TestCase497038 extends AbstractMsalUiTest {
     public int getConfigFileResourceId() {
         return R.raw.msal_config_browser;
     }
-
 }

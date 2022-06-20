@@ -43,8 +43,8 @@ import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
 
-//Joined AcquireToken test with MSAL and Broker
-//https://identitydivision.visualstudio.com/DevEx/_workitems/edit/832430
+// [Joined][MSAL] Acquire Token + Acquire Token Silent with resource (Prompt.SELECT_ACCOUNT)
+// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/832430
 public class TestCase832430 extends AbstractMsalBrokerTest {
 
     @Test

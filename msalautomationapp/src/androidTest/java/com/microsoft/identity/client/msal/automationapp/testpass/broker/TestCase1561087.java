@@ -37,7 +37,7 @@ import org.junit.Test;
 @SupportedBrokers(brokers = BrokerHost.class)
 public class TestCase1561087  extends  AbstractMsalBrokerTest {
     @Test
-    public void test_1561087() throws Throwable {
+    public void test_1561087() {
         // Set flights and get to check if the flight information is returned
         final String flightsJson =  "{\"SetFlightsTest\":\"true\"}";
         mBroker.setFlights(flightsJson);

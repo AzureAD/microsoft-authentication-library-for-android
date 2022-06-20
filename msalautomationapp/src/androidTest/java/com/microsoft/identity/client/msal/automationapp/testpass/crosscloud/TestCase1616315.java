@@ -49,8 +49,8 @@ import org.junit.runners.Parameterized;
 import java.util.Arrays;
 import java.util.Collection;
 
-// https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1616315
 // [CrossCloud] AcquireToken from Cross/foreign Cloud after acquiring token from home cloud
+// https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1616315
 @RunWith(Parameterized.class)
 public class TestCase1616315 extends AbstractGuestAccountMsalUiTest {
 
@@ -72,7 +72,7 @@ public class TestCase1616315 extends AbstractGuestAccountMsalUiTest {
     }
 
     @Test
-    public void test_acquire_token_from_cross_cloud_after_acquiring_token_from_home_cloud() throws Throwable {
+    public void test_1616315() throws Throwable {
         final String userName = mGuestUser.getHomeUpn();
         final String password = mLabClient.getPasswordForGuestUser(mGuestUser);
         mBrowser.clear();
@@ -93,7 +93,7 @@ public class TestCase1616315 extends AbstractGuestAccountMsalUiTest {
                     PromptHandlerParameters.builder()
                             .prompt(PromptParameter.SELECT_ACCOUNT)
                             .loginHint(userName)
-                            .staySignedInPageExpected(true)
+                            .staySignedInPageExpected(false)
                             .speedBumpExpected(true)
                             .build();
             final AadPromptHandler promptHandler = new AadPromptHandler(promptHandlerParameters);

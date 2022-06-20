@@ -54,6 +54,9 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_833516() throws MsalException, InterruptedException, LabApiException {
+        final String username1 = mLabAccount.getUsername();
+        final String password1 = mLabAccount.getPassword();
+
         // pca should be in MULTIPLE account mode starting out
         Assert.assertTrue(mApplication instanceof MultipleAccountPublicClientApplication);
 
@@ -62,7 +65,7 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
 
         // perform shared device registration
         mBroker.performSharedDeviceRegistration(
-                mLabAccount.getUsername(), mLabAccount.getPassword()
+                username1, password1
         );
 
         // re-create PCA after device registration
@@ -80,8 +83,8 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
                 .build();
 
         final ILabAccount sameTenantUser = mLabClient.getLabAccount(query);
-        final String username = sameTenantUser.getUsername();
-        String password = sameTenantUser.getPassword();
+        final String username2 = sameTenantUser.getUsername();
+        final String password2 = sameTenantUser.getPassword();
 
         final SingleAccountPublicClientApplication singleAccountPCA =
                 (SingleAccountPublicClientApplication) mApplication;
@@ -89,10 +92,10 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
         final TokenRequestLatch latch = new TokenRequestLatch(1);
 
         // try sign in with an account from the same tenant
-        singleAccountPCA.signIn(mActivity, username, mScopes, successfulInteractiveCallback(latch));
+        singleAccountPCA.signIn(mActivity, username2, mScopes, successfulInteractiveCallback(latch));
 
         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                .loginHint(username)
+                .loginHint(username2)
                 .sessionExpected(false)
                 .consentPageExpected(false)
                 .broker(mBroker)
@@ -101,7 +104,7 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
                 .build();
 
         AadPromptHandler aadPromptHandler = new AadPromptHandler(promptHandlerParameters);
-        aadPromptHandler.handlePrompt(username, password);
+        aadPromptHandler.handlePrompt(username2, password2);
 
         latch.await(TokenRequestTimeout.MEDIUM);
 
@@ -150,5 +153,4 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
     public int getConfigFileResourceId() {
         return R.raw.msal_config_instance_aware_common;
     }
-
 }

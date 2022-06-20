@@ -105,9 +105,7 @@ public class TestCase99274 extends AbstractMsalUiTest {
         },TokenRequestTimeout.SHORT);
 
         consentRecordResults.assertSuccess();
-
     }
-
 
     @Override
     public LabQuery getLabQuery() {

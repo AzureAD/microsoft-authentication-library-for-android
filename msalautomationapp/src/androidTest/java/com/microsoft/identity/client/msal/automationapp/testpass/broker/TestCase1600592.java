@@ -22,10 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
-import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.exception.MsalServiceException;
-import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
@@ -93,6 +91,7 @@ public class TestCase1600592 extends AbstractMsalBrokerTest {
 
         final MsalAuthResult authResult2 = msalSdk.acquireTokenSilent(silentParams, TokenRequestTimeout.MEDIUM);
 
+        // Should fail with an MsalServiceException
         authResult2.assertFailure();
         Assert.assertTrue(authResult2.getException() instanceof MsalServiceException);
     }

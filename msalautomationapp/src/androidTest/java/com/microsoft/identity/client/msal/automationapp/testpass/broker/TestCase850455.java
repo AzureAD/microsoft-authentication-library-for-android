@@ -35,6 +35,7 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadP
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Test;
 
@@ -49,6 +50,7 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
 
         final MsalSdk msalSdk = new MsalSdk();
 
+        // Interactive call
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
@@ -77,8 +79,7 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
 
         authResult.assertSuccess();
 
-        // SILENT REQUEST
-
+        // Silent call
         final IAccount account = msalSdk.getAccount(mActivity,getConfigFileResourceId(),username);
 
         final MsalAuthTestParams silentParams = MsalAuthTestParams.builder()
@@ -94,11 +95,10 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
         silentAuthResult.assertSuccess();
     }
 
-
     @Override
     public LabQuery getLabQuery() {
         return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT)
+                .userType(UserType.CLOUD)
                 .build();
     }
 
@@ -119,7 +119,6 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_instance_aware_common;
+        return R.raw.msal_config_default;
     }
-
 }

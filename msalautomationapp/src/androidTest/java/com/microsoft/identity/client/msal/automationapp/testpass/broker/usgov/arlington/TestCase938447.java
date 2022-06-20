@@ -41,7 +41,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
-// Broker authentication with PRT with USGov account
+// [USGOV][Joined] Acquire token with Arlington account
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938447
 public class TestCase938447 extends AbstractMsalBrokerTest {
 
@@ -85,7 +85,6 @@ public class TestCase938447 extends AbstractMsalBrokerTest {
 
         authResult.assertSuccess();
     }
-
 
     @Override
     public LabQuery getLabQuery() {

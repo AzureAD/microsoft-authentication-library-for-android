@@ -51,7 +51,7 @@ import org.junit.runners.Parameterized;
 import java.util.Arrays;
 import java.util.Collection;
 
-// Acquiring token for cross cloud guest account (Msal Only)
+// [CrossCloud] Acquire token (Interactive and silent) for cross cloud guest account (Msal Only)
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1420484
 @RunWith(Parameterized.class)
 public class TestCase1420484 extends AbstractGuestAccountMsalUiTest {
@@ -85,7 +85,7 @@ public class TestCase1420484 extends AbstractGuestAccountMsalUiTest {
                     PromptHandlerParameters.builder()
                     .prompt(PromptParameter.SELECT_ACCOUNT)
                     .loginHint(userName)
-                    .staySignedInPageExpected(true)
+                    .staySignedInPageExpected(false)
                     .speedBumpExpected(true)
                     .build();
             final AadPromptHandler promptHandler = new AadPromptHandler(promptHandlerParameters);

@@ -40,6 +40,7 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.Mfa;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -47,6 +48,7 @@ import java.util.concurrent.TimeUnit;
 
 // Interactive auth with force_login and step-up MFA
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99656
+@Ignore("https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1886086")
 @RetryOnFailure
 public class TestCase99656 extends AbstractMsalUiTest {
 
@@ -132,9 +134,7 @@ public class TestCase99656 extends AbstractMsalUiTest {
         }, TokenRequestTimeout.MEDIUM);
 
         authResult2.assertSuccess();
-
     }
-
 
     @Override
     public LabQuery getLabQuery() {

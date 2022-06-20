@@ -60,6 +60,9 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_833515() throws MsalException, InterruptedException, LabApiException {
+        final String username1 = mLabAccount.getUsername();
+        final String password1 = mLabAccount.getPassword();
+
         // pca should be in MULTIPLE account mode starting out
         Assert.assertTrue(mApplication instanceof MultipleAccountPublicClientApplication);
 
@@ -68,7 +71,7 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
 
         // perform shared device registration
         mBroker.performSharedDeviceRegistration(
-                mLabAccount.getUsername(), mLabAccount.getPassword()
+                username1, password1
         );
 
         // re-create PCA after device registration
@@ -82,8 +85,8 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
 
         //creating a basic temp user account
         final ILabAccount labAccount = mLabClient.createTempAccount(TempUserType.BASIC);
-        final String username = labAccount.getUsername();
-        final String password = labAccount.getPassword();
+        final String username2 = labAccount.getUsername();
+        final String password2 = labAccount.getPassword();
         Thread.sleep(TimeUnit.SECONDS.toMillis(30));
 
         final SingleAccountPublicClientApplication singleAccountPCA =
@@ -92,10 +95,10 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         final CountDownLatch latch = new CountDownLatch(1);
 
         // try sign in with an account from the same tenant
-        singleAccountPCA.signIn(mActivity, username, mScopes, successfulInteractiveCallback(latch));
+        singleAccountPCA.signIn(mActivity, username2, mScopes, successfulInteractiveCallback(latch));
 
         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                .loginHint(username)
+                .loginHint(username2)
                 .sessionExpected(false)
                 .consentPageExpected(false)
                 .broker(mBroker)
@@ -104,7 +107,7 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
                 .build();
 
         AadPromptHandler aadPromptHandler = new AadPromptHandler(promptHandlerParameters);
-        aadPromptHandler.handlePrompt(username, password);
+        aadPromptHandler.handlePrompt(username2, password2);
 
         latch.await();
 
@@ -114,7 +117,7 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         azureSampleApp.install();
         azureSampleApp.launch();
         Thread.sleep(TimeUnit.SECONDS.toMillis(5));
-        azureSampleApp.confirmSignedIn(username);
+        azureSampleApp.confirmSignedIn(username2);
 
         //clearing history of chrome.
         final IBrowser chrome = new BrowserChrome();
@@ -127,14 +130,14 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
 
         // login into myapps from chrome
         final AadLoginComponentHandler aadLoginComponentHandler = new AadLoginComponentHandler();
-        aadLoginComponentHandler.handleEmailField(username);
-        aadLoginComponentHandler.handlePasswordField(password);
+        aadLoginComponentHandler.handleEmailField(username2);
+        aadLoginComponentHandler.handlePasswordField(password2);
 
         //signing out from the application.
         ((SingleAccountPublicClientApplication) mApplication).signOut();
 
         //selecting which account should be logged out.
-        aadLoginComponentHandler.handleAccountPicker(username);
+        aadLoginComponentHandler.handleAccountPicker(username2);
 
         final UiObject signOutConfirmationUrl = UiAutomatorUtils.obtainUiObjectWithText(
                 "login.microsoftonline.com/common/oauth2/v2.0/logoutsession"
@@ -143,12 +146,12 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         Assert.assertTrue(signOutConfirmationUrl.exists());
 
         // can sometimes take a few seconds to actually be signed out
-        Thread.sleep(TimeUnit.SECONDS.toMillis(5));
+        Thread.sleep(TimeUnit.SECONDS.toMillis(8));
 
         //confirming account is signed out in google chrome.
         chrome.launch();
         chrome.navigateTo(MY_APPS_URL);
-        aadLoginComponentHandler.handleAccountPicker(username);
+        aadLoginComponentHandler.handleAccountPicker(username2);
 
         // we must see password prompt after sign out
         final UiObject passwordField = UiAutomatorUtils.obtainUiObjectWithResourceId("i0118");

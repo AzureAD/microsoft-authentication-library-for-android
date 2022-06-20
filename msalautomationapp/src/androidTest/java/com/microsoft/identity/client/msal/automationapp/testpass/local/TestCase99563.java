@@ -95,7 +95,6 @@ public class TestCase99563 extends AbstractMsalUiTest {
 
     }
 
-
     @Override
     public LabQuery getLabQuery() {
         return LabQuery.builder()
@@ -120,6 +119,6 @@ public class TestCase99563 extends AbstractMsalUiTest {
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_webview;
+        return R.raw.msal_config_default;
     }
 }

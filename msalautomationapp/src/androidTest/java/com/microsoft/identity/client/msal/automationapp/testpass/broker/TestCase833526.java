@@ -46,7 +46,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
-// Broker Auth for MDM account
+// [Joined][MSAL] Device Admin MDM: Broker Auth for MDM account
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833526
 @RetryOnFailure(retryCount = 2)
 @SupportedBrokers(brokers = BrokerCompanyPortal.class)

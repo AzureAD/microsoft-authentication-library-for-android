@@ -42,13 +42,12 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
-// Brokered authentication without PRT with instance_aware=true, no login hint, and cloud account,
-// and WW common authority
+// [USGOV][Non-joined] acquire token, with WW common authority and instance_aware=true
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/940393
 public class TestCase940393 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_938447() throws Throwable {
+    public void test_940393() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
@@ -83,7 +82,6 @@ public class TestCase940393 extends AbstractMsalBrokerTest {
 
         authResult.assertSuccess();
     }
-
 
     @Override
     public LabQuery getLabQuery() {

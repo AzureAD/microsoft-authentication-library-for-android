@@ -55,6 +55,7 @@ import java.util.Collection;
 
 import static com.microsoft.identity.common.java.exception.ErrorStrings.AUTHORITY_URL_NOT_VALID;
 
+// Acquire token from cross cloud when Device CA is required (via PKeyAuth)
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1592468
 @RunWith(Parameterized.class)
 public class TestCase1592468 extends AbstractGuestAccountMsalBrokerUiTest {
@@ -77,7 +78,7 @@ public class TestCase1592468 extends AbstractGuestAccountMsalBrokerUiTest {
     }
 
     @Test
-    public void test_acquireTokenFromCrossCloudForJoinedAccount() throws Throwable {
+    public void test_1592468() throws Throwable {
         final String userName = mGuestUser.getHomeUpn();
         final String password = mLabClient.getPasswordForGuestUser(mGuestUser);
         final MsalSdk msalSdk = new MsalSdk();
@@ -91,7 +92,7 @@ public class TestCase1592468 extends AbstractGuestAccountMsalBrokerUiTest {
                     .prompt(PromptParameter.SELECT_ACCOUNT)
                     .loginHint(userName)
                     .broker(mBroker)
-                    .staySignedInPageExpected(true)
+                    .staySignedInPageExpected(false)
                     .build();
             final AadPromptHandler promptHandler = new AadPromptHandler(promptHandlerParameters);
             promptHandler.handlePrompt(userName, password);
