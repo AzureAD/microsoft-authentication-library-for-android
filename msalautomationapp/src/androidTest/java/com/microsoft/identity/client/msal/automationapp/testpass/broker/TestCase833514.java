@@ -52,6 +52,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 // End My Shift - In Shared device mode, an account signed in through App A can be used by App B.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833514
@@ -131,6 +132,9 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
         final TokenRequestLatch getAccountLatch = new TokenRequestLatch(1);
 
         final IAccount[] accounts = new IAccount[1];
+
+        // Brief timeout to allow persisted account
+        Thread.sleep(TimeUnit.SECONDS.toMillis(8));
 
         // perform get account from MSAL Automation App
         ((SingleAccountPublicClientApplication) mApplication).getCurrentAccountAsync(new ISingleAccountPublicClientApplication.CurrentAccountCallback() {

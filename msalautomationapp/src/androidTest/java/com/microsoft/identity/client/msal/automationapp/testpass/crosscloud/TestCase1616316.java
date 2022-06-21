@@ -24,6 +24,8 @@ package com.microsoft.identity.client.msal.automationapp.testpass.crosscloud;
 
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
+
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.msal.automationapp.AbstractGuestAccountMsalUiTest;
@@ -54,11 +56,11 @@ import java.util.Collection;
 @RunWith(Parameterized.class)
 public class TestCase1616316 extends AbstractGuestAccountMsalUiTest {
 
-    private final String mGuestHomeAzureEnvironment;
+    private final GuestHomeAzureEnvironment mGuestHomeAzureEnvironment;
     private final String mHomeCloud;
     private final String mCrossCloud;
 
-    public TestCase1616316(final String name, final String guestHomeAzureEnvironment, final String homeCloud, final String crossCloud) {
+    public TestCase1616316(final String name, final @NonNull GuestHomeAzureEnvironment guestHomeAzureEnvironment, final String homeCloud, final String crossCloud) {
         mGuestHomeAzureEnvironment = guestHomeAzureEnvironment;
         mHomeCloud = homeCloud;
         mCrossCloud = crossCloud;
@@ -67,7 +69,7 @@ public class TestCase1616316 extends AbstractGuestAccountMsalUiTest {
     @Parameterized.Parameters(name = "{0}")
     public static Collection guestHomeAzureEnvironment() {
         return Arrays.asList(new Object[][]{
-                {"AZURE_US_GOV", GuestHomeAzureEnvironment.AZURE_US_GOVERNMENT.toString(), /*homeCloud*/"https://login.microsoftonline.us", /*crossCloud*/"https://login.microsoftonline.com"},
+                {"AZURE_US_GOV", GuestHomeAzureEnvironment.AZURE_US_GOVERNMENT, /*homeCloud*/"https://login.microsoftonline.us", /*crossCloud*/"https://login.microsoftonline.com"},
         });
     }
 
@@ -144,7 +146,7 @@ public class TestCase1616316 extends AbstractGuestAccountMsalUiTest {
     public LabQuery getLabQuery() {
         return LabQuery.builder()
                 .userType(UserType.GUEST)
-                .guestHomeAzureEnvironment(GuestHomeAzureEnvironment.valueOf(mGuestHomeAzureEnvironment))
+                .guestHomeAzureEnvironment(mGuestHomeAzureEnvironment)
                 .guestHomedIn(GuestHomedIn.HOST_AZURE_AD)
                 .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
                 .build();

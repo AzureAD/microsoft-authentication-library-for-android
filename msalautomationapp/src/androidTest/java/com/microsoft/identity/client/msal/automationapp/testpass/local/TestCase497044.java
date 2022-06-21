@@ -38,12 +38,14 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.Mfa;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
 
 // Interactive auth w/ force_login w/ MFA
 // https://identitydivision.visualstudio.com/DefaultCollection/DevEx/_workitems/edit/497044
+@Ignore("https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1886086")
 @RetryOnFailure
 public class TestCase497044 extends AbstractMsalUiTest {
 
