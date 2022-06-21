@@ -22,8 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.atpop;
 
-import androidx.annotation.NonNull;
-
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
@@ -36,17 +34,13 @@ import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequ
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.common.java.exception.ServiceException;
-import com.microsoft.identity.common.java.providers.oauth2.IDToken;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.Map;
 
 // [Joined] Acquire PoP token interactive followed by Silent
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1922513
@@ -87,7 +81,7 @@ public class TestCase1922513 extends AbstractMsalBrokerTest {
         }, TokenRequestTimeout.MEDIUM);
 
         authResult.assertSuccess();
-        Assert.assertEquals(MsalAuthResult.atPopSuccessMsg, authResult.verifyATForPop(authResult.getAccessToken()));
+        MsalAuthResult.verifyATForPop(authResult.getAccessToken());
 
         // start silent token request in MSAL
         final MsalAuthTestParams authTestSilentParams = MsalAuthTestParams.builder()
@@ -101,7 +95,7 @@ public class TestCase1922513 extends AbstractMsalBrokerTest {
 
         final MsalAuthResult authSilentResult = msalSdk.acquireTokenSilent(authTestSilentParams, TokenRequestTimeout.SILENT);
         authSilentResult.assertSuccess();
-        Assert.assertEquals(MsalAuthResult.atPopSuccessMsg, authSilentResult.verifyATForPop(authSilentResult.getAccessToken()));
+        MsalAuthResult.verifyATForPop(authSilentResult.getAccessToken());
     }
 
     @Override

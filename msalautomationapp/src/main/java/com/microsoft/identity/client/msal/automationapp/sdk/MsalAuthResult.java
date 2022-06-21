@@ -29,13 +29,14 @@ import com.microsoft.identity.client.ui.automation.sdk.AuthResult;
 import com.microsoft.identity.common.java.exception.ServiceException;
 import com.microsoft.identity.common.java.providers.oauth2.IDToken;
 
+import org.junit.Assert;
+
 import java.util.Map;
 
 // MSAL Result Class to handle asserting success or failure on execution of Automated Test Cases
 public class MsalAuthResult extends AuthResult {
 
     private Map<String, ?> claims;
-    public static final String atPopSuccessMsg = "successfully verified at-pop";
 
     public MsalAuthResult(@NonNull final IAuthenticationResult authenticationResult) {
         super(authenticationResult.getAccessToken(), authenticationResult.getAccount().getIdToken(), authenticationResult.getAccount().getId(), authenticationResult.getAccount().getUsername(), authenticationResult.getAccount().getAuthority());
@@ -46,19 +47,11 @@ public class MsalAuthResult extends AuthResult {
         super(exception);
     }
 
-    public String verifyATForPop(@NonNull final String rawIdToken) throws ServiceException {
-        Map<String, ?> tokens = IDToken.parseJWT(rawIdToken);
-
+    public static void verifyATForPop(@NonNull final String shr) throws ServiceException {
+        Map<String, ?> tokens = IDToken.parseJWT(shr);
         // Verify if the url, path and http method are as expected
-        if (!tokens.get("u").equals("signedhttprequest.azurewebsites.net"))
-            return "Decoded AccessToken does not contain the PoPResourceUri";
-
-        if (!tokens.get("p").equals("/api/validateSHR"))
-            return "Decoded AccessToken does not contain the PoPResource path";
-
-        if (!tokens.get("m").equals("GET"))
-            return "Decoded AccessToken does not contain the expected HTTP method";
-
-        return "successfully verified at-pop";
+        Assert.assertEquals("signedhttprequest.azurewebsites.net", tokens.get("u"));
+        Assert.assertEquals("/api/validateSHR", tokens.get("p"));
+        Assert.assertEquals("GET", tokens.get("m"));
     }
 }
