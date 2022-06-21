@@ -225,6 +225,7 @@ dependencies {
         transitive = true
     }
 
+    testImplementation(testFixtures(project(":common4j")))
 }
 
 def configDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')
