@@ -89,6 +89,7 @@ public class TestCase1922515 extends AbstractMsalBrokerTest {
         Assert.assertNotNull(shr);
         MsalAuthResult.verifyATForPop(shr);
     }
+
     @Override
     public LabQuery getLabQuery() {
         return LabQuery.builder()
