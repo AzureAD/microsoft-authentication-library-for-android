@@ -152,7 +152,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         flushScheduler();
 
         // assert telem
-        String expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|,,,,,";
+        String expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|,,,,,,,,,,,";
         String expectedLast = "2|0|||1";
         assertTelemetry(expectedCurrent, expectedLast);
 
@@ -196,7 +196,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         flushScheduler();
 
         // assert telem
-        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + ",1|1,1,1,1,0,1";
+        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + ",1|,,,,,,1,1,1,1,0,1";
         expectedLast = "2|2|||1";
         assertTelemetry(expectedCurrent, expectedLast);
 
@@ -218,7 +218,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         flushScheduler();
 
         // assert telem
-        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + ",1|1,1,1,1,0,1";
+        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + ",1|,,,,,,1,1,1,1,0,1";
         expectedLast = "2|0|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + "," +
                 sCorrelationIdList.get(networkRequestIndex - 1) + "|invalid_grant|1";
         assertTelemetry(expectedCurrent, expectedLast);
@@ -241,7 +241,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         flushScheduler();
 
         // assert telem
-        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|,,,,,";
+        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|,,,,,,,,,,,";
         expectedLast = "2|0|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + "," +
                 sCorrelationIdList.get(networkRequestIndex - 1) + "|invalid_scope|1";
         assertTelemetry(expectedCurrent, expectedLast);
@@ -257,7 +257,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         flushScheduler();
 
         // assert telem
-        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|,,,,,";
+        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|,,,,,,,,,,,";
         expectedLast = "2|0|" +
                 PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + "," + sCorrelationIdList.get(networkRequestIndex - 2) +
                 "," + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + "," + sCorrelationIdList.get(networkRequestIndex - 1) +
@@ -283,7 +283,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         flushScheduler();
 
         // assert telem
-        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + ",1|1,1,1,1,0,1";
+        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + ",1|,,,,,,1,1,1,1,0,1";
         expectedLast = "2|0|||1";
         assertTelemetry(expectedCurrent, expectedLast);
 
@@ -348,7 +348,7 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
 
         // all data should now be sent
         // assert telem
-        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|,,,,,";
+        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|,,,,,,,,,,,";
         expectedLast = "2|0|||1";
         assertTelemetry(expectedCurrent, expectedLast);
 
