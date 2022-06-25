@@ -33,6 +33,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractGuestAccountMsalBrokerUiTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.constants.GlobalConstants;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
@@ -41,6 +42,7 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.GuestHomeAzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.GuestHomedIn;
+import com.microsoft.identity.labapi.utilities.constants.SignInAudience;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
@@ -120,7 +122,17 @@ public class TestCase1592465 extends AbstractGuestAccountMsalBrokerUiTest {
         Assert.assertEquals("Verify Exception operation name", "authority", exception.getOperationName());
 
         // Acquire token interactively from cross cloud, expected to get a new access token
-        final OnInteractionRequired crossCloudInteractionHandler = () -> {};
+        final OnInteractionRequired crossCloudInteractionHandler = () -> {
+            final PromptHandlerParameters promptHandlerParameters =
+                    PromptHandlerParameters.builder()
+                            .prompt(PromptParameter.SELECT_ACCOUNT)
+                            .loginHint(userName)
+                            .broker(mBroker)
+                            .staySignedInPageExpected(GlobalConstants.IS_STAY_SIGN_IN_PAGE_EXPECTED)
+                            .build();
+            final AadPromptHandler promptHandler = new AadPromptHandler(promptHandlerParameters);
+            promptHandler.handlePrompt(userName, password);
+        };
         final MsalAuthResult acquireTokenCrossCloudResult = msalSdk.acquireTokenInteractive(acquireTokenCrossCloudAuthParams, crossCloudInteractionHandler, TokenRequestTimeout.SHORT);
         Assert.assertFalse("Verify accessToken is not empty", TextUtils.isEmpty(acquireTokenCrossCloudResult.getAccessToken()));
 
@@ -134,6 +146,7 @@ public class TestCase1592465 extends AbstractGuestAccountMsalBrokerUiTest {
                 .guestHomeAzureEnvironment(mGuestHomeAzureEnvironment)
                 .guestHomedIn(GuestHomedIn.HOST_AZURE_AD)
                 .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
+                .signInAudience(SignInAudience.AZURE_AD_MY_ORG)
                 .build();
     }
 

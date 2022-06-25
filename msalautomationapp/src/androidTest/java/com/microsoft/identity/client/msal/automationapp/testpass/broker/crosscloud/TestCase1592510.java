@@ -121,7 +121,16 @@ public class TestCase1592510 extends AbstractGuestAccountMsalBrokerUiTest {
         Assert.assertEquals("Verify Exception operation name", "authority", exception.getOperationName());
 
         // Acquire token interactively from home cloud, expected to get a different access token
-        final OnInteractionRequired homeCloudInteractionHandler = () -> {};
+        final OnInteractionRequired homeCloudInteractionHandler = () -> {
+            final PromptHandlerParameters promptHandlerParameters =
+                    PromptHandlerParameters.builder()
+                    .prompt(PromptParameter.SELECT_ACCOUNT)
+                    .loginHint(userName)
+                    .broker(mBroker)
+                    .build();
+            final AadPromptHandler promptHandler = new AadPromptHandler(promptHandlerParameters);
+            promptHandler.handlePrompt(userName, password);
+        };
         final MsalAuthResult acquireTokenHOmeCloudResult = msalSdk.acquireTokenInteractive(acquireTokenHomeCloudAuthParams, homeCloudInteractionHandler, TokenRequestTimeout.SHORT);
         Assert.assertFalse("Verify accessToken is not empty", TextUtils.isEmpty(acquireTokenHOmeCloudResult.getAccessToken()));
 

@@ -123,6 +123,9 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
         // sign in into Azure Sample App
         azureSampleApp.signInWithSingleAccountFragment(username2, password2, getBrowser(), false, microsoftStsPromptHandlerParameters);
 
+        // allow time for sign in to complete
+        Thread.sleep(TimeUnit.SECONDS.toMillis(8));
+
         // make sure we have successfully signed in
         azureSampleApp.confirmSignedIn(username2);
 

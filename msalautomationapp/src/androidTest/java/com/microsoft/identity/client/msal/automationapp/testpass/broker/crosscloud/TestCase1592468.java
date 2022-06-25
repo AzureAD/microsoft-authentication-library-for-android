@@ -43,6 +43,7 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.GuestHomeAzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.GuestHomedIn;
+import com.microsoft.identity.labapi.utilities.constants.SignInAudience;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.json.JSONObject;
@@ -150,6 +151,7 @@ public class TestCase1592468 extends AbstractGuestAccountMsalBrokerUiTest {
                 .guestHomeAzureEnvironment(mGuestHomeAzureEnvironment)
                 .guestHomedIn(GuestHomedIn.HOST_AZURE_AD)
                 .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
+                .signInAudience(SignInAudience.AZURE_AD_MY_ORG)
                 .build();
     }
 
