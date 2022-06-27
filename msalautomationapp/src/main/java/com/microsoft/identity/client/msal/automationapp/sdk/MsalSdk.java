@@ -22,6 +22,9 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.sdk;
 
+import static com.microsoft.identity.client.msal.automationapp.sdk.Constants.HTTP_GET_METHOD;
+import static com.microsoft.identity.client.msal.automationapp.sdk.Constants.PoP_FULL_URL;
+
 import android.app.Activity;
 import android.content.Context;
 
@@ -162,8 +165,8 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
         if (authTestParams.getAuthScheme() == AuthScheme.POP) {
             acquireTokenParametersBuilder.withAuthenticationScheme(
                     PoPAuthenticationScheme.builder()
-                            .withHttpMethod(HttpMethod.valueOf("GET"))
-                            .withUrl(new URL("https://signedhttprequest.azurewebsites.net/api/validateSHR"))
+                            .withHttpMethod(HttpMethod.valueOf(HTTP_GET_METHOD))
+                            .withUrl(new URL(PoP_FULL_URL))
                             .build()
             );
         }
@@ -320,8 +323,8 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
         };
 
         pca.generateSignedHttpRequest(account, PoPAuthenticationScheme.builder()
-                .withHttpMethod(HttpMethod.valueOf("GET"))
-                .withUrl(new URL("https://signedhttprequest.azurewebsites.net/api/validateSHR"))
+                .withHttpMethod(HttpMethod.valueOf(HTTP_GET_METHOD))
+                .withUrl(new URL(PoP_FULL_URL))
                 .build(), callback);
 
         try {

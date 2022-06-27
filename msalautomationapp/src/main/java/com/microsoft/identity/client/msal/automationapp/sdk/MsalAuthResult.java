@@ -22,6 +22,13 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.sdk;
 
+import static com.microsoft.identity.client.msal.automationapp.sdk.Constants.HTTP_GET_METHOD;
+import static com.microsoft.identity.client.msal.automationapp.sdk.Constants.PoP_DOMAIN;
+import static com.microsoft.identity.client.msal.automationapp.sdk.Constants.PoP_URL_PATH;
+import static com.microsoft.identity.client.msal.automationapp.sdk.Constants.TOKEN_HTTP_METHOD;
+import static com.microsoft.identity.client.msal.automationapp.sdk.Constants.TOKEN_URL;
+import static com.microsoft.identity.client.msal.automationapp.sdk.Constants.TOKEN_URL_PATH;
+
 import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.IAuthenticationResult;
@@ -50,8 +57,8 @@ public class MsalAuthResult extends AuthResult {
     public static void verifyATForPop(@NonNull final String shr) throws ServiceException {
         Map<String, ?> tokens = IDToken.parseJWT(shr);
         // Verify if the url, path and http method are as expected
-        Assert.assertEquals("signedhttprequest.azurewebsites.net", tokens.get("u"));
-        Assert.assertEquals("/api/validateSHR", tokens.get("p"));
-        Assert.assertEquals("GET", tokens.get("m"));
+        Assert.assertEquals(PoP_DOMAIN, tokens.get(TOKEN_URL));
+        Assert.assertEquals(PoP_URL_PATH, tokens.get(TOKEN_URL_PATH));
+        Assert.assertEquals(HTTP_GET_METHOD, tokens.get(TOKEN_HTTP_METHOD));
     }
 }
