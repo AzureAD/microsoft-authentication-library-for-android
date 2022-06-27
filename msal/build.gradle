@@ -292,9 +292,9 @@ dependencies {
         transitive = true
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '4.0.2', changing: true)
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: '5.0.0-kroger-sdm-test', changing: true)
 
-    distApi("com.microsoft.identity:common:4.0.2") {
+    distApi("com.microsoft.identity:common:5.0.0-kroger-sdm-test") {
         transitive = true
     }
 
