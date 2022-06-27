@@ -123,9 +123,6 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
         // sign in into Azure Sample App
         azureSampleApp.signInWithSingleAccountFragment(username2, password2, getBrowser(), false, microsoftStsPromptHandlerParameters);
 
-        // allow time for sign in to complete
-        Thread.sleep(TimeUnit.SECONDS.toMillis(8));
-
         // make sure we have successfully signed in
         azureSampleApp.confirmSignedIn(username2);
 
@@ -135,9 +132,6 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
         final TokenRequestLatch getAccountLatch = new TokenRequestLatch(1);
 
         final IAccount[] accounts = new IAccount[1];
-
-        // Brief timeout to allow persisted account
-        Thread.sleep(TimeUnit.SECONDS.toMillis(8));
 
         // perform get account from MSAL Automation App
         ((SingleAccountPublicClientApplication) mApplication).getCurrentAccountAsync(new ISingleAccountPublicClientApplication.CurrentAccountCallback() {

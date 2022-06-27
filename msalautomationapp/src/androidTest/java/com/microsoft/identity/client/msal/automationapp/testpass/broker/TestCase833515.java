@@ -25,6 +25,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 import androidx.test.uiautomator.UiObject;
 import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.client.SignInParameters;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.msal.automationapp.R;
@@ -48,6 +49,7 @@ import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -95,7 +97,13 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         final CountDownLatch latch = new CountDownLatch(1);
 
         // try sign in with an account from the same tenant
-        singleAccountPCA.signIn(mActivity, username2, mScopes, successfulInteractiveCallback(latch));
+        final SignInParameters signInParameters = SignInParameters.builder()
+                .withActivity(mActivity)
+                .withLoginHint(username2)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(successfulInteractiveCallback(latch))
+                .build();
+        singleAccountPCA.signIn(signInParameters);
 
         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                 .loginHint(username2)

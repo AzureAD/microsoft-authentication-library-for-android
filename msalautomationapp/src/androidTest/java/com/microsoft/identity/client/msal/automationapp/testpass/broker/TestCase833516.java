@@ -24,6 +24,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
 import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.client.SignInParameters;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.msal.automationapp.ErrorCodes;
@@ -46,6 +47,8 @@ import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.Arrays;
 
 // End My Shift - In Shared device mode, there can be only one sign-in account.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833516
@@ -92,7 +95,13 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
         final TokenRequestLatch latch = new TokenRequestLatch(1);
 
         // try sign in with an account from the same tenant
-        singleAccountPCA.signIn(mActivity, username2, mScopes, successfulInteractiveCallback(latch));
+        final SignInParameters signInParameters = SignInParameters.builder()
+                .withActivity(mActivity)
+                .withLoginHint(username2)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(successfulInteractiveCallback(latch))
+                .build();
+        singleAccountPCA.signIn(signInParameters);
 
         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                 .loginHint(username2)
@@ -122,7 +131,13 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
         final TokenRequestLatch latch2 = new TokenRequestLatch(1);
 
         // try sign in with an account from the same tenant
-        singleAccountPCA.signIn(mActivity, difTenantUsername, mScopes, failureInteractiveCallback(latch2, ErrorCodes.INVALID_PARAMETER));
+        final SignInParameters signInParameters2 = SignInParameters.builder()
+                .withActivity(mActivity)
+                .withLoginHint(difTenantUsername)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(failureInteractiveCallback(latch2, ErrorCodes.INVALID_PARAMETER))
+                .build();
+        singleAccountPCA.signIn(signInParameters2);
 
         latch2.await(TokenRequestTimeout.MEDIUM);
     }

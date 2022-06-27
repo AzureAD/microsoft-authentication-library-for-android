@@ -23,10 +23,13 @@
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
 
+import android.app.Activity;
+
 import androidx.test.uiautomator.UiObject;
 
 import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.client.SignInParameters;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.msal.automationapp.ErrorCodes;
@@ -50,6 +53,8 @@ import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.Arrays;
 
 // End My Shift - In Shared device mode, only account from the same tenant should be able to acquire token.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833513
@@ -99,7 +104,13 @@ public class TestCase833513 extends AbstractMsalBrokerTest {
         // try sign in with an account from a different tenant
         // passing null for latch as we don't need to receive the result from this call
         // we just want to get into the webview and look for the error in AAD page
-        singleAccountPCA.signIn(mActivity, username2, mScopes, failureInteractiveCallback(latch, ErrorCodes.INVALID_PARAMETER));
+        final SignInParameters signInParameters = SignInParameters.builder()
+                .withActivity(mActivity)
+                .withLoginHint(username2)
+                .withScopes(Arrays.asList(mScopes))
+                .withCallback(successfulInteractiveCallback(null))
+                .build();
+        singleAccountPCA.signIn(signInParameters);
 
         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                 .loginHint(username2)

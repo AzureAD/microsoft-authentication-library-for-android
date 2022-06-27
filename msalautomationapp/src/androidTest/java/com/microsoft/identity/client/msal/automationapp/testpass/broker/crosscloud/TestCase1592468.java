@@ -111,14 +111,6 @@ public class TestCase1592468 extends AbstractGuestAccountMsalBrokerUiTest {
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-        // We are not getting an exception here
-//        // Try Acquire token interactively from cross cloud without setting EnableCrossCloudTokenRequests flight, expected to get exception
-//        final OnInteractionRequired noInteractionHandler = () -> {};
-//        final MsalAuthResult acquireTokenCrossCloudWithNoFlightResult = msalSdk.acquireTokenInteractive(acquireTokenCrossCloudAuthParams, noInteractionHandler, TokenRequestTimeout.MEDIUM);
-//        MsalClientException exception = (MsalClientException) acquireTokenCrossCloudWithNoFlightResult.getException();
-//        Assert.assertNotNull("Verify Exception is returned", exception);
-//        Assert.assertEquals("Verify error code", AUTHORITY_URL_NOT_VALID, exception.getErrorCode());
-
         // Set EnableCrossCloudTokenRequests flight to true
         mBroker.setFlights("{'EnableCrossCloudTokenRequests' : 'true'}");
 
