@@ -36,9 +36,9 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerPara
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.common.java.util.ThreadUtils;
-import com.microsoft.identity.internal.testutils.labutils.LabConfig;
-import com.microsoft.identity.internal.testutils.labutils.LabConstants;
-import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.Mfa;
+import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Test;
 
@@ -54,14 +54,14 @@ public class TestCase99656 extends AbstractMsalUiTest {
 
     @Test
     public void test_99656() throws Throwable {
-        final String username = mLoginHint;
-        final String password = LabConfig.getCurrentLabConfig().getLabUserPassword();
+        final String username = mLabAccount.getUsername();
+        final String password = mLabAccount.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
 
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .loginHint(mLoginHint)
+                .loginHint(username)
                 .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
@@ -72,7 +72,7 @@ public class TestCase99656 extends AbstractMsalUiTest {
             public void handleUserInteraction() {
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
-                        .loginHint(mLoginHint)
+                        .loginHint(username)
                         .sessionExpected(false)
                         .consentPageExpected(false)
                         .speedBumpExpected(false)
@@ -109,7 +109,7 @@ public class TestCase99656 extends AbstractMsalUiTest {
 
         final MsalAuthTestParams authTestParams2 = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .loginHint(mLoginHint)
+                .loginHint(username)
                 .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.LOGIN)
                 .msalConfigResourceId(getConfigFileResourceId())
@@ -120,7 +120,7 @@ public class TestCase99656 extends AbstractMsalUiTest {
             public void handleUserInteraction() {
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                         .prompt(PromptParameter.LOGIN)
-                        .loginHint(mLoginHint)
+                        .loginHint(username)
                         .sessionExpected(true)
                         .consentPageExpected(false)
                         .speedBumpExpected(false)
@@ -137,14 +137,14 @@ public class TestCase99656 extends AbstractMsalUiTest {
 
 
     @Override
-    public LabUserQuery getLabUserQuery() {
-        final LabUserQuery query = new LabUserQuery();
-        query.mfa = LabConstants.Mfa.AUTO_MFA_ON_ALL;
-        return query;
+    public LabQuery getLabQuery() {
+        return LabQuery.builder()
+                .mfa(Mfa.AUTO_MFA_ON_ALL)
+                .build();
     }
 
     @Override
-    public String getTempUserType() {
+    public TempUserType getTempUserType() {
         return null;
     }
 

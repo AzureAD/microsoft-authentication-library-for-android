@@ -138,11 +138,6 @@ android {
             setIgnore(true)
         }
 
-        if (flavorName.contains("local") && flavorName.contains("BrokerCompanyPortal") && buildType.contains("debug")) {
-            // Gradle ignores any variants that satisfy the conditions above.
-            setIgnore(true)
-        }
-
         if (flavorName.contains("local") && flavorName.contains("AutoBroker")) {
             // Gradle ignores any variants that satisfy the conditions above.
             setIgnore(true)
@@ -172,6 +167,7 @@ dependencies {
     implementation "androidx.constraintlayout:constraintlayout:$rootProject.ext.constraintLayoutVersion"
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
     implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
+    implementation 'junit:junit:4.13'
     implementation "androidx.legacy:legacy-support-v4:$rootProject.ext.legacySupportV4Version"
     implementation "com.google.android.material:material:$rootProject.ext.materialVersion"
     androidTestImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"
@@ -182,10 +178,7 @@ dependencies {
     compileOnly "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
     annotationProcessor "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
 
-    implementation(project(":testutils")) {
-        exclude module: 'common'
-        exclude module: 'appcompat'
-    }
+    implementation(project(":LabApiUtilities"))
     implementation(project(":uiautomationutilities")) {
         exclude module: 'common'
         exclude module: 'appcompat'
