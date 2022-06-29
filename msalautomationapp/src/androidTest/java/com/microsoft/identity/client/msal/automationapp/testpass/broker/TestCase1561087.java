@@ -32,21 +32,16 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.concurrent.TimeUnit;
-
 // Flight settings
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561087
 @SupportedBrokers(brokers = BrokerHost.class)
 public class TestCase1561087  extends  AbstractMsalBrokerTest {
     @Test
-    public void test_1561087() throws InterruptedException {
+    public void test_1561087() {
         // Set flights and get to check if the flight information is returned
         final String flightsJson =  "{\"SetFlightsTest\":\"true\"}";
         mBroker.setFlights(flightsJson);
         Assert.assertEquals(flightsJson, mBroker.getFlights());
-
-        // adding sleep to help with some unreliability with versions of brokerhost
-        Thread.sleep(TimeUnit.SECONDS.toMillis(5));
 
         // clear flights and get to check if the flights are cleared
         final String clearFlightsJson =  "{}";

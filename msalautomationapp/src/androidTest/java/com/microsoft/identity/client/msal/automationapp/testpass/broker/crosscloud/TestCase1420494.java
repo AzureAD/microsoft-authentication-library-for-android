@@ -52,6 +52,7 @@ import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.concurrent.CountDownLatch;
 
 // Acquire token for cross cloud guest account (with broker)
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1420494
@@ -67,8 +68,8 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
     @Parameterized.Parameters(name = "{0}")
     public static Collection guestHomeAzureEnvironment() {
         return Arrays.asList(new Object[][]{
-                {"AZURE_CHINA_CLOUD", GuestHomeAzureEnvironment.AZURE_CHINA_CLOUD},
                 {"AZURE_US_GOV", GuestHomeAzureEnvironment.AZURE_US_GOVERNMENT},
+                {"AZURE_CHINA_CLOUD", GuestHomeAzureEnvironment.AZURE_CHINA_CLOUD},
         });
     }
 
@@ -79,6 +80,8 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
     public void test_1420494() throws Throwable {
         final String userName = mGuestUser.getHomeUpn();
         final String password = mLabClient.getPasswordForGuestUser(mGuestUser);
+
+        final CountDownLatch latch = new CountDownLatch(1);
 
         // Handler for Interactive auth call
         final OnInteractionRequired interactionHandler = () -> {
@@ -91,6 +94,8 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
                     .build();
             final AadPromptHandler promptHandler = new AadPromptHandler(promptHandlerParameters);
             promptHandler.handlePrompt(userName, password);
+
+            latch.countDown();
         };
 
         final MsalAuthTestParams acquireTokenAuthParams = MsalAuthTestParams.builder()
@@ -105,6 +110,9 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
         final MsalSdk msalSdk = new MsalSdk();
         // Acquire token interactively
         final MsalAuthResult acquireTokenResult = msalSdk.acquireTokenInteractive(acquireTokenAuthParams, interactionHandler, TokenRequestTimeout.SHORT);
+
+        latch.await();
+
         Assert.assertFalse("Verify accessToken is not empty", TextUtils.isEmpty(acquireTokenResult.getAccessToken()));
 
         // change the time on the device

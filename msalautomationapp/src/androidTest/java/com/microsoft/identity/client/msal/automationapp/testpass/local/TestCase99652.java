@@ -41,10 +41,10 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.concurrent.CountDownLatch;
 
 // Interactive auth with force_login for managed account (with consent record)
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99652
-@RetryOnFailure(retryCount = 2)
 public class TestCase99652 extends AbstractMsalUiTest {
 
     @Test
@@ -54,6 +54,7 @@ public class TestCase99652 extends AbstractMsalUiTest {
 
         final MsalSdk msalSdk = new MsalSdk();
 
+        final CountDownLatch latch = new CountDownLatch(1);
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
@@ -76,12 +77,16 @@ public class TestCase99652 extends AbstractMsalUiTest {
 
                 new AadPromptHandler(promptHandlerParameters)
                         .handlePrompt(username, password);
+
+                latch.countDown();
             }
         }, TokenRequestTimeout.MEDIUM);
 
+        latch.await();
         authResult.assertSuccess();
 
         // do second request
+        final CountDownLatch latch2 = new CountDownLatch(1);
         final MsalAuthTestParams forceLoginParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
@@ -103,9 +108,12 @@ public class TestCase99652 extends AbstractMsalUiTest {
 
                 new AadPromptHandler(promptHandlerParameters)
                         .handlePrompt(username, password);
-            }
-        }, TokenRequestTimeout.SHORT);
 
+                latch2.countDown();
+            }
+        }, TokenRequestTimeout.MEDIUM);
+
+        latch2.await();
         forceLoginAuthResult.assertSuccess();
     }
 

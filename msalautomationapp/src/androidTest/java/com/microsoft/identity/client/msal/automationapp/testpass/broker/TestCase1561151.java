@@ -42,6 +42,7 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -95,7 +96,7 @@ public class TestCase1561151 extends AbstractMsalBrokerTest {
             Therefore we have a Thread.sleep after first successful token acquisition before resetting password.
          */
         Thread.sleep(TimeUnit.MINUTES.toMillis(2));
-        mLabClient.resetPassword(username);
+        Assert.assertTrue(mLabClient.resetPassword(username, 3));
 
         TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
 

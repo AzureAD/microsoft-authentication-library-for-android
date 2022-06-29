@@ -106,7 +106,6 @@ public class TestCase769049 extends AbstractMsalBrokerTest {
         noLoginHintauthResult.assertSuccess();
     }
 
-
     @Override
     public LabQuery getLabQuery() {
         return LabQuery.builder()

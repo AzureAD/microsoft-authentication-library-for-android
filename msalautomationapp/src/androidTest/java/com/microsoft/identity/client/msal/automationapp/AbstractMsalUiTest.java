@@ -137,6 +137,8 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
     @After
     public void cleanup() {
         mAccount = null;
+        mBrowser.forceStop();
+        mBrowser.clear();
     }
 
     @Override

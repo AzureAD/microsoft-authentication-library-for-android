@@ -94,7 +94,7 @@ public class TestCase1561136 extends AbstractMsalBrokerTest {
 
         Assert.assertNotEquals(username, username2);
         // user-based join
-        mBroker.performDeviceRegistration(username2, password2);
+        brokerHost.performDeviceRegistration(username2, password2);
 
         // get accounts this time must show two accounts - to verify this we have check for 2 dialog boxes
         accounts = brokerHost.getAllAccounts(true);

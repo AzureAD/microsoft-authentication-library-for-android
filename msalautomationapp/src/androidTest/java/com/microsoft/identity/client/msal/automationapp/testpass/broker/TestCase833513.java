@@ -22,9 +22,6 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
-
-import android.app.Activity;
-
 import androidx.test.uiautomator.UiObject;
 
 import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
@@ -32,10 +29,7 @@ import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.SignInParameters;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.msal.automationapp.ErrorCodes;
 import com.microsoft.identity.client.msal.automationapp.R;
-import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
-import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
@@ -95,8 +89,6 @@ public class TestCase833513 extends AbstractMsalBrokerTest {
         final ILabAccount difTenantAccount = mLabClient.getLabAccount(query);
         final String username2 = difTenantAccount.getUsername();
         final String password2 = difTenantAccount.getPassword();
-
-        final TokenRequestLatch latch = new TokenRequestLatch(1);
 
         final SingleAccountPublicClientApplication singleAccountPCA =
                 (SingleAccountPublicClientApplication) mApplication;

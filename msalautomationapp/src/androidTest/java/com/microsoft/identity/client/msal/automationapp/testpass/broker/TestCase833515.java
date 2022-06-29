@@ -44,6 +44,7 @@ import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserRole;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
 import org.junit.Assert;
@@ -85,11 +86,16 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         // we should be in shared device mode
         Assert.assertTrue(mApplication.isSharedDevice());
 
-        //creating a basic temp user account
-        final ILabAccount labAccount = mLabClient.createTempAccount(TempUserType.BASIC);
+        // fetching a different user from Lab
+        final LabQuery labQuery = LabQuery.builder()
+                .userType(UserType.CLOUD)
+                .build();
+        final ILabAccount labAccount = mLabClient.getLabAccount(labQuery);
         final String username2 = labAccount.getUsername();
         final String password2 = labAccount.getPassword();
         Thread.sleep(TimeUnit.SECONDS.toMillis(30));
+
+        Assert.assertNotEquals(username1, username2);
 
         final SingleAccountPublicClientApplication singleAccountPCA =
                 (SingleAccountPublicClientApplication) mApplication;

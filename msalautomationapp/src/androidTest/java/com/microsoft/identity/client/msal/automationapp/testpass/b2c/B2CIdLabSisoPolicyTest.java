@@ -46,9 +46,9 @@ import java.util.Arrays;
 public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
 
     final static B2CProviderWrapper[] b2CProviderWrappers = new B2CProviderWrapper[]{
+            B2CProviderWrapper.Google,
             B2CProviderWrapper.Local,
             B2CProviderWrapper.MSA,
-            B2CProviderWrapper.Google,
             // B2CProviderWrapper.Facebook, // This is currently breaking, "Facebook Login is currently unavailable for this app"
     };
 
@@ -102,7 +102,7 @@ public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
                 new IdLabB2cSisoPolicyPromptHandler(promptHandlerParameters)
                         .handlePrompt(username, password);
             }
-        },TokenRequestTimeout.MEDIUM);
+        },TokenRequestTimeout.LONG);
 
         authResult.assertSuccess();
 

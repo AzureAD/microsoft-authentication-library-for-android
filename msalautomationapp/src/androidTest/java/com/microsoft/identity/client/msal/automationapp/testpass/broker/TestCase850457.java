@@ -39,6 +39,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 // [MSAL] password reset for MAM_CA account
@@ -51,6 +52,8 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
         final String password = mLabAccount.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
+
+        final CountDownLatch latch = new CountDownLatch(1);
 
         // Interactive call
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
@@ -76,8 +79,12 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
 
                 new AadPromptHandler(promptHandlerParameters)
                         .handlePrompt(username, password);
+
+                latch.countDown();
             }
         }, TokenRequestTimeout.MEDIUM);
+
+        latch.await();
 
         authResult1.assertSuccess();
 
@@ -86,11 +93,12 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
             Therefore we have a Thread.sleep after first successful token acquisition before resetting password.
          */
         Thread.sleep(TimeUnit.MINUTES.toMillis(1));
-        Assert.assertTrue(mLabClient.resetPassword(username));
+        Assert.assertTrue(mLabClient.resetPassword(username, 3));
 
         TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
 
         // Interactive call
+        final CountDownLatch latch2 = new CountDownLatch(1);
         final MsalAuthTestParams msalAuthTestParams2 = MsalAuthTestParams.builder()
                 .loginHint(username)
                 .activity(mActivity)
@@ -115,8 +123,12 @@ public class TestCase850457 extends AbstractMsalBrokerTest{
 
                 new AadPromptHandler(promptHandlerParameters)
                         .handlePrompt(username, password);
+
+                latch2.countDown();
             }
         }, TokenRequestTimeout.MEDIUM);
+
+        latch2.await();
 
         System.out.println("Completed acquireTokenInteractive");
 

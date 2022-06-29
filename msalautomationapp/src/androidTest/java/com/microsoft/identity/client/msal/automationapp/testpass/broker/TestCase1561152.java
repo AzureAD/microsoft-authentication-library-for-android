@@ -84,7 +84,7 @@ public class TestCase1561152 extends AbstractMsalBrokerTest {
 
         // Reset password
         Thread.sleep(TimeUnit.MINUTES.toMillis(1));
-        Assert.assertTrue(mLabClient.resetPassword(username));
+        Assert.assertTrue(mLabClient.resetPassword(username, 3));
 
         // Forward time by one day to reset token
         TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
@@ -103,7 +103,8 @@ public class TestCase1561152 extends AbstractMsalBrokerTest {
 
         // Should get a failure due to password reset.
         authResult2.assertFailure();
-        Assert.assertTrue(authResult2.getException() instanceof MsalUiRequiredException);
+        // TODO: Getting "unable to perform cloud discovery" sometimes
+        Assert.assertTrue("Unexpected exception: " + authResult2.getException().toString(), authResult2.getException() instanceof MsalUiRequiredException);
 
         // Another interactive call
         final MsalAuthTestParams anotherAuthTestParams = MsalAuthTestParams.builder()
