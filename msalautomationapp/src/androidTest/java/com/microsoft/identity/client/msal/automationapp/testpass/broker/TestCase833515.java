@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
+import static com.microsoft.identity.client.ui.automation.utils.CommonUtils.FIND_UI_ELEMENT_TIMEOUT;
+
 import androidx.test.uiautomator.UiObject;
 import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
@@ -44,7 +46,6 @@ import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserRole;
-import com.microsoft.identity.labapi.utilities.constants.UserType;
 import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
 import org.junit.Assert;
@@ -133,10 +134,6 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         // clearing history of chrome.
         final IBrowser chrome = new BrowserChrome();
         chrome.clear();
-        chrome.forceStop();
-
-        // Account picker is not always showing, short sleep may help
-        Thread.sleep(TimeUnit.SECONDS.toMillis(5));
 
         // relaunching chrome after clearing history of chrome.
         chrome.launch();
@@ -166,7 +163,17 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         //confirming account is signed out in google chrome.
         chrome.launch();
         chrome.navigateTo(MY_APPS_URL);
-        aadLoginComponentHandler.handleAccountPicker(username2);
+
+        // TODO: Anyway to make sure account picker appears? Account picker is not always showing up (sometimes
+        //  it just goes to the password screen), but the user is signed out.
+
+        // Attempt to handle Account Picker. If account picker does not show up, do not fail yet,
+        // since we could be at the password page, which would also confirm a sign out.
+        try {
+            aadLoginComponentHandler.handleAccountPicker(username2);
+        } catch (AssertionError e) {
+            Assert.assertEquals(AadLoginComponentHandler.ACCOUNT_PICKER_DID_NOT_APPEAR_ERROR, e.getMessage());
+        }
 
         // we must see password prompt after sign out
         final UiObject passwordField = UiAutomatorUtils.obtainUiObjectWithResourceId("i0118");
