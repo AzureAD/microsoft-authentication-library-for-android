@@ -143,7 +143,6 @@ public class TestCase1592468 extends AbstractGuestAccountMsalBrokerUiTest {
                 .guestHomeAzureEnvironment(mGuestHomeAzureEnvironment)
                 .guestHomedIn(GuestHomedIn.HOST_AZURE_AD)
                 .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-                .signInAudience(SignInAudience.AZURE_AD_MY_ORG)
                 .build();
     }
 
