@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.local;
 
+import androidx.annotation.NonNull;
+
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
@@ -37,6 +39,7 @@ import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequ
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -46,12 +49,21 @@ import java.util.concurrent.CountDownLatch;
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99274
 public class TestCase99274 extends AbstractMsalUiTest {
 
+    static Throwable threadException;
+
     @Test
     public void test_99274() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
+
+        Thread.UncaughtExceptionHandler handler = new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(@NonNull Thread t, @NonNull Throwable e) {
+                threadException = e;
+            }
+        };
 
         final CountDownLatch latch = new CountDownLatch(1);
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
@@ -65,6 +77,7 @@ public class TestCase99274 extends AbstractMsalUiTest {
         final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
+                Thread.setDefaultUncaughtExceptionHandler(handler);
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
                         .loginHint(username)
@@ -97,6 +110,7 @@ public class TestCase99274 extends AbstractMsalUiTest {
         final MsalAuthResult consentRecordResults = msalSdk.acquireTokenInteractive(consentRecordParams, new OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
+                Thread.setDefaultUncaughtExceptionHandler(handler);
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
                         .loginHint(username)
@@ -114,6 +128,13 @@ public class TestCase99274 extends AbstractMsalUiTest {
 
         latch2.await();
         consentRecordResults.assertSuccess();
+        checkThreadException();
+    }
+
+    private void checkThreadException() {
+        if (threadException != null) {
+            Assert.fail("Exception in thread: " + threadException.getMessage());
+        }
     }
 
     @Override

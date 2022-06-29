@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.local;
 
+import androidx.annotation.NonNull;
+
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
@@ -34,9 +36,11 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.UiResponse;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
+import com.microsoft.identity.common.java.util.ThreadUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -46,12 +50,21 @@ import java.util.concurrent.CountDownLatch;
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99267
 public class TestCase99267 extends AbstractMsalUiTest {
 
+    static Throwable threadException;
+
     @Test
     public void test_99267() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
+
+        Thread.UncaughtExceptionHandler handler = new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(@NonNull Thread t, @NonNull Throwable e) {
+                threadException = e;
+            }
+        };
 
         final CountDownLatch latch = new CountDownLatch(1);
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
@@ -65,6 +78,7 @@ public class TestCase99267 extends AbstractMsalUiTest {
         final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
+                Thread.setDefaultUncaughtExceptionHandler(handler);
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
                         .loginHint(username)
@@ -83,6 +97,13 @@ public class TestCase99267 extends AbstractMsalUiTest {
 
         latch.await();
         authResult.assertSuccess();
+        checkThreadException();
+    }
+
+    private void checkThreadException() {
+        if (threadException != null) {
+            Assert.fail("Exception in thread: " + threadException.getMessage());
+        }
     }
 
     @Override
