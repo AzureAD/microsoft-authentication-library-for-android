@@ -87,10 +87,7 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         Assert.assertTrue(mApplication.isSharedDevice());
 
         // fetching a different user from Lab
-        final LabQuery labQuery = LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .build();
-        final ILabAccount labAccount = mLabClient.getLabAccount(labQuery);
+        final ILabAccount labAccount = mLabClient.createTempAccount(TempUserType.BASIC);
         final String username2 = labAccount.getUsername();
         final String password2 = labAccount.getPassword();
         Thread.sleep(TimeUnit.SECONDS.toMillis(30));
@@ -133,11 +130,15 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         Thread.sleep(TimeUnit.SECONDS.toMillis(5));
         azureSampleApp.confirmSignedIn(username2);
 
-        //clearing history of chrome.
+        // clearing history of chrome.
         final IBrowser chrome = new BrowserChrome();
         chrome.clear();
+        chrome.forceStop();
 
-        //relaunching chrome after clearing history of chrome.
+        // Account picker is not always showing, short sleep may help
+        Thread.sleep(TimeUnit.SECONDS.toMillis(5));
+
+        // relaunching chrome after clearing history of chrome.
         chrome.launch();
         chrome.handleFirstRun();
         chrome.navigateTo(MY_APPS_URL);
