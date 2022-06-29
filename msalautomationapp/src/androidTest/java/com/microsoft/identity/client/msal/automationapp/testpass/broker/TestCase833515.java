@@ -165,7 +165,7 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         chrome.navigateTo(MY_APPS_URL);
 
         // TODO: Anyway to make sure account picker appears? Account picker is not always showing up (sometimes
-        //  it just goes to the password screen), but the user is signed out.
+        //  it just goes to the password screen), but the user is signed out in both scenarios.
 
         // Attempt to handle Account Picker. If account picker does not show up, do not fail yet,
         // since we could be at the password page, which would also confirm a sign out.
@@ -173,13 +173,14 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
             aadLoginComponentHandler.handleAccountPicker(username2);
         } catch (AssertionError e) {
             Assert.assertEquals(AadLoginComponentHandler.ACCOUNT_PICKER_DID_NOT_APPEAR_ERROR, e.getMessage());
+            e.printStackTrace();
         }
 
         // we must see password prompt after sign out
         final UiObject passwordField = UiAutomatorUtils.obtainUiObjectWithResourceId("i0118");
         Assert.assertTrue(passwordField.exists());
 
-        //Confirming account is signed out in Azure.
+        // Confirming account is signed out in Azure.
         azureSampleApp.launch();
         azureSampleApp.confirmSignedIn("None");
     }
