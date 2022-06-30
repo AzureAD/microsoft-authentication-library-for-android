@@ -1,0 +1,160 @@
+# run MSAL UI automation testcases
+# Variable: 'ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME' was defined in the Variables tab
+# Variable: 'gCloudProjectId' was defined in the Variables tab
+# Variable: 'mvnAccessToken' was defined in the Variables tab
+name: $(Build.BuildId)_$(Build.DefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger: none
+pr: none
+
+schedules:
+  - cron: "0 5 * * 1-6" # 5:00 AM UTC everyday Mon-Sat
+    displayName: Auth Client Android SDK dev build
+    branches:
+      include:
+        - dev
+    always: true
+
+variables:
+  engineeringProjectId: 'fac9d424-53d2-45c0-91b5-ef6ba7a6bf26'
+  azureSamplePipelineId: 1458
+  msalAutomationAppApk: msalautomationapp-local-BrokerHost-debug.apk
+  msalAutomationAppTestApk: msalautomationapp-local-BrokerHost-debug-androidTest.apk
+  azureSampleApk: AzureSample-local-debug.apk
+  firebaseTimeout: 45m
+  resultsHistoryName: Dev MSAL without Broker
+
+parameters:
+  - name: firebaseDeviceId
+    displayName: Firebase Device Id
+    type: string
+    default: blueline
+  - name: firebaseDeviceAndroidVersion
+    displayName: Firebase Device Android Version
+    type: number
+    default: 28
+
+stages:
+  # msalautomationapp
+  - stage: 'msalautomationapp'
+    displayName: Build MSAL Automation APKs
+    jobs:
+      - job: 'msalautomationapp'
+        displayName: Build and Publish MSAL Automation app
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - checkout: self
+            clean: true
+            submodules: recursive
+            persistCredentials: True
+          - bash: |
+              echo "##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN]$(mvnAccessToken)"
+            displayName: Set MVN Access Token in Environment
+          - task: AzureKeyVault@2
+            displayName: 'Get Key vault AndroidAutomationRunnerAppSecret'
+            inputs:
+              azureSubscription: 'MSIDLABS_ANDROID_KV'
+              KeyVaultName: 'ADALTestInfo'
+              SecretsFilter: 'AndroidAutomationRunnerAppSecret'
+              RunAsPreJob: false
+          - task: Gradle@2
+            displayName: 'Assemble MSAL Automation App'
+            inputs:
+              tasks: clean msalautomationapp:assembleLocalBrokerHostDebug -PlabSecret=$(AndroidAutomationRunnerAppSecret) -PbrokerSource=LocalApk
+              publishJUnitResults: false
+          - task: Gradle@2
+            displayName: 'Assemble MSAL Automation App Instrumented Tests'
+            inputs:
+              tasks: msalautomationapp:assembleLocalBrokerHostDebugAndroidTest -PlabSecret=$(AndroidAutomationRunnerAppSecret)
+              publishJUnitResults: false
+          - task: CopyFiles@2
+            displayName: 'Copy apks for later use in the pipeline'
+            inputs:
+              flattenFolders: true
+              contents: '$(Build.SourcesDirectory)/msalautomationapp/build/outputs/apk/**/*.apk'
+              targetFolder: '$(Build.ArtifactStagingDirectory)/msal'
+          - publish: '$(Build.ArtifactStagingDirectory)/msal'
+            displayName: 'Publish apks for later use'
+            artifact: msalautomationapks
+  # Brokers
+  - stage: 'brokers'
+    dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
+    displayName: Brokers and Azure Sample APKs
+    jobs:
+      - job: 'download_brokers'
+        displayName: Download Brokers
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - checkout: none
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download latest Azure Sample'
+            inputs:
+              buildType: 'specific'
+              project: '$(engineeringProjectId)'
+              definition: '$(azureSamplePipelineId)'
+              artifactName: AzureSample
+              itemPattern: '**/*.apk'
+              targetPath: '$(Build.ArtifactStagingDirectory)/azureSample'
+              buildVersionToDownload: 'latest'
+          - publish: $(Build.ArtifactStagingDirectory)/azureSample
+            displayName: 'Publish Azure Sample apk for later use'
+            artifact: azureSample
+  # MSAL with Broker Test Plan stage
+  - stage: 'msal_with_broker'
+    dependsOn:
+      - msalautomationapp
+      - brokers
+    displayName: Running MSAL without Broker Test UI Test Suite
+    jobs:
+      - job: 'msal_with_broker'
+        displayName: Running MSAL without Broker Test Plan
+        timeoutInMinutes: 90
+        pool:
+          vmImage: ubuntu-latest
+        variables:
+          resultsDir: "msal-BrokerHost-$(Build.BuildId)-$(Build.BuildNumber)"
+        steps:
+          - checkout: none
+          - task: DownloadSecureFile@1
+            displayName: 'Download Firebase Service Account Key File'
+            name: gcServiceAccountKey
+            inputs:
+              secureFile: AndroidFirebaseServiceAccountKey.json
+              retryCount: 5
+          - download: current
+          - script: gcloud version
+            displayName: 'Check gcloud version'
+          - task: Bash@3
+            displayName: Run UI Automation on Firebase
+            inputs:
+              targetType: inline
+              script: |
+                gcloud auth activate-service-account --key-file "$(gcServiceAccountKey.secureFilePath)"
+                gcloud config set project "$(gCloudProjectId)"
+                gcloud firebase test android run \
+                  --type instrumentation \
+                  --app "$(Pipeline.Workspace)/msalautomationapks/$(msalAutomationAppApk)" \
+                  --test "$(Pipeline.Workspace)/msalautomationapks/$(msalAutomationAppTestApk)" \
+                  --device "model=${{ parameters.firebaseDeviceId }},version=${{ parameters.firebaseDeviceAndroidVersion }}" \
+                  --timeout "$(firebaseTimeout)" \
+                  --other-files \
+                  "/data/local/tmp/AzureSample.apk=$(Pipeline.Workspace)/azureSample/$(azureSampleApk)" \
+                  --results-dir "$(resultsDir)" \
+                  --directories-to-pull "/sdcard" \
+                  --use-orchestrator \
+                  --environment-variables "clearPackageData=true" \
+                  --results-history-name "$(resultsHistoryName)" \
+                  --test-targets "notPackage com.microsoft.identity.client.msal.automationapp.testpass.perf"
+                  --test-targets "notPackage com.microsoft.identity.client.msal.automationapp.testpass.broker"
+          - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/${{ parameters.firebaseDeviceId }}-${{ parameters.firebaseDeviceAndroidVersion }}-en-portrait/test_result_1.xml" "$(Build.SourcesDirectory)"
+            displayName: Download Test Result File
+            condition: succeededOrFailed()
+          - task: PublishTestResults@2
+            displayName: Publish Test Results to ADO
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFiles: '*test_result*.xml'
+              searchFolder: $(Build.SourcesDirectory)
+              testRunTitle: 'MSAL UI Automation - Build # $(Build.BuildNumber)'

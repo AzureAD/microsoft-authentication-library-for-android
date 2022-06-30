@@ -1,4 +1,4 @@
-# run MSAL UI automation testcases
+# run MSAL with Broker UI automation testcases
 # Variable: 'ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME' was defined in the Variables tab
 # Variable: 'gCloudProjectId' was defined in the Variables tab
 # Variable: 'mvnAccessToken' was defined in the Variables tab
@@ -24,7 +24,7 @@ variables:
   azureSampleApk: AzureSample-local-debug.apk
   brokerHostApk: brokerHost-local-debug.apk
   firebaseTimeout: 45m
-  resultsHistoryName: MSAL dev w/ dev BrokerHost
+  resultsHistoryName: Dev MSAL with Broker
 
 parameters:
   - name: firebaseDeviceId
@@ -120,7 +120,7 @@ stages:
     dependsOn:
       - msalautomationapp
       - brokers
-    displayName: Running MSAL Complete Test UI Test Suite
+    displayName: Running MSAL with Broker Test UI Test Suite
     jobs:
       - job: 'msal_with_broker'
         displayName: Running MSAL with Broker Test Plan
@@ -161,7 +161,7 @@ stages:
                   --use-orchestrator \
                   --environment-variables "clearPackageData=true" \
                   --results-history-name "$(resultsHistoryName)" \
-                  --test-targets "notPackage com.microsoft.identity.client.msal.automationapp.testpass.perf"
+                  --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker"
           - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/${{ parameters.firebaseDeviceId }}-${{ parameters.firebaseDeviceAndroidVersion }}-en-portrait/test_result_1.xml" "$(Build.SourcesDirectory)"
             displayName: Download Test Result File
             condition: succeededOrFailed()
