@@ -42,7 +42,6 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.concurrent.CountDownLatch;
 
 // Cross Apps SSO with System Browser
 // https://identitydivision.visualstudio.com/DefaultCollection/DevEx/_workitems/edit/497038
@@ -87,7 +86,6 @@ public class TestCase497038 extends AbstractMsalUiTest {
         // NOW LOGIN INTO MSAL AUTOMATION APP
         final MsalSdk msalSdk = new MsalSdk();
 
-        final CountDownLatch latch = new CountDownLatch(1);
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
@@ -111,12 +109,9 @@ public class TestCase497038 extends AbstractMsalUiTest {
 
                 new AadPromptHandler(promptHandlerParameters)
                         .handlePrompt(username, password);
-
-                latch.countDown();
             }
         }, TokenRequestTimeout.MEDIUM);
 
-        latch.await();
         authResult.assertSuccess();
     }
 

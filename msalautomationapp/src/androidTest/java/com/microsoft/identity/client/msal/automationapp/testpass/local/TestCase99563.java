@@ -42,7 +42,6 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.concurrent.CountDownLatch;
 
 // Silent Auth with force_refresh
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99563
@@ -55,7 +54,6 @@ public class TestCase99563 extends AbstractMsalUiTest {
 
         final MsalSdk msalSdk = new MsalSdk();
 
-        final CountDownLatch latch = new CountDownLatch(1);
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
@@ -79,12 +77,9 @@ public class TestCase99563 extends AbstractMsalUiTest {
 
                 new AadPromptHandler(promptHandlerParameters)
                         .handlePrompt(username, password);
-
-                latch.countDown();
             }
         },TokenRequestTimeout.SHORT);
 
-        latch.await();
         authResult.assertSuccess();
 
         final IAccount account = msalSdk.getAccount(mActivity, getConfigFileResourceId(), username);

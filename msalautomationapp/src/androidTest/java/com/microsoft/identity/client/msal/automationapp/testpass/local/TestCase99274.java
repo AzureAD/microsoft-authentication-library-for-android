@@ -40,7 +40,6 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.concurrent.CountDownLatch;
 
 // Interactive Auth with select_account (with consent record)
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99274
@@ -53,7 +52,6 @@ public class TestCase99274 extends AbstractMsalUiTest {
 
         final MsalSdk msalSdk = new MsalSdk();
 
-        final CountDownLatch latch = new CountDownLatch(1);
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
@@ -76,16 +74,12 @@ public class TestCase99274 extends AbstractMsalUiTest {
 
                 new AadPromptHandler(promptHandlerParameters)
                         .handlePrompt(username, password);
-
-                latch.countDown();
             }
         },TokenRequestTimeout.MEDIUM);
 
-        latch.await();
         authResult.assertSuccess();
 
         // do second request
-        final CountDownLatch latch2 = new CountDownLatch(1);
         final MsalAuthTestParams consentRecordParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
@@ -107,12 +101,8 @@ public class TestCase99274 extends AbstractMsalUiTest {
 
                 new AadPromptHandler(promptHandlerParameters)
                         .handlePrompt(username, password);
-
-                latch2.countDown();
             }
-        },TokenRequestTimeout.SHORT);
-
-        latch2.await();
+        },TokenRequestTimeout.MEDIUM);
         consentRecordResults.assertSuccess();
     }
 

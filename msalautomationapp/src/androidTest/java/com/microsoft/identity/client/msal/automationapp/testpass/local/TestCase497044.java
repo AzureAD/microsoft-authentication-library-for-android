@@ -46,7 +46,6 @@ import java.util.Arrays;
 // Interactive auth w/ force_login w/ MFA
 // https://identitydivision.visualstudio.com/DefaultCollection/DevEx/_workitems/edit/497044
 @Ignore("https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1886086")
-@RetryOnFailure
 public class TestCase497044 extends AbstractMsalUiTest {
 
     @Test
