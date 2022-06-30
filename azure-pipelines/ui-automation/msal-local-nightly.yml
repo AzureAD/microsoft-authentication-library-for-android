@@ -146,7 +146,7 @@ stages:
                   --use-orchestrator \
                   --environment-variables "clearPackageData=true" \
                   --results-history-name "$(resultsHistoryName)" \
-                  --test-targets "notPackage com.microsoft.identity.client.msal.automationapp.testpass.perf,com.microsoft.identity.client.msal.automationapp.testpass.broker"
+                  --test-targets "notPackage com.microsoft.identity.client.msal.automationapp.testpass.perf, notPackage com.microsoft.identity.client.msal.automationapp.testpass.broker"
           - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/${{ parameters.firebaseDeviceId }}-${{ parameters.firebaseDeviceAndroidVersion }}-en-portrait/test_result_1.xml" "$(Build.SourcesDirectory)"
             displayName: Download Test Result File
             condition: succeededOrFailed()
