@@ -1,4 +1,8 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
+Version 3.0.2-kroger-sdm-test-1
+----------
+- [PATCH] Update common@5.0.0-kroger-sdm-test-1
+
 Version 3.0.2-kroger-sdm-test
 ----------
 - [PATCH] Update common@5.0.0-kroger-sdm-test
