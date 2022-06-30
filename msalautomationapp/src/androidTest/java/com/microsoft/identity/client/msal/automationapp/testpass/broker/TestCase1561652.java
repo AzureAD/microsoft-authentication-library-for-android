@@ -35,7 +35,7 @@ import org.junit.Test;
 @SupportedBrokers(brokers = {BrokerHost.class})
 public class TestCase1561652 extends AbstractMsalBrokerTest {
     @Test
-    public void test_1561652() throws Throwable {
+    public void test_1561652() {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

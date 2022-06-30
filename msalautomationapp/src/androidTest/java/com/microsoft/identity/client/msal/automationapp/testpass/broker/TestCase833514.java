@@ -123,6 +123,8 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
         // sign in into Azure Sample App
         azureSampleApp.signInWithSingleAccountFragment(username2, password2, getBrowser(), false, microsoftStsPromptHandlerParameters);
 
+        Thread.sleep(TimeUnit.SECONDS.toMillis(5));
+
         // make sure we have successfully signed in
         azureSampleApp.confirmSignedIn(username2);
 
@@ -159,6 +161,8 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
         });
 
         getAccountLatch.await(TokenRequestTimeout.SILENT);
+
+        Thread.sleep(TimeUnit.SECONDS.toMillis(3));
 
         final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
 
