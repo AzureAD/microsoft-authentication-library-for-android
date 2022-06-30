@@ -29,6 +29,8 @@ import com.microsoft.identity.client.SignInParameters;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.msal.automationapp.R;
+import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
+import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.AzureSampleApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
@@ -85,7 +87,7 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         // we should be in shared device mode
         Assert.assertTrue(mApplication.isSharedDevice());
 
-        // fetching a different user from Lab
+        // fetching a new temp user from lab account
         final ILabAccount labAccount = mLabClient.createTempAccount(TempUserType.BASIC);
         final String username2 = labAccount.getUsername();
         final String password2 = labAccount.getPassword();
@@ -96,7 +98,7 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         final SingleAccountPublicClientApplication singleAccountPCA =
                 (SingleAccountPublicClientApplication) mApplication;
 
-        final CountDownLatch latch = new CountDownLatch(1);
+        final TokenRequestLatch latch = new TokenRequestLatch(1);
 
         // try sign in with an account from the same tenant
         final SignInParameters signInParameters = SignInParameters.builder()
@@ -119,7 +121,7 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         AadPromptHandler aadPromptHandler = new AadPromptHandler(promptHandlerParameters);
         aadPromptHandler.handlePrompt(username2, password2);
 
-        latch.await();
+        latch.await(TokenRequestTimeout.LONG);
 
         //launching azure sample app and confirming user signed in or not.
         final AzureSampleApp azureSampleApp = new AzureSampleApp();

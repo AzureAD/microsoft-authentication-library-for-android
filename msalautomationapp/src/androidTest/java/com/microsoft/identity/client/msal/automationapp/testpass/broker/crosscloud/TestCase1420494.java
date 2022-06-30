@@ -52,7 +52,6 @@ import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.concurrent.CountDownLatch;
 
 // Acquire token for cross cloud guest account (with broker)
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1420494
@@ -81,8 +80,6 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
         final String userName = mGuestUser.getHomeUpn();
         final String password = mLabClient.getPasswordForGuestUser(mGuestUser);
 
-        final CountDownLatch latch = new CountDownLatch(1);
-
         // Handler for Interactive auth call
         final OnInteractionRequired interactionHandler = () -> {
             final PromptHandlerParameters promptHandlerParameters =
@@ -94,8 +91,6 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
                     .build();
             final AadPromptHandler promptHandler = new AadPromptHandler(promptHandlerParameters);
             promptHandler.handlePrompt(userName, password);
-
-            latch.countDown();
         };
 
         final MsalAuthTestParams acquireTokenAuthParams = MsalAuthTestParams.builder()
@@ -110,8 +105,6 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
         final MsalSdk msalSdk = new MsalSdk();
         // Acquire token interactively
         final MsalAuthResult acquireTokenResult = msalSdk.acquireTokenInteractive(acquireTokenAuthParams, interactionHandler, TokenRequestTimeout.SHORT);
-
-        latch.await();
 
         Assert.assertFalse("Verify accessToken is not empty", TextUtils.isEmpty(acquireTokenResult.getAccessToken()));
 

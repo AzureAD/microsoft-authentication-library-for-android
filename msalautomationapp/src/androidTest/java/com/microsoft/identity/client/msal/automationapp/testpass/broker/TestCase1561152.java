@@ -103,7 +103,6 @@ public class TestCase1561152 extends AbstractMsalBrokerTest {
 
         // Should get a failure due to password reset.
         authResult2.assertFailure();
-        // TODO: Getting "unable to perform cloud discovery" sometimes
         Assert.assertTrue("Unexpected exception: " + authResult2.getException().toString(), authResult2.getException() instanceof MsalUiRequiredException);
 
         // Another interactive call
