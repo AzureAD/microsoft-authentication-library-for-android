@@ -80,10 +80,10 @@ stages:
   # Brokers
   - stage: 'brokers'
     dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
-    displayName: Brokers and Azure Sample APKs
+    displayName: Azure Sample APKs
     jobs:
       - job: 'download_brokers'
-        displayName: Download Brokers
+        displayName: Download Azure Sample
         pool:
           vmImage: ubuntu-latest
         steps:

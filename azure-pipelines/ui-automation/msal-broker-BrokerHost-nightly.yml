@@ -24,7 +24,7 @@ variables:
   azureSampleApk: AzureSample-local-debug.apk
   brokerHostApk: brokerHost-local-debug.apk
   firebaseTimeout: 45m
-  resultsHistoryName: Dev MSAL with Broker
+  resultsHistoryName: Dev MSAL with Dev BrokerHost
 
 parameters:
   - name: firebaseDeviceId
