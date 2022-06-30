@@ -57,6 +57,7 @@ import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryB2CAut
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A Sdk wrapper for Microsoft Authentication Library (MSAL) which implements
@@ -100,7 +101,6 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
                             .build()
             );
         }
-
 
         final AcquireTokenParameters acquireTokenParameters = acquireTokenParametersBuilder.build();
 
