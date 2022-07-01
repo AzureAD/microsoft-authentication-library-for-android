@@ -25,6 +25,7 @@ variables:
   msalAutomationAppTestApk: msalautomationapp-local-BrokerHost-debug-androidTest.apk
   azureSampleApk: AzureSample-local-debug.apk
   brokerHostApk: brokerHost-local-debug.apk
+  OldBrokerHostApk: brokerHost-local-debug.apk
   firebaseTimeout: 45m
   resultsHistoryName: MSAL dev w/ dev BrokerHost
 
@@ -186,7 +187,8 @@ stages:
                   --device "model=${{ parameters.firebaseDeviceId }},version=${{ parameters.firebaseDeviceAndroidVersion }}" \
                   --timeout "$(firebaseTimeout)" \
                   --other-files \
-                  "/data/local/tmp/BrokerHost.apk=$(Pipeline.Workspace)/brokerHost/$(brokerHostApk),\
+                  "/data/local/tmp/UpdatedBrokerHost.apk=$(Pipeline.Workspace)/brokerHost/$(brokerHostApk),\
+                  /data/local/tmp/BrokerHost.apk=$(Pipeline.Workspace)/brokerHost/$(OldBrokerHostApk),\
                   /data/local/tmp/AzureSample.apk=$(Pipeline.Workspace)/azureSample/$(azureSampleApk)" \
                   --results-dir "$(resultsDir)" \
                   --directories-to-pull "/sdcard" \
