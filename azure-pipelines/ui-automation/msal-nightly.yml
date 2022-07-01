@@ -37,6 +37,10 @@ parameters:
     displayName: Firebase Device Android Version
     type: number
     default: 28
+  - name: brokerHostVersion
+    displayName: Broker host Version
+    type: string
+    default: '0.0.1'
 
 stages:
   # msalautomationapp
