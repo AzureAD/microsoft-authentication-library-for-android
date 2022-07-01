@@ -129,7 +129,7 @@ stages:
             displayName: 'Download brokerHost Updated from feed'
             inputs:
               command: 'download'
-              downloadDirectory: '$(Build.ArtifactStagingDirectory)/cpauth'
+              downloadDirectory: '$(Build.ArtifactStagingDirectory)/oldBrokerHost'
               feedsToUse: 'external'
               externalFeedCredentials: '$(msazureServiceConnection)'
               feedDownloadExternal: '$(msazureFeedName)'
