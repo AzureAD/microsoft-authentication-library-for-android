@@ -109,12 +109,24 @@ stages:
               artifactName: BrokerHost
               itemPattern: '**/*.apk'
               targetPath: '$(Build.ArtifactStagingDirectory)/brokerHost'
+         - task: DownloadPipelineArtifact@2
+            displayName: 'Download Updated Broker Host'
+            inputs:
+              buildType: specific
+              project: '$(engineeringProjectId)'
+              definition: '$(azureSamplePipelineId)'
+              artifactName: brokerapks
+              itemPattern: '**/*.apk'
+              targetPath: '$(Build.ArtifactStagingDirectory)/brokerHostUpdated'
           - publish: $(Build.ArtifactStagingDirectory)/azureSample
             displayName: 'Publish Azure Sample apk for later use'
             artifact: azureSample
           - publish: $(Build.ArtifactStagingDirectory)/brokerHost
             displayName: 'Publish Broker Host apk for later use'
             artifact: brokerHost
+          - publish: $(Build.ArtifactStagingDirectory)/brokerHostUpdated
+            displayName: 'Publish Broker Host updated apk for later use'
+            artifact: brokerapks
   # MSAL with Broker Test Plan stage
   - stage: 'msal_with_broker'
     dependsOn:
