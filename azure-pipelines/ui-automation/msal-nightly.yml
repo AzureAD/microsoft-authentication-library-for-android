@@ -145,7 +145,7 @@ stages:
           - publish: $(Build.ArtifactStagingDirectory)/brokerHostUpdated
             displayName: 'Publish Broker Host updated apk for later use'
             artifact: brokerapks
-          - publish: $(Build.ArtifactStagingDirectory)/cpauth
+          - publish: $(Build.ArtifactStagingDirectory)/oldBrokerHost
             displayName: 'Publish Broker Host updated apk for later use'
             artifact: brokerHostapks
   # MSAL with Broker Test Plan stage
@@ -188,7 +188,7 @@ stages:
                   --timeout "$(firebaseTimeout)" \
                   --other-files \
                   "/data/local/tmp/UpdatedBrokerHost.apk=$(Pipeline.Workspace)/brokerHost/$(brokerHostApk),\
-                  /data/local/tmp/BrokerHost.apk=$(Pipeline.Workspace)/brokerHost/$(OldBrokerHostApk),\
+                  /data/local/tmp/BrokerHost.apk=$(Pipeline.Workspace)/oldBrokerHost/$(OldBrokerHostApk),\
                   /data/local/tmp/AzureSample.apk=$(Pipeline.Workspace)/azureSample/$(azureSampleApk)" \
                   --results-dir "$(resultsDir)" \
                   --directories-to-pull "/sdcard" \
