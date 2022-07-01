@@ -146,7 +146,7 @@ stages:
             artifact: brokerapks
           - publish: $(Build.ArtifactStagingDirectory)/cpauth
             displayName: 'Publish Broker Host updated apk for later use'
-            artifact: brokerapks
+            artifact: brokerHostapks
   # MSAL with Broker Test Plan stage
   - stage: 'msal_with_broker'
     dependsOn:
