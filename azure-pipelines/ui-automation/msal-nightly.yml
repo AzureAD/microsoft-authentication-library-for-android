@@ -109,12 +109,12 @@ stages:
               artifactName: BrokerHost
               itemPattern: '**/*.apk'
               targetPath: '$(Build.ArtifactStagingDirectory)/brokerHost'
-         - task: DownloadPipelineArtifact@2
+          - task: DownloadPipelineArtifact@2
             displayName: 'Download Updated Broker Host'
             inputs:
               buildType: specific
               project: '$(engineeringProjectId)'
-              definition: '$(azureSamplePipelineId)'
+              definition: '1490'
               artifactName: brokerapks
               itemPattern: '**/*.apk'
               targetPath: '$(Build.ArtifactStagingDirectory)/brokerHostUpdated'
