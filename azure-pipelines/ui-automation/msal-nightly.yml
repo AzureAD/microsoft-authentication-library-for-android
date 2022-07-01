@@ -147,7 +147,7 @@ stages:
             artifact: brokerapks
           - publish: $(Build.ArtifactStagingDirectory)/oldBrokerHost
             displayName: 'Publish Broker Host updated apk for later use'
-            artifact: brokerHostapks
+            artifact: oldBrokerHost
   # MSAL with Broker Test Plan stage
   - stage: 'msal_with_broker'
     dependsOn:
