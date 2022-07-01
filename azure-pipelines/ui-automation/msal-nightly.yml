@@ -19,6 +19,8 @@ variables:
   engineeringProjectId: 'fac9d424-53d2-45c0-91b5-ef6ba7a6bf26'
   azureSamplePipelineId: 1458
   brokerHostPipelineId: 1432
+  msazureServiceConnection: AndroidBroker-CI
+  msazureFeedName: Android-Broker
   msalAutomationAppApk: msalautomationapp-local-BrokerHost-debug.apk
   msalAutomationAppTestApk: msalautomationapp-local-BrokerHost-debug-androidTest.apk
   azureSampleApk: AzureSample-local-debug.apk
@@ -118,6 +120,17 @@ stages:
               artifactName: brokerapks
               itemPattern: '**/*.apk'
               targetPath: '$(Build.ArtifactStagingDirectory)/brokerHostUpdated'
+          - task: UniversalPackages@0
+            displayName: 'Download brokerHost Updated from feed'
+            inputs:
+              command: 'download'
+              downloadDirectory: '$(Build.ArtifactStagingDirectory)/cpauth'
+              feedsToUse: 'external'
+              externalFeedCredentials: '$(msazureServiceConnection)'
+              feedDownloadExternal: '$(msazureFeedName)'
+              packageDownloadExternal: 'broker-host'
+              versionDownloadExternal: '${{ parameters.brokerHostVersion }}'
+
           - publish: $(Build.ArtifactStagingDirectory)/azureSample
             displayName: 'Publish Azure Sample apk for later use'
             artifact: azureSample
@@ -125,6 +138,9 @@ stages:
             displayName: 'Publish Broker Host apk for later use'
             artifact: brokerHost
           - publish: $(Build.ArtifactStagingDirectory)/brokerHostUpdated
+            displayName: 'Publish Broker Host updated apk for later use'
+            artifact: brokerapks
+          - publish: $(Build.ArtifactStagingDirectory)/cpauth
             displayName: 'Publish Broker Host updated apk for later use'
             artifact: brokerapks
   # MSAL with Broker Test Plan stage
