@@ -18,13 +18,11 @@ schedules:
 variables:
   engineeringProjectId: 'fac9d424-53d2-45c0-91b5-ef6ba7a6bf26'
   azureSamplePipelineId: 1458
-  brokerHostPipelineId: 1432
   msalAutomationAppApk: msalautomationapp-local-BrokerHost-debug.apk
   msalAutomationAppTestApk: msalautomationapp-local-BrokerHost-debug-androidTest.apk
   azureSampleApk: AzureSample-local-debug.apk
-  brokerHostApk: brokerHost-local-debug.apk
   firebaseTimeout: 45m
-  resultsHistoryName: MSAL dev w/ dev BrokerHost
+  resultsHistoryName: Dev MSAL without Broker
 
 parameters:
   - name: firebaseDeviceId
@@ -82,10 +80,10 @@ stages:
   # Brokers
   - stage: 'brokers'
     dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
-    displayName: Brokers and Azure Sample APKs
+    displayName: Azure Sample APKs
     jobs:
       - job: 'download_brokers'
-        displayName: Download Brokers
+        displayName: Download Azure Sample
         pool:
           vmImage: ubuntu-latest
         steps:
@@ -100,30 +98,18 @@ stages:
               itemPattern: '**/*.apk'
               targetPath: '$(Build.ArtifactStagingDirectory)/azureSample'
               buildVersionToDownload: 'latest'
-          - task: DownloadPipelineArtifact@2
-            displayName: 'Download Broker Host'
-            inputs:
-              buildType: specific
-              project: '$(engineeringProjectId)'
-              definition: '$(brokerHostPipelineId)'
-              artifactName: BrokerHost
-              itemPattern: '**/*.apk'
-              targetPath: '$(Build.ArtifactStagingDirectory)/brokerHost'
           - publish: $(Build.ArtifactStagingDirectory)/azureSample
             displayName: 'Publish Azure Sample apk for later use'
             artifact: azureSample
-          - publish: $(Build.ArtifactStagingDirectory)/brokerHost
-            displayName: 'Publish Broker Host apk for later use'
-            artifact: brokerHost
   # MSAL with Broker Test Plan stage
   - stage: 'msal_with_broker'
     dependsOn:
       - msalautomationapp
       - brokers
-    displayName: Running MSAL Complete Test UI Test Suite
+    displayName: Running MSAL without Broker Test UI Test Suite
     jobs:
       - job: 'msal_with_broker'
-        displayName: Running MSAL with Broker Test Plan
+        displayName: Running MSAL without Broker Test Plan
         timeoutInMinutes: 90
         pool:
           vmImage: ubuntu-latest
@@ -154,14 +140,13 @@ stages:
                   --device "model=${{ parameters.firebaseDeviceId }},version=${{ parameters.firebaseDeviceAndroidVersion }}" \
                   --timeout "$(firebaseTimeout)" \
                   --other-files \
-                  "/data/local/tmp/BrokerHost.apk=$(Pipeline.Workspace)/brokerHost/$(brokerHostApk),\
-                  /data/local/tmp/AzureSample.apk=$(Pipeline.Workspace)/azureSample/$(azureSampleApk)" \
+                  "/data/local/tmp/AzureSample.apk=$(Pipeline.Workspace)/azureSample/$(azureSampleApk)" \
                   --results-dir "$(resultsDir)" \
                   --directories-to-pull "/sdcard" \
                   --use-orchestrator \
                   --environment-variables "clearPackageData=true" \
                   --results-history-name "$(resultsHistoryName)" \
-                  --test-targets "notPackage com.microsoft.identity.client.msal.automationapp.testpass.perf"
+                  --test-targets "notPackage com.microsoft.identity.client.msal.automationapp.testpass.perf, notPackage com.microsoft.identity.client.msal.automationapp.testpass.broker"
           - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/${{ parameters.firebaseDeviceId }}-${{ parameters.firebaseDeviceAndroidVersion }}-en-portrait/test_result_1.xml" "$(Build.SourcesDirectory)"
             displayName: Download Test Result File
             condition: succeededOrFailed()
