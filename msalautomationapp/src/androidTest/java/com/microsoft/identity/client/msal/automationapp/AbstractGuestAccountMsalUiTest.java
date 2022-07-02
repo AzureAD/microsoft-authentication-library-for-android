@@ -31,7 +31,6 @@ import com.microsoft.identity.client.ui.automation.IRuleBasedTest;
 import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
 import com.microsoft.identity.client.ui.automation.browser.IBrowser;
 import com.microsoft.identity.client.ui.automation.rules.RulesHelper;
-import com.microsoft.identity.client.ui.automation.rules.UncaughtExceptionHandlerRule;
 import com.microsoft.identity.common.java.net.HttpResponse;
 import com.microsoft.identity.common.java.net.UrlConnectionHttpClient;
 import com.microsoft.identity.labapi.utilities.BuildConfig;
@@ -58,8 +57,6 @@ public abstract class AbstractGuestAccountMsalUiTest implements IMsalTest, ILabT
     public RuleChain primaryRules = getPrimaryRules();
     @Rule(order = 1)
     public ActivityTestRule<MainActivity> mActivityRule = new ActivityTestRule(MainActivity.class);
-    @Rule(order = 2)
-    public UncaughtExceptionHandlerRule uncaughtExceptionHandlerRule = new UncaughtExceptionHandlerRule();
     protected Activity mActivity;
     protected IBrowser mBrowser;
     protected LabGuestAccount mGuestUser;

@@ -90,8 +90,8 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
     @Rule(order = 2)
     public MsalLoggingRule msalLoggingRule = new MsalLoggingRule();
 
-    @Rule(order = 3)
-    public UncaughtExceptionHandlerRule uncaughtExceptionHandlerRule = new UncaughtExceptionHandlerRule();
+//    @Rule(order = 3)
+//    public UncaughtExceptionHandlerRule uncaughtExceptionHandlerRule = new UncaughtExceptionHandlerRule();
 
     @Before
     public void setup() {
