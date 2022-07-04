@@ -19,10 +19,13 @@ variables:
   engineeringProjectId: 'fac9d424-53d2-45c0-91b5-ef6ba7a6bf26'
   azureSamplePipelineId: 1458
   brokerHostPipelineId: 1432
+  msazureServiceConnection: AndroidBroker-CI
+  msazureFeedName: Android-Broker
   msalAutomationAppApk: msalautomationapp-local-BrokerHost-debug.apk
   msalAutomationAppTestApk: msalautomationapp-local-BrokerHost-debug-androidTest.apk
   azureSampleApk: AzureSample-local-debug.apk
   brokerHostApk: brokerHost-local-debug.apk
+  OldBrokerHostApk: brokerHost-local-debug.apk
   firebaseTimeout: 45m
   resultsHistoryName: MSAL dev w/ dev BrokerHost
 
@@ -35,6 +38,10 @@ parameters:
     displayName: Firebase Device Android Version
     type: number
     default: 28
+  - name: brokerHostVersion
+    displayName: Broker host Version
+    type: string
+    default: '0.0.1'
 
 stages:
   # msalautomationapp
@@ -118,6 +125,17 @@ stages:
               artifactName: brokerapks
               itemPattern: '**/*.apk'
               targetPath: '$(Build.ArtifactStagingDirectory)/brokerHostUpdated'
+          - task: UniversalPackages@0
+            displayName: 'Download brokerHost Updated from feed'
+            inputs:
+              command: 'download'
+              downloadDirectory: '$(Build.ArtifactStagingDirectory)/oldBrokerHost'
+              feedsToUse: 'external'
+              externalFeedCredentials: '$(msazureServiceConnection)'
+              feedDownloadExternal: '$(msazureFeedName)'
+              packageDownloadExternal: 'broker-host'
+              versionDownloadExternal: '${{ parameters.brokerHostVersion }}'
+
           - publish: $(Build.ArtifactStagingDirectory)/azureSample
             displayName: 'Publish Azure Sample apk for later use'
             artifact: azureSample
@@ -127,6 +145,9 @@ stages:
           - publish: $(Build.ArtifactStagingDirectory)/brokerHostUpdated
             displayName: 'Publish Broker Host updated apk for later use'
             artifact: brokerapks
+          - publish: $(Build.ArtifactStagingDirectory)/oldBrokerHost
+            displayName: 'Publish Broker Host updated apk for later use'
+            artifact: oldBrokerHost
   # MSAL with Broker Test Plan stage
   - stage: 'msal_with_broker'
     dependsOn:
@@ -166,7 +187,8 @@ stages:
                   --device "model=${{ parameters.firebaseDeviceId }},version=${{ parameters.firebaseDeviceAndroidVersion }}" \
                   --timeout "$(firebaseTimeout)" \
                   --other-files \
-                  "/data/local/tmp/BrokerHost.apk=$(Pipeline.Workspace)/brokerHost/$(brokerHostApk),\
+                  "/data/local/tmp/UpdatedBrokerHost.apk=$(Pipeline.Workspace)/brokerHost/$(brokerHostApk),\
+                  /data/local/tmp/BrokerHost.apk=$(Pipeline.Workspace)/oldBrokerHost/$(OldBrokerHostApk),\
                   /data/local/tmp/AzureSample.apk=$(Pipeline.Workspace)/azureSample/$(azureSampleApk)" \
                   --results-dir "$(resultsDir)" \
                   --directories-to-pull "/sdcard" \
