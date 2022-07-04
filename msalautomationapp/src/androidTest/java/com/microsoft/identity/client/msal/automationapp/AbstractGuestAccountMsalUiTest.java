@@ -78,7 +78,6 @@ public abstract class AbstractGuestAccountMsalUiTest implements IMsalTest, ILabT
 
     @After
     public void cleanup() {
-        mBrowser.forceStop();
         mBrowser.clear();
     }
 
