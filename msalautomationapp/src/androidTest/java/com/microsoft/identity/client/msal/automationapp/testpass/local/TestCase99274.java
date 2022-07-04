@@ -40,6 +40,7 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 // Interactive Auth with select_account (with consent record)
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99274
@@ -49,6 +50,9 @@ public class TestCase99274 extends AbstractMsalUiTest {
     public void test_99274() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
+
+        // Testing out extra wait to allow user creation.
+        Thread.sleep(TimeUnit.SECONDS.toMillis(10));
 
         final MsalSdk msalSdk = new MsalSdk();
 

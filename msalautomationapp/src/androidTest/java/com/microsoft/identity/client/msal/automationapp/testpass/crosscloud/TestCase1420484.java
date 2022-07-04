@@ -80,7 +80,7 @@ public class TestCase1420484 extends AbstractGuestAccountMsalUiTest {
      */
     @Test
     public void test_1420484() throws Throwable {
-
+        // Clearing browser seems to help with this case
         mBrowser.clear();
 
         final String userName = mGuestUser.getHomeUpn();

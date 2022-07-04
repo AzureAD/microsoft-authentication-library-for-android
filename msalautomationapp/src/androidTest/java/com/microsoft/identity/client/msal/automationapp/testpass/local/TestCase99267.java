@@ -48,8 +48,6 @@ public class TestCase99267 extends AbstractMsalUiTest {
 
     @Test
     public void test_99267() throws Throwable {
-        mBrowser.clear();
-
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
