@@ -30,7 +30,6 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
@@ -49,7 +48,6 @@ import java.util.concurrent.TimeUnit;
 // Interactive auth with force_login and step-up MFA
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99656
 @Ignore("https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1886086")
-@RetryOnFailure
 public class TestCase99656 extends AbstractMsalUiTest {
 
     private final String TAG = TestCase99656.class.getSimpleName();
