@@ -22,6 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.msal.automationapp.BuildConfig;
@@ -39,6 +40,34 @@ public class BrokerTestHelper {
         switch (BuildConfig.SELECTED_BROKER) {
             case BuildConfig.BrokerHost:
                 return new BrokerHost();
+            case BuildConfig.BrokerMicrosoftAuthenticator:
+                return new BrokerMicrosoftAuthenticator();
+            case BuildConfig.BrokerCompanyPortal:
+                return new BrokerCompanyPortal();
+            case BuildConfig.AutoBroker: {
+                if (supportedBrokersAnnotation == null) {
+                    return new BrokerMicrosoftAuthenticator();
+                }
+                final List<Class<? extends ITestBroker>> supportedBrokerClasses =
+                        Arrays.asList(supportedBrokersAnnotation.brokers());
+                if (BuildConfig.FLAVOR_main.equals("dist") && supportedBrokerClasses.contains(BrokerCompanyPortal.class)) {
+                    return new BrokerCompanyPortal();
+                } else {
+                    return new BrokerMicrosoftAuthenticator();
+                }
+            }
+            default:
+                throw new UnsupportedOperationException("Unsupported broker :(");
+        }
+    }
+
+    public static ITestBroker createBrokerFromFlavorAndApk(@Nullable final SupportedBrokers supportedBrokersAnnotation, @NonNull final String apkName) {
+        switch (BuildConfig.SELECTED_BROKER) {
+            case BuildConfig.BrokerHost:
+                if (apkName.equals("Old"))
+                return new BrokerHost(BrokerHost.OLD_BROKER_HOST_APK);
+                else
+                    return new BrokerHost();
             case BuildConfig.BrokerMicrosoftAuthenticator:
                 return new BrokerMicrosoftAuthenticator();
             case BuildConfig.BrokerCompanyPortal:

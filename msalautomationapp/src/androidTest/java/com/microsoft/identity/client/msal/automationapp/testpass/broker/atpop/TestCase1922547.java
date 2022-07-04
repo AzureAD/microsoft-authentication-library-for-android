@@ -29,6 +29,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
+import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerUpdateTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.constants.AuthScheme;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
@@ -46,7 +47,7 @@ import java.util.Arrays;
 
 // [Joined] [Update-old-to-V5] Generate SHR
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1922547
-public class TestCase1922547  extends AbstractMsalBrokerTest {
+public class TestCase1922547  extends AbstractMsalBrokerUpdateTest {
     @Test
     public void test_1922547() throws Throwable {
         final String username = mLabAccount.getUsername();
