@@ -46,7 +46,6 @@ import com.microsoft.identity.client.ui.automation.IRuleBasedTest;
 import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
 import com.microsoft.identity.client.ui.automation.browser.IBrowser;
 import com.microsoft.identity.client.ui.automation.rules.RulesHelper;
-import com.microsoft.identity.client.ui.automation.rules.UncaughtExceptionHandlerRule;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.labapi.utilities.BuildConfig;
 import com.microsoft.identity.labapi.utilities.authentication.LabApiAuthenticationClient;
@@ -89,9 +88,6 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
 
     @Rule(order = 2)
     public MsalLoggingRule msalLoggingRule = new MsalLoggingRule();
-
-//    @Rule(order = 3)
-//    public UncaughtExceptionHandlerRule uncaughtExceptionHandlerRule = new UncaughtExceptionHandlerRule();
 
     @Before
     public void setup() {
@@ -141,10 +137,6 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
     @After
     public void cleanup() {
         mAccount = null;
-        if (mBrowser != null) {
-            mBrowser.forceStop();
-            mBrowser.clear();
-        }
     }
 
     @Override
