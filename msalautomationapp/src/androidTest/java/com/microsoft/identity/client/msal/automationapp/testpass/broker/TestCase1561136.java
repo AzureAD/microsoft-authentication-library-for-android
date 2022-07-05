@@ -28,6 +28,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
@@ -42,9 +43,11 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.List;
 
+// TODO: This is sometime failing at the registration step (DRS Device Registration Failed)
 // Get Broker Accounts
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561136
 @SupportedBrokers(brokers = BrokerHost.class)
+@RetryOnFailure(retryCount = 2)
 public class TestCase1561136 extends AbstractMsalBrokerTest {
 
     @Test
