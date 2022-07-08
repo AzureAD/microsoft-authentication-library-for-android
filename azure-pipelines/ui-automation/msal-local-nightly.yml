@@ -61,7 +61,7 @@ stages:
           - task: Gradle@2
             displayName: 'Assemble MSAL Automation App'
             inputs:
-              tasks: clean msalautomationapp:assembleLocalBrokerHostDebug -PlabSecret=$(AndroidAutomationRunnerAppSecret) -PbrokerSource=LocalApk
+              tasks: clean msalautomationapp:assembleLocalBrokerHostDebug -PlabSecret=$(AndroidAutomationRunnerAppSecret)
               publishJUnitResults: false
           - task: Gradle@2
             displayName: 'Assemble MSAL Automation App Instrumented Tests'
@@ -157,4 +157,3 @@ stages:
               testResultsFiles: '*test_result*.xml'
               searchFolder: $(Build.SourcesDirectory)
               testRunTitle: 'MSAL UI Automation - Build # $(Build.BuildNumber)'
-              
