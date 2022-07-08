@@ -101,11 +101,11 @@ stages:
           - publish: $(Build.ArtifactStagingDirectory)/azureSample
             displayName: 'Publish Azure Sample apk for later use'
             artifact: azureSample
-  # MSAL with Broker Test Plan stage
-  - stage: 'msal_with_broker'
+  # MSAL without Broker Test UI stage
+  - stage: 'msal_without_broker'
     dependsOn:
       - msalautomationapp
-      - brokers
+      - azuresample
     displayName: Running MSAL without Broker Test UI Test Suite
     jobs:
       - job: 'msal_with_broker'
