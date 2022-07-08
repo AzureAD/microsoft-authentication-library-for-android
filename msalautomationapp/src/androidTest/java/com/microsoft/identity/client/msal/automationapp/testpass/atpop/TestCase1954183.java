@@ -84,7 +84,7 @@ public class TestCase1954183 extends AbstractMsalUiTest {
         authResult.assertSuccess();
         MsalAuthResult.verifyATForPop(authResult.getAccessToken());
 
-        String shr = msalSdk.generateSHR(authTestParams, TokenRequestTimeout.SHORT);
+        final String shr = msalSdk.generateSHR(authTestParams, TokenRequestTimeout.SHORT);
         Assert.assertNotNull(shr);
         MsalAuthResult.verifyATForPop(shr);
     }
@@ -113,6 +113,6 @@ public class TestCase1954183 extends AbstractMsalUiTest {
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_instance_aware_common;
+        return R.raw.msal_config_default;
     }
 }

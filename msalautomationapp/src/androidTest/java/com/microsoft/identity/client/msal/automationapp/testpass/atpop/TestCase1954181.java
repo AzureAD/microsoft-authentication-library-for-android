@@ -122,6 +122,6 @@ public class TestCase1954181 extends AbstractMsalUiTest {
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_instance_aware_common;
+        return R.raw.msal_config_default;
     }
 }
