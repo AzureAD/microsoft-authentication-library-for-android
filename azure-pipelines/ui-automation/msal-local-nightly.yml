@@ -77,12 +77,12 @@ stages:
           - publish: '$(Build.ArtifactStagingDirectory)/msal'
             displayName: 'Publish apks for later use'
             artifact: msalautomationapks
-  # Brokers
-  - stage: 'brokers'
+  # Azure Sample
+  - stage: 'azuresample'
     dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
-    displayName: Azure Sample APKs
+    displayName: Dowload Azure Sample APK
     jobs:
-      - job: 'download_brokers'
+      - job: 'download_azure_sample'
         displayName: Download Azure Sample
         pool:
           vmImage: ubuntu-latest
