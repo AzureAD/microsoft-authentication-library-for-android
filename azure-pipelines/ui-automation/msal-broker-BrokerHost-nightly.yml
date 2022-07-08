@@ -9,7 +9,7 @@ pr: none
 
 schedules:
   - cron: "0 5 * * 1-6" # 5:00 AM UTC everyday Mon-Sat
-    displayName: Auth Client Android SDK dev build
+    displayName: Daily Local MSAL UI Automation with Broker Run
     branches:
       include:
         - dev

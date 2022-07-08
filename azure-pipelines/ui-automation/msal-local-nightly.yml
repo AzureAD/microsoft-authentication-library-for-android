@@ -1,4 +1,4 @@
-# run MSAL UI automation testcases
+# run MSAL without Broker UI automation testcases
 # Variable: 'ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME' was defined in the Variables tab
 # Variable: 'gCloudProjectId' was defined in the Variables tab
 # Variable: 'mvnAccessToken' was defined in the Variables tab
@@ -9,7 +9,7 @@ pr: none
 
 schedules:
   - cron: "0 5 * * 1-6" # 5:00 AM UTC everyday Mon-Sat
-    displayName: Auth Client Android SDK dev build
+    displayName: Daily Local MSAL UI Automation without Broker Run
     branches:
       include:
         - dev
