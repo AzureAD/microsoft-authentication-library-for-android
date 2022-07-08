@@ -22,42 +22,44 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
-import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Test;
 
-// [Non-joined][MSAL] Acquire Token + Acquire Token Silent (Prompt.SELECT_ACCOUNT)
-// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/850455
-public class TestCase850455 extends AbstractMsalBrokerTest {
+import java.util.Arrays;
+
+// [Non-joined][MSAL] Prompt.LOGIN
+// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/1561169
+public class TestCase1561169 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_850455() throws Throwable {
+    public void test_1561169() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
 
+        // Interactive call
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
-                .resource(mScopes[0])
+                .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-        final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired() {
+        final MsalAuthResult authResult1 = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
@@ -66,7 +68,6 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
                         .sessionExpected(false)
                         .consentPageExpected(false)
                         .speedBumpExpected(false)
-                        .broker(mBroker)
                         .expectingBrokerAccountChooserActivity(false)
                         .build();
 
@@ -75,41 +76,50 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
             }
         }, TokenRequestTimeout.MEDIUM);
 
-        authResult.assertSuccess();
+        authResult1.assertSuccess();
 
-        // SILENT REQUEST
-
-        final IAccount account = msalSdk.getAccount(mActivity,getConfigFileResourceId(),username);
-
-        final MsalAuthTestParams silentParams = MsalAuthTestParams.builder()
+        // Interactive call with Prompt.LOGIN
+        final MsalAuthTestParams anotherAuthTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
-                .authority(account.getAuthority())
-                .forceRefresh(true)
-                .resource(mScopes[0])
+                .scopes(Arrays.asList(mScopes))
+                .promptParameter(Prompt.LOGIN)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-        final MsalAuthResult silentAuthResult = msalSdk.acquireTokenSilent(silentParams,TokenRequestTimeout.SILENT);
-        silentAuthResult.assertSuccess();
-    }
+        final MsalAuthResult authResult2 = msalSdk.acquireTokenInteractive(anotherAuthTestParams, new OnInteractionRequired() {
+            @Override
+            public void handleUserInteraction() {
+                final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
+                        .prompt(PromptParameter.LOGIN)
+                        .loginHint(username)
+                        .sessionExpected(false)
+                        .consentPageExpected(false)
+                        .speedBumpExpected(false)
+                        .expectingBrokerAccountChooserActivity(false)
+                        .build();
 
+                new AadPromptHandler(promptHandlerParameters)
+                        .handlePrompt(username, password);
+            }
+        }, TokenRequestTimeout.MEDIUM);
+
+        authResult2.assertSuccess();
+    }
 
     @Override
     public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT)
-                .build();
-    }
-
-    @Override
-    public TempUserType getTempUserType() {
         return null;
     }
 
     @Override
+    public TempUserType getTempUserType() {
+        return TempUserType.BASIC;
+    }
+
+    @Override
     public String[] getScopes() {
-        return new String[]{"00000002-0000-0000-c000-000000000000"};
+        return new String[]{"https://graph.windows.net/user.read"};
     }
 
     @Override
@@ -119,7 +129,6 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_instance_aware_common;
+        return R.raw.msal_config_default;
     }
-
 }
