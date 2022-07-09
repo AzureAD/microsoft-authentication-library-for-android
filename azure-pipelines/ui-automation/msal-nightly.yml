@@ -125,7 +125,7 @@ stages:
               externalFeedCredentials: '$(msazureServiceConnection)'
               feedDownloadExternal: '$(msazureFeedName)'
               packageDownloadExternal: 'broker-host'
-              versionDownloadExternal: '${{ parameters.brokerHostVersion }}'
+              versionDownloadExternal: '${{ parameters.oldBrokerHostVersion }}'
 
           - publish: $(Build.ArtifactStagingDirectory)/azureSample
             displayName: 'Publish Azure Sample apk for later use'
