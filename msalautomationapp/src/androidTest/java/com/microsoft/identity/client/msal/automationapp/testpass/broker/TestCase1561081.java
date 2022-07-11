@@ -55,7 +55,7 @@ import java.util.concurrent.TimeUnit;
 
 // [WPJ] WPJ Leave
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561081
-@SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
+@SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
 public class TestCase1561081 extends AbstractMsalBrokerTest {
 
     final String MY_ACCOUNT_MICROSOFT_URL = "https://myaccount.microsoft.com/";
