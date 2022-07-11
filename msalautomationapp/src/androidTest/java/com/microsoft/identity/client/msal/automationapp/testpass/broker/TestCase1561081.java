@@ -72,7 +72,7 @@ public class TestCase1561081 extends AbstractMsalBrokerTest {
 
         final MsalSdk msalSdk = new MsalSdk();
 
-        MsalAuthTestParams authTestParams_firstTry = MsalAuthTestParams.builder()
+        final MsalAuthTestParams authTestParams_firstTry = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
                 .scopes(Arrays.asList(mScopes))
@@ -81,7 +81,7 @@ public class TestCase1561081 extends AbstractMsalBrokerTest {
                 .build();
 
         //AT interactive acquisition.
-        MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams_firstTry, new OnInteractionRequired() {
+        final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams_firstTry, new OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
                 final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
@@ -124,7 +124,7 @@ public class TestCase1561081 extends AbstractMsalBrokerTest {
 
 
         //acquire the token interactively for a second time.
-         authResult = msalSdk.acquireTokenInteractive(authTestParams_SecondTry, new OnInteractionRequired() {
+         final MsalAuthResult authResult2 = msalSdk.acquireTokenInteractive(authTestParams_SecondTry, new OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
                 final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
@@ -139,7 +139,7 @@ public class TestCase1561081 extends AbstractMsalBrokerTest {
             }
         }, TokenRequestTimeout.MEDIUM);
 
-        authResult.assertSuccess();
+        authResult2.assertSuccess();
 
         //wait for two minutes to ensure the changes are made.
         Thread.sleep(TimeUnit.MINUTES.toMinutes(2));
