@@ -90,7 +90,6 @@ public abstract class AbstractMsalBrokerUpdateTest extends AbstractMsalUiTest im
                 } else {
                     return new BrokerMicrosoftAuthenticator(BrokerMicrosoftAuthenticator.OLD_AUTHENTICATOR_APK,
                             BrokerMicrosoftAuthenticator.AUTHENTICATOR_APK);
-                }
             }
             default:
                 throw new UnsupportedOperationException("Unsupported broker :(");
