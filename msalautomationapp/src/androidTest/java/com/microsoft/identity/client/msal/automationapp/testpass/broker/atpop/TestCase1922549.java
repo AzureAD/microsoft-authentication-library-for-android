@@ -20,14 +20,14 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.atpop;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.atpop;
 
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
-import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
+import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerUpdateTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.constants.AuthScheme;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
@@ -38,15 +38,16 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
 
-// [Non-Joined] Acquire PoP token interactive followed by Silent
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1922511
-public class TestCase1922511 extends AbstractMsalBrokerTest {
+// [Non-Joined] [Update-old-to-V5] Generate SHR
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1922549
+public class TestCase1922549 extends AbstractMsalBrokerUpdateTest {
     @Test
-    public void test_1922511() throws Throwable {
+    public void test_1922549() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
@@ -82,21 +83,12 @@ public class TestCase1922511 extends AbstractMsalBrokerTest {
         authResult.assertSuccess();
         MsalAuthResult.verifyATForPop(authResult.getAccessToken());
 
-        // start silent token request in MSAL
-        final MsalAuthTestParams authTestSilentParams = MsalAuthTestParams.builder()
-                .activity(mActivity)
-                .loginHint(username)
-                .scopes(Arrays.asList(mScopes))
-                .authority(getAuthority())
-                .authScheme(AuthScheme.POP)
-                .msalConfigResourceId(getConfigFileResourceId())
-                .build();
+        mBroker.update();
 
-        final MsalAuthResult authSilentResult = msalSdk.acquireTokenSilent(authTestSilentParams, TokenRequestTimeout.MEDIUM);
-        authSilentResult.assertSuccess();
-        MsalAuthResult.verifyATForPop(authSilentResult.getAccessToken());
+        String shr = msalSdk.generateSHR(authTestParams, TokenRequestTimeout.SHORT);
+        Assert.assertNotNull(shr);
+        MsalAuthResult.verifyATForPop(shr);
     }
-
     @Override
     public LabQuery getLabQuery() {
         return LabQuery.builder()
