@@ -26,7 +26,7 @@ import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
-import com.microsoft.identity.internal.testutils.MockHttpClient;
+import com.microsoft.identity.http.MockHttpClient;
 import com.microsoft.identity.internal.testutils.TestUtils;
 
 import org.junit.After;
