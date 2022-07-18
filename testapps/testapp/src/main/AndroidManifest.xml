@@ -61,7 +61,6 @@
         <activity
             android:name="com.microsoft.identity.client.testapp.MainActivity"
             android:theme="@style/AppTheme.NoActionBar"
-            android:windowSoftInputMode="stateHidden"
             android:taskAffinity=""
             android:documentLaunchMode="always"
             android:configChanges="keyboardHidden|keyboard">
