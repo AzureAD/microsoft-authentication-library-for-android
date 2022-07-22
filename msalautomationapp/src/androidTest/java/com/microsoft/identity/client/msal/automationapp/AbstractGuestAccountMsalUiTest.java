@@ -33,8 +33,12 @@ import com.microsoft.identity.client.ui.automation.browser.IBrowser;
 import com.microsoft.identity.client.ui.automation.rules.RulesHelper;
 import com.microsoft.identity.common.java.net.HttpResponse;
 import com.microsoft.identity.common.java.net.UrlConnectionHttpClient;
-import com.microsoft.identity.internal.testutils.labutils.LabGuest;
-import com.microsoft.identity.internal.testutils.labutils.LabGuestAccountHelper;
+import com.microsoft.identity.labapi.utilities.BuildConfig;
+import com.microsoft.identity.labapi.utilities.authentication.LabApiAuthenticationClient;
+import com.microsoft.identity.labapi.utilities.client.LabClient;
+import com.microsoft.identity.labapi.utilities.client.LabGuestAccount;
+import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
 import org.json.JSONObject;
 import org.junit.After;
@@ -55,13 +59,20 @@ public abstract class AbstractGuestAccountMsalUiTest implements IMsalTest, ILabT
     public ActivityTestRule<MainActivity> mActivityRule = new ActivityTestRule(MainActivity.class);
     protected Activity mActivity;
     protected IBrowser mBrowser;
-    protected LabGuest mGuestUser;
+    protected LabGuestAccount mGuestUser;
+    protected LabClient mLabClient;
 
     @Before
-    public void setup() {
+    public void setup() throws LabApiException {
         mActivity = mActivityRule.getActivity();
         mBrowser = new BrowserChrome();
-        mGuestUser = LabGuestAccountHelper.loadGuestAccountFromLab(getLabUserQuery());
+
+        final LabApiAuthenticationClient authenticationClient = new LabApiAuthenticationClient(
+                BuildConfig.LAB_CLIENT_SECRET
+        );
+        mLabClient = new LabClient(authenticationClient);
+
+        mGuestUser = mLabClient.loadGuestAccountFromLab(getLabQuery());
     }
 
     @After
@@ -94,7 +105,7 @@ public abstract class AbstractGuestAccountMsalUiTest implements IMsalTest, ILabT
     }
 
     @Override
-    public String getTempUserType() {
+    public TempUserType getTempUserType() {
         return null;
     }
 

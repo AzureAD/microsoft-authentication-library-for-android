@@ -35,9 +35,11 @@ import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequ
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.internal.testutils.labutils.LabConstants;
-import com.microsoft.identity.internal.testutils.labutils.LabGuestAccountHelper;
-import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
+import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
+import com.microsoft.identity.labapi.utilities.constants.GuestHomeAzureEnvironment;
+import com.microsoft.identity.labapi.utilities.constants.GuestHomedIn;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -64,14 +66,14 @@ public class TestCase1592510 extends AbstractGuestAccountMsalBrokerUiTest {
     @Parameterized.Parameters(name = "{0}")
     public static Collection guestHomeAzureEnvironment() {
         return Arrays.asList(new Object[][]{
-                {"AZURE_US_GOV", LabConstants.GuestHomeAzureEnvironment.AZURE_US_GOV, /*homeCloud*/"https://login.microsoftonline.us", /*crossCloud*/"https://login.microsoftonline.com"},
+                {"AZURE_US_GOV", GuestHomeAzureEnvironment.AZURE_US_GOVERNMENT.toString(), /*homeCloud*/"https://login.microsoftonline.us", /*crossCloud*/"https://login.microsoftonline.com"},
         });
     }
 
     @Test
     public void test_acquire_token_from_home_cloud_after_acquiring_token_from_cross_cloud() throws Throwable {
         final String userName = mGuestUser.getHomeUpn();
-        final String password = LabGuestAccountHelper.getPasswordForGuestUser(mGuestUser);
+        final String password = mLabClient.getPasswordForGuestUser(mGuestUser);
 
         final OnInteractionRequired crossCloudInteractionHandler = () -> {
             final PromptHandlerParameters promptHandlerParameters =
@@ -123,13 +125,13 @@ public class TestCase1592510 extends AbstractGuestAccountMsalBrokerUiTest {
     }
 
     @Override
-    public LabUserQuery getLabUserQuery() {
-        final LabUserQuery query = new LabUserQuery();
-        query.userType = LabConstants.UserType.GUEST;
-        query.guestHomeAzureEnvironment = mGuestHomeAzureEnvironment;
-        query.guestHomedIn = LabConstants.GuestHomedIn.HOST_AZURE_AD;
-        query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CLOUD;
-        return query;
+    public LabQuery getLabQuery() {
+        return LabQuery.builder()
+                .userType(UserType.GUEST)
+                .guestHomeAzureEnvironment(GuestHomeAzureEnvironment.valueOf(mGuestHomeAzureEnvironment))
+                .guestHomedIn(GuestHomedIn.HOST_AZURE_AD)
+                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
+                .build();
     }
 
     @Override

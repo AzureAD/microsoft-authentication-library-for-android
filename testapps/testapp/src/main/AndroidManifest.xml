@@ -25,7 +25,8 @@
   -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.microsoft.identity.client.testapp">
+          package="com.microsoft.identity.client.testapp"
+          xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -48,9 +49,9 @@
         <!-- https://developer.android.com/guide/topics/manifest/activity-element#aff -->
         <activity
             android:name="com.microsoft.identity.client.testapp.StartActivity"
+            android:taskAffinity=""
             android:theme="@style/AppTheme.NoActionBar"
-            android:windowSoftInputMode="stateHidden"
-            android:taskAffinity="">
+            android:windowSoftInputMode="stateHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
@@ -60,9 +61,9 @@
         <activity
             android:name="com.microsoft.identity.client.testapp.MainActivity"
             android:theme="@style/AppTheme.NoActionBar"
-            android:windowSoftInputMode="stateHidden"
             android:taskAffinity=""
-            android:documentLaunchMode="always">
+            android:documentLaunchMode="always"
+            android:configChanges="keyboardHidden|keyboard">
         </activity>
 
         <activity

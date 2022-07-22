@@ -56,7 +56,9 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.SINGLE_ACCOUNT_DCF_TEST_CONFIG_FILE_PATH;
@@ -312,6 +314,113 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
     @Config(shadows = {ShadowDeviceCodeFlowCommandSuccessful.class})
     public void testDeviceCodeFlowSuccess() {
         String[] scope = {"user.read"};
+        mApplication.acquireTokenWithDeviceCode(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
+            @Override
+            public void onUserCodeReceived(@NonNull String vUri,
+                                           @NonNull String userCode,
+                                           @NonNull String message,
+                                           @NonNull Date sessionExpirationDate) {
+                // Assert that the protocol returns the userCode and others after successful authorization
+                Assert.assertFalse(StringUtil.isNullOrEmpty(vUri));
+                Assert.assertFalse(StringUtil.isNullOrEmpty(userCode));
+                Assert.assertFalse(StringUtil.isNullOrEmpty(message));
+                Assert.assertNotNull(sessionExpirationDate);
+
+                Assert.assertFalse(mUserCodeReceived);
+                mUserCodeReceived = true;
+            }
+
+            @Override
+            public void onTokenReceived(@NonNull IAuthenticationResult authResult) {
+                Assert.assertTrue(mUserCodeReceived);
+                Assert.assertNotNull(authResult);
+            }
+
+            @Override
+            public void onError(@NonNull MsalException exception) {
+                // This shouldn't run
+                throw new AssertionError(exception);
+            }
+        });
+
+        RoboTestUtils.flushScheduler();
+    }
+
+    @Test
+    @Config(shadows = {ShadowDeviceCodeFlowCommandAuthError.class})
+    public void testDeviceCodeFlowAuthFailureWithList() {
+        List<String> scope = new ArrayList<>();
+        scope.add("user.read");
+        mApplication.acquireTokenWithDeviceCode(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
+            @Override
+            public void onUserCodeReceived(@NonNull String vUri,
+                                           @NonNull String userCode,
+                                           @NonNull String message,
+                                           @NonNull Date sessionExpirationDate) {
+                // This shouldn't run if authorization step fails
+                Assert.fail();
+            }
+
+            @Override
+            public void onTokenReceived(@NonNull IAuthenticationResult authResult) {
+                // This shouldn't run if authorization step fails
+                Assert.fail();
+            }
+
+            @Override
+            public void onError(@NonNull MsalException exception) {
+                // Handle exception when authorization fails
+                Assert.assertFalse(mUserCodeReceived);
+                Assert.assertEquals(ErrorStrings.INVALID_SCOPE, exception.getErrorCode());
+            }
+        });
+
+        RoboTestUtils.flushScheduler();
+    }
+
+    @Test
+    @Config(shadows = {ShadowDeviceCodeFlowCommandTokenError.class})
+    public void testDeviceCodeFlowTokenFailureWithList() {
+        List<String> scope = new ArrayList<>();
+        scope.add("user.read");
+        mApplication.acquireTokenWithDeviceCode(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
+            @Override
+            public void onUserCodeReceived(@NonNull String vUri,
+                                           @NonNull String userCode,
+                                           @NonNull String message,
+                                           @NonNull Date sessionExpirationDate) {
+                // Assert that the protocol returns the userCode and others after successful authorization
+                Assert.assertFalse(StringUtil.isNullOrEmpty(vUri));
+                Assert.assertFalse(StringUtil.isNullOrEmpty(userCode));
+                Assert.assertFalse(StringUtil.isNullOrEmpty(message));
+                Assert.assertNotNull(sessionExpirationDate);
+
+                Assert.assertFalse(mUserCodeReceived);
+                mUserCodeReceived = true;
+            }
+
+            @Override
+            public void onTokenReceived(@NonNull IAuthenticationResult authResult) {
+                // This shouldn't run
+                Assert.fail();
+            }
+
+            @Override
+            public void onError(@NonNull MsalException exception) {
+                // Handle Exception
+                Assert.assertTrue(mUserCodeReceived);
+                Assert.assertEquals(ErrorStrings.DEVICE_CODE_FLOW_EXPIRED_TOKEN_ERROR_CODE, exception.getErrorCode());
+            }
+        });
+
+        RoboTestUtils.flushScheduler();
+    }
+
+    @Test
+    @Config(shadows = {ShadowDeviceCodeFlowCommandSuccessful.class})
+    public void testDeviceCodeFlowSuccessWithList() {
+        List<String> scope = new ArrayList<>();
+        scope.add("user.read");
         mApplication.acquireTokenWithDeviceCode(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
             @Override
             public void onUserCodeReceived(@NonNull String vUri,

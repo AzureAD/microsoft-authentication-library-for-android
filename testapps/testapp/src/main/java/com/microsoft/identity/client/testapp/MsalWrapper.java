@@ -24,6 +24,7 @@ import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
+import com.microsoft.identity.common.java.util.StringUtil;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -111,11 +112,11 @@ abstract class MsalWrapper {
                 .withPrompt(requestOptions.getPrompt())
                 .withCallback(getAuthenticationCallback(callback));
 
-        if (requestOptions.getAuthority() != null && !requestOptions.getAuthority().isEmpty()) {
+        if (!StringUtil.isNullOrEmpty(requestOptions.getAuthority())) {
             builder.fromAuthority(requestOptions.getAuthority());
         }
 
-        if (requestOptions.getClaims() != null && !requestOptions.getClaims().isEmpty()) {
+        if (!StringUtil.isNullOrEmpty(requestOptions.getClaims())) {
             builder.withClaims(ClaimsRequest.getClaimsRequestFromJsonString(requestOptions.getClaims()));
         }
 
@@ -173,10 +174,14 @@ abstract class MsalWrapper {
                 .forceRefresh(requestOptions.isForceRefresh())
                 .withCallback(getAuthenticationCallback(callback));
 
-        if (requestOptions.getAuthority() != null && !requestOptions.getAuthority().isEmpty()) {
+        if (!StringUtil.isNullOrEmpty(requestOptions.getAuthority())) {
             builder.fromAuthority(requestOptions.getAuthority());
         } else {
             builder.fromAuthority(requestOptions.getAccount().getAuthority());
+        }
+
+        if (!StringUtil.isNullOrEmpty(requestOptions.getClaims())) {
+            builder.withClaims(ClaimsRequest.getClaimsRequestFromJsonString(requestOptions.getClaims()));
         }
 
         if (requestOptions.getAuthScheme() == Constants.AuthScheme.POP) {
@@ -202,7 +207,7 @@ abstract class MsalWrapper {
                                                @NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback) {
 
         acquireTokenWithDeviceCodeFlowInternal(
-                requestOptions.getScopes().toLowerCase().split(" "),
+                Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")),
                 new IPublicClientApplication.DeviceCodeFlowCallback() {
                     @Override
                     public void onUserCodeReceived(@NonNull String vUri,
@@ -228,7 +233,7 @@ abstract class MsalWrapper {
                 });
     }
 
-    abstract void acquireTokenWithDeviceCodeFlowInternal(@NonNull String[] scopes, @NonNull final IPublicClientApplication.DeviceCodeFlowCallback callback);
+    abstract void acquireTokenWithDeviceCodeFlowInternal(@NonNull List<String> scopes, @NonNull final IPublicClientApplication.DeviceCodeFlowCallback callback);
 
     AuthenticationCallback getAuthenticationCallback(@NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback) {
         return new AuthenticationCallback() {

@@ -22,6 +22,9 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp;
 
+import static com.microsoft.identity.client.ui.automation.rules.LoadLabUserTestRule.TEMP_USER_WAIT_TIME;
+import static org.junit.Assert.fail;
+
 import android.app.Activity;
 import android.content.Context;
 import android.text.TextUtils;
@@ -44,7 +47,11 @@ import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
 import com.microsoft.identity.client.ui.automation.browser.IBrowser;
 import com.microsoft.identity.client.ui.automation.rules.RulesHelper;
 import com.microsoft.identity.common.internal.util.StringUtil;
-import com.microsoft.identity.internal.testutils.labutils.LabUserHelper;
+import com.microsoft.identity.labapi.utilities.BuildConfig;
+import com.microsoft.identity.labapi.utilities.authentication.LabApiAuthenticationClient;
+import com.microsoft.identity.labapi.utilities.client.ILabAccount;
+import com.microsoft.identity.labapi.utilities.client.LabClient;
+import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -54,9 +61,6 @@ import org.junit.rules.RuleChain;
 
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-
-import static com.microsoft.identity.client.ui.automation.rules.LoadLabUserTestRule.TEMP_USER_WAIT_TIME;
-import static org.junit.Assert.fail;
 
 /**
  * A base model for an E2E MSAL UI Test. This class will apply all the rules required for an MSAL
@@ -71,7 +75,9 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
     protected String[] mScopes;
     protected IAccount mAccount;
     protected IBrowser mBrowser;
-    protected String mLoginHint;
+
+    protected LabClient mLabClient;
+    protected ILabAccount mLabAccount;
 
     @Rule(order = 0)
     public RuleChain primaryRules = getPrimaryRules();
@@ -85,6 +91,12 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
 
     @Before
     public void setup() {
+        final LabApiAuthenticationClient authenticationClient = new LabApiAuthenticationClient(
+                BuildConfig.LAB_CLIENT_SECRET
+        );
+
+        mLabClient = new LabClient(authenticationClient);
+
         mActivity = mActivityRule.getActivity();
         loadLabUser();
         mScopes = getScopes();
@@ -98,10 +110,18 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
     }
 
     private void loadLabUser() {
-        if (getLabUserQuery() != null) {
-            mLoginHint = LabUserHelper.loadUserForTest(getLabUserQuery());
+        if (getLabQuery() != null) {
+            try {
+                mLabAccount = mLabClient.getLabAccount(getLabQuery());
+            } catch (final LabApiException e) {
+                throw new AssertionError(e);
+            }
         } else if (getTempUserType() != null) {
-            mLoginHint = LabUserHelper.loadTempUser(getTempUserType());
+            try {
+                mLabAccount = mLabClient.createTempAccount(getTempUserType());
+            } catch (final LabApiException e) {
+                throw new AssertionError(e);
+            }
             try {
                 // temp user takes some time to actually being created even though it may be
                 // returned by the LAB API. Adding a wait here before we proceed with the test.
@@ -110,7 +130,7 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
                 throw new AssertionError(e);
             }
         } else {
-            throw new IllegalArgumentException("Both Lab User query and temp user type were null.");
+            throw new IllegalArgumentException("Both Lab query and temp user type were null.");
         }
     }
 

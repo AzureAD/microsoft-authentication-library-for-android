@@ -2,6 +2,19 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+- [PATCH] Update androidx appcompat version from 1.0.2 -> 1.1.0 (#1629)
+- [MINOR] Add prompt=create support. (#1611)
+- [PATCH] Ensure consistent TAGs in the logger (#1612)
+- [MAJOR] Deprecate methods not using TokenParameters (#1595)
+- [PATCH] Update gson version to 2.8.9
+
+Version 3.0.2
+----------
+- [PATCH] Update common@4.0.2
+
+Version 3.0.1
+-------------
+- [PATCH] Fix msal get account crash in Account Matcher due to NPE because account id was missing (#1560)
 - [PATCH] Better messaging clarity around redirect URI (#1265).
 - [PATCH] Fixes deprecated PackageInfo.signatures and PackageManager.GET_SIGNATURES (#1321)
 - [MINOR] Added support for handling null taskAffinity.  Add configuration to enable this new feature.  "handle_null_taskaffinity" which is a boolean (#1342)
@@ -9,6 +22,16 @@ vNext
 - [PATCH] Update Nimbus dependency version (#1382)
 - [MAJOR] Migrate *TokenCache classes to common4j (#1652)
 - [MINOR] Adapt to BaseController migration (#1483)
+
+Version 2.2.3
+----------
+- Remove the broker check for MSA FRT saving function (#1571)
+- Fix msal get account crash in Account Matcher due to NPE because account id was missing (#1558)
+- Picks up common@3.6.7
+
+Version 2.2.2
+----------
+- Picks up common@3.6.3
 
 Version 2.2.1
 ----------

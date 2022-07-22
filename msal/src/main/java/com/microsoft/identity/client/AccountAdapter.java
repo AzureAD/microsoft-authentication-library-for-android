@@ -294,6 +294,10 @@ class AccountAdapter {
                     getIdToken(homeCacheRecord)
             );
 
+            ((MultiTenantAccount) rootAccount).setHomeAccountId(
+                    homeCacheRecord.getAccount().getHomeAccountId()
+            );
+
             // Set the tenant_id
             ((MultiTenantAccount) rootAccount).setTenantId(
                     StringUtil.getTenantInfo(
@@ -358,6 +362,7 @@ class AccountAdapter {
                                             @NonNull OAuth2TokenCache oAuth2TokenCache,
                                             @NonNull final String homeAccountIdentifier,
                                             @Nullable final String realm) {
+        final String methodTag = TAG + ":getAccountInternal";
         final AccountRecord accountToReturn;
 
         if (!StringUtil.isNullOrEmpty(homeAccountIdentifier)) {
@@ -368,7 +373,7 @@ class AccountAdapter {
                     realm
             );
         } else {
-            Logger.warn(TAG, "homeAccountIdentifier was null or empty -- invalid criteria");
+            Logger.warn(methodTag, "homeAccountIdentifier was null or empty -- invalid criteria");
             accountToReturn = null;
         }
 

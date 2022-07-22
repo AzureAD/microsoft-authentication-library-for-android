@@ -124,12 +124,12 @@ public class MSALControllerFactory {
     public static boolean brokerEligible(@NonNull final Context applicationContext,
                                          @NonNull Authority authority,
                                          @NonNull PublicClientApplicationConfiguration applicationConfiguration) throws MsalClientException {
-        final String methodName = ":brokerEligible";
+        final String methodTag = TAG + ":brokerEligible";
         final String logBrokerEligibleFalse = "Eligible to call broker? [false]. ";
 
         //If app has asked for Broker or if the authority is not AAD return false
         if (!applicationConfiguration.getUseBroker() || !(authority instanceof AzureActiveDirectoryAuthority)) {
-            Logger.verbose(TAG + methodName, logBrokerEligibleFalse +
+            Logger.verbose( methodTag, logBrokerEligibleFalse +
                     "App does not ask for Broker or the authority is not AAD authority.");
             return false;
         }
@@ -138,20 +138,20 @@ public class MSALControllerFactory {
         AzureActiveDirectoryAuthority azureActiveDirectoryAuthority = (AzureActiveDirectoryAuthority) authority;
 
         if (azureActiveDirectoryAuthority.getAudience() instanceof AnyPersonalAccount) {
-            Logger.verbose(TAG + methodName, logBrokerEligibleFalse +
+            Logger.verbose(methodTag, logBrokerEligibleFalse +
                     "The audience is MSA only.");
             return false;
         }
 
         // Check if broker installed
         if (!brokerInstalled(applicationContext)) {
-            Logger.verbose(TAG + methodName, logBrokerEligibleFalse +
+            Logger.verbose(methodTag, logBrokerEligibleFalse +
                     "Broker application is not installed.");
             return false;
         }
 
         if (powerOptimizationEnabled(applicationContext)) {
-            Logger.verbose(TAG + methodName, "Is the power optimization enabled? [true]");
+            Logger.verbose(methodTag, "Is the power optimization enabled? [true]");
         }
 
         return true;
@@ -159,15 +159,15 @@ public class MSALControllerFactory {
 
     @TargetApi(Build.VERSION_CODES.M)
     private static boolean powerOptimizationEnabled(@NonNull final Context applicationContext) {
-        final String methodName = ":powerOptimizationEnabled";
+        final String methodTag = TAG + ":powerOptimizationEnabled";
         final String packageName = applicationContext.getPackageName();
         PowerManager pm = (PowerManager) applicationContext.getSystemService(Context.POWER_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && null != pm) {
             final boolean isPowerOptimizationOn = !pm.isIgnoringBatteryOptimizations(packageName);
-            Logger.verbose(TAG + methodName, "Is power optimization on? [" + isPowerOptimizationOn + "]");
+            Logger.verbose(methodTag, "Is power optimization on? [" + isPowerOptimizationOn + "]");
             return isPowerOptimizationOn;
         } else {
-            Logger.verbose(TAG + methodName, "Is power optimization on? [" + false + "]");
+            Logger.verbose(methodTag, "Is power optimization on? [" + false + "]");
             return false;
         }
     }
