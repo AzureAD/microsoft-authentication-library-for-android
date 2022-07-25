@@ -6,7 +6,9 @@ The token cache implementation for MSAL, ADAL and Android broker is found in the
 
 ## References 
 
-- Universal Cache Schema
+- [Unified/Universal Cache Schema](https://identitydivision.visualstudio.com/devex/_git/AuthLibrariesApiReview?path=/SSO/Schema.md)
+- [OAuth 2.0 Authorization Framework](https://datatracker.ietf.org/doc/html/rfc6749)
+- [OpenID Connect Core 1.0](https://openid.net/specs/openid-connect-core-1_0.html)
 
 ## Universal cache and protocol response handling
 
@@ -14,9 +16,9 @@ When looking at the token cache there are really 2 levels to it.  The lower leve
 
 So in effect we get an oAuth 2 Token Response, which in the case of MSAL includes an ID Token and an Access Token and we translate:
 
-ID Token & Client_Info -> Account & Tenant Profile
-Access Token -> Credential
-Refresh Token -> Credential
+- ID Token & Client_Info -> Account & Tenant Profile & Credential
+- Access Token -> Credential
+- Refresh Token -> Credential
 
 ## Universal Schema at a high level / OAuth v2 Mapping
 
@@ -36,7 +38,7 @@ Refresh Token -> Credential
 1 Account has 1 or more credentials (minimum, the `AccountRecord` + `RefreshTokenRecord`)
 1 Credential belongs to 1 account
 
-## OAuth 2 Token Cache
+## OAuth 2.0 Token Cache
 
 This section describes the base class for the higher level of the TokenCache.  The level responsible for translated an oAuth response into universal cache schema artifacts.
 
@@ -44,9 +46,35 @@ There are different implementations of the cache based on the library using it a
 
 > NOTE: I'm going to ignore the ADALOAuth2TokenCache in this document. It deals with interacting with the legacy ADAL token cache.
 
+### Class Diagrams
+
+### Token Cache Hierarchy Hierarchy
+
+```mermaid
+classDiagram
+        OAuth2TokenCache <|-- MsalOAuth2TokenCache
+        OAuth2TokenCache <|-- AdalOAuth2TokenCache
+        OAuth2TokenCache <|-- MicrosoftFamilyOAuth2TokenCache
+        OAuth2TokenCache <|-- MsalCPPOAuth2TokeCache
+        OAuth2TokenCache <|-- TestOAuth2TokenCache
+```
+
+### Account & Credential Record Object Hierarchy
+
+```mermaid
+classDiagram
+        AccountCredentialBase <|-- AccessTokenRecord
+        AccountCredentialBase <|-- AccountRecord
+        AccountCredentialBase <|-- Credential
+        AccountCredentialBase <|-- IdTokenRecord
+        AccountCredentialBase <|-- PrimaryRefreshTokenRecord
+        AccountCredentialBase <|-- RefreshTokenRecord
+```
+
+
 ### Abstract base class
 
-The abstract base class for all caches is the OAuth2TokenCache.  The physical schema of the cache in terms of account and credential records is decoupled from the protocol used to acquire the account and credential; however the cache interface knows about oAuth2 token responses and how to convert those to accounts and crentials and persist them to storage.
+The abstract base class for all caches is the OAuth2TokenCache.  The physical schema of the cache in terms of account and credential records is decoupled from the protocol used to acquire the account and credential; however the cache interface knows about oAuth2 token responses and how to convert those to accounts, tenant profiles and crentials and persist them to storage.
 
 ```java
 //Example
@@ -70,7 +98,7 @@ The simplest version of the cache is the MSALOAuth2TokenCache.  There is one ins
 
 ### Family of Client Ids (Special Case)
 
-Applications published by Microsoft may be authorized to share refresh tokens with one another.  All applications that are authorized to share tokens share a single MSALOAuth2TokenCache instance.  They effectively share a client id, which in this case is the family id (generally 1 is used to represent the family)
+Applications published by Microsoft may be authorized to share refresh tokens with one another.  All applications that are authorized to share tokens share a single MSALOAuth2TokenCache instance.  While each application authorized to shared tokens has it's own Microsoft Identity platform client id, by convention the family of client ids cache uses "1" as it's client id since client id is required by the cache.
 
 ### BrokerOAuth2TokenCache
 
@@ -107,6 +135,8 @@ Inherits from Credential and contains additional fields specific to the primary 
 Inherits from Credential and contains additional fields specific to id tokens.  
 
 > NOTE: An id token can be validated to authenticate a user.  Generally MSAL is an oAuth library and primarily concerned with authorization and access tokens; however because we perform an id token request along with every access token request.  The id token is also a credential.
+
+
 
 ### Cache Key/Value Generation
 
