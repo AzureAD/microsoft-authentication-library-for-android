@@ -159,31 +159,31 @@ android {
 
 dependencies {
 
-    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
+    coreLibraryDesugaring libs.coreLibraryDesugaring
 
     // Compile Dependency
     localImplementation project(':msal')
     distImplementation "com.microsoft.identity.client:msal:${msalVersion}"
-    implementation "androidx.constraintlayout:constraintlayout:$rootProject.ext.constraintLayoutVersion"
-    implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
-    implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
-    implementation 'junit:junit:4.13'
-    implementation "androidx.legacy:legacy-support-v4:$rootProject.ext.legacySupportV4Version"
-    implementation "com.google.android.material:material:$rootProject.ext.materialVersion"
-    androidTestImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"
-    androidTestImplementation "androidx.test.ext:junit:$rootProject.ext.androidxJunitVersion"
+    implementation libs.constraintLayout
+    implementation libs.gson
+    implementation libs.appcompat
+    implementation libs.junit
+    implementation libs.legacySupportV4
+    implementation libs.material
+    androidTestImplementation libs.androidxTestCore
+    androidTestImplementation libs.androidxJUnit
     // Set this dependency to use JUnit 4 rules
-    androidTestImplementation "androidx.test:rules:$rootProject.rulesVersion"
-    androidTestImplementation "androidx.test.uiautomator:uiautomator:$rootProject.ext.uiAutomatorVersion"
-    compileOnly "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
-    annotationProcessor "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
+    androidTestImplementation libs.androidxTestRules
+    androidTestImplementation libs.uiAutomator
+    compileOnly libs.lombok
+    annotationProcessor libs.lombok
 
     implementation(project(":LabApiUtilities"))
     implementation(project(":uiautomationutilities")) {
         exclude module: 'common'
         exclude module: 'appcompat'
     }
-    androidTestImplementation "androidx.test:runner:$rootProject.ext.androidxTestRunnerVersion"
-    androidTestUtil "androidx.test:orchestrator:$rootProject.ext.androidxTestOrchestratorVersion"
+    androidTestImplementation libs.androidxTestRunner
+    androidTestUtil libs.androidxTestOrchestrator
 }
 

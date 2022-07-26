@@ -185,35 +185,35 @@ dependencies {
     testImplementation project(path: ':common4j')
 
     //Please leave this in... desugaring is currently disabled by default; however it's required for running some tests
-    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
+    coreLibraryDesugaring libs.coreLibraryDesugaring
 
     def mockito_version = 'latest.release'
 
-    implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
-    implementation "androidx.browser:browser:$rootProject.ext.browserVersion"
-    implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
-    implementation ("com.nimbusds:nimbus-jose-jwt:$rootProject.ext.nimbusVersion") {
+    implementation libs.appcompat
+    implementation libs.browser
+    implementation libs.gson
+    implementation (libs.nimbusJoseJwt) {
         exclude module: 'asm'
     }
-    implementation "cz.msebera.android:httpclient:$rootProject.ext.mseberaApacheHttpClientVersion"
-    implementation "androidx.constraintlayout:constraintlayout:$rootProject.ext.constraintLayoutVersion"
+    implementation libs.httpclient
+    implementation libs.constraintLayout
 
-    compileOnly "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
-    annotationProcessor "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
+    compileOnly libs.lombok
+    annotationProcessor libs.lombok
 
     // test dependencies
-    testImplementation "junit:junit:$rootProject.ext.junitVersion"
+    testImplementation libs.junit
     //mockito-inline was introduced in mockito 2.7.6
     //see: https://javadoc.io/static/org.mockito/mockito-core/3.6.28/org/mockito/Mockito.html#0.1
-    testImplementation "org.mockito:mockito-inline:$rootProject.ext.mockitoCoreVersion"
-    testImplementation ("org.robolectric:robolectric:$rootProject.ext.robolectricVersion")
-    testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"
+    testImplementation libs.mockitoInline
+    testImplementation libs.robolectric
+    testImplementation libs.androidxTestCore
     testImplementation project(':testutils')
     // instrumentation test dependencies
-    androidTestImplementation "androidx.test.ext:junit:$rootProject.ext.androidxJunitVersion"
+    androidTestImplementation libs.androidxJUnit
     // Set this dependency to use JUnit 4 rules
-    androidTestImplementation "androidx.test:rules:$rootProject.rulesVersion"
-    androidTestImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
+    androidTestImplementation libs.androidxTestRules
+    androidTestImplementation libs.mockitoAndroid
     // 'local' flavor dependencies
     localApi(project(":common")) {
         transitive = true

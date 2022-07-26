@@ -29,8 +29,8 @@ android {
 
 dependencies {
     implementation project(":common4j")
-    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
-    implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
-    implementation "androidx.constraintlayout:constraintlayout:$rootProject.ext.constraintLayoutVersion"
+    coreLibraryDesugaring libs.coreLibraryDesugaring
+    implementation libs.appcompat
+    implementation libs.constraintLayout
     implementation project(":common")
 }
