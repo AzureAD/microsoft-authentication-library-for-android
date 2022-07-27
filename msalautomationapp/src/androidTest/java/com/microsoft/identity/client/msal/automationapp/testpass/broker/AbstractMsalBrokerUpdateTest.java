@@ -69,21 +69,27 @@ public abstract class AbstractMsalBrokerUpdateTest extends AbstractMsalUiTest im
         // In update scenarios, the default apk installed first is the old apk (apk with older version).
         switch (BuildConfig.SELECTED_BROKER) {
             case BuildConfig.BrokerHost:
-                return new BrokerHost(true);
+                return new BrokerHost(BrokerHost.OLD_BROKER_HOST_APK,
+                        BrokerHost.BROKER_HOST_APK);
             case BuildConfig.BrokerMicrosoftAuthenticator:
-                return new BrokerMicrosoftAuthenticator(true);
+                return new BrokerMicrosoftAuthenticator(BrokerMicrosoftAuthenticator.OLD_AUTHENTICATOR_APK,
+                        BrokerMicrosoftAuthenticator.AUTHENTICATOR_APK);
             case BuildConfig.BrokerCompanyPortal:
-                return new BrokerCompanyPortal(true);
+                return new BrokerCompanyPortal(BrokerCompanyPortal.OLD_COMPANY_PORTAL_APK,
+                        BrokerCompanyPortal.COMPANY_PORTAL_APK);
             case BuildConfig.AutoBroker: {
                 if (supportedBrokersAnnotation == null) {
-                    return new BrokerMicrosoftAuthenticator(true);
+                    return new BrokerMicrosoftAuthenticator(BrokerMicrosoftAuthenticator.OLD_AUTHENTICATOR_APK,
+                            BrokerMicrosoftAuthenticator.AUTHENTICATOR_APK);
                 }
                 final List<Class<? extends ITestBroker>> supportedBrokerClasses =
                         Arrays.asList(supportedBrokersAnnotation.brokers());
                 if (BuildConfig.FLAVOR_main.equals("dist") && supportedBrokerClasses.contains(BrokerCompanyPortal.class)) {
-                    return new BrokerCompanyPortal(true);
+                    return new BrokerCompanyPortal(BrokerCompanyPortal.OLD_COMPANY_PORTAL_APK,
+                            BrokerCompanyPortal.COMPANY_PORTAL_APK);
                 } else {
-                    return new BrokerMicrosoftAuthenticator(true);
+                    return new BrokerMicrosoftAuthenticator(BrokerMicrosoftAuthenticator.OLD_AUTHENTICATOR_APK,
+                            BrokerMicrosoftAuthenticator.AUTHENTICATOR_APK);
                 }
             }
             default:
