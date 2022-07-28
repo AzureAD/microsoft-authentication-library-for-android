@@ -94,7 +94,7 @@ public abstract class AbstractGuestAccountMsalUiTest implements IMsalTest, ILabT
             final URL profileApiUrl = new URL("https://graph.microsoft.com/v1.0/me");
             final Map<String, String> requestHeaders = new HashMap<>();
             requestHeaders.put("Authorization", "Bearer " + accessToken);
-            final HttpResponse response = UrlConnectionHttpClient.getDefaultInstance().get(profileApiUrl, requestHeaders, null);
+            final HttpResponse response = UrlConnectionHttpClient.getDefaultInstance().get(profileApiUrl, requestHeaders);
             Assert.assertTrue(response.getStatusCode() == HttpURLConnection.HTTP_OK);
             return new JSONObject(response.getBody());
         } catch (final Exception exception) {
