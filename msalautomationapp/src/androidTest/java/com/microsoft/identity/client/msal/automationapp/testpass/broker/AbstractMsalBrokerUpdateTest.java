@@ -67,6 +67,7 @@ public abstract class AbstractMsalBrokerUpdateTest extends AbstractMsalUiTest im
 
     private ITestBroker createBrokerFromFlavorAndApk(@Nullable final SupportedBrokers supportedBrokersAnnotation) {
         // In update scenarios, the default apk installed first is the old apk (apk with older version).
+        // Hence we should provide both the old and update apk names in the constructor of the broker to install.
         switch (BuildConfig.SELECTED_BROKER) {
             case BuildConfig.BrokerHost:
                 return new BrokerHost(BrokerHost.OLD_BROKER_HOST_APK,
