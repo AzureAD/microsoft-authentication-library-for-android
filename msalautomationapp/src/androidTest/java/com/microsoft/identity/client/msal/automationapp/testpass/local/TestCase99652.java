@@ -51,9 +51,6 @@ public class TestCase99652 extends AbstractMsalUiTest {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
-        // Testing out extra wait to allow user creation
-        Thread.sleep(TimeUnit.SECONDS.toMillis(10));
-
         final MsalSdk msalSdk = new MsalSdk();
 
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
@@ -80,7 +77,6 @@ public class TestCase99652 extends AbstractMsalUiTest {
                         .handlePrompt(username, password);
             }
         }, TokenRequestTimeout.MEDIUM);
-
         authResult.assertSuccess();
 
         // do second request

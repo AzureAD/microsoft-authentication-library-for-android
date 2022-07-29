@@ -29,16 +29,13 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.UiResponse;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
-import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Test;
 
@@ -47,7 +44,6 @@ import java.util.concurrent.TimeUnit;
 
 // Interactive Auth with select_account (with consent record)
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99274
-@RetryOnFailure(retryCount = 2)
 public class TestCase99274 extends AbstractMsalUiTest {
 
     @Test
@@ -81,7 +77,6 @@ public class TestCase99274 extends AbstractMsalUiTest {
                         .handlePrompt(username, password);
             }
         },TokenRequestTimeout.MEDIUM);
-
         authResult.assertSuccess();
 
         // do second request
@@ -113,14 +108,12 @@ public class TestCase99274 extends AbstractMsalUiTest {
 
     @Override
     public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .build();
+        return null;
     }
 
     @Override
     public TempUserType getTempUserType() {
-        return null;
+        return TempUserType.BASIC;
     }
 
     @Override
