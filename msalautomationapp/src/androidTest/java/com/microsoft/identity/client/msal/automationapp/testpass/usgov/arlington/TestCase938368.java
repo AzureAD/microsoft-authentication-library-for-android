@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.usgov.arlington;
 
+import androidx.test.uiautomator.UiObject;
+
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
@@ -30,10 +32,12 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.app.IApp;
+import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
+import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
@@ -42,6 +46,7 @@ import com.microsoft.identity.labapi.utilities.constants.UserType;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 // Interactive token acquisition with instance_aware=true, login hint present, and federated account,
 // and WW common authority
@@ -67,6 +72,13 @@ public class TestCase938368 extends AbstractMsalUiTest {
             @Override
             public void handleUserInteraction() {
                 ((IApp) mBrowser).handleFirstRun();
+
+                // Sometimes, federated Arlington users fail to load the arlington page
+                final UiObject pageFailureMessage = UiAutomatorUtils.obtainUiObjectWithExactText("This page isn't working");
+                if (pageFailureMessage.waitForExists(TimeUnit.SECONDS.toMillis(1))) {
+                    // Reload the page
+                    ((BrowserChrome) mBrowser).reloadPage();
+                }
 
                 final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
