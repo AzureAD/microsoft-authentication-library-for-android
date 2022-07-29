@@ -1,7 +1,10 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
-
 vNext
 ----------
+
+Version 4.0.0
+----------
+- [PATCH] Update common to 6.0.0
 - [PATCH] Update androidx appcompat version from 1.0.2 -> 1.1.0 (#1629)
 - [MINOR] Add prompt=create support. (#1611)
 - [PATCH] Ensure consistent TAGs in the logger (#1612)
