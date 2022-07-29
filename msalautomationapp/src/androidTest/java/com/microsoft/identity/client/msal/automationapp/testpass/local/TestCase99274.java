@@ -36,7 +36,9 @@ import com.microsoft.identity.client.ui.automation.interaction.UiResponse;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Test;
 
@@ -114,12 +116,14 @@ public class TestCase99274 extends AbstractMsalUiTest {
 
     @Override
     public LabQuery getLabQuery() {
-        return null;
+        return LabQuery.builder()
+                .userType(UserType.CLOUD)
+                .build();
     }
 
     @Override
     public TempUserType getTempUserType() {
-        return TempUserType.BASIC;
+        return null;
     }
 
     @Override
