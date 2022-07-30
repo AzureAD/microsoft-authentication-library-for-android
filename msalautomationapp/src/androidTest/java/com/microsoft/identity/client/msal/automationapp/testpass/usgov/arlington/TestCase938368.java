@@ -31,6 +31,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
@@ -51,6 +52,8 @@ import java.util.concurrent.TimeUnit;
 // Interactive token acquisition with instance_aware=true, login hint present, and federated account,
 // and WW common authority
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938368
+// Adding a retry on failure, sometimes arlington login page fails to load
+@RetryOnFailure(retryCount = 2)
 public class TestCase938368 extends AbstractMsalUiTest {
 
     @Test
@@ -76,6 +79,12 @@ public class TestCase938368 extends AbstractMsalUiTest {
                 // Sometimes, federated Arlington users fail to load the arlington page
                 final UiObject pageFailureMessage = UiAutomatorUtils.obtainUiObjectWithExactText("This page isn't working");
                 if (pageFailureMessage.waitForExists(TimeUnit.SECONDS.toMillis(1))) {
+                    try {
+                        Thread.sleep(TimeUnit.SECONDS.toMillis(2));
+                    } catch (InterruptedException e){
+                        e.printStackTrace();
+                    }
+
                     // Reload the page
                     ((BrowserChrome) mBrowser).reloadPage();
                 }
