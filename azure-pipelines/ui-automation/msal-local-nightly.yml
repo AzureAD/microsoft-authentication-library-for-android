@@ -1,4 +1,4 @@
-# run MSAL UI automation testcases
+# run MSAL without Broker UI automation testcases
 # Variable: 'ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME' was defined in the Variables tab
 # Variable: 'gCloudProjectId' was defined in the Variables tab
 # Variable: 'mvnAccessToken' was defined in the Variables tab
@@ -9,7 +9,7 @@ pr: none
 
 schedules:
   - cron: "0 5 * * 1-6" # 5:00 AM UTC everyday Mon-Sat
-    displayName: Auth Client Android SDK dev build
+    displayName: Daily Local MSAL UI Automation without Broker Run
     branches:
       include:
         - dev
@@ -61,7 +61,7 @@ stages:
           - task: Gradle@2
             displayName: 'Assemble MSAL Automation App'
             inputs:
-              tasks: clean msalautomationapp:assembleLocalBrokerHostDebug -PlabSecret=$(AndroidAutomationRunnerAppSecret) -PbrokerSource=LocalApk
+              tasks: clean msalautomationapp:assembleLocalBrokerHostDebug -PlabSecret=$(AndroidAutomationRunnerAppSecret)
               publishJUnitResults: false
           - task: Gradle@2
             displayName: 'Assemble MSAL Automation App Instrumented Tests'
@@ -77,12 +77,12 @@ stages:
           - publish: '$(Build.ArtifactStagingDirectory)/msal'
             displayName: 'Publish apks for later use'
             artifact: msalautomationapks
-  # Brokers
-  - stage: 'brokers'
+  # Azure Sample
+  - stage: 'azuresample'
     dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
-    displayName: Azure Sample APKs
+    displayName: Dowload Azure Sample APK
     jobs:
-      - job: 'download_brokers'
+      - job: 'download_azure_sample'
         displayName: Download Azure Sample
         pool:
           vmImage: ubuntu-latest
@@ -101,11 +101,11 @@ stages:
           - publish: $(Build.ArtifactStagingDirectory)/azureSample
             displayName: 'Publish Azure Sample apk for later use'
             artifact: azureSample
-  # MSAL with Broker Test Plan stage
-  - stage: 'msal_with_broker'
+  # MSAL without Broker Test UI stage
+  - stage: 'msal_without_broker'
     dependsOn:
       - msalautomationapp
-      - brokers
+      - azuresample
     displayName: Running MSAL without Broker Test UI Test Suite
     jobs:
       - job: 'msal_with_broker'
