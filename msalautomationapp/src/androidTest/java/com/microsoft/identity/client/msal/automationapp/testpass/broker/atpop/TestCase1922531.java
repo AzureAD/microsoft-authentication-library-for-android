@@ -94,7 +94,7 @@ public class TestCase1922531 extends AbstractMsalBrokerUpdateTest {
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-        final MsalAuthResult authSilentResult = msalSdk.acquireTokenSilent(authTestSilentParams, TokenRequestTimeout.MEDIUM);
+        final MsalAuthResult authSilentResult = msalSdk.acquireTokenSilent(authTestSilentParams, TokenRequestTimeout.SILENT);
         authSilentResult.assertSuccess();
         MsalAuthResult.verifyATForPop(authSilentResult.getAccessToken());
     }
