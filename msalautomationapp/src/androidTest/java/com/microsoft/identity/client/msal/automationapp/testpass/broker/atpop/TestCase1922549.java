@@ -20,14 +20,14 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.atpop;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.atpop;
 
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
-import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
+import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerUpdateTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.constants.AuthScheme;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
@@ -43,11 +43,11 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
-// [Non-Joined] Generate SHR
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1922527
-public class TestCase1922527 extends AbstractMsalBrokerTest {
+// [Non-Joined] [Update-old-to-V5] Generate SHR
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1922549
+public class TestCase1922549 extends AbstractMsalBrokerUpdateTest {
     @Test
-    public void test_1922527() throws Throwable {
+    public void test_1922549() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
@@ -82,6 +82,8 @@ public class TestCase1922527 extends AbstractMsalBrokerTest {
 
         authResult.assertSuccess();
         MsalAuthResult.verifyATForPop(authResult.getAccessToken());
+
+        mBroker.update();
 
         String shr = msalSdk.generateSHR(authTestParams, TokenRequestTimeout.SHORT);
         Assert.assertNotNull(shr);
