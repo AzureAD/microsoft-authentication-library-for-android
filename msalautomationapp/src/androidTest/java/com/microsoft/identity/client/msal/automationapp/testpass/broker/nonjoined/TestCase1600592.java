@@ -20,13 +20,15 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.broker;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.nonjoined;
 
 import com.microsoft.identity.client.Prompt;
+import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
+import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
@@ -35,16 +37,17 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadP
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
 
-// [Non-joined][MSAL] Prompt.LOGIN
-// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/1561169
-public class TestCase1561169 extends AbstractMsalBrokerTest {
+// [Non-joined] A single-tenant app makes a silent request with common authority. It should fail.
+// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/1600592
+public class TestCase1600592 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_1561169() throws Throwable {
+    public void test_1600592() throws Throwable{
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
@@ -66,7 +69,7 @@ public class TestCase1561169 extends AbstractMsalBrokerTest {
                         .prompt(PromptParameter.SELECT_ACCOUNT)
                         .loginHint(username)
                         .sessionExpected(false)
-                        .consentPageExpected(false)
+                        .consentPageExpected(true)
                         .speedBumpExpected(false)
                         .expectingBrokerAccountChooserActivity(false)
                         .build();
@@ -78,33 +81,20 @@ public class TestCase1561169 extends AbstractMsalBrokerTest {
 
         authResult1.assertSuccess();
 
-        // Interactive call with Prompt.LOGIN
-        final MsalAuthTestParams anotherAuthTestParams = MsalAuthTestParams.builder()
+        // Silent with https://login.microsoftonline.com/common
+        final MsalAuthTestParams silentParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
-                .scopes(Arrays.asList(mScopes))
-                .promptParameter(Prompt.LOGIN)
+                .authority(getAuthority())
+                .resource(mScopes[0])
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-        final MsalAuthResult authResult2 = msalSdk.acquireTokenInteractive(anotherAuthTestParams, new OnInteractionRequired() {
-            @Override
-            public void handleUserInteraction() {
-                final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                        .prompt(PromptParameter.LOGIN)
-                        .loginHint(username)
-                        .sessionExpected(false)
-                        .consentPageExpected(false)
-                        .speedBumpExpected(false)
-                        .expectingBrokerAccountChooserActivity(false)
-                        .build();
+        final MsalAuthResult authResult2 = msalSdk.acquireTokenSilent(silentParams, TokenRequestTimeout.MEDIUM);
 
-                new AadPromptHandler(promptHandlerParameters)
-                        .handlePrompt(username, password);
-            }
-        }, TokenRequestTimeout.MEDIUM);
-
-        authResult2.assertSuccess();
+        // Should fail with an MsalServiceException
+        authResult2.assertFailure();
+        Assert.assertTrue(authResult2.getException() instanceof MsalServiceException);
     }
 
     @Override
@@ -124,11 +114,11 @@ public class TestCase1561169 extends AbstractMsalBrokerTest {
 
     @Override
     public String getAuthority() {
-        return "https://login.microsoftonline.us/common";
+        return "https://login.microsoftonline.com/common";
     }
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_default;
+        return R.raw.msal_config_no_admin_consent;
     }
 }

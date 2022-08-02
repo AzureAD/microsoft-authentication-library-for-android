@@ -39,6 +39,7 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
+import com.microsoft.identity.common.java.util.ThreadUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
@@ -79,11 +80,7 @@ public class TestCase938368 extends AbstractMsalUiTest {
                 // Sometimes, federated Arlington users fail to load the arlington page
                 final UiObject pageFailureMessage = UiAutomatorUtils.obtainUiObjectWithExactText("This page isn't working");
                 if (pageFailureMessage.waitForExists(TimeUnit.SECONDS.toMillis(1))) {
-                    try {
-                        Thread.sleep(TimeUnit.SECONDS.toMillis(2));
-                    } catch (InterruptedException e){
-                        e.printStackTrace();
-                    }
+                    ThreadUtils.sleepSafely((int) TimeUnit.SECONDS.toMillis(2), "Sleep before Arlington login page reload", "Interrupted");
 
                     // Reload the page
                     ((BrowserChrome) mBrowser).reloadPage();

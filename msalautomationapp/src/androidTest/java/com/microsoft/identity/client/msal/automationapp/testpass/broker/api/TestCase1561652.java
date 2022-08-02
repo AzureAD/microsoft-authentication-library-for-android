@@ -20,45 +20,42 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.broker;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.api;
 
 import com.microsoft.identity.client.msal.automationapp.R;
+import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-// Flight settings
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561087
-@SupportedBrokers(brokers = BrokerHost.class)
-public class TestCase1561087  extends  AbstractMsalBrokerTest {
+// SSO Token Requests
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561652
+@SupportedBrokers(brokers = {BrokerHost.class})
+public class TestCase1561652 extends AbstractMsalBrokerTest {
     @Test
-    public void test_1561087() {
-        // Set flights and get to check if the flight information is returned
-        final String flightsJson =  "{\"SetFlightsTest\":\"true\"}";
-        mBroker.setFlights(flightsJson);
-        Assert.assertEquals(flightsJson, mBroker.getFlights());
+    public void test_1561652() {
+        final String username = mLabAccount.getUsername();
+        final String password = mLabAccount.getPassword();
 
-        // clear flights and get to check if the flights are cleared
-        final String clearFlightsJson =  "{}";
-        mBroker.setFlights(clearFlightsJson);
-        Assert.assertEquals(clearFlightsJson, mBroker.getFlights());
+        mBroker.performDeviceRegistration(username, password);
+
+        final String nonce = "testNonce";
+        // Get SSO token and decode to confirm nonce
+        final String ssoToken = ((BrokerHost) mBroker).acquireSSOToken(nonce);
+        ((BrokerHost) mBroker).decodeSSOTokenAndVerifyNonce(ssoToken, nonce);
     }
 
     @Override
     public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-                .build();
+        return null;
     }
 
     @Override
     public TempUserType getTempUserType() {
-        return null;
+        return TempUserType.BASIC;
     }
 
     @Override

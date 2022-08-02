@@ -40,7 +40,6 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 
 // Interactive Auth with select_account (with consent record)
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99274
@@ -102,7 +101,7 @@ public class TestCase99274 extends AbstractMsalUiTest {
                 new AadPromptHandler(promptHandlerParameters)
                         .handlePrompt(username, password);
             }
-        },TokenRequestTimeout.MEDIUM);
+        },TokenRequestTimeout.SHORT);
         consentRecordResults.assertSuccess();
     }
 

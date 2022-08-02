@@ -20,39 +20,42 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.broker;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.api;
 
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
+import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
+import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
-
 import org.junit.Assert;
 import org.junit.Test;
-
 import java.util.Arrays;
 
-// [Non-joined] A single-tenant app makes a silent request with common authority. It should fail.
-// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/1600592
-public class TestCase1600592 extends AbstractMsalBrokerTest {
-
+// Remove Broker Account
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561137
+@SupportedBrokers(brokers = BrokerHost.class)
+public class TestCase1561137 extends AbstractMsalBrokerTest {
     @Test
-    public void test_1600592() throws Throwable{
+    public void test_1561137() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
+        BrokerHost brokerHost = (BrokerHost) mBroker;
+        // Check getAccounts returns 0 accounts initially
+        Assert.assertEquals(0, brokerHost.getAllAccounts(false).size());
+
         final MsalSdk msalSdk = new MsalSdk();
 
-        // Interactive call
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
@@ -61,39 +64,30 @@ public class TestCase1600592 extends AbstractMsalBrokerTest {
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-        final MsalAuthResult authResult1 = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
+        final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
-                final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
+                final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
                         .loginHint(username)
                         .sessionExpected(false)
-                        .consentPageExpected(true)
-                        .speedBumpExpected(false)
-                        .expectingBrokerAccountChooserActivity(false)
+                        .consentPageExpected(false)
                         .build();
 
-                new AadPromptHandler(promptHandlerParameters)
+                new MicrosoftStsPromptHandler(promptHandlerParameters)
                         .handlePrompt(username, password);
             }
         }, TokenRequestTimeout.MEDIUM);
 
-        authResult1.assertSuccess();
+        authResult.assertSuccess();
 
-        // Silent with https://login.microsoftonline.com/common
-        final MsalAuthTestParams silentParams = MsalAuthTestParams.builder()
-                .activity(mActivity)
-                .loginHint(username)
-                .authority(getAuthority())
-                .resource(mScopes[0])
-                .msalConfigResourceId(getConfigFileResourceId())
-                .build();
+        // Check getAccounts returns the account added
+        Assert.assertEquals(1, brokerHost.getAllAccounts(false).size());
 
-        final MsalAuthResult authResult2 = msalSdk.acquireTokenSilent(silentParams, TokenRequestTimeout.MEDIUM);
-
-        // Should fail with an MsalServiceException
-        authResult2.assertFailure();
-        Assert.assertTrue(authResult2.getException() instanceof MsalServiceException);
+        // Remove the added account
+        brokerHost.removeAccount(username);
+        // Check getAccounts returns 0 accounts after removal
+        Assert.assertEquals(0, brokerHost.getAllAccounts(false).size());
     }
 
     @Override
@@ -108,16 +102,16 @@ public class TestCase1600592 extends AbstractMsalBrokerTest {
 
     @Override
     public String[] getScopes() {
-        return new String[]{"https://graph.windows.net/user.read"};
+        return new String[]{"User.read"};
     }
 
     @Override
     public String getAuthority() {
-        return "https://login.microsoftonline.com/common";
+        return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
     }
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_no_admin_consent;
+        return R.raw.msal_config_default;
     }
 }

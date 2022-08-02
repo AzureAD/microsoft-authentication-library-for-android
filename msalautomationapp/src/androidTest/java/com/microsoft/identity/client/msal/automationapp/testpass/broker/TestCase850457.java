@@ -43,7 +43,7 @@ import java.util.concurrent.TimeUnit;
 
 // [MSAL] password reset for MAM_CA account
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/850457
-public class TestCase850457 extends AbstractMsalBrokerTest{
+public class TestCase850457 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_850457() throws Throwable {
