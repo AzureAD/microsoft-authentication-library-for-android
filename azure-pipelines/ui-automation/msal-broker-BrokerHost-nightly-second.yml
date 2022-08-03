@@ -9,7 +9,7 @@ pr: none
 
 schedules:
   - cron: "0 5 * * 1-6" # 5:00 AM UTC everyday Mon-Sat
-    displayName: Daily Local MSAL UI Automation with Broker Run
+    displayName: Auth Client Android SDK dev build
     branches:
       include:
         - dev
@@ -19,13 +19,10 @@ variables:
   engineeringProjectId: 'fac9d424-53d2-45c0-91b5-ef6ba7a6bf26'
   azureSamplePipelineId: 1458
   brokerHostPipelineId: 1432
-  msazureServiceConnection: AndroidBroker-CI
-  msazureFeedName: Android-Broker
   msalAutomationAppApk: msalautomationapp-local-BrokerHost-debug.apk
   msalAutomationAppTestApk: msalautomationapp-local-BrokerHost-debug-androidTest.apk
   azureSampleApk: AzureSample-local-debug.apk
   brokerHostApk: brokerHost-local-debug.apk
-  oldBrokerHostApk: brokerHost-local-debug.apk
   firebaseTimeout: 45m
   resultsHistoryName: Dev MSAL with Dev BrokerHost
 
@@ -38,10 +35,6 @@ parameters:
     displayName: Firebase Device Android Version
     type: number
     default: 28
-  - name: oldBrokerHostVersion
-    displayName: Old Broker host Version
-    type: string
-    default: '0.0.1'
 
 stages:
   # msalautomationapp
@@ -116,32 +109,18 @@ stages:
               artifactName: BrokerHost
               itemPattern: '**/*.apk'
               targetPath: '$(Build.ArtifactStagingDirectory)/brokerHost'
-          - task: UniversalPackages@0
-            displayName: 'Download old brokerHost version from feed'
-            inputs:
-              command: 'download'
-              downloadDirectory: '$(Build.ArtifactStagingDirectory)/oldBrokerHost'
-              feedsToUse: 'external'
-              externalFeedCredentials: '$(msazureServiceConnection)'
-              feedDownloadExternal: '$(msazureFeedName)'
-              packageDownloadExternal: 'broker-host'
-              versionDownloadExternal: '${{ parameters.oldBrokerHostVersion }}'
-
           - publish: $(Build.ArtifactStagingDirectory)/azureSample
             displayName: 'Publish Azure Sample apk for later use'
             artifact: azureSample
           - publish: $(Build.ArtifactStagingDirectory)/brokerHost
             displayName: 'Publish Broker Host apk for later use'
             artifact: brokerHost
-          - publish: $(Build.ArtifactStagingDirectory)/oldBrokerHost
-            displayName: 'Publish Broker Host old apk for later use'
-            artifact: oldBrokerHost
-  # MSAL with Broker Test Plan stage
+  # MSAL with Broker Test Plan (second iteration) stage
   - stage: 'msal_with_broker'
     dependsOn:
       - msalautomationapp
       - brokers
-    displayName: Running MSAL with Broker Test UI Test Suite
+    displayName: Running MSAL with Broker Test UI Test Suite (second iteration)
     jobs:
       - job: 'msal_with_broker'
         displayName: Running MSAL with Broker Test Plan
@@ -176,14 +155,13 @@ stages:
                   --timeout "$(firebaseTimeout)" \
                   --other-files \
                   "/data/local/tmp/BrokerHost.apk=$(Pipeline.Workspace)/brokerHost/$(brokerHostApk),\
-                  /data/local/tmp/OldBrokerHost.apk=$(Pipeline.Workspace)/oldBrokerHost/$(oldBrokerHostApk),\
                   /data/local/tmp/AzureSample.apk=$(Pipeline.Workspace)/azureSample/$(azureSampleApk)" \
                   --results-dir "$(resultsDir)" \
                   --directories-to-pull "/sdcard" \
                   --use-orchestrator \
                   --environment-variables "clearPackageData=true" \
                   --results-history-name "$(resultsHistoryName)" \
-                  --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker.api, package com.microsoft.identity.client.msal.automationapp.testpass.broker.atpop, package com.microsoft.identity.client.msal.automationapp.testpass.broker.crosscloud, package com.microsoft.identity.client.msal.automationapp.testpass.broker.endshift"
+                  --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker, notPackage com.microsoft.identity.client.msal.automationapp.testpass.broker.api, notPackage com.microsoft.identity.client.msal.automationapp.testpass.broker.atpop, notPackage com.microsoft.identity.client.msal.automationapp.testpass.broker.crosscloud, notPackage com.microsoft.identity.client.msal.automationapp.testpass.broker.endshift"
           - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/${{ parameters.firebaseDeviceId }}-${{ parameters.firebaseDeviceAndroidVersion }}-en-portrait/test_result_1.xml" "$(Build.SourcesDirectory)"
             displayName: Download Test Result File
             condition: succeededOrFailed()
