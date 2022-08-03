@@ -20,42 +20,44 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.broker;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.sovereigncloud;
 
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
+import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
+import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Test;
 
-// [MSAL] BlackForest: Interactive Auth w/o cache w/o MFA w/ Prompt Auto w/ Broker
-// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/796049
-public class TestCase796049 extends AbstractMsalBrokerTest {
+// [MSAL] BlackForest: Silent Auth w/o cache w/o MFA w/ Prompt Auto  w/ Broker
+// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/796048
+public class TestCase796048 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_796049() throws Throwable {
+    public void test_796048() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
 
-        // Interactive Call W/ Resource
+        //Interactive call W/ Resource
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
                 .resource(mScopes[0])
-                .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
+                .promptParameter(Prompt.SELECT_ACCOUNT)
                 .build();
 
         final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
@@ -74,10 +76,28 @@ public class TestCase796049 extends AbstractMsalBrokerTest {
                 new AadPromptHandler(promptHandlerParameters)
                         .handlePrompt(username, password);
             }
-        }, TokenRequestTimeout.MEDIUM);
+        },TokenRequestTimeout.MEDIUM);
 
         authResult.assertSuccess();
+
+        // now expire AT
+        TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
+
+        // SILENT REQUEST
+        final MsalAuthTestParams authTestSilentParams = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .loginHint(username)
+                .resource(mScopes[0])
+                .authority(getAuthority())
+                .forceRefresh(true)
+                .msalConfigResourceId(getConfigFileResourceId())
+                .build();
+
+        final MsalAuthResult silentAuthResult = msalSdk.acquireTokenSilent(authTestSilentParams, TokenRequestTimeout.SILENT);
+
+        silentAuthResult.assertSuccess();
     }
+
 
     @Override
     public LabQuery getLabQuery() {
@@ -98,7 +118,7 @@ public class TestCase796049 extends AbstractMsalBrokerTest {
 
     @Override
     public String getAuthority() {
-        return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
+        return "https://login.microsoftonline.us/common";
     }
 
     @Override
