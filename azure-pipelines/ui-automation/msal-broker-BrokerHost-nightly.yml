@@ -183,7 +183,7 @@ stages:
                   --use-orchestrator \
                   --environment-variables "clearPackageData=true" \
                   --results-history-name "$(resultsHistoryName)" \
-                  --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker.i1"
+                  --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker.api, package com.microsoft.identity.client.msal.automationapp.testpass.broker.atpop, package com.microsoft.identity.client.msal.automationapp.testpass.broker.crosscloud, package com.microsoft.identity.client.msal.automationapp.testpass.broker.endshift"
           - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/${{ parameters.firebaseDeviceId }}-${{ parameters.firebaseDeviceAndroidVersion }}-en-portrait/test_result_1.xml" "$(Build.SourcesDirectory)"
             displayName: Download Test Result File
             condition: succeededOrFailed()
