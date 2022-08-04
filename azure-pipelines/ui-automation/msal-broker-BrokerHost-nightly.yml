@@ -45,7 +45,7 @@ parameters:
   - name: packagesToRun
     displayName: Packages to Run
     type: string
-    defalut: all
+    default: all
 
 stages:
   # msalautomationapp
