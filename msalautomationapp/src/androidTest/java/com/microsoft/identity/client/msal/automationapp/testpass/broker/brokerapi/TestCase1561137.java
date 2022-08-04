@@ -20,7 +20,7 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.broker.api;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.brokerapi;
 
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
@@ -35,30 +35,27 @@ import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequ
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
-import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import org.junit.Assert;
 import org.junit.Test;
 import java.util.Arrays;
-import java.util.List;
 
-// Get Broker Accounts
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561136
+// Remove Broker Account
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561137
 @SupportedBrokers(brokers = BrokerHost.class)
-public class TestCase1561136 extends AbstractMsalBrokerTest {
-
+public class TestCase1561137 extends AbstractMsalBrokerTest {
     @Test
-    public void test_1561136() throws Throwable {
+    public void test_1561137() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
         BrokerHost brokerHost = (BrokerHost) mBroker;
-        // Get accounts without signing in, does not return any accounts
+        // Check getAccounts returns 0 accounts initially
         Assert.assertEquals(0, brokerHost.getAllAccounts(false).size());
 
-        // Make an interactive call with MSAL
         final MsalSdk msalSdk = new MsalSdk();
+
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
@@ -84,22 +81,13 @@ public class TestCase1561136 extends AbstractMsalBrokerTest {
 
         authResult.assertSuccess();
 
-        // Check get accounts returns the account signed in with MSAL
-        List<String> accounts = brokerHost.getAllAccounts(false);
-        Assert.assertEquals(1, accounts.size());
+        // Check getAccounts returns the account added
+        Assert.assertEquals(1, brokerHost.getAllAccounts(false).size());
 
-        // create another temp user
-        final ILabAccount labAccount = mLabClient.createTempAccount(TempUserType.BASIC);
-        final String username2 = labAccount.getUsername();
-        final String password2 = labAccount.getPassword();
-
-        Assert.assertNotEquals(username, username2);
-        // user-based join
-        mBroker.performDeviceRegistration(username2, password2);
-
-        // get accounts this time must show two accounts - to verify this we have check for 2 dialog boxes
-        accounts = brokerHost.getAllAccounts(true);
-        Assert.assertEquals(2, accounts.size());
+        // Remove the added account
+        brokerHost.removeAccount(username);
+        // Check getAccounts returns 0 accounts after removal
+        Assert.assertEquals(0, brokerHost.getAllAccounts(false).size());
     }
 
     @Override
