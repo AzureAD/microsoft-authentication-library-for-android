@@ -20,28 +20,31 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.broker.endshift;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.flw;
 
+import androidx.test.uiautomator.UiObject;
 import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.SignInParameters;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.msal.automationapp.ErrorCodes;
 import com.microsoft.identity.client.msal.automationapp.R;
-import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
+import com.microsoft.identity.client.ui.automation.app.AzureSampleApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
+import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
+import com.microsoft.identity.client.ui.automation.browser.IBrowser;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadLoginComponentHandler;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
-import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserRole;
 import com.microsoft.identity.labapi.utilities.exception.LabApiException;
@@ -50,14 +53,17 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
-// End My Shift - In Shared device mode, there can be only one sign-in account.
-// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833516
+// End My Shift - In Shared device mode, global sign out should work.
+// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833515
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
-public class TestCase833516 extends AbstractMsalBrokerTest {
+public class TestCase833515 extends AbstractMsalBrokerTest {
+
+    final static String MY_APPS_URL = "myapps.microsoft.com";
 
     @Test
-    public void test_833516() throws MsalException, InterruptedException, LabApiException {
+    public void test_833515() throws MsalException, InterruptedException, LabApiException {
         final String username1 = mLabAccount.getUsername();
         final String password1 = mLabAccount.getPassword();
 
@@ -81,14 +87,13 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
         // we should be in shared device mode
         Assert.assertTrue(mApplication.isSharedDevice());
 
-        // query to load a user from a same tenant that was used for WPJ
-        final LabQuery query = LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-                .build();
+        // fetching a new temp user from lab account
+        final ILabAccount labAccount = mLabClient.createTempAccount(TempUserType.BASIC);
+        final String username2 = labAccount.getUsername();
+        final String password2 = labAccount.getPassword();
+        Thread.sleep(TimeUnit.SECONDS.toMillis(30));
 
-        final ILabAccount sameTenantUser = mLabClient.getLabAccount(query);
-        final String username2 = sameTenantUser.getUsername();
-        final String password2 = sameTenantUser.getPassword();
+        Assert.assertNotEquals(username1, username2);
 
         final SingleAccountPublicClientApplication singleAccountPCA =
                 (SingleAccountPublicClientApplication) mApplication;
@@ -116,31 +121,58 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
         AadPromptHandler aadPromptHandler = new AadPromptHandler(promptHandlerParameters);
         aadPromptHandler.handlePrompt(username2, password2);
 
-        latch.await(TokenRequestTimeout.MEDIUM);
+        latch.await(TokenRequestTimeout.LONG);
 
-        // try sign in with a different account - it should fail
+        //launching azure sample app and confirming user signed in or not.
+        final AzureSampleApp azureSampleApp = new AzureSampleApp();
+        azureSampleApp.uninstall();
+        azureSampleApp.install();
+        azureSampleApp.launch();
+        Thread.sleep(TimeUnit.SECONDS.toMillis(5));
+        azureSampleApp.confirmSignedIn(username2);
 
-        // query to load another user from the same tenant
-        final LabQuery query2 = LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-                .protectionPolicy(ProtectionPolicy.MAM_CA)
-                .build();
+        // clearing history of chrome.
+        final IBrowser chrome = new BrowserChrome();
+        chrome.clear();
 
-        final ILabAccount difTenantUser = mLabClient.getLabAccount(query2);
-        final String difTenantUsername = difTenantUser.getUsername();
+        // relaunching chrome after clearing history of chrome.
+        chrome.launch();
+        chrome.handleFirstRun();
+        chrome.navigateTo(MY_APPS_URL);
 
-        final TokenRequestLatch latch2 = new TokenRequestLatch(1);
+        // login into myapps from chrome
+        final AadLoginComponentHandler aadLoginComponentHandler = new AadLoginComponentHandler();
+        aadLoginComponentHandler.handleEmailField(username2);
+        aadLoginComponentHandler.handlePasswordField(password2);
 
-        // try sign in with an account from the same tenant
-        final SignInParameters signInParameters2 = SignInParameters.builder()
-                .withActivity(mActivity)
-                .withLoginHint(difTenantUsername)
-                .withScopes(Arrays.asList(mScopes))
-                .withCallback(failureInteractiveCallback(latch2, ErrorCodes.INVALID_PARAMETER))
-                .build();
-        singleAccountPCA.signIn(signInParameters2);
+        //signing out from the application.
+        ((SingleAccountPublicClientApplication) mApplication).signOut();
 
-        latch2.await(TokenRequestTimeout.MEDIUM);
+        //TODO: Looks like the account picker is no longer showing up during sign out, is this expected?
+        //selecting which account should be logged out.
+//        aadLoginComponentHandler.handleAccountPicker(username2);
+
+        // can sometimes take a while to actually be signed out
+        Thread.sleep(TimeUnit.SECONDS.toMillis(8));
+
+        // Confirming account is signed out in Azure.
+        azureSampleApp.launch();
+        azureSampleApp.confirmSignedIn("None");
+    }
+
+    @Override
+    public String[] getScopes() {
+        return new String[]{"User.read"};
+    }
+
+    @Override
+    public String getAuthority() {
+        return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
+    }
+
+    @Override
+    public int getConfigFileResourceId() {
+        return R.raw.msal_config_default;
     }
 
     @Override
@@ -153,20 +185,5 @@ public class TestCase833516 extends AbstractMsalBrokerTest {
     @Override
     public TempUserType getTempUserType() {
         return null;
-    }
-
-    @Override
-    public String[] getScopes() {
-        return new String[]{"User.read"};
-    }
-
-    @Override
-    public String getAuthority() {
-        return null;
-    }
-
-    @Override
-    public int getConfigFileResourceId() {
-        return R.raw.msal_config_instance_aware_common;
     }
 }
