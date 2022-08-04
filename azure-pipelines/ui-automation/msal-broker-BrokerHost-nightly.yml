@@ -45,7 +45,7 @@ parameters:
   - name: packagesToRun
     displayName: Packages to Run
     type: string
-    defalut: 'all'
+    defalut: all
 
 stages:
   # msalautomationapp
@@ -154,6 +154,27 @@ stages:
           vmImage: ubuntu-latest
         variables:
           resultsDir: "msal-BrokerHost-$(Build.BuildId)-$(Build.BuildNumber)"
+          packageList:
+            ${{ if contains(parameters.packagesToRun, 'all') }}:
+              '--test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker" \'
+            ${{ if contains(parameters.packagesToRun, 'atpop') }}:
+              '--test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker.atpop" \'
+            ${{ if contains(parameters.packagesToRun, 'brokerapi') }}:
+              '--test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker.brokerapi" \'
+            ${{ if contains(parameters.packagesToRun, 'crosscloud') }}:
+              '--test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker.crosscloud" \'
+            ${{ if contains(parameters.packagesToRun, 'flw') }}:
+              '--test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker.flw" \'
+            ${{ if contains(parameters.packagesToRun, 'joined') }}:
+              '--test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker.joined" \'
+            ${{ if contains(parameters.packagesToRun, 'nonjoined') }}:
+              '--test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker.nonjoined" \'
+            ${{ if contains(parameters.packagesToRun, 'mam') }}:
+              '--test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker.mam" \'
+            ${{ if contains(parameters.packagesToRun, 'mdm') }}:
+              '--test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker.mdm" \'
+            ${{ if contains(parameters.packagesToRun, 'usgov') }}:
+              '--test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker.usgov" \'
         steps:
           - checkout: none
           - task: DownloadSecureFile@1
@@ -186,27 +207,8 @@ stages:
                   --directories-to-pull "/sdcard" \
                   --use-orchestrator \
                   --environment-variables "clearPackageData=true" \
-                  --results-history-name "$(resultsHistoryName)" \
-                  ${{ if contains(parameters.packagesToRun, 'all') }}:
-                  --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker"
-                  ${{ if contains(parameters.packagesToRun, 'atpop') }}:
-                  --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker.atpop"
-                  ${{ if contains(parameters.packagesToRun, 'brokerapi') }}:
-                  --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker.brokerapi"
-                  ${{ if contains(parameters.packagesToRun, 'crosscloud') }}:
-                  --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker.crosscloud"
-                  ${{ if contains(parameters.packagesToRun, 'flw') }}:
-                  --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker.flw"
-                  ${{ if contains(parameters.packagesToRun, 'joined') }}:
-                  --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker.joined"
-                  ${{ if contains(parameters.packagesToRun, 'nonjoined') }}:
-                  --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker.nonjoined"
-                  ${{ if contains(parameters.packagesToRun, 'mam') }}:
-                  --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker.mam"
-                  ${{ if contains(parameters.packagesToRun, 'mdm') }}:
-                  --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker.mdm"
-                  ${{ if contains(parameters.packagesToRun, 'usgov') }}:
-                  --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker.usgov"
+                  --test-targets "${packageList} \
+                  --results-history-name "$(resultsHistoryName)"
           - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/${{ parameters.firebaseDeviceId }}-${{ parameters.firebaseDeviceAndroidVersion }}-en-portrait/test_result_1.xml" "$(Build.SourcesDirectory)"
             displayName: Download Test Result File
             condition: succeededOrFailed()
