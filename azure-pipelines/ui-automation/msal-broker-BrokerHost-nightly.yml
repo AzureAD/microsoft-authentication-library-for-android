@@ -44,8 +44,8 @@ parameters:
     default: '0.0.1'
   - name: testTargetPackages
     displayName: Packages as Test Targets
-    type: object
-    default: {package com.microsoft.identity.client.msal.automationapp.testpass.broker}
+    type: string
+    default: package com.microsoft.identity.client.msal.automationapp.testpass.broker
 
 stages:
   # msalautomationapp
