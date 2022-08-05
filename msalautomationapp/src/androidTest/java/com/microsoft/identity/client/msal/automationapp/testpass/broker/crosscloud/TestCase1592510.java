@@ -45,6 +45,7 @@ import com.microsoft.identity.labapi.utilities.constants.GuestHomedIn;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -55,6 +56,7 @@ import java.util.Collection;
 // Acquire Token from home cloud after acquiring token from cross cloud
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1592510
 @RunWith(Parameterized.class)
+@Ignore("Ignoring this as device on pipeline is not prompting for credentials in the second request")
 public class TestCase1592510 extends AbstractGuestAccountMsalBrokerUiTest {
 
     private final GuestHomeAzureEnvironment mGuestHomeAzureEnvironment;
