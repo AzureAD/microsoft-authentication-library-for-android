@@ -37,13 +37,97 @@ parameters:
       - 28
       - 29
       - 30
+  - name: testTargetPackages
+    displayName: Packages as Test Targets
+    type: string
+    default: package com.microsoft.identity.client.msal.automationapp.testpass.broker
 
-jobs:
-  - template: ./templates/msal-broker-automation-template.yml
-    parameters:
-      brokerFlavor: BrokerHost
-      msalFlavor: Local
-      firebaseDeviceId: ${{ parameters.firebaseDeviceId }}
-      firebaseDeviceAndroidVersion: ${{ parameters.firebaseDeviceAndroidVersion }}
-      brokerSource: LocalApk
-      resultsHistoryName: Dev MSAL with Dev BrokerHost
+variables:
+  engineeringProjectId: 'fac9d424-53d2-45c0-91b5-ef6ba7a6bf26'
+  azureSamplePipelineId: 1458
+  brokerHostPipelineId: 1432
+  msazureServiceConnection: AndroidBroker-CI
+  msazureFeedName: Android-Broker
+  azureSampleApk: AzureSample-local-debug.apk
+  brokerHostApk: brokerHost-local-debug.apk
+  oldBrokerHostApk: brokerHost-local-debug.apk
+  firebaseTimeout: 45m
+
+stages:
+  # msalautomationapp
+  - stage: 'msalautomationapp'
+    displayName: Build MSAL Automation APKs
+    jobs:
+      - template: ./templates/build-msal-automation-app.yml
+        parameters:
+          brokerFlavor: BrokerHost
+          msalFlavor: Local
+  # Brokers
+  - stage: 'brokers'
+    dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
+    displayName: Brokers and Azure Sample APKs
+    jobs:
+      - job: 'download_brokers'
+        displayName: Download Brokers
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - checkout: none
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download latest Azure Sample'
+            inputs:
+              buildType: 'specific'
+              project: '$(engineeringProjectId)'
+              definition: '$(azureSamplePipelineId)'
+              artifactName: AzureSample
+              itemPattern: '**/*.apk'
+              targetPath: '$(Build.ArtifactStagingDirectory)/azureSample'
+              buildVersionToDownload: 'latest'
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download Broker Host'
+            inputs:
+              buildType: specific
+              project: '$(engineeringProjectId)'
+              definition: '$(brokerHostPipelineId)'
+              artifactName: BrokerHost
+              itemPattern: '**/*.apk'
+              targetPath: '$(Build.ArtifactStagingDirectory)/brokerHost'
+          - task: UniversalPackages@0
+            displayName: 'Download old brokerHost version from feed'
+            inputs:
+              command: 'download'
+              downloadDirectory: '$(Build.ArtifactStagingDirectory)/oldBrokerHost'
+              feedsToUse: 'external'
+              externalFeedCredentials: '$(msazureServiceConnection)'
+              feedDownloadExternal: '$(msazureFeedName)'
+              packageDownloadExternal: 'broker-host'
+              versionDownloadExternal: '${{ parameters.oldBrokerHostVersion }}'
+
+          - publish: $(Build.ArtifactStagingDirectory)/azureSample
+            displayName: 'Publish Azure Sample apk for later use'
+            artifact: azureSample
+          - publish: $(Build.ArtifactStagingDirectory)/brokerHost
+            displayName: 'Publish Broker Host apk for later use'
+            artifact: brokerHost
+          - publish: $(Build.ArtifactStagingDirectory)/oldBrokerHost
+            displayName: 'Publish Broker Host old apk for later use'
+            artifact: oldBrokerHost
+  # MSAL with Broker Test Plan stage
+  - stage: 'msal_with_broker'
+    dependsOn:
+      - msalautomationapp
+      - brokers
+    displayName: Running MSAL with Broker Test UI Test Suite
+    jobs:
+      - template: ./templates/run-on-firebase.yml
+        parameters:
+          automationAppApkPath: "$(Pipeline.Workspace)/msalautomationapks/msalautomationapp-Local-BrokerHost-debug.apk"
+          automationAppTestApkPath: "$(Pipeline.Workspace)/msalautomationapks/msalautomationapp-Local-BrokerHost-debug-androidTest.apk)"
+          testTargetPackages: ${{ parameters.testTargetPackages }}
+          resultsHistoryName: "Dev MSAL with Dev BrokerHost"
+          otherFiles: "/data/local/tmp/BrokerHost.apk=$(Pipeline.Workspace)/brokerHost/$(brokerHostApk),\
+                  /data/local/tmp/OldBrokerHost.apk=$(Pipeline.Workspace)/oldBrokerHost/$(oldBrokerHostApk),\
+                  /data/local/tmp/AzureSample.apk=$(Pipeline.Workspace)/azureSample/$(azureSampleApk)"
+          resultsDir: "msal-BrokerHost-$(Build.BuildId)-$(Build.BuildNumber)"
+          firebaseDeviceId: ${{ parameters.firebaseDeviceId }}
+          firebaseDeviceAndroidVersion: ${{ parameters.firebaseDeviceAndroidVersion }}

@@ -1,0 +1,89 @@
+parameters:
+  - name: automationAppApkPath
+    type: string
+  - name: automationAppTestApkPath
+    type: string
+  - name: testTargetPackages
+    displayName: Packages as Test Targets
+    type: string
+  - name: resultsHistoryName
+    displayName: Results History Name
+    type: string
+  - name: otherFiles
+    type: string
+  - name: resultsDir
+    type: string
+  - name: firebaseTimeout
+    type: string
+    default: 45m
+  - name: firebaseDeviceId
+    type: string
+    displayName: Firebase Device Id
+    default: blueline
+    values:
+      - blueline
+      - flame
+      - redfin
+      - sailfish
+      - walleye
+  - name: firebaseDeviceAndroidVersion
+    displayName: Firebase Device Android Version
+    type: number
+    default: 28
+    values:
+      - 25
+      - 26
+      - 27
+      - 28
+      - 29
+      - 30
+
+jobs:
+  - job: 'run_on_firebase'
+    displayName: Running Test Suite on Firebease
+    timeoutInMinutes: 90
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+      - checkout: none
+      - task: DownloadSecureFile@1
+        displayName: 'Download Firebase Service Account Key File'
+        name: gcServiceAccountKey
+        inputs:
+          secureFile: AndroidFirebaseServiceAccountKey.json
+          retryCount: 5
+      - download: current
+      - script: gcloud version
+        displayName: 'Check gcloud version'
+      - script: gcloud firebase test android models list
+        displayName: "List Firebase Android Device"
+      - task: Bash@3
+        displayName: Run UI Automation on Firebase
+        inputs:
+          targetType: inline
+          script: |
+            gcloud auth activate-service-account --key-file "$(gcServiceAccountKey.secureFilePath)"
+            gcloud config set project "$(gCloudProjectId)"
+            gcloud firebase test android run \
+              --type instrumentation \
+              --app "{{ parameters.automationAppApkPath }}" \
+              --test "{{ parameters.automationAppTestApkPath }}" \
+              --device "model=${{ parameters.firebaseDeviceId }},version=${{ parameters.firebaseDeviceAndroidVersion }}" \
+              --timeout "$(firebaseTimeout)" \
+              --other-files ${{ parameters.otherFiles }} \
+              --results-dir "{{ parameters.resultsDir }}" \
+              --directories-to-pull "/sdcard" \
+              --use-orchestrator \
+              --environment-variables "clearPackageData=true" \
+              --results-history-name "{{ parameters.resultsHistoryName }}" \
+              --test-targets "${{ parameters.testTargetPackages }}"
+      - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/${{ parameters.firebaseDeviceId }}-${{ parameters.firebaseDeviceAndroidVersion }}-en-portrait/test_result_1.xml" "$(Build.SourcesDirectory)"
+        displayName: Download Test Result File
+        condition: succeededOrFailed()
+      - task: PublishTestResults@2
+        displayName: Publish Test Results to ADO
+        condition: succeededOrFailed()
+        inputs:
+          testResultsFiles: '*test_result*.xml'
+          searchFolder: $(Build.SourcesDirectory)
+          testRunTitle: 'MSAL UI Automation - Build # $(Build.BuildNumber)'
