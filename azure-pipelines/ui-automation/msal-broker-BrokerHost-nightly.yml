@@ -42,9 +42,9 @@ parameters:
     type: string
     default: package com.microsoft.identity.client.msal.automationapp.testpass.broker
   - name: oldBrokerHostVersion
-      displayName: Old Broker host Version
-      type: string
-      default: '0.0.1'
+    displayName: Old Broker host Version
+    type: string
+    default: '0.0.1'
 
 variables:
   engineeringProjectId: 'fac9d424-53d2-45c0-91b5-ef6ba7a6bf26'
