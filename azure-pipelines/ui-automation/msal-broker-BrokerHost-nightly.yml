@@ -41,6 +41,10 @@ parameters:
     displayName: Packages as Test Targets
     type: string
     default: package com.microsoft.identity.client.msal.automationapp.testpass.broker
+  - name: oldBrokerHostVersion
+      displayName: Old Broker host Version
+      type: string
+      default: '0.0.1'
 
 variables:
   engineeringProjectId: 'fac9d424-53d2-45c0-91b5-ef6ba7a6bf26'
@@ -62,6 +66,7 @@ stages:
         parameters:
           brokerFlavor: BrokerHost
           msalFlavor: Local
+          brokerSource: LocalApk
   # Brokers
   - stage: 'brokers'
     dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
