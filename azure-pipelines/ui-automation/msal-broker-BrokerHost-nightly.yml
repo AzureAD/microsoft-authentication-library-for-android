@@ -126,8 +126,8 @@ stages:
     jobs:
       - template: ./templates/run-on-firebase.yml
         parameters:
-          automationAppApkPath: "$(Pipeline.Workspace)/msalautomationapks/msalautomationapp-Local-BrokerHost-debug.apk"
-          automationAppTestApkPath: "$(Pipeline.Workspace)/msalautomationapks/msalautomationapp-Local-BrokerHost-debug-androidTest.apk)"
+          automationAppApkPath: "$(Pipeline.Workspace)/msalautomationapks/msalautomationapp-local-BrokerHost-debug.apk"
+          automationAppTestApkPath: "$(Pipeline.Workspace)/msalautomationapks/msalautomationapp-local-BrokerHost-debug-androidTest.apk)"
           testTargetPackages: ${{ parameters.testTargetPackages }}
           resultsHistoryName: "Dev MSAL with Dev BrokerHost"
           otherFiles: "/data/local/tmp/BrokerHost.apk=$(Pipeline.Workspace)/brokerHost/$(brokerHostApk),\
