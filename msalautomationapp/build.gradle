@@ -89,13 +89,13 @@ android {
     flavorDimensions "main", "broker"
 
     productFlavors {
-        local {
+        Local {
             dimension "main"
             applicationIdSuffix ".local"
             versionNameSuffix "-local"
             resValue("string", "application_name", "msal-local")
         }
-        dist {
+        Dist {
             dimension "main"
             // Keep .local because the redirect url we registered on the portal contains .local, not .dist
             applicationIdSuffix ".local"
