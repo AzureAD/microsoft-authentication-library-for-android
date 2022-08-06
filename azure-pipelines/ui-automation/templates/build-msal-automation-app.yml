@@ -14,12 +14,12 @@ parameters:
       - Local
       - Dist
   - name: brokerSource
-      displayName: Broker App Installation Source
-      type: string
-      default: LocalApk
-      values:
-        - LocalApk
-        - PlayStore
+    displayName: Broker App Installation Source
+    type: string
+    default: LocalApk
+    values:
+      - LocalApk
+      - PlayStore
 
 jobs:
   - job: 'msalautomationapp'
