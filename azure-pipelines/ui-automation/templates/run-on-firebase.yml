@@ -55,8 +55,6 @@ jobs:
       - download: current
       - script: gcloud version
         displayName: 'Check gcloud version'
-      - script: gcloud firebase test android models list
-        displayName: "List Firebase Android Device"
       - task: Bash@3
         displayName: Run UI Automation on Firebase
         inputs:
@@ -64,6 +62,7 @@ jobs:
           script: |
             gcloud auth activate-service-account --key-file "$(gcServiceAccountKey.secureFilePath)"
             gcloud config set project "$(gCloudProjectId)"
+            gcloud firebase test android models list
             gcloud firebase test android run \
               --type instrumentation \
               --app "{{ parameters.automationAppApkPath }}" \
