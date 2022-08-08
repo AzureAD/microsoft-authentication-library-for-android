@@ -51,7 +51,8 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Map;
 
-// [USGOV][Joined] In-line WPJ/MSAL - acquire token with deviceid claim request, and instance_aware=true
+// [USGOV][Broker][Joined] In-line WPJ/MSAL - acquire token with deviceid claim request,
+// and instance_aware=true
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/940421
 public class TestCase940421 extends AbstractMsalBrokerTest {
 

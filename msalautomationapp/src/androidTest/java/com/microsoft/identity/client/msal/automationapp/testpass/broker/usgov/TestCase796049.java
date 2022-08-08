@@ -32,6 +32,7 @@ import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
@@ -39,43 +40,37 @@ import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Test;
 
-import java.util.Arrays;
-
-// [USGOV][Broker][Joined] Acquire token with USGov Authority
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938447
-public class TestCase938447 extends AbstractMsalBrokerTest {
+// [USGOV][Broker][Non-Joined] Acquire Token with Resource
+// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/796049
+public class TestCase796049 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_938447() throws Throwable {
+    public void test_796049() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
 
-        // perform device registration (will obtain PRT in Broker for supplied account)
-        mBroker.performDeviceRegistration(username, password);
-
+        // Interactive Call W/ Resource
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
-                .scopes(Arrays.asList(mScopes))
+                .resource(mScopes[0])
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-        // start interactive acquire token request in MSAL (should succeed)
-        final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired() {
+        final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
                         .loginHint(username)
-                        .sessionExpected(true)
+                        .sessionExpected(false)
                         .consentPageExpected(false)
                         .speedBumpExpected(false)
                         .broker(mBroker)
-                        .expectingBrokerAccountChooserActivity(true)
-                        .expectingLoginPageAccountPicker(false)
+                        .expectingBrokerAccountChooserActivity(false)
                         .build();
 
                 new AadPromptHandler(promptHandlerParameters)
@@ -101,16 +96,16 @@ public class TestCase938447 extends AbstractMsalBrokerTest {
 
     @Override
     public String[] getScopes() {
-        return new String[]{"User.read"};
+        return new String[]{"00000002-0000-0000-c000-000000000000"};
     }
 
     @Override
     public String getAuthority() {
-        return mApplication.getConfiguration().getDefaultAuthority().toString();
+        return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
     }
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_arlington;
+        return R.raw.msal_config_instance_aware_common;
     }
 }

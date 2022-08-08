@@ -41,7 +41,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
-// [USGOV][Joined] Acquire token with USGov account, with instance_aware=true
+// [USGOV][Broker][Joined] Acquire token with instance_aware=true
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/948676
 public class TestCase948676 extends AbstractMsalBrokerTest {
 
