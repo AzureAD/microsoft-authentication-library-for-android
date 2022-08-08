@@ -20,19 +20,20 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.broker.crosscloud;
+package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.crosscloud;
 
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.exception.MsalArgumentException;
+import com.microsoft.identity.client.msal.automationapp.AbstractGuestAccountMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
-import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractGuestAccountMsalBrokerUiTest;
+import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.constants.GlobalConstants;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
@@ -44,8 +45,8 @@ import com.microsoft.identity.labapi.utilities.constants.GuestHomeAzureEnvironme
 import com.microsoft.identity.labapi.utilities.constants.GuestHomedIn;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
+import org.json.JSONObject;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -53,90 +54,76 @@ import org.junit.runners.Parameterized;
 import java.util.Arrays;
 import java.util.Collection;
 
-// Acquire Token from home cloud after acquiring token from cross cloud
-// https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1592510
+// [CrossCloud] Acquire token (Interactive and silent) for cross cloud guest account (Msal Only)
+// https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1420484
 @RunWith(Parameterized.class)
-@Ignore("Ignoring this as device on pipeline is not prompting for credentials in the second request")
-public class TestCase1592510 extends AbstractGuestAccountMsalBrokerUiTest {
+public class TestCase1420484 extends AbstractGuestAccountMsalUiTest {
 
     private final GuestHomeAzureEnvironment mGuestHomeAzureEnvironment;
-    private final String mHomeCloud;
-    private final String mCrossCloud;
 
-    public TestCase1592510(final String name, final @NonNull GuestHomeAzureEnvironment guestHomeAzureEnvironment, final String homeCloud, final String crossCloud) {
+    public TestCase1420484(final String name, final @NonNull GuestHomeAzureEnvironment guestHomeAzureEnvironment) {
         mGuestHomeAzureEnvironment = guestHomeAzureEnvironment;
-        mHomeCloud = homeCloud;
-        mCrossCloud = crossCloud;
     }
 
     @Parameterized.Parameters(name = "{0}")
     public static Collection guestHomeAzureEnvironment() {
         return Arrays.asList(new Object[][]{
-                {"AZURE_US_GOV", GuestHomeAzureEnvironment.AZURE_US_GOVERNMENT, /*homeCloud*/"https://login.microsoftonline.us", /*crossCloud*/"https://login.microsoftonline.com"},
+                {"AZURE_US_GOV", GuestHomeAzureEnvironment.AZURE_US_GOVERNMENT},
+                {"AZURE_CHINA_CLOUD", GuestHomeAzureEnvironment.AZURE_CHINA_CLOUD},
         });
     }
 
+    /**
+     * Tests Acquiring token for Cross cloud Guest account without broker.
+     */
     @Test
-    public void test_1592510() throws Throwable {
+    public void test_1420484() throws Throwable {
+        // Clearing browser seems to help with this case
+        mBrowser.clear();
+
         final String userName = mGuestUser.getHomeUpn();
         final String password = mLabClient.getPasswordForGuestUser(mGuestUser);
 
-        final OnInteractionRequired crossCloudInteractionHandler = () -> {
+        // Handler for Interactive auth call
+        final OnInteractionRequired interactionHandler = () -> {
+            ((IApp) mBrowser).handleFirstRun();
             final PromptHandlerParameters promptHandlerParameters =
                     PromptHandlerParameters.builder()
                     .prompt(PromptParameter.SELECT_ACCOUNT)
                     .loginHint(userName)
-                    .broker(mBroker)
                     .staySignedInPageExpected(GlobalConstants.IS_STAY_SIGN_IN_PAGE_EXPECTED)
+                    .speedBumpExpected(true)
                     .build();
             final AadPromptHandler promptHandler = new AadPromptHandler(promptHandlerParameters);
             promptHandler.handlePrompt(userName, password);
         };
 
-        final MsalAuthTestParams acquireTokenCrossCloudAuthParams = MsalAuthTestParams.builder()
+        final MsalAuthTestParams acquireTokenAuthParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(userName)
                 .scopes(Arrays.asList(getScopes()))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
-                .authority(getCrossCloudAuthority())
+                .authority(getAuthority())
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
         final MsalSdk msalSdk = new MsalSdk();
-        // Acquire token interactively from cross cloud
-        final MsalAuthResult acquireTokenCrossCloudResult = msalSdk.acquireTokenInteractive(acquireTokenCrossCloudAuthParams, crossCloudInteractionHandler, TokenRequestTimeout.SHORT);
-        Assert.assertFalse("Verify accessToken is not empty", TextUtils.isEmpty(acquireTokenCrossCloudResult.getAccessToken()));
+        // Acquire token interactively
+        final MsalAuthResult acquireTokenResult = msalSdk.acquireTokenInteractive(acquireTokenAuthParams, interactionHandler, TokenRequestTimeout.SHORT);
 
-        final MsalAuthTestParams acquireTokenHomeCloudAuthParams = MsalAuthTestParams.builder()
-                .activity(mActivity)
-                .loginHint(userName)
-                .scopes(Arrays.asList(getScopes()))
-                .promptParameter(Prompt.SELECT_ACCOUNT)
-                .authority(getHomeCloudAuthority())
-                .msalConfigResourceId(getConfigFileResourceId())
-                .build();
+        Assert.assertFalse("Verify accessToken is not empty", TextUtils.isEmpty(acquireTokenResult.getAccessToken()));
 
-        // Acquire token silently from home cloud, expected to throw an exception
-        final MsalAuthResult acquireTokenSilentlyCrossCloudResult = msalSdk.acquireTokenSilent(acquireTokenHomeCloudAuthParams, TokenRequestTimeout.SHORT);
-        MsalArgumentException exception = (MsalArgumentException) acquireTokenSilentlyCrossCloudResult.getException();
-        Assert.assertNotNull("Verify Exception is returned", exception);
-        Assert.assertEquals("Verify Exception operation name", "authority", exception.getOperationName());
+        // change the time on the device
+        TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
 
-        // Acquire token interactively from home cloud, expected to get a different access token
-        final OnInteractionRequired homeCloudInteractionHandler = () -> {
-            final PromptHandlerParameters promptHandlerParameters =
-                    PromptHandlerParameters.builder()
-                    .prompt(PromptParameter.SELECT_ACCOUNT)
-                    .loginHint(userName)
-                    .broker(mBroker)
-                    .build();
-            final AadPromptHandler promptHandler = new AadPromptHandler(promptHandlerParameters);
-            promptHandler.handlePrompt(userName, password);
-        };
-        final MsalAuthResult acquireTokenHOmeCloudResult = msalSdk.acquireTokenInteractive(acquireTokenHomeCloudAuthParams, homeCloudInteractionHandler, TokenRequestTimeout.SHORT);
-        Assert.assertFalse("Verify accessToken is not empty", TextUtils.isEmpty(acquireTokenHOmeCloudResult.getAccessToken()));
+        // Acquire token silently
+        final MsalAuthResult acquireTokenSilentResult = msalSdk.acquireTokenSilent(acquireTokenAuthParams, TokenRequestTimeout.SHORT);
+        Assert.assertFalse("Verify accessToken is not empty", TextUtils.isEmpty(acquireTokenSilentResult.getAccessToken()));
 
-        Assert.assertNotEquals("HomeCloud request gets new access token", acquireTokenCrossCloudResult.getAccessToken(), acquireTokenHOmeCloudResult.getAccessToken());
+        Assert.assertNotEquals("Silent request gets new access token", acquireTokenSilentResult.getAccessToken(), acquireTokenResult.getAccessToken());
+
+        JSONObject profileObject = getProfileObjectFromMSGraph(acquireTokenSilentResult.getAccessToken());
+        Assert.assertEquals(userName, profileObject.get("mail"));
     }
 
     @Override
@@ -156,14 +143,6 @@ public class TestCase1592510 extends AbstractGuestAccountMsalBrokerUiTest {
 
     @Override
     public String getAuthority() {
-        return getCrossCloudAuthority();
-    }
-
-    private String getHomeCloudAuthority() {
-        return mHomeCloud + "/" + "common";
-    }
-
-    private String getCrossCloudAuthority() {
-        return mCrossCloud + "/" + mGuestUser.getGuestLabTenants().get(0);
+        return "https://login.microsoftonline.com/" + mGuestUser.getGuestLabTenants().get(0);
     }
 }

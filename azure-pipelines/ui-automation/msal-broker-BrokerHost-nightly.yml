@@ -42,6 +42,10 @@ parameters:
     displayName: Old Broker host Version
     type: string
     default: '0.0.1'
+  - name: testTargetPackages
+    displayName: Packages as Test Targets
+    type: string
+    default: package com.microsoft.identity.client.msal.automationapp.testpass.broker
 
 stages:
   # msalautomationapp
@@ -183,7 +187,7 @@ stages:
                   --use-orchestrator \
                   --environment-variables "clearPackageData=true" \
                   --results-history-name "$(resultsHistoryName)" \
-                  --test-targets "package com.microsoft.identity.client.msal.automationapp.testpass.broker"
+                  --test-targets "${{ parameters.testTargetPackages }}"
           - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/$(resultsDir)/${{ parameters.firebaseDeviceId }}-${{ parameters.firebaseDeviceAndroidVersion }}-en-portrait/test_result_1.xml" "$(Build.SourcesDirectory)"
             displayName: Download Test Result File
             condition: succeededOrFailed()

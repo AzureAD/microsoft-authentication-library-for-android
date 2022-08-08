@@ -20,9 +20,11 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.broker;
+package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.basic;
 
+import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
+import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
@@ -32,18 +34,26 @@ import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequ
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.common.java.util.ThreadUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
+import com.microsoft.identity.labapi.utilities.constants.Mfa;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
-public class TestCase769049 extends AbstractMsalBrokerTest {
+// Interactive auth with force_login and step-up MFA
+// https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99656
+@Ignore("https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1886086")
+public class TestCase99656 extends AbstractMsalUiTest {
+
+    private final String TAG = TestCase99656.class.getSimpleName();
 
     @Test
-    public void test_769049() throws Throwable {
+    public void test_99656() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
@@ -53,7 +63,7 @@ public class TestCase769049 extends AbstractMsalBrokerTest {
                 .activity(mActivity)
                 .loginHint(username)
                 .scopes(Arrays.asList(mScopes))
-                .promptParameter(Prompt.LOGIN)
+                .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
@@ -61,13 +71,11 @@ public class TestCase769049 extends AbstractMsalBrokerTest {
             @Override
             public void handleUserInteraction() {
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                        .prompt(PromptParameter.LOGIN)
+                        .prompt(PromptParameter.SELECT_ACCOUNT)
                         .loginHint(username)
                         .sessionExpected(false)
                         .consentPageExpected(false)
                         .speedBumpExpected(false)
-                        .broker(mBroker)
-                        .expectingBrokerAccountChooserActivity(false)
                         .build();
 
                 new AadPromptHandler(promptHandlerParameters)
@@ -77,25 +85,45 @@ public class TestCase769049 extends AbstractMsalBrokerTest {
 
         authResult.assertSuccess();
 
-        // SECOND REQUEST WITHOUT LOGIN HINT
-        final MsalAuthTestParams noLoginHintParams = MsalAuthTestParams.builder()
+        final IAccount account = msalSdk.getAccount(mActivity,getConfigFileResourceId(),username);
+
+        final MsalAuthTestParams silentParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
+                .loginHint(username)
+                .authority(account.getAuthority())
+                .forceRefresh(false)
+                .scopes(Arrays.asList(mScopes))
+                .msalConfigResourceId(getConfigFileResourceId())
+                .build();
+
+        final MsalAuthResult silentAuthResult = msalSdk.acquireTokenSilent(silentParams,TokenRequestTimeout.SILENT);
+        silentAuthResult.assertSuccess();
+
+        // second interactive request
+        // wait about a minute here to throttle usage of AUTO MFA account
+        ThreadUtils.sleepSafely(
+                (int) TimeUnit.MINUTES.toMillis(1),
+                TAG,
+                "Problem occurred while sleeping safely to throttle AUTO MFA requests."
+        );
+
+        final MsalAuthTestParams authTestParams2 = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .loginHint(username)
                 .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.LOGIN)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-        final MsalAuthResult noLoginHintauthResult = msalSdk.acquireTokenInteractive(noLoginHintParams, new OnInteractionRequired() {
+        final MsalAuthResult authResult2 = msalSdk.acquireTokenInteractive(authTestParams2, new OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                         .prompt(PromptParameter.LOGIN)
+                        .loginHint(username)
                         .sessionExpected(true)
                         .consentPageExpected(false)
                         .speedBumpExpected(false)
-                        .broker(mBroker)
-                        .expectingBrokerAccountChooserActivity(true)
-                        .expectingProvidedAccountInBroker(true)
                         .build();
 
                 new AadPromptHandler(promptHandlerParameters)
@@ -103,13 +131,13 @@ public class TestCase769049 extends AbstractMsalBrokerTest {
             }
         }, TokenRequestTimeout.MEDIUM);
 
-        noLoginHintauthResult.assertSuccess();
+        authResult2.assertSuccess();
     }
 
     @Override
     public LabQuery getLabQuery() {
         return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
+                .mfa(Mfa.AUTO_MFA_ON_ALL)
                 .build();
     }
 
@@ -130,6 +158,6 @@ public class TestCase769049 extends AbstractMsalBrokerTest {
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_default;
+        return R.raw.msal_config_webview;
     }
 }
