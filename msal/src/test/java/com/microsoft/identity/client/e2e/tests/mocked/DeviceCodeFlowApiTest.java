@@ -22,10 +22,18 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.mocked;
 
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_USGOV_CONFIG_FILE_PATH;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.SINGLE_ACCOUNT_DCF_TEST_CONFIG_FILE_PATH;
+
+import android.content.Context;
+
 import androidx.annotation.NonNull;
+import androidx.test.core.app.ApplicationProvider;
 
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IPublicClientApplication;
+import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowDeviceCodeFlowCommandAuthError;
 import com.microsoft.identity.client.e2e.shadows.ShadowDeviceCodeFlowCommandSuccessful;
@@ -34,9 +42,9 @@ import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationCo
 import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest;
 import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.exception.ErrorStrings;
-import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationErrorResponse;
 import com.microsoft.identity.common.java.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationRequest;
 import com.microsoft.identity.common.java.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationResponse;
@@ -46,6 +54,7 @@ import com.microsoft.identity.common.java.providers.oauth2.OAuth2Strategy;
 import com.microsoft.identity.common.java.providers.oauth2.OAuth2StrategyParameters;
 import com.microsoft.identity.common.java.providers.oauth2.TokenRequest;
 import com.microsoft.identity.common.java.providers.oauth2.TokenResult;
+import com.microsoft.identity.common.java.util.ResultFuture;
 import com.microsoft.identity.common.java.util.StringUtil;
 
 import org.junit.Assert;
@@ -55,13 +64,13 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-
-import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.SINGLE_ACCOUNT_DCF_TEST_CONFIG_FILE_PATH;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Testing class for the device code flow protocol. Currently only supporting testing for the API-side
@@ -451,5 +460,102 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
         });
 
         RoboTestUtils.flushScheduler();
+    }
+
+    // With 2 PCA objects initalized with different clouds, make sure that each clouds are
+    // returning the correct URI from each endpoints.
+    // https://portal.microsofticm.com/imp/v3/incidents/details/325344544/home
+    @Test
+    public void testInitializingMultiplePCAFromDifferentClouds() throws Exception {
+        final Context context = ApplicationProvider.getApplicationContext();
+
+        final IPublicClientApplication[] apps = new IPublicClientApplication[2];
+        PublicClientApplication.create(context, new File(MULTIPLE_ACCOUNT_MODE_AAD_USGOV_CONFIG_FILE_PATH),
+                new PublicClientApplication.ApplicationCreatedListener() {
+                    @Override
+                    public void onCreated(IPublicClientApplication application) {
+                        apps[0] = application;
+                    }
+
+                    @Override
+                    public void onError(MsalException exception) {
+                        // This shouldn't run
+                        Assert.fail();
+                    }
+                });
+
+        RoboTestUtils.flushScheduler();
+
+        PublicClientApplication.create(context, new File(MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH),
+                new PublicClientApplication.ApplicationCreatedListener() {
+                    @Override
+                    public void onCreated(IPublicClientApplication application) {
+                        apps[1] = application;
+                    }
+
+                    @Override
+                    public void onError(MsalException exception) {
+                        // This shouldn't run
+                        Assert.fail();
+                    }
+                });
+
+        RoboTestUtils.flushScheduler();
+
+        final IPublicClientApplication usGovApp = apps[0];
+        final IPublicClientApplication wwApp = apps[1];
+
+        final List<String> scope = new ArrayList<>();
+        scope.add("user.read");
+
+        // Note: we can use resultFuture here because this method is not dispatched back to main thread
+        // via AndroidPlatformUtil.postCommandResult()
+        final ResultFuture<String> wwUri = new ResultFuture<String>();
+        final ResultFuture<String> usGovUri = new ResultFuture<String>();
+
+        final String[] uris = new String[2];
+        wwApp.acquireTokenWithDeviceCode(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
+            @Override
+            public void onUserCodeReceived(@NonNull String vUri, @NonNull String userCode, @NonNull String message, @NonNull Date sessionExpirationDate) {
+                wwUri.setResult(vUri);
+            }
+
+            @Override
+            public void onTokenReceived(@NonNull IAuthenticationResult authResult) {
+                // This shouldn't run
+                Assert.fail();
+            }
+
+            @Override
+            public void onError(@NonNull MsalException exception) {
+                // This shouldn't run
+                wwUri.setException(exception);
+            }
+        });
+
+        usGovApp.acquireTokenWithDeviceCode(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
+            @Override
+            public void onUserCodeReceived(@NonNull String vUri, @NonNull String userCode, @NonNull String message, @NonNull Date sessionExpirationDate) {
+                usGovUri.setResult(vUri);
+            }
+
+            @Override
+            public void onTokenReceived(@NonNull IAuthenticationResult authResult) {
+                // This shouldn't run
+                Assert.fail();
+            }
+
+            @Override
+            public void onError(@NonNull MsalException exception) {
+                // This shouldn't run
+                usGovUri.setException(exception);
+            }
+        });
+
+        final String ww = wwUri.get(10, TimeUnit.SECONDS);
+        final String usgov = usGovUri.get(10, TimeUnit.SECONDS);
+
+        Assert.assertEquals(ww, "https://microsoft.com/devicelogin");
+        Assert.assertEquals(usgov, "https://microsoft.com/deviceloginus");
     }
 }
