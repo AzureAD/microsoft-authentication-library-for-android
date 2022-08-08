@@ -20,7 +20,9 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.broker.usgov;
+package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.usgov;
+
+import androidx.test.uiautomator.UiObject;
 
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
@@ -29,26 +31,34 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.app.IApp;
+import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
+import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
+import com.microsoft.identity.common.java.util.ThreadUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
-// Interactive token acquisition with instance_aware=true, no login hint, and cloud account,
-// and WW common authority
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938365
-public class TestCase938365 extends AbstractMsalUiTest {
+// [USGOV][MSAL-ONLY] Acquire token acquisition with instance_aware=true, login hint present,
+// and federated account, and WW common authority
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938368
+// Adding a retry on failure, sometimes arlington login page fails to load
+@RetryOnFailure(retryCount = 2)
+public class TestCase938368 extends AbstractMsalUiTest {
 
     @Test
-    public void test_938365() throws Throwable {
+    public void test_938368() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
@@ -56,6 +66,7 @@ public class TestCase938365 extends AbstractMsalUiTest {
 
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
+                .loginHint(username)
                 .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
@@ -66,15 +77,25 @@ public class TestCase938365 extends AbstractMsalUiTest {
             public void handleUserInteraction() {
                 ((IApp) mBrowser).handleFirstRun();
 
-                final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                        .loginHint(null)
+                // Sometimes, federated Arlington users fail to load the arlington page
+                final UiObject pageFailureMessage = UiAutomatorUtils.obtainUiObjectWithExactText("This page isn't working");
+                if (pageFailureMessage.waitForExists(TimeUnit.SECONDS.toMillis(1))) {
+                    ThreadUtils.sleepSafely((int) TimeUnit.SECONDS.toMillis(2), "Sleep before Arlington login page reload", "Interrupted");
+
+                    // Reload the page
+                    ((BrowserChrome) mBrowser).reloadPage();
+                }
+
+                final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
+                        .prompt(PromptParameter.SELECT_ACCOUNT)
+                        .loginHint(username)
                         .sessionExpected(false)
                         .consentPageExpected(false)
-                        .speedBumpExpected(false)
-                        .prompt(PromptParameter.SELECT_ACCOUNT)
+                        .speedBumpExpected(true)
+                        .isFederated(true)
                         .build();
 
-                new AadPromptHandler(promptHandlerParameters)
+                new MicrosoftStsPromptHandler(promptHandlerParameters)
                         .handlePrompt(username, password);
             }
         },TokenRequestTimeout.MEDIUM);
@@ -86,6 +107,7 @@ public class TestCase938365 extends AbstractMsalUiTest {
     public LabQuery getLabQuery() {
         return LabQuery.builder()
                 .azureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT)
+                .userType(UserType.FEDERATED)
                 .build();
     }
 

@@ -20,7 +20,7 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.broker.usgov;
+package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.usgov;
 
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
@@ -42,12 +42,13 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
-// Interactive token acquisition with instance_aware=false and USGov authority
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938384
-public class TestCase938384 extends AbstractMsalUiTest {
+// [USGOV][MSAL-ONLY] Acquire token with instance_aware=true, no login hint, and cloud account,
+// and WW common authority
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938365
+public class TestCase938365 extends AbstractMsalUiTest {
 
     @Test
-    public void test_938384() throws Throwable {
+    public void test_938365() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
@@ -57,7 +58,6 @@ public class TestCase938384 extends AbstractMsalUiTest {
                 .activity(mActivity)
                 .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
-                .authority(getAuthority())
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
@@ -67,11 +67,11 @@ public class TestCase938384 extends AbstractMsalUiTest {
                 ((IApp) mBrowser).handleFirstRun();
 
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                        .prompt(PromptParameter.SELECT_ACCOUNT)
                         .loginHint(null)
                         .sessionExpected(false)
                         .consentPageExpected(false)
                         .speedBumpExpected(false)
+                        .prompt(PromptParameter.SELECT_ACCOUNT)
                         .build();
 
                 new AadPromptHandler(promptHandlerParameters)
@@ -101,11 +101,11 @@ public class TestCase938384 extends AbstractMsalUiTest {
 
     @Override
     public String getAuthority() {
-        return "https://login.microsoftonline.us/common";
+        return mApplication.getConfiguration().getDefaultAuthority().toString();
     }
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_default;
+        return R.raw.msal_config_instance_aware_common;
     }
 }
