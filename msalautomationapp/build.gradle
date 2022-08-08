@@ -137,11 +137,6 @@ android {
             // Gradle ignores any variants that satisfy the conditions above.
             setIgnore(true)
         }
-
-        if (flavorName.contains("local") && flavorName.contains("AutoBroker")) {
-            // Gradle ignores any variants that satisfy the conditions above.
-            setIgnore(true)
-        }
     }
 
     sourceSets {
