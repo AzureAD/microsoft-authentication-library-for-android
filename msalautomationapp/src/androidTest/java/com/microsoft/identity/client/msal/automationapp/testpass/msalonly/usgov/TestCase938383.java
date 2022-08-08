@@ -20,14 +20,16 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.broker.usgov;
+package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.usgov;
 
+import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
+import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
@@ -42,13 +44,12 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
-// Interactive token acquisition with instance_aware=true, login hint present, and cloud account,
-// and WW organizations authority
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938367
-public class TestCase938367 extends AbstractMsalUiTest {
+// [USGOV][MSAL-ONLY] Acquire token silent with unexpired RT with USGov authority
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938383
+public class TestCase938383 extends AbstractMsalUiTest {
 
     @Test
-    public void test_938367() throws Throwable {
+    public void test_938383() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
@@ -56,12 +57,12 @@ public class TestCase938367 extends AbstractMsalUiTest {
 
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .loginHint(username)
                 .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
+        // Start interactive token request in MSAL (should succeed)
         final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
@@ -69,7 +70,7 @@ public class TestCase938367 extends AbstractMsalUiTest {
 
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
-                        .loginHint(username)
+                        .loginHint(null)
                         .sessionExpected(false)
                         .consentPageExpected(false)
                         .speedBumpExpected(false)
@@ -81,6 +82,23 @@ public class TestCase938367 extends AbstractMsalUiTest {
         },TokenRequestTimeout.MEDIUM);
 
         authResult.assertSuccess();
+
+        // change the time on the device
+        TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
+
+        final IAccount account = msalSdk.getAccount(mActivity,getConfigFileResourceId(),username);
+
+        // start silent token request in MSAL
+        final MsalAuthTestParams authTestSilentParams = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .loginHint(username)
+                .scopes(Arrays.asList(mScopes))
+                .authority(account.getAuthority())
+                .msalConfigResourceId(getConfigFileResourceId())
+                .build();
+
+        final MsalAuthResult authSilentResult = msalSdk.acquireTokenSilent(authTestSilentParams, TokenRequestTimeout.SILENT);
+        authSilentResult.assertSuccess();
     }
 
     @Override
@@ -102,11 +120,11 @@ public class TestCase938367 extends AbstractMsalUiTest {
 
     @Override
     public String getAuthority() {
-        return mApplication.getConfiguration().getDefaultAuthority().toString();
+        return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
     }
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_instance_aware_organization;
+        return R.raw.msal_config_instance_aware_common;
     }
 }
