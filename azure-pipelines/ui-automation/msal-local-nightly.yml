@@ -102,6 +102,7 @@ stages:
           automationAppApkPath: "$(Pipeline.Workspace)/msalautomationapks/msalautomationapp-local-BrokerHost-debug.apk"
           automationAppTestApkPath: "$(Pipeline.Workspace)/msalautomationapks/msalautomationapp-local-BrokerHost-debug-androidTest.apk"
           testTargetPackages: ${{ parameters.testTargetPackages }}
+          resultsDir: "msal-BrokerHost-$(Build.BuildId)-$(Build.BuildNumber)"
           resultsHistoryName: "Dev MSAL with Dev BrokerHost"
           otherFiles: "/data/local/tmp/AzureSample.apk=$(Pipeline.Workspace)/azureSample/$(azureSampleApk)"
           firebaseDeviceId: ${{ parameters.firebaseDeviceId }}
