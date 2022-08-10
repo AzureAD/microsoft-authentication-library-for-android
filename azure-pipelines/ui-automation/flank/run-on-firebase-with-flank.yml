@@ -57,7 +57,7 @@ jobs:
         inputs:
           secureFile: AndroidFirebaseServiceAccountKey.json
           retryCount: 5
-      - task: LoadFlankYamlFile
+      - task: LoadFlankYamlFile@1
         name: loadFlankYaml
         inputs:
           secureFile: flank.yml
