@@ -28,7 +28,6 @@ parameters:
       - walleye
       - bluejay
       - oriole
-      - Pixel2
   - name: firebaseDeviceAndroidVersion
     displayName: Firebase Device Android Version
     type: number
