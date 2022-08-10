@@ -67,7 +67,7 @@ jobs:
           flankYmlPath: flank.yml
           targetType: inline
           script: |
-            gcloud auth activate-service-account --key-file "$(gcServiceAccountKey.secureFilePath)"
+            gcloud auth activate-service-account --key-file "$(gcServiceAccountKey.secureFilePath)a"
             gcloud config set project "$(gCloudProjectId)"
             gcloud firebase test android models list
             gcloud firebase test android run "$(runUiAutomation.flankYmlPath)":gcloud
