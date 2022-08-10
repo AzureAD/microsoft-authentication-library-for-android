@@ -75,36 +75,40 @@ public class TestCase1561080 extends AbstractMsalBrokerTest {
         chrome.launch();
         chrome.handleFirstRun();
 
+        //navigates to myaccount.microsoft.com
         chrome.navigateTo(MY_ACCOUNT_MICROSOFT_URL);
 
+        //handle the login prompts
         final AadLoginComponentHandler aadLoginComponentHandler = new AadLoginComponentHandler();
         aadLoginComponentHandler.handleEmailField(username);
         aadLoginComponentHandler.handlePasswordField(password);
 
+        //Goto Manage devices
         UiAutomatorUtils.handleButtonClick("com.android.chrome:id/button_secondary");
 
+        //Click Manage devices
         UiAutomatorUtils.handleButtonClickForObjectWithText("MANAGE DEVICES");
 
+        //open the collapsible container
         UiAutomatorUtils.handleButtonClickForObjectWithText("Collapsible item");
 
+        //Click the Disable lost device button
         UiObject disable_lost_device_btn1 = UiAutomatorUtils.obtainUiObjectWithText("Disable lost device");
         disable_lost_device_btn1.click();
 
+        //Confirm disabling of the device.
         UiObject disable_lost_device_btn2 = UiAutomatorUtils.obtainUiObjectWithText("Disable lost device");
         disable_lost_device_btn2.click();
 
         //install prod brokerhost app.
         BrokerHost brokerHost = new BrokerHost(BrokerHost.BROKER_HOST_APK_RC);
-        if(brokerHost.isInstalled()){
-            brokerHost.uninstall();
-        }
-
-        brokerHost.install();
+        brokerHost.clear();
 
         brokerHost.launch();
         //run get device state
         String deviceStateResponse = brokerHost.getDeviceState();
 
+        //should be false as it should fail after disabling the device.
         Assert.assertEquals("false",deviceStateResponse);
 
         //Get the device ID direct from the brokerHost.
@@ -150,7 +154,7 @@ public class TestCase1561080 extends AbstractMsalBrokerTest {
         //Delete the device from idlabs.
         boolean isDeviceDeleted = mLabClient.deleteDevice(mLabAccount.getUsername(), deviceId);
 
-        Assert.assertEquals(true, isDeviceDeleted);
+        Assert.assertTrue(isDeviceDeleted);
 
         //acquire token the second time, this time it should work
         final MsalAuthTestParams authTestParams_SecondTry = MsalAuthTestParams.builder()
