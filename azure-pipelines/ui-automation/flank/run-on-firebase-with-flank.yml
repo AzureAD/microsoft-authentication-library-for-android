@@ -68,7 +68,7 @@ jobs:
             gcloud auth activate-service-account --key-file "$(gcServiceAccountKey.secureFilePath)"
             gcloud config set project "$(gCloudProjectId)"
             gcloud firebase test android models list
-            gcloud firebase test android run flank.yml:gcloud
+            gcloud firebase test android run ./flank.yml:gcloud
               --type instrumentation \
               --app "${{ parameters.automationAppApkPath }}" \
               --test "${{ parameters.automationAppTestApkPath }}" \
