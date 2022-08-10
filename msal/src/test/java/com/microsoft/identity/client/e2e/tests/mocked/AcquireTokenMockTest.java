@@ -50,12 +50,12 @@ import com.microsoft.identity.common.java.net.HttpClient;
 import com.microsoft.identity.common.java.net.HttpResponse;
 import com.microsoft.identity.common.java.providers.oauth2.TokenResponse;
 import com.microsoft.identity.common.internal.util.StringUtil;
-import com.microsoft.identity.internal.testutils.HttpRequestInterceptor;
-import com.microsoft.identity.internal.testutils.HttpRequestMatcher;
+import com.microsoft.identity.http.HttpRequestInterceptor;
+import com.microsoft.identity.http.HttpRequestMatcher;
 import com.microsoft.identity.internal.testutils.TestConstants;
 import com.microsoft.identity.internal.testutils.TestUtils;
 import com.microsoft.identity.internal.testutils.mocks.MockTokenResponse;
-import com.microsoft.identity.internal.testutils.shadows.ShadowHttpClient;
+import com.microsoft.identity.shadow.ShadowHttpClient;
 
 import org.junit.Assert;
 import org.junit.Before;
