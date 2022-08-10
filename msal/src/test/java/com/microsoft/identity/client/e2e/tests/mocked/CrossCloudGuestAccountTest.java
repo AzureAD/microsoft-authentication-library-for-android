@@ -39,16 +39,15 @@ import com.microsoft.identity.client.e2e.shadows.ShadowAuthorityForMockHttpRespo
 import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
-import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.RoboTestUtils;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.java.cache.IMultiTypeNameValueStorage;
 import com.microsoft.identity.common.java.net.HttpResponse;
-import com.microsoft.identity.internal.testutils.HttpRequestMatcher;
-import com.microsoft.identity.internal.testutils.MockHttpClient;
+import com.microsoft.identity.http.HttpRequestMatcher;
+import com.microsoft.identity.http.MockHttpClient;
 import com.microsoft.identity.internal.testutils.TestConstants;
 import com.microsoft.identity.internal.testutils.mocks.MockServerResponse;
-import com.microsoft.identity.internal.testutils.shadows.ShadowHttpClient;
+import com.microsoft.identity.shadow.ShadowHttpClient;
 
 import org.junit.After;
 import org.junit.Before;
