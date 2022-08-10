@@ -67,6 +67,7 @@ jobs:
           secureFile: flank.yml
           targetType: inline
           script: |
+            echo $(System.DefaultWorkingDirectory)
             gcloud auth activate-service-account --key-file "$(gcServiceAccountKey.secureFilePath)"
             gcloud config set project "$(gCloudProjectId)"
             gcloud firebase test android models list
