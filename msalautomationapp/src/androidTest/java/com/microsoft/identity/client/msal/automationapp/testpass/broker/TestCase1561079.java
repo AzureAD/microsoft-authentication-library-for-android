@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 // [WPJ] - Get Device ID
-// https://identitydivision.visualstudio.com/Engineering/_testPlans/define?planId=1905195&suiteId=1905204
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561079
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
 public class TestCase1561079 extends AbstractMsalBrokerTest {
 
