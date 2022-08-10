@@ -20,9 +20,10 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.broker;
+package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.basic;
 
 import com.microsoft.identity.client.Prompt;
+import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
@@ -33,17 +34,21 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerPara
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
+import com.microsoft.identity.labapi.utilities.constants.Mfa;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
 
-public class TestCase769049 extends AbstractMsalBrokerTest {
+// Interactive auth w/ force_login w/ MFA
+// https://identitydivision.visualstudio.com/DefaultCollection/DevEx/_workitems/edit/497044
+@Ignore("https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1886086")
+public class TestCase497044 extends AbstractMsalUiTest {
 
     @Test
-    public void test_769049() throws Throwable {
+    public void test_497044() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
@@ -66,8 +71,6 @@ public class TestCase769049 extends AbstractMsalBrokerTest {
                         .sessionExpected(false)
                         .consentPageExpected(false)
                         .speedBumpExpected(false)
-                        .broker(mBroker)
-                        .expectingBrokerAccountChooserActivity(false)
                         .build();
 
                 new AadPromptHandler(promptHandlerParameters)
@@ -77,39 +80,13 @@ public class TestCase769049 extends AbstractMsalBrokerTest {
 
         authResult.assertSuccess();
 
-        // SECOND REQUEST WITHOUT LOGIN HINT
-        final MsalAuthTestParams noLoginHintParams = MsalAuthTestParams.builder()
-                .activity(mActivity)
-                .scopes(Arrays.asList(mScopes))
-                .promptParameter(Prompt.LOGIN)
-                .msalConfigResourceId(getConfigFileResourceId())
-                .build();
-
-        final MsalAuthResult noLoginHintauthResult = msalSdk.acquireTokenInteractive(noLoginHintParams, new OnInteractionRequired() {
-            @Override
-            public void handleUserInteraction() {
-                final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                        .prompt(PromptParameter.LOGIN)
-                        .sessionExpected(true)
-                        .consentPageExpected(false)
-                        .speedBumpExpected(false)
-                        .broker(mBroker)
-                        .expectingBrokerAccountChooserActivity(true)
-                        .expectingProvidedAccountInBroker(true)
-                        .build();
-
-                new AadPromptHandler(promptHandlerParameters)
-                        .handlePrompt(username, password);
-            }
-        }, TokenRequestTimeout.MEDIUM);
-
-        noLoginHintauthResult.assertSuccess();
     }
+
 
     @Override
     public LabQuery getLabQuery() {
         return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
+                .mfa(Mfa.AUTO_MFA_ON_ALL)
                 .build();
     }
 
@@ -130,6 +107,7 @@ public class TestCase769049 extends AbstractMsalBrokerTest {
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_default;
+        return R.raw.msal_config_webview;
     }
+
 }

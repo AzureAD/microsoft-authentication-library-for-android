@@ -31,6 +31,7 @@ import com.microsoft.identity.client.ui.automation.IRuleBasedTest;
 import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
 import com.microsoft.identity.client.ui.automation.browser.IBrowser;
 import com.microsoft.identity.client.ui.automation.rules.RulesHelper;
+import com.microsoft.identity.client.ui.automation.utils.AdbShellUtils;
 import com.microsoft.identity.common.java.net.HttpResponse;
 import com.microsoft.identity.common.java.net.UrlConnectionHttpClient;
 import com.microsoft.identity.labapi.utilities.BuildConfig;
@@ -87,11 +88,13 @@ public abstract class AbstractGuestAccountMsalUiTest implements IMsalTest, ILabT
      * @return response of graph call
      */
     protected JSONObject getProfileObjectFromMSGraph(final String accessToken) {
+        // chain validation when querying graph if device time is not correct
+        AdbShellUtils.enableAutomaticTimeZone();
         try {
             final URL profileApiUrl = new URL("https://graph.microsoft.com/v1.0/me");
             final Map<String, String> requestHeaders = new HashMap<>();
             requestHeaders.put("Authorization", "Bearer " + accessToken);
-            final HttpResponse response = UrlConnectionHttpClient.getDefaultInstance().get(profileApiUrl, requestHeaders, null);
+            final HttpResponse response = UrlConnectionHttpClient.getDefaultInstance().get(profileApiUrl, requestHeaders);
             Assert.assertTrue(response.getStatusCode() == HttpURLConnection.HTTP_OK);
             return new JSONObject(response.getBody());
         } catch (final Exception exception) {

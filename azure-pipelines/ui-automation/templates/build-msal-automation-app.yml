@@ -1,0 +1,62 @@
+parameters:
+  - name: brokerFlavor
+    type: string
+    default: 'BrokerHost'
+    values:
+      - BrokerHost
+      - BrokerMicrosoftAuthenticator
+      - BrokerCompanyPortal
+      - AutoBroker
+  - name: msalFlavor
+    type: string
+    default: 'Local'
+    values:
+      - Local
+      - Dist
+  - name: brokerSource
+    displayName: Broker App Installation Source
+    type: string
+    default: LocalApk
+    values:
+      - LocalApk
+      - PlayStore
+
+jobs:
+  - job: 'msalautomationapp'
+    displayName: Build and Publish MSAL Automation app
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+      - checkout: self
+        clean: true
+        submodules: recursive
+        persistCredentials: True
+      - bash: |
+          echo "##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN]$(mvnAccessToken)"
+        displayName: Set MVN Access Token in Environment
+      - task: AzureKeyVault@2
+        displayName: 'Get Key vault AndroidAutomationRunnerAppSecret'
+        inputs:
+          azureSubscription: 'MSIDLABS_ANDROID_KV'
+          KeyVaultName: 'ADALTestInfo'
+          SecretsFilter: 'AndroidAutomationRunnerAppSecret'
+          RunAsPreJob: false
+      - task: Gradle@2
+        displayName: 'Assemble MSAL Automation App'
+        inputs:
+          tasks: clean msalautomationapp:assemble${{ parameters.msalFlavor }}${{ parameters.brokerFlavor }}Debug -PlabSecret=$(AndroidAutomationRunnerAppSecret) -PbrokerSource=${{ parameters.brokerSource }}
+          publishJUnitResults: false
+      - task: Gradle@2
+        displayName: 'Assemble MSAL Automation App Instrumented Tests'
+        inputs:
+          tasks: msalautomationapp:assemble${{ parameters.msalFlavor }}${{ parameters.brokerFlavor }}DebugAndroidTest -PlabSecret=$(AndroidAutomationRunnerAppSecret)
+          publishJUnitResults: false
+      - task: CopyFiles@2
+        displayName: 'Copy apks for later use in the pipeline'
+        inputs:
+          flattenFolders: true
+          contents: '$(Build.SourcesDirectory)/msalautomationapp/build/outputs/apk/**/*.apk'
+          targetFolder: '$(Build.ArtifactStagingDirectory)/msal'
+      - publish: '$(Build.ArtifactStagingDirectory)/msal'
+        displayName: 'Publish apks for later use'
+        artifact: msalautomationapks
