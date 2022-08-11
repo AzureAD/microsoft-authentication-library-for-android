@@ -60,24 +60,12 @@ jobs:
       - download: current
       - script: gcloud version
         displayName: 'Check gcloud version'
-      - task: Gradle@2
-        inputs:
-          workingDirectory: 'test_runner'
-          gradleWrapperFile: './test_runner/gradlew'
-          gradleOptions: '-Xmx3072m'
-          javaHomeOption: 'JDKVersion'
-          jdkVersionOption: '1.8'
-          jdkArchitectureOption: 'x64'
-          publishJUnitResults: false
-          testResultsFiles: '**/TEST-*.xml'
-          tasks: 'build'
       - task: Bash@3
         name: runUiAutomation
         displayName: Run UI Automation on Firebase
         inputs:
           targetType: inline
           script: |
-            flank android run --help
             gcloud auth activate-service-account --key-file "$(gcServiceAccountKey.secureFilePath)"
             gcloud config set project "$(gCloudProjectId)"
             gcloud firebase test android models list
