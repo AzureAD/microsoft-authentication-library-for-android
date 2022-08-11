@@ -47,7 +47,7 @@ gcloud:
  type: instrumentation
  app: "${{ parameters.automationAppApkPath }}"
  test: "${{ parameters.automationAppTestApkPath }}"
- device: "model=${{ parameters.firebaseDeviceId }},version=${{ parameters.firebaseDeviceAndroidVersion }}"
+# device: "model=${{ parameters.firebaseDeviceId }},version=${{ parameters.firebaseDeviceAndroidVersion }}"
  timeout: "$(firebaseTimeout)"
  other-files: ${{ parameters.otherFiles }}
  results-dir: "${{ parameters.resultsDir }}"
