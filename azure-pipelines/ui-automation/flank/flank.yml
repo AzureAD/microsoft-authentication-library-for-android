@@ -1,24 +1,9 @@
-#gcloud:
-# type: instrumentation
-# app: ${{ parameters.automationAppApkPath }}
-# timeout: ${{ parameters.automationAppApkPath }}
-# test: "${{ parameters.automationAppTestApkPath }}"
-# device: "model=${{ parameters.firebaseDeviceId }},version=${{ parameters.firebaseDeviceAndroidVersion }}"
-## timeout: "$(firebaseTimeout)"
-# other-files: ${{ parameters.otherFiles }}
-# results-dir: "${{ parameters.resultsDir }}"
-# directories-to-pull: "/sdcard"
-# use-orchestrator: true
-# environment-variables: "clearPackageData=true"
-# results-history-name: "${{ parameters.resultsHistoryName }}"
-# test-targets: "${{ parameters.testTargetPackages }}"
-
 flank:
 # test shards — the amount of groups to split the test suite into
 # set to -1 to use one shard per test.
-testShards: 3
-# test runs — the amount of times to run the tests.
-# 1 runs the tests once. 10 runs all the tests 10x
-testRuns: 1
+  testShards: 3
+  # test runs — the amount of times to run the tests.
+  # 1 runs the tests once. 10 runs all the tests 10x
+  testRuns: 1
 # # always run — these tests are inserted at the beginning of every shard
 # # useful if you need to grant permissions or login before other tests run
