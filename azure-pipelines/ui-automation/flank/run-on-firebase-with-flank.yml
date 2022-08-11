@@ -66,11 +66,12 @@ jobs:
         inputs:
           targetType: inline
           script: |
+            flank android run --help
             gcloud auth activate-service-account --key-file "$(gcServiceAccountKey.secureFilePath)"
             gcloud config set project "$(gCloudProjectId)"
             gcloud firebase test android models list
             gcloud firebase test android run $(Build.SourcesDirectory)/azure-pipelines/ui-automation/flank/flank.yml:flank
-              --type: instrumentation \
+              --type instrumentation \
               --app "${{ parameters.automationAppApkPath }}" \
               --test "${{ parameters.automationAppTestApkPath }}" \
               --device "model=${{ parameters.firebaseDeviceId }},version=${{ parameters.firebaseDeviceAndroidVersion }}" \
