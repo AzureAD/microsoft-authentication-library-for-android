@@ -1,85 +1,85 @@
-#parameters:
-# - name: automationAppApkPath
-#   type: string
-# - name: automationAppTestApkPath
-#   type: string
-# - name: testTargetPackages
-#   displayName: Packages as Test Targets
-#   type: string
-# - name: resultsHistoryName
-#   displayName: Results History Name
-#   type: string
-# - name: otherFiles
-#   type: string
-# - name: resultsDir
-#   type: string
-# - name: firebaseTimeout
-#   type: string
-#   default: 45m
-# - name: firebaseDeviceId
-#   type: string
-#   displayName: Firebase Device Id
-#   default: blueline
-#   values:
-#    - blueline
-#    - flame
-#    - redfin
-#    - sailfish
-#    - walleye
-#    - bluejay
-#    - oriole
-# - name: firebaseDeviceAndroidVersion
-#   displayName: Firebase Device Android Version
-#   type: number
-#   default: 28
-#   values:
-#    - 25
-#    - 26
-#    - 27
-#    - 28
-#    - 29
-#    - 30
-#    - 31
-#    - 32
-#    - 33
+parameters:
+ name: automationAppApkPath
+   type: string
+ - name: automationAppTestApkPath
+   type: string
+ - name: testTargetPackages
+   displayName: Packages as Test Targets
+   type: string
+ - name: resultsHistoryName
+   displayName: Results History Name
+   type: string
+ - name: otherFiles
+   type: string
+ - name: resultsDir
+   type: string
+ - name: firebaseTimeout
+   type: string
+   default: 45m
+ - name: firebaseDeviceId
+   type: string
+   displayName: Firebase Device Id
+   default: blueline
+   values:
+    - blueline
+    - flame
+    - redfin
+    - sailfish
+    - walleye
+    - bluejay
+    - oriole
+ - name: firebaseDeviceAndroidVersion
+   displayName: Firebase Device Android Version
+   type: number
+   default: 28
+   values:
+    - 25
+    - 26
+    - 27
+    - 28
+    - 29
+    - 30
+    - 31
+    - 32
+    - 33
 
-#gcloud:
-# type: instrumentation
-# app: "${{ parameters.automationAppApkPath }}"
-# timeout: ${{ parameters.firebaseTimeout }}
-# test: "${{ parameters.automationAppTestApkPath }}"
-## device: "model=${{ parameters.firebaseDeviceId }},version=${{ parameters.firebaseDeviceAndroidVersion }}"
-## timeout: "$(firebaseTimeout)"
-# other-files: ${{ parameters.otherFiles }}
-# results-dir: "${{ parameters.resultsDir }}"
-# directories-to-pull: "/sdcard"
-# use-orchestrator: true
-# environment-variables: "clearPackageData=true"
-# results-history-name: "${{ parameters.resultsHistoryName }}"
-# test-targets: "${{ parameters.testTargetPackages }}"
+gcloud:
+ type: instrumentation
+ app: "${{ parameters.automationAppApkPath }}"
+ timeout: "$(firebaseTimeout)"
+ test: "${{ parameters.automationAppTestApkPath }}"
+ device: "model=${{ parameters.firebaseDeviceId }},version=${{ parameters.firebaseDeviceAndroidVersion }}"
+# timeout: "$(firebaseTimeout)"
+ other-files: ${{ parameters.otherFiles }}
+ results-dir: "${{ parameters.resultsDir }}"
+ directories-to-pull: "/sdcard"
+ use-orchestrator: true
+ environment-variables: "clearPackageData=true"
+ results-history-name: "${{ parameters.resultsHistoryName }}"
+ test-targets: "${{ parameters.testTargetPackages }}"
 
-#flank:
-## -- FlankYml --
-#
-### Max Test Shards
-## test shards - the amount of groups to split the test suite into
-## set to -1 to use one shard per test. default: 1
-# max-test-shards: 5
-#
-### Smart Flank GCS Path
-## Google cloud storage path where the JUnit XML results from the last run is stored.
-## NOTE: Empty results will not be uploaded
-# smart-flank-gcs-path: gs://tmp_flank/tmp/JUnitReport.xml
-#
-### Use Average Test Time for New Tests flag
-## Enable using average time from previous tests duration when using SmartShard and tests did not run before.
-## Default: false
-# use-average-test-time-for-new-tests: true
-#
-### Local Results Directory
-## Local folder to store the test result. Folder is DELETED before each run to ensure only artifacts from the new run are saved.
-# local-result-dir: flank
-#
-### Run Timeout
-## The max time this test run can execute before it is cancelled (default: unlimited).
-# run-timeout: 120m
+flank:
+# -- FlankYml --
+
+## Max Test Shards
+# test shards - the amount of groups to split the test suite into
+# set to -1 to use one shard per test. default: 1
+ max-test-shards: 5
+
+## Smart Flank GCS Path
+# Google cloud storage path where the JUnit XML results from the last run is stored.
+# NOTE: Empty results will not be uploaded
+ smart-flank-gcs-path: gs://tmp_flank/tmp/JUnitReport.xml
+
+## Use Average Test Time for New Tests flag
+# Enable using average time from previous tests duration when using SmartShard and tests did not run before.
+# Default: false
+ use-average-test-time-for-new-tests: true
+
+## Local Results Directory
+# Local folder to store the test result. Folder is DELETED before each run to ensure only artifacts from the new run are saved.
+ local-result-dir: flank
+
+## Run Timeout
+# The max time this test run can execute before it is cancelled (default: unlimited).
+ run-timeout: 120m
