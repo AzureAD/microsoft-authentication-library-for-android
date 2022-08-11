@@ -46,7 +46,7 @@ parameters:
 gcloud:
  type: instrumentation
  app: "${{ parameters.automationAppApkPath }}"
- timeout: "${{ parameters.automationAppApkPath }}"
+ timeout: "${{ automationAppApkPath }}"
  test: "${{ parameters.automationAppTestApkPath }}"
 # device: "model=${{ parameters.firebaseDeviceId }},version=${{ parameters.firebaseDeviceAndroidVersion }}"
 # timeout: "$(firebaseTimeout)"
