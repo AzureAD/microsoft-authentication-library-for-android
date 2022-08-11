@@ -50,7 +50,7 @@ jobs:
     pool:
       vmImage: ubuntu-latest
     steps:
-      - checkout: none
+      - checkout: origin fadi/shard
       - task: DownloadSecureFile@1
         displayName: 'Download Firebase Service Account Key File'
         name: gcServiceAccountKey
