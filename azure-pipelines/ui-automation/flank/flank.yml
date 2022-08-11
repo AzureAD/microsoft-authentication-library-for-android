@@ -1,5 +1,5 @@
 parameters:
- name: automationAppApkPath
+ - name: automationAppApkPath
    type: string
  - name: automationAppTestApkPath
    type: string
