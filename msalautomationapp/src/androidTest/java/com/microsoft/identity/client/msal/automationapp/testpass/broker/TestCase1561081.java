@@ -102,7 +102,7 @@ public class TestCase1561081 extends AbstractMsalBrokerTest {
         String deviceId = (String) JWTParserFactory.INSTANCE.getJwtParser().parseJWT(authResult.getAccessToken()).get("deviceid");
 
         //this gets the deviceId from the Ui and matches it to the deviceID obtained from the AT
-        getDeviceIdFromMyAccount(deviceId, username, password, true);
+        getAndConfirmDeviceIdFromMyAccount(deviceId, username, password, true);
 
         //init the release candidate BrokerHost in order to run wpj Leave
         BrokerHost brokerHost = new BrokerHost(BrokerHost.BROKER_HOST_APK_RC);
