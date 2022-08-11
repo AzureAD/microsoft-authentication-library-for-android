@@ -50,7 +50,7 @@ jobs:
     pool:
       vmImage: ubuntu-latest
     steps:
-      - checkout: origin fadi/shard
+      - checkout: self
       - task: DownloadSecureFile@1
         displayName: 'Download Firebase Service Account Key File'
         name: gcServiceAccountKey
@@ -69,7 +69,7 @@ jobs:
             gcloud auth activate-service-account --key-file "$(gcServiceAccountKey.secureFilePath)"
             gcloud config set project "$(gCloudProjectId)"
             gcloud firebase test android models list
-            gcloud firebase test android run $(Build.SourceDirectory)/msal/azure-pipelines/ui-automation/flank/flank.yml:gcloud
+            gcloud firebase test android run /msal/azure-pipelines/ui-automation/flank/flank.yml:gcloud
       - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/${{ parameters.resultsDir }}/${{ parameters.firebaseDeviceId }}-${{ parameters.firebaseDeviceAndroidVersion }}-en-portrait/test_result_1.xml" "$(Build.SourcesDirectory)"
         displayName: Download Test Result File
         condition: succeededOrFailed()
