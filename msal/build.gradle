@@ -4,9 +4,11 @@ plugins {
     id 'pmd'
     id 'checkstyle'
     id 'maven-publish'
+    id "com.osacky.fladle" version "0.17.4"
 }
 
 apply from: 'versioning/version_tasks.gradle'
+apply plugin: "com.osacky.fladle"
 
 group = 'com.microsoft.identity.client'
 
