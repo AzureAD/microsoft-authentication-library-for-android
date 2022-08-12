@@ -70,7 +70,7 @@ jobs:
             gcloud config set project "$(gCloudProjectId)"
             gcloud firebase test android models list
             wget https://github.com/Flank/flank/releases/download/v22.05.0/flank.jar -O $(Build.SourcesDirectory)/flank.jar
-            java -jar $(Build.SourcesDirectory)/flank.jar firebase test android run \
+            java -jar $(Build.SourcesDirectory)/flank.jar --help firebase test android run \
               --app "${{ parameters.automationAppApkPath }}" \
               --test "${{ parameters.automationAppTestApkPath }}" \
               --device "model=${{ parameters.firebaseDeviceId }},version=${{ parameters.firebaseDeviceAndroidVersion }}" \
