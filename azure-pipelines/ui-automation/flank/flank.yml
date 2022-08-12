@@ -3,7 +3,7 @@ gcloud:
 flank:
 # test shards — the amount of groups to split the test suite into
 # set to -1 to use one shard per test.
-  testShards: okokok
+  testShards: 3
   # test runs — the amount of times to run the tests.
   # 1 runs the tests once. 10 runs all the tests 10x
   testRuns: 1

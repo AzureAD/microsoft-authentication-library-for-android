@@ -69,8 +69,8 @@ jobs:
             gcloud auth activate-service-account --key-file "$(gcServiceAccountKey.secureFilePath)"
             gcloud config set project "$(gCloudProjectId)"
             gcloud firebase test android models list
-            wget --quiet https://github.com/Flank/flank/releases/download/v22.05.0/flank.jar -O ./flank.jar
-            gcloud firebase test android run $(Build.SourcesDirectory)/azure-pipelines/ui-automation/flank/flank.yml:gcloud \
+            wget --quiet https://github.com/Flank/flank/releases/download/v22.05.0/flank.jar -O $(Build.SourcesDirectory)/flank.jar
+            java -jar $(Build.SourcesDirectory)/flank.jar firebase test android run $(Build.SourcesDirectory)/azure-pipelines/ui-automation/flank/flank.yml \
               --app "${{ parameters.automationAppApkPath }}" \
               --test "${{ parameters.automationAppTestApkPath }}" \
               --device "model=${{ parameters.firebaseDeviceId }},version=${{ parameters.firebaseDeviceAndroidVersion }}" \
@@ -82,6 +82,7 @@ jobs:
               --environment-variables "clearPackageData=true" \
               --results-history-name "${{ parameters.resultsHistoryName }}" \
               --test-targets "${{ parameters.testTargetPackages }}"
+#            gcloud firebase test android run $(Build.SourcesDirectory)/azure-pipelines/ui-automation/flank/flank.yml:gcloud \
       - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/${{ parameters.resultsDir }}/${{ parameters.firebaseDeviceId }}-${{ parameters.firebaseDeviceAndroidVersion }}-en-portrait/test_result_1.xml" "$(Build.SourcesDirectory)"
         displayName: Download Test Result File
         condition: succeededOrFailed()
