@@ -30,9 +30,9 @@ jobs:
     envVstsMvnAndroidAccessTokenVar: ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN
     gradleAssembleReleaseTask: msal:clean msal:assembleDistRelease
     gradleGeneratePomFiletask: msal:generatePomFileForMsalPublication
-    aarSourceFolder: msal\build\outputs\aar
-    jarSourceFolder: msal\build\outputs\jar
-    pomSourceFolder: msal\build\publications\msal
+    aarSourceFolder: msal/build/outputs/aar
+    jarSourceFolder: msal/build/outputs/jar
+    pomSourceFolder: msal/build/publications/msal
     gpgAar: true
     gpgSourcesJar: true
     gpgJavadocJar: true

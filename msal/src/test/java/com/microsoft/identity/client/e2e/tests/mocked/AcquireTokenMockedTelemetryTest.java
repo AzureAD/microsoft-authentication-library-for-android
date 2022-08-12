@@ -27,7 +27,6 @@ import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
-import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.e2e.shadows.ShadowMockAuthority;
 import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
@@ -40,11 +39,11 @@ import com.microsoft.identity.common.java.eststelemetry.EstsTelemetry;
 import com.microsoft.identity.common.java.eststelemetry.SchemaConstants;
 import com.microsoft.identity.common.java.net.HttpClient;
 import com.microsoft.identity.common.java.net.HttpResponse;
-import com.microsoft.identity.internal.testutils.HttpRequestInterceptor;
-import com.microsoft.identity.internal.testutils.HttpRequestMatcher;
+import com.microsoft.identity.http.HttpRequestInterceptor;
+import com.microsoft.identity.http.HttpRequestMatcher;
 import com.microsoft.identity.internal.testutils.TestConstants;
 import com.microsoft.identity.internal.testutils.mocks.MockServerResponse;
-import com.microsoft.identity.internal.testutils.shadows.ShadowHttpClient;
+import com.microsoft.identity.shadow.ShadowHttpClient;
 
 import org.junit.Assert;
 import org.junit.Before;
