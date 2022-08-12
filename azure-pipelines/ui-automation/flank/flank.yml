@@ -33,16 +33,6 @@ flank:
   # Default: false
    use-average-test-time-for-new-tests: true
 
-  ## Test Targets Always Run
-  # always run - these tests are inserted at the beginning of every shard
-  # Execution order is not guaranteed by Flank. Users are responsible for configuring their own device test runner logic.
-   test-targets-always-run:
-     - class com.example.app.ExampleUiTest#testPasses
-
-  ## Billing Project ID
-  # The billing enabled Google Cloud Platform project id to use
-   project: flank-open-source
-
   ## Local Results Directory
   # Local folder to store the test result. Folder is DELETED before each run to ensure only artifacts from the new run are saved.
    local-result-dir: flank
