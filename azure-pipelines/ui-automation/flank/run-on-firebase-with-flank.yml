@@ -72,7 +72,7 @@ jobs:
             wget --quiet https://github.com/Flank/flank/releases/download/v22.05.0/flank.jar -O $(Build.SourcesDirectory)/flank.jar
             tree $(Build.SourcesDirectory)
             cp $(Build.SourcesDirectory)/azure-pipelines/ui-automation/flank/flank.yml ./flank.yml
-            gcloud $(Build.SourcesDirectory)/flank.jar firebase test android run \
+            $(Build.SourcesDirectory)/flank.jar gcloud firebase test android run \
               --app "${{ parameters.automationAppApkPath }}" \
               --test "${{ parameters.automationAppTestApkPath }}" \
               --device "model=${{ parameters.firebaseDeviceId }},version=${{ parameters.firebaseDeviceAndroidVersion }}" \
