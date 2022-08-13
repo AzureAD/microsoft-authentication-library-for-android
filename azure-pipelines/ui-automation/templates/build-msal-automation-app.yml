@@ -29,13 +29,15 @@ jobs:
     displayName: Build and Publish MSAL Automation app
     pool:
       vmImage: ubuntu-latest
+    variables:
+      - group: AndroidAuthClientVariables
     steps:
       - checkout: self
         clean: true
         submodules: recursive
         persistCredentials: True
       - bash: |
-          echo "##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN]$(mvnAccessToken)"
+          echo "##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN]$(AndroidAuthClient-Internal-Maven-Access-Token)"
         displayName: Set MVN Access Token in Environment
       - task: AzureKeyVault@2
         displayName: 'Get Key vault AndroidAutomationRunnerAppSecret'
