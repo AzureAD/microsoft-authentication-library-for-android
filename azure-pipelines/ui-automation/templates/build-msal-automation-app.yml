@@ -36,11 +36,11 @@ jobs:
         clean: true
         submodules: recursive
         persistCredentials: True
-      - bash: |
-          echo "##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN]$(AndroidAuthClient-Internal-Maven-Access-Token)"
-        displayName: Set MVN Access Token in Environment
       - task: AzureKeyVault@2
         displayName: 'Get Key vault AndroidAutomationRunnerAppSecret'
+        env:
+          ENV_VSTS_MVN_ANDROID_MSAL_USERNAME: $(AndroidAuthClient-Internal-Maven-Username)
+          ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN: $(AndroidAuthClient-Internal-Maven-Access-Token)
         inputs:
           azureSubscription: 'MSIDLABS_ANDROID_KV'
           KeyVaultName: 'ADALTestInfo'
