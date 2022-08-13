@@ -1,0 +1,104 @@
+# run MSAL without Broker UI automation testcases
+# Variable: 'ENV_VSTS_MVN_ANDROIDADACCOUNTS_USERNAME' was defined in the Variables tab
+# Variable: 'gCloudProjectId' was defined in the Variables tab
+# Variable: 'mvnAccessToken' was defined in the Variables tab
+name: $(Build.BuildId)_$(Build.DefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger: none
+pr: none
+
+parameters:
+  - name: firebaseDeviceId
+    type: string
+    displayName: Firebase Device Id
+    default: blueline
+    values:
+      - blueline
+      - flame
+      - redfin
+      - sailfish
+      - walleye
+      - bluejay
+      - oriole
+  - name: firebaseDeviceAndroidVersion
+    displayName: Firebase Device Android Version
+    type: number
+    default: 28
+    values:
+      - 25
+      - 26
+      - 27
+      - 28
+      - 29
+      - 30
+      - 31
+      - 32
+      - 33
+  - name: testTargetPackages
+    displayName: Packages as Test Targets
+    type: string
+    default: package com.microsoft.identity.client.msal.automationapp.testpass.msalonly, package com.microsoft.identity.client.msal.automationapp.testpass.b2c
+  - name: msalVersion
+    displayName: MSAL Version
+    type: string
+
+variables:
+  engineeringProjectId: 'fac9d424-53d2-45c0-91b5-ef6ba7a6bf26'
+  azureSamplePipelineId: 1458
+  msalAutomationAppApk: msalautomationapp-dist-AutoBroker-debug.apk
+  msalAutomationAppTestApk: msalautomationapp-dist-AutoBroker-debug-androidTest.apk
+  azureSampleApk: AzureSample-local-debug.apk
+  firebaseTimeout: 45m
+  resultsHistoryName: Release Test MSAL without Broker
+
+stages:
+  # msalautomationapp
+  - stage: 'msalautomationapp'
+    displayName: Build MSAL Automation APKs
+    jobs:
+      - template: ./templates/build-msal-automation-app.yml
+        parameters:
+          brokerFlavor: AutoBroker
+          msalFlavor: Dist
+          msalVersion: ${{ parameters.msalVersion }}
+  # Azure Sample
+  - stage: 'azuresample'
+    dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
+    displayName: Dowload Azure Sample APK
+    jobs:
+      - job: 'download_azure_sample'
+        displayName: Download Azure Sample
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - checkout: none
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download latest Azure Sample'
+            inputs:
+              buildType: 'specific'
+              project: '$(engineeringProjectId)'
+              definition: '$(azureSamplePipelineId)'
+              artifactName: AzureSample
+              itemPattern: '**/*.apk'
+              targetPath: '$(Build.ArtifactStagingDirectory)/azureSample'
+              buildVersionToDownload: 'latest'
+          - publish: $(Build.ArtifactStagingDirectory)/azureSample
+            displayName: 'Publish Azure Sample apk for later use'
+            artifact: azureSample
+  # MSAL without Broker Test UI stage
+  - stage: 'msal_without_broker'
+    dependsOn:
+      - msalautomationapp
+      - azuresample
+    displayName: Running MSAL without Broker Test UI Test Suite
+    jobs:
+      - template: ./templates/run-on-firebase.yml
+        parameters:
+          automationAppApkPath: "$(Pipeline.Workspace)/msalautomationapks/$(msalAutomationAppApk)"
+          automationAppTestApkPath: "$(Pipeline.Workspace)/msalautomationapks/$(msalAutomationAppTestApk)"
+          testTargetPackages: ${{ parameters.testTargetPackages }}
+          resultsDir: "msal-brokerless-release-$(Build.BuildId)-$(Build.BuildNumber)"
+          resultsHistoryName: "$(resultsHistoryName)"
+          otherFiles: "/data/local/tmp/AzureSample.apk=$(Pipeline.Workspace)/azureSample/$(azureSampleApk)"
+          firebaseDeviceId: ${{ parameters.firebaseDeviceId }}
+          firebaseDeviceAndroidVersion: ${{ parameters.firebaseDeviceAndroidVersion }}

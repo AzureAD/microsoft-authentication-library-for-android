@@ -20,6 +20,9 @@ parameters:
     values:
       - LocalApk
       - PlayStore
+  - name: msalVersion
+    displayName: MSAL Version
+    type: string
 
 jobs:
   - job: 'msalautomationapp'
@@ -44,12 +47,12 @@ jobs:
       - task: Gradle@2
         displayName: 'Assemble MSAL Automation App'
         inputs:
-          tasks: clean msalautomationapp:assemble${{ parameters.msalFlavor }}${{ parameters.brokerFlavor }}Debug -PlabSecret=$(AndroidAutomationRunnerAppSecret) -PbrokerSource=${{ parameters.brokerSource }}
+          tasks: clean msalautomationapp:assemble${{ parameters.msalFlavor }}${{ parameters.brokerFlavor }}Debug -PlabSecret=$(AndroidAutomationRunnerAppSecret) -PbrokerSource=${{ parameters.brokerSource }} -PdistMsalVersion=${{ parameters.msalVersion }}
           publishJUnitResults: false
       - task: Gradle@2
         displayName: 'Assemble MSAL Automation App Instrumented Tests'
         inputs:
-          tasks: msalautomationapp:assemble${{ parameters.msalFlavor }}${{ parameters.brokerFlavor }}DebugAndroidTest -PlabSecret=$(AndroidAutomationRunnerAppSecret)
+          tasks: msalautomationapp:assemble${{ parameters.msalFlavor }}${{ parameters.brokerFlavor }}DebugAndroidTest -PlabSecret=$(AndroidAutomationRunnerAppSecret) -PdistMsalVersion=${{ parameters.msalVersion }}
           publishJUnitResults: false
       - task: CopyFiles@2
         displayName: 'Copy apks for later use in the pipeline'
