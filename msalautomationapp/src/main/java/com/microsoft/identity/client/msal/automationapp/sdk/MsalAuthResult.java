@@ -55,7 +55,7 @@ public class MsalAuthResult extends AuthResult {
     }
 
     public static void verifyATForPop(@NonNull final String shr) throws ServiceException {
-        Map<String, ?> tokens = IDToken.parseJWT(shr);
+        final Map<String, ?> tokens = IDToken.parseJWT(shr);
         // Verify if the url, path and http method are as expected
         Assert.assertEquals(PoP_DOMAIN, tokens.get(TOKEN_URL));
         Assert.assertEquals(PoP_URL_PATH, tokens.get(TOKEN_URL_PATH));
