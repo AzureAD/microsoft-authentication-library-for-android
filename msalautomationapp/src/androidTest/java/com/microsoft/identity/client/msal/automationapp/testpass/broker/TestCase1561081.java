@@ -102,9 +102,6 @@ public class TestCase1561081 extends AbstractMsalBrokerTest {
         String deviceId =
                 (String) IDToken.parseJWT(authResult.getAccessToken()).get("deviceid");
 
-        //device Id token ought to be NULL
-        Assert.assertNull(deviceId);
-
         //this gets the deviceId from the Ui and matches it to the deviceID obtained from the AT
         getAndConfirmDeviceIdFromMyAccount(deviceId, username, password, true);
 
@@ -149,6 +146,12 @@ public class TestCase1561081 extends AbstractMsalBrokerTest {
         Thread.sleep(TimeUnit.MINUTES.toMinutes(2));
 
         getAndConfirmDeviceIdFromMyAccount(deviceId, username, password, false);
+
+        deviceId =
+                (String) IDToken.parseJWT(authResult.getAccessToken()).get("deviceid");
+
+        //confirm that device ID is null.
+        Assert.assertNull(deviceId);
 
     }
 
