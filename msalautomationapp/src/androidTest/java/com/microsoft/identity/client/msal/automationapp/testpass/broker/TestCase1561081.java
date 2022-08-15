@@ -99,7 +99,11 @@ public class TestCase1561081 extends AbstractMsalBrokerTest {
         authResult.assertSuccess();
 
         //extract the device id claim from the access token.
-        String deviceId = (String) JWTParserFactory.INSTANCE.getJwtParser().parseJWT(authResult.getAccessToken()).get("deviceid");
+        String deviceId =
+                (String) IDToken.parseJWT(authResult.getAccessToken()).get("deviceid");
+
+        //device Id token ought to be NULL
+        Assert.assertNull(deviceId);
 
         //this gets the deviceId from the Ui and matches it to the deviceID obtained from the AT
         getAndConfirmDeviceIdFromMyAccount(deviceId, username, password, true);
