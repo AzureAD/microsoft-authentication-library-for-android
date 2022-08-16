@@ -87,7 +87,6 @@ jobs:
               --type instrumentation \
               --app "${{ parameters.automationAppApkPath }}" \
               --test "${{ parameters.automationAppTestApkPath }}" \
-              --device "model=${{ parameters.firebaseDeviceId }},version=${{ parameters.firebaseDeviceAndroidVersion }}, locale=en, orientation=portrait" \
               --timeout "$(firebaseTimeout)" \
               --other-files ${{ parameters.otherFiles }} \
               --results-dir "${{ parameters.resultsDir }}" \
