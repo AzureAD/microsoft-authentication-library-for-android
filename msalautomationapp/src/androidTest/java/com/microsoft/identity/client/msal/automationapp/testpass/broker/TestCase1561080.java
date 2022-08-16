@@ -54,7 +54,7 @@ import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 // [WPJ] Get device state
-// https://identitydivision.visualstudio.com/Engineering/_testPlans/define?planId=1905195&suiteId=1905204
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561080
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
 public class TestCase1561080 extends AbstractMsalBrokerTest {
 
