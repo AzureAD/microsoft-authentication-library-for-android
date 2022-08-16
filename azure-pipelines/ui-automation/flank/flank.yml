@@ -4,8 +4,8 @@ gcloud:
   test: $VAR_APP_TEST_APK_PATH
   timeout: $VAR_TIMEOUT
   device:
-    model: $VAR_DEVICE_ID
-    version: 28.0
+  - model: $VAR_DEVICE_ID
+    version: $VAR_DEVICE_ANDROID_VERSION
     locale: en
     orientation: portrait
   other-files: $VAR_OTHER_FILES
