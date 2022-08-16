@@ -1,22 +1,22 @@
-gcloud:
-  type: instrumentation
-  app: $VAR_APP_APK_PATH
-  test: $VAR_APP_TEST_APK_PATH
-  timeout: $VAR_TIMEOUT
-  results-dir: $VAR_RESULTS_DIR
-  device:
-  - model: "$VAR_DEVICE_ID"
-    version: $VAR_DEVICE_ANDROID_VERSION
-    locale: en
-    orientation: portrait
-  directories-to-pull:
-    - /sdcard/
-  use-orchestrator: true
-  results-history-name: $VAR_RESULTS_HISTORY_NAME
-  environment-variables:
-    clearPackageData: true
-  test-targets:
-    - $VAR_TEST_TARGETS
+#gcloud:
+#  type: $VAR_TEST_TYPE
+#  app: $VAR_APP_APK_PATH
+#  test: $VAR_APP_TEST_APK_PATH
+#  timeout: $VAR_TIMEOUT
+#  results-dir: $VAR_RESULTS_DIR
+#  device:
+#  - model: $VAR_DEVICE_ID
+#    version: $VAR_DEVICE_ANDROID_VERSION
+#    locale: en
+#    orientation: portrait
+#  directories-to-pull:
+#    - /sdcard/
+#  use-orchestrator: true
+#  results-history-name: $VAR_RESULTS_HISTORY_NAME
+#  environment-variables:
+#    clearPackageData: true
+#  test-targets:
+#    - $VAR_TEST_TARGETS
 
 flank:
   ## Max Test Shards

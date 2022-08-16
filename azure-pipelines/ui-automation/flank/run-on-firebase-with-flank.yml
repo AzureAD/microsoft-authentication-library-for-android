@@ -72,6 +72,7 @@ jobs:
           VAR_RESULTS_DIR: ${{ parameters.resultsDir }}
           VAR_RESULTS_HISTORY_NAME: ${{ parameters.resultsHistoryName }}
           VAR_TEST_TARGETS: ${{ parameters.testTargetPackages }}
+          VAR_TEST_TYPE: instrumentation
         name: runUiAutomation
         displayName: Run UI Automation on Firebase
         inputs:
@@ -84,7 +85,18 @@ jobs:
             echo $VAR_DEVICE_ID
             cp $(Build.SourcesDirectory)/azure-pipelines/ui-automation/flank/flank.yml ./flank.yml
             java -jar $(Build.SourcesDirectory)/flank.jar firebase test android run \
-              --other-files ${{ parameters.otherFiles }}
+              --type instrumentation \
+              --app "${{ parameters.automationAppApkPath }}" \
+              --test "${{ parameters.automationAppTestApkPath }}" \
+              --device "model=${{ parameters.firebaseDeviceId }},version=${{ parameters.firebaseDeviceAndroidVersion }}, locale=en, orientation=portrait" \
+              --timeout "$(firebaseTimeout)" \
+              --other-files ${{ parameters.otherFiles }} \
+              --results-dir "${{ parameters.resultsDir }}" \
+              --directories-to-pull "/sdcard" \
+              --use-orchestrator \
+              --environment-variables "clearPackageData=true" \
+              --results-history-name "${{ parameters.resultsHistoryName }}" \
+              --test-targets "${{ parameters.testTargetPackages }}"
       - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/${{ parameters.resultsDir }}/${{ parameters.firebaseDeviceId }}-${{ parameters.firebaseDeviceAndroidVersion }}-en-portrait/test_result_1.xml" "$(Build.SourcesDirectory)"
         displayName: Download Test Result File
         condition: succeededOrFailed()
