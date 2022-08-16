@@ -9,10 +9,6 @@ flank:
   # 1 runs the tests once. 10 runs all the tests 10x
    num-test-runs: 1
 
-  ## Smart Flank GCS Path
-  # Google cloud storage path where the JUnit XML results from the last run is stored.
-   smart-flank-gcs-path: gs://tmp_flank/tmp/JUnitReport.xml
-
   ## Use Average Test Time for New Tests flag
   # Enable using average time from previous tests duration when using SmartShard and tests did not run before.
   # Default: false
