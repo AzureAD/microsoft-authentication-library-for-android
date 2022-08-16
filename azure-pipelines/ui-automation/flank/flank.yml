@@ -1,6 +1,26 @@
 gcloud:
   type: instrumentation
   app: $VAR_APP_APK_PATH
+  test: $VAR_APP_TEST_APK_PATH
+  device:
+    - model: $VAR_DEVICE_ID
+    - version: $VAR_DEVICE_ANDROID_VERSION
+    - locale: en
+    - orientation: portrait
+  timeout: $VAR_TIMEOUT
+  other-files:
+    - $VAR_OTHER_FILES
+  results-dir: $VAR_RESULTS_DIR
+  directories-to-pull:
+    - /sdcard/
+  use-orchestrator: true
+  environment-variables:
+    clearPackageData: true
+  results-history-name: $VAR_RESULTS_HISTORY_NAME
+  test-targets:
+    - $VAR_TEST_TARGETS
+
+
 
 flank:
   ## Max Test Shards
@@ -37,7 +57,3 @@ flank:
   ## Local Results Directory
   # Local folder to store the test result. Folder is DELETED before each run to ensure only artifacts from the new run are saved.
    local-result-dir: flank
-
-  ## Run Timeout
-  # The max time this test run can execute before it is cancelled (default: unlimited).
-   run-timeout: 30m
