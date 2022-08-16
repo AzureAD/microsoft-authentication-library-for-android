@@ -18,7 +18,7 @@ gcloud:
   test-targets:
     - $VAR_TEST_TARGETS
   other-files:
-    - $VAR_OTHER_FILES
+    - /data/local/tmp/AzureSample.apk: /home/vsts/work/1/azureSample/AzureSample-local-debug.apk
 
 flank:
   ## Max Test Shards
