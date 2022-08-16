@@ -87,6 +87,7 @@ jobs:
               --type instrumentation \
               --app "${{ parameters.automationAppApkPath }}" \
               --test "${{ parameters.automationAppTestApkPath }}" \
+              --record-video \
               --other-files ${{ parameters.otherFiles }} \
               --device model=${{ parameters.firebaseDeviceId }},version=${{ parameters.firebaseDeviceAndroidVersion }},locale=en,orientation=portrait \
               --timeout "$(firebaseTimeout)" \

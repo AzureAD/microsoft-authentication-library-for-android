@@ -2,7 +2,7 @@ flank:
   ## Max Test Shards
   # test shards - the amount of groups to split the test suite into
   # set to -1 to use one shard per test. default: 1
-   max-test-shards: 3
+   max-test-shards: 5
 
   ## Shard Time
   # shard time - the amount of time tests within a shard should take
@@ -19,11 +19,6 @@ flank:
   ## Smart Flank GCS Path
   # Google cloud storage path where the JUnit XML results from the last run is stored.
    smart-flank-gcs-path: gs://tmp_flank/tmp/JUnitReport.xml
-
-  ## Smart Flank Upload Disable flag
-  # Disables smart flank JUnit XML uploading. Useful for preventing timing data from being updated.
-  # Default: false
-   smart-flank-disable-upload: false
 
   ## Use Average Test Time for New Tests flag
   # Enable using average time from previous tests duration when using SmartShard and tests did not run before.
