@@ -4,13 +4,6 @@ flank:
   # set to -1 to use one shard per test. default: 1
    max-test-shards: 5
 
-  ## Shard Time
-  # shard time - the amount of time tests within a shard should take
-  # when set to > 0, the shard count is dynamically set based on time up to the maximum limit defined by max-test-shards
-  # 2 minutes (120) is recommended.
-  # default: -1 (unlimited)
-   shard-time: 120
-
   ## Number of Test Runs
   # test runs - the amount of times to run the tests.
   # 1 runs the tests once. 10 runs all the tests 10x

@@ -63,15 +63,6 @@ jobs:
       - task: Bash@3
         env:
           GOOGLE_APPLICATION_CREDENTIALS: $(gcServiceAccountKey.secureFilePath)
-          VAR_APP_APK_PATH: ${{ parameters.automationAppApkPath }}
-          VAR_APP_TEST_APK_PATH: ${{ parameters.automationAppTestApkPath }}
-          VAR_DEVICE_ID: ${{ parameters.firebaseDeviceId }}
-          VAR_DEVICE_ANDROID_VERSION: ${{ parameters.firebaseDeviceAndroidVersion }}
-          VAR_TIMEOUT: $(firebaseTimeout)
-          VAR_OTHER_FILES: ${{ parameters.otherFiles }}
-          VAR_RESULTS_DIR: ${{ parameters.resultsDir }}
-          VAR_RESULTS_HISTORY_NAME: ${{ parameters.resultsHistoryName }}
-          VAR_TEST_TARGETS: ${{ parameters.testTargetPackages }}
         name: runUiAutomation
         displayName: Run UI Automation on Firebase
         inputs:
@@ -87,6 +78,7 @@ jobs:
               --type instrumentation \
               --app "${{ parameters.automationAppApkPath }}" \
               --test "${{ parameters.automationAppTestApkPath }}" \
+              --auto-google-login \
               --record-video \
               --other-files ${{ parameters.otherFiles }} \
               --device model=${{ parameters.firebaseDeviceId }},version=${{ parameters.firebaseDeviceAndroidVersion }},locale=en,orientation=portrait \
