@@ -144,7 +144,7 @@ public class TestCase1561081 extends AbstractMsalBrokerTest {
         //wait for two minutes to ensure the changes are made.
         Thread.sleep(TimeUnit.MINUTES.toMinutes(2));
 
-        getDeviceIdFromMyAccount(deviceId, username, password, false);
+        getAndConfirmDeviceIdFromMyAccount(deviceId, username, password, false);
 
     }
 
@@ -159,7 +159,7 @@ public class TestCase1561081 extends AbstractMsalBrokerTest {
      *                           this device maybe in, ie REGISTERED / UNREGISTERED.
      * @throws Throwable
      */
-    private void getDeviceIdFromMyAccount(String deviceID, String username, String password, boolean isDeviceRegistered) throws  Throwable{
+    private void getAndConfirmDeviceIdFromMyAccount(String deviceID, String username, String password, boolean isDeviceRegistered) throws  Throwable{
         BrowserChrome chrome  = new BrowserChrome();
         chrome.clear();
         chrome.launch();
