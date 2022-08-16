@@ -99,7 +99,8 @@ public class TestCase1561081 extends AbstractMsalBrokerTest {
         authResult.assertSuccess();
 
         //extract the device id claim from the access token.
-        String deviceId = (String) JWTParserFactory.INSTANCE.getJwtParser().parseJWT(authResult.getAccessToken()).get("deviceid");
+        String deviceId =
+                (String) IDToken.parseJWT(authResult.getAccessToken()).get("deviceid");
 
         //this gets the deviceId from the Ui and matches it to the deviceID obtained from the AT
         getAndConfirmDeviceIdFromMyAccount(deviceId, username, password, true);
@@ -141,10 +142,16 @@ public class TestCase1561081 extends AbstractMsalBrokerTest {
 
         authResult2.assertSuccess();
 
-        //wait for two minutes to ensure the changes are made.
+        //wait for two minutes to ensure the device is unregistered.
         Thread.sleep(TimeUnit.MINUTES.toMinutes(2));
 
-        getDeviceIdFromMyAccount(deviceId, username, password, false);
+        getAndConfirmDeviceIdFromMyAccount(deviceId, username, password, false);
+
+        deviceId =
+                (String) IDToken.parseJWT(authResult.getAccessToken()).get("deviceid");
+
+        //confirm that device ID is null.
+        Assert.assertNull(deviceId);
 
     }
 
@@ -159,7 +166,7 @@ public class TestCase1561081 extends AbstractMsalBrokerTest {
      *                           this device maybe in, ie REGISTERED / UNREGISTERED.
      * @throws Throwable
      */
-    private void getDeviceIdFromMyAccount(String deviceID, String username, String password, boolean isDeviceRegistered) throws  Throwable{
+    private void getAndConfirmDeviceIdFromMyAccount(String deviceID, String username, String password, boolean isDeviceRegistered) throws  Throwable{
         BrowserChrome chrome  = new BrowserChrome();
         chrome.clear();
         chrome.launch();
