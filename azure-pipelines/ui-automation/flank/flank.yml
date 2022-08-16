@@ -5,7 +5,7 @@ gcloud:
   timeout: $VAR_TIMEOUT
   device:
     model: $VAR_DEVICE_ID
-    version: 28
+    version: 28.0
     locale: en
     orientation: portrait
   other-files: $VAR_OTHER_FILES
