@@ -2,12 +2,12 @@ gcloud:
   type: instrumentation
   app: $VAR_APP_APK_PATH
   test: $VAR_APP_TEST_APK_PATH
+  timeout: $VAR_TIMEOUT
   device:
     model: $VAR_DEVICE_ID
     version: $VAR_DEVICE_ANDROID_VERSION
     locale: en
     orientation: portrait
-  timeout: $VAR_TIMEOUT
   other-files: $VAR_OTHER_FILES
   results-dir: $VAR_RESULTS_DIR
   directories-to-pull: /sdcard/
