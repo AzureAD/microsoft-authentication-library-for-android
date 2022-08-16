@@ -72,7 +72,6 @@ jobs:
           VAR_RESULTS_DIR: ${{ parameters.resultsDir }}
           VAR_RESULTS_HISTORY_NAME: ${{ parameters.resultsHistoryName }}
           VAR_TEST_TARGETS: ${{ parameters.testTargetPackages }}
-          VAR_TEST_TYPE: instrumentation
         name: runUiAutomation
         displayName: Run UI Automation on Firebase
         inputs:
