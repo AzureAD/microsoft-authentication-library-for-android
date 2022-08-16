@@ -179,7 +179,9 @@ task sourcesJar(type: Jar) {
     destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
 }
 
-String commonVersion = project.hasProperty("distCommonVersion") ? project.distCommonVersion : "5.0.9-CBATest"
+// In dev, we want to keep the dependencies(common4j, broker4j, common) to 0.0.+ to be able to be consumed by daily dev pipeline.
+// In release/*, we change these to specific versions being consumed.
+String commonVersion = project.hasProperty("distCommonVersion") ? project.distCommonVersion : "0.0.+"
 
 dependencies {
     testImplementation project(path: ':common4j')
@@ -206,7 +208,7 @@ dependencies {
     //mockito-inline was introduced in mockito 2.7.6
     //see: https://javadoc.io/static/org.mockito/mockito-core/3.6.28/org/mockito/Mockito.html#0.1
     testImplementation "org.mockito:mockito-inline:$rootProject.ext.mockitoCoreVersion"
-    testImplementation ("org.robolectric:robolectric:$rootProject.ext.robolectricVersion")
+    testImplementation ("org.robolectric:robolectric:4.5.1")
     testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"
     testImplementation project(':testutils')
     // instrumentation test dependencies
@@ -224,6 +226,8 @@ dependencies {
     distApi("com.microsoft.identity:common:${commonVersion}") {
         transitive = true
     }
+
+    testImplementation(testFixtures(project(":common4j")))
 
 }
 

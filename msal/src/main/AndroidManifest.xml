@@ -28,6 +28,7 @@
         <!-- MSAL will use system webview (custom tab) to render the sign-in page, BrowserTabActivity is to get response back from System Webview. Multiple apps on the device could integrate MSAL, OS will check which BrowserTabActivity can handle the intent based on the intent filter declared, so this activity has to be exported.-->
         <activity
             android:name="com.microsoft.identity.client.BrowserTabActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize|screenLayout"
             android:exported="true" />
 
         <activity

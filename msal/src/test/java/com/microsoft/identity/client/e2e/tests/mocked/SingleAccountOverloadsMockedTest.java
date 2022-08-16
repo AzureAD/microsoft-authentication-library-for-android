@@ -49,12 +49,12 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.java.exception.ServiceException;
 import com.microsoft.identity.common.java.providers.oauth2.IDToken;
 import com.microsoft.identity.common.java.util.StringUtil;
-import com.microsoft.identity.internal.testutils.HttpRequestMatcher;
+import com.microsoft.identity.http.HttpRequestMatcher;
 import com.microsoft.identity.internal.testutils.TestConstants;
 import com.microsoft.identity.internal.testutils.TestUtils;
 import com.microsoft.identity.internal.testutils.mocks.MockServerResponse;
 import com.microsoft.identity.internal.testutils.mocks.MockTokenCreator;
-import com.microsoft.identity.internal.testutils.shadows.ShadowHttpClient;
+import com.microsoft.identity.shadow.ShadowHttpClient;
 
 import org.junit.Assert;
 import org.junit.Before;
