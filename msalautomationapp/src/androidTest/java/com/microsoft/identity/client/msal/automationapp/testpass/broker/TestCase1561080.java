@@ -20,8 +20,8 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
+
 
 import androidx.test.uiautomator.UiObject;
 
@@ -53,15 +53,15 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
-// [WPJ] WPJ Leave
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561081
+// [WPJ] Get device state
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561080
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
-public class TestCase1561081 extends AbstractMsalBrokerTest {
+public class TestCase1561080 extends AbstractMsalBrokerTest {
 
     final String MY_ACCOUNT_MICROSOFT_URL = "https://myaccount.microsoft.com/";
 
     @Test
-    public void test_1561081() throws Throwable {
+    public void test_1561080() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
@@ -70,6 +70,51 @@ public class TestCase1561081 extends AbstractMsalBrokerTest {
         //perform device registration
         brokerMicrosoftAuthenticator.performDeviceRegistration(username, password);
 
+        BrowserChrome chrome  = new BrowserChrome();
+        chrome.clear();
+        chrome.launch();
+        chrome.handleFirstRun();
+
+        //navigates to myaccount.microsoft.com
+        chrome.navigateTo(MY_ACCOUNT_MICROSOFT_URL);
+
+        //handle the login prompts
+        final AadLoginComponentHandler aadLoginComponentHandler = new AadLoginComponentHandler();
+        aadLoginComponentHandler.handleEmailField(username);
+        aadLoginComponentHandler.handlePasswordField(password);
+
+        //Goto Manage devices
+        UiAutomatorUtils.handleButtonClick("com.android.chrome:id/button_secondary");
+
+        //Click Manage devices
+        UiAutomatorUtils.handleButtonClickForObjectWithText("MANAGE DEVICES");
+
+        //open the collapsible container
+        UiAutomatorUtils.handleButtonClickForObjectWithText("Collapsible item");
+
+        //Click the Disable lost device button
+        UiObject disable_lost_device_btn1 = UiAutomatorUtils.obtainUiObjectWithText("Disable lost device");
+        disable_lost_device_btn1.click();
+
+        //Confirm disabling of the device.
+        UiObject disable_lost_device_btn2 = UiAutomatorUtils.obtainUiObjectWithText("Disable lost device");
+        disable_lost_device_btn2.click();
+
+        //install prod brokerhost app.
+        BrokerHost brokerHost = new BrokerHost(BrokerHost.BROKER_HOST_APK_RC);
+        brokerHost.clear();
+
+        brokerHost.launch();
+        //run get device state
+        String deviceStateResponse = brokerHost.getDeviceState();
+
+        //should be false as it should fail after disabling the device.
+        Assert.assertEquals("false",deviceStateResponse);
+
+        //Get the device ID direct from the brokerHost.
+        String deviceId = brokerHost.obtainDeviceId();
+
+        //launch msal test app.
         final MsalSdk msalSdk = new MsalSdk();
 
         final MsalAuthTestParams authTestParams_firstTry = MsalAuthTestParams.builder()
@@ -80,7 +125,7 @@ public class TestCase1561081 extends AbstractMsalBrokerTest {
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-        //AT interactive acquisition.
+        //AT interactive acquisition. - It should fail
         final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams_firstTry, new OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
@@ -96,25 +141,22 @@ public class TestCase1561081 extends AbstractMsalBrokerTest {
             }
         }, TokenRequestTimeout.MEDIUM);
 
-        authResult.assertSuccess();
+        //test failure
+        authResult.assertFailure();
 
-        //extract the device id claim from the access token.
-        String deviceId =
-                (String) IDToken.parseJWT(authResult.getAccessToken()).get("deviceid");
+        brokerHost.launch();
 
-        //this gets the deviceId from the Ui and matches it to the deviceID obtained from the AT
-        getAndConfirmDeviceIdFromMyAccount(deviceId, username, password, true);
+        final String deviceStateResponse2 = brokerHost.getDeviceState();
 
-        //init the release candidate BrokerHost in order to run wpj Leave
-        BrokerHost brokerHost = new BrokerHost(BrokerHost.BROKER_HOST_APK_RC);
-        if(brokerHost.isInstalled()){
-            brokerHost.uninstall();
-        }
+        // the devise response should be false.
+        Assert.assertEquals("false", deviceStateResponse2);
 
-        brokerHost.install();
-        //run wpj leave
-        brokerHost.wpjLeave();
+        //Delete the device from idlabs.
+        boolean isDeviceDeleted = mLabClient.deleteDevice(mLabAccount.getUsername(), deviceId);
 
+        Assert.assertTrue(isDeviceDeleted);
+
+        //acquire token the second time, this time it should work
         final MsalAuthTestParams authTestParams_SecondTry = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
@@ -125,7 +167,7 @@ public class TestCase1561081 extends AbstractMsalBrokerTest {
 
 
         //acquire the token interactively for a second time.
-         final MsalAuthResult authResult2 = msalSdk.acquireTokenInteractive(authTestParams_SecondTry, new OnInteractionRequired() {
+        final MsalAuthResult authResult2 = msalSdk.acquireTokenInteractive(authTestParams_SecondTry, new OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
                 final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
@@ -141,62 +183,6 @@ public class TestCase1561081 extends AbstractMsalBrokerTest {
         }, TokenRequestTimeout.MEDIUM);
 
         authResult2.assertSuccess();
-
-        //wait for two minutes to ensure the device is unregistered.
-        Thread.sleep(TimeUnit.MINUTES.toMinutes(2));
-
-        getAndConfirmDeviceIdFromMyAccount(deviceId, username, password, false);
-
-        deviceId =
-                (String) IDToken.parseJWT(authResult.getAccessToken()).get("deviceid");
-
-        //confirm that device ID is null.
-        Assert.assertNull(deviceId);
-
-    }
-
-    /**
-     * Get's the device registration details from <code>MY_ACCOUNT_MICROSOFT_URL</code> service
-     * and confirms the deivce's registration / de-registration status.
-     *
-     * @param deviceID - The device Id obtained from performDeviceRegistration
-     * @param username - LabApi username
-     * @param password - LabApi password
-     * @param isDeviceRegistered - toggle to enable re-usability of this method across the two states
-     *                           this device maybe in, ie REGISTERED / UNREGISTERED.
-     * @throws Throwable
-     */
-    private void getAndConfirmDeviceIdFromMyAccount(String deviceID, String username, String password, boolean isDeviceRegistered) throws  Throwable{
-        BrowserChrome chrome  = new BrowserChrome();
-        chrome.clear();
-        chrome.launch();
-        chrome.handleFirstRun();
-
-        chrome.navigateTo(MY_ACCOUNT_MICROSOFT_URL);
-
-        final AadLoginComponentHandler aadLoginComponentHandler = new AadLoginComponentHandler();
-        aadLoginComponentHandler.handleEmailField(username);
-        aadLoginComponentHandler.handlePasswordField(password);
-
-        UiAutomatorUtils.handleButtonClick("com.android.chrome:id/button_secondary");
-
-        //Click - MANAGE DEVICES
-        UiAutomatorUtils.handleButtonClickForObjectWithText("MANAGE DEVICES");
-
-        //Click - Collapsible item
-        if(isDeviceRegistered){
-            UiAutomatorUtils.handleButtonClickForObjectWithText("Collapsible item");
-        }
-
-        UiObject object  = null;
-
-        if(isDeviceRegistered){
-            object = UiAutomatorUtils.obtainUiObjectWithText(deviceID);
-        } else {
-            object = UiAutomatorUtils.obtainUiObjectWithText("No devices to display.");
-        }
-
-        Assert.assertTrue(object != null);
     }
 
     @Override
