@@ -20,13 +20,21 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.broker;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.usgov;
 
+import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+
+import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
+import com.microsoft.identity.client.claims.ClaimsRequest;
+import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
+import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
@@ -35,81 +43,88 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadP
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Map;
 
-public class TestCase769049 extends AbstractMsalBrokerTest {
+// [USGOV][Broker][Joined] In-line WPJ/MSAL - acquire token with deviceid claim request,
+// and instance_aware=true
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/940421
+public class TestCase940421 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_769049() throws Throwable {
+    public void test_940421() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
 
+        // create claims request object
+        final ClaimsRequest claimsRequest = new ClaimsRequest();
+        final RequestedClaimAdditionalInformation requestedClaimAdditionalInformation =
+                new RequestedClaimAdditionalInformation();
+
+        requestedClaimAdditionalInformation.setEssential(true);
+
+        // request the deviceid claim in ID Token
+        claimsRequest.requestClaimInIdToken("deviceid", requestedClaimAdditionalInformation);
+
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
+                .claims(claimsRequest)
                 .scopes(Arrays.asList(mScopes))
-                .promptParameter(Prompt.LOGIN)
+                .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
+        // start interactive acquire token request in MSAL (should succeed)
         final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                        .prompt(PromptParameter.LOGIN)
+                        .prompt(PromptParameter.SELECT_ACCOUNT)
                         .loginHint(username)
                         .sessionExpected(false)
                         .consentPageExpected(false)
                         .speedBumpExpected(false)
                         .broker(mBroker)
                         .expectingBrokerAccountChooserActivity(false)
+                        .expectingLoginPageAccountPicker(false)
+                        .registerPageExpected(true)
                         .build();
 
                 new AadPromptHandler(promptHandlerParameters)
                         .handlePrompt(username, password);
             }
-        }, TokenRequestTimeout.MEDIUM);
+        }, TokenRequestTimeout.LONG);
 
         authResult.assertSuccess();
 
-        // SECOND REQUEST WITHOUT LOGIN HINT
-        final MsalAuthTestParams noLoginHintParams = MsalAuthTestParams.builder()
-                .activity(mActivity)
-                .scopes(Arrays.asList(mScopes))
-                .promptParameter(Prompt.LOGIN)
-                .msalConfigResourceId(getConfigFileResourceId())
-                .build();
+        // Assertion of Deviceid Claim in the ID Token claims
+        assertDeviceIdClaimSuccess(msalSdk.getAccount(mActivity,getConfigFileResourceId(),username));
+    }
 
-        final MsalAuthResult noLoginHintauthResult = msalSdk.acquireTokenInteractive(noLoginHintParams, new OnInteractionRequired() {
-            @Override
-            public void handleUserInteraction() {
-                final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-                        .prompt(PromptParameter.LOGIN)
-                        .sessionExpected(true)
-                        .consentPageExpected(false)
-                        .speedBumpExpected(false)
-                        .broker(mBroker)
-                        .expectingBrokerAccountChooserActivity(true)
-                        .expectingProvidedAccountInBroker(true)
-                        .build();
-
-                new AadPromptHandler(promptHandlerParameters)
-                        .handlePrompt(username, password);
-            }
-        }, TokenRequestTimeout.MEDIUM);
-
-        noLoginHintauthResult.assertSuccess();
+    private void assertDeviceIdClaimSuccess(@NonNull final IAccount account) {
+        final Map<String, ?> claims = account.getClaims();
+        final String requestedClaim = "deviceid";
+        final String expectedValue = null;
+        Assert.assertTrue(claims.containsKey(requestedClaim));
+        if (!TextUtils.isEmpty(expectedValue)) {
+            final Object claimValue = claims.get(requestedClaim);
+            Assert.assertEquals(expectedValue, claimValue.toString());
+        }
     }
 
     @Override
     public LabQuery getLabQuery() {
         return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
+                .userType(UserType.CLOUD)
+                .azureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT)
                 .build();
     }
 
@@ -130,6 +145,6 @@ public class TestCase769049 extends AbstractMsalBrokerTest {
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_default;
+        return R.raw.msal_config_instance_aware_common;
     }
 }

@@ -20,123 +20,111 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.b2c;
-
-import androidx.annotation.NonNull;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.usgov;
 
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
+import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
+import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
-import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
+import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
-import com.microsoft.identity.client.ui.automation.interaction.b2c.B2CPromptHandlerParameters;
-import com.microsoft.identity.client.ui.automation.interaction.b2c.B2CProviderWrapper;
-import com.microsoft.identity.client.ui.automation.interaction.b2c.IdLabB2cSisoPolicyPromptHandler;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
+import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import java.util.Arrays;
 
-@RunWith(Parameterized.class)
-@RetryOnFailure
-public class B2CIdLabSisoPolicyTest extends AbstractB2CTest {
-
-    final static B2CProviderWrapper[] b2CProviderWrappers = new B2CProviderWrapper[]{
-            // B2CProviderWrapper.Google, // This is breaking on Pipeline
-            B2CProviderWrapper.Local,
-            B2CProviderWrapper.MSA,
-            // B2CProviderWrapper.Facebook, // This is currently breaking, "Facebook Login is currently unavailable for this app"
-    };
-
-    @Parameterized.Parameters(name = "{0}")
-    public static B2CProviderWrapper[] data() {
-        return b2CProviderWrappers;
-    }
-
-    private final B2CProviderWrapper mB2cProviderWrapper;
-
-    public B2CIdLabSisoPolicyTest(@NonNull final B2CProviderWrapper b2CProvider) {
-        mB2cProviderWrapper = b2CProvider;
-    }
-
-    @Override
-    public B2CProviderWrapper getB2cProvider() {
-        return mB2cProviderWrapper;
-    }
+// [USGOV][Broker][Non-Joined] Acquire Token with Resource with instance_aware = true
+// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/796048
+public class TestCase796048 extends AbstractMsalBrokerTest {
 
     @Test
-    public void testCanLoginWithLocalAndSocialAccounts() throws Throwable {
+    public void test_796048() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
 
+        //Interactive call W/ Resource
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
-                .scopes(Arrays.asList(mScopes))
-                .promptParameter(Prompt.SELECT_ACCOUNT)
+                .resource(mScopes[0])
                 .msalConfigResourceId(getConfigFileResourceId())
+                .promptParameter(Prompt.SELECT_ACCOUNT)
                 .build();
 
         final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
-                ((IApp) mBrowser).handleFirstRun();
-
-                final B2CPromptHandlerParameters promptHandlerParameters = B2CPromptHandlerParameters.builder()
+                final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
                         .loginHint(username)
                         .sessionExpected(false)
                         .consentPageExpected(false)
                         .speedBumpExpected(false)
-                        .broker(null)
+                        .broker(mBroker)
                         .expectingBrokerAccountChooserActivity(false)
-                        .b2cProvider(getB2cProvider())
                         .build();
 
-                new IdLabB2cSisoPolicyPromptHandler(promptHandlerParameters)
+                new AadPromptHandler(promptHandlerParameters)
                         .handlePrompt(username, password);
             }
-        },TokenRequestTimeout.LONG);
+        },TokenRequestTimeout.MEDIUM);
 
         authResult.assertSuccess();
 
-        // ------ do silent request ------
+        // now expire AT
+        TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
+
+        // SILENT REQUEST
         final MsalAuthTestParams authTestSilentParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .authority(getAuthority())
                 .loginHint(username)
-                .forceRefresh(false)
-                .scopes(Arrays.asList(mScopes))
-                .msalConfigResourceId(getConfigFileResourceId())
-                .build();
-
-        final MsalAuthResult authSilentResult = msalSdk.acquireTokenSilent(authTestSilentParams, TokenRequestTimeout.SILENT);
-        authSilentResult.assertSuccess();
-
-        // ------ do force refresh silent request ------
-        final MsalAuthTestParams silentForceParams = MsalAuthTestParams.builder()
-                .activity(mActivity)
+                .resource(mScopes[0])
                 .authority(getAuthority())
-                .loginHint(username)
                 .forceRefresh(true)
-                .scopes(Arrays.asList(mScopes))
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-        final MsalAuthResult authSilentForceResult = msalSdk.acquireTokenSilent(silentForceParams, TokenRequestTimeout.SILENT);
-        authSilentForceResult.assertSuccess();
+        final MsalAuthResult silentAuthResult = msalSdk.acquireTokenSilent(authTestSilentParams, TokenRequestTimeout.SILENT);
+
+        silentAuthResult.assertSuccess();
+    }
+
+
+    @Override
+    public LabQuery getLabQuery() {
+        return LabQuery.builder()
+                .userType(UserType.CLOUD)
+                .azureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT)
+                .build();
+    }
+
+    @Override
+    public TempUserType getTempUserType() {
+        return null;
+    }
+
+    @Override
+    public String[] getScopes() {
+        return new String[]{"00000002-0000-0000-c000-000000000000"};
+    }
+
+    @Override
+    public String getAuthority() {
+        return "https://login.microsoftonline.us/common";
     }
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_b2c_siso;
+        return R.raw.msal_config_instance_aware_common;
     }
 }
