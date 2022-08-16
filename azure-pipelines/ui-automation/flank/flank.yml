@@ -2,11 +2,11 @@ gcloud:
 #  type: $VAR_TEST_TYPE
 #  app: $VAR_APP_APK_PATH
 #  test: $VAR_APP_TEST_APK_PATH
-#  timeout: $VAR_TIMEOUT
+  timeout: $VAR_DEVICE_ID
 #  results-dir: $VAR_RESULTS_DIR
   device:
-  - model: $VAR_DEVICE_ID
-    version: $VAR_DEVICE_ANDROID_VERSION
+  - model: blueline
+    version: 28
     locale: en
     orientation: portrait
 #  directories-to-pull:
