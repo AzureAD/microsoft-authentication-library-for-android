@@ -74,7 +74,6 @@ jobs:
             gcloud firebase test android models list
             wget --quiet https://github.com/Flank/flank/releases/download/v22.05.0/flank.jar -O $(Build.SourcesDirectory)/flank.jar
             echo $GOOGLE_APPLICATION_CREDENTIALS
-            echo ${{ parameters }}
             cp $(Build.SourcesDirectory)/azure-pipelines/ui-automation/flank/flank.yml ./flank.yml
             java -jar $(Build.SourcesDirectory)/flank.jar firebase test android run \
               --test "${{ parameters.automationAppTestApkPath }}" \
