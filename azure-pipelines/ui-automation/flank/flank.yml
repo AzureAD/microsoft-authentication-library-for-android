@@ -15,7 +15,6 @@ gcloud:
   results-history-name: $VAR_RESULTS_HISTORY_NAME
   environment-variables:
     clearPackageData: true
-
   test-targets:
     - $VAR_TEST_TARGETS
 
