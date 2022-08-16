@@ -2,7 +2,7 @@ gcloud:
 #  type: $VAR_TEST_TYPE
 #  app: $VAR_APP_APK_PATH
 #  test: $VAR_APP_TEST_APK_PATH
-  timeout: $VAR_DEVICE_ID
+  timeout: $VAR_TIMEOUT
 #  results-dir: $VAR_RESULTS_DIR
   device:
   - model: blueline
