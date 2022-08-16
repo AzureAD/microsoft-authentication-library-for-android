@@ -12,9 +12,10 @@ gcloud:
   directories-to-pull:
     - /sdcard/
   use-orchestrator: true
-  environment-variables:
-    - clearPackageData: true
   results-history-name: $VAR_RESULTS_HISTORY_NAME
+  environment-variables:
+    clearPackageData: true
+
   test-targets:
     - $VAR_TEST_TARGETS
 
