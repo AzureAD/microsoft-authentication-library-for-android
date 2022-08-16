@@ -5,7 +5,7 @@ gcloud:
   timeout: $VAR_TIMEOUT
   results-dir: $VAR_RESULTS_DIR
   device:
-  - model: $VAR_DEVICE_ID
+  - model: "$VAR_DEVICE_ID"
     version: $VAR_DEVICE_ANDROID_VERSION
     locale: en
     orientation: portrait
