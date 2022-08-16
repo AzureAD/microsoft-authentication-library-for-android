@@ -63,6 +63,7 @@ jobs:
       - task: Bash@3
         env:
           GOOGLE_APPLICATION_CREDENTIALS: $(gcServiceAccountKey.secureFilePath)
+          VAR_APP_APK_PATH: ${{ parameters.automationAppApkPath }}
         name: runUiAutomation
         displayName: Run UI Automation on Firebase
         inputs:
@@ -72,10 +73,10 @@ jobs:
             gcloud config set project "$(gCloudProjectId)"
             gcloud firebase test android models list
             wget --quiet https://github.com/Flank/flank/releases/download/v22.05.0/flank.jar -O $(Build.SourcesDirectory)/flank.jar
-            echo $(GOOGLE_APPLICATION_CREDENTIALS)
+            echo $GOOGLE_APPLICATION_CREDENTIALS
+            echo ${{ parameters }}
             cp $(Build.SourcesDirectory)/azure-pipelines/ui-automation/flank/flank.yml ./flank.yml
-            java -jar $(Build.SourcesDirectory)/flank.jar firebase test android run\
-              --app "${{ parameters.automationAppApkPath }}" \
+            java -jar $(Build.SourcesDirectory)/flank.jar firebase test android run \
               --test "${{ parameters.automationAppTestApkPath }}" \
               --device "model=${{ parameters.firebaseDeviceId }},version=${{ parameters.firebaseDeviceAndroidVersion }}" \
               --timeout "$(firebaseTimeout)" \
@@ -86,8 +87,6 @@ jobs:
               --environment-variables "clearPackageData=true" \
               --results-history-name "${{ parameters.resultsHistoryName }}" \
               --test-targets "${{ parameters.testTargetPackages }}" \
-#            gcloud firebase test android run $(Build.SourcesDirectory)/azure-pipelines/ui-automation/flank/flank.yml:gcloud \
-#            java -jar $(Build.SourcesDirectory)/flank.jar firebase test android run \
       - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/${{ parameters.resultsDir }}/${{ parameters.firebaseDeviceId }}-${{ parameters.firebaseDeviceAndroidVersion }}-en-portrait/test_result_1.xml" "$(Build.SourcesDirectory)"
         displayName: Download Test Result File
         condition: succeededOrFailed()

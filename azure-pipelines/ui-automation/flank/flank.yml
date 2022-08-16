@@ -1,5 +1,6 @@
 gcloud:
   type: instrumentation
+  app: $VAR_APP_APK_PATH
 
 flank:
   ## Max Test Shards
