@@ -17,8 +17,6 @@ gcloud:
   results-history-name: $VAR_RESULTS_HISTORY_NAME
   test-targets:
     - $VAR_TEST_TARGETS
-  other-files:
-    - /data/local/tmp/AzureSample.apk: /home/vsts/work/1/azureSample/AzureSample-local-debug.apk
 
 flank:
   ## Max Test Shards
