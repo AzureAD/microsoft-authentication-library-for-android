@@ -3,13 +3,13 @@ gcloud:
   app: $VAR_APP_APK_PATH
   test: $VAR_APP_TEST_APK_PATH
   timeout: $VAR_TIMEOUT
+  results-dir: $VAR_RESULTS_DIR
   device:
   - model: $VAR_DEVICE_ID
     version: $VAR_DEVICE_ANDROID_VERSION
     locale: en
     orientation: portrait
   other-files: $VAR_OTHER_FILES
-  results-dir: $VAR_RESULTS_DIR
   directories-to-pull: /sdcard/
   use-orchestrator: true
   environment-variables:
