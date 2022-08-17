@@ -89,7 +89,7 @@ jobs:
               --results-history-name "${{ parameters.resultsHistoryName }}" \
               --test-targets "${{ parameters.testTargetPackages }}" \
               --smart-flank-gcs-path "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/smart-flank-xml/msal-only/JUnitReport.xml"
-      - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/${{ parameters.resultsDir }}/${{ parameters.firebaseDeviceId }}-${{ parameters.firebaseDeviceAndroidVersion }}/JUnitReport.xml" "$(Build.SourcesDirectory)"
+      - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/${{ parameters.resultsDir }}/JUnitReport.xml" "$(Build.SourcesDirectory)"
         displayName: Download Test Result File
         condition: succeededOrFailed()
       - task: PublishTestResults@2
