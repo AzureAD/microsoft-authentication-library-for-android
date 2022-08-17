@@ -96,6 +96,6 @@ jobs:
         displayName: Publish Test Results to ADO
         condition: succeededOrFailed()
         inputs:
-          testResultsFiles: '*test_result*.xml'
+          testResultsFiles: 'JUnitReport.xml'
           searchFolder: $(Build.SourcesDirectory)
           testRunTitle: 'MSAL UI Automation - Build # $(Build.BuildNumber)'
