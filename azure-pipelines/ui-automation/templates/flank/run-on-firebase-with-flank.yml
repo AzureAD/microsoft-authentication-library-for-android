@@ -72,8 +72,7 @@ jobs:
             gcloud config set project "$(gCloudProjectId)"
             gcloud firebase test android models list
             wget --quiet https://github.com/Flank/flank/releases/download/v22.05.0/flank.jar -O $(Build.SourcesDirectory)/flank.jar
-            echo $VAR_DEVICE_ID
-            cp $(Build.SourcesDirectory)/azure-pipelines/ui-automation/flank/flank.yml ./flank.yml
+            cp $(Build.SourcesDirectory)/azure-pipelines/ui-automation/templates/flank/flank.yml ./flank.yml
             java -jar $(Build.SourcesDirectory)/flank.jar firebase test android run \
               --type instrumentation \
               --app "${{ parameters.automationAppApkPath }}" \
@@ -90,7 +89,7 @@ jobs:
               --results-history-name "${{ parameters.resultsHistoryName }}" \
               --test-targets "${{ parameters.testTargetPackages }}" \
               --smart-flank-gcs-path "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/smart-flank-xml/msal-only/JUnitReport.xml"
-      - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/${{ parameters.resultsDir }}/${{ parameters.firebaseDeviceId }}-${{ parameters.firebaseDeviceAndroidVersion }}-en-portrait/test_result_1.xml" "$(Build.SourcesDirectory)"
+      - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/${{ parameters.resultsDir }}/${{ parameters.firebaseDeviceId }}-${{ parameters.firebaseDeviceAndroidVersion }}/JUnitReport.xml" "$(Build.SourcesDirectory)"
         displayName: Download Test Result File
         condition: succeededOrFailed()
       - task: PublishTestResults@2
