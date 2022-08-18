@@ -32,6 +32,7 @@ import androidx.annotation.NonNull;
 import androidx.test.core.app.ApplicationProvider;
 
 import com.microsoft.identity.client.IAuthenticationResult;
+import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
@@ -557,5 +558,107 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
         Assert.assertEquals(ww, "https://microsoft.com/devicelogin");
         Assert.assertEquals(usgov, "https://microsoft.com/deviceloginus");
+    }
+
+    // The same device code url shall be the same for 2 PCA objects with the same configuration (pointing to USGov)
+    // Even if the 1st PCA was used to invoke DCF prior to the 2nd one.
+    // https://portal.microsofticm.com/imp/v3/incidents/details/325344544/home
+    // NOTE: This one FAILS.
+    @Test
+    public void testInitializingMultiplePCAWithSameUsGovConfig_OnlyDeviceCodeFlowUSGovURLShouldBeReturned() throws Exception {
+        final Context context = ApplicationProvider.getApplicationContext();
+
+        final List<String> scope = new ArrayList<>();
+        scope.add("user.read");
+
+        // 1. created one public client application with a us gov configuration file.
+        final IPublicClientApplication[] apps = new IPublicClientApplication[2];
+        PublicClientApplication.create(context,
+                new File(MULTIPLE_ACCOUNT_MODE_AAD_USGOV_CONFIG_FILE_PATH),
+                new IPublicClientApplication.ApplicationCreatedListener() {
+                    @Override
+                    public void onCreated(IPublicClientApplication application) {
+                        apps[0] = application;
+                    }
+
+                    @Override
+                    public void onError(MsalException exception) {
+                        // This shouldn't run
+                        Assert.fail();
+                    }
+                });
+
+        RoboTestUtils.flushScheduler();
+
+        // 2. use this public client application to acquire the user code, this time the returned user code is correct.
+        final IPublicClientApplication pcaApp1 = apps[0];
+        Assert.assertEquals("https://login.microsoftonline.us/common", pcaApp1.getConfiguration().getAuthorities().get(0).getAuthorityURL().toString());
+
+        final ResultFuture<String> uri1 = new ResultFuture<String>();
+        pcaApp1.acquireTokenWithDeviceCode(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
+            @Override
+            public void onUserCodeReceived(@NonNull String vUri, @NonNull String userCode, @NonNull String message, @NonNull Date sessionExpirationDate) {
+                uri1.setResult(vUri);
+            }
+
+            @Override
+            public void onTokenReceived(@NonNull IAuthenticationResult authResult) {
+                // This shouldn't run
+                Assert.fail();
+            }
+
+            @Override
+            public void onError(@NonNull MsalException exception) {
+                // This shouldn't run
+                uri1.setException(exception);
+            }
+        });
+
+        Assert.assertEquals("https://microsoft.com/deviceloginus", uri1.get(10, TimeUnit.SECONDS));
+
+        //3. then create another public client application with the same configuration file in step 1.
+        PublicClientApplication.create(context, new File(MULTIPLE_ACCOUNT_MODE_AAD_USGOV_CONFIG_FILE_PATH),
+                new IPublicClientApplication.ApplicationCreatedListener() {
+                    @Override
+                    public void onCreated(IPublicClientApplication application) {
+                        apps[1] = application;
+                    }
+
+                    @Override
+                    public void onError(MsalException exception) {
+                        // This shouldn't run
+                        Assert.fail();
+                    }
+                });
+
+        RoboTestUtils.flushScheduler();
+
+        final IPublicClientApplication pcaApp2 = apps[1];
+        Assert.assertEquals("https://login.microsoftonline.us/common", pcaApp2.getConfiguration().getAuthorities().get(0).getAuthorityURL().toString());
+
+        // Note: we can use resultFuture here because this method is not dispatched back to main thread
+        // via AndroidPlatformUtil.postCommandResult()
+        final ResultFuture<String> uri2 = new ResultFuture<String>();
+        pcaApp2.acquireTokenWithDeviceCode(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
+            @Override
+            public void onUserCodeReceived(@NonNull String vUri, @NonNull String userCode, @NonNull String message, @NonNull Date sessionExpirationDate) {
+                uri2.setResult(vUri);
+            }
+
+            @Override
+            public void onTokenReceived(@NonNull IAuthenticationResult authResult) {
+                // This shouldn't run
+                Assert.fail();
+            }
+
+            @Override
+            public void onError(@NonNull MsalException exception) {
+                // This shouldn't run
+                uri2.setException(exception);
+            }
+        });
+
+        // Should still get USGOV back.
+        Assert.assertEquals("https://microsoft.com/deviceloginus", uri2.get(10, TimeUnit.SECONDS));
     }
 }
