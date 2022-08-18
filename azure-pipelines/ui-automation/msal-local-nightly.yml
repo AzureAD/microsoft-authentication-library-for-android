@@ -97,7 +97,7 @@ stages:
       - azuresample
     displayName: Running MSAL without Broker Test UI Test Suite
     jobs:
-      - template: ./templates/run-on-firebase.yml
+      - template: ./templates/flank/run-on-firebase-with-flank.yml
         parameters:
           automationAppApkPath: "$(Pipeline.Workspace)/msalautomationapks/msalautomationapp-local-BrokerHost-debug.apk"
           automationAppTestApkPath: "$(Pipeline.Workspace)/msalautomationapks/msalautomationapp-local-BrokerHost-debug-androidTest.apk"
