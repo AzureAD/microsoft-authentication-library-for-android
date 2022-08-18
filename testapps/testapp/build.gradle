@@ -23,7 +23,11 @@
  * // THE SOFTWARE.
  */
 
-apply plugin: 'com.android.application'
+
+plugins {
+    id "com.android.application"
+    id "com.microsoft.intune.mam"
+}
 
 def msalVersion = "4.+"
 
@@ -108,7 +112,14 @@ dependencies {
     implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
     implementation "androidx.legacy:legacy-support-v4:$rootProject.ext.legacySupportV4Version"
     implementation "com.google.android.material:material:$rootProject.ext.materialVersion"
+    implementation "com.microsoft.intune.mam:android-sdk:$rootProject.ext.intuneAppSdkVersion"
 
     compileOnly "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
     annotationProcessor "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
+}
+
+//https://docs.microsoft.com/en-us/mem/intune/developer/app-sdk-android
+intunemam {
+    verify = true
+    incremental = true //Experimental
 }

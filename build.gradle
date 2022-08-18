@@ -8,10 +8,21 @@ buildscript {
     repositories {
         google()
         mavenCentral()
+        maven {
+            // msazure and aria are consumed via upstream sources of the AndroidADAL feed.
+            name "vsts-maven-adal-android"
+            url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
+            credentials {
+                username project.vstsUsername
+                password project.vstsMavenAccessToken
+            }
+        }
     }
 
     dependencies {
         classpath "com.android.tools.build:gradle:$rootProject.ext.gradleVersion"
+        classpath "org.javassist:javassist:${rootProject.ext.javaAssistVersion}"
+        classpath "com.microsoft.intune.mam:android-build-plugin:${rootProject.ext.intuneAppSdkVersion}"
     }
 }
 
