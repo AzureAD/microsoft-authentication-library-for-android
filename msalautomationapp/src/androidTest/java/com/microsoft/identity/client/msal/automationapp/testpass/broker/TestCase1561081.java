@@ -152,7 +152,6 @@ public class TestCase1561081 extends AbstractMsalBrokerTest {
 
         //confirm that device ID is null.
         Assert.assertNull(deviceId);
-
     }
 
     /**
