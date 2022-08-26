@@ -1,6 +1,7 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 V.Next
 ----------
+- [PATCH] Updating the single account cache before notifying the caller of account change/load via callback. (#1688)
 - [MINOR] Added keyboard flag to configChanges in Manifest for YubiKey compatibility. (#1685)
 
 Version 4.0.1
