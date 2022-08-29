@@ -1,4 +1,8 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
+V.Next
+----------
+- [MINOR] Added keyboard flag to configChanges in Manifest for YubiKey compatibility. (#1685)
+
 Version 4.0.1
 ----------
 - [PATCH] Update common to 6.0.1
