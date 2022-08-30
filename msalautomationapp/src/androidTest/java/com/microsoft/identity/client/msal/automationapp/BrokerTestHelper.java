@@ -49,7 +49,7 @@ public class BrokerTestHelper {
                 }
                 final List<Class<? extends ITestBroker>> supportedBrokerClasses =
                         Arrays.asList(supportedBrokersAnnotation.brokers());
-                if (BuildConfig.FLAVOR_main.equals("dist") && supportedBrokerClasses.contains(BrokerCompanyPortal.class)) {
+                if (supportedBrokerClasses.contains(BrokerCompanyPortal.class)) {
                     return new BrokerCompanyPortal();
                 } else {
                     return new BrokerMicrosoftAuthenticator();
