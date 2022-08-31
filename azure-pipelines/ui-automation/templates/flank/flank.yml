@@ -1,0 +1,19 @@
+flank:
+  ## Max Test Shards
+  # test shards - the amount of groups to split the test suite into
+  # set to -1 to use one shard per test. default: 1
+   max-test-shards: 5
+
+  ## Number of Test Runs
+  # test runs - the amount of times to run the tests.
+  # 1 runs the tests once. 10 runs all the tests 10x
+   num-test-runs: 1
+
+  ## Use Average Test Time for New Tests flag
+  # Enable using average time from previous tests duration when using SmartShard and tests did not run before.
+  # Default: false
+   use-average-test-time-for-new-tests: true
+
+  ## Local Results Directory
+  # Local folder to store the test result. Folder is DELETED before each run to ensure only artifacts from the new run are saved.
+   local-result-dir: flank
