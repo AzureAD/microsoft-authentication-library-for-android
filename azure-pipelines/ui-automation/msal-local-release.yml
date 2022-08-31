@@ -92,7 +92,7 @@ stages:
       - azuresample
     displayName: Running MSAL without Broker Test UI Test Suite
     jobs:
-      - template: ./templates/run-on-firebase.yml
+      - template: ./templates/flank/run-on-firebase-with-flank.yml
         parameters:
           automationAppApkPath: "$(Pipeline.Workspace)/msalautomationapks/$(msalAutomationAppApk)"
           automationAppTestApkPath: "$(Pipeline.Workspace)/msalautomationapks/$(msalAutomationAppTestApk)"
