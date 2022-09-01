@@ -134,7 +134,7 @@ stages:
           automationAppApkPath: "$(Pipeline.Workspace)/msalautomationapks/msalautomationapp-local-BrokerHost-debug.apk"
           automationAppTestApkPath: "$(Pipeline.Workspace)/msalautomationapks/msalautomationapp-local-BrokerHost-debug-androidTest.apk"
           testTargetPackages: ${{ parameters.testTargetPackages }}
-          ignoredTarget: "notAnnotation org.junit.Ignore, notAnnotation com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers{brokers = BrokerCompanyPortal.class}"
+          ignoredTarget: "notAnnotation org.junit.Ignore,notAnnotation com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers{brokers = {BrokerCompanyPortal.class}},notAnnotation com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers{brokers = {BrokerMicrosoftAuthenticator.class}}"
           resultsHistoryName: "Dev MSAL with Dev BrokerHost"
           otherFiles: "/data/local/tmp/BrokerHost.apk=$(Pipeline.Workspace)/brokerHost/$(brokerHostApk),\
                   /data/local/tmp/OldBrokerHost.apk=$(Pipeline.Workspace)/oldBrokerHost/$(oldBrokerHostApk),\
