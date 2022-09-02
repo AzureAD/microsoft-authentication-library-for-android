@@ -32,6 +32,7 @@ import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.AzureSampleApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
@@ -42,7 +43,6 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerPara
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadLoginComponentHandler;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
@@ -58,6 +58,7 @@ import java.util.concurrent.TimeUnit;
 // End My Shift - In Shared device mode, global sign out should work.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833515
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
+@RetryOnFailure(retryCount = 2)
 public class TestCase833515 extends AbstractMsalBrokerTest {
 
     final static String MY_APPS_URL = "myapps.microsoft.com";
