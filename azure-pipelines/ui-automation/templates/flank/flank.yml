@@ -24,4 +24,4 @@ flank:
    # 'multi' is used as the default. The output style 'multi' is not displayed correctly on consoles
    # which don't support ansi codes, to avoid corrupted output use single or verbose.
    # The output style `compact` is used to produce less detailed output, it prints just Args, test and matrix count, weblinks, cost, and result reports.
-    output-style: single
+   output-style: single
