@@ -31,6 +31,7 @@ import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
@@ -50,10 +51,12 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 // End My Shift - In Shared device mode, only account from the same tenant should be able to acquire token.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833513
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
+@RetryOnFailure(retryCount = 2)
 public class TestCase833513 extends AbstractMsalBrokerTest {
 
     @Test
@@ -119,7 +122,7 @@ public class TestCase833513 extends AbstractMsalBrokerTest {
 
         // expecting error in WebView now
         final UiObject errMsg = UiAutomatorUtils.obtainUiObjectWithText("AADSTS50020");
-        Assert.assertTrue(errMsg.exists());
+        Assert.assertTrue(errMsg.waitForExists(TimeUnit.MINUTES.toMillis(1)));
     }
 
     @Override
