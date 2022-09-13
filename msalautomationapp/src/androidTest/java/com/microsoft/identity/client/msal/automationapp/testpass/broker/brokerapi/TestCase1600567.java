@@ -70,7 +70,7 @@ public class TestCase1600567 extends AbstractMsalBrokerTest {
         brokerHost.confirmCallingAppNotVerified();
 
         // verify setFlights call gives calling app not verified
-        brokerHost.setFlights("{test : true}");
+        brokerHost.overwriteFlights("{test : true}");
         brokerHost.confirmCallingAppNotVerified();
 
         // verify getFlights call gives calling app not verified
