@@ -22,7 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
-
 import androidx.test.uiautomator.UiObject;
 
 import com.microsoft.identity.client.Prompt;
@@ -35,26 +34,25 @@ import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
-import com.microsoft.identity.client.ui.automation.browser.BrowserEdge;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadLoginComponentHandler;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
-import com.microsoft.identity.common.java.providers.oauth2.IDToken;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
-import com.microsoft.identity.labapi.utilities.jwt.JWTParserFactory;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 
 // [WPJ] Get device state
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561080
+// TODO: Revisit once we can pull Prod/RC Brokerhost APKs from pipelines
+@Ignore
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
 public class TestCase1561080 extends AbstractMsalBrokerTest {
 
