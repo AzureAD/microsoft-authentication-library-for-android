@@ -45,7 +45,7 @@ parameters:
   - name: testTargetPackages
     displayName: Packages as Test Targets
     type: string
-    default: package com.microsoft.identity.client.msal.automationapp.testpass.broker
+    default: package com.microsoft.identity.client.msal.automationapp.testpass.broker, notAnnotation org.junit.Ignore
   - name: oldBrokerHostVersion
     displayName: Old Broker host Version
     type: string
@@ -134,7 +134,6 @@ stages:
           automationAppApkPath: "$(Pipeline.Workspace)/msalautomationapks/msalautomationapp-local-AutoBroker-debug.apk"
           automationAppTestApkPath: "$(Pipeline.Workspace)/msalautomationapks/msalautomationapp-local-AutoBroker-debug-androidTest.apk"
           testTargetPackages: ${{ parameters.testTargetPackages }}
-          ignoredTarget: "notAnnotation org.junit.Ignore"
           resultsHistoryName: "Dev MSAL with Prod Broker (AuthApp, CP)"
           otherFiles: "/data/local/tmp/BrokerHost.apk=$(Pipeline.Workspace)/brokerHost/$(brokerHostApk),\
                   /data/local/tmp/OldBrokerHost.apk=$(Pipeline.Workspace)/oldBrokerHost/$(oldBrokerHostApk),\

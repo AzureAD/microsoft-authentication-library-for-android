@@ -91,7 +91,6 @@ jobs:
               --environment-variables "clearPackageData=true" \
               --results-history-name "${{ parameters.resultsHistoryName }}" \
               --test-targets "${{ parameters.testTargetPackages }}" \
-              --test-targets "${{ parameters.ignoredTarget }} " \
               --smart-flank-gcs-path "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/smart-flank-xml/msal-only/JUnitReport.xml"
       - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/${{ parameters.resultsDir }}/JUnitReport.xml" "$(Build.SourcesDirectory)"
         displayName: Download Test Result File
