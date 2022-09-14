@@ -6,9 +6,6 @@ parameters:
   - name: testTargetPackages
     displayName: Packages as Test Targets
     type: string
-  - name: ignoredTarget
-    displayName: Packages/Annotations to Ignore from Test Targets
-    type: string
   - name: resultsHistoryName
     displayName: Results History Name
     type: string
