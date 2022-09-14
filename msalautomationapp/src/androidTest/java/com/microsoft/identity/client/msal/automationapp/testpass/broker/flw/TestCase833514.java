@@ -36,6 +36,7 @@ import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.AzureSampleApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
@@ -58,6 +59,7 @@ import java.util.concurrent.TimeUnit;
 // End My Shift - In Shared device mode, an account signed in through App A can be used by App B.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833514
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
+@RetryOnFailure(retryCount = 2)
 public class TestCase833514 extends AbstractMsalBrokerTest {
 
     @Test

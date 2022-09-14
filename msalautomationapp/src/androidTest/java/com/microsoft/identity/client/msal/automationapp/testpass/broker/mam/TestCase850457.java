@@ -30,6 +30,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
@@ -44,6 +45,7 @@ import java.util.concurrent.TimeUnit;
 
 // [MSAL] password reset for MAM_CA account
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/850457
+@RetryOnFailure(retryCount = 2)
 public class TestCase850457 extends AbstractMsalBrokerTest {
 
     @Test

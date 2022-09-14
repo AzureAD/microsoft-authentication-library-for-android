@@ -32,6 +32,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractGuestAccountMsalBrokerUiTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.constants.GlobalConstants;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
@@ -57,6 +58,7 @@ import androidx.annotation.NonNull;
 
 // Acquire token from cross cloud when Device CA is required (via PKeyAuth)
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1592468
+@RetryOnFailure(retryCount = 2)
 @RunWith(Parameterized.class)
 public class TestCase1592468 extends AbstractGuestAccountMsalBrokerUiTest {
 
