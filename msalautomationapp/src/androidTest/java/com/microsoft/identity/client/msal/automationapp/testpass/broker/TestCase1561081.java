@@ -107,7 +107,8 @@ public class TestCase1561081 extends AbstractMsalBrokerTest {
         getAndConfirmDeviceIdFromMyAccount(deviceId, username, password, true);
 
         //init the release candidate BrokerHost in order to run wpj Leave
-        BrokerHost brokerHost = new BrokerHost(BrokerHost.BROKER_HOST_APK_RC);
+        // Install BrokerHost.apk
+        BrokerHost brokerHost = new BrokerHost(BrokerHost.BROKER_HOST_APK);
         if(brokerHost.isInstalled()){
             brokerHost.uninstall();
         }
