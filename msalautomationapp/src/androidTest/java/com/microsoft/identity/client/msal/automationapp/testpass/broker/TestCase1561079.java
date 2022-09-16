@@ -49,7 +49,7 @@ import java.util.Arrays;
 // [WPJ] - Get Device ID
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561079
 // TODO: Revisit once we can pull Prod/RC Brokerhost APKs from pipelines
-@Ignore
+//@Ignore
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
 public class TestCase1561079 extends AbstractMsalBrokerTest {
 
@@ -61,7 +61,8 @@ public class TestCase1561079 extends AbstractMsalBrokerTest {
         //perform device registration
         mBroker.performDeviceRegistration(username, password);
 
-        BrokerHost brokerHost = new BrokerHost(BrokerHost.BROKER_HOST_APK_PROD);
+        // Install BrokerHost.apk
+        BrokerHost brokerHost = new BrokerHost(BrokerHost.BROKER_HOST_APK);
         if(brokerHost.isInstalled()){
             brokerHost.uninstall();
         }

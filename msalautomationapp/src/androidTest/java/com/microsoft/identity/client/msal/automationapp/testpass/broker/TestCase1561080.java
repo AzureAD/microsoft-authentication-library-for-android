@@ -52,7 +52,7 @@ import java.util.Arrays;
 // [WPJ] Get device state
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561080
 // TODO: Revisit once we can pull Prod/RC Brokerhost APKs from pipelines
-@Ignore
+//@Ignore
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
 public class TestCase1561080 extends AbstractMsalBrokerTest {
 
@@ -98,8 +98,8 @@ public class TestCase1561080 extends AbstractMsalBrokerTest {
         UiObject disable_lost_device_btn2 = UiAutomatorUtils.obtainUiObjectWithText("Disable lost device");
         disable_lost_device_btn2.click();
 
-        //install prod brokerhost app.
-        BrokerHost brokerHost = new BrokerHost(BrokerHost.BROKER_HOST_APK_RC);
+        // Install BrokerHost.apk
+        BrokerHost brokerHost = new BrokerHost(BrokerHost.BROKER_HOST_APK);
         brokerHost.clear();
 
         brokerHost.launch();
