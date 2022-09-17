@@ -73,7 +73,7 @@ public class TestCase1561079 extends AbstractMsalBrokerTest {
 
         final MsalSdk msalSdk = new MsalSdk();
 
-        MsalAuthTestParams authTestParams_firstTry = MsalAuthTestParams.builder()
+        MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
                 .scopes(Arrays.asList(mScopes))
@@ -82,7 +82,7 @@ public class TestCase1561079 extends AbstractMsalBrokerTest {
                 .build();
 
         //AT interactive acquisition.
-        MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams_firstTry, new OnInteractionRequired() {
+        MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
                 final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
