@@ -41,6 +41,7 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadL
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.common.java.providers.oauth2.IDToken;
+import com.microsoft.identity.common.java.util.ThreadUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
@@ -168,6 +169,8 @@ public class TestCase1561081 extends AbstractMsalBrokerTest {
      * @throws Throwable
      */
     private void getAndConfirmDeviceIdFromMyAccount(String deviceID, String username, String password, boolean isDeviceRegistered) throws  Throwable{
+        ThreadUtils.sleepSafely(10000, "Failed to sleep", "Interrupted");
+
         BrowserChrome chrome  = new BrowserChrome();
         chrome.clear();
         chrome.launch();
