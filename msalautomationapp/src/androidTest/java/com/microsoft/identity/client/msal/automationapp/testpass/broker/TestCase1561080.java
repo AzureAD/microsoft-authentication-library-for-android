@@ -39,6 +39,7 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadLoginComponentHandler;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
+import com.microsoft.identity.common.java.util.ThreadUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
@@ -52,7 +53,7 @@ import java.util.Arrays;
 // [WPJ] Get device state
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561080
 // TODO: Revisit once we can pull Prod/RC Brokerhost APKs from pipelines
-//@Ignore
+@Ignore("Chrome Automation is very inconsistent")
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
 public class TestCase1561080 extends AbstractMsalBrokerTest {
 
@@ -81,6 +82,8 @@ public class TestCase1561080 extends AbstractMsalBrokerTest {
         aadLoginComponentHandler.handleEmailField(username);
         aadLoginComponentHandler.handlePasswordField(password);
 
+        ThreadUtils.sleepSafely(15000, "Sleep failed", "Interrupted");
+
         //Goto Manage devices
         UiAutomatorUtils.handleButtonClick("com.android.chrome:id/button_secondary");
 
@@ -106,7 +109,6 @@ public class TestCase1561080 extends AbstractMsalBrokerTest {
 
         brokerHost.install();
 
-        brokerHost.launch();
         //run get device state
         String deviceStateResponse = brokerHost.getDeviceState();
 

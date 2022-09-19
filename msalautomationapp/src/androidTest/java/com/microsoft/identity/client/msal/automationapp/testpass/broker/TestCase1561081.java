@@ -56,7 +56,7 @@ import java.util.concurrent.TimeUnit;
 // [WPJ] WPJ Leave
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561081
 // TODO: Revisit once we can pull Prod/RC Brokerhost APKs from pipelines
-//@Ignore
+@Ignore("Chrome Automation is very inconsistent")
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
 public class TestCase1561081 extends AbstractMsalBrokerTest {
 

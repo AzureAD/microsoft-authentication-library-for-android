@@ -38,6 +38,7 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.common.java.providers.oauth2.IDToken;
+import com.microsoft.identity.common.java.util.ThreadUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
@@ -50,7 +51,7 @@ import java.util.Arrays;
 // [WPJ] - Get Device ID
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561079
 // TODO: Revisit once we can pull Prod/RC Brokerhost APKs from pipelines
-//@Ignore
+@Ignore
 @RetryOnFailure(retryCount = 2)
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
 public class TestCase1561079 extends AbstractMsalBrokerTest {
@@ -70,6 +71,8 @@ public class TestCase1561079 extends AbstractMsalBrokerTest {
         }
 
         brokerHost.install();
+        ThreadUtils.sleepSafely(5000, "Sleep failed", "Interrupted");
+
         //run obtain Device ID
         String deviceId = brokerHost.obtainDeviceId();
 
