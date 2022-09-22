@@ -53,7 +53,7 @@ import java.util.Arrays;
 // [WPJ] Get device state
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561080
 // TODO: Revisit once we can pull Prod/RC Brokerhost APKs from pipelines
-@Ignore("Chrome Automation is very inconsistent")
+@Ignore("Chrome Automation is inconsistent")
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
 public class TestCase1561080 extends AbstractMsalBrokerTest {
 
@@ -102,7 +102,7 @@ public class TestCase1561080 extends AbstractMsalBrokerTest {
         disable_lost_device_btn2.click();
 
         // Install BrokerHost.apk
-        BrokerHost brokerHost = new BrokerHost(BrokerHost.BROKER_HOST_APK);
+        BrokerHost brokerHost = new BrokerHost(BrokerHost.BROKER_HOST_APK_RC);
         if(brokerHost.isInstalled()){
             brokerHost.uninstall();
         }

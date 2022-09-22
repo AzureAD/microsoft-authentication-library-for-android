@@ -22,7 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
-
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
@@ -65,7 +64,7 @@ public class TestCase1561079 extends AbstractMsalBrokerTest {
         mBroker.performDeviceRegistration(username, password);
 
         // Install BrokerHost.apk
-        BrokerHost brokerHost = new BrokerHost(BrokerHost.BROKER_HOST_APK);
+        BrokerHost brokerHost = new BrokerHost(BrokerHost.BROKER_HOST_APK_PROD);
         if(brokerHost.isInstalled()){
             brokerHost.uninstall();
         }
