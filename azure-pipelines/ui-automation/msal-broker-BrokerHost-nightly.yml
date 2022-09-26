@@ -57,7 +57,7 @@ variables:
   brokerHostPipelineId: 1432
   msazureServiceConnection: AndroidBroker-CI
   msazureFeedName: Android-Broker
-  azureSampleApk: AzureSample-local-debug.apk
+  azureSampleApk: AzureSample-external-release.apk
   brokerHostApk: brokerHost-local-debug.apk
   oldBrokerHostApk: brokerHost-local-debug.apk
   firebaseTimeout: 45m
