@@ -24,13 +24,13 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.nonjoin
 
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.exception.MsalServiceException;
-import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
@@ -45,6 +45,7 @@ import java.util.Arrays;
 
 // [Non-joined] A single-tenant app makes a silent request with common authority. It should fail.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/1600592
+@RetryOnFailure(retryCount = 2)
 public class TestCase1600592 extends AbstractMsalBrokerTest {
 
     @Test

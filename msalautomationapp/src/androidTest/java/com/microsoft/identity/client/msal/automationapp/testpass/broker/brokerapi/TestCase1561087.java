@@ -41,12 +41,32 @@ public class TestCase1561087 extends AbstractMsalBrokerTest {
     public void test_1561087() {
         // Set flights and get to check if the flight information is returned
         final String flightsJson =  "{\"SetFlightsTest\":\"true\"}";
-        mBroker.setFlights(flightsJson);
+        mBroker.overwriteFlights(flightsJson);
         Assert.assertEquals(flightsJson, mBroker.getFlights());
 
+        // Add flights and get to check if the flight information is returned
+        final String anotherFlightJson = "{\"AnotherFlight\":\"hello\"}";
+        mBroker.setFlights(anotherFlightJson);
+        Assert.assertEquals( "{\"AnotherFlight\":\"hello\",\"SetFlightsTest\":\"true\"}", mBroker.getFlights());
+
+        // Override flights and get to check if the flight information is returned
+        final String flightToOverwrite = "{\"SetFlightsTest\":\"false\"}";
+        mBroker.setFlights(flightToOverwrite);
+        Assert.assertEquals("{\"AnotherFlight\":\"hello\",\"SetFlightsTest\":\"false\"}", mBroker.getFlights());
+
+        // Add flight with null value. SetFlightsTest should be removed.
+        final String flightMapWithNullValue = "{\"SetFlightsTest\": null}";
+        mBroker.setFlights(flightMapWithNullValue);
+        Assert.assertEquals("{\"AnotherFlight\":\"hello\"}", mBroker.getFlights());
+
+        // Add an empty flight map. the flight map should not change.
+        final String emptyFlightMap = "{}";
+        mBroker.setFlights(emptyFlightMap);
+        Assert.assertEquals("{\"AnotherFlight\":\"hello\"}", mBroker.getFlights());
+
         // clear flights and get to check if the flights are cleared
-        final String clearFlightsJson =  "{}";
-        mBroker.setFlights(clearFlightsJson);
+        final String clearFlightsJson = "{}";
+        mBroker.overwriteFlights(clearFlightsJson);
         Assert.assertEquals(clearFlightsJson, mBroker.getFlights());
     }
 
