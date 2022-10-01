@@ -105,7 +105,7 @@ public class TestCase1561080 extends AbstractMsalBrokerTest {
         // Install BrokerHost.apk
         BrokerHost brokerHost = new BrokerHost(BrokerHost.BROKER_HOST_APK_RC);
         if(brokerHost.isInstalled()){
-            brokerHost.uninstall();
+            Assert.fail("BrokerhHost should not be already installed");
         }
 
         brokerHost.install();
