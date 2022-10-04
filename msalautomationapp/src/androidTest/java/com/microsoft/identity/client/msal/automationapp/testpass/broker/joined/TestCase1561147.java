@@ -30,6 +30,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler;
@@ -45,6 +46,7 @@ import java.util.Arrays;
 
 // [Joined][MSAL] Broker Auth - Federated User
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561147
+@RetryOnFailure(retryCount = 2)
 public class TestCase1561147 extends AbstractMsalBrokerTest {
     @Test
     public void test_1561147() throws Throwable {

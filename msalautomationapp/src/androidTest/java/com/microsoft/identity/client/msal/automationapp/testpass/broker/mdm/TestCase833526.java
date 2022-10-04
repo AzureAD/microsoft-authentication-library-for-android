@@ -29,6 +29,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.IMdmAgent;
@@ -49,6 +50,7 @@ import java.util.Arrays;
 // [Joined][MSAL] Device Admin MDM: Broker Auth for MDM account
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833526
 @SupportedBrokers(brokers = BrokerCompanyPortal.class)
+@RetryOnFailure(retryCount = 2)
 public class TestCase833526 extends AbstractMsalBrokerTest {
 
     @Test
