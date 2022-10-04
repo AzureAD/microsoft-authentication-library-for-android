@@ -23,8 +23,10 @@
 
 package com.microsoft.identity.client.exception;
 
+import com.microsoft.identity.common.java.constants.SpotbugsWarning;
 import com.microsoft.identity.common.java.exception.UnsupportedBrokerException;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
@@ -39,6 +41,8 @@ public class MsalUnsupportedBrokerException extends MsalException {
     @NonNull
     private final String mActiveBrokerPackageName;
 
+    @SuppressFBWarnings(value = SpotbugsWarning.RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE,
+            justification = "Lombok inserts more null checks than we need")
     public MsalUnsupportedBrokerException(@NonNull final UnsupportedBrokerException exception){
         super(exception.getErrorCode(), exception.getMessage());
         mActiveBrokerPackageName = exception.getActiveBrokerPackageName();
