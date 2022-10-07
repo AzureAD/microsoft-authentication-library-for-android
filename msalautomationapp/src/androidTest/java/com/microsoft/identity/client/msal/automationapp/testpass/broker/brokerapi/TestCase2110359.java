@@ -36,12 +36,12 @@ import org.junit.Test;
 // Check DCF Option UI (Join Tenant)
 // Currently, other broker apps do not have a way to call AcquireToken with the "is_remote_login_allowed=true" parameter
 // BrokerHost got a new button to facilitate this particular flow.
-// TODO: Tentative name, will update once an ADO Test Case is created
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2110359
 @SupportedBrokers(brokers = BrokerHost.class)
-public class TestCaseDcfUi extends AbstractMsalBrokerTest{
+public class TestCase2110359 extends AbstractMsalBrokerTest{
 
     @Test
-    public void test_dcfui() {
+    public void test_2110359() {
         BrokerHost brokerHost = (BrokerHost) mBroker;
 
         brokerHost.checkForDcfOption(null);
