@@ -59,7 +59,7 @@ import java.util.Collection;
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1420494
 @RetryOnFailure(retryCount = 2)
 @RunWith(Parameterized.class)
-@Ignore("This test case seems to be pretty inconsistent")
+@Ignore("This test case seems to be inconsistent on pipeline")
 public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
 
     private final GuestHomeAzureEnvironment mGuestHomeAzureEnvironment;
@@ -117,7 +117,7 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
 
         // Acquire token silently
         MsalAuthResult acquireTokenSilentResult = msalSdk.acquireTokenSilent(acquireTokenAuthParams, TokenRequestTimeout.SHORT);
-        Assert.assertFalse("Verify accessToken is empty", TextUtils.isEmpty(acquireTokenSilentResult.getAccessToken()));
+        Assert.assertFalse("AccessToken is empty", TextUtils.isEmpty(acquireTokenSilentResult.getAccessToken()));
 
         Assert.assertNotEquals("Silent request does not return a new access token", acquireTokenSilentResult.getAccessToken(), acquireTokenResult.getAccessToken());
 

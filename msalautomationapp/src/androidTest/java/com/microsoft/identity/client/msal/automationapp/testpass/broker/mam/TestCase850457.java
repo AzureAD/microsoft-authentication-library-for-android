@@ -47,7 +47,7 @@ import java.util.concurrent.TimeUnit;
 // [MSAL] password reset for MAM_CA account
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/850457
 @RetryOnFailure(retryCount = 2)
-@Ignore("Password reset case, This test is inconsistent and takes very long")
+@Ignore("Password reset case, This test is pipeline inconsistent and takes very long")
 public class TestCase850457 extends AbstractMsalBrokerTest {
 
     @Test
