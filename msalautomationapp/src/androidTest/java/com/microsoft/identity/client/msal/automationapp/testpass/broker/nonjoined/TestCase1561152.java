@@ -33,6 +33,7 @@ import com.microsoft.identity.client.msal.automationapp.testpass.broker.Abstract
 import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
+import com.microsoft.identity.client.ui.automation.annotations.UnreliableOnPipeline;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
@@ -41,7 +42,6 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
@@ -49,7 +49,7 @@ import java.util.concurrent.TimeUnit;
 // [Non-Joined][MSAL] Password Change (bad_token)
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/1561152
 @RetryOnFailure(retryCount = 2)
-@Ignore("Password reset case, This test is pipeline inconsistent and takes very long")
+@UnreliableOnPipeline("Password reset case, this test is pipeline inconsistent and takes very long")
 public class TestCase1561152 extends AbstractMsalBrokerTest {
 
     @Test

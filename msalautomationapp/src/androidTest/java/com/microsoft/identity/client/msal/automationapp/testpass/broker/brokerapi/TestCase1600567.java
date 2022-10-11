@@ -27,18 +27,18 @@ import androidx.test.uiautomator.UiObject;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
+import com.microsoft.identity.client.ui.automation.annotations.UnreliableOnPipeline;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 // Invoke each API from non-allowed apps. the request should be blocked.
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1600567
-@Ignore("Calling App Not Verified error is not showing up on pipeline (works locally)")
+@UnreliableOnPipeline("'Calling App Not Verified' error only on pipeline")
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
 public class TestCase1600567 extends AbstractMsalBrokerTest {
     @Test
