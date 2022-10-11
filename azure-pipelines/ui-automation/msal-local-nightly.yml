@@ -52,7 +52,7 @@ variables:
   azureSamplePipelineId: 1458
   msalAutomationAppApk: msalautomationapp-local-BrokerHost-debug.apk
   msalAutomationAppTestApk: msalautomationapp-local-BrokerHost-debug-androidTest.apk
-  azureSampleApk: AzureSample-external-release.apk
+  azureSampleApk: AzureSample-local-debug.apk
   firebaseTimeout: 45m
   resultsHistoryName: Dev MSAL without Broker
 
