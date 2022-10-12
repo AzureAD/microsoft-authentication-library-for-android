@@ -27,18 +27,17 @@ import androidx.test.uiautomator.UiObject;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
-import com.microsoft.identity.client.ui.automation.annotations.UnreliableOnPipeline;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Test;
 
 // Invoke each API from non-allowed apps. the request should be blocked.
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1600567
-@UnreliableOnPipeline("'Calling App Not Verified' error only on pipeline")
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
 public class TestCase1600567 extends AbstractMsalBrokerTest {
     @Test
@@ -48,6 +47,7 @@ public class TestCase1600567 extends AbstractMsalBrokerTest {
         brokerHost.launch();
 
         // verify getAccounts call gives calling app not verified
+        UiAutomatorUtils.obtainChildInScrollable("Get Accounts");
         UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/buttonGetAccounts");
         brokerHost.confirmCallingAppNotVerified();
 
@@ -84,12 +84,14 @@ public class TestCase1600567 extends AbstractMsalBrokerTest {
 
     @Override
     public LabQuery getLabQuery() {
-        return null;
+        return LabQuery.builder()
+                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
+                .build();
     }
 
     @Override
     public TempUserType getTempUserType() {
-        return TempUserType.BASIC;
+        return null;
     }
 
     @Override

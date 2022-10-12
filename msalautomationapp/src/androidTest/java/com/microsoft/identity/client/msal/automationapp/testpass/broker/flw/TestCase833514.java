@@ -37,6 +37,7 @@ import com.microsoft.identity.client.msal.automationapp.testpass.broker.Abstract
 import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
+import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.AzureSampleApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
@@ -60,6 +61,7 @@ import java.util.concurrent.TimeUnit;
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833514
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
 @RetryOnFailure(retryCount = 2)
+@RunOnAPI29Minus("Azure Sample App")
 public class TestCase833514 extends AbstractMsalBrokerTest {
 
     @Test

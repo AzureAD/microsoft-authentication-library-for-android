@@ -32,6 +32,7 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
+import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
@@ -57,6 +58,7 @@ import java.util.concurrent.TimeUnit;
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833513
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
 @RetryOnFailure(retryCount = 2)
+@RunOnAPI29Minus("Checking for text error in WebView")
 public class TestCase833513 extends AbstractMsalBrokerTest {
 
     @Test

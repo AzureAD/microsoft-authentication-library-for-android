@@ -104,7 +104,6 @@ public class TestCase832430 extends AbstractMsalBrokerTest {
 
         //forwarding time 1 day
         TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
-        Thread.sleep(TimeUnit.SECONDS.toMillis(30));
 
         // acquiring token silently after expiring AT
         final MsalAuthTestParams refreshTokenParams = MsalAuthTestParams.builder()

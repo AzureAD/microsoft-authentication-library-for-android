@@ -22,7 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.flw;
 
-import androidx.test.uiautomator.UiObject;
 import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.SignInParameters;
@@ -33,6 +32,7 @@ import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
+import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.AzureSampleApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
@@ -59,6 +59,7 @@ import java.util.concurrent.TimeUnit;
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833515
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
 @RetryOnFailure(retryCount = 2)
+@RunOnAPI29Minus("Azure Sample App")
 public class TestCase833515 extends AbstractMsalBrokerTest {
 
     final static String MY_APPS_URL = "myapps.microsoft.com";
@@ -92,7 +93,6 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         final ILabAccount labAccount = mLabClient.createTempAccount(TempUserType.BASIC);
         final String username2 = labAccount.getUsername();
         final String password2 = labAccount.getPassword();
-        Thread.sleep(TimeUnit.SECONDS.toMillis(30));
 
         Assert.assertNotEquals(username1, username2);
 
