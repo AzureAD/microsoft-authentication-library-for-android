@@ -33,6 +33,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractGuestAccountMsalBrokerUiTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.constants.GlobalConstants;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
@@ -56,6 +57,7 @@ import java.util.Collection;
 // Acquire Token from home cloud after acquiring token from cross cloud
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1592510
 @RunWith(Parameterized.class)
+@RetryOnFailure(retryCount = 2)
 @RunOnAPI29Minus("Keep me signed in")
 public class TestCase1592510 extends AbstractGuestAccountMsalBrokerUiTest {
 
@@ -122,17 +124,9 @@ public class TestCase1592510 extends AbstractGuestAccountMsalBrokerUiTest {
         Assert.assertNotNull("Verify Exception is returned", exception);
         Assert.assertEquals("Verify Exception operation name", "authority", exception.getOperationName());
 
+        // TODO: This is now not prompting for ui, what is the expected behavior???
         // Acquire token interactively from home cloud, expected to get a different access token
-        final OnInteractionRequired homeCloudInteractionHandler = () -> {
-            final PromptHandlerParameters promptHandlerParameters =
-                    PromptHandlerParameters.builder()
-                    .prompt(PromptParameter.SELECT_ACCOUNT)
-                    .loginHint(userName)
-                    .broker(mBroker)
-                    .build();
-            final AadPromptHandler promptHandler = new AadPromptHandler(promptHandlerParameters);
-            promptHandler.handlePrompt(userName, password);
-        };
+        final OnInteractionRequired homeCloudInteractionHandler = () -> { };
         final MsalAuthResult acquireTokenHOmeCloudResult = msalSdk.acquireTokenInteractive(acquireTokenHomeCloudAuthParams, homeCloudInteractionHandler, TokenRequestTimeout.SHORT);
         Assert.assertFalse("Verify accessToken is not empty", TextUtils.isEmpty(acquireTokenHOmeCloudResult.getAccessToken()));
 

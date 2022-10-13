@@ -54,6 +54,7 @@ import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 
 // Acquire token for cross cloud guest account (with broker)
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1420494
@@ -112,8 +113,8 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
 
         Assert.assertFalse("Verify accessToken is not empty", TextUtils.isEmpty(acquireTokenResult.getAccessToken()));
 
-        // change the time on the device
-        TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
+        // change the time on the device (without resetting to automatic time zone)
+        TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTime(TimeUnit.DAYS.toSeconds(1), false);
 
         // Acquire token silently
         MsalAuthResult acquireTokenSilentResult = msalSdk.acquireTokenSilent(acquireTokenAuthParams, TokenRequestTimeout.SHORT);
