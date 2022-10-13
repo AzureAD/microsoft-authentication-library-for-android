@@ -45,6 +45,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class CommandParametersAdapter {
 
@@ -228,6 +229,7 @@ public class CommandParametersAdapter {
                 .authenticationScheme(authenticationScheme)
                 .scopes(new HashSet<>(scopes))
                 .authority(authority)
+                .correlationId(UUID.randomUUID().toString())
                 .build();
 
         return commandParameters;

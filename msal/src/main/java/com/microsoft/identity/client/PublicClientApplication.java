@@ -29,6 +29,7 @@ import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -53,8 +54,13 @@ import com.microsoft.identity.common.adal.internal.tokensharing.ITokenShareResul
 import com.microsoft.identity.common.adal.internal.tokensharing.TokenShareUtility;
 import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
+//import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
+//import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommandCallback;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommandCallback;
+import com.microsoft.identity.common.internal.controllers.BrokerMsalController;
+//import com.microsoft.identity.common.java.commands.DeviceCodeFlowCommand;
+//import com.microsoft.identity.common.java.commands.DeviceCodeFlowCommandCallback;
 import com.microsoft.identity.common.internal.commands.GenerateShrCommand;
 import com.microsoft.identity.common.internal.commands.GetDeviceModeCommand;
 import com.microsoft.identity.common.internal.controllers.LocalMSALController;
@@ -70,6 +76,8 @@ import com.microsoft.identity.common.java.cache.IMultiTypeNameValueStorage;
 import com.microsoft.identity.common.java.cache.IShareSingleSignOnState;
 import com.microsoft.identity.common.java.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.java.commands.CommandCallback;
+import com.microsoft.identity.common.java.commands.DeviceCodeFlowTokenFetchCommand;
+import com.microsoft.identity.common.java.commands.DeviceCodeFlowUserCodeResult;
 import com.microsoft.identity.common.java.commands.InteractiveTokenCommand;
 import com.microsoft.identity.common.java.commands.SilentTokenCommand;
 import com.microsoft.identity.common.java.commands.parameters.CommandParameters;
@@ -86,9 +94,12 @@ import com.microsoft.identity.common.java.exception.BaseException;
 import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.exception.ErrorStrings;
 import com.microsoft.identity.common.java.exception.ServiceException;
+import com.microsoft.identity.common.java.exception.UiRequiredException;
 import com.microsoft.identity.common.java.providers.microsoft.MicrosoftAccount;
 import com.microsoft.identity.common.java.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
+import com.microsoft.identity.common.java.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationResponse;
+import com.microsoft.identity.common.java.providers.microsoft.microsoftsts.MicrosoftStsAuthorizationResult;
 import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.java.result.GenerateShrResult;
 import com.microsoft.identity.common.java.result.ILocalAuthenticationResult;
@@ -108,6 +119,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static com.microsoft.identity.client.PublicClientApplicationConfigurationFactory.initializeConfiguration;
 import static com.microsoft.identity.client.exception.MsalClientException.SAPCA_USE_WITH_MULTI_POLICY_B2C;
@@ -1857,6 +1869,74 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         );
 
         CommandDispatcher.submitSilent(deviceCodeFlowCommand);
+
+    }
+
+    public void acquireTokenWithDeviceCodeWithDeviceIdClaim(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback) {
+        // Create a DeviceCodeFlowCommandParameters object that takes in the desired scopes and the callback object
+        // Use CommandParametersAdapter
+        final DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter
+                .createDeviceCodeFlowCommandParameters(
+                        mPublicClientConfiguration,
+                        mPublicClientConfiguration.getOAuth2TokenCache(),
+                        scopes);
+
+        // Create a CommandCallback object from the DeviceCodeFlowCallback object
+       // final DeviceCodeFlowCommandCallback deviceCodeFlowCommandCallback = getDeviceCodeFlowCommandCallback(callback);
+
+        // Create a DeviceCodeFlowCommand object
+        // Pass the command parameters, default controller, and command callback
+        // Telemetry with DEVICE_CODE_FLOW_CALLBACK
+//        final DeviceCodeFlowCommand deviceCodeFlowCommand = new DeviceCodeFlowCommand(
+//                commandParameters,
+//                new LocalMSALController(),
+//                deviceCodeFlowCommandCallback,
+//                PublicApiId.DEVICE_CODE_FLOW_WITH_CALLBACK
+//        );
+//
+//        CommandDispatcher.submitSilent(deviceCodeFlowCommand);
+
+        try {
+            BrokerMsalController controller = new BrokerMsalController(mPublicClientConfiguration.getAppContext());
+           // controller.acquireDeviceCodeFlowTokenWithDeviceId(commandParameters);
+           MicrosoftStsAuthorizationResult authorizationResult = controller.getDeviceCodeFlowUserCodeResult(commandParameters);
+            // Fetch the authorization response
+            final MicrosoftStsAuthorizationResponse authorizationResponse =
+                    (MicrosoftStsAuthorizationResponse) authorizationResult.getAuthorizationResponse();
+
+            final Date expiredDate = new Date();
+            try {
+                long expiredInInMilliseconds = TimeUnit.SECONDS.toMillis(Long.parseLong(authorizationResponse.getExpiresIn()));
+                expiredDate.setTime(expiredDate.getTime() + expiredInInMilliseconds);
+            } catch (final NumberFormatException e) {
+                // Shouldn't happen, but if it does, we don't want to fail the request because of this.
+                // com.microsoft.identity.common.java.logging.Logger.error(methodTag, "Failed to parse authorizationResponse.getExpiresIn()", e);
+            }
+
+           final DeviceCodeFlowCommandCallback deviceCodeFlowCommandCallback = getDeviceCodeFlowCommandCallback(callback);
+            deviceCodeFlowCommandCallback.onUserCodeReceived(
+                    authorizationResponse.getVerificationUri(),
+                    authorizationResponse.getUserCode(),
+                    authorizationResponse.getMessage(),
+                    expiredDate
+            );
+           Logger.info(TAG, "done");
+
+           final DeviceCodeFlowTokenFetchCommand deviceCodeFlowCommand = new DeviceCodeFlowTokenFetchCommand(
+                commandParameters,
+                authorizationResult,
+                   controller,
+                deviceCodeFlowCommandCallback,
+                PublicApiId.DEVICE_CODE_FLOW_WITH_CALLBACK
+        );
+
+        CommandDispatcher.submitSilent(deviceCodeFlowCommand);
+          // controller.acquireDeviceCodeFlowTokenWithDeviceId2(commandParameters, authorizationResult);
+        } catch (UiRequiredException e) {
+            e.printStackTrace();
+        } catch (BaseException e) {
+
+        }
     }
 
     /**

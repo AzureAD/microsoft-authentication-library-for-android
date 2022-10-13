@@ -40,10 +40,9 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:name="com.microsoft.identity.client.testapp.MsalSampleApp"
         android:allowBackup="false"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
         android:theme="@style/AppTheme"
-        android:resizeableActivity="true">
+        android:resizeableActivity="true"
+        tools:replace="android:theme">
         <!-- taskAffinity is set equal to empty string.  This translated to "null" taskAffinity at runtime.
             null task affinity may be used when creating multi-window apps-->
         <!-- https://developer.android.com/guide/topics/manifest/activity-element#aff -->
@@ -62,13 +61,13 @@
             android:name="com.microsoft.identity.client.testapp.MainActivity"
             android:theme="@style/AppTheme.NoActionBar"
             android:taskAffinity=""
-            android:documentLaunchMode="always"
-            android:configChanges="keyboardHidden|keyboard">
+            android:documentLaunchMode="always">
         </activity>
 
         <activity
             android:name="com.microsoft.identity.client.BrowserTabActivity"
-            android:launchMode="singleTask">
+            android:launchMode="singleTask"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />

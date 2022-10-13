@@ -112,7 +112,10 @@ public class MultipleAccountModeWrapper extends MsalWrapper {
     void acquireTokenWithDeviceCodeFlowInternal(@NonNull List<String> scopes,
                                                 @NonNull final IPublicClientApplication.DeviceCodeFlowCallback callback) {
         mApp.acquireTokenWithDeviceCode(scopes, callback);
+      //  mApp.acquireTokenWithDeviceCodeWithDeviceIdClaim(scopes, callback);
     }
+
+
 
     @Override
     public void generateSignedHttpRequestInternal(@NonNull final IAccount account,

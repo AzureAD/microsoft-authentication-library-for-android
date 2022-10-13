@@ -70,7 +70,11 @@ abstract class MsalWrapper {
 
     public abstract void removeAccount(@NonNull IAccount account,
                                        @NonNull final INotifyOperationResultCallback<Void> callback);
-
+    public void performWPJ(@NonNull final Activity activity,
+                           @NonNull final RequestOptions requestOptions,
+                           @NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback) {
+        acquireToken(activity, requestOptions, callback);
+    }
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final RequestOptions requestOptions,
                              @NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback) {

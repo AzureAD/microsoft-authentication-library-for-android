@@ -98,6 +98,8 @@ public interface IPublicClientApplication {
      */
     void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback);
 
+    void acquireTokenWithDeviceCodeWithDeviceIdClaim(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback);
+
     /**
      * @deprecated  This method is now deprecated. The library is moving away from using an array for scopes.
      *              Use {@link IPublicClientApplication#acquireTokenWithDeviceCode(List, DeviceCodeFlowCallback)} instead.
