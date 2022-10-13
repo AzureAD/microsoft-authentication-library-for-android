@@ -22,12 +22,15 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.internal.controllers;
 
+import static com.microsoft.identity.common.java.exception.ErrorStrings.UNSUPPORTED_BROKER_VERSION_ERROR_CODE;
+
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalIntuneAppProtectionPolicyRequiredException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
+import com.microsoft.identity.client.exception.MsalUnsupportedBrokerException;
 import com.microsoft.identity.client.exception.MsalUserCancelException;
 import com.microsoft.identity.common.java.exception.ArgumentException;
 import com.microsoft.identity.common.java.exception.BaseException;
@@ -35,54 +38,64 @@ import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.exception.IntuneAppProtectionPolicyRequiredException;
 import com.microsoft.identity.common.java.exception.ServiceException;
 import com.microsoft.identity.common.java.exception.UiRequiredException;
+import com.microsoft.identity.common.java.exception.UnsupportedBrokerException;
 import com.microsoft.identity.common.java.exception.UserCancelException;
 
 public class MsalExceptionAdapter {
 
     public static MsalException msalExceptionFromBaseException(final BaseException e) {
-        MsalException msalException = null;
-
         if (e instanceof MsalException) {
-            msalException = (MsalException) e;
-        } else if (e instanceof ClientException) {
+            return  (MsalException) e;
+        }
+
+        if (e instanceof ClientException) {
             final ClientException clientException = ((ClientException) e);
-            msalException = new MsalClientException(
+            return new MsalClientException(
                     clientException.getErrorCode(),
                     clientException.getMessage(),
                     clientException
             );
-        } else if (e instanceof ArgumentException) {
+        }
+
+        if (e instanceof ArgumentException) {
             final ArgumentException argumentException = ((ArgumentException) e);
-            msalException = new MsalArgumentException(
+            return new MsalArgumentException(
                     argumentException.getArgumentName(),
                     argumentException.getOperationName(),
                     argumentException.getMessage(),
                     argumentException
             );
-        } else if (e instanceof UiRequiredException) {
+        }
+
+        if (e instanceof UiRequiredException) {
             final UiRequiredException uiRequiredException = ((UiRequiredException) e);
-            msalException = new MsalUiRequiredException(uiRequiredException.getErrorCode(), uiRequiredException.getMessage());
-        } else if (e instanceof IntuneAppProtectionPolicyRequiredException) {
-            msalException = new MsalIntuneAppProtectionPolicyRequiredException(
+            return new MsalUiRequiredException(uiRequiredException.getErrorCode(), uiRequiredException.getMessage());
+        }
+
+        if (e instanceof IntuneAppProtectionPolicyRequiredException) {
+            return new MsalIntuneAppProtectionPolicyRequiredException(
                     (IntuneAppProtectionPolicyRequiredException) e
             );
-        } else if (e instanceof ServiceException) {
+        }
+
+        if (e instanceof UnsupportedBrokerException){
+            return new MsalUnsupportedBrokerException((UnsupportedBrokerException) e);
+        }
+
+        if (e instanceof ServiceException) {
             final ServiceException serviceException = ((ServiceException) e);
-            msalException = new MsalServiceException(
+            return new MsalServiceException(
                     serviceException.getErrorCode(),
                     serviceException.getMessage(),
                     serviceException.getHttpStatusCode(),
                     serviceException
             );
-        } else if (e instanceof UserCancelException) {
-            msalException = new MsalUserCancelException();
         }
 
-        if (msalException == null) {
-            msalException = new MsalClientException(MsalClientException.UNKNOWN_ERROR, e.getMessage(), e);
+        if (e instanceof UserCancelException) {
+            return new MsalUserCancelException();
         }
 
-        return msalException;
-
+        return new MsalClientException(MsalClientException.UNKNOWN_ERROR, e.getMessage(), e);
     }
 }

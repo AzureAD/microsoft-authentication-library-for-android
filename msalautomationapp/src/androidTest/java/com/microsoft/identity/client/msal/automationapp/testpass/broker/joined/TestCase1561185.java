@@ -29,6 +29,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.IMdmAgent;
@@ -48,6 +49,7 @@ import java.util.Arrays;
 // [Joined][MSAL] PKeyAuth flow
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561185
 @SupportedBrokers(brokers = BrokerCompanyPortal.class)
+@RetryOnFailure(retryCount = 2)
 public class TestCase1561185 extends AbstractMsalBrokerTest {
     @Test
     public void test_1561185() throws Throwable {
@@ -65,7 +67,7 @@ public class TestCase1561185 extends AbstractMsalBrokerTest {
                 .build();
 
         // start interactive acquire token request in MSAL
-       msalSdk.acquireTokenInteractive(authTestParams, new com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired() {
+        msalSdk.acquireTokenInteractive(authTestParams, new com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()

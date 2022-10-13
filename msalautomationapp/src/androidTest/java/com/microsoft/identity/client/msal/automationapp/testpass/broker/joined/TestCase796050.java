@@ -117,6 +117,7 @@ public class TestCase796050 extends AbstractMsalBrokerTest {
             // Assert Authenticator Account screen has both accounts
 
             mBroker.launch(); // open Authenticator App
+            mBroker.handleFirstRun();
 
             final UiObject account1 = UiAutomatorUtils.obtainUiObjectWithText(username1);
             Assert.assertTrue(account1.exists()); // make sure account 1 is there
