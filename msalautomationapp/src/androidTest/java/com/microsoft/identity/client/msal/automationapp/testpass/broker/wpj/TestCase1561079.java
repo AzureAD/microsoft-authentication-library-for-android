@@ -51,7 +51,7 @@ import java.util.Arrays;
 // [WPJ] - Get Device ID
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561079
 // TODO: Revisit once we can pull Prod/RC Brokerhost APKs from pipelines
-@Ignore
+@Ignore("PROD/Rc BrokerHosts not available at the moment")
 @RetryOnFailure(retryCount = 2)
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
 public class TestCase1561079 extends AbstractMsalBrokerTest {
