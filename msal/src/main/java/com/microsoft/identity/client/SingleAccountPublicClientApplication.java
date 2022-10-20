@@ -39,9 +39,9 @@ import com.microsoft.identity.common.adal.internal.util.JsonExtensions;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager;
 
-//import com.microsoft.identity.common.java.commands.DeviceCodeFlowCommand;
-//import com.microsoft.identity.common.java.commands.DeviceCodeFlowCommandCallback;
-import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommandCallback;
+import com.microsoft.identity.common.java.commands.DeviceCodeFlowCommand;
+import com.microsoft.identity.common.java.commands.DeviceCodeFlowCommandCallback;
+//import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommandCallback;
 import com.microsoft.identity.common.java.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.java.commands.CommandCallback;
