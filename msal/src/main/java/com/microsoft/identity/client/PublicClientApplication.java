@@ -23,6 +23,33 @@
 
 package com.microsoft.identity.client;
 
+import static com.microsoft.identity.client.PublicClientApplicationConfigurationFactory.initializeConfiguration;
+import static com.microsoft.identity.client.exception.MsalClientException.SAPCA_USE_WITH_MULTI_POLICY_B2C;
+import static com.microsoft.identity.client.exception.MsalClientException.UNKNOWN_ERROR;
+import static com.microsoft.identity.client.internal.CommandParametersAdapter.createGenerateShrCommandParameters;
+import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
+import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArg;
+import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArgument;
+import static com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter.msalExceptionFromBaseException;
+import static com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudience.isHomeTenantAlias;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST_ASYNC;
+import static com.microsoft.identity.common.java.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
+import static com.microsoft.identity.common.java.exception.ClientException.TOKEN_SHARING_DESERIALIZATION_ERROR;
+import static com.microsoft.identity.common.java.exception.ClientException.TOKEN_SHARING_MSA_PERSISTENCE_ERROR;
+import static com.microsoft.identity.common.java.exception.ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_CODE;
+import static com.microsoft.identity.common.java.exception.ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_MESSAGE;
+import static com.microsoft.identity.common.java.exception.ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ON_SHARED_DEVICE_ERROR_CODE;
+import static com.microsoft.identity.common.java.exception.ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ON_SHARED_DEVICE_ERROR_MESSAGE;
+import static com.microsoft.identity.common.java.exception.ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_CODE;
+import static com.microsoft.identity.common.java.exception.ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_MESSAGE;
+import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_CODE;
+import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_MESSAGE;
+import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_CODE;
+import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_MESSAGE;
+import static com.microsoft.identity.common.java.providers.microsoft.MicrosoftIdToken.TENANT_ID;
+import static com.microsoft.identity.common.java.util.StringUtil.isUuid;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -96,6 +123,7 @@ import com.microsoft.identity.common.java.result.LocalAuthenticationResult;
 import com.microsoft.identity.common.java.util.ResultFuture;
 import com.microsoft.identity.common.java.util.SchemaUtil;
 import com.microsoft.identity.common.logging.Logger;
+import com.microsoft.identity.common.opentelemetry.AriaSpanExporter;
 import com.microsoft.identity.msal.BuildConfig;
 
 import java.io.File;
@@ -109,32 +137,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static com.microsoft.identity.client.PublicClientApplicationConfigurationFactory.initializeConfiguration;
-import static com.microsoft.identity.client.exception.MsalClientException.SAPCA_USE_WITH_MULTI_POLICY_B2C;
-import static com.microsoft.identity.client.exception.MsalClientException.UNKNOWN_ERROR;
-import static com.microsoft.identity.client.internal.CommandParametersAdapter.createGenerateShrCommandParameters;
-import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
-import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArg;
-import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArgument;
-import static com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter.msalExceptionFromBaseException;
-import static com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudience.isHomeTenantAlias;
-import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST;
-import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST_ASYNC;
-import static com.microsoft.identity.common.java.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
-import static com.microsoft.identity.common.java.exception.ClientException.TOKEN_SHARING_DESERIALIZATION_ERROR;
-import static com.microsoft.identity.common.java.exception.ClientException.TOKEN_SHARING_MSA_PERSISTENCE_ERROR;
-import static com.microsoft.identity.common.java.exception.ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_CODE;
-import static com.microsoft.identity.common.java.exception.ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_MESSAGE;
-import static com.microsoft.identity.common.java.exception.ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ON_SHARED_DEVICE_ERROR_CODE;
-import static com.microsoft.identity.common.java.exception.ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ON_SHARED_DEVICE_ERROR_MESSAGE;
-import static com.microsoft.identity.common.java.exception.ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_CODE;
-import static com.microsoft.identity.common.java.exception.ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_MESSAGE;
-import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_CODE;
-import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_MESSAGE;
-import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_CODE;
-import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_MESSAGE;
-import static com.microsoft.identity.common.java.providers.microsoft.MicrosoftIdToken.TENANT_ID;
-import static com.microsoft.identity.common.java.util.StringUtil.isUuid;
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
 
 /**
  * <p>
@@ -202,6 +210,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     private static final String ACCESS_NETWORK_STATE_PERMISSION = "android.permission.ACCESS_NETWORK_STATE";
     private static final ExecutorService sBackgroundExecutor = Executors.newCachedThreadPool();
 
+    private final Tracer mTracer = GlobalOpenTelemetry.getTracer(TAG);
+
     static class NONNULL_CONSTANTS {
         static final String CONTEXT = "context";
         static final String LISTENER = "listener";
@@ -231,6 +241,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     protected TokenShareUtility mTokenShareUtility;
 
     //region PCA factory methods
+
+    /**
+     * True if all of the platform-dependent static classes have been initialized.
+     */
+    private static boolean sInitialized = false;
 
     /**
      * {@link PublicClientApplication#create(Context, int, ApplicationCreatedListener)} will read
@@ -883,6 +898,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                @Nullable final String authority,
                                @Nullable final String redirectUri,
                                @NonNull final ApplicationCreatedListener listener) {
+        initOpenTelemetry(config.getAppContext());
+
         if (clientId != null) {
             config.setClientId(clientId);
         }
@@ -1384,8 +1401,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     /**
-     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of TokenParameter subclasses as the
-     *              parameters for the API. Use {@link PublicClientApplication#acquireToken(AcquireTokenParameters)} instead.
+     * @deprecated This method is now deprecated. The library is moving towards standardizing the use of TokenParameter subclasses as the
+     * parameters for the API. Use {@link PublicClientApplication#acquireToken(AcquireTokenParameters)} instead.
      */
     @Override
     @Deprecated
@@ -1657,6 +1674,26 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         });
     }
 
+    private static void initOpenTelemetry(@lombok.NonNull final Context context) {
+        if (!sInitialized) {
+            final Resource resource = Resource.getDefault();
+
+            final AriaSpanExporter ariaSpanExporter = new AriaSpanExporter(
+                    context, "2a1b554360ed4903ba0dbffb36a65d03-ce88e0c3-37ee-4c89-a63b-5345705150d9-6831"
+            );
+
+            final SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
+                    .addSpanProcessor(BatchSpanProcessor.builder(ariaSpanExporter).build())
+                    .setResource(resource)
+                    .build();
+
+            OpenTelemetrySdk.builder()
+                    .setTracerProvider(sdkTracerProvider)
+                    .buildAndRegisterGlobal();
+
+            sInitialized = true;
+        }
+    }
 
     private AccountRecord selectAccountRecordForTokenRequest(
             @NonNull final PublicClientApplicationConfiguration pcaConfig,
@@ -1860,8 +1897,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     /**
-     * @deprecated  This method is now deprecated. The library is moving away from using an array for scopes.
-     *              Use {@link PublicClientApplication#acquireTokenWithDeviceCode(List, DeviceCodeFlowCallback)} instead.
+     * @deprecated This method is now deprecated. The library is moving away from using an array for scopes.
+     * Use {@link PublicClientApplication#acquireTokenWithDeviceCode(List, DeviceCodeFlowCallback)} instead.
      */
     @Deprecated
     public void acquireTokenWithDeviceCode(@NonNull String[] scopes, @NonNull final DeviceCodeFlowCallback callback) {

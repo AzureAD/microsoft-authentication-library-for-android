@@ -231,6 +231,10 @@ dependencies {
 
     testImplementation(testFixtures(project(":common4j")))
 
+    implementation platform("io.opentelemetry:opentelemetry-bom:1.18.0")
+    implementation("io.opentelemetry:opentelemetry-sdk:1.18.0")
+    implementation 'com.microsoft.applications:ariaandroidjavasdk-release:3.0.22.0'
+
 }
 
 def configDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')
