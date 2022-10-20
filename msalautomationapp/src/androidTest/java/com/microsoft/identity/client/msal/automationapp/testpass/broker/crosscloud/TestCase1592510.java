@@ -124,8 +124,8 @@ public class TestCase1592510 extends AbstractGuestAccountMsalBrokerUiTest {
         Assert.assertNotNull("Verify Exception is returned", exception);
         Assert.assertEquals("Verify Exception operation name", "authority", exception.getOperationName());
 
-        // TODO: This is now not prompting for ui, what is the expected behavior???
         // Acquire token interactively from home cloud, expected to get a different access token
+        // We are expecting that this does not prompt for credentials
         final OnInteractionRequired homeCloudInteractionHandler = () -> { };
         final MsalAuthResult acquireTokenHOmeCloudResult = msalSdk.acquireTokenInteractive(acquireTokenHomeCloudAuthParams, homeCloudInteractionHandler, TokenRequestTimeout.SHORT);
         Assert.assertFalse("Verify accessToken is not empty", TextUtils.isEmpty(acquireTokenHOmeCloudResult.getAccessToken()));

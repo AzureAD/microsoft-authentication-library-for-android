@@ -56,8 +56,7 @@ import java.util.Collection;
 // Acquire Token from Cross Cloud after acquiring token from home cloud
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1592465
 @RunWith(Parameterized.class)
-// This test case is still unreliable, but it's quick. Adding more retries.
-@RetryOnFailure(retryCount = 5)
+@RetryOnFailure(retryCount = 2)
 public class TestCase1592465 extends AbstractGuestAccountMsalBrokerUiTest {
 
     private final GuestHomeAzureEnvironment mGuestHomeAzureEnvironment;
@@ -126,7 +125,7 @@ public class TestCase1592465 extends AbstractGuestAccountMsalBrokerUiTest {
         ThreadUtils.sleepSafely(3000, "Sleep failed", "Interrupted");
 
         // Acquire token interactively from cross cloud, expected to get a new access token
-        // TODO: Is it expected for this to not ask for credentials?
+        // We expect that this does not prompt for credentials
         final OnInteractionRequired crossCloudInteractionHandler = () -> { };
         final MsalAuthResult acquireTokenCrossCloudResult = msalSdk.acquireTokenInteractive(acquireTokenCrossCloudAuthParams, crossCloudInteractionHandler, TokenRequestTimeout.SILENT);
         Assert.assertFalse("Verify accessToken is not empty", TextUtils.isEmpty(acquireTokenCrossCloudResult.getAccessToken()));
