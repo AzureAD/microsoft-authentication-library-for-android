@@ -3,6 +3,10 @@ V.Next
 ----------
 - [MINOR] Add new exception type for broker protocol not supported exception during msal-broker handshake (#1703)
 
+Version 4.0.4
+----------
+- [PATCH] Update common @8.0.2
+
 Version 4.0.3
 ----------
 - [PATCH] Update common @8.0.0
