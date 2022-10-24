@@ -51,8 +51,8 @@ parameters:
     type: string
     default: '0.0.1'
   - name: msalVersion
-      displayName: MSAL Version
-      type: string
+    displayName: MSAL Version
+    type: string
 
 variables:
   engineeringProjectId: 'fac9d424-53d2-45c0-91b5-ef6ba7a6bf26'
