@@ -25,8 +25,10 @@ package com.microsoft.identity.client;
 import android.app.Activity;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 
+import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.java.util.TaskCompletedCallbackWithError;
 
@@ -88,6 +90,19 @@ public interface IPublicClientApplication {
      */
     @WorkerThread
     IAuthenticationResult acquireTokenSilent(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) throws InterruptedException, MsalException;
+
+    /**
+     * Perform the Device Code Flow (DCF) protocol to allow a device without input capability to authenticate and get a new access token.
+     * This flow is now supported in Broker as well. It also supports requesting Claims using the "claims" Request. Parameter.
+     *
+     * @param scopes   the desired access scopes
+     * @param callback callback object used to communicate with the API throughout the protocol
+     * @param claims claims Authentication Request parameter requests that specific Claims be returned from the UserInfo Endpoint and/or in the ID Token.
+     *
+     * Important: Use of this API requires setting the minimum_required_broker_protocol_version to
+     * "11.0" or higher.
+     */
+    void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback, @Nullable ClaimsRequest claims);
 
     /**
      * Perform the Device Code Flow (DCF) protocol to allow a device without input capability to authenticate and get a new access token.

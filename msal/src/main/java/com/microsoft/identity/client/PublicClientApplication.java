@@ -57,6 +57,7 @@ import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommandCallback;
 import com.microsoft.identity.common.internal.commands.GenerateShrCommand;
 import com.microsoft.identity.common.internal.commands.GetDeviceModeCommand;
+import com.microsoft.identity.common.internal.controllers.BrokerMsalController;
 import com.microsoft.identity.common.internal.controllers.LocalMSALController;
 import com.microsoft.identity.common.internal.migration.AdalMigrationAdapter;
 import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
@@ -1832,6 +1833,31 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     e
             );
         }
+    }
+
+    public void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback, @Nullable ClaimsRequest claims) {
+        // Create a DeviceCodeFlowCommandParameters object that takes in the desired scopes and the callback object
+        // Use CommandParametersAdapter
+        final DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter
+                .createDeviceCodeFlowCommandParameters(
+                        mPublicClientConfiguration,
+                        mPublicClientConfiguration.getOAuth2TokenCache(),
+                        scopes);
+
+        // Create a CommandCallback object from the DeviceCodeFlowCallback object
+        final DeviceCodeFlowCommandCallback deviceCodeFlowCommandCallback = getDeviceCodeFlowCommandCallback(callback);
+
+        // Create a DeviceCodeFlowCommand object
+        // Pass the command parameters, default controller, and command callback
+        // Telemetry with DEVICE_CODE_FLOW_CALLBACK
+        final DeviceCodeFlowCommand deviceCodeFlowCommand = new DeviceCodeFlowCommand(
+                commandParameters,
+                new BrokerMsalController(mPublicClientConfiguration.getAppContext()),
+                deviceCodeFlowCommandCallback,
+                PublicApiId.DEVICE_CODE_FLOW_WITH_CALLBACK
+        );
+
+        CommandDispatcher.submitSilent(deviceCodeFlowCommand);
     }
 
     public void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback) {
