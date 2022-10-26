@@ -1,6 +1,19 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 V.Next
 ----------
+- [MINOR] Add new exception type for broker protocol not supported exception during msal-broker handshake (#1703)
+
+Version 4.0.4
+----------
+- [PATCH] Update common @8.0.2
+
+Version 4.0.3
+----------
+- [PATCH] Update common @8.0.0
+
+Version 4.0.2
+----------
+- [PATCH] Update common @7.0.0
 - [PATCH] Updating the single account cache before notifying the caller of account change/load via callback. (#1688)
 - [MINOR] Added keyboard flag to configChanges in Manifest for YubiKey compatibility. (#1685)
 

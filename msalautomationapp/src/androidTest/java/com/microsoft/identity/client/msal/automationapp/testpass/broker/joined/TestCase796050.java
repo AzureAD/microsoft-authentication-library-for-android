@@ -31,6 +31,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TestContext;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
@@ -51,6 +52,7 @@ import java.util.Arrays;
 // The goal of the test case is to ensure that we can add accounts in broker via the
 // "Add another account" option in Account Chooser Activity
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/796050
+@RetryOnFailure(retryCount = 2)
 public class TestCase796050 extends AbstractMsalBrokerTest {
 
     @Test
@@ -115,6 +117,7 @@ public class TestCase796050 extends AbstractMsalBrokerTest {
             // Assert Authenticator Account screen has both accounts
 
             mBroker.launch(); // open Authenticator App
+            mBroker.handleFirstRun();
 
             final UiObject account1 = UiAutomatorUtils.obtainUiObjectWithText(username1);
             Assert.assertTrue(account1.exists()); // make sure account 1 is there

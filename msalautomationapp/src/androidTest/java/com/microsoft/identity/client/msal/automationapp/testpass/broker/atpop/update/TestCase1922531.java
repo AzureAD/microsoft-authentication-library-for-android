@@ -20,8 +20,7 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-
-package com.microsoft.identity.client.msal.automationapp.testpass.broker.atpop;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.atpop.update;
 
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
@@ -39,20 +38,17 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
 
-// [Joined] [Update-old-to-V5] Generate SHR
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1922547
-public class TestCase1922547  extends AbstractMsalBrokerUpdateTest {
+// [Non-Joined] [Update-old-to-V5] Acquire PoP token Silent
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1922531
+public class TestCase1922531 extends AbstractMsalBrokerUpdateTest {
     @Test
-    public void test_1922547() throws Throwable {
+    public void test_1922531() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
-
-        mBroker.performDeviceRegistration(username, password);
 
         final MsalSdk msalSdk = new MsalSdk();
 
@@ -87,9 +83,20 @@ public class TestCase1922547  extends AbstractMsalBrokerUpdateTest {
         MsalAuthResult.verifyATForPop(authResult.getAccessToken());
 
         mBroker.update();
-        String shr = msalSdk.generateSHR(authTestParams, TokenRequestTimeout.SHORT);
-        Assert.assertNotNull(shr);
-        MsalAuthResult.verifyATForPop(shr);
+
+        // start silent token request in MSAL
+        final MsalAuthTestParams authTestSilentParams = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .loginHint(username)
+                .scopes(Arrays.asList(mScopes))
+                .authority(getAuthority())
+                .authScheme(AuthScheme.POP)
+                .msalConfigResourceId(getConfigFileResourceId())
+                .build();
+
+        final MsalAuthResult authSilentResult = msalSdk.acquireTokenSilent(authTestSilentParams, TokenRequestTimeout.SILENT);
+        authSilentResult.assertSuccess();
+        MsalAuthResult.verifyATForPop(authSilentResult.getAccessToken());
     }
 
     @Override
@@ -119,4 +126,3 @@ public class TestCase1922547  extends AbstractMsalBrokerUpdateTest {
         return R.raw.msal_config_default;
     }
 }
-

@@ -33,6 +33,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractGuestAccountMsalBrokerUiTest;
 import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.constants.GlobalConstants;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
@@ -55,6 +56,7 @@ import java.util.Collection;
 
 // Acquire token for cross cloud guest account (with broker)
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1420494
+@RetryOnFailure(retryCount = 2)
 @RunWith(Parameterized.class)
 public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
 

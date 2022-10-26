@@ -22,58 +22,35 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.brokerapi;
 
+
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-// Flight settings
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561087
+// Check DCF Option UI (Join Tenant)
+// Currently, other broker apps do not have a way to call AcquireToken with the "is_remote_login_allowed=true" parameter
+// BrokerHost got a new button to facilitate this particular flow.
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2110359
 @SupportedBrokers(brokers = BrokerHost.class)
-public class TestCase1561087 extends AbstractMsalBrokerTest {
+public class TestCase2110359 extends AbstractMsalBrokerTest{
+
     @Test
-    public void test_1561087() {
-        // Set flights and get to check if the flight information is returned
-        final String flightsJson =  "{\"SetFlightsTest\":\"true\"}";
-        mBroker.overwriteFlights(flightsJson);
-        Assert.assertEquals(flightsJson, mBroker.getFlights());
+    public void test_2110359() {
+        BrokerHost brokerHost = (BrokerHost) mBroker;
 
-        // Add flights and get to check if the flight information is returned
-        final String anotherFlightJson = "{\"AnotherFlight\":\"hello\"}";
-        mBroker.setFlights(anotherFlightJson);
-        Assert.assertEquals( "{\"AnotherFlight\":\"hello\",\"SetFlightsTest\":\"true\"}", mBroker.getFlights());
-
-        // Override flights and get to check if the flight information is returned
-        final String flightToOverwrite = "{\"SetFlightsTest\":\"false\"}";
-        mBroker.setFlights(flightToOverwrite);
-        Assert.assertEquals("{\"AnotherFlight\":\"hello\",\"SetFlightsTest\":\"false\"}", mBroker.getFlights());
-
-        // Add flight with null value. SetFlightsTest should be removed.
-        final String flightMapWithNullValue = "{\"SetFlightsTest\": null}";
-        mBroker.setFlights(flightMapWithNullValue);
-        Assert.assertEquals("{\"AnotherFlight\":\"hello\"}", mBroker.getFlights());
-
-        // Add an empty flight map. the flight map should not change.
-        final String emptyFlightMap = "{}";
-        mBroker.setFlights(emptyFlightMap);
-        Assert.assertEquals("{\"AnotherFlight\":\"hello\"}", mBroker.getFlights());
-
-        // clear flights and get to check if the flights are cleared
-        final String clearFlightsJson = "{}";
-        mBroker.overwriteFlights(clearFlightsJson);
-        Assert.assertEquals(clearFlightsJson, mBroker.getFlights());
+        brokerHost.checkForDcfOption(null);
     }
 
     @Override
     public LabQuery getLabQuery() {
         return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
+                .userType(UserType.CLOUD)
                 .build();
     }
 
