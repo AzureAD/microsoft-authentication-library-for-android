@@ -37,7 +37,7 @@ parameters:
   - name: testTargetPackages
     displayName: Packages as Test Targets
     type: string
-    default: package com.microsoft.identity.client.msal.automationapp.testpass.msalonly, package com.microsoft.identity.client.msal.automationapp.testpass.b2c
+    default: package com.microsoft.identity.client.msal.automationapp.testpass.msalonly, package com.microsoft.identity.client.msal.automationapp.testpass.b2c, notAnnotation org.junit.Ignore
   - name: msalVersion
     displayName: MSAL Version
     type: string
