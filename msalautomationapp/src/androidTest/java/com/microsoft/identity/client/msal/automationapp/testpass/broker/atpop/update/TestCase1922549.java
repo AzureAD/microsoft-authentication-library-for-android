@@ -20,7 +20,7 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.broker.atpop;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.atpop.update;
 
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
@@ -38,19 +38,19 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
 
-// [Joined] [Update-old-to-V5] Acquire PoP token Silent
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1922530
-public class TestCase1922530  extends AbstractMsalBrokerUpdateTest {
+// [Non-Joined] [Update-old-to-V5] Generate SHR
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1922549
+public class TestCase1922549 extends AbstractMsalBrokerUpdateTest {
     @Test
-    public void test_1922530() throws Throwable {
+    public void test_1922549() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
-        mBroker.performDeviceRegistration(username, password);
         final MsalSdk msalSdk = new MsalSdk();
 
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
@@ -83,26 +83,12 @@ public class TestCase1922530  extends AbstractMsalBrokerUpdateTest {
         authResult.assertSuccess();
         MsalAuthResult.verifyATForPop(authResult.getAccessToken());
 
-        // Update the app
-        // TO-DO after the API to retrieve the broker version is added,
-        // we can add an assert to verify that the broker version is updated as expected
         mBroker.update();
 
-        // start silent token request in MSAL
-        final MsalAuthTestParams authTestSilentParams = MsalAuthTestParams.builder()
-                .activity(mActivity)
-                .loginHint(username)
-                .scopes(Arrays.asList(mScopes))
-                .authority(getAuthority())
-                .authScheme(AuthScheme.POP)
-                .msalConfigResourceId(getConfigFileResourceId())
-                .build();
-
-        final MsalAuthResult authSilentResult = msalSdk.acquireTokenSilent(authTestSilentParams, TokenRequestTimeout.SILENT);
-        authSilentResult.assertSuccess();
-        MsalAuthResult.verifyATForPop(authSilentResult.getAccessToken());
+        String shr = msalSdk.generateSHR(authTestParams, TokenRequestTimeout.SHORT);
+        Assert.assertNotNull(shr);
+        MsalAuthResult.verifyATForPop(shr);
     }
-
     @Override
     public LabQuery getLabQuery() {
         return LabQuery.builder()

@@ -44,6 +44,7 @@ import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.ErrorCodes;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.exception.MsalUnsupportedBrokerException;
 import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.cache.ICacheRecord;
 import com.microsoft.identity.common.java.net.HttpClient;
@@ -57,6 +58,7 @@ import com.microsoft.identity.internal.testutils.TestUtils;
 import com.microsoft.identity.internal.testutils.mocks.MockTokenResponse;
 import com.microsoft.identity.shadow.ShadowHttpClient;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -70,6 +72,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.microsoft.identity.client.e2e.tests.mocked.ShadowBrokerMsalControllerWithMockIpcStrategyReturningHandshakeFailure.MOCK_ACTIVE_BROKER_NAME;
 import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
 import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushSchedulerWithDelay;
 import static com.microsoft.identity.internal.testutils.TestConstants.Authorities.AAD_MOCK_AUTHORITY;
@@ -111,6 +114,10 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 });
     }
 
+    @After
+    public void tearDown(){
+        ShadowMockMsalControllerFactory.sRouteRequestToBrokerMsalController = false;
+    }
 
     @Test
     public void testAcquireTokenSuccess() {
@@ -127,7 +134,6 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
         mApplication.acquireToken(parameters);
         flushScheduler();
     }
-
 
     @Test
     public void testAcquireTokenFailureNoScope() {
@@ -495,6 +501,44 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .build();
 
         mApplication.acquireTokenSilentAsync(silentParameters);
+        flushScheduler();
+    }
+
+    @Test
+    @Config(shadows = {
+            ShadowMockMsalControllerFactory.class,
+            ShadowBrokerMsalControllerWithMockIpcStrategyReturningHandshakeFailure.class})
+    public void testAcquireTokenBrokerHandshakeFailed() {
+        final String username = "fake@test.com";
+
+        ShadowMockMsalControllerFactory.sRouteRequestToBrokerMsalController = true;
+
+        final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                .startAuthorizationFromActivity(mActivity)
+                .withLoginHint(username)
+                .withScopes(Arrays.asList(mScopes))
+                .fromAuthority(getAuthority())
+                .withCallback(new AuthenticationCallback() {
+                    @Override
+                    public void onSuccess(IAuthenticationResult authenticationResult) {
+                        Assert.fail("Unexpected success");
+                    }
+
+                    @Override
+                    public void onError(final MsalException exception) {
+                        Assert.assertTrue(exception instanceof MsalUnsupportedBrokerException);
+                        Assert.assertEquals(MOCK_ACTIVE_BROKER_NAME,
+                                ((MsalUnsupportedBrokerException) exception).getActiveBrokerPackageName());
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        Assert.fail("Unexpected cancellation");
+                    }
+                })
+                .build();
+
+        mApplication.acquireToken(parameters);
         flushScheduler();
     }
 

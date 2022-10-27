@@ -31,6 +31,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
@@ -48,6 +49,7 @@ import java.util.Map;
 
 // [Joined][MSAL] In-line WPJ: Perform Device registration with deviceid claim
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561125
+@RetryOnFailure(retryCount = 2)
 public class TestCase1561125 extends AbstractMsalBrokerTest {
     @Test
     public void test_1561125() throws Throwable {

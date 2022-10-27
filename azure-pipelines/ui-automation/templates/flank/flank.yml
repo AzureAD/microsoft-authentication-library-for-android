@@ -2,7 +2,7 @@ flank:
    ## Max Test Shards
    # test shards - the amount of groups to split the test suite into
    # set to -1 to use one shard per test. default: 1
-   max-test-shards: 5
+   max-test-shards: 3
 
    ## Number of Test Runs
    # test runs - the amount of times to run the tests.
