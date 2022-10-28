@@ -27,8 +27,10 @@ import androidx.annotation.NonNull;
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.BrokerTestHelper;
 import com.microsoft.identity.client.ui.automation.IBrokerTest;
+import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
+import com.microsoft.identity.client.ui.automation.device.settings.ISettings;
 import com.microsoft.identity.client.ui.automation.rules.RulesHelper;
 
 import org.junit.rules.RuleChain;
@@ -54,5 +56,9 @@ public abstract class AbstractMsalBrokerTest extends AbstractMsalUiTest implemen
     @Override
     public RuleChain getPrimaryRules() {
         return RulesHelper.getPrimaryRules(getBroker());
+    }
+
+    protected ISettings getSettingsScreen() {
+        return TestContext.getTestContext().getTestDevice().getSettings();
     }
 }
