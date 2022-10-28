@@ -32,7 +32,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
-import com.microsoft.identity.client.ui.automation.annotations.DoNotRunOnPipeline;
+import com.microsoft.identity.client.ui.automation.annotations.LongUIAutomationTest;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
@@ -48,8 +48,8 @@ import java.util.concurrent.TimeUnit;
 
 // [Non-Joined][MSAL] Password Change (bad_token)
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/1561152
-@RetryOnFailure(retryCount = 2)
-@DoNotRunOnPipeline("Password reset case, this test takes very long")
+@RetryOnFailure
+@LongUIAutomationTest("Password reset test")
 public class TestCase1561152 extends AbstractMsalBrokerTest {
 
     @Test

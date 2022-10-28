@@ -53,8 +53,7 @@ import java.util.Arrays;
 
 // [WPJ] Get device state
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561080
-// TODO: Revisit once we can pull Prod/RC Brokerhost APKs from pipelines
-@Ignore("PROD/Rc BrokerHosts not available at the moment, Chrome Automation is inconsistent")
+@Ignore("This is failing. This test will be turned into Component Test")
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
 public class TestCase1561080 extends AbstractMsalBrokerTest {
 

@@ -114,7 +114,7 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
         Assert.assertFalse("Verify accessToken is not empty", TextUtils.isEmpty(acquireTokenResult.getAccessToken()));
 
         // change the time on the device (without resetting to automatic time zone)
-        TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTime(TimeUnit.DAYS.toSeconds(1), false);
+        TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
 
         // Acquire token silently
         MsalAuthResult acquireTokenSilentResult = msalSdk.acquireTokenSilent(acquireTokenAuthParams, TokenRequestTimeout.SHORT);
