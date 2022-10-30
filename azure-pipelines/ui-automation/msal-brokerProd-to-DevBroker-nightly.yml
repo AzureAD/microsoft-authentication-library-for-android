@@ -135,8 +135,8 @@ stages:
     jobs:
       - template: ./templates/flank/run-on-firebase-with-flank.yml
         parameters:
-          automationAppApkPath: "$(Pipeline.Workspace)/msalautomationapks/msalautomationapp-local-AutoBroker-debug.apk"
-          automationAppTestApkPath: "$(Pipeline.Workspace)/msalautomationapks/msalautomationapp-local-AutoBroker-debug-androidTest.apk"
+          automationAppApkPath: "$(Pipeline.Workspace)/msalautomationapks/msalautomationapp-dist-AutoBroker-debug.apk"
+          automationAppTestApkPath: "$(Pipeline.Workspace)/msalautomationapks/msalautomationapp-dist-AutoBroker-debug-androidTest.apk"
           testTargetPackages: ${{ parameters.testTargetPackages }}
           resultsHistoryName: "Prod MSAL with Dev Broker (BrokerHost)"
           otherFiles: "/data/local/tmp/BrokerHost.apk=$(Pipeline.Workspace)/brokerHost/$(brokerHostApk),\
