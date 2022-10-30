@@ -72,7 +72,7 @@ stages:
     jobs:
       - template: ./templates/build-msal-automation-app.yml
         parameters:
-          brokerFlavor: BrokerHost
+          brokerFlavor: AutoBroker
           msalFlavor: Dist
           brokerSource: LocalApk
           msalVersion: ${{ parameters.msalVersion }}
