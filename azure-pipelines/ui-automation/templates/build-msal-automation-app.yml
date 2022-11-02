@@ -23,6 +23,7 @@ parameters:
   - name: msalVersion
     displayName: MSAL Version
     type: string
+    default: "0.0.+"
 
 jobs:
   - job: 'msalautomationapp'
