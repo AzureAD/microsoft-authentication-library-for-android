@@ -61,7 +61,7 @@ public class TestCase833511 extends AbstractMsalBrokerTest{
         final UiObject sharedDeviceConfirmation = device.findObject(sharedDeviceConfirmationSelector);
         sharedDeviceConfirmation.waitForExists(FIND_UI_ELEMENT_TIMEOUT);
         Assert.assertFalse(
-                "Microsoft Authenticator - Shared Device Confirmation page appears.",
+                "Microsoft Authenticator - Shared Device Confirmation page doesn't appear.",
                 sharedDeviceConfirmation.exists());
     }
     @Override
