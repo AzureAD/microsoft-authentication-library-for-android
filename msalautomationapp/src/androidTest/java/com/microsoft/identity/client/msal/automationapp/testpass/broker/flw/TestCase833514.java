@@ -60,7 +60,7 @@ import java.util.concurrent.TimeUnit;
 // End My Shift - In Shared device mode, an account signed in through App A can be used by App B.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833514
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
-@RetryOnFailure(retryCount = 2)
+@RetryOnFailure
 @RunOnAPI29Minus("Azure Sample App")
 public class TestCase833514 extends AbstractMsalBrokerTest {
 
