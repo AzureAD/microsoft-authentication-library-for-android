@@ -31,6 +31,7 @@ import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
+import com.microsoft.identity.client.ui.automation.annotations.DoNotRunOnPipeline;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
@@ -61,6 +62,7 @@ import java.util.concurrent.TimeUnit;
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
 @RetryOnFailure
 @RunOnAPI29Minus("Azure Sample App")
+@DoNotRunOnPipeline("This test is failing on pipeline at various points. Most commonly, getting 'an account is already signed in' when calling SAPCA.signIn()")
 public class TestCase833515 extends AbstractMsalBrokerTest {
 
     final static String MY_APPS_URL = "myapps.microsoft.com";
