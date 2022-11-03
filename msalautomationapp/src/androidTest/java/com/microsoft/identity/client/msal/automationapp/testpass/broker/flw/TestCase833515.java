@@ -47,6 +47,7 @@ import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserRole;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
 import org.junit.Assert;
@@ -58,7 +59,7 @@ import java.util.concurrent.TimeUnit;
 // End My Shift - In Shared device mode, global sign out should work.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833515
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
-@RetryOnFailure(retryCount = 2)
+//@RetryOnFailure(retryCount = 2)
 @RunOnAPI29Minus("Azure Sample App")
 public class TestCase833515 extends AbstractMsalBrokerTest {
 
@@ -90,9 +91,14 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         Assert.assertTrue(mApplication.isSharedDevice());
 
         // fetching a new temp user from lab account
-        final ILabAccount labAccount = mLabClient.createTempAccount(TempUserType.BASIC);
+        final LabQuery labQuery = LabQuery.builder()
+                .userType(UserType.CLOUD)
+                .build();
+
+        final ILabAccount labAccount = mLabClient.getLabAccount(labQuery);
         final String username2 = labAccount.getUsername();
         final String password2 = labAccount.getPassword();
+        Thread.sleep(TimeUnit.SECONDS.toMillis(30));
 
         Assert.assertNotEquals(username1, username2);
 
