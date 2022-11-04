@@ -63,28 +63,28 @@ public abstract class AcquireTokenAADTest extends AcquireTokenNetworkTest {
         }
     }
 
-    public static class AzureUsGovCloudUser extends AcquireTokenAADTest {
-        @Override
-        public LabUserQuery getLabUserQuery() {
-            final LabUserQuery query = new LabUserQuery();
-            query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT;
-            return query;
-        }
-    }
-
-    public static class AzureChinaCloudUser extends AcquireTokenAADTest {
-        @Override
-        public String getConfigFilePath() {
-            return MULTIPLE_ACCOUNT_MODE_AAD_MOONCAKE_CONFIG_FILE_PATH;
-        }
-
-        @Override
-        public LabUserQuery getLabUserQuery() {
-            final LabUserQuery query = new LabUserQuery();
-            query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CHINA_CLOUD;
-            return query;
-        }
-    }
+//    public static class AzureUsGovCloudUser extends AcquireTokenAADTest {
+//        @Override
+//        public LabUserQuery getLabUserQuery() {
+//            final LabUserQuery query = new LabUserQuery();
+//            query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_US_GOVERNMENT;
+//            return query;
+//        }
+//    }
+//
+//    public static class AzureChinaCloudUser extends AcquireTokenAADTest {
+//        @Override
+//        public String getConfigFilePath() {
+//            return MULTIPLE_ACCOUNT_MODE_AAD_MOONCAKE_CONFIG_FILE_PATH;
+//        }
+//
+//        @Override
+//        public LabUserQuery getLabUserQuery() {
+//            final LabUserQuery query = new LabUserQuery();
+//            query.azureEnvironment = LabConstants.AzureEnvironment.AZURE_CHINA_CLOUD;
+//            return query;
+//        }
+//    }
 
     public static class MamCaUserAadGraphResource extends AcquireTokenAADTest {
         @Override
