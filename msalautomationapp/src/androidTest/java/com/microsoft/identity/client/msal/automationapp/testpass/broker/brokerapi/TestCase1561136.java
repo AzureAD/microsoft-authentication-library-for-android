@@ -44,7 +44,6 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.List;
 
-// TODO: This is sometime failing at the registration step (DRS Device Registration Failed)
 // Get Broker Accounts
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561136
 @SupportedBrokers(brokers = BrokerHost.class)

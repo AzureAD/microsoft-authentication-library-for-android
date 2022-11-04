@@ -29,6 +29,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.app.AzureSampleApp;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
@@ -45,6 +46,7 @@ import java.util.Arrays;
 
 // Cross Apps SSO with System Browser
 // https://identitydivision.visualstudio.com/DefaultCollection/DevEx/_workitems/edit/497038
+@RunOnAPI29Minus("Consent Page")
 public class TestCase497038 extends AbstractMsalUiTest {
 
     @Test

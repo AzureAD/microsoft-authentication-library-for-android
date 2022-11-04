@@ -41,7 +41,9 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadP
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -57,7 +59,6 @@ public class TestCase796050 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_796050() throws Throwable {
-        // already created test user
         final String username1 = mLabAccount.getUsername();
         final String password1 = mLabAccount.getPassword();
 
@@ -151,12 +152,15 @@ public class TestCase796050 extends AbstractMsalBrokerTest {
 
     @Override
     public LabQuery getLabQuery() {
-        return null;
+        return LabQuery.builder()
+                .userType(UserType.CLOUD)
+                .protectionPolicy(ProtectionPolicy.MAM_CA)
+                .build();
     }
 
     @Override
     public TempUserType getTempUserType() {
-        return TempUserType.MAM_CA;
+        return null;
     }
 
     @Override
