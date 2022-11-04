@@ -46,6 +46,8 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
+// End My Shift - In Shared device mode, MSAL should notify the app if the sign-out account is changed.
+// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833517
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
 public class TestCase833517 extends AbstractMsalBrokerTest{
 

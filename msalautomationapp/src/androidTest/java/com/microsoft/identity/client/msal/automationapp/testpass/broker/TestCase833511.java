@@ -39,6 +39,8 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import org.junit.Assert;
 import org.junit.Test;
 
+// End My Shift - Perform shared device registration with non-admin account.
+// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833511
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
 public class TestCase833511 extends AbstractMsalBrokerTest{
 
