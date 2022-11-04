@@ -73,27 +73,27 @@ public class MultiAccountAndResourceAcquireTokenNetworkTests extends AcquireToke
         return MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
     }
 
-    @Test // test that accounts belonging to multiple clouds can live together in the app
-    public void testAcquireTokenAndSilentWithMultipleCloudAccountsSuccess() {
-
-        final LabUserQuery[] queries = new LabUserQuery[]{
-                new AcquireTokenAADTest.AzureWorldWideCloudUser().getLabUserQuery(),
-                new AcquireTokenAADTest.AzureUsGovCloudUser().getLabUserQuery()};
-
-        final IAccount[] accounts = new IAccount[queries.length];
-
-        // perform interactive call for each account
-        for (int i = 0; i < queries.length; i++) {
-            final String username = LabUserHelper.loadUserForTest(queries[i]);
-            performInteractiveAcquireTokenCall(username);
-            accounts[i] = getAccount();
-        }
-
-        // perform silent call for each account
-        for (final IAccount account : accounts) {
-            performSilentAcquireTokenCall(account);
-        }
-    }
+//    @Test // test that accounts belonging to multiple clouds can live together in the app
+//    public void testAcquireTokenAndSilentWithMultipleCloudAccountsSuccess() {
+//
+//        final LabUserQuery[] queries = new LabUserQuery[]{
+//                new AcquireTokenAADTest.AzureWorldWideCloudUser().getLabUserQuery(),
+//                new AcquireTokenAADTest.AzureUsGovCloudUser().getLabUserQuery()};
+//
+//        final IAccount[] accounts = new IAccount[queries.length];
+//
+//        // perform interactive call for each account
+//        for (int i = 0; i < queries.length; i++) {
+//            final String username = LabUserHelper.loadUserForTest(queries[i]);
+//            performInteractiveAcquireTokenCall(username);
+//            accounts[i] = getAccount();
+//        }
+//
+//        // perform silent call for each account
+//        for (final IAccount account : accounts) {
+//            performSilentAcquireTokenCall(account);
+//        }
+//    }
 
     @Test // test that we can use mrrt to get a token silently for other resources
     public void testAcquireTokenSilentUsingMrrtSuccess() {
