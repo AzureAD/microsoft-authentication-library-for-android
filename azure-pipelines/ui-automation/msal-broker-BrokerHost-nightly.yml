@@ -130,7 +130,7 @@ stages:
     - brokers
   displayName: Running MSAL with Broker Test UI Test Suite (API 29-)
   jobs:
-    - template: ./templates/flank/run-on-firebase.yml
+    - template: ./templates/run-on-firebase.yml
       parameters:
         automationAppApkPath: "$(Pipeline.Workspace)/msalautomationapks/msalautomationapp-local-BrokerHost-debug.apk"
         automationAppTestApkPath: "$(Pipeline.Workspace)/msalautomationapks/msalautomationapp-local-BrokerHost-debug-androidTest.apk"
