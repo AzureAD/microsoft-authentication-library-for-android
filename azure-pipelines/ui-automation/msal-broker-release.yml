@@ -60,7 +60,7 @@ stages:
         brokerFlavor: AutoBroker
         msalFlavor: Dist
         brokerSource: PlayStore
-        msalVersion: ${{ parameters.msalVersion }}
+#        msalVersion: ${{ parameters.msalVersion }}
 # Brokers
 - stage: 'brokers'
   dependsOn: []    # this removes the implicit dependency on previous stage and causes this to run in parallel
