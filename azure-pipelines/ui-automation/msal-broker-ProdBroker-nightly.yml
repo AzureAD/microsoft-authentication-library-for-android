@@ -90,7 +90,7 @@ stages:
             command: 'download'
             downloadDirectory: '$(Build.ArtifactStagingDirectory)/oldAuthenticator'
             feedsToUse: 'internal'
-            vstsFeed: '${internalFeedName}'
+            vstsFeed: '$(internalFeedName)'
             vstsFeedPackage: 'com.azure.authenticator'
             vstsPackageVersion: '${{ parameters.oldAuthenticatorVersion }}'
         - publish: $(Build.ArtifactStagingDirectory)/azureSample
