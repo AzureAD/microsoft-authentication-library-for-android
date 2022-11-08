@@ -4,10 +4,10 @@ parameters:
   - name: automationAppTestApkPath
     type: string
   - name: testTargetPackages
-    displayName: Packages as Test Targets
+    type: string
+  - name: apiLevelTarget
     type: string
   - name: resultsHistoryName
-    displayName: Results History Name
     type: string
   - name: otherFiles
     type: string
@@ -18,34 +18,14 @@ parameters:
     default: 45m
   - name: firebaseDeviceId
     type: string
-    displayName: Firebase Device Id
-    default: blueline
-    values:
-      - blueline
-      - flame
-      - redfin
-      - sailfish
-      - walleye
-      - bluejay
-      - oriole
   - name: firebaseDeviceAndroidVersion
-    displayName: Firebase Device Android Version
     type: number
-    default: 28
-    values:
-      - 25
-      - 26
-      - 27
-      - 28
-      - 29
-      - 30
-      - 31
-      - 32
-      - 33
+  - name: testRunTitle
+    type: string
 
 jobs:
   - job: 'run_on_firebase'
-    displayName: Running Test Suite on Firebease
+    displayName: Running Test Suite on Firebase
     timeoutInMinutes: 90
     pool:
       vmImage: ubuntu-latest
@@ -79,15 +59,15 @@ jobs:
               --test "${{ parameters.automationAppTestApkPath }}" \
               --auto-google-login \
               --record-video \
-              --other-files ${{ parameters.otherFiles }} \
               --device model=${{ parameters.firebaseDeviceId }},version=${{ parameters.firebaseDeviceAndroidVersion }},locale=en,orientation=portrait \
-              --timeout "$(firebaseTimeout)" \
+              --timeout "${{ parameters.firebaseTimeout }}" \
+              --other-files ${{ parameters.otherFiles }} \
               --results-dir "${{ parameters.resultsDir }}" \
               --directories-to-pull "/sdcard" \
               --use-orchestrator \
               --environment-variables "clearPackageData=true" \
               --results-history-name "${{ parameters.resultsHistoryName }}" \
-              --test-targets "${{ parameters.testTargetPackages }}" \
+              --test-targets "${{ parameters.testTargetPackages }}, ${{ parameters.apiLevelTarget }}" \
               --smart-flank-gcs-path "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/smart-flank-xml/msal-only/JUnitReport.xml"
       - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/${{ parameters.resultsDir }}/JUnitReport.xml" "$(Build.SourcesDirectory)"
         displayName: Download Test Result File
@@ -98,4 +78,4 @@ jobs:
         inputs:
           testResultsFiles: 'JUnitReport.xml'
           searchFolder: $(Build.SourcesDirectory)
-          testRunTitle: 'MSAL UI Automation - Build # $(Build.BuildNumber)'
+          testRunTitle: '${{ parameters.testRunTitle }}'
