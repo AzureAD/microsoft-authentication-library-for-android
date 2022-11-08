@@ -105,7 +105,7 @@ stages:
         resultsDir: "msal-BrokerHost-lowapi-$(Build.BuildId)-$(Build.BuildNumber)"
         resultsHistoryName: "Dev MSAL without Broker"
         otherFiles: "/data/local/tmp/AzureSample.apk=$(Pipeline.Workspace)/azureSample/$(azureSampleApk)"
-        firebaseDeviceId: ${{ parameters.firebaseDeviceId }}
-        firebaseDeviceAndroidVersion: ${{ parameters.firebaseDeviceAndroidVersion }}
+        firebaseDeviceId: ${{ parameters.firebaseDeviceIdLow }}
+        firebaseDeviceAndroidVersion: ${{ parameters.firebaseDeviceAndroidVersionLow }}
         testRunTitle: "MSAL UI Automation - Build (API 29-) # $(Build.BuildNumber)"
         apiLevelTarget: "annotation com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus"
