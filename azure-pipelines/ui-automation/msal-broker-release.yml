@@ -48,6 +48,7 @@ variables:
   brokerHostApk: brokerHost-local-debug.apk
   oldAuthenticatorApk: Authenticator-4.1.0-RC.apk
   firebaseTimeout: 45m
+  internalFeedName: AndroidAdal
 
 stages:
 # msalautomationapp
@@ -96,7 +97,7 @@ stages:
             command: 'download'
             downloadDirectory: '$(Build.ArtifactStagingDirectory)/oldAuthenticator'
             feedsToUse: 'internal'
-            vstsFeed: '${{ parameters.internalFeedName }}'
+            vstsFeed: '${internalFeedName}'
             vstsFeedPackage: 'com.azure.authenticator'
             vstsPackageVersion: '${{ parameters.oldAuthenticatorVersion }}'
         - publish: $(Build.ArtifactStagingDirectory)/azureSample
