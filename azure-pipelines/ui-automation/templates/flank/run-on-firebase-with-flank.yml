@@ -22,6 +22,8 @@ parameters:
     type: number
   - name: testRunTitle
     type: string
+  - name: flankShards
+    type: number
 
 jobs:
   - job: 'run_on_firebase'
@@ -44,7 +46,7 @@ jobs:
         env:
           GOOGLE_APPLICATION_CREDENTIALS: $(gcServiceAccountKey.secureFilePath)
         name: runUiAutomation
-        displayName: Run UI Automation on Firebase
+        displayName: Run UI Automation on Firebase (with Flank)
         inputs:
           targetType: inline
           script: |
@@ -68,6 +70,7 @@ jobs:
               --environment-variables "clearPackageData=true" \
               --results-history-name "${{ parameters.resultsHistoryName }}" \
               --test-targets "${{ parameters.testTargetPackages }}, ${{ parameters.apiLevelTarget }}" \
+              --max-test-shards ${{ parameters.flankShards }} \
               --smart-flank-gcs-path "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/smart-flank-xml/msal-only/JUnitReport.xml"
       - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/${{ parameters.resultsDir }}/JUnitReport.xml" "$(Build.SourcesDirectory)"
         displayName: Download Test Result File

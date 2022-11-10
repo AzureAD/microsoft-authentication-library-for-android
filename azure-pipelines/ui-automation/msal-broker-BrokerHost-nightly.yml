@@ -23,6 +23,10 @@ parameters:
     displayName: Firebase Device Android Version (Api 29-)
     type: number
     default: 28
+  - name: flankShards
+    displayName: Max Number of Flank Shards
+    type: number
+    default: 2
   - name: testTargetPackages
     displayName: Packages as Test Targets
     type: string
@@ -107,7 +111,7 @@ stages:
     dependsOn:
       - msalautomationapp
       - brokers
-    displayName: Running MSAL with Broker Test UI Test Suite (API 30+)
+    displayName: Running MSAL with Broker Test UI Test Suite (API ${{ parameters.firebaseDeviceAndroidVersionHigh }})
     jobs:
       - template: ./templates/flank/run-on-firebase-with-flank.yml
         parameters:
@@ -121,14 +125,15 @@ stages:
           resultsDir: "msal-BrokerHost-highapi-$(Build.BuildId)-$(Build.BuildNumber)"
           firebaseDeviceId: ${{ parameters.firebaseDeviceIdHigh }}
           firebaseDeviceAndroidVersion: ${{ parameters.firebaseDeviceAndroidVersionHigh }}
-          testRunTitle: "Broker(MSAL) UI Automation - Build (API 30+) # $(Build.BuildNumber)"
+          testRunTitle: "Broker(MSAL) UI Automation - Build (API ${{ parameters.firebaseDeviceAndroidVersionHigh }}) # $(Build.BuildNumber)"
           apiLevelTarget: "notAnnotation com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus"
+          flankShards: ${{ parameters.flankShards }}
   # MSAL with Broker Test Plan stage (API 29-)
   - stage: 'msal_with_broker_low_api'
     dependsOn:
       - msalautomationapp
       - brokers
-    displayName: Running MSAL with Broker Test UI Test Suite (API 29-)
+    displayName: Running MSAL with Broker Test UI Test Suite (API ${{ parameters.firebaseDeviceAndroidVersionLow }})
     jobs:
       - template: ./templates/run-on-firebase.yml
         parameters:
@@ -142,5 +147,5 @@ stages:
           resultsDir: "msal-BrokerHost-lowapi-$(Build.BuildId)-$(Build.BuildNumber)"
           firebaseDeviceId: ${{ parameters.firebaseDeviceIdLow }}
           firebaseDeviceAndroidVersion: ${{ parameters.firebaseDeviceAndroidVersionLow }}
-          testRunTitle: "Broker(MSAL) UI Automation - Build (API 29-) # $(Build.BuildNumber)"
+          testRunTitle: "Broker(MSAL) UI Automation - Build (API ${{ parameters.firebaseDeviceAndroidVersionLow }}) # $(Build.BuildNumber)"
           apiLevelTarget: "annotation com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus"
