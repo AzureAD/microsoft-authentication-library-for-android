@@ -42,32 +42,37 @@ public class TestCase1561087 extends AbstractMsalBrokerTest {
         // Set flights and get to check if the flight information is returned
         final String flightsJson =  "{\"SetFlightsTest\":\"true\"}";
         mBroker.overwriteFlights(flightsJson);
-        Assert.assertEquals(flightsJson, mBroker.getFlights());
+        containsWithoutBrackets(flightsJson);
 
         // Add flights and get to check if the flight information is returned
         final String anotherFlightJson = "{\"AnotherFlight\":\"hello\"}";
         mBroker.setFlights(anotherFlightJson);
-        Assert.assertEquals( "{\"AnotherFlight\":\"hello\",\"SetFlightsTest\":\"true\"}", mBroker.getFlights());
+        containsWithoutBrackets(anotherFlightJson);
+        containsWithoutBrackets(flightsJson);
 
         // Override flights and get to check if the flight information is returned
         final String flightToOverwrite = "{\"SetFlightsTest\":\"false\"}";
         mBroker.setFlights(flightToOverwrite);
-        Assert.assertEquals("{\"AnotherFlight\":\"hello\",\"SetFlightsTest\":\"false\"}", mBroker.getFlights());
+        containsWithoutBrackets(anotherFlightJson);
+        containsWithoutBrackets(flightToOverwrite);
 
         // Add flight with null value. SetFlightsTest should be removed.
         final String flightMapWithNullValue = "{\"SetFlightsTest\": null}";
         mBroker.setFlights(flightMapWithNullValue);
-        Assert.assertEquals("{\"AnotherFlight\":\"hello\"}", mBroker.getFlights());
+        containsWithoutBrackets(anotherFlightJson);
+        Assert.assertFalse(mBroker.getFlights().contains("SetFlightsTest"));
 
         // Add an empty flight map. the flight map should not change.
         final String emptyFlightMap = "{}";
+        final String oldFlights = mBroker.getFlights();
         mBroker.setFlights(emptyFlightMap);
-        Assert.assertEquals("{\"AnotherFlight\":\"hello\"}", mBroker.getFlights());
+        Assert.assertEquals(oldFlights, mBroker.getFlights());
 
-        // clear flights and get to check if the flights are cleared
+        // clear flights and get to check if the flights are cleared.
+        // Looks like some defaults flights are added even after flights are cleared, so we can check that the flights we added have been deleted.
         final String clearFlightsJson = "{}";
         mBroker.overwriteFlights(clearFlightsJson);
-        Assert.assertEquals(clearFlightsJson, mBroker.getFlights());
+        Assert.assertFalse(mBroker.getFlights().contains("AnotherFlight"));
     }
 
     @Override
@@ -95,5 +100,10 @@ public class TestCase1561087 extends AbstractMsalBrokerTest {
     @Override
     public int getConfigFileResourceId() {
         return R.raw.msal_config_default;
+    }
+
+    private void containsWithoutBrackets(final String flightToCheck) {
+        final String withoutBrackets = flightToCheck.replace("{", "").replace("}", "");
+        Assert.assertTrue(mBroker.getFlights().contains(withoutBrackets));
     }
 }
