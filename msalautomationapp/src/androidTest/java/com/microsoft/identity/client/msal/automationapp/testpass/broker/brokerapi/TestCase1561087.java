@@ -42,24 +42,24 @@ public class TestCase1561087 extends AbstractMsalBrokerTest {
         // Set flights and get to check if the flight information is returned
         final String flightsJson =  "{\"SetFlightsTest\":\"true\"}";
         mBroker.overwriteFlights(flightsJson);
-        containsWithoutBrackets(flightsJson);
+        checkIfBrokerContainsFlight(flightsJson);
 
         // Add flights and get to check if the flight information is returned
         final String anotherFlightJson = "{\"AnotherFlight\":\"hello\"}";
         mBroker.setFlights(anotherFlightJson);
-        containsWithoutBrackets(anotherFlightJson);
-        containsWithoutBrackets(flightsJson);
+        checkIfBrokerContainsFlight(anotherFlightJson);
+        checkIfBrokerContainsFlight(flightsJson);
 
         // Override flights and get to check if the flight information is returned
         final String flightToOverwrite = "{\"SetFlightsTest\":\"false\"}";
         mBroker.setFlights(flightToOverwrite);
-        containsWithoutBrackets(anotherFlightJson);
-        containsWithoutBrackets(flightToOverwrite);
+        checkIfBrokerContainsFlight(anotherFlightJson);
+        checkIfBrokerContainsFlight(flightToOverwrite);
 
         // Add flight with null value. SetFlightsTest should be removed.
         final String flightMapWithNullValue = "{\"SetFlightsTest\": null}";
         mBroker.setFlights(flightMapWithNullValue);
-        containsWithoutBrackets(anotherFlightJson);
+        checkIfBrokerContainsFlight(anotherFlightJson);
         Assert.assertFalse(mBroker.getFlights().contains("SetFlightsTest"));
 
         // Add an empty flight map. the flight map should not change.
@@ -102,7 +102,12 @@ public class TestCase1561087 extends AbstractMsalBrokerTest {
         return R.raw.msal_config_default;
     }
 
-    private void containsWithoutBrackets(final String flightToCheck) {
+    /**
+     * Check if the Broker contain the parameter flight by removing brackets from the parameter and using String.contains()
+     *
+     * @param flightToCheck flight to be checked against flight set from BrokerHost
+     */
+    private void checkIfBrokerContainsFlight(final String flightToCheck) {
         final String withoutBrackets = flightToCheck.replace("{", "").replace("}", "");
         Assert.assertTrue(mBroker.getFlights().contains(withoutBrackets));
     }
