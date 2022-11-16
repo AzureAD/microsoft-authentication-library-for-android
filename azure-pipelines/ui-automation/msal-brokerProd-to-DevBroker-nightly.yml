@@ -73,7 +73,7 @@ stages:
       - template: ./templates/build-msal-automation-app.yml
         parameters:
           brokerFlavor: BrokerHost
-          msalFlavor: Local
+          msalFlavor: Dist
           brokerSource: LocalApk
           msalVersion: ${{ parameters.msalVersion }}
   # Brokers
