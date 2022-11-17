@@ -71,6 +71,8 @@ variables:
   azureSampleApk: AzureSample-local-debug.apk
   brokerHostApk: brokerHost-local-debug.apk
   oldBrokerHostApk: brokerHost-local-debug.apk
+  companyPortalApk: com.microsoft.windowsintune.companyportal-signed.apk
+  authenticatorApk: app-production-universal-release-signed.apk
   firebaseTimeout: 45m
 
 stages:
@@ -169,7 +171,8 @@ stages:
           automationAppTestApkPath: "$(Pipeline.Workspace)/msalautomationapks/msalautomationapp-dist-AutoBroker-debug-androidTest.apk"
           testTargetPackages: ${{ parameters.testTargetPackages }}
           resultsHistoryName: "Prod MSAL with Dev Broker (BrokerHost)"
-          otherFiles: "/data/local/tmp/BrokerHost.apk=$(Pipeline.Workspace)/brokerHost/$(brokerHostApk),\
+          otherFiles: 
+                 "/data/local/tmp/BrokerHost.apk=$(Pipeline.Workspace)/brokerHost/$(brokerHostApk),\
                   /data/local/tmp/OldBrokerHost.apk=$(Pipeline.Workspace)/oldBrokerHost/$(oldBrokerHostApk),\
                   /data/local/tmp/CompanyPortal.apk=$(Pipeline.Workspace)/brokerapks/$(companyPortalApk),\
                   /data/local/tmp/Authenticator.apk=$(Pipeline.Workspace)/brokerapks/$(authenticatorApk),\
