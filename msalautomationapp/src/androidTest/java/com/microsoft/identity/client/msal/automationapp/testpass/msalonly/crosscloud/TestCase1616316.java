@@ -33,6 +33,8 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
+import com.microsoft.identity.client.ui.automation.constants.GlobalConstants;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
@@ -54,6 +56,7 @@ import java.util.Collection;
 // [CrossCloud] AcquireToken from home Cloud after acquiring token from cross/foreign cloud
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1616315
 @RunWith(Parameterized.class)
+@RunOnAPI29Minus("Keep me signed in")
 public class TestCase1616316 extends AbstractGuestAccountMsalUiTest {
 
     private final GuestHomeAzureEnvironment mGuestHomeAzureEnvironment;
@@ -85,7 +88,7 @@ public class TestCase1616316 extends AbstractGuestAccountMsalUiTest {
                     PromptHandlerParameters.builder()
                             .prompt(PromptParameter.SELECT_ACCOUNT)
                             .loginHint(userName)
-                            .staySignedInPageExpected(true)
+                            .staySignedInPageExpected(GlobalConstants.IS_STAY_SIGN_IN_PAGE_EXPECTED)
                             .speedBumpExpected(true)
                             .build();
             final AadPromptHandler promptHandler = new AadPromptHandler(promptHandlerParameters);

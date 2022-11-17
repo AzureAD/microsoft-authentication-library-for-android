@@ -22,7 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.flw;
 
-import androidx.test.uiautomator.UiObject;
 import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.SignInParameters;
@@ -32,7 +31,9 @@ import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
+import com.microsoft.identity.client.ui.automation.annotations.DoNotRunOnPipeline;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
+import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.AzureSampleApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
@@ -47,6 +48,7 @@ import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserRole;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
 import org.junit.Assert;
@@ -58,7 +60,9 @@ import java.util.concurrent.TimeUnit;
 // End My Shift - In Shared device mode, global sign out should work.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833515
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
-@RetryOnFailure(retryCount = 2)
+@RetryOnFailure
+@RunOnAPI29Minus("Azure Sample App")
+@DoNotRunOnPipeline("This test is failing on pipeline at various points. Most commonly, getting 'an account is already signed in' when calling SAPCA.signIn()")
 public class TestCase833515 extends AbstractMsalBrokerTest {
 
     final static String MY_APPS_URL = "myapps.microsoft.com";
@@ -89,7 +93,11 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         Assert.assertTrue(mApplication.isSharedDevice());
 
         // fetching a new temp user from lab account
-        final ILabAccount labAccount = mLabClient.createTempAccount(TempUserType.BASIC);
+        final LabQuery labQuery = LabQuery.builder()
+                .userType(UserType.CLOUD)
+                .build();
+
+        final ILabAccount labAccount = mLabClient.getLabAccount(labQuery);
         final String username2 = labAccount.getUsername();
         final String password2 = labAccount.getPassword();
         Thread.sleep(TimeUnit.SECONDS.toMillis(30));

@@ -31,12 +31,12 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.LongUIAutomationTest;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Assert;
@@ -47,7 +47,8 @@ import java.util.concurrent.TimeUnit;
 
 // [Joined][MSAL] Password Change
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561151
-@RetryOnFailure(retryCount = 2)
+@RetryOnFailure
+@LongUIAutomationTest("Password reset test")
 public class TestCase1561151 extends AbstractMsalBrokerTest {
     @Test
     public void test_1561151() throws Throwable {
@@ -147,14 +148,12 @@ public class TestCase1561151 extends AbstractMsalBrokerTest {
 
     @Override
     public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-                .build();
+        return null;
     }
 
     @Override
     public TempUserType getTempUserType() {
-        return null;
+        return TempUserType.BASIC;
     }
 
     @Override

@@ -31,14 +31,13 @@ import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 // Invoke each API from non-allowed apps. the request should be blocked.
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1600567
-@Ignore("Calling App Not Verified error is not showing up on pipeline (works locally)")
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
 public class TestCase1600567 extends AbstractMsalBrokerTest {
     @Test
@@ -48,6 +47,7 @@ public class TestCase1600567 extends AbstractMsalBrokerTest {
         brokerHost.launch();
 
         // verify getAccounts call gives calling app not verified
+        UiAutomatorUtils.obtainChildInScrollable("Get Accounts");
         UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/buttonGetAccounts");
         brokerHost.confirmCallingAppNotVerified();
 
@@ -84,12 +84,14 @@ public class TestCase1600567 extends AbstractMsalBrokerTest {
 
     @Override
     public LabQuery getLabQuery() {
-        return null;
+        return LabQuery.builder()
+                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
+                .build();
     }
 
     @Override
     public TempUserType getTempUserType() {
-        return TempUserType.BASIC;
+        return null;
     }
 
     @Override
