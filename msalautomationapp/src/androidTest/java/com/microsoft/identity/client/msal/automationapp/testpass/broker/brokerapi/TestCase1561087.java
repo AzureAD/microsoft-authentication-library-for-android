@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.brokerapi;
 
+import androidx.annotation.NonNull;
+
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
@@ -107,7 +109,7 @@ public class TestCase1561087 extends AbstractMsalBrokerTest {
      *
      * @param flightToCheck flight to be checked against flight set from BrokerHost
      */
-    private void checkIfBrokerContainsFlight(final String flightToCheck) {
+    private void checkIfBrokerContainsFlight(@NonNull final String flightToCheck) {
         final String withoutBrackets = flightToCheck.replace("{", "").replace("}", "");
         Assert.assertTrue(mBroker.getFlights().contains(withoutBrackets));
     }
