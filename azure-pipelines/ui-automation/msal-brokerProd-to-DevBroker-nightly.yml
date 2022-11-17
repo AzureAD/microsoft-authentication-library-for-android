@@ -53,6 +53,14 @@ parameters:
   - name: msalVersion
     displayName: MSAL Version
     type: string
+  - name: companyPortalVersion
+    displayName: Company Portal Version
+    type: string
+    default: '*'
+  - name: authenticatorVersion
+    displayName: Authenticator Version
+    type: string
+    default: '*'  
 
 variables:
   engineeringProjectId: 'fac9d424-53d2-45c0-91b5-ef6ba7a6bf26'
@@ -116,7 +124,29 @@ stages:
               feedDownloadExternal: '$(msazureFeedName)'
               packageDownloadExternal: 'broker-host'
               versionDownloadExternal: '${{ parameters.oldBrokerHostVersion }}'
-
+          - task: UniversalPackages@0
+            displayName: 'Download com.microsoft.windowsintune.companyportal-signed'
+            inputs:
+              command: 'download'
+              downloadDirectory: '$(Build.ArtifactStagingDirectory)/brokers'
+              feedsToUse: 'external'
+              externalFeedCredentials: '$(msazureServiceConnection)'
+              feedDownloadExternal: '$(msazureFeedName)'
+              packageDownloadExternal: 'com.microsoft.windowsintune.companyportal-signed'
+              versionDownloadExternal: '${{ parameters.companyPortalVersion }}'
+          - task: UniversalPackages@0
+            displayName: 'Download com.azure.authenticator'
+            inputs:
+              command: 'download'
+              downloadDirectory: '$(Build.ArtifactStagingDirectory)/brokers'
+              feedsToUse: 'external'
+              externalFeedCredentials: '$(msazureServiceConnection)'
+              feedDownloadExternal: '$(msazureFeedName)'
+              packageDownloadExternal: 'com.azure.authenticator'
+              versionDownloadExternal: '${{ parameters.authenticatorVersion }}'    
+          - publish: $(Build.ArtifactStagingDirectory)/brokers
+            displayName: 'Publish Authenticator/Company Portal Broker apks for later use'
+            artifact: brokerapks
           - publish: $(Build.ArtifactStagingDirectory)/azureSample
             displayName: 'Publish Azure Sample apk for later use'
             artifact: azureSample
@@ -141,6 +171,8 @@ stages:
           resultsHistoryName: "Prod MSAL with Dev Broker (BrokerHost)"
           otherFiles: "/data/local/tmp/BrokerHost.apk=$(Pipeline.Workspace)/brokerHost/$(brokerHostApk),\
                   /data/local/tmp/OldBrokerHost.apk=$(Pipeline.Workspace)/oldBrokerHost/$(oldBrokerHostApk),\
+                  /data/local/tmp/CompanyPortal.apk=$(Pipeline.Workspace)/brokerapks/$(companyPortalApk),\
+                  /data/local/tmp/Authenticator.apk=$(Pipeline.Workspace)/brokerapks/$(authenticatorApk),\
                   /data/local/tmp/AzureSample.apk=$(Pipeline.Workspace)/azureSample/$(azureSampleApk)"
           resultsDir: "msal-BrokerHost-$(Build.BuildId)-$(Build.BuildNumber)"
           firebaseDeviceId: ${{ parameters.firebaseDeviceId }}
