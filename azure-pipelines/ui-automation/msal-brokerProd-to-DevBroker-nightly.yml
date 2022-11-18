@@ -52,7 +52,7 @@ parameters:
     default: '0.0.1'
   - name: msalVersion
     displayName: MSAL Version
-    type: string
+    type: string    
   - name: companyPortalVersion
     displayName: Company Portal Version
     type: string
@@ -60,7 +60,7 @@ parameters:
   - name: authenticatorVersion
     displayName: Authenticator Version
     type: string
-    default: '*'  
+    default: '*'
 
 variables:
   engineeringProjectId: 'fac9d424-53d2-45c0-91b5-ef6ba7a6bf26'
@@ -73,6 +73,7 @@ variables:
   oldBrokerHostApk: brokerHost-local-debug.apk
   companyPortalApk: com.microsoft.windowsintune.companyportal-signed.apk
   authenticatorApk: app-production-universal-release-signed.apk
+  oldAuthenticatorApk: Authenticator-4.1.0-RC.apk
   firebaseTimeout: 45m
 
 stages:
@@ -146,6 +147,16 @@ stages:
               feedDownloadExternal: '$(msazureFeedName)'
               packageDownloadExternal: 'com.azure.authenticator'
               versionDownloadExternal: '${{ parameters.authenticatorVersion }}'    
+          - task: UniversalPackages@0
+            displayName: 'Download old brokerHost version from feed'
+            inputs:
+              command: 'download'
+              downloadDirectory: '$(Build.ArtifactStagingDirectory)/brokers/oldAPKs'
+              feedsToUse: 'external'
+              externalFeedCredentials: '${{ parameters.msazureServiceConnection }}'
+              feedDownloadExternal: '${{ parameters.msazureFeedName }}'
+              packageDownloadExternal: 'broker-host'
+              versionDownloadExternal: '${{ parameters.oldBrokerHostVersion }}'    
           - publish: $(Build.ArtifactStagingDirectory)/brokers
             displayName: 'Publish Authenticator/Company Portal Broker apks for later use'
             artifact: brokerapks
@@ -176,6 +187,7 @@ stages:
                   /data/local/tmp/OldBrokerHost.apk=$(Pipeline.Workspace)/oldBrokerHost/$(oldBrokerHostApk),\
                   /data/local/tmp/CompanyPortal.apk=$(Pipeline.Workspace)/brokerapks/$(companyPortalApk),\
                   /data/local/tmp/Authenticator.apk=$(Pipeline.Workspace)/brokerapks/$(authenticatorApk),\
+                  /data/local/tmp/OldAuthenticator.apk=$(Pipeline.WorkSpace)/brokerapks/oldAPKs/$(oldAuthenticatorApk),\
                   /data/local/tmp/AzureSample.apk=$(Pipeline.Workspace)/azureSample/$(azureSampleApk)"
           resultsDir: "msal-BrokerHost-$(Build.BuildId)-$(Build.BuildNumber)"
           firebaseDeviceId: ${{ parameters.firebaseDeviceId }}
