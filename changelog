@@ -1,6 +1,10 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 V.Next
 ----------
+
+
+Version 4.1.0
+----------
 - [MINOR] Add new exception type for broker protocol not supported exception during msal-broker handshake (#1703)
 
 Version 4.0.4
