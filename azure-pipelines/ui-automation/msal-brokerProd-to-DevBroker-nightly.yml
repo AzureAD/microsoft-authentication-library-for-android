@@ -65,6 +65,9 @@ parameters:
     displayName: Old Authenticator Version
     type: string
     default: '6.2204.2470'
+  - name: internalFeedName
+    type: string
+    default: 'AndroidAdal'  
 
 variables:
   engineeringProjectId: 'fac9d424-53d2-45c0-91b5-ef6ba7a6bf26'
