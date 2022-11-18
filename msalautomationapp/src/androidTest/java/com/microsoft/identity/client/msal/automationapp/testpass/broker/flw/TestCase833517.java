@@ -20,7 +20,7 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.broker;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.flw;
 
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.Prompt;
@@ -28,6 +28,7 @@ import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
+import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
@@ -36,6 +37,7 @@ import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequ
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.common.java.util.ThreadUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
@@ -49,7 +51,7 @@ import java.util.Arrays;
 // End My Shift - In Shared device mode, MSAL should notify the app if the sign-out account is changed.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833517
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
-public class TestCase833517 extends AbstractMsalBrokerTest{
+public class TestCase833517 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_833517() throws Throwable{
@@ -57,6 +59,7 @@ public class TestCase833517 extends AbstractMsalBrokerTest{
         final String password = mLabAccount.getPassword();
 
         mBroker.performSharedDeviceRegistration(username, password);
+
         final MsalSdk msalSdk = new MsalSdk();
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
@@ -89,12 +92,12 @@ public class TestCase833517 extends AbstractMsalBrokerTest{
 
         getSettingsScreen().removeAccount(username);
 
+        ThreadUtils.sleepSafely(10000, "Sleep", "Interrupted");
+
         //final IPublicClientApplication pca = PublicClientApplication.create(mActivity,getConfigFileResourceId());
         final IAccount account = msalSdk.getAccount(mActivity,getConfigFileResourceId(),username);
         Assert.assertNull(account);
     }
-
-
 
     @Override
     public LabQuery getLabQuery() {
