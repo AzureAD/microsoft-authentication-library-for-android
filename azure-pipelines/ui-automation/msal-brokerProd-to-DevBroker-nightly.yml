@@ -61,6 +61,10 @@ parameters:
     displayName: Authenticator Version
     type: string
     default: '*'
+  - name: oldAuthenticatorVersion
+    displayName: Old Authenticator Version
+    type: string
+    default: '6.2204.2470'
 
 variables:
   engineeringProjectId: 'fac9d424-53d2-45c0-91b5-ef6ba7a6bf26'
@@ -148,7 +152,7 @@ stages:
               packageDownloadExternal: 'com.azure.authenticator'
               versionDownloadExternal: '${{ parameters.authenticatorVersion }}'    
           - task: UniversalPackages@0
-            displayName: 'Download old brokerHost version from feed'
+            displayName: 'Download old Authenticator version from feed'
             inputs:
               command: 'download'
               downloadDirectory: '$(Build.ArtifactStagingDirectory)/brokers/oldAPKs'
@@ -156,7 +160,7 @@ stages:
               externalFeedCredentials: '${{ parameters.msazureServiceConnection }}'
               feedDownloadExternal: '${{ parameters.msazureFeedName }}'
               packageDownloadExternal: 'broker-host'
-              versionDownloadExternal: '${{ parameters.oldBrokerHostVersion }}'    
+              versionDownloadExternal: '${{ parameters.oldAuthenticatorVersion }}'    
           - publish: $(Build.ArtifactStagingDirectory)/brokers
             displayName: 'Publish Authenticator/Company Portal Broker apks for later use'
             artifact: brokerapks
