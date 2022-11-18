@@ -157,7 +157,7 @@ stages:
               command: 'download'
               downloadDirectory: '$(Build.ArtifactStagingDirectory)/brokers/oldAPKs'
               feedsToUse: 'external'
-              externalFeedCredentials: '${{ parameters.msazureServiceConnection }}'
+              externalFeedCredentials: '${{msazureServiceConnection }}'
               feedDownloadExternal: '${{ parameters.msazureFeedName }}'
               packageDownloadExternal: 'broker-host'
               versionDownloadExternal: '${{ parameters.oldAuthenticatorVersion }}'    
