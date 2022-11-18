@@ -152,15 +152,14 @@ stages:
               packageDownloadExternal: 'com.azure.authenticator'
               versionDownloadExternal: '${{ parameters.authenticatorVersion }}'    
           - task: UniversalPackages@0
-            displayName: 'Download old Authenticator version from feed'
+            displayName: 'Download old authenticator (Pre v5 Broker) version from feed'
             inputs:
               command: 'download'
               downloadDirectory: '$(Build.ArtifactStagingDirectory)/brokers/oldAPKs'
-              feedsToUse: 'external'
-              externalFeedCredentials: '$(msazureServiceConnection)'
-              feedDownloadExternal: '$(msazureFeedName)'
-              packageDownloadExternal: 'broker-host'
-              versionDownloadExternal: '${{ parameters.oldAuthenticatorVersion }}'    
+              feedsToUse: 'internal'
+              vstsFeed: '${{ parameters.internalFeedName }}'
+              vstsFeedPackage: 'com.azure.authenticator'
+              vstsPackageVersion: '${{ parameters.oldAuthenticatorVersion }}'
           - publish: $(Build.ArtifactStagingDirectory)/brokers
             displayName: 'Publish Authenticator/Company Portal Broker apks for later use'
             artifact: brokerapks
