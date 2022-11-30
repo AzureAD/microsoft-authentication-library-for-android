@@ -32,6 +32,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
+import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
@@ -55,6 +56,7 @@ import java.util.concurrent.TimeUnit;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938368
 // Adding a retry on failure, sometimes arlington login page fails to load
 @RetryOnFailure(retryCount = 2)
+@RunOnAPI29Minus("Speed Bump Page")
 public class TestCase938368 extends AbstractMsalUiTest {
 
     @Test

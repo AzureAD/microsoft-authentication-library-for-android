@@ -42,6 +42,7 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -51,13 +52,22 @@ import java.util.Arrays;
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/532736
 public class TestCase532736 extends AbstractMsalUiTest {
 
+    @After
+    public void enableChrome() {
+        final ISettings settings = getSettingsScreen();
+        final BrowserChrome chrome = ((BrowserChrome) mBrowser);
+
+        // Some cleanup after the test concludes
+        settings.enableAppThroughSettings(chrome.getPackageName());
+    }
+
     @Test
     public void test_532736() throws Throwable {
         final String username = mLabAccount.getUsername();
 
         // Disable Chrome
-        ISettings settings = getSettingsScreen();
-        BrowserChrome chrome = ((BrowserChrome) mBrowser);
+        final ISettings settings = getSettingsScreen();
+        final BrowserChrome chrome = ((BrowserChrome) mBrowser);
 
         settings.disableAppThroughSettings(chrome.getPackageName());
 
@@ -81,11 +91,8 @@ public class TestCase532736 extends AbstractMsalUiTest {
                 // Assert that no objects from Chrome package are present
                 final UiObject chromeObject = UiAutomatorUtils.obtainUiObjectWithUiSelector(new UiSelector().packageName("com.android.chrome"), CommonUtils.FIND_UI_ELEMENT_TIMEOUT);
                 Assert.assertFalse(chromeObject.exists());
-
-                // Some cleanup after the test passes
-                settings.enableAppThroughSettings(chrome.getPackageName());
             }
-        }, TokenRequestTimeout.SILENT);
+        }, TokenRequestTimeout.SILENT); // This isn't a silent request, but we want to complete it quickly since we're just checking for WebView
     }
 
     @Override
