@@ -23,12 +23,4 @@
 
     </application>
 
-    <!-- Required for API Level 30 to make sure we can detect First Party Apps.-->
-    <queries>
-        <package android:name="com.microsoft.office.outlook" />
-        <package android:name="com.microsoft.office.word" />
-        <package android:name="com.microsoft.teams" />
-        <package android:name="com.azuresamples.msalandroidapp" />
-    </queries>
-
 </manifest>
