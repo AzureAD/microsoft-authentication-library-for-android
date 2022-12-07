@@ -24,6 +24,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.basic
 
 import android.webkit.WebView;
 
+import androidx.annotation.NonNull;
 import androidx.test.uiautomator.UiObject;
 import androidx.test.uiautomator.UiSelector;
 
@@ -33,6 +34,7 @@ import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
 import com.microsoft.identity.client.ui.automation.device.settings.ISettings;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
@@ -45,12 +47,31 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
+import java.util.Collection;
 
 // MSAL Falls Back on WebView When All Browsers are Disabled
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/532736
+@RunWith(Parameterized.class)
+@RetryOnFailure
 public class TestCase532736 extends AbstractMsalUiTest {
+
+    private final int mConfigFileResourceId;
+
+    public TestCase532736(final String name, final @NonNull int configFileResourceId) {
+        mConfigFileResourceId = configFileResourceId;
+    }
+
+    @Parameterized.Parameters(name = "{0}")
+    public static Collection guestHomeAzureEnvironment() {
+        return Arrays.asList(new Object[][]{
+                {"DEFAULT_CONFIG", R.raw.msal_config_default},
+                {"BROWSER_CONFIG", R.raw.msal_config_browser},
+        });
+    }
 
     @After
     public void enableChrome() {
@@ -118,6 +139,6 @@ public class TestCase532736 extends AbstractMsalUiTest {
     }
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_browser;
+        return mConfigFileResourceId;
     }
 }
