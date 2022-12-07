@@ -30,6 +30,8 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
+import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
@@ -39,7 +41,6 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.Mfa;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -47,7 +48,8 @@ import java.util.concurrent.TimeUnit;
 
 // Interactive auth with force_login and step-up MFA
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99656
-@Ignore("https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1886086")
+@RetryOnFailure(retryCount = 3) // Seems like AutoMFA does not work sometimes, seems rare but adding extra retries
+@RunOnAPI29Minus("Verify Your Identity (MFA)")
 public class TestCase99656 extends AbstractMsalUiTest {
 
     private final String TAG = TestCase99656.class.getSimpleName();
@@ -76,6 +78,7 @@ public class TestCase99656 extends AbstractMsalUiTest {
                         .sessionExpected(false)
                         .consentPageExpected(false)
                         .speedBumpExpected(false)
+                        .verifyYourIdentityPageExpected(true)
                         .build();
 
                 new AadPromptHandler(promptHandlerParameters)

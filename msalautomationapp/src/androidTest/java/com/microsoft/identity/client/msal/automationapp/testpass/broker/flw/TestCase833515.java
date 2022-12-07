@@ -22,6 +22,9 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.flw;
 
+import androidx.annotation.NonNull;
+
+import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.SignInParameters;
@@ -31,19 +34,17 @@ import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
-import com.microsoft.identity.client.ui.automation.annotations.DoNotRunOnPipeline;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
-import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.AzureSampleApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
-import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
-import com.microsoft.identity.client.ui.automation.browser.IBrowser;
+import com.microsoft.identity.client.ui.automation.browser.BrowserEdge;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadLoginComponentHandler;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
+import com.microsoft.identity.common.java.util.ThreadUtils;
 import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
@@ -61,11 +62,7 @@ import java.util.concurrent.TimeUnit;
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833515
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
 @RetryOnFailure
-@RunOnAPI29Minus("Azure Sample App")
-@DoNotRunOnPipeline("This test is failing on pipeline at various points. Most commonly, getting 'an account is already signed in' when calling SAPCA.signIn()")
 public class TestCase833515 extends AbstractMsalBrokerTest {
-
-    final static String MY_APPS_URL = "myapps.microsoft.com";
 
     @Test
     public void test_833515() throws MsalException, InterruptedException, LabApiException {
@@ -92,7 +89,7 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         // we should be in shared device mode
         Assert.assertTrue(mApplication.isSharedDevice());
 
-        // fetching a new temp user from lab account
+        // fetching another user from lab account
         final LabQuery labQuery = LabQuery.builder()
                 .userType(UserType.CLOUD)
                 .build();
@@ -137,29 +134,41 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         azureSampleApp.uninstall();
         azureSampleApp.install();
         azureSampleApp.launch();
-        Thread.sleep(TimeUnit.SECONDS.toMillis(5));
         azureSampleApp.confirmSignedIn(username2);
 
-        // clearing history of chrome.
-        final IBrowser chrome = new BrowserChrome();
-        chrome.clear();
+        // clearing history of edge
+        final BrowserEdge edge = new BrowserEdge();
+        edge.install();
+        edge.clear();
 
-        // relaunching chrome after clearing history of chrome.
-        chrome.launch();
-        chrome.handleFirstRun();
-        chrome.navigateTo(MY_APPS_URL);
+        // relaunching edge after clearing history
+        Assert.assertTrue(edge.confirmSignedIn(username2));
 
-        // login into myapps from chrome
-        final AadLoginComponentHandler aadLoginComponentHandler = new AadLoginComponentHandler();
-        aadLoginComponentHandler.handleEmailField(username2);
-        aadLoginComponentHandler.handlePasswordField(password2);
+        final TokenRequestLatch signOutLatch = new TokenRequestLatch(1);
 
-        //signing out from the application.
-        ((SingleAccountPublicClientApplication) mApplication).signOut();
+        // signing out from the application
+        ((SingleAccountPublicClientApplication) mApplication).signOut(new ISingleAccountPublicClientApplication.SignOutCallback() {
+            @Override
+            public void onSignOut() {
+                signOutLatch.countDown();
+            }
 
-        // TODO: Looks like the account picker is no longer showing up during sign out, is this expected?
-        // selecting which account should be logged out.
-        // aadLoginComponentHandler.handleAccountPicker(username2);
+            @Override
+            public void onError(@NonNull MsalException exception) {
+                Assert.fail("Sign out failed: " + exception.getMessage());
+            }
+        });
+
+        signOutLatch.await(TokenRequestTimeout.LONG);
+
+        ThreadUtils.sleepSafely(5000, "Interrupted", "Sleep failed");
+
+        edge.forceStop();
+        edge.launch();
+
+        // Sometime edge forces a restart when account is signed out, can continue by pressing "OK"
+        UiAutomatorUtils.handleButtonClickForObjectWithText("OK");
+        Assert.assertTrue(edge.confirmSignedIn(null));
 
         // Confirming account is signed out in Azure.
         azureSampleApp.launch();

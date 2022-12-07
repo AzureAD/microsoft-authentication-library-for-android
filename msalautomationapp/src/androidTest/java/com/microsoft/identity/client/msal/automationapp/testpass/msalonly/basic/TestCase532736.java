@@ -20,49 +20,77 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.usgov;
+package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.basic;
 
+import android.webkit.WebView;
+
+import androidx.annotation.NonNull;
 import androidx.test.uiautomator.UiObject;
+import androidx.test.uiautomator.UiSelector;
 
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
-import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
-import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
-import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
+import com.microsoft.identity.client.ui.automation.device.settings.ISettings;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
+import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
-import com.microsoft.identity.common.java.util.ThreadUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
-import com.microsoft.identity.labapi.utilities.constants.UserType;
 
+import org.junit.After;
+import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
+import java.util.Collection;
 
-// [USGOV][MSAL-ONLY] Acquire token acquisition with instance_aware=true, login hint present,
-// and federated account, and WW common authority
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938368
-// Adding a retry on failure, sometimes arlington login page fails to load
-@RetryOnFailure(retryCount = 2)
-@RunOnAPI29Minus("Speed Bump Page")
-public class TestCase938368 extends AbstractMsalUiTest {
+// MSAL Falls Back on WebView When All Browsers are Disabled
+// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/532736
+@RunWith(Parameterized.class)
+@RetryOnFailure
+public class TestCase532736 extends AbstractMsalUiTest {
+
+    private final int mConfigFileResourceId;
+
+    public TestCase532736(final String name, final @NonNull int configFileResourceId) {
+        mConfigFileResourceId = configFileResourceId;
+    }
+
+    @Parameterized.Parameters(name = "{0}")
+    public static Collection guestHomeAzureEnvironment() {
+        return Arrays.asList(new Object[][]{
+                {"DEFAULT_CONFIG", R.raw.msal_config_default},
+                {"BROWSER_CONFIG", R.raw.msal_config_browser},
+        });
+    }
+
+    @After
+    public void enableChrome() {
+        final ISettings settings = getSettingsScreen();
+        final BrowserChrome chrome = ((BrowserChrome) mBrowser);
+
+        // Some cleanup after the test concludes
+        settings.enableAppThroughSettings(chrome.getPackageName());
+    }
 
     @Test
-    public void test_938368() throws Throwable {
+    public void test_532736() throws Throwable {
         final String username = mLabAccount.getUsername();
-        final String password = mLabAccount.getPassword();
+
+        // Disable Chrome
+        final ISettings settings = getSettingsScreen();
+        final BrowserChrome chrome = ((BrowserChrome) mBrowser);
+
+        settings.disableAppThroughSettings(chrome.getPackageName());
 
         final MsalSdk msalSdk = new MsalSdk();
 
@@ -74,42 +102,24 @@ public class TestCase938368 extends AbstractMsalUiTest {
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-        final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
+        msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
-                ((IApp) mBrowser).handleFirstRun();
+                // Assert that webview UI object exists
+                final UiObject webView = UiAutomatorUtils.obtainUiObjectWithUiSelector(new UiSelector().className(WebView.class), CommonUtils.FIND_UI_ELEMENT_TIMEOUT);
+                Assert.assertTrue(webView.exists());
 
-                // Sometimes, federated Arlington users fail to load the arlington page
-                final UiObject pageFailureMessage = UiAutomatorUtils.obtainUiObjectWithExactText("This page isn't working");
-                if (pageFailureMessage.waitForExists(TimeUnit.SECONDS.toMillis(1))) {
-                    ThreadUtils.sleepSafely((int) TimeUnit.SECONDS.toMillis(2), "Sleep before Arlington login page reload", "Interrupted");
-
-                    // Reload the page
-                    ((BrowserChrome) mBrowser).reloadPage();
-                }
-
-                final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
-                        .prompt(PromptParameter.SELECT_ACCOUNT)
-                        .loginHint(username)
-                        .sessionExpected(false)
-                        .consentPageExpected(false)
-                        .speedBumpExpected(true)
-                        .isFederated(true)
-                        .build();
-
-                new MicrosoftStsPromptHandler(promptHandlerParameters)
-                        .handlePrompt(username, password);
+                // Assert that no objects from Chrome package are present
+                final UiObject chromeObject = UiAutomatorUtils.obtainUiObjectWithUiSelector(new UiSelector().packageName("com.android.chrome"), CommonUtils.FIND_UI_ELEMENT_TIMEOUT);
+                Assert.assertFalse(chromeObject.exists());
             }
-        },TokenRequestTimeout.MEDIUM);
-
-        authResult.assertSuccess();
+        }, TokenRequestTimeout.SILENT); // This isn't a silent request, but we want to complete it quickly since we're just checking for WebView
     }
 
     @Override
     public LabQuery getLabQuery() {
         return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT)
-                .userType(UserType.FEDERATED)
+                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
                 .build();
     }
 
@@ -125,11 +135,10 @@ public class TestCase938368 extends AbstractMsalUiTest {
 
     @Override
     public String getAuthority() {
-        return mApplication.getConfiguration().getDefaultAuthority().toString();
+        return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
     }
-
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_instance_aware_common;
+        return mConfigFileResourceId;
     }
 }
