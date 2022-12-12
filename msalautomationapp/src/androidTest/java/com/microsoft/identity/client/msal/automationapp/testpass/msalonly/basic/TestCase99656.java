@@ -30,6 +30,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.DoNotRunOnPipeline;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
@@ -48,8 +49,9 @@ import java.util.concurrent.TimeUnit;
 
 // Interactive auth with force_login and step-up MFA
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99656
-@RetryOnFailure(retryCount = 3) // Seems like AutoMFA does not work sometimes, seems rare but adding extra retries
+@RetryOnFailure(retryCount = 2)
 @RunOnAPI29Minus("Verify Your Identity (MFA)")
+@DoNotRunOnPipeline("Looks like AutoMfa From lab account is still very inconsistent, don't run this on pipeline")
 public class TestCase99656 extends AbstractMsalUiTest {
 
     private final String TAG = TestCase99656.class.getSimpleName();
