@@ -20,11 +20,11 @@ import java.util.Arrays;
 
 // [Non-Joined] Sign in with Certificate https://docs.msidlab.com/accounts/cadfsv4.html
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1600553
-@DoNotRunOnPipeline("CBA Automation not working yet")
-public class TestCase160053 extends AbstractMsalBrokerCbaTest {
+//@DoNotRunOnPipeline("CBA Automation not working yet")
+public class TestCase1600553 extends AbstractMsalBrokerCbaTest {
 
     @Test
-    public void test_160053() throws Throwable {
+    public void test_1600553() throws Throwable {
         final String username = "mfatest@vimrang1.onmicrosoft.com";
         getSettingsScreen().installCertFromDeviceDownloadFolder(certificateFileName(), "1234");
 
