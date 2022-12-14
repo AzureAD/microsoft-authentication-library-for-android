@@ -30,6 +30,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.constants.AuthScheme;
@@ -51,6 +52,7 @@ import java.util.Arrays;
 // End My Shift - In Shared device mode, MSAL should notify the app if the sign-out account is changed.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833517
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
+@RetryOnFailure
 public class TestCase833517 extends AbstractMsalBrokerTest {
 
     @Test
