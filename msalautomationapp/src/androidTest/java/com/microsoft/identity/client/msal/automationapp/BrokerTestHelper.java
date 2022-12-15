@@ -51,6 +51,10 @@ public class BrokerTestHelper {
                         Arrays.asList(supportedBrokersAnnotation.brokers());
                 if (supportedBrokerClasses.contains(BrokerCompanyPortal.class)) {
                     return new BrokerCompanyPortal();
+                } else if (supportedBrokerClasses.contains(BrokerMicrosoftAuthenticator.class)) {
+                    return new BrokerMicrosoftAuthenticator();
+                } else if (supportedBrokerClasses.contains(BrokerHost.class)) {
+                    return new BrokerHost();
                 } else {
                     return new BrokerMicrosoftAuthenticator();
                 }
