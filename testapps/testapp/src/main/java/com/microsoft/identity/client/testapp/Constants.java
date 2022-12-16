@@ -39,7 +39,6 @@ public class Constants {
         INSTANCE_AWARE_COMMON,
         INSTANCE_AWARE_COMMON_SKIP_BROKER,
         INSTANCE_AWARE_ORGANIZATION,
-        IPPHONE,
         B2C,
         MSA,
         MSA_ONLY,
@@ -74,9 +73,6 @@ public class Constants {
 
             case INSTANCE_AWARE_ORGANIZATION:
                 return R.raw.msal_config_instance_aware_organization;
-
-            case IPPHONE:
-                return R.raw.msal_config_ipphone;
 
             case B2C:
                 return R.raw.msal_config_b2c;
