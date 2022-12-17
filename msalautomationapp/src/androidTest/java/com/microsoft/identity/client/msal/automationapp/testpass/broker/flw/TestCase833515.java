@@ -161,13 +161,14 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
 
         signOutLatch.await(TokenRequestTimeout.LONG);
 
-        ThreadUtils.sleepSafely(5000, "Interrupted", "Sleep failed");
+        ThreadUtils.sleepSafely(3000, "Interrupted", "Sleep failed");
 
         edge.forceStop();
         edge.launch();
 
         // Sometime edge forces a restart when account is signed out, can continue by pressing "OK"
         UiAutomatorUtils.handleButtonClickForObjectWithTextSafely("OK");
+        ThreadUtils.sleepSafely(3000, "Interrupted", "Sleep failed");
         Assert.assertTrue(edge.confirmSignedIn(null));
 
         // Confirming account is signed out in Azure.
