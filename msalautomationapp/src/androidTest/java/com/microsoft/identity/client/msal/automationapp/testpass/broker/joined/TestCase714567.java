@@ -24,6 +24,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.joined;
 
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
@@ -35,6 +36,7 @@ import org.junit.Test;
 // [Broker] Device registration via Settings page (with Authenticator as broker)
 // https://identitydivision.visualstudio.com/Engineering/_testPlans/define?planId=2007357&suiteId=2008868
 @SupportedBrokers(brokers = BrokerMicrosoftAuthenticator.class)
+@RetryOnFailure
 public class TestCase714567 extends AbstractMsalBrokerTest {
 
     @Test
