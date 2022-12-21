@@ -31,6 +31,7 @@ import androidx.test.uiautomator.UiSelector;
 
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
@@ -43,6 +44,7 @@ import org.junit.Test;
 // End My Shift - Perform shared device registration with non-admin account.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833511
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
+@RetryOnFailure(retryCount = 2)
 public class TestCase833511 extends AbstractMsalBrokerTest {
 
     @Test
