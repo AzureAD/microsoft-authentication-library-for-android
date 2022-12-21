@@ -225,6 +225,7 @@ abstract class MsalWrapper {
                     public void onTokenReceived(@NonNull IAuthenticationResult authResult) {
                         callback.onSuccess(authResult);
 
+                        //TODO (ppunhani): Revert all the changes before PCA as they'd be implemented on Teams side
                         //Call acquireTokenSilent() after wpj is successful to get token with device id claim
                         acquireTokenSilent(requestOptions, callback);
                     }
