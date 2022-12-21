@@ -1837,22 +1837,20 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     public void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback, @Nullable ClaimsRequest claims) {
         //TODO (ppunhani): Check how to use correlationid for telemetry
-        // Pass Claims here
+        DeviceCodeFlowParameters.Builder builder = new DeviceCodeFlowParameters.Builder();
+        DeviceCodeFlowParameters deviceCodeFlowParameters =
+                builder.withScopes(scopes)
+                        .withClaims(claims)
+                        .build();
 
-        // Create a DeviceCodeFlowCommandParameters object that takes in the desired scopes and the callback object
-        // Use CommandParametersAdapter
         final DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter
-                .createDeviceCodeFlowCommandParameters(
+                .createDeviceCodeFlowWithClaimsCommandParameters(
                         mPublicClientConfiguration,
                         mPublicClientConfiguration.getOAuth2TokenCache(),
-                        scopes);
+                        deviceCodeFlowParameters);
 
-        // Create a CommandCallback object from the DeviceCodeFlowCallback object
         final DeviceCodeFlowCommandCallback deviceCodeFlowCommandCallback = getDeviceCodeFlowCommandCallback(callback);
 
-        // Create a DeviceCodeFlowCommand object
-        // Pass the command parameters, default controller, and command callback
-        // Telemetry with DEVICE_CODE_FLOW_CALLBACK
         final DeviceCodeFlowCommand deviceCodeFlowCommand = new DeviceCodeFlowCommand(
                 commandParameters,
                 new BrokerMsalController(mPublicClientConfiguration.getAppContext()),

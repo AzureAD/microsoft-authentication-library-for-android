@@ -30,6 +30,8 @@ import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.PoPAuthenticationScheme;
+import com.microsoft.identity.client.claims.ClaimsRequest;
+import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.internal.ui.browser.BrowserSelector;
 import com.microsoft.identity.common.java.exception.ClientException;
@@ -111,7 +113,14 @@ public class MultipleAccountModeWrapper extends MsalWrapper {
     @Override
     void acquireTokenWithDeviceCodeFlowInternal(@NonNull List<String> scopes,
                                                 @NonNull final IPublicClientApplication.DeviceCodeFlowCallback callback) {
-        mApp.acquireTokenWithDeviceCode(scopes, callback, null);
+        //TODO (ppunhani): revert this after testing since Teams will be calling PCA directly
+        RequestedClaimAdditionalInformation information = new RequestedClaimAdditionalInformation();
+        information.setEssential(true);
+        ClaimsRequest claimsRequest = new ClaimsRequest();
+        claimsRequest.requestClaimInAccessToken("deviceid", information);
+
+        mApp.acquireTokenWithDeviceCode(scopes, callback, claimsRequest);
+//        mApp.acquireTokenWithDeviceCode(scopes, callback);
     }
 
     @Override
