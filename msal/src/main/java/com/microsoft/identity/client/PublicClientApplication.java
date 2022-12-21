@@ -1836,6 +1836,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     public void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback, @Nullable ClaimsRequest claims) {
+        //TODO (ppunhani): Check how to use correlationid for telemetry
+        // Pass Claims here
+
         // Create a DeviceCodeFlowCommandParameters object that takes in the desired scopes and the callback object
         // Use CommandParametersAdapter
         final DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter
