@@ -44,7 +44,7 @@ public class TestCase714567 extends AbstractMsalBrokerTest {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
-        ((BrokerMicrosoftAuthenticator) mBroker).shouldUseDeviceSettingsPage(false);
+        ((BrokerMicrosoftAuthenticator) mBroker).setShouldUseDeviceSettingsPage(false);
         mBroker.performDeviceRegistration(username, password);
     }
 
