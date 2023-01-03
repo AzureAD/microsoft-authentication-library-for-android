@@ -29,6 +29,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.constants.AuthScheme;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
@@ -44,6 +45,7 @@ import java.util.Arrays;
 
 // [Non-Joined] Acquire PoP token interactive followed by Silent
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1922511
+@RetryOnFailure(retryCount = 2)
 public class TestCase1922511 extends AbstractMsalBrokerTest {
     @Test
     public void test_1922511() throws Throwable {

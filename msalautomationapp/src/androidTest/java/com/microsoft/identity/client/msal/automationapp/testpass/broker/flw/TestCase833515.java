@@ -24,6 +24,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.flw;
 
 import androidx.annotation.NonNull;
 
+import com.microsoft.identity.client.ICurrentAccountResult;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
@@ -40,6 +41,7 @@ import com.microsoft.identity.client.ui.automation.app.AzureSampleApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.browser.BrowserEdge;
+import com.microsoft.identity.client.ui.automation.installer.LocalApkInstaller;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
@@ -61,7 +63,7 @@ import java.util.concurrent.TimeUnit;
 // End My Shift - In Shared device mode, global sign out should work.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833515
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
-@RetryOnFailure
+@RetryOnFailure(retryCount = 2)
 public class TestCase833515 extends AbstractMsalBrokerTest {
 
     @Test
@@ -89,6 +91,13 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         // we should be in shared device mode
         Assert.assertTrue(mApplication.isSharedDevice());
 
+        final SingleAccountPublicClientApplication singleAccountPCA =
+                (SingleAccountPublicClientApplication) mApplication;
+
+        // There should not be a signed in account at this time
+        ICurrentAccountResult currentAccountResult = singleAccountPCA.getCurrentAccount();
+        Assert.assertNull("There is already a signed in account...", currentAccountResult.getCurrentAccount());
+
         // fetching another user from lab account
         final LabQuery labQuery = LabQuery.builder()
                 .userType(UserType.CLOUD)
@@ -100,9 +109,6 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         Thread.sleep(TimeUnit.SECONDS.toMillis(30));
 
         Assert.assertNotEquals(username1, username2);
-
-        final SingleAccountPublicClientApplication singleAccountPCA =
-                (SingleAccountPublicClientApplication) mApplication;
 
         final TokenRequestLatch latch = new TokenRequestLatch(1);
 
@@ -137,7 +143,7 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         azureSampleApp.confirmSignedIn(username2);
 
         // clearing history of edge
-        final BrowserEdge edge = new BrowserEdge();
+        final BrowserEdge edge = new BrowserEdge(new LocalApkInstaller());
         edge.install();
         edge.clear();
 
@@ -161,13 +167,14 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
 
         signOutLatch.await(TokenRequestTimeout.LONG);
 
-        ThreadUtils.sleepSafely(5000, "Interrupted", "Sleep failed");
+        ThreadUtils.sleepSafely(3000, "Interrupted", "Sleep failed");
 
         edge.forceStop();
         edge.launch();
 
         // Sometime edge forces a restart when account is signed out, can continue by pressing "OK"
-        UiAutomatorUtils.handleButtonClickForObjectWithText("OK");
+        UiAutomatorUtils.handleButtonClickForObjectWithTextSafely("OK");
+        ThreadUtils.sleepSafely(3000, "Interrupted", "Sleep failed");
         Assert.assertTrue(edge.confirmSignedIn(null));
 
         // Confirming account is signed out in Azure.
