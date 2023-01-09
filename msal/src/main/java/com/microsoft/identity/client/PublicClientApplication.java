@@ -1835,12 +1835,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         }
     }
 
-    public void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback, @Nullable ClaimsRequest claims) {
+    public void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback, @Nullable ClaimsRequest claimsRequest) {
         //TODO (ppunhani): Check how to use correlationid for telemetry
         DeviceCodeFlowParameters.Builder builder = new DeviceCodeFlowParameters.Builder();
         DeviceCodeFlowParameters deviceCodeFlowParameters =
                 builder.withScopes(scopes)
-                        .withClaims(claims)
+                        .withClaims(claimsRequest)
                         .build();
 
         final DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter

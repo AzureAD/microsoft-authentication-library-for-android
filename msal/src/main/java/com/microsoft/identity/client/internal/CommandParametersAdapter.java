@@ -230,6 +230,7 @@ public class CommandParametersAdapter {
                 .scopes(new HashSet<>(parameters.getScopes()))
                 .authority(authority)
                 .claimsRequestJson(claimsRequestJson)
+                .correlationId(parameters.getCorrelationId())
                 .build();
 
         return commandParameters;
