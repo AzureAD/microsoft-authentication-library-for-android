@@ -31,6 +31,11 @@ if (project.hasProperty("distMsalVersion")) {
     msalVersion = distMsalVersion
 }
 
+def otelAriaToken = "placeholder"
+
+if(project.hasProperty('otelAriaToken')) {
+    otelAriaToken = project.otelAriaToken;
+}
 
 android {
 
@@ -54,6 +59,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        buildConfigField("String", "otelAriaToken", "\"${otelAriaToken}\"" )
     }
     signingConfigs {
         debug {
@@ -111,4 +117,8 @@ dependencies {
 
     compileOnly "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
     annotationProcessor "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
+
+    implementation(project(':otelexporter'))
+    implementation platform("io.opentelemetry:opentelemetry-bom:1.18.0")
+    implementation("io.opentelemetry:opentelemetry-sdk:1.18.0")
 }
