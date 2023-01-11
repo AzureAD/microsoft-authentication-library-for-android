@@ -55,7 +55,7 @@ android {
     defaultConfig {
         multiDexEnabled true
         applicationId "com.msft.identity.client.sample"
-        minSdkVersion rootProject.ext.minSdkVersion
+        minSdkVersion 24
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
@@ -118,7 +118,8 @@ dependencies {
     compileOnly "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
     annotationProcessor "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
 
-    implementation(project(':otelexporter'))
+    localImplementation(project(':otelexporter'))
+    distImplementation "com.microsoft.identity.client:opentelemetry.exporter:1.0.0-alpha02"
     implementation platform("io.opentelemetry:opentelemetry-bom:1.18.0")
     implementation("io.opentelemetry:opentelemetry-sdk:1.18.0")
 }
