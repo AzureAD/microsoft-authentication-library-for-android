@@ -29,6 +29,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.constants.AuthScheme;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
@@ -45,6 +46,7 @@ import java.util.Arrays;
 
 // Generate SHR without broker
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1954183
+@RetryOnFailure
 public class TestCase1954183 extends AbstractMsalUiTest {
     @Test
     public void test_1954183() throws Throwable {
