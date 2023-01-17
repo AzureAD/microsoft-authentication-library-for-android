@@ -34,6 +34,7 @@ import com.microsoft.identity.common.java.util.TaskCompletedCallbackWithError;
 
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 public interface IPublicClientApplication {
 
@@ -102,7 +103,7 @@ public interface IPublicClientApplication {
      * Important: Use of this API requires setting the minimum_required_broker_protocol_version to
      * "11.0" or higher.
      */
-    void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback, @Nullable ClaimsRequest claims);
+    void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback, @Nullable ClaimsRequest claims, @Nullable UUID correlationId);
 
     /**
      * Perform the Device Code Flow (DCF) protocol to allow a device without input capability to authenticate and get a new access token.

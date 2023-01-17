@@ -37,6 +37,7 @@ import com.microsoft.identity.common.internal.ui.browser.BrowserSelector;
 import com.microsoft.identity.common.java.exception.ClientException;
 
 import java.util.List;
+import java.util.UUID;
 
 public class MultipleAccountModeWrapper extends MsalWrapper {
 
@@ -119,7 +120,9 @@ public class MultipleAccountModeWrapper extends MsalWrapper {
         ClaimsRequest claimsRequest = new ClaimsRequest();
         claimsRequest.requestClaimInAccessToken("deviceid", information);
 
-        mApp.acquireTokenWithDeviceCode(scopes, callback, claimsRequest);
+        UUID correlationId = UUID.randomUUID();
+
+        mApp.acquireTokenWithDeviceCode(scopes, callback, claimsRequest, correlationId);
 //        mApp.acquireTokenWithDeviceCode(scopes, callback);
     }
 

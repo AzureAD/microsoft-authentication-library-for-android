@@ -106,6 +106,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -1835,12 +1836,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         }
     }
 
-    public void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback, @Nullable ClaimsRequest claimsRequest) {
-        //TODO (ppunhani): Check how to use correlationid for telemetry
+    public void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback, @Nullable ClaimsRequest claimsRequest, @Nullable UUID correlationId) {
         DeviceCodeFlowParameters.Builder builder = new DeviceCodeFlowParameters.Builder();
         DeviceCodeFlowParameters deviceCodeFlowParameters =
                 builder.withScopes(scopes)
                         .withClaims(claimsRequest)
+                        .withCorrelationId(correlationId)
                         .build();
 
         final DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter
@@ -1851,14 +1852,27 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         final DeviceCodeFlowCommandCallback deviceCodeFlowCommandCallback = getDeviceCodeFlowCommandCallback(callback);
 
-        final DeviceCodeFlowCommand deviceCodeFlowCommand = new DeviceCodeFlowCommand(
-                commandParameters,
-                new BrokerMsalController(mPublicClientConfiguration.getAppContext()),
-                deviceCodeFlowCommandCallback,
-                PublicApiId.DEVICE_CODE_FLOW_WITH_CALLBACK
-        );
+        try {
+            final DeviceCodeFlowCommand deviceCodeFlowCommand = new DeviceCodeFlowCommand(
+                    commandParameters,
+                    MSALControllerFactory.getDefaultController(
+                            mPublicClientConfiguration.getAppContext(),
+                            commandParameters.getAuthority(),
+                            mPublicClientConfiguration
+                    ),
+                    deviceCodeFlowCommandCallback,
+                    PublicApiId.DEVICE_CODE_FLOW_WITH_CALLBACK
+            );
 
-        CommandDispatcher.submitSilent(deviceCodeFlowCommand);
+            CommandDispatcher.submitSilent(deviceCodeFlowCommand);
+        } catch (final MsalClientException e) {
+            final MsalClientException clientException = new MsalClientException(
+                    UNKNOWN_ERROR,
+                    "Unexpected error while acquiring token with device code.",
+                    e
+            );
+            callback.onError(clientException);
+        }
     }
 
     public void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback) {
