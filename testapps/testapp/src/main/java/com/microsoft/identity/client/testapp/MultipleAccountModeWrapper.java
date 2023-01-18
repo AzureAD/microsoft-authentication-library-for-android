@@ -114,16 +114,7 @@ public class MultipleAccountModeWrapper extends MsalWrapper {
     @Override
     void acquireTokenWithDeviceCodeFlowInternal(@NonNull List<String> scopes,
                                                 @NonNull final IPublicClientApplication.DeviceCodeFlowCallback callback) {
-        //TODO (ppunhani): revert this after testing since Teams will be calling PCA directly
-        RequestedClaimAdditionalInformation information = new RequestedClaimAdditionalInformation();
-        information.setEssential(true);
-        ClaimsRequest claimsRequest = new ClaimsRequest();
-        claimsRequest.requestClaimInAccessToken("deviceid", information);
-
-        UUID correlationId = UUID.randomUUID();
-
-        mApp.acquireTokenWithDeviceCode(scopes, callback, claimsRequest, correlationId);
-//        mApp.acquireTokenWithDeviceCode(scopes, callback);
+        mApp.acquireTokenWithDeviceCode(scopes, callback);
     }
 
     @Override

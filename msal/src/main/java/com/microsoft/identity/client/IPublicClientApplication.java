@@ -99,6 +99,7 @@ public interface IPublicClientApplication {
      * @param scopes   the desired access scopes
      * @param callback callback object used to communicate with the API throughout the protocol
      * @param claims claims Authentication Request parameter requests that specific Claims be returned from the UserInfo Endpoint and/or in the ID Token.
+     * @param correlationId  correlation id of this request
      *
      * Important: Use of this API requires setting the minimum_required_broker_protocol_version to
      * "11.0" or higher.
