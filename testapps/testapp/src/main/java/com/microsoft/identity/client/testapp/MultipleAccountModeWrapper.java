@@ -30,14 +30,11 @@ import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.PoPAuthenticationScheme;
-import com.microsoft.identity.client.claims.ClaimsRequest;
-import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.internal.ui.browser.BrowserSelector;
 import com.microsoft.identity.common.java.exception.ClientException;
 
 import java.util.List;
-import java.util.UUID;
 
 public class MultipleAccountModeWrapper extends MsalWrapper {
 
