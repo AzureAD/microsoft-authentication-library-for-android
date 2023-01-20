@@ -72,7 +72,9 @@ public class TestCase1600567 extends AbstractMsalBrokerTest {
         brokerHost.confirmCallingAppNotVerified();
 
         // verify setFlights call gives calling app not verified
-        brokerHost.setFlights("{test : true}");
+        UiAutomatorUtils.obtainChildInScrollable("Set Flights");
+        UiAutomatorUtils.handleInput("com.microsoft.identity.testuserapp:id/editTextFlights", "{test : true}");
+        UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/setFlightsButton");
         brokerHost.confirmCallingAppNotVerified();
 
         // verify getFlights call gives calling app not verified
