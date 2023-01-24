@@ -20,46 +20,46 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.basic;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.nonjoined;
 
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
+import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
-import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
+import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
-import com.microsoft.identity.client.ui.automation.interaction.UiResponse;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
+import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
+import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Arrays;
-
-// Interactive Auth with select_account (no consent record)
-// https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99267
-@RunOnAPI29Minus("Consent Page")
-@RetryOnFailure(retryCount = 2)
-public class TestCase99267 extends AbstractMsalUiTest {
-
+// [MSAL] Mooncake: Silent Auth w/o cache w/o MFA w/ Prompt Auto  w/ Broker
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1592509
+@RetryOnFailure
+public class TestCase1592509 extends AbstractMsalBrokerTest {
     @Test
-    public void test_99267() throws Throwable {
-        final String username = mLabAccount.getUsername();
-        final String password = mLabAccount.getPassword();
+    public void test_1592509() throws Throwable {
+        final ILabAccount labAccount = mLabClient.getLabAccount("idlab@mncmsidlab1.partner.onmschina.cn");
+        final String username = labAccount.getUsername();
+        final String password = labAccount.getPassword();
 
         final MsalSdk msalSdk = new MsalSdk();
 
+        // Acquire Token with resources
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
-                .scopes(Arrays.asList(mScopes))
+                .resource(mScopes[0])
+                .authority(getAuthority())
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
@@ -71,40 +71,62 @@ public class TestCase99267 extends AbstractMsalUiTest {
                         .prompt(PromptParameter.SELECT_ACCOUNT)
                         .loginHint(username)
                         .sessionExpected(false)
-                        .consentPageExpected(true)
+                        .consentPageExpected(false)
                         .speedBumpExpected(false)
-                        .consentPageResponse(UiResponse.ACCEPT)
+                        .broker(mBroker)
+                        .expectingBrokerAccountChooserActivity(false)
+                        .registerPageExpected(false)
                         .build();
 
                 new AadPromptHandler(promptHandlerParameters)
                         .handlePrompt(username, password);
             }
         }, TokenRequestTimeout.MEDIUM);
+
         authResult.assertSuccess();
+
+        // Advance device clock by 1 day
+        getSettingsScreen().forwardDeviceTimeForOneDay();
+
+        // Acquiring token silently after expiring AT
+        final MsalAuthTestParams silentTokenParams = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .loginHint(username)
+                .authority(getAuthority())
+                .resource(mScopes[0])
+                .msalConfigResourceId(getConfigFileResourceId())
+                .build();
+
+        final MsalAuthResult silentTokenAuthResult = msalSdk.acquireTokenSilent(silentTokenParams, TokenRequestTimeout.MEDIUM);
+        silentTokenAuthResult.assertSuccess();
+
+        Assert.assertNotEquals("Silent request does not return a new access token", authResult.getAccessToken(), silentTokenAuthResult.getAccessToken());
     }
 
     @Override
     public LabQuery getLabQuery() {
-        return null;
+        return LabQuery.builder()
+                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
+                .build();
     }
 
     @Override
     public TempUserType getTempUserType() {
-        return TempUserType.BASIC;
+        return null;
     }
 
     @Override
     public String[] getScopes() {
-        return new String[]{"User.read"};
+        return new String[]{"00000002-0000-0000-c000-000000000000"};
     }
 
     @Override
     public String getAuthority() {
-        return mApplication.getConfiguration().getDefaultAuthority().toString();
+        return "https://login.partner.microsoftonline.cn/common";
     }
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_no_admin_consent;
+        return R.raw.msal_config_mooncake;
     }
 }

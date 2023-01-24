@@ -20,14 +20,7 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.broker.flw;
-
-import static com.microsoft.identity.client.ui.automation.utils.CommonUtils.FIND_UI_ELEMENT_TIMEOUT;
-
-import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.uiautomator.UiDevice;
-import androidx.test.uiautomator.UiObject;
-import androidx.test.uiautomator.UiSelector;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.joined;
 
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
@@ -35,44 +28,30 @@ import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.constants.UserRole;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-// End My Shift - Perform shared device registration with non-admin account.
-// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833511
-@SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
-@RetryOnFailure(retryCount = 2)
-public class TestCase833511 extends AbstractMsalBrokerTest {
+// [Broker] Device registration via Settings page (with Authenticator as broker)
+// https://identitydivision.visualstudio.com/Engineering/_testPlans/define?planId=2007357&suiteId=2008868
+@SupportedBrokers(brokers = BrokerMicrosoftAuthenticator.class)
+@RetryOnFailure
+public class TestCase714567 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_833511() {
+    public void test_714567() {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
-        //perform device registration
-        mBroker.performSharedDeviceRegistrationDontValidate(username, password);
-
-        final UiDevice device =
-                UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
-
-        final UiSelector sharedDeviceConfirmationSelector = new UiSelector()
-                .descriptionContains("Shared Device Mode")
-                .className("android.widget.ImageView");
-
-        //confirm that we are not in Shared Device Mode inside Authenticator - WPJ should fail
-        final UiObject sharedDeviceConfirmation = device.findObject(sharedDeviceConfirmationSelector);
-        sharedDeviceConfirmation.waitForExists(FIND_UI_ELEMENT_TIMEOUT);
-        Assert.assertFalse(
-                "Microsoft Authenticator - Shared Device Confirmation page doesn't appear.",
-                sharedDeviceConfirmation.exists());
+        ((BrokerMicrosoftAuthenticator) mBroker).setShouldUseDeviceSettingsPage(false);
+        mBroker.performDeviceRegistration(username, password);
     }
+
     @Override
     public LabQuery getLabQuery() {
         return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
+                .userRole(UserRole.CLOUD_DEVICE_ADMINISTRATOR)
                 .build();
     }
 
@@ -88,7 +67,7 @@ public class TestCase833511 extends AbstractMsalBrokerTest {
 
     @Override
     public String getAuthority() {
-        return mApplication.getConfiguration().getDefaultAuthority().toString();
+        return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
     }
 
     @Override
