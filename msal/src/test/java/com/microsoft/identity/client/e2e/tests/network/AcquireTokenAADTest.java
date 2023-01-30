@@ -114,12 +114,12 @@ public abstract class AcquireTokenAADTest extends AcquireTokenNetworkTest {
         }
     }
 
-    public static class MsaUser extends AcquireTokenAADTest {
-        @Override
-        public LabUserQuery getLabUserQuery() {
-            final LabUserQuery query = new LabUserQuery();
-            query.userType = LabConstants.UserType.MSA;
-            return query;
-        }
-    }
+//    public static class MsaUser extends AcquireTokenAADTest {
+//        @Override
+//        public LabUserQuery getLabUserQuery() {
+//            final LabUserQuery query = new LabUserQuery();
+//            query.userType = LabConstants.UserType.MSA;
+//            return query;
+//        }
+//    }
 }
