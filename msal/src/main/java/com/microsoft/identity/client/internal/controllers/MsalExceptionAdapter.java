@@ -69,7 +69,9 @@ public class MsalExceptionAdapter {
 
         if (e instanceof UiRequiredException) {
             final UiRequiredException uiRequiredException = ((UiRequiredException) e);
-            return new MsalUiRequiredException(uiRequiredException.getErrorCode(), uiRequiredException.getMessage());
+            final MsalUiRequiredException msalUiRequiredException = new MsalUiRequiredException(uiRequiredException.getErrorCode(), uiRequiredException.getMessage());
+            msalUiRequiredException.setOauthSubErrorCode(uiRequiredException.getOAuthSubErrorCode());
+            return msalUiRequiredException;
         }
 
         if (e instanceof IntuneAppProtectionPolicyRequiredException) {

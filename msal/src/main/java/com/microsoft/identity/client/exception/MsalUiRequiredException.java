@@ -23,6 +23,8 @@
 
 package com.microsoft.identity.client.exception;
 
+import androidx.annotation.Nullable;
+
 import com.microsoft.identity.common.java.constants.OAuth2ErrorCode;
 import com.microsoft.identity.common.java.AuthenticationConstants;
 import com.microsoft.identity.common.java.exception.ErrorStrings;
@@ -54,6 +56,9 @@ public final class MsalUiRequiredException extends MsalException {
      */
     public static final String NO_ACCOUNT_FOUND = ErrorStrings.NO_ACCOUNT_FOUND;
 
+    @Nullable
+    private String mOauthSubErrorCode;
+
     public MsalUiRequiredException(final String errorCode) {
         super(errorCode);
     }
@@ -64,5 +69,14 @@ public final class MsalUiRequiredException extends MsalException {
 
     public MsalUiRequiredException(final String errorCode, final String errorMessage, final Throwable throwable) {
         super(errorCode, errorMessage, throwable);
+    }
+
+    @Nullable
+    public String getOAuthSubErrorCode() {
+        return mOauthSubErrorCode;
+    }
+
+    public void setOauthSubErrorCode(@Nullable final String subErrorCode) {
+        mOauthSubErrorCode = subErrorCode;
     }
 }
