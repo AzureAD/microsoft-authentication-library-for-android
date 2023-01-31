@@ -26,8 +26,6 @@ import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
-import org.junit.Ignore;
-
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_MOONCAKE_CONFIG_FILE_PATH;
 import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.AD_GRAPH_USER_READ_SCOPE;
@@ -110,20 +108,6 @@ public abstract class AcquireTokenAADTest extends AcquireTokenNetworkTest {
         public LabUserQuery getLabUserQuery() {
             final LabUserQuery query = new LabUserQuery();
             query.protectionPolicy = LabConstants.ProtectionPolicy.MAM_SPO;
-            return query;
-        }
-    }
-
-    public static class MsaTypeUser extends AcquireTokenAADTest {
-        @Override
-        public String[] getScopes() {
-            return AD_GRAPH_USER_READ_SCOPE;
-        }
-        
-        @Override
-        public LabUserQuery getLabUserQuery() {
-            final LabUserQuery query = new LabUserQuery();
-            query.userType = LabConstants.UserType.MSA;
             return query;
         }
     }
