@@ -48,7 +48,7 @@ public abstract class AcquireTokenB2CTest extends AcquireTokenNetworkTest {
         return B2C_READ_SCOPE;
     }
 
-    @Ignore("There is something wrong with the response json being sent for these tests, need to ignore for now")
+    @Ignore("We are getting 'You do not have permission to view this directory or page.' as response to token call, need to ignore this class for now")
     public static class B2CLocalUserGlobalMsftDomain extends AcquireTokenB2CTest {
 
         @Override
