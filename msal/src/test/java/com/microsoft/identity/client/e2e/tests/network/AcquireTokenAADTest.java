@@ -114,12 +114,17 @@ public abstract class AcquireTokenAADTest extends AcquireTokenNetworkTest {
         }
     }
 
-//    public static class MsaUser extends AcquireTokenAADTest {
-//        @Override
-//        public LabUserQuery getLabUserQuery() {
-//            final LabUserQuery query = new LabUserQuery();
-//            query.userType = LabConstants.UserType.MSA;
-//            return query;
-//        }
-//    }
+    public static class MsaTypeUser extends AcquireTokenAADTest {
+        @Override
+        public String[] getScopes() {
+            return AD_GRAPH_USER_READ_SCOPE;
+        }
+        
+        @Override
+        public LabUserQuery getLabUserQuery() {
+            final LabUserQuery query = new LabUserQuery();
+            query.userType = LabConstants.UserType.MSA;
+            return query;
+        }
+    }
 }
