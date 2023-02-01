@@ -26,8 +26,10 @@ package com.microsoft.identity.client.exception;
 import androidx.annotation.Nullable;
 
 import com.microsoft.identity.common.java.constants.OAuth2ErrorCode;
-import com.microsoft.identity.common.java.AuthenticationConstants;
 import com.microsoft.identity.common.java.exception.ErrorStrings;
+
+import lombok.Getter;
+import lombok.experimental.Accessors;
 
 /**
  * This exception indicates that UI is required for authentication to succeed.
@@ -56,27 +58,47 @@ public final class MsalUiRequiredException extends MsalException {
      */
     public static final String NO_ACCOUNT_FOUND = ErrorStrings.NO_ACCOUNT_FOUND;
 
+    @Getter
+    @Accessors(prefix = "m")
     @Nullable
     private String mOauthSubErrorCode;
 
+    /**
+     * Constructor of MsalUiRequiredException.
+     *
+     * @param errorCode String
+     */
     public MsalUiRequiredException(final String errorCode) {
         super(errorCode);
     }
 
+    /**
+     * Constructor of MsalUiRequiredException.
+     * @param errorCode    String
+     * @param errorMessage String
+     */
     public MsalUiRequiredException(final String errorCode, final String errorMessage) {
         super(errorCode, errorMessage);
     }
 
+    /**
+     * Constructor of MsalUiRequiredException.
+     * @param errorCode    String
+     * @param errorMessage String
+     * @param throwable    Throwable
+     */
     public MsalUiRequiredException(final String errorCode, final String errorMessage, final Throwable throwable) {
         super(errorCode, errorMessage, throwable);
     }
 
-    @Nullable
-    public String getOAuthSubErrorCode() {
-        return mOauthSubErrorCode;
-    }
-
-    public void setOauthSubErrorCode(@Nullable final String subErrorCode) {
-        mOauthSubErrorCode = subErrorCode;
+    /**
+     * Constructor of MsalUiRequiredException.
+     * @param errorCode         String
+     * @param oauthSubErrorCode String
+     * @param errorMessage      String
+     */
+    public MsalUiRequiredException(final String errorCode, @Nullable final String oauthSubErrorCode, final String errorMessage) {
+        super(errorCode, errorMessage);
+        mOauthSubErrorCode = oauthSubErrorCode;
     }
 }
