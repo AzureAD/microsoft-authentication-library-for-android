@@ -23,6 +23,10 @@
 
 package com.microsoft.identity.client.internal.api;
 
+import static com.microsoft.identity.client.exception.MsalClientException.NOT_ELIGIBLE_TO_USE_BROKER;
+import static com.microsoft.identity.common.java.AuthenticationConstants.Broker.BROKER_CLIENT_ID;
+import static com.microsoft.identity.common.java.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
+
 import android.content.Context;
 
 import androidx.annotation.NonNull;
@@ -30,17 +34,12 @@ import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.AndroidPlatformComponents;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.java.authscheme.BearerAuthenticationSchemeInternal;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
+import com.microsoft.identity.common.java.authscheme.BearerAuthenticationSchemeInternal;
 import com.microsoft.identity.common.java.cache.ICacheRecord;
 import com.microsoft.identity.common.java.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.logging.Logger;
-
-import static com.microsoft.identity.client.exception.MsalClientException.NOT_ELIGIBLE_TO_USE_BROKER;
-import static com.microsoft.identity.common.java.AuthenticationConstants.Broker.BROKER_CLIENT_ID;
-import static com.microsoft.identity.common.java.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
 
 /**
  * For Broker apps to obtain an RT associated to Broker's client ID (for WPJ scenario).
@@ -104,7 +103,9 @@ public final class BrokerClientIdRefreshTokenAccessor {
 
         return tokenCache.load(
                 BROKER_CLIENT_ID,
-                null, // wildcard (*)
+                null,
+                null,
+                null,
                 localAccountRecord,
                 new BearerAuthenticationSchemeInternal() // Auth scheme is inconsequential - only using RT
         );
