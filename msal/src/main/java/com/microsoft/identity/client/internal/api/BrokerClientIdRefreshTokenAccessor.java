@@ -73,17 +73,9 @@ public final class BrokerClientIdRefreshTokenAccessor {
         throwIfNotValidBroker(context);
 
         final MsalOAuth2TokenCache tokenCache = MsalOAuth2TokenCache.create(AndroidPlatformComponents.createFromContext(context));
-        String applicationIdentitifier = "";
 
-        try {
-            final PackageInfo packageInfo = PackageHelper.getPackageInfo(context.getPackageManager(), context.getPackageName());
-            applicationIdentitifier = String.format(APPLICATION_IDENTIFIER_FORMAT, context.getPackageName(), PackageHelper.getCurrentSignatureForPackage(packageInfo));
-        }catch(PackageManager.NameNotFoundException e){
-            throw new MsalClientException(APP_PACKAGE_NAME_NOT_FOUND, e.getMessage(), e);
-        }
-
+        final String applicationIdentitifier = String.format(APPLICATION_IDENTIFIER_FORMAT, null, null);
         final ICacheRecord cacheRecord = getCacheRecordForIdentifier(tokenCache, accountObjectId, applicationIdentitifier);
-
 
         if (cacheRecord == null) {
             Logger.verbose(methodTag, "No cache record found.");
