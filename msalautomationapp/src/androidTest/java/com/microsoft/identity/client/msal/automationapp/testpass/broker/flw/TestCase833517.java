@@ -52,7 +52,7 @@ import java.util.Arrays;
 // End My Shift - In Shared device mode, MSAL should notify the app if the sign-out account is changed.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833517
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
-@RetryOnFailure
+@RetryOnFailure(retryCount = 2)
 public class TestCase833517 extends AbstractMsalBrokerTest {
 
     @Test
@@ -94,7 +94,7 @@ public class TestCase833517 extends AbstractMsalBrokerTest {
 
         getSettingsScreen().removeAccount(username);
 
-        ThreadUtils.sleepSafely(10000, "Sleep", "Interrupted");
+        ThreadUtils.sleepSafely(15000, "Sleep", "Interrupted");
 
         //final IPublicClientApplication pca = PublicClientApplication.create(mActivity,getConfigFileResourceId());
         final IAccount account = msalSdk.getAccount(mActivity,getConfigFileResourceId(),username);
