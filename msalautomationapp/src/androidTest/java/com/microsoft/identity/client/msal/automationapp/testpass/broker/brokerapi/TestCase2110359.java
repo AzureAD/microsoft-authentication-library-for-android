@@ -25,6 +25,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.brokera
 
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
+import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
@@ -38,6 +39,7 @@ import org.junit.Test;
 // BrokerHost got a new button to facilitate this particular flow.
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2110359
 @SupportedBrokers(brokers = BrokerHost.class)
+@LocalBrokerHostDebugUiTest
 public class TestCase2110359 extends AbstractMsalBrokerTest{
 
     @Test

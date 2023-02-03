@@ -29,6 +29,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.app.AzureSampleApp;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
@@ -43,9 +44,11 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 // Cross Apps SSO with System Browser
 // https://identitydivision.visualstudio.com/DefaultCollection/DevEx/_workitems/edit/497038
+@RetryOnFailure
 @RunOnAPI29Minus("Consent Page")
 public class TestCase497038 extends AbstractMsalUiTest {
 
@@ -81,6 +84,9 @@ public class TestCase497038 extends AbstractMsalUiTest {
 
         // sign in into the Azure Sample app
         azureSampleApp.signInWithSingleAccountFragment(username, password, getBrowser(), true, microsoftStsPromptHandlerParameters);
+
+        // Small wait to allow sign in to complete
+        Thread.sleep(TimeUnit.SECONDS.toMillis(5));
 
         // make sure we are sign in into the Azure Sample app
         azureSampleApp.confirmSignedIn(username);

@@ -184,8 +184,6 @@ task sourcesJar(type: Jar) {
 String commonVersion = project.hasProperty("distCommonVersion") ? project.distCommonVersion : "0.0.+"
 
 dependencies {
-    testImplementation project(path: ':common4j')
-
     //Please leave this in... desugaring is currently disabled by default; however it's required for running some tests
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
 
@@ -212,7 +210,10 @@ dependencies {
     testImplementation "org.mockito:mockito-inline:$rootProject.ext.mockitoCoreVersion"
     testImplementation ("org.robolectric:robolectric:4.5.1")
     testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"
-    testImplementation project(':testutils')
+    testLocalImplementation project(':testutils')
+    testDistImplementation("com.microsoft.identity:testutils:0.0+") {
+        exclude group: 'com.microsoft.identity', module: 'LabApiUtilities'
+    }
     // instrumentation test dependencies
     androidTestImplementation "androidx.test.ext:junit:$rootProject.ext.androidxJunitVersion"
     // Set this dependency to use JUnit 4 rules
@@ -229,7 +230,9 @@ dependencies {
         transitive = true
     }
 
-    testImplementation(testFixtures(project(":common4j")))
+    testLocalImplementation(testFixtures(project(":common4j")))
+    String common4jVersion = project.hasProperty("distCommon4jVersion") ? project.distCommon4jVersion : "0.0.+"
+    testDistImplementation(testFixtures("com.microsoft.identity:common4j:${common4jVersion}"))
 
 }
 

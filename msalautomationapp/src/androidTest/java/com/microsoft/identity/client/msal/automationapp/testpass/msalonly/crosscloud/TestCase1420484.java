@@ -33,6 +33,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.constants.GlobalConstants;
@@ -58,6 +59,7 @@ import java.util.Collection;
 // [CrossCloud] Acquire token (Interactive and silent) for cross cloud guest account (Msal Only)
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1420484
 @RunWith(Parameterized.class)
+@RetryOnFailure
 @RunOnAPI29Minus("Keep me signed in")
 public class TestCase1420484 extends AbstractGuestAccountMsalUiTest {
 
