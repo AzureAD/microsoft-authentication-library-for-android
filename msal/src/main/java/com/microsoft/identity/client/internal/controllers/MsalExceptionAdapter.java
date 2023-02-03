@@ -22,8 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.internal.controllers;
 
-import static com.microsoft.identity.common.java.exception.ErrorStrings.UNSUPPORTED_BROKER_VERSION_ERROR_CODE;
-
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
@@ -69,7 +67,11 @@ public class MsalExceptionAdapter {
 
         if (e instanceof UiRequiredException) {
             final UiRequiredException uiRequiredException = ((UiRequiredException) e);
-            return new MsalUiRequiredException(uiRequiredException.getErrorCode(), uiRequiredException.getMessage());
+            return new MsalUiRequiredException(
+                    uiRequiredException.getErrorCode(),
+                    uiRequiredException.getOAuthSubErrorCode(),
+                    uiRequiredException.getMessage()
+            );
         }
 
         if (e instanceof IntuneAppProtectionPolicyRequiredException) {
