@@ -4,6 +4,7 @@ plugins {
     id 'pmd'
     id 'checkstyle'
     id 'maven-publish'
+    id 'kotlin-android'
 }
 
 apply from: 'versioning/version_tasks.gradle'
@@ -125,7 +126,7 @@ android {
     sourceSets {
         main {
             manifest.srcFile 'src/main/AndroidManifest.xml'
-            java.srcDirs = ['src/main/java']
+            java.srcDirs = ['src/main/java', 'src/main/kotlin']
         }
     }
 
@@ -188,6 +189,10 @@ dependencies {
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
 
     def mockito_version = 'latest.release'
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
+    androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
 
     implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
     implementation "androidx.browser:browser:$rootProject.ext.browserVersion"
