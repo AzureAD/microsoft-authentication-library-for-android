@@ -185,10 +185,8 @@ public class MainActivity extends AppCompatActivity
         final SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
                 .addSpanProcessor(BatchSpanProcessor.builder(ariaSpanExporter).build())
                 .setResource(resource)
-                // sampling 50% of traces
-                // If a parent is selected for sampling then all child spans for that trace should
-                // be sampled
-                .setSampler(Sampler.parentBased(Sampler.traceIdRatioBased(0.5)))
+                // No Sampling for our test app
+                // because the data is all going into test db
                 .build();
 
         OpenTelemetrySdk.builder()
