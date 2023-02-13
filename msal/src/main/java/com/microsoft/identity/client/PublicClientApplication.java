@@ -1860,7 +1860,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             mPublicClientConfiguration
                     ),
                     deviceCodeFlowCommandCallback,
-                    PublicApiId.DEVICE_CODE_FLOW_WITH_CALLBACK
+                    PublicApiId.DEVICE_CODE_FLOW_WITH_CLAIMS_AND_CALLBACK
             );
 
             CommandDispatcher.submitSilent(deviceCodeFlowCommand);
