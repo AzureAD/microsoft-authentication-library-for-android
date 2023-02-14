@@ -23,7 +23,7 @@
 package com.microsoft.identity.client.e2e.tests.network;
 
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_CIAM_CONFIG_FILE_PATH;
-import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
+import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.SUBSTRATE_USER_READ_SCOPE;
 
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
@@ -41,7 +41,7 @@ public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
 
     @Override
     public String[] getScopes() {
-        return USER_READ_SCOPE;
+        return SUBSTRATE_USER_READ_SCOPE;
     }
 
     @Override
