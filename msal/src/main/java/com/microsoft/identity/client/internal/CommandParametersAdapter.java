@@ -130,6 +130,7 @@ public class CommandParametersAdapter {
                 .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
                 .sdkType(SdkType.MSAL)
                 .sdkVersion(PublicClientApplication.getSdkVersion())
+                .preferredBrowser(configuration.getPreferredBrowser())
                 .browserSafeList(configuration.getBrowserSafeList())
                 .authority(authority)
                 .claimsRequestJson(claimsRequestJson)
