@@ -113,6 +113,7 @@ import com.microsoft.identity.common.java.exception.BaseException;
 import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.exception.ErrorStrings;
 import com.microsoft.identity.common.java.exception.ServiceException;
+import com.microsoft.identity.common.java.opentelemetry.OtelContextExtension;
 import com.microsoft.identity.common.java.providers.microsoft.MicrosoftAccount;
 import com.microsoft.identity.common.java.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
@@ -1519,7 +1520,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         // In order to support use of named tenants (such as contoso.onmicrosoft.com), we need
         // to be able to query OpenId Provider Configuration Metadata - for this reason, we will
         // build-up the acquireTokenOperationParams on a background thread.
-        sBackgroundExecutor.submit(io.opentelemetry.context.Context.current().wrap(new Runnable() {
+        sBackgroundExecutor.submit(OtelContextExtension.wrap(new Runnable() {
             @Override
             public void run() {
                 final CommandCallback localAuthenticationCallback =
@@ -1603,7 +1604,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     void acquireTokenSilentAsyncInternal(
             @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters,
             @NonNull final String publicApiId) {
-        sBackgroundExecutor.submit(io.opentelemetry.context.Context.current().wrap(new Runnable() {
+        sBackgroundExecutor.submit(OtelContextExtension.wrap(new Runnable() {
             @Override
             public void run() {
                 final CommandCallback callback = getCommandCallback(
