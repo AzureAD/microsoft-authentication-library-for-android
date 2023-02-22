@@ -708,7 +708,7 @@ public class PublicClientApplicationConfiguration {
             Logger.warn(methodTag, "The app is still using legacy MSAL redirect uri. Switch to MSAL local auth."
                     + "  For brokered auth, the redirect URI is expected to conform to 'msauth://<authority>/.*' where the authority in "
                     + "that uri is the package name of the app. This package name is listed as 'applicationId' in the build.gradle file.");
-            mUseBroker = false;
+            mUseBroker = true;
             return;
         }
 

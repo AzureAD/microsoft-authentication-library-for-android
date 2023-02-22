@@ -119,7 +119,8 @@ abstract class MsalWrapper {
         if (!StringUtil.isNullOrEmpty(requestOptions.getClaims())) {
             builder.withClaims(ClaimsRequest.getClaimsRequestFromJsonString(requestOptions.getClaims()));
         }
-
+        builder.withNestedRedirectUri("brk-multihub://localhost:3000");
+        builder.withNestedClient("be742297-5370-4852-8cd0-6cbf49754e48");
         if (requestOptions.getAuthScheme() == Constants.AuthScheme.POP) {
             try {
                 builder.withAuthenticationScheme(
@@ -197,7 +198,6 @@ abstract class MsalWrapper {
                 return null;
             }
         }
-
         return builder;
     }
 

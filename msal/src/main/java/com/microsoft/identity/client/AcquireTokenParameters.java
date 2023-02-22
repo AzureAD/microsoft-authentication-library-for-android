@@ -27,6 +27,8 @@ import android.app.Activity;
 
 import androidx.fragment.app.Fragment;
 
+import com.google.gson.annotations.Expose;
+
 import java.util.List;
 import java.util.Map;
 
@@ -43,6 +45,10 @@ public class AcquireTokenParameters extends TokenParameters {
     private List<Map.Entry<String, String>> mExtraQueryStringParameters;
     private AuthenticationCallback mCallback;
 
+    private String mNestedClientId;
+
+    private String mNestedRedirectUri;
+
     public AcquireTokenParameters(AcquireTokenParameters.Builder builder) {
         super(builder);
         mActivity = builder.mActivity;
@@ -52,6 +58,8 @@ public class AcquireTokenParameters extends TokenParameters {
         mExtraScopesToConsent = builder.mExtraScopesToConsent;
         mExtraQueryStringParameters = builder.mExtraQueryStringParameters;
         mCallback = builder.mCallback;
+        mNestedClientId = builder.mNestedClientId;
+        mNestedRedirectUri = builder.mNestedRedirectUri;
     }
 
     /**
@@ -93,6 +101,13 @@ public class AcquireTokenParameters extends TokenParameters {
      */
     public Prompt getPrompt() {
         return mPrompt;
+    }
+
+    public String getNestedClientId() {
+        return mNestedClientId;
+    }
+    public String getNestedRedirectUri() {
+        return mNestedRedirectUri;
     }
 
     /**
@@ -142,6 +157,10 @@ public class AcquireTokenParameters extends TokenParameters {
         private List<Map.Entry<String, String>> mExtraQueryStringParameters;
         private AuthenticationCallback mCallback;
 
+        private String mNestedClientId;
+
+        private String mNestedRedirectUri;
+
         public AcquireTokenParameters.Builder startAuthorizationFromActivity(final Activity activity) {
             mActivity = activity;
             return self();
@@ -149,6 +168,16 @@ public class AcquireTokenParameters extends TokenParameters {
 
         public AcquireTokenParameters.Builder withFragment(Fragment fragment) {
             mFragment = fragment;
+            return self();
+        }
+
+        public AcquireTokenParameters.Builder withNestedClient(String nestedClientId) {
+            mNestedClientId = nestedClientId;
+            return self();
+        }
+
+        public AcquireTokenParameters.Builder withNestedRedirectUri(String nestedRedirectUri) {
+            mNestedRedirectUri = nestedRedirectUri;
             return self();
         }
 

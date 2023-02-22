@@ -114,6 +114,25 @@ public class CommandParametersAdapter {
                         configuration,
                         authority
                 ));
+        String clientId;
+        String brkClientId;
+        String redirectUri;
+        String brkRedirectUri;
+        if (parameters.getNestedClientId()!=null) {
+            clientId = parameters.getNestedClientId();
+        } else {
+            clientId = configuration.getClientId();
+        }
+
+        if (parameters.getNestedRedirectUri()!=null) {
+            redirectUri = parameters.getNestedRedirectUri();
+        } else {
+            redirectUri = configuration.getRedirectUri();
+        }
+        brkClientId = configuration.getClientId();
+        brkRedirectUri = configuration.getRedirectUri();
+
+
 
         final InteractiveTokenCommandParameters commandParameters = AndroidActivityInteractiveTokenCommandParameters
                 .builder()
@@ -123,10 +142,12 @@ public class CommandParametersAdapter {
                         parameters.getFragment()))
                 .applicationName(configuration.getAppContext().getPackageName())
                 .applicationVersion(getPackageVersion(configuration.getAppContext()))
-                .clientId(configuration.getClientId())
+                .clientId(clientId)
+                .brkClientId(brkClientId)
                 .isSharedDevice(configuration.getIsSharedDevice())
                 .oAuth2TokenCache(tokenCache)
-                .redirectUri(configuration.getRedirectUri())
+                .redirectUri(redirectUri)
+                .brkRedirectUri(brkRedirectUri)
                 .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
                 .sdkType(SdkType.MSAL)
                 .sdkVersion(PublicClientApplication.getSdkVersion())

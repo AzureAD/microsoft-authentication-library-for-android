@@ -1432,6 +1432,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 .forAccount(account)
                 .withScopes(scopes)
                 .withPrompt(uiBehavior)
+                .withNestedClient("com.microsoft.skype.teams.dev")
+                .withNestedRedirectUri("msauth://com.microsoft.skype.teams.dev/VCpKgbYCXucoq1mZ4BZPsh5taNE%3D")
                 .withAuthorizationQueryStringParameters(extraQueryParameters)
                 .withOtherScopesToAuthorize(
                         Arrays.asList(
