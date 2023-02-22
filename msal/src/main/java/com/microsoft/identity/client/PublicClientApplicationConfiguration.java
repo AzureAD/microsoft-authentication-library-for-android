@@ -77,6 +77,7 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.LOGGING;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.MULTIPLE_CLOUDS_SUPPORTED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.POWER_OPT_CHECK_FOR_NETWORK_REQUEST_ENABLED;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.PREFERRED_BROWSER;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REDIRECT_URI;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REQUIRED_BROKER_PROTOCOL_VERSION;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.TELEMETRY;
@@ -103,6 +104,7 @@ public class PublicClientApplicationConfiguration {
         static final String ENVIRONMENT = "environment";
         static final String REQUIRED_BROKER_PROTOCOL_VERSION = "minimum_required_broker_protocol_version";
         static final String TELEMETRY = "telemetry";
+        static final String PREFERRED_BROWSER = "preferred_browser";
         static final String BROWSER_SAFE_LIST = "browser_safelist";
         static final String ACCOUNT_MODE = "account_mode";
         static final String CLIENT_CAPABILITIES = "client_capabilities";
@@ -142,6 +144,9 @@ public class PublicClientApplicationConfiguration {
 
     @SerializedName(REQUIRED_BROKER_PROTOCOL_VERSION)
     private String mRequiredBrokerProtocolVersion;
+
+    @SerializedName(PREFERRED_BROWSER)
+    private BrowserDescriptor mPreferredBrowser;
 
     @SerializedName(BROWSER_SAFE_LIST)
     private List<BrowserDescriptor> mBrowserSafeList;
@@ -189,6 +194,15 @@ public class PublicClientApplicationConfiguration {
      */
     public void setTokenCacheSecretKeys(@NonNull final byte[] rawKey) {
         AuthenticationSettings.INSTANCE.setSecretKey(rawKey);
+    }
+
+    /**
+     * Gets the preferred browser.
+     *
+     * @return The preferred browser to be used for auth flow.
+     */
+    public BrowserDescriptor getPreferredBrowser() {
+        return mPreferredBrowser;
     }
 
     /**
@@ -463,6 +477,7 @@ public class PublicClientApplicationConfiguration {
         this.mUseBroker = config.mUseBroker == null ? this.mUseBroker : config.mUseBroker;
         this.mTelemetryConfiguration = config.mTelemetryConfiguration == null ? this.mTelemetryConfiguration : config.mTelemetryConfiguration;
         this.mRequiredBrokerProtocolVersion = config.mRequiredBrokerProtocolVersion == null ? this.mRequiredBrokerProtocolVersion : config.mRequiredBrokerProtocolVersion;
+        this.mPreferredBrowser = config.mPreferredBrowser == null ? this.mPreferredBrowser : config.mPreferredBrowser;
         if (this.mBrowserSafeList == null) {
             this.mBrowserSafeList = config.mBrowserSafeList;
         } else if (config.mBrowserSafeList != null) {

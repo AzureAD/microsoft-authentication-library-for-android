@@ -1,6 +1,7 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 V.Next
 ----------
+- [MINOR] Add preferred browser support (#1761)
 - [MINOR] Adding sub error codes to MsalUiRequiredException (#1758)
 
 Version 4.2.0

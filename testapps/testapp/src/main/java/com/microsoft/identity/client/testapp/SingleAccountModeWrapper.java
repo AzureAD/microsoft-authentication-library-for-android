@@ -58,7 +58,9 @@ public class SingleAccountModeWrapper extends MsalWrapper {
     @Override
     public String getDefaultBrowser() {
         try {
-            return BrowserSelector.select(mApp.getConfiguration().getAppContext(), mApp.getConfiguration().getBrowserSafeList()).getPackageName();
+            return BrowserSelector.select(mApp.getConfiguration().getAppContext(),
+                    mApp.getConfiguration().getBrowserSafeList(),
+                    mApp.getConfiguration().getPreferredBrowser()).getPackageName();
         } catch (ClientException e) {
             return "Unknown";
         }
