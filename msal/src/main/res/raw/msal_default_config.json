@@ -28,6 +28,7 @@
     "logcat_enabled": true
   },
   "account_mode": "MULTIPLE",
+  "preferred_browser" : null,
   "browser_safelist": [
     {
       "browser_package_name": "com.android.chrome",

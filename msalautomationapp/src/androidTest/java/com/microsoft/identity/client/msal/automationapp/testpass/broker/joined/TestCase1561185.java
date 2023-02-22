@@ -42,6 +42,7 @@ import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -50,6 +51,7 @@ import java.util.Arrays;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561185
 @SupportedBrokers(brokers = BrokerCompanyPortal.class)
 @RetryOnFailure(retryCount = 2)
+@Ignore("Covering this case as part of TestCase833526, reducing enrollment calls with MDM account")
 public class TestCase1561185 extends AbstractMsalBrokerTest {
     @Test
     public void test_1561185() throws Throwable {

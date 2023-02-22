@@ -23,24 +23,30 @@
 
 package com.microsoft.identity.client.internal.api;
 
+import static com.microsoft.identity.client.exception.MsalClientException.NOT_ELIGIBLE_TO_USE_BROKER;
+import static com.microsoft.identity.common.internal.broker.PackageHelper.getPackageInfo;
+import static com.microsoft.identity.common.java.AuthenticationConstants.Broker.BROKER_CLIENT_ID;
+import static com.microsoft.identity.common.java.commands.parameters.CommandParameters.APPLICATION_IDENTIFIER_FORMAT;
+import static com.microsoft.identity.common.java.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
+import static com.microsoft.identity.common.java.exception.ErrorStrings.APP_PACKAGE_NAME_NOT_FOUND;
+
 import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.common.AndroidPlatformComponents;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.java.authscheme.BearerAuthenticationSchemeInternal;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
+import com.microsoft.identity.common.internal.broker.PackageHelper;
+import com.microsoft.identity.common.java.authscheme.BearerAuthenticationSchemeInternal;
 import com.microsoft.identity.common.java.cache.ICacheRecord;
 import com.microsoft.identity.common.java.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.java.dto.AccountRecord;
+import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.logging.Logger;
-
-import static com.microsoft.identity.client.exception.MsalClientException.NOT_ELIGIBLE_TO_USE_BROKER;
-import static com.microsoft.identity.common.java.AuthenticationConstants.Broker.BROKER_CLIENT_ID;
-import static com.microsoft.identity.common.java.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
 
 /**
  * For Broker apps to obtain an RT associated to Broker's client ID (for WPJ scenario).
@@ -67,7 +73,9 @@ public final class BrokerClientIdRefreshTokenAccessor {
         throwIfNotValidBroker(context);
 
         final MsalOAuth2TokenCache tokenCache = MsalOAuth2TokenCache.create(AndroidPlatformComponents.createFromContext(context));
-        final ICacheRecord cacheRecord = getCacheRecordForIdentifier(tokenCache, accountObjectId);
+
+        final String applicationIdentitifier = String.format(APPLICATION_IDENTIFIER_FORMAT, null, null);
+        final ICacheRecord cacheRecord = getCacheRecordForIdentifier(tokenCache, accountObjectId, applicationIdentitifier);
 
         if (cacheRecord == null) {
             Logger.verbose(methodTag, "No cache record found.");
@@ -89,7 +97,8 @@ public final class BrokerClientIdRefreshTokenAccessor {
 
     private static ICacheRecord getCacheRecordForIdentifier(
             @NonNull final MsalOAuth2TokenCache tokenCache,
-            @NonNull final String accountObjectId) throws MsalClientException {
+            @NonNull final String accountObjectId,
+            @NonNull final String applicationIdentifier) throws MsalClientException {
         final AccountRecord localAccountRecord = tokenCache.getAccountByLocalAccountId(
                 null,
                 BROKER_CLIENT_ID,
@@ -104,7 +113,9 @@ public final class BrokerClientIdRefreshTokenAccessor {
 
         return tokenCache.load(
                 BROKER_CLIENT_ID,
-                null, // wildcard (*)
+                applicationIdentifier,
+                null,
+                null,
                 localAccountRecord,
                 new BearerAuthenticationSchemeInternal() // Auth scheme is inconsequential - only using RT
         );
