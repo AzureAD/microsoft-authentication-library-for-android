@@ -7,13 +7,13 @@ trigger:
 
 resources:
  repositories:
- - repository: common
+ - repository: android-complete
    type: github
-   name: AzureAD/microsoft-authentication-library-common-for-android
-   ref: dev
+   name: AzureAD/android-complete
+   ref: master
    endpoint: ANDROID_GITHUB
 
 jobs:
-- template: azure-pipelines/templates/steps/auth-client/run-instrumented-tests.yml@common
+- template: azure-pipelines/templates/run-instrumented-tests.yml@android-complete
   parameters:
     projectName: msal
