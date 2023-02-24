@@ -1,0 +1,19 @@
+# File: azure-pipelines\auth-client\msal-instrumented-test.yml
+# Description: Run instrumented test for MSAL.
+name: Instrumented Tests
+
+trigger:
+- dev
+
+resources:
+ repositories:
+ - repository: android-complete
+   type: github
+   name: AzureAD/android-complete
+   ref: master
+   endpoint: ANDROID_GITHUB
+
+jobs:
+- template: azure-pipelines/templates/run-instrumented-tests.yml@android-complete
+  parameters:
+    projectName: msal
