@@ -3,6 +3,7 @@ V.Next
 ----------
 - [MINOR] Add preferred browser support (#1761)
 - [MINOR] Adding sub error codes to MsalUiRequiredException (#1758)
+- [MINOR] Wrap Runnable with Current Telemetry Context (#1747)
 
 Version 4.2.0
 ----------
