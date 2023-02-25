@@ -1,6 +1,6 @@
 {
   "client_id" : "e3b9ad76-9763-4827-b088-80c7a7888f79",
-  "redirect_uri" : "msauth://com.msft.identity.client.sample.local/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D",
+  "redirect_uri" : "msauth://com.microsoft.skype.teams.dev/VCpKgbYCXucoq1mZ4BZPsh5taNE=",
   "authorities" : [
     {
       "type": "B2C",

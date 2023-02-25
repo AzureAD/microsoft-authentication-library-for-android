@@ -203,7 +203,7 @@ public class CommandParametersAdapter {
                 .platformComponents(AndroidPlatformComponents.createFromContext(configuration.getAppContext()))
                 .applicationName(configuration.getAppContext().getPackageName())
                 .applicationVersion(getPackageVersion(configuration.getAppContext()))
-                .clientId(configuration.getClientId())
+                .clientId("be742297-5370-4852-8cd0-6cbf49754e48")
                 .isSharedDevice(configuration.getIsSharedDevice())
                 .oAuth2TokenCache(tokenCache)
                 .redirectUri(configuration.getRedirectUri())
