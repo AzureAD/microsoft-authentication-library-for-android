@@ -1,7 +1,7 @@
 {
   "client_id" : "7f6c2a60-95d5-4525-b99c-103593fb9a57",
   "authorization_user_agent" : "DEFAULT",
-  "redirect_uri" : "msauth://com.msft.identity.client.sample.local/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D",
+  "redirect_uri" : "msauth://com.microsoft.skype.teams.dev/VCpKgbYCXucoq1mZ4BZPsh5taNE=",
   "authorities" : [
     {
       "type": "AAD",
