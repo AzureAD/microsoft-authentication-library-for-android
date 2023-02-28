@@ -52,11 +52,16 @@ import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
+import com.microsoft.identity.common.java.opentelemetry.OTelUtility;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.microsoft.identity.client.testapp.R.id.enablePII;
+
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.context.Scope;
 
 /**
  * acquireToken Fragment, contains the flow for acquireToken interactively, acquireTokenSilent, getUsers, removeUser.
@@ -231,14 +236,32 @@ public class AcquireTokenFragment extends Fragment {
         mAcquireToken.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mMsalWrapper.acquireToken(getActivity(), getCurrentRequestOptions(), acquireTokenCallback);
+                final Span span = OTelUtility.createSpan("TestApp_AcquireToken");
+                try (Scope scope = span.makeCurrent()) {
+                    mMsalWrapper.acquireToken(getActivity(), getCurrentRequestOptions(), acquireTokenCallback);
+                    span.setStatus(StatusCode.OK);
+                } catch (final Throwable throwable) {
+                    span.recordException(throwable);
+                    span.setStatus(StatusCode.ERROR);
+                } finally {
+                    span.end();
+                }
             }
         });
 
         mAcquireTokenSilent.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mMsalWrapper.acquireTokenSilent(getCurrentRequestOptions(), acquireTokenCallback);
+                final Span span = OTelUtility.createSpan("TestApp_AcquireTokenSilent");
+                try (Scope scope = span.makeCurrent()) {
+                    mMsalWrapper.acquireTokenSilent(getCurrentRequestOptions(), acquireTokenCallback);
+                    span.setStatus(StatusCode.OK);
+                } catch (final Throwable throwable) {
+                    span.recordException(throwable);
+                    span.setStatus(StatusCode.ERROR);
+                } finally {
+                    span.end();
+                }
             }
         });
 
