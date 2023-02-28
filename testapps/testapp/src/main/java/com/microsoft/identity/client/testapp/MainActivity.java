@@ -60,6 +60,7 @@ import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.client.opentelemetry.exporter.AriaMetricExporter;
 import com.microsoft.identity.client.opentelemetry.exporter.AriaSpanExporter;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
+import com.microsoft.identity.common.java.util.StringUtil;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
@@ -166,7 +167,9 @@ public class MainActivity extends AppCompatActivity
             onNavigationItemSelected(navigationView.getMenu().getItem(0));
         }
 
-        initOpenTelemetry(getApplicationContext());
+        if (!StringUtil.isNullOrEmpty(BuildConfig.otelAriaToken)) {
+            initOpenTelemetry(getApplicationContext());
+        }
     }
 
     /**
