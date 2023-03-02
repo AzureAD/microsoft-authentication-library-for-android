@@ -31,7 +31,7 @@ if (project.hasProperty("distMsalVersion")) {
     msalVersion = distMsalVersion
 }
 
-def otelAriaToken = "placeholder"
+def otelAriaToken = ""
 
 if(project.hasProperty('otelAriaToken')) {
     otelAriaToken = project.otelAriaToken;
