@@ -198,15 +198,20 @@ public class CommandParametersAdapter {
                 parameters.getAuthenticationScheme()
         );
 
+        // Notes : Ideally clientId, brkClientId, redirectUri r the only things that r used in silent flow, but I added all params because,
+        // it makes it easier to understand that Nested app is asking for the token.
         final SilentTokenCommandParameters commandParameters = SilentTokenCommandParameters
                 .builder()
                 .platformComponents(AndroidPlatformComponents.createFromContext(configuration.getAppContext()))
                 .applicationName(configuration.getAppContext().getPackageName())
                 .applicationVersion(getPackageVersion(configuration.getAppContext()))
                 .clientId("be742297-5370-4852-8cd0-6cbf49754e48")
+                .brkClientId("1fec8e78-bce4-4aaf-ab1b-5451cc387264")
                 .isSharedDevice(configuration.getIsSharedDevice())
                 .oAuth2TokenCache(tokenCache)
-                .redirectUri(configuration.getRedirectUri())
+//                .redirectUri(configuration.getRedirectUri())
+                .redirectUri("brk-multihub://localhost:3000")
+                .brkRedirectUri("msauth://com.microsoft.skype.teams.dev/VCpKgbYCXucoq1mZ4BZPsh5taNE%3D")
                 .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
                 .sdkType(SdkType.MSAL)
                 .sdkVersion(PublicClientApplication.getSdkVersion())
