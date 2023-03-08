@@ -29,6 +29,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
@@ -45,6 +46,7 @@ import java.util.Arrays;
 // [USGOV][MSAL-ONLY] Acquire token acquisition with instance_aware=true, login hint present,
 // and cloud account, and WW organizations authority
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938367
+@RetryOnFailure(retryCount = 2)
 public class TestCase938367 extends AbstractMsalUiTest {
 
     @Test

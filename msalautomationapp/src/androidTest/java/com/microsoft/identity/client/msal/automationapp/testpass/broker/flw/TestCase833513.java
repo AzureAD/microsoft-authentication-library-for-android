@@ -117,6 +117,7 @@ public class TestCase833513 extends AbstractMsalBrokerTest {
                 .broker(mBroker)
                 .prompt(PromptParameter.SELECT_ACCOUNT)
                 .expectingBrokerAccountChooserActivity(false)
+                .howWouldYouLikeToSignInExpected(true)
                 .build();
 
         AdfsPromptHandler adfsPromptHandler = new AdfsPromptHandler(promptHandlerParameters);
