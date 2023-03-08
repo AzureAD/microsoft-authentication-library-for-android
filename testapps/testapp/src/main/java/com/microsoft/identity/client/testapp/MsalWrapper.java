@@ -90,6 +90,26 @@ abstract class MsalWrapper {
         acquireTokenAsyncInternal(parameters);
     }
 
+    // For Host App!!
+    public void acquireToken(@NonNull final Activity activity,
+                             @NonNull final RequestOptions requestOptions,
+                             @NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback, boolean someBool) {
+
+        final AcquireTokenParameters.Builder builder = getAcquireTokenParametersBuilder(activity, requestOptions, callback);
+        builder.withScopes(Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")));
+        builder.withOtherScopesToAuthorize(
+                Arrays.asList(
+                        requestOptions
+                                .getExtraScope()
+                                .toLowerCase()
+                                .split(" ")
+                )
+        );
+
+        final AcquireTokenParameters parameters = builder.build();
+        acquireTokenAsyncInternal(parameters);
+    }
+
     public void acquireTokenWithResource(@NonNull final Activity activity,
                                          @NonNull final RequestOptions requestOptions,
                                          @NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback) {

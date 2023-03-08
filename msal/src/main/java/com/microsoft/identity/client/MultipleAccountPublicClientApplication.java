@@ -132,6 +132,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
                 try {
                     final CommandParameters params = CommandParametersAdapter.createCommandParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
+                   // params.builder().brkClientId(mPublicClientConfiguration.getClientId()).clientId("be742297-5370-4852-8cd0-6cbf49754e48").redirectUri("brk-multihub://localhost:3000").brkRedirectUri(mPublicClientConfiguration.getRedirectUri()).build();
                     final LoadAccountCommand loadAccountCommand = new LoadAccountCommand(
                             params,
                             MSALControllerFactory.getAllControllers(

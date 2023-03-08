@@ -46,7 +46,7 @@ import java.util.Arrays;
 // Interactive Auth with select_account (no consent record)
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99267
 @RunOnAPI29Minus("Consent Page")
-@RetryOnFailure(retryCount = 2)
+//@RetryOnFailure(retryCount = 2)
 public class TestCase99267 extends AbstractMsalUiTest {
 
     @Test
