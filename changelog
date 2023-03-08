@@ -1,6 +1,10 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 V.Next
 ----------
+
+Version 4.3.1
+----------
+- [PATCH] Version 4.3.0 was built with RC versions, just need to bump version to 4.3.1
 - [MINOR] Add preferred browser support (#1761)
 - [MINOR] Adding sub error codes to MsalUiRequiredException (#1758)
 - [MINOR] Wrap Runnable with Current Telemetry Context (#1747)
