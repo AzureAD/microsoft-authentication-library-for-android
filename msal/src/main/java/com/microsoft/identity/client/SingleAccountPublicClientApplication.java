@@ -144,7 +144,9 @@ public class SingleAccountPublicClientApplication
                                 // To simplify the logic, if more than one account is returned, the first account will be picked.
                                 // We do not support switching from MULTIPLE to SINGLE.
                                 // See getAccountFromICacheRecordList() for more details.
+                                Logger.info(TAG, "onTaskCompleted of getCurrentAccount, result size is "+ result.size());
                                 final MultiTenantAccount oldAccount = getPersistedCurrentAccount();
+                                Logger.info(TAG, "onTaskCompleted of getCurrentAccount, oldAccount  is "+ oldAccount.getUsername() + " with id "+oldAccount.getId());
                                 persistCurrentAccount(result);
                                 checkCurrentAccountNotifyCallback(callback, result, oldAccount);
                             }
@@ -234,6 +236,7 @@ public class SingleAccountPublicClientApplication
                 : getAccountFromICacheRecordList(newAccountRecords);
 
         if (!isHomeAccountIdMatching(oldAccount, newAccount)) {
+            Logger.info(TAG,"in checkCurrentAccountNotifyCallback homeAccount is not matching the old one!");
             callback.onAccountChanged(oldAccount, newAccount);
         }
 
@@ -628,13 +631,13 @@ public class SingleAccountPublicClientApplication
         final List<IAccount> account = AccountAdapter.adapt(cacheRecords);
 
         if (account.size() != 1) {
-            Logger.verbose(
+            Logger.info(
                     methodTag,
                     "Returned cacheRecords were adapted into multiple IAccount. " +
                             "This is unexpected in Single account mode." +
                             "Returning the first adapted account.");
         }
-
+        Logger.info(methodTag, "first account username is "+ account.get(0).getUsername());
         return (MultiTenantAccount) account.get(0);
     }
 
