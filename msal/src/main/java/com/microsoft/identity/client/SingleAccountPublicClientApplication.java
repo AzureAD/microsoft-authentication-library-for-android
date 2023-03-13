@@ -146,7 +146,11 @@ public class SingleAccountPublicClientApplication
                                 // See getAccountFromICacheRecordList() for more details.
                                 Logger.info(TAG, "onTaskCompleted of getCurrentAccount, result size is "+ result.size());
                                 final MultiTenantAccount oldAccount = getPersistedCurrentAccount();
+                                if (oldAccount != null)
                                 Logger.info(TAG, "onTaskCompleted of getCurrentAccount, oldAccount is "+ oldAccount.getUsername() + " with id "+oldAccount.getId());
+                                else {
+                                    Logger.info(TAG, "onTaskCompleted of getCurrentAccount, oldAccount is null");
+                                }
                                 persistCurrentAccount(result);
                                 checkCurrentAccountNotifyCallback(callback, result, oldAccount);
                             }
