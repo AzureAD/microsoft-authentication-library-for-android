@@ -57,8 +57,6 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
-import com.microsoft.identity.client.opentelemetry.exporter.AriaMetricExporter;
-import com.microsoft.identity.client.opentelemetry.exporter.AriaSpanExporter;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
 import com.microsoft.identity.common.java.util.StringUtil;
 
@@ -179,22 +177,7 @@ public class MainActivity extends AppCompatActivity
      * @param applicationContext the application context
      */
     private static synchronized void initOpenTelemetry(@lombok.NonNull final Context applicationContext) {
-        final Resource resource = Resource.getDefault();
-
-        final AriaSpanExporter ariaSpanExporter = new AriaSpanExporter(
-                applicationContext, BuildConfig.otelAriaToken, null
-        );
-
-        final SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
-                .addSpanProcessor(BatchSpanProcessor.builder(ariaSpanExporter).build())
-                .setResource(resource)
-                // No Sampling for our test app
-                // because the data is all going into test db
-                .build();
-
-        OpenTelemetrySdk.builder()
-                .setTracerProvider(sdkTracerProvider)
-                .buildAndRegisterGlobal();
+        //Removing the logic here to avoid using the opentelemetry exporter dependency
     }
 
     private Fragment getCurrentFragment(){
