@@ -245,7 +245,12 @@ public class SingleAccountPublicClientApplication
             Logger.info(TAG,"in checkCurrentAccountNotifyCallback homeAccount is not matching the old one!, hence calling onAccountChanged");
             callback.onAccountChanged(oldAccount, newAccount);
         }
-        Logger.info(TAG,"calling onAccountLoaded with new account "+ newAccount.getUsername());
+        if (newAccount != null) {
+            Logger.info(TAG, "calling onAccountLoaded with new account " + newAccount.getUsername());
+        }
+        else {
+            Logger.info(TAG, "calling onAccountLoaded with new account is null!");
+        }
         callback.onAccountLoaded(newAccount);
     }
 
@@ -570,6 +575,8 @@ public class SingleAccountPublicClientApplication
             final AsyncResult<Boolean> result = future.get();
 
             if (result.getSuccess()) {
+                Logger.info(
+                        TAG, "signout was succeful!");
                 return result.getResult();
             } else {
                 throw result.getException();
@@ -639,7 +646,8 @@ public class SingleAccountPublicClientApplication
         if (cacheRecords == null || cacheRecords.size() == 0) {
             return null;
         }
-
+        Logger.info(
+                methodTag, "cache records size "+ cacheRecords.size());
         final List<IAccount> account = AccountAdapter.adapt(cacheRecords);
 
         if (account.size() != 1) {

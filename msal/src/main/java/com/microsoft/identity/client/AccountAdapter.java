@@ -179,7 +179,10 @@ class AccountAdapter {
         rootAccounts.addAll(
                 createIAccountsForGuestsNotSignedIntoHomeTenant(guestCacheRecordsWithNoHomeAccount)
         );
-
+        Logger.info(TAG, "Adapter : root accounts size "+ rootAccounts.size());
+        for (IAccount rootAccount : rootAccounts) {
+            Logger.info(TAG, "root accounts  "+ rootAccount.getUsername());
+        }
         return rootAccounts;
     }
 
@@ -316,7 +319,9 @@ class AccountAdapter {
 
             result.add(rootAccount);
         }
-
+        for (IAccount  account : result) {
+            Logger.info(TAG, "Created root account "+ account.getUsername());
+        }
         return result;
     }
 
