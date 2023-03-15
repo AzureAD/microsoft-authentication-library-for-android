@@ -255,6 +255,25 @@ public final class PublicClientApplicationTest {
                 });
     }
 
+    @Test
+    public void testMultipleAccountCIAMAuthorityAsyncConstructor() {
+        final Context context = new PublicClientApplicationTest.MockContext(mAppContext);
+        mockPackageManagerWithDefaultFlag(context);
+        mockHasCustomTabRedirect(context);
+
+        try {
+            final IMultipleAccountPublicClientApplication app = PublicClientApplication.createMultipleAccountPublicClientApplication(
+                    context,
+                    R.raw.test_msal_config_ciam_multiple_account
+            );
+            Assert.assertTrue(app instanceof IMultipleAccountPublicClientApplication);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (MsalException e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Verify correct exception is thrown if callback is not provided.
      */
