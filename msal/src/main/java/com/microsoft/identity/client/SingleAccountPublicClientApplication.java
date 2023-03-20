@@ -145,6 +145,9 @@ public class SingleAccountPublicClientApplication
                                 // We do not support switching from MULTIPLE to SINGLE.
                                 // See getAccountFromICacheRecordList() for more details.
                                 Logger.info(TAG, "onTaskCompleted of getCurrentAccount, result size is "+ result.size());
+                                for (ICacheRecord cacheRecord : result) {
+                                    Logger.info(TAG, "result with username : "+cacheRecord.getAccount().getUsername());
+                                }
                                 final MultiTenantAccount oldAccount = getPersistedCurrentAccount();
                                 if (oldAccount != null)
                                 Logger.info(TAG, "onTaskCompleted of getCurrentAccount, oldAccount is "+ oldAccount.getUsername() + " with id "+oldAccount.getId());
@@ -488,6 +491,7 @@ public class SingleAccountPublicClientApplication
 
     @Override
     public void signOut(@NonNull final SignOutCallback callback) {
+        Logger.info(TAG, "signout invoked in MSAL");
         signOutInternal(callback, SINGLE_ACCOUNT_PCA_SIGN_OUT_WITH_CALLBACK);
     }
 
@@ -618,9 +622,11 @@ public class SingleAccountPublicClientApplication
     private void persistCurrentAccount(@Nullable final List<ICacheRecord> cacheRecords) {
         Logger.info(
                 TAG, "in persistCurrentAccount to persist following records in sharedPref");
-        for (ICacheRecord cacheRecord : cacheRecords) {
-            Logger.info(
-                    TAG,cacheRecord.getAccount().getUsername());
+        if (cacheRecords != null) {
+            for (ICacheRecord cacheRecord : cacheRecords) {
+                Logger.info(
+                        TAG, cacheRecord.getAccount().getUsername());
+            }
         }
         synchronized(SingleAccountPublicClientApplication.class) {
             if (cacheRecords == null || cacheRecords.size() == 0) {
