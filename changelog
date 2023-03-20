@@ -1,7 +1,47 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
-
-vNext
+V.Next
 ----------
+
+Version 4.3.1
+----------
+- [PATCH] Version 4.3.0 was built with RC versions, just need to bump version to 4.3.1
+- [MINOR] Add preferred browser support (#1761)
+- [MINOR] Adding sub error codes to MsalUiRequiredException (#1758)
+- [MINOR] Wrap Runnable with Current Telemetry Context (#1747)
+
+Version 4.2.0
+----------
+- [PATCH] Update common @10.0.0
+
+Version 4.1.3
+----------
+- [PATCH] Update common @9.1.0
+
+Version 4.1.0
+----------
+- [MINOR] Add new exception type for broker protocol not supported exception during msal-broker handshake (#1703)
+
+Version 4.0.4
+----------
+- [PATCH] Update common @8.0.2
+
+Version 4.0.3
+----------
+- [PATCH] Update common @8.0.0
+
+Version 4.0.2
+----------
+- [PATCH] Update common @7.0.0
+- [PATCH] Updating the single account cache before notifying the caller of account change/load via callback. (#1688)
+- [MINOR] Added keyboard flag to configChanges in Manifest for YubiKey compatibility. (#1685)
+
+Version 4.0.1
+----------
+- [PATCH] Update common to 6.0.1
+
+Version 4.0.0
+----------
+- [PATCH] Update common to 6.0.0
 - [PATCH] Update androidx appcompat version from 1.0.2 -> 1.1.0 (#1629)
 - [MINOR] Add prompt=create support. (#1611)
 - [PATCH] Ensure consistent TAGs in the logger (#1612)

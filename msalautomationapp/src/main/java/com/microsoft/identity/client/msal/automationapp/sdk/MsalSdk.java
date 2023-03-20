@@ -53,10 +53,12 @@ import com.microsoft.identity.client.ui.automation.sdk.ResultFuture;
 import com.microsoft.identity.client.ui.automation.sdk.IAuthSdk;
 import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryB2CAuthority;
+import com.microsoft.identity.common.java.util.ThreadUtils;
 
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A Sdk wrapper for Microsoft Authentication Library (MSAL) which implements
@@ -101,10 +103,16 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
             );
         }
 
-
         final AcquireTokenParameters acquireTokenParameters = acquireTokenParametersBuilder.build();
 
         pca.acquireToken(acquireTokenParameters);
+
+        // Adding small sleep to make sure acquireToken is up before we start handling UI
+        try {
+            Thread.sleep(TimeUnit.SECONDS.toMillis(1));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         interactionRequiredCallback.handleUserInteraction();
 

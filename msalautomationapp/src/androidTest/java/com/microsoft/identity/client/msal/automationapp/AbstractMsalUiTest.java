@@ -43,8 +43,10 @@ import com.microsoft.identity.client.SilentAuthenticationCallback;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.ui.automation.ILabTest;
 import com.microsoft.identity.client.ui.automation.IRuleBasedTest;
+import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
 import com.microsoft.identity.client.ui.automation.browser.IBrowser;
+import com.microsoft.identity.client.ui.automation.device.settings.ISettings;
 import com.microsoft.identity.client.ui.automation.rules.RulesHelper;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.labapi.utilities.BuildConfig;
@@ -335,5 +337,9 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
     @Override
     public RuleChain getPrimaryRules() {
         return RulesHelper.getPrimaryRules(null);
+    }
+
+    protected ISettings getSettingsScreen() {
+        return TestContext.getTestContext().getTestDevice().getSettings();
     }
 }

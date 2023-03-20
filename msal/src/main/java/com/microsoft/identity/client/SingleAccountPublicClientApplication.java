@@ -22,6 +22,26 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import static com.microsoft.identity.client.exception.MsalClientException.UNKNOWN_ERROR;
+import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_SCOPES_AUTHORITY_CALLBACK;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_WITH_PARAMETERS;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_WITH_SCOPES_AUTHORITY;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_ACTIVITY_SCOPES_CALLBACK;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_EXISTING_SIGN_IN_WITH_PARAMETERS;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_EXISTING_SIGN_IN_WITH_PARAMETERS_PROMPT;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_EXISTING_SIGN_IN_WITH_PROMPT;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_GET_CURRENT_ACCOUNT;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_GET_CURRENT_ACCOUNT_ASYNC;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_IN;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_IN_WITH_PARAMETERS;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_IN_WITH_PARAMETERS_PROMPT;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_IN_WITH_PROMPT;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_OUT;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_OUT_WITH_CALLBACK;
+
 import android.app.Activity;
 import android.content.Context;
 
@@ -31,7 +51,6 @@ import androidx.annotation.WorkerThread;
 
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.CommandParametersAdapter;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
@@ -39,21 +58,20 @@ import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
 import com.microsoft.identity.common.adal.internal.util.JsonExtensions;
 import com.microsoft.identity.common.adal.internal.util.StringExtensions;
 import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager;
-import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommandCallback;
-import com.microsoft.identity.common.java.cache.ICacheRecord;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
-import com.microsoft.identity.common.java.commands.CommandCallback;
+import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommandCallback;
 import com.microsoft.identity.common.internal.commands.GetCurrentAccountCommand;
 import com.microsoft.identity.common.internal.commands.RemoveCurrentAccountCommand;
+import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
+import com.microsoft.identity.common.java.cache.ICacheRecord;
+import com.microsoft.identity.common.java.commands.CommandCallback;
 import com.microsoft.identity.common.java.commands.parameters.CommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.RemoveAccountCommandParameters;
 import com.microsoft.identity.common.java.controllers.BaseController;
 import com.microsoft.identity.common.java.controllers.CommandDispatcher;
 import com.microsoft.identity.common.java.dto.AccountRecord;
-import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
-import com.microsoft.identity.common.java.exception.ServiceException;
-import com.microsoft.identity.common.java.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.java.exception.BaseException;
+import com.microsoft.identity.common.java.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.java.result.LocalAuthenticationResult;
 import com.microsoft.identity.common.java.util.ResultFuture;
 import com.microsoft.identity.common.logging.Logger;
@@ -62,26 +80,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-
-import static com.microsoft.identity.client.exception.MsalClientException.UNKNOWN_ERROR;
-import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
-import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS;
-import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_SCOPES_AUTHORITY_CALLBACK;
-import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_WITH_PARAMETERS;
-import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_WITH_SCOPES_AUTHORITY;
-import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_ACTIVITY_SCOPES_CALLBACK;
-import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS;
-import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_EXISTING_SIGN_IN_WITH_PROMPT;
-import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_EXISTING_SIGN_IN_WITH_PARAMETERS;
-import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_EXISTING_SIGN_IN_WITH_PARAMETERS_PROMPT;
-import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_GET_CURRENT_ACCOUNT;
-import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_GET_CURRENT_ACCOUNT_ASYNC;
-import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_IN;
-import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_IN_WITH_PROMPT;
-import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_IN_WITH_PARAMETERS;
-import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_IN_WITH_PARAMETERS_PROMPT;
-import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_OUT;
-import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.SINGLE_ACCOUNT_PCA_SIGN_OUT_WITH_CALLBACK;
 
 public class SingleAccountPublicClientApplication
         extends PublicClientApplication
@@ -146,8 +144,9 @@ public class SingleAccountPublicClientApplication
                                 // To simplify the logic, if more than one account is returned, the first account will be picked.
                                 // We do not support switching from MULTIPLE to SINGLE.
                                 // See getAccountFromICacheRecordList() for more details.
-                                checkCurrentAccountNotifyCallback(callback, result);
+                                final MultiTenantAccount oldAccount = getPersistedCurrentAccount();
                                 persistCurrentAccount(result);
+                                checkCurrentAccountNotifyCallback(callback, result, oldAccount);
                             }
 
                             @Override
@@ -228,14 +227,14 @@ public class SingleAccountPublicClientApplication
     }
 
     private void checkCurrentAccountNotifyCallback(@NonNull final CurrentAccountCallback callback,
-                                                   @Nullable final List<ICacheRecord> newAccountRecords) {
-        final MultiTenantAccount localAccount = getPersistedCurrentAccount();
+                                                   @Nullable final List<ICacheRecord> newAccountRecords,
+                                                   @Nullable final MultiTenantAccount oldAccount) {
         final MultiTenantAccount newAccount = newAccountRecords == null
                 ? null
                 : getAccountFromICacheRecordList(newAccountRecords);
 
-        if (!isHomeAccountIdMatching(localAccount, newAccount)) {
-            callback.onAccountChanged(localAccount, newAccount);
+        if (!isHomeAccountIdMatching(oldAccount, newAccount)) {
+            callback.onAccountChanged(oldAccount, newAccount);
         }
 
         callback.onAccountLoaded(newAccount);

@@ -24,6 +24,8 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.crosscl
 
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
+
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
@@ -31,6 +33,9 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractGuestAccountMsalBrokerUiTest;
 import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
+import com.microsoft.identity.client.ui.automation.constants.GlobalConstants;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
@@ -49,23 +54,26 @@ import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 
 // Acquire token for cross cloud guest account (with broker)
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1420494
+@RetryOnFailure(retryCount = 2)
 @RunWith(Parameterized.class)
+@RunOnAPI29Minus("Keep me signed in")
 public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
 
-    private final String mGuestHomeAzureEnvironment;
+    private final GuestHomeAzureEnvironment mGuestHomeAzureEnvironment;
 
-    public TestCase1420494(final String name, final String guestHomeAzureEnvironment) {
+    public TestCase1420494(final String name, final @NonNull GuestHomeAzureEnvironment guestHomeAzureEnvironment) {
         mGuestHomeAzureEnvironment = guestHomeAzureEnvironment;
     }
 
     @Parameterized.Parameters(name = "{0}")
     public static Collection guestHomeAzureEnvironment() {
         return Arrays.asList(new Object[][]{
-                {"AZURE_CHINA_CLOUD", GuestHomeAzureEnvironment.AZURE_CHINA_CLOUD.toString()},
-                {"AZURE_US_GOV", GuestHomeAzureEnvironment.AZURE_US_GOVERNMENT.toString()},
+                {"AZURE_US_GOV", GuestHomeAzureEnvironment.AZURE_US_GOVERNMENT},
+                {"AZURE_CHINA_CLOUD", GuestHomeAzureEnvironment.AZURE_CHINA_CLOUD},
         });
     }
 
@@ -83,7 +91,7 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
                     PromptHandlerParameters.builder()
                     .prompt(PromptParameter.SELECT_ACCOUNT)
                     .loginHint(userName)
-                    .staySignedInPageExpected(true)
+                    .staySignedInPageExpected(GlobalConstants.IS_STAY_SIGN_IN_PAGE_EXPECTED)
                     .broker(mBroker)
                     .build();
             final AadPromptHandler promptHandler = new AadPromptHandler(promptHandlerParameters);
@@ -102,16 +110,17 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
         final MsalSdk msalSdk = new MsalSdk();
         // Acquire token interactively
         final MsalAuthResult acquireTokenResult = msalSdk.acquireTokenInteractive(acquireTokenAuthParams, interactionHandler, TokenRequestTimeout.SHORT);
+
         Assert.assertFalse("Verify accessToken is not empty", TextUtils.isEmpty(acquireTokenResult.getAccessToken()));
 
-        // change the time on the device
+        // change the time on the device (without resetting to automatic time zone)
         TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
 
         // Acquire token silently
         MsalAuthResult acquireTokenSilentResult = msalSdk.acquireTokenSilent(acquireTokenAuthParams, TokenRequestTimeout.SHORT);
-        Assert.assertFalse("Verify accessToken is not empty", TextUtils.isEmpty(acquireTokenSilentResult.getAccessToken()));
+        Assert.assertFalse("AccessToken is empty", TextUtils.isEmpty(acquireTokenSilentResult.getAccessToken()));
 
-        Assert.assertNotEquals("Silent request gets new access token", acquireTokenSilentResult.getAccessToken(), acquireTokenResult.getAccessToken());
+        Assert.assertNotEquals("Silent request does not return a new access token", acquireTokenSilentResult.getAccessToken(), acquireTokenResult.getAccessToken());
 
         final JSONObject profileObject = getProfileObjectFromMSGraph(acquireTokenSilentResult.getAccessToken());
         Assert.assertEquals(userName, profileObject.get("mail"));
@@ -121,7 +130,7 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
     public LabQuery getLabQuery() {
         return LabQuery.builder()
                 .userType(UserType.GUEST)
-                .guestHomeAzureEnvironment(GuestHomeAzureEnvironment.valueOf(mGuestHomeAzureEnvironment))
+                .guestHomeAzureEnvironment(mGuestHomeAzureEnvironment)
                 .guestHomedIn(GuestHomedIn.HOST_AZURE_AD)
                 .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
                 .build();

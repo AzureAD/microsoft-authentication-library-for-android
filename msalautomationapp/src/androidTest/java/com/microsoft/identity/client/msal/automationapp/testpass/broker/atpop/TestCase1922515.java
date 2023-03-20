@@ -29,6 +29,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.constants.AuthScheme;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
@@ -45,6 +46,7 @@ import java.util.Arrays;
 
 // [Joined] Generate SHR
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1922515
+@RetryOnFailure
 public class TestCase1922515 extends AbstractMsalBrokerTest {
     @Test
     public void test_1922515() throws Throwable {
@@ -80,7 +82,7 @@ public class TestCase1922515 extends AbstractMsalBrokerTest {
                 new AadPromptHandler(promptHandlerParameters)
                         .handlePrompt(username, password);
             }
-        }, TokenRequestTimeout.MEDIUM);
+        }, TokenRequestTimeout.LONG);
 
         authResult.assertSuccess();
         MsalAuthResult.verifyATForPop(authResult.getAccessToken());

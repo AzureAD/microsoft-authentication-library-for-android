@@ -23,6 +23,33 @@
 
 package com.microsoft.identity.client;
 
+import static com.microsoft.identity.client.PublicClientApplicationConfigurationFactory.initializeConfiguration;
+import static com.microsoft.identity.client.exception.MsalClientException.SAPCA_USE_WITH_MULTI_POLICY_B2C;
+import static com.microsoft.identity.client.exception.MsalClientException.UNKNOWN_ERROR;
+import static com.microsoft.identity.client.internal.CommandParametersAdapter.createGenerateShrCommandParameters;
+import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
+import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArg;
+import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArgument;
+import static com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter.msalExceptionFromBaseException;
+import static com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudience.isHomeTenantAlias;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST;
+import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST_ASYNC;
+import static com.microsoft.identity.common.java.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
+import static com.microsoft.identity.common.java.exception.ClientException.TOKEN_SHARING_DESERIALIZATION_ERROR;
+import static com.microsoft.identity.common.java.exception.ClientException.TOKEN_SHARING_MSA_PERSISTENCE_ERROR;
+import static com.microsoft.identity.common.java.exception.ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_CODE;
+import static com.microsoft.identity.common.java.exception.ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_MESSAGE;
+import static com.microsoft.identity.common.java.exception.ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ON_SHARED_DEVICE_ERROR_CODE;
+import static com.microsoft.identity.common.java.exception.ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ON_SHARED_DEVICE_ERROR_MESSAGE;
+import static com.microsoft.identity.common.java.exception.ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_CODE;
+import static com.microsoft.identity.common.java.exception.ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_MESSAGE;
+import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_CODE;
+import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_MESSAGE;
+import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_CODE;
+import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_MESSAGE;
+import static com.microsoft.identity.common.java.providers.microsoft.MicrosoftIdToken.TENANT_ID;
+import static com.microsoft.identity.common.java.util.StringUtil.isUuid;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -86,6 +113,7 @@ import com.microsoft.identity.common.java.exception.BaseException;
 import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.exception.ErrorStrings;
 import com.microsoft.identity.common.java.exception.ServiceException;
+import com.microsoft.identity.common.java.opentelemetry.OtelContextExtension;
 import com.microsoft.identity.common.java.providers.microsoft.MicrosoftAccount;
 import com.microsoft.identity.common.java.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
@@ -108,33 +136,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import static com.microsoft.identity.client.PublicClientApplicationConfigurationFactory.initializeConfiguration;
-import static com.microsoft.identity.client.exception.MsalClientException.SAPCA_USE_WITH_MULTI_POLICY_B2C;
-import static com.microsoft.identity.client.exception.MsalClientException.UNKNOWN_ERROR;
-import static com.microsoft.identity.client.internal.CommandParametersAdapter.createGenerateShrCommandParameters;
-import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
-import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArg;
-import static com.microsoft.identity.client.internal.MsalUtils.validateNonNullArgument;
-import static com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter.msalExceptionFromBaseException;
-import static com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudience.isHomeTenantAlias;
-import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST;
-import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST_ASYNC;
-import static com.microsoft.identity.common.java.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
-import static com.microsoft.identity.common.java.exception.ClientException.TOKEN_SHARING_DESERIALIZATION_ERROR;
-import static com.microsoft.identity.common.java.exception.ClientException.TOKEN_SHARING_MSA_PERSISTENCE_ERROR;
-import static com.microsoft.identity.common.java.exception.ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_CODE;
-import static com.microsoft.identity.common.java.exception.ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_MESSAGE;
-import static com.microsoft.identity.common.java.exception.ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ON_SHARED_DEVICE_ERROR_CODE;
-import static com.microsoft.identity.common.java.exception.ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_ON_SHARED_DEVICE_ERROR_MESSAGE;
-import static com.microsoft.identity.common.java.exception.ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_CODE;
-import static com.microsoft.identity.common.java.exception.ErrorStrings.MULTIPLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_MESSAGE;
-import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_CODE;
-import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_ACCOUNT_MODE_ERROR_MESSAGE;
-import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_CODE;
-import static com.microsoft.identity.common.java.exception.ErrorStrings.SINGLE_ACCOUNT_PCA_INIT_FAIL_UNKNOWN_REASON_ERROR_MESSAGE;
-import static com.microsoft.identity.common.java.providers.microsoft.MicrosoftIdToken.TENANT_ID;
-import static com.microsoft.identity.common.java.util.StringUtil.isUuid;
 
 /**
  * <p>
@@ -1384,8 +1385,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     /**
-     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of TokenParameter subclasses as the
-     *              parameters for the API. Use {@link PublicClientApplication#acquireToken(AcquireTokenParameters)} instead.
+     * @deprecated This method is now deprecated. The library is moving towards standardizing the use of TokenParameter subclasses as the
+     * parameters for the API. Use {@link PublicClientApplication#acquireToken(AcquireTokenParameters)} instead.
      */
     @Override
     @Deprecated
@@ -1519,7 +1520,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         // In order to support use of named tenants (such as contoso.onmicrosoft.com), we need
         // to be able to query OpenId Provider Configuration Metadata - for this reason, we will
         // build-up the acquireTokenOperationParams on a background thread.
-        sBackgroundExecutor.submit(new Runnable() {
+        sBackgroundExecutor.submit(OtelContextExtension.wrap(new Runnable() {
             @Override
             public void run() {
                 final CommandCallback localAuthenticationCallback =
@@ -1569,7 +1570,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     });
                 }
             }
-        });
+        }));
     }
 
     protected AcquireTokenSilentParameters buildAcquireTokenSilentParameters(@NonNull final String[] scopes,
@@ -1603,7 +1604,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     void acquireTokenSilentAsyncInternal(
             @NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters,
             @NonNull final String publicApiId) {
-        sBackgroundExecutor.submit(new Runnable() {
+        sBackgroundExecutor.submit(OtelContextExtension.wrap(new Runnable() {
             @Override
             public void run() {
                 final CommandCallback callback = getCommandCallback(
@@ -1654,7 +1655,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     });
                 }
             }
-        });
+        }));
     }
 
 
@@ -1860,8 +1861,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     /**
-     * @deprecated  This method is now deprecated. The library is moving away from using an array for scopes.
-     *              Use {@link PublicClientApplication#acquireTokenWithDeviceCode(List, DeviceCodeFlowCallback)} instead.
+     * @deprecated This method is now deprecated. The library is moving away from using an array for scopes.
+     * Use {@link PublicClientApplication#acquireTokenWithDeviceCode(List, DeviceCodeFlowCallback)} instead.
      */
     @Deprecated
     public void acquireTokenWithDeviceCode(@NonNull String[] scopes, @NonNull final DeviceCodeFlowCallback callback) {

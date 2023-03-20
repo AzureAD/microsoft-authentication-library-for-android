@@ -1,0 +1,73 @@
+parameters:
+  - name: automationAppApkPath
+    type: string
+  - name: automationAppTestApkPath
+    type: string
+  - name: testTargetPackages
+    type: string
+  - name: apiLevelTarget
+    type: string
+  - name: resultsHistoryName
+    type: string
+  - name: otherFiles
+    type: string
+  - name: resultsDir
+    type: string
+  - name: firebaseTimeout
+    type: string
+    default: 45m
+  - name: firebaseDeviceId
+    type: string
+  - name: firebaseDeviceAndroidVersion
+    type: number
+  - name: testRunTitle
+    type: string
+
+jobs:
+  - job: 'run_on_firebase'
+    displayName: Running Test Suite on Firebase
+    timeoutInMinutes: 90
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+      - checkout: none
+      - task: DownloadSecureFile@1
+        displayName: 'Download Firebase Service Account Key File'
+        name: gcServiceAccountKey
+        inputs:
+          secureFile: AndroidFirebaseServiceAccountKey.json
+          retryCount: 5
+      - download: current
+      - script: gcloud version
+        displayName: 'Check gcloud version'
+      - task: Bash@3
+        displayName: Run UI Automation on Firebase
+        inputs:
+          targetType: inline
+          script: |
+            gcloud auth activate-service-account --key-file "$(gcServiceAccountKey.secureFilePath)"
+            gcloud config set project "$(gCloudProjectId)"
+            gcloud firebase test android models list
+            gcloud firebase test android run \
+              --type instrumentation \
+              --app "${{ parameters.automationAppApkPath }}" \
+              --test "${{ parameters.automationAppTestApkPath }}" \
+              --device "model=${{ parameters.firebaseDeviceId }},version=${{ parameters.firebaseDeviceAndroidVersion }}" \
+              --timeout "${{ parameters.firebaseTimeout }}" \
+              --other-files ${{ parameters.otherFiles }} \
+              --results-dir "${{ parameters.resultsDir }}" \
+              --directories-to-pull "/sdcard" \
+              --use-orchestrator \
+              --environment-variables "clearPackageData=true" \
+              --results-history-name "${{ parameters.resultsHistoryName }}" \
+              --test-targets "${{ parameters.testTargetPackages }}, ${{ parameters.apiLevelTarget }}"
+      - script: gsutil cp "gs://test-lab-ffz6x9pu2y62a-is0rq7a7rwdhi/${{ parameters.resultsDir }}/${{ parameters.firebaseDeviceId }}-${{ parameters.firebaseDeviceAndroidVersion }}-en-portrait/test_result_1.xml" "$(Build.SourcesDirectory)"
+        displayName: Download Test Result File
+        condition: succeededOrFailed()
+      - task: PublishTestResults@2
+        displayName: Publish Test Results to ADO
+        condition: succeededOrFailed()
+        inputs:
+          testResultsFiles: '*test_result*.xml'
+          searchFolder: $(Build.SourcesDirectory)
+          testRunTitle: '${{ parameters.testRunTitle }}'

@@ -27,7 +27,6 @@ import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
-import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.e2e.shadows.ShadowMockAuthority;
 import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
@@ -40,11 +39,11 @@ import com.microsoft.identity.common.java.eststelemetry.EstsTelemetry;
 import com.microsoft.identity.common.java.eststelemetry.SchemaConstants;
 import com.microsoft.identity.common.java.net.HttpClient;
 import com.microsoft.identity.common.java.net.HttpResponse;
-import com.microsoft.identity.internal.testutils.HttpRequestInterceptor;
-import com.microsoft.identity.internal.testutils.HttpRequestMatcher;
+import com.microsoft.identity.http.HttpRequestInterceptor;
+import com.microsoft.identity.http.HttpRequestMatcher;
 import com.microsoft.identity.internal.testutils.TestConstants;
 import com.microsoft.identity.internal.testutils.mocks.MockServerResponse;
-import com.microsoft.identity.internal.testutils.shadows.ShadowHttpClient;
+import com.microsoft.identity.shadow.ShadowHttpClient;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -153,8 +152,8 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         flushScheduler();
 
         // assert telem
-        String expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|,,,,,";
-        String expectedLast = "2|0|||1";
+        String expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|2,,,,,,,,,,,,";
+        String expectedLast = "2|0|||2,1";
         assertTelemetry(expectedCurrent, expectedLast);
 
         CommandDispatcherHelper.clear();
@@ -197,8 +196,8 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         flushScheduler();
 
         // assert telem
-        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + ",1|1,1,1,1,0,1";
-        expectedLast = "2|2|||1";
+        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + ",1|2,,,,,,,1,1,1,1,0,1";
+        expectedLast = "2|2|||2,1";
         assertTelemetry(expectedCurrent, expectedLast);
 
         CommandDispatcherHelper.clear();
@@ -219,9 +218,9 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         flushScheduler();
 
         // assert telem
-        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + ",1|1,1,1,1,0,1";
+        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + ",1|2,,,,,,,1,1,1,1,0,1";
         expectedLast = "2|0|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + "," +
-                sCorrelationIdList.get(networkRequestIndex - 1) + "|invalid_grant|1";
+                sCorrelationIdList.get(networkRequestIndex - 1) + "|invalid_grant|2,1";
         assertTelemetry(expectedCurrent, expectedLast);
 
         CommandDispatcherHelper.clear();
@@ -242,9 +241,9 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         flushScheduler();
 
         // assert telem
-        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|,,,,,";
+        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|2,,,,,,,,,,,,";
         expectedLast = "2|0|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + "," +
-                sCorrelationIdList.get(networkRequestIndex - 1) + "|invalid_scope|1";
+                sCorrelationIdList.get(networkRequestIndex - 1) + "|invalid_scope|2,1";
         assertTelemetry(expectedCurrent, expectedLast);
 
         CommandDispatcherHelper.clear();
@@ -258,11 +257,11 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         flushScheduler();
 
         // assert telem
-        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|,,,,,";
+        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|2,,,,,,,,,,,,";
         expectedLast = "2|0|" +
                 PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + "," + sCorrelationIdList.get(networkRequestIndex - 2) +
                 "," + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + "," + sCorrelationIdList.get(networkRequestIndex - 1) +
-                "|invalid_scope,service_unavailable|1";
+                "|invalid_scope,service_unavailable|2,1";
         assertTelemetry(expectedCurrent, expectedLast);
 
         CommandDispatcherHelper.clear();
@@ -284,8 +283,8 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
         flushScheduler();
 
         // assert telem
-        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + ",1|1,1,1,1,0,1";
-        expectedLast = "2|0|||1";
+        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_SILENT_ASYNC_WITH_PARAMETERS + ",1|2,,,,,,,1,1,1,1,0,1";
+        expectedLast = "2|0|||2,1";
         assertTelemetry(expectedCurrent, expectedLast);
 
         CommandDispatcherHelper.clear();
@@ -349,8 +348,8 @@ public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
 
         // all data should now be sent
         // assert telem
-        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|,,,,,";
-        expectedLast = "2|0|||1";
+        expectedCurrent = "2|" + PublicApiId.MULTIPLE_ACCOUNT_PCA_ACQUIRE_TOKEN_WITH_PARAMETERS + ",0|2,,,,,,,,,,,,";
+        expectedLast = "2|0|||2,1";
         assertTelemetry(expectedCurrent, expectedLast);
 
     }

@@ -4,6 +4,7 @@ plugins {
     id 'pmd'
     id 'checkstyle'
     id 'maven-publish'
+    id 'kotlin-android'
 }
 
 apply from: 'versioning/version_tasks.gradle'
@@ -44,8 +45,6 @@ android {
 //        }
 //    }
 
-    /*
-    //Commenting out until the next major version of common/msal/etc...
     compileOptions {
         // Flag to enable support for the new language APIs
         coreLibraryDesugaringEnabled true
@@ -53,7 +52,7 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    */
+
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
@@ -125,7 +124,7 @@ android {
     sourceSets {
         main {
             manifest.srcFile 'src/main/AndroidManifest.xml'
-            java.srcDirs = ['src/main/java']
+            java.srcDirs = ['src/main/java', 'src/main/kotlin']
         }
     }
 
@@ -179,11 +178,11 @@ task sourcesJar(type: Jar) {
     destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
 }
 
+// In dev, we want to keep the dependencies(common4j, broker4j, common) to 0.0.+ to be able to be consumed by daily dev pipeline.
+// In release/*, we change these to specific versions being consumed.
 String commonVersion = project.hasProperty("distCommonVersion") ? project.distCommonVersion : "0.0.+"
 
 dependencies {
-    testImplementation project(path: ':common4j')
-
     //Please leave this in... desugaring is currently disabled by default; however it's required for running some tests
     coreLibraryDesugaring libs.coreLibraryDesugaring
 
@@ -195,11 +194,16 @@ dependencies {
     implementation (libs.nimbusJoseJwt) {
         exclude module: 'asm'
     }
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
+    androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
+
     implementation libs.httpclient
     implementation libs.constraintLayout
 
     compileOnly libs.lombok
     annotationProcessor libs.lombok
+    compileOnly 'com.github.spotbugs:spotbugs-annotations:4.3.0'
 
     // test dependencies
     testImplementation libs.junit
@@ -208,7 +212,11 @@ dependencies {
     testImplementation libs.mockitoInline
     testImplementation libs.robolectric
     testImplementation libs.androidxTestCore
-    testImplementation project(':testutils')
+    testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"
+    testLocalImplementation project(':testutils')
+    testDistImplementation("com.microsoft.identity:testutils:0.0+") {
+        exclude group: 'com.microsoft.identity', module: 'LabApiUtilities'
+    }
     // instrumentation test dependencies
     androidTestImplementation libs.androidxJUnit
     // Set this dependency to use JUnit 4 rules
@@ -225,6 +233,12 @@ dependencies {
         transitive = true
     }
 
+    testLocalImplementation(testFixtures(project(":common4j")))
+    String common4jVersion = project.hasProperty("distCommon4jVersion") ? project.distCommon4jVersion : "0.0.+"
+    testDistImplementation(testFixtures("com.microsoft.identity:common4j:${common4jVersion}"))
+
+    implementation platform("io.opentelemetry:opentelemetry-bom:1.18.0")
+    implementation('io.opentelemetry:opentelemetry-api:1.18.0')
 }
 
 def configDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')

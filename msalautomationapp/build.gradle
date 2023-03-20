@@ -1,6 +1,6 @@
 apply plugin: 'com.android.application'
 
-def msalVersion = "3.+"
+def msalVersion = "4.+"
 
 if (project.hasProperty("distMsalVersion")) {
     msalVersion = distMsalVersion
@@ -134,11 +134,6 @@ android {
         }
 
         if (flavorName.contains("dist") && flavorName.contains("BrokerHost")) {
-            // Gradle ignores any variants that satisfy the conditions above.
-            setIgnore(true)
-        }
-
-        if (flavorName.contains("local") && flavorName.contains("AutoBroker")) {
             // Gradle ignores any variants that satisfy the conditions above.
             setIgnore(true)
         }
