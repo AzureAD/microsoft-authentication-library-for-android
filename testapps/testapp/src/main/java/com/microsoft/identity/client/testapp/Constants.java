@@ -29,6 +29,8 @@ package com.microsoft.identity.client.testapp;
 public class Constants {
 
     enum ConfigFile {
+        ZURICH,
+
         DEFAULT,
         BROWSER,
         WEBVIEW,
@@ -48,6 +50,8 @@ public class Constants {
 
     public static int getResourceIdFromConfigFile(ConfigFile configFile) {
         switch (configFile) {
+            case ZURICH:
+                return R.raw.msal_config_zurich;
             case BROWSER:
                 return R.raw.msal_config_browser;
 
