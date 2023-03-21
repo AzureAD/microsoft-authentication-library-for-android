@@ -6,8 +6,8 @@
   "account_mode": "MULTIPLE",
   "authorities" : [
     {
-      "type": "AAD",
-      "authority_url": "https://login.microsoftonline.com/msidlabciam1.onmicrosoft.com/",
+      "type": "CIAM",
+      "authority_url": "https://login.windows.net/msidlabciam1.onmicrosoft.com",
       "default": true
     }
   ]

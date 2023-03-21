@@ -33,6 +33,7 @@ import com.microsoft.identity.common.java.authorities.UnknownAuthority;
 import com.microsoft.identity.internal.testutils.TestConstants;
 import com.microsoft.identity.internal.testutils.authorities.AADTestAuthority;
 import com.microsoft.identity.internal.testutils.authorities.B2CTestAuthority;
+import com.microsoft.identity.internal.testutils.authorities.CIAMTestAuthority;
 import com.microsoft.identity.internal.testutils.authorities.MockAuthority;
 import com.microsoft.identity.internal.testutils.authorities.MockDelayedResponseAuthority;
 
@@ -56,6 +57,8 @@ public class ShadowAuthority {
     private static final String B2C_PATH_SEGMENT = "tfp";
     private static final String B2C_PATH_SEGMENT_ALT = "te";
     private static final String AAD_MOCK_DELAYED_PATH_SEGMENT = "mock_with_delays";
+    private static final String CIAM_PATH_SEGMENT = "msidlabciam1.onmicrosoft.com";
+    private static final String CIAM_LAB_TENANT = "d57fb3d4-4b5a-4144-9328-9c1f7d58179d";
 
     /**
      * Returns an Authority based on an authority url.  This method works in similar way to the actual
@@ -104,6 +107,11 @@ public class ShadowAuthority {
             case B2C_PATH_SEGMENT_ALT:
                 //Return new B2C TEST Authority
                 authority = new B2CTestAuthority(authorityUrl);
+                break;
+            case CIAM_PATH_SEGMENT:
+            case CIAM_LAB_TENANT:
+                //Return new CIAM Test Authority
+                authority = new CIAMTestAuthority(authorityUrl);
                 break;
             default:
                 // return new AAD Test Authority

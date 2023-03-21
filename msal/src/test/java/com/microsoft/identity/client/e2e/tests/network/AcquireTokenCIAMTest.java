@@ -46,7 +46,7 @@ public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
 
     @Override
     public String getAuthority() {
-        return AcquireTokenTestHelper.getAccount().getAuthority();
+        return "https://login.microsoftonline.com/d57fb3d4-4b5a-4144-9328-9c1f7d58179d/";
     }
 
     public static class CiamFederationProvider extends AcquireTokenCIAMTest {
