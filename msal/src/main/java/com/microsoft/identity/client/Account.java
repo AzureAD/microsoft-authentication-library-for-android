@@ -26,6 +26,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.common.java.authorities.CIAMAuthority;
 import com.microsoft.identity.common.java.util.SchemaUtil;
 import com.microsoft.identity.common.java.providers.microsoft.MicrosoftIdToken;
 import com.microsoft.identity.common.java.providers.oauth2.IDToken;
@@ -172,6 +173,11 @@ public class Account implements IAccount {
     @Override
     @NonNull
     public String getAuthority() {
+        // If the environment shows CIAM, we should return an authority of format https://tenant.ciamlogin.com/tenant.onmicrosoft.com
+        if (getEnvironment().contains("ciamlogin.com")) {
+            // Call static method in CIAMAuthority to create the full authority uri
+            return CIAMAuthority.getFullAuthorityUrlFromAuthorityWithoutPath(getEnvironment());
+        }
         // TODO: The below logic only works for the case of AAD. We need to refactor this once we
         //  make a proper fix for B2C
         if (null != getClaims()) {

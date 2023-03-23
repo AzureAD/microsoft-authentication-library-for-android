@@ -29,6 +29,7 @@ import androidx.annotation.NonNull;
 import com.microsoft.identity.common.java.authorities.AccountsInOneOrganization;
 import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudience;
+import com.microsoft.identity.common.java.authorities.CIAMAuthority;
 import com.microsoft.identity.common.java.authorities.UnknownAuthority;
 import com.microsoft.identity.internal.testutils.TestConstants;
 import com.microsoft.identity.internal.testutils.authorities.AADTestAuthority;
@@ -82,6 +83,10 @@ public class ShadowAuthority {
         final List<String> pathSegments = authorityUri.getPathSegments();
 
         if (pathSegments.size() == 0) {
+            if (authorityUrl.contains("ciamlogin.com")){
+                // This is a CIAM authority, return CIAMTestAuthority
+                return new CIAMTestAuthority(CIAMAuthority.getFullAuthorityUrlFromAuthorityWithoutPath(authorityUrl));
+            }
             return new UnknownAuthority();
         }
 
