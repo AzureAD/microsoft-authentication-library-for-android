@@ -186,38 +186,38 @@ dependencies {
     //Please leave this in... desugaring is currently disabled by default; however it's required for running some tests
     coreLibraryDesugaring libs.coreLibraryDesugaring
 
-    def mockito_version = 'latest.release'
+    compileOnly libs.lombok
+    compileOnly libs.spotbugsAnnotations
 
+    annotationProcessor libs.lombok
+
+    implementation libs.kotlinStdlib
     implementation libs.appcompat
     implementation libs.browser
     implementation libs.gson
+    implementation libs.httpclient
+    implementation libs.constraintLayout
+    implementation platform(libs.opentelemetryBom)
+    implementation libs.opentelemetryApi
     implementation (libs.nimbusJoseJwt) {
         exclude module: 'asm'
     }
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
-    testImplementation "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
-    androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
-
-    implementation libs.httpclient
-    implementation libs.constraintLayout
-
-    compileOnly libs.lombok
-    annotationProcessor libs.lombok
-    compileOnly 'com.github.spotbugs:spotbugs-annotations:4.3.0'
 
     // test dependencies
+    testImplementation libs.kotlinStdlib
     testImplementation libs.junit
     //mockito-inline was introduced in mockito 2.7.6
     //see: https://javadoc.io/static/org.mockito/mockito-core/3.6.28/org/mockito/Mockito.html#0.1
     testImplementation libs.mockitoInline
     testImplementation libs.robolectric
     testImplementation libs.androidxTestCore
-    testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"
     testLocalImplementation project(':testutils')
     testDistImplementation("com.microsoft.identity:testutils:0.0+") {
         exclude group: 'com.microsoft.identity', module: 'LabApiUtilities'
     }
+
     // instrumentation test dependencies
+    androidTestImplementation libs.kotlinStdlib
     androidTestImplementation libs.androidxJUnit
     // Set this dependency to use JUnit 4 rules
     androidTestImplementation libs.androidxTestRules
@@ -236,9 +236,6 @@ dependencies {
     testLocalImplementation(testFixtures(project(":common4j")))
     String common4jVersion = project.hasProperty("distCommon4jVersion") ? project.distCommon4jVersion : "0.0.+"
     testDistImplementation(testFixtures("com.microsoft.identity:common4j:${common4jVersion}"))
-
-    implementation platform("io.opentelemetry:opentelemetry-bom:1.18.0")
-    implementation('io.opentelemetry:opentelemetry-api:1.18.0')
 }
 
 def configDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')
