@@ -207,13 +207,12 @@ public class CommandParametersAdapter {
                 .platformComponents(AndroidPlatformComponents.createFromContext(configuration.getAppContext()))
                 .applicationName(configuration.getAppContext().getPackageName())
                 .applicationVersion(getPackageVersion(configuration.getAppContext()))
-                .clientId("be742297-5370-4852-8cd0-6cbf49754e48")
-                .brkClientId("1fec8e78-bce4-4aaf-ab1b-5451cc387264")
-                .isSharedDevice(configuration.getIsSharedDevice())
                 .oAuth2TokenCache(tokenCache)
-//                .redirectUri(configuration.getRedirectUri())
-                .redirectUri("brk-multihub://localhost:3000")
-                .brkRedirectUri("msauth://com.microsoft.skype.teams.dev/VCpKgbYCXucoq1mZ4BZPsh5taNE%3D")
+                .isSharedDevice(configuration.getIsSharedDevice())
+                .clientId("be742297-5370-4852-8cd0-6cbf49754e48") // child app's clientId
+                .brkClientId("1fec8e78-bce4-4aaf-ab1b-5451cc387264") // host app's clientId
+                .redirectUri("brk-multihub://localhost:3000") // child app's redirectUri
+                .brkRedirectUri("msauth://com.microsoft.skype.teams.dev/VCpKgbYCXucoq1mZ4BZPsh5taNE%3D") // host app's redirectUri
                 .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
                 .sdkType(SdkType.MSAL)
                 .sdkVersion(PublicClientApplication.getSdkVersion())
