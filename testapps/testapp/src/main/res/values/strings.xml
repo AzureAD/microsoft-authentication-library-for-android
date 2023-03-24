@@ -31,7 +31,7 @@
     <string name="prompt_behavior_text">Prompt</string>
     <string name="data_profile_text">Data Profile</string>
     <string name="scope_text">Scope</string>
-    <string name="scope_default_text">https://substrate.office.com/profile//User.Read</string>
+    <string name="scope_default_text">user.read</string>
     <string name="extra_scope_text">Extra Scopes</string>
     <string name="scope_text_hint">Type in scopes delimited by space</string>
     <string name="enable_pii_text">Enable PII</string>
