@@ -66,8 +66,8 @@ ext {
     tokenShare = "1.6.5"
     intuneAppSdkVersion = "8.6.3"
     javaAssistVersion = "3.27.0-GA"
-    yubikitAndroidVersion = "2.1.0"
-    yubikitPivVersion = "2.1.0"
+    yubikitAndroidVersion = "2.2.0"
+    yubikitPivVersion = "2.2.0"
     powerliftAndroidVersion="1.0.0"
 
     // microsoft-diagnostics-uploader app versions
