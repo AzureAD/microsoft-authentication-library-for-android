@@ -174,7 +174,7 @@ public class Account implements IAccount {
     @NonNull
     public String getAuthority() {
         // If the environment shows CIAM, we should return an authority of format https://tenant.ciamlogin.com/tenant.onmicrosoft.com
-        if (getEnvironment().contains("ciamlogin.com")) {
+        if (getEnvironment() != null && getEnvironment().contains("ciamlogin.com")) {
             // Call static method in CIAMAuthority to create the full authority uri
             return CIAMAuthority.getFullAuthorityUrlFromAuthorityWithoutPath(getEnvironment());
         }
