@@ -268,9 +268,9 @@ public final class PublicClientApplicationTest {
             );
             Assert.assertTrue(app instanceof IMultipleAccountPublicClientApplication);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            Assert.fail(e.getMessage());
         } catch (MsalException e) {
-            e.printStackTrace();
+            Assert.fail(e.getMessage());
         }
     }
 

@@ -83,7 +83,7 @@ public class ShadowAuthority {
         final List<String> pathSegments = authorityUri.getPathSegments();
 
         if (pathSegments.size() == 0) {
-            if (authorityUrl.contains("ciamlogin.com")){
+            if (authorityUrl.contains(CIAMAuthority.CIAM_LOGIN_URL_SEGMENT)){
                 // This is a CIAM authority, return CIAMTestAuthority
                 return new CIAMTestAuthority(CIAMAuthority.getFullAuthorityUrlFromAuthorityWithoutPath(authorityUrl));
             }
