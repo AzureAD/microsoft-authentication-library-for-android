@@ -92,6 +92,7 @@ import com.microsoft.identity.common.internal.net.cache.HttpCache;
 import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryB2CAuthority;
+import com.microsoft.identity.common.java.authorities.CIAMAuthority;
 import com.microsoft.identity.common.java.cache.ICacheRecord;
 import com.microsoft.identity.common.java.cache.IMultiTypeNameValueStorage;
 import com.microsoft.identity.common.java.cache.IShareSingleSignOnState;
@@ -1685,8 +1686,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         final String requestAuthority = tokenParameters.getAuthority();
         final Authority authority = Authority.getAuthorityFromAuthorityUrl(requestAuthority);
 
-        if (authority instanceof AzureActiveDirectoryB2CAuthority) {
-            // use home account - b2c is not compatible with broker, so no need to construct
+        if (authority instanceof AzureActiveDirectoryB2CAuthority || authority instanceof CIAMAuthority) {
+            // use home account - b2c and CIAM are not compatible with broker, so no need to construct
             // the account used in the request...
             return AccountAdapter.getAccountInternal(
                     mPublicClientConfiguration.getClientId(),
