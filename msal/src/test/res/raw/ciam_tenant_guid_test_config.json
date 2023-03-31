@@ -1,0 +1,11 @@
+{
+  "client_id" : "b8e9d222-c4ee-414c-ac29-b0eff1f32400",
+  "authorization_user_agent" : "DEFAULT",
+  "redirect_uri" : "msauth://com.microsoft.identity.client.sample.local/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D",
+  "authorities" : [
+    {
+      "type": "CIAM",
+      "authority_url": "https://msidlabciam1.ciamlogin.com/d57fb3d4-4b5a-4144-9328-9c1f7d58179d"
+    }
+  ]
+}
