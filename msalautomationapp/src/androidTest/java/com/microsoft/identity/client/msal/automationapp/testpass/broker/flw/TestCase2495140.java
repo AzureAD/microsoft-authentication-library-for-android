@@ -22,8 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.flw;
 
-import android.util.Log;
-
 import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
@@ -61,6 +59,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 // End My Shift - In Shared device mode, global sign out should wait/cancel existing silent requests
 // and clean all data.
@@ -73,7 +72,7 @@ public class TestCase2495140 extends AbstractMsalBrokerTest {
     public void test_2495140() throws MsalException, InterruptedException, LabApiException {
         final String username1 = mLabAccount.getUsername();
         final String password1 = mLabAccount.getPassword();
-        Logger.i(TAG, "=====Performing Shared Device Registration.");
+        Logger.i(TAG, "Performing Shared Device Registration.");
         mBroker.performSharedDeviceRegistration(username1, password1);
         mApplication = PublicClientApplication.create(mContext, getConfigFileResourceId());
 
@@ -89,7 +88,7 @@ public class TestCase2495140 extends AbstractMsalBrokerTest {
         // There should not be a signed in account at this time
         ICurrentAccountResult currentAccountResult = singleAccountPCA.getCurrentAccount();
         Assert.assertNull("There is already a signed in account...", currentAccountResult.getCurrentAccount());
-        Logger.i(TAG, "=== Fetching another user from same tenant from lab account");
+        Logger.i(TAG, "Fetching another user from same tenant from lab account");
         final LabQuery labQuery = LabQuery.builder()
                 .userType(UserType.CLOUD)
                 .build();
@@ -102,7 +101,7 @@ public class TestCase2495140 extends AbstractMsalBrokerTest {
         Assert.assertNotEquals(username1, username2);
 
         final TokenRequestLatch latch = new TokenRequestLatch(1);
-        Logger.i(TAG, "=== try sign in with an account from the same tenant");
+        Logger.i(TAG, "Try sign in with an account from the same tenant");
         final SignInParameters signInParameters = SignInParameters.builder()
                 .withActivity(mActivity)
                 .withLoginHint(username2)
@@ -125,17 +124,17 @@ public class TestCase2495140 extends AbstractMsalBrokerTest {
 
         latch.await(TokenRequestTimeout.LONG);
 
-        Logger.i(TAG, "=== Launching azure sample app and confirming user signed in or not.");
+        Logger.i(TAG, "Launching azure sample app and confirming user signed in or not.");
         final AzureSampleApp azureSampleApp = new AzureSampleApp();
         azureSampleApp.launch();
         azureSampleApp.confirmSignedIn(username2);
-        Log.i(TAG, "Azure sample verified signed in account.");
+        Logger.i(TAG, "Azure sample verified signed in account.");
         final TokenRequestLatch silentTokenLatch = new TokenRequestLatch(1);
 
         final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
                 .forAccount(getAccount())
                 .fromAuthority(getAuthority())
-                .withScopes(Arrays.asList(new String[]{"User.read"}))
+                .withScopes(Collections.singletonList("User.read"))
                 .forceRefresh(false)
                 .withCallback(new SilentAuthenticationCallback() {
                     @Override
@@ -151,13 +150,18 @@ public class TestCase2495140 extends AbstractMsalBrokerTest {
                     }
                 })
                 .build();
+        // Advance time by a day to force the silent request to do network call
         TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
-        Log.i(TAG, "Performing a silent request from automation app.");
+        Logger.i(TAG, "Performing a silent request from automation app.");
         mApplication.acquireTokenSilentAsync(silentParameters);
+
+        // wait for sometime for the network requests to start from silent call.
+        // This is to ensure that silent call reads the data from cache and makes network call
+        // before its cleaned up by signout operation
         ThreadUtils.sleepSafely(600, TAG, "Sleep failed");
 
         final TokenRequestLatch signOutLatch = new TokenRequestLatch(1);
-        Log.i(TAG, "Triggering sign out from the application");
+        Logger.i(TAG, "Triggering sign out from the application");
         ((SingleAccountPublicClientApplication) mApplication).signOut(new ISingleAccountPublicClientApplication.SignOutCallback() {
             @Override
             public void onSignOut() {
@@ -173,7 +177,7 @@ public class TestCase2495140 extends AbstractMsalBrokerTest {
         signOutLatch.await(TokenRequestTimeout.LONG);
         silentTokenLatch.await(TokenRequestTimeout.LONG);
 
-        Log.i(TAG, "Confirming account is signed out in Azure.");
+        Logger.i(TAG, "Confirming account is signed out in Azure.");
         azureSampleApp.launch();
         azureSampleApp.confirmSignedIn("None");
     }
