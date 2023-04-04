@@ -32,6 +32,7 @@ import com.microsoft.identity.client.ui.automation.IBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
+import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.rules.RulesHelper;
@@ -88,6 +89,9 @@ public abstract class AbstractMsalBrokerUpdateTest extends AbstractMsalUiTest im
                 if (BuildConfig.FLAVOR_main.equals("dist") && supportedBrokerClasses.contains(BrokerCompanyPortal.class)) {
                     return new BrokerCompanyPortal(BrokerCompanyPortal.OLD_COMPANY_PORTAL_APK,
                             BrokerCompanyPortal.COMPANY_PORTAL_APK);
+                } else if (supportedBrokerClasses.contains(BrokerLTW.class)) {
+                    return new BrokerLTW(BrokerLTW.OLD_BROKER_LTW_APK,
+                            BrokerLTW.BROKER_LTW_APK);
                 } else {
                     return new BrokerMicrosoftAuthenticator(BrokerMicrosoftAuthenticator.OLD_AUTHENTICATOR_APK,
                             BrokerMicrosoftAuthenticator.AUTHENTICATOR_APK);

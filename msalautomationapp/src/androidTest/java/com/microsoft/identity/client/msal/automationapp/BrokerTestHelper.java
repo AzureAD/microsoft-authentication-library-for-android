@@ -28,6 +28,7 @@ import com.microsoft.identity.client.msal.automationapp.BuildConfig;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
+import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 
@@ -51,6 +52,8 @@ public class BrokerTestHelper {
                         Arrays.asList(supportedBrokersAnnotation.brokers());
                 if (supportedBrokerClasses.contains(BrokerCompanyPortal.class)) {
                     return new BrokerCompanyPortal();
+                } else if (supportedBrokerClasses.contains(BrokerLTW.class)) {
+                    return new BrokerLTW();
                 } else {
                     return new BrokerMicrosoftAuthenticator();
                 }
