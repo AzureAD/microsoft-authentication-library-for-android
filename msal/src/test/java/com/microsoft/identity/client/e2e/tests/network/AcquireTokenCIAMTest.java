@@ -22,7 +22,9 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.network;
 
-import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_CIAM_CONFIG_FILE_PATH;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.CIAM_NO_PATH_CONFIG_FILE_PATH;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.CIAM_TENANT_DOMAIN_CONFIG_FILE_PATH;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.CIAM_TENANT_GUID_CONFIG_FILE_PATH;
 import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.SUBSTRATE_USER_READ_SCOPE;
 
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
@@ -35,11 +37,6 @@ import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
 
     @Override
-    public String getConfigFilePath() {
-        return MULTIPLE_ACCOUNT_MODE_CIAM_CONFIG_FILE_PATH;
-    }
-
-    @Override
     public String[] getScopes() {
         return SUBSTRATE_USER_READ_SCOPE;
     }
@@ -49,12 +46,31 @@ public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
         return AcquireTokenTestHelper.getAccount().getAuthority();
     }
 
-    public static class CiamFederationProvider extends AcquireTokenCIAMTest {
+    @Override
+    public LabUserQuery getLabUserQuery() {
+        final LabUserQuery query = new LabUserQuery();
+        query.federationProvider = LabConstants.FederationProvider.CIAM;
+        return query;
+    }
+
+    public static class CiamTenantGUID extends AcquireTokenCIAMTest {
         @Override
-        public LabUserQuery getLabUserQuery() {
-            final LabUserQuery query = new LabUserQuery();
-            query.federationProvider = LabConstants.FederationProvider.CIAM;
-            return query;
+        public String getConfigFilePath() {
+            return CIAM_TENANT_GUID_CONFIG_FILE_PATH;
+        }
+    }
+
+    public static class CiamTenantDomain extends AcquireTokenCIAMTest {
+        @Override
+        public String getConfigFilePath() {
+            return CIAM_TENANT_DOMAIN_CONFIG_FILE_PATH;
+        }
+    }
+
+    public static class CiamTenantNoPath extends AcquireTokenCIAMTest {
+        @Override
+        public String getConfigFilePath() {
+            return CIAM_NO_PATH_CONFIG_FILE_PATH;
         }
     }
 }
