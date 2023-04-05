@@ -119,13 +119,13 @@ public class TestCase2495140 extends AbstractMsalBrokerTest {
                 .expectingBrokerAccountChooserActivity(false)
                 .build();
 
-        AadPromptHandler aadPromptHandler = new AadPromptHandler(promptHandlerParameters);
+        final AadPromptHandler aadPromptHandler = new AadPromptHandler(promptHandlerParameters);
         aadPromptHandler.handlePrompt(username2, password2);
 
         latch.await(TokenRequestTimeout.LONG);
 
         // uninstall the Azure Sample app to ensure clean state
-        AzureSampleApp azureSampleApp = new AzureSampleApp();
+        final AzureSampleApp azureSampleApp = new AzureSampleApp();
         azureSampleApp.uninstall();
         Logger.i(TAG, "Launching azure sample app and confirming user signed in or not.");
 
