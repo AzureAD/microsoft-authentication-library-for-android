@@ -43,6 +43,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.microsoft.identity.client.HttpMethod;
@@ -298,7 +299,9 @@ public class AcquireTokenFragment extends Fragment {
         mGetUsers.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mOnFragmentInteractionListener.onGetUsers();
+                mOnFragmentInteractionListener.onGetUsers(
+                        Constants.getResourceIdFromConfigFile(getCurrentRequestOptions().getConfigFile())
+                );
             }
         });
 
@@ -349,7 +352,6 @@ public class AcquireTokenFragment extends Fragment {
             }
         });
 
-        loadMsalApplicationFromRequestParameters(getCurrentRequestOptions());
         return view;
     }
 
@@ -397,7 +399,7 @@ public class AcquireTokenFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        loadAccounts();
+        loadMsalApplicationFromRequestParameters(getCurrentRequestOptions());
     }
 
     private void loadAccounts() {
@@ -564,6 +566,6 @@ public class AcquireTokenFragment extends Fragment {
 
         void onGetStringResult(String valueToDisplay);
 
-        void onGetUsers();
+        void onGetUsers(int configFileResourceId);
     }
 }
