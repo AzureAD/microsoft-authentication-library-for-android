@@ -124,8 +124,12 @@ public class TestCase2495140 extends AbstractMsalBrokerTest {
 
         latch.await(TokenRequestTimeout.LONG);
 
+        // uninstall the Azure Sample app to ensure clean state
+        AzureSampleApp azureSampleApp = new AzureSampleApp();
+        azureSampleApp.uninstall();
         Logger.i(TAG, "Launching azure sample app and confirming user signed in or not.");
-        final AzureSampleApp azureSampleApp = new AzureSampleApp();
+
+        // install and launch the Azure Sample app
         azureSampleApp.install();
         azureSampleApp.launch();
         azureSampleApp.confirmSignedIn(username2);
