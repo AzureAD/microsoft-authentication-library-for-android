@@ -3,7 +3,7 @@ V.Next
 ----------
 - [MINOR] Support CIAM Authority Type (#1783)
 - [MINOR] Bumping YubiKit Versions to 2.2.0 (#1784)
-- [MINOR] Changes to support MSA accounts in Broker #2003 (#1793)
+- [MINOR] Changes to support MSA accounts in Broker (#1793)
 
 Version 4.3.1
 ----------
