@@ -42,6 +42,8 @@ import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.java.controllers.BaseController;
 import com.microsoft.identity.common.internal.controllers.BrokerMsalController;
 import com.microsoft.identity.common.internal.controllers.LocalMSALController;
+import com.microsoft.identity.common.java.flighting.CommonFlight;
+import com.microsoft.identity.common.java.flighting.CommonFlightManager;
 import com.microsoft.identity.common.logging.Logger;
 
 import java.util.ArrayList;
@@ -132,6 +134,17 @@ public class MSALControllerFactory {
             Logger.verbose( methodTag, logBrokerEligibleFalse +
                     "App does not ask for Broker or the authority is not AAD authority.");
             return false;
+        }
+
+        if (!CommonFlightManager.isFlightEnabled(CommonFlight.SUPPORT_MSA_ACCOUNTS_IN_BROKER)) {
+            //Do not use broker when the audience is MSA only (personal accounts / consumers tenant alias)
+            AzureActiveDirectoryAuthority azureActiveDirectoryAuthority = (AzureActiveDirectoryAuthority) authority;
+
+            if (azureActiveDirectoryAuthority.getAudience() instanceof AnyPersonalAccount) {
+                Logger.verbose(methodTag, logBrokerEligibleFalse +
+                        "The audience is MSA only.");
+                return false;
+            }
         }
 
         // Check if broker installed
