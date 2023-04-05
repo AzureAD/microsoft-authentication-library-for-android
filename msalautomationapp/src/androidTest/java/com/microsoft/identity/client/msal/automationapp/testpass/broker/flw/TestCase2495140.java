@@ -126,6 +126,7 @@ public class TestCase2495140 extends AbstractMsalBrokerTest {
 
         Logger.i(TAG, "Launching azure sample app and confirming user signed in or not.");
         final AzureSampleApp azureSampleApp = new AzureSampleApp();
+        azureSampleApp.install();
         azureSampleApp.launch();
         azureSampleApp.confirmSignedIn(username2);
         Logger.i(TAG, "Azure sample verified signed in account.");
