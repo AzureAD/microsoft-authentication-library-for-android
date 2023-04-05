@@ -134,15 +134,6 @@ public class MSALControllerFactory {
             return false;
         }
 
-        //Do not use broker when the audience is MSA only (personal accounts / consumers tenant alias)
-        AzureActiveDirectoryAuthority azureActiveDirectoryAuthority = (AzureActiveDirectoryAuthority) authority;
-
-        if (azureActiveDirectoryAuthority.getAudience() instanceof AnyPersonalAccount) {
-            Logger.verbose(methodTag, logBrokerEligibleFalse +
-                    "The audience is MSA only.");
-            return false;
-        }
-
         // Check if broker installed
         if (!brokerInstalled(applicationContext)) {
             Logger.verbose(methodTag, logBrokerEligibleFalse +
