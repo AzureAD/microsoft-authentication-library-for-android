@@ -1,5 +1,5 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
-Version 4.4.0-RC1
+Version 4.4.0
 ----------
 - [MINOR] Support CIAM Authority Type (#1783)
 - [MINOR] Bumping YubiKit Versions to 2.2.0 (#1784)
