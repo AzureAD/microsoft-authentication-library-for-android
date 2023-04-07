@@ -22,6 +22,8 @@
 //   THE SOFTWARE.
 package com.microsoft.identity.client.testapp;
 
+import static com.microsoft.identity.client.testapp.R.id.enablePII;
+
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -43,7 +45,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.microsoft.identity.client.HttpMethod;
@@ -57,8 +58,6 @@ import com.microsoft.identity.common.java.opentelemetry.OTelUtility;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.microsoft.identity.client.testapp.R.id.enablePII;
 
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
