@@ -43,6 +43,8 @@ jobs:
     submodules: recursive
     persistCredentials: True
   - template: azure-pipelines/templates/steps/automation-cert.yml@common
+    parameters:
+      envVstsMvnAt: ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN
   - task: JavaToolInstaller@0
     displayName: Use Java 8
     inputs:
