@@ -22,34 +22,29 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.internal.controllers;
 
+import static com.microsoft.identity.common.java.AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
+
 import android.accounts.AccountManager;
 import android.accounts.AuthenticatorDescription;
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.content.Context;
 import android.os.Build;
 import android.os.PowerManager;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.exception.MsalClientException;
-import com.microsoft.identity.common.java.authorities.AnyPersonalAccount;
-import com.microsoft.identity.common.java.authorities.Authority;
-import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
-import com.microsoft.identity.common.java.controllers.BaseController;
 import com.microsoft.identity.common.internal.controllers.BrokerMsalController;
 import com.microsoft.identity.common.internal.controllers.LocalMSALController;
-import com.microsoft.identity.common.java.flighting.CommonFlight;
-import com.microsoft.identity.common.java.flighting.CommonFlightManager;
+import com.microsoft.identity.common.java.authorities.Authority;
+import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthority;
+import com.microsoft.identity.common.java.controllers.BaseController;
 import com.microsoft.identity.common.logging.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.microsoft.identity.common.java.AuthenticationConstants.Broker.BROKER_ACCOUNT_TYPE;
 
 /**
  * Responsible for returning the correct controller depending on the type of request (Silent, Interactive), authority
@@ -131,7 +126,7 @@ public class MSALControllerFactory {
 
         //If app has not asked for Broker or if the authority is not AAD return false
         if (!applicationConfiguration.getUseBroker() || !(authority instanceof AzureActiveDirectoryAuthority)) {
-            Logger.verbose( methodTag, logBrokerEligibleFalse +
+            Logger.verbose(methodTag, logBrokerEligibleFalse +
                     "App does not ask for Broker or the authority is not AAD authority.");
             return false;
         }
