@@ -1837,10 +1837,14 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     public void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback, @Nullable ClaimsRequest claimsRequest, @Nullable UUID correlationId) {
         DeviceCodeFlowParameters.Builder builder = new DeviceCodeFlowParameters.Builder();
+
+        if (null != correlationId) {
+            builder.withCorrelationId(correlationId);
+        }
+
         DeviceCodeFlowParameters deviceCodeFlowParameters =
                 builder.withScopes(scopes)
                         .withClaims(claimsRequest)
-                        .withCorrelationId(correlationId)
                         .build();
 
         final DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter

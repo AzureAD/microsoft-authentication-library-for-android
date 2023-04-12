@@ -214,6 +214,80 @@ public class DeviceCodeFlowWithClaimsApiTest extends PublicClientApplicationAbst
         RoboTestUtils.flushScheduler();
     }
 
+    @Test
+    @Config(shadows = {ShadowDeviceCodeFlowCommandSuccessful.class})
+    public void testDeviceCodeFlowSuccessWithList_WithNullClaims() {
+        List<String> scope = new ArrayList<>();
+        scope.add("user.read");
+        mApplication.acquireTokenWithDeviceCode(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
+            @Override
+            public void onUserCodeReceived(@NonNull String vUri,
+                                           @NonNull String userCode,
+                                           @NonNull String message,
+                                           @NonNull Date sessionExpirationDate) {
+                // Assert that the protocol returns the userCode and others after successful authorization
+                Assert.assertFalse(StringUtil.isNullOrEmpty(vUri));
+                Assert.assertFalse(StringUtil.isNullOrEmpty(userCode));
+                Assert.assertFalse(StringUtil.isNullOrEmpty(message));
+                Assert.assertNotNull(sessionExpirationDate);
+
+                Assert.assertFalse(mUserCodeReceived);
+                mUserCodeReceived = true;
+            }
+
+            @Override
+            public void onTokenReceived(@NonNull IAuthenticationResult authResult) {
+                Assert.assertTrue(mUserCodeReceived);
+                Assert.assertNotNull(authResult);
+            }
+
+            @Override
+            public void onError(@NonNull MsalException exception) {
+                // This shouldn't run
+                throw new AssertionError(exception);
+            }
+        }, null, mCorrelationId);
+
+        RoboTestUtils.flushScheduler();
+    }
+
+    @Test
+    @Config(shadows = {ShadowDeviceCodeFlowCommandSuccessful.class})
+    public void testDeviceCodeFlowSuccessWithList_withNullCorrelationId() {
+        List<String> scope = new ArrayList<>();
+        scope.add("user.read");
+        mApplication.acquireTokenWithDeviceCode(scope, new IPublicClientApplication.DeviceCodeFlowCallback() {
+            @Override
+            public void onUserCodeReceived(@NonNull String vUri,
+                                           @NonNull String userCode,
+                                           @NonNull String message,
+                                           @NonNull Date sessionExpirationDate) {
+                // Assert that the protocol returns the userCode and others after successful authorization
+                Assert.assertFalse(StringUtil.isNullOrEmpty(vUri));
+                Assert.assertFalse(StringUtil.isNullOrEmpty(userCode));
+                Assert.assertFalse(StringUtil.isNullOrEmpty(message));
+                Assert.assertNotNull(sessionExpirationDate);
+
+                Assert.assertFalse(mUserCodeReceived);
+                mUserCodeReceived = true;
+            }
+
+            @Override
+            public void onTokenReceived(@NonNull IAuthenticationResult authResult) {
+                Assert.assertTrue(mUserCodeReceived);
+                Assert.assertNotNull(authResult);
+            }
+
+            @Override
+            public void onError(@NonNull MsalException exception) {
+                // This shouldn't run
+                throw new AssertionError(exception);
+            }
+        }, mClaimsRequest, null);
+
+        RoboTestUtils.flushScheduler();
+    }
+
     // With 2 PCA objects initalized with different clouds, make sure that each clouds are
     // returning the correct URI from each endpoints.
     // https://portal.microsofticm.com/imp/v3/incidents/details/325344544/home
