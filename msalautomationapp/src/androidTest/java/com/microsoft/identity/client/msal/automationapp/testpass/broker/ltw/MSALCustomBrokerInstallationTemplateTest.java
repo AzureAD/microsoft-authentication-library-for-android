@@ -24,6 +24,8 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalCustomBrokerInstallationTest;
+import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
+import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
@@ -35,13 +37,14 @@ import org.junit.Test;
  */
 public class MSALCustomBrokerInstallationTemplateTest extends AbstractMsalCustomBrokerInstallationTest {
 
+    // Install Old Authenticator
+    private BrokerMicrosoftAuthenticator mAuthenticator = installOldAuthenticator();
+
+    // Install updated Brokerhost
+    private BrokerHost mBrokerHost = installBrokerHost();
+
     @Test
     public void test_template() {
-        // Install Old Authenticator
-        installOldAuthenticator();
-        // Install updated brokerhost
-        installBrokerHost();
-
         // Test something
 
         // Update authenticator
