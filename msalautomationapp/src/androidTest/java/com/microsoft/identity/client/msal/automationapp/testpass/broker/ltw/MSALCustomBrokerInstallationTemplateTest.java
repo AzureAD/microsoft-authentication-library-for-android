@@ -30,11 +30,13 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Use this class as a template for writing tests with complex broker installation steps
  */
+@Ignore("We don't want to actually run this test on pipeline, as this is only meant to be used as reference")
 public class MSALCustomBrokerInstallationTemplateTest extends AbstractMsalCustomBrokerInstallationTest {
 
     // Install Old Authenticator
