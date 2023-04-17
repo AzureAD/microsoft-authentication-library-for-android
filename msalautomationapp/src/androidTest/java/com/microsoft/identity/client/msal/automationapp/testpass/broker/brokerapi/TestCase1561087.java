@@ -44,38 +44,41 @@ public class TestCase1561087 extends AbstractMsalBrokerTest {
     @Test
     public void test_1561087() {
         // Set flights and get to check if the flight information is returned
-        final String flightsJson =  "{\"SetFlightsTest\":\"true\"}";
+        final String flightKey = "SetFlightsTest";
+        final String flightValue = "true";
+        final String flightsJson = "{\""+flightKey+"\":\""+flightValue+"\"}";
         mBroker.overwriteFlights(flightsJson);
-        checkIfBrokerContainsFlight(flightsJson);
+        checkIfBrokerContainsFlight(flightKey, flightValue);
 
         // Add flights and get to check if the flight information is returned
-        final String anotherFlightJson = "{\"AnotherFlight\":\"hello\"}";
-        mBroker.setFlights(anotherFlightJson);
-        checkIfBrokerContainsFlight(anotherFlightJson);
-        checkIfBrokerContainsFlight(flightsJson);
+        final String anotherFlightKey = "AnotherFlight";
+        final String anotherFlightValue = "hello";
+        mBroker.setFlights(anotherFlightKey, anotherFlightValue);
+        checkIfBrokerContainsFlight(anotherFlightKey, anotherFlightValue);
+        checkIfBrokerContainsFlight(flightKey, flightValue);
 
         // Override flights and get to check if the flight information is returned
-        final String flightToOverwrite = "{\"SetFlightsTest\":\"false\"}";
-        mBroker.setFlights(flightToOverwrite);
-        checkIfBrokerContainsFlight(anotherFlightJson);
-        checkIfBrokerContainsFlight(flightToOverwrite);
+        final String flightToOverwriteKey = "SetFlightsTest";
+        final String flightToOverwriteValue = "false";
+        mBroker.setFlights(flightToOverwriteKey, flightToOverwriteValue);
+        checkIfBrokerContainsFlight(anotherFlightKey, anotherFlightValue);
+        checkIfBrokerContainsFlight(flightToOverwriteKey, flightToOverwriteValue);
 
         // Add flight with null value. SetFlightsTest should be removed.
-        final String flightMapWithNullValue = "{\"SetFlightsTest\": null}";
-        mBroker.setFlights(flightMapWithNullValue);
-        checkIfBrokerContainsFlight(anotherFlightJson);
+        final String flightMapWithEmptyValueKey = "SetFlightsTest";
+        final String flightMapWithEmptyValueValue = "";
+        mBroker.setFlights(flightMapWithEmptyValueKey, flightMapWithEmptyValueValue);
+        checkIfBrokerContainsFlight(anotherFlightKey, anotherFlightValue);
         Assert.assertFalse(mBroker.getFlights().contains("SetFlightsTest"));
 
         // Add an empty flight map. the flight map should not change.
-        final String emptyFlightMap = "{}";
         final String oldFlights = mBroker.getFlights();
-        mBroker.setFlights(emptyFlightMap);
+        mBroker.setFlights("", "");
         Assert.assertEquals(oldFlights, mBroker.getFlights());
 
         // clear flights and get to check if the flights are cleared.
         // Looks like some defaults flights are added even after flights are cleared, so we can check that the flights we added have been deleted.
-        final String clearFlightsJson = "{}";
-        mBroker.overwriteFlights(clearFlightsJson);
+        mBroker.overwriteFlights("{}");
         Assert.assertFalse(mBroker.getFlights().contains("AnotherFlight"));
     }
 
@@ -107,12 +110,14 @@ public class TestCase1561087 extends AbstractMsalBrokerTest {
     }
 
     /**
-     * Check if the Broker contain the parameter flight by removing brackets from the parameter and using String.contains()
+     * Check if the Broker contain the fligth key and value
      *
-     * @param flightToCheck flight to be checked against flight set from BrokerHost
+     * @param flightKey   flight key to be checked against flight set from BrokerHost
+     * @param flightValue flight value to be checked against flight set from BrokerHost
      */
-    private void checkIfBrokerContainsFlight(@NonNull final String flightToCheck) {
-        final String withoutBrackets = flightToCheck.replace("{", "").replace("}", "");
-        Assert.assertTrue(mBroker.getFlights().contains(withoutBrackets));
+    private void checkIfBrokerContainsFlight(@NonNull final String flightKey, @NonNull final String flightValue) {
+        final String flights = mBroker.getFlights();
+        Assert.assertTrue(flights.contains(flightKey));
+        Assert.assertTrue(flights.contains(flightValue));
     }
 }
