@@ -1,7 +1,20 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
-V.Next
+Version 4.4.0
 ----------
+- [PATCH] Update common @11.0.0
+- [MINOR] Support CIAM Authority Type (#1783)
+- [MINOR] Bumping YubiKit Versions to 2.2.0 (#1784)
+
+Version 4.3.1
+----------
+- [PATCH] Version 4.3.0 was built with RC versions, just need to bump version to 4.3.1
+- [MINOR] Add preferred browser support (#1761)
 - [MINOR] Adding sub error codes to MsalUiRequiredException (#1758)
+- [MINOR] Wrap Runnable with Current Telemetry Context (#1747)
+
+Version 4.2.0
+----------
+- [PATCH] Update common @10.0.0
 
 Version 4.1.3
 ----------

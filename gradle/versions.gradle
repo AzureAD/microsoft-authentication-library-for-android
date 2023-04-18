@@ -1,22 +1,26 @@
 // Variables for entire project
+// Taken from android-complete.
 ext {
     // SDK
     minSdkVersion = 16
+    brokerProjectMinSdkVersion = 24
     automationAppMinSDKVersion = 21
     targetSdkVersion = 30
     compileSdkVersion = 30
     buildToolsVersion = "28.0.3"
 
     // Plugins
-    gradleVersion = '4.1.0'
-    androidMavenGradlePluginVersion = "1.4.1"
-    
+    gradleVersion = '4.2.2'
+    kotlinVersion = '1.7.21'
+    spotBugsGradlePluginVersion = '4.7.1'
+    jupiterApiVersion = '5.6.0'
+
     //Java Language Support
     coreLibraryDesugaringVersion = "1.0.9"
 
     // Libraries
     androidxTestRunnerVersion = "1.4.0"
-    androidxTestOrchestratorVersion = "1.4.0"
+    androidxTestOrchestratorVersion = "1.4.1"
     androidxTestMonitorVersion = "1.4.0"
     androidxTestCoreVersion = "1.4.0"
     androidxJunitVersion = "1.1.3"
@@ -36,15 +40,40 @@ ext {
     mockitoAndroidVersion = "3.6.28"
     multidexVersion = "2.0.1"
     nimbusVersion = "9.9"
-    powerMockVersion = "1.6.6"
+    powerMockVersion = "2.0.9"
     runnerVersion = "1.2.0"
-    rulesVersion = "1.4.0"
-    robolectricVersion = "4.3.1"
+    rulesVersion = "1.2.0"
+    robolectricVersion = "4.5.1"
     uiAutomatorVersion = "2.2.0"
-    mseberaApacheHttpClientVersion = "4.5.8"
+    flatBuffersJavaVersion = "1.12.0"
+    daggerVersion = "2.31.2"
+    daggerCompilerVersion = "2.31.2"
     msal4jVersion = "1.10.0"
-    yubikitAndroidVersion = "2.1.0"
-    yubikitPivVersion = "2.1.0"
+    mseberaApacheHttpClientVersion = "4.5.8"
+    moshiVersion = "1.12.0"
+    moshiAdaptersVersion = "1.12.0"
+    openpojoVersion = "0.9.1"
+    equalsVerifierVersion = "3.6.1"
+    jsonGeneratorVersion = "0.4.3"
+    jsonSchemaFriendVersion = "0.9.1"
+    jsonVersion = "20200518"
+    junitJupiterEngineVersion = "5.7.2"
+    junitVintageEngineVersion = "5.7.2"
+    dbusJavaVersion = "3.3.0"
+    dbusJavaUtilsVersion = "3.3.0"
+    bouncyCastleVersion = "1.67"
+    oshiCoreVersion = "5.7.5"
+    tokenShare = "1.6.5"
+    intuneAppSdkVersion = "8.6.3"
+    javaAssistVersion = "3.27.0-GA"
+    yubikitAndroidVersion = "2.2.0"
+    yubikitPivVersion = "2.2.0"
+    powerliftAndroidVersion="1.0.0"
+
+    // microsoft-diagnostics-uploader app versions
+    powerliftVersion = "0.14.7"
+    cliktVersion = "3.4.2"
+    okhttp3Version = "4.9.3"
 
     // TODO: adal automation test app.
     supportLibraryVersion = "27.1.+"

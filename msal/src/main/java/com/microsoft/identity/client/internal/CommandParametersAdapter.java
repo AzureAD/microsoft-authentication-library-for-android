@@ -17,7 +17,7 @@ import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
-import com.microsoft.identity.common.AndroidPlatformComponents;
+import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory;
 import com.microsoft.identity.common.internal.commands.parameters.AndroidActivityInteractiveTokenCommandParameters;
 import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthority;
@@ -57,7 +57,7 @@ public class CommandParametersAdapter {
             @NonNull final OAuth2TokenCache tokenCache) {
 
         final CommandParameters commandParameters = CommandParameters.builder()
-                .platformComponents(AndroidPlatformComponents.createFromContext(configuration.getAppContext()))
+                .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
                 .applicationName(configuration.getAppContext().getPackageName())
                 .applicationVersion(getPackageVersion(configuration.getAppContext()))
                 .clientId(configuration.getClientId())
@@ -79,7 +79,7 @@ public class CommandParametersAdapter {
             @NonNull final AccountRecord account) {
 
         final RemoveAccountCommandParameters commandParameters = RemoveAccountCommandParameters.builder()
-                .platformComponents(AndroidPlatformComponents.createFromContext(configuration.getAppContext()))
+                .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
                 .applicationName(configuration.getAppContext().getPackageName())
                 .applicationVersion(getPackageVersion(configuration.getAppContext()))
                 .clientId(configuration.getClientId())
@@ -103,7 +103,7 @@ public class CommandParametersAdapter {
             @NonNull final AcquireTokenParameters parameters) throws ClientException {
 
         final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
-                AndroidPlatformComponents.createFromContext(parameters.getActivity()),
+                AndroidPlatformComponentsFactory.createFromContext(parameters.getActivity()),
                 parameters.getAuthenticationScheme()
         );
 
@@ -119,7 +119,7 @@ public class CommandParametersAdapter {
         final InteractiveTokenCommandParameters commandParameters = AndroidActivityInteractiveTokenCommandParameters
                 .builder()
                 .activity(parameters.getActivity())
-                .platformComponents(AndroidPlatformComponents.createFromActivity(
+                .platformComponents(AndroidPlatformComponentsFactory.createFromActivity(
                         parameters.getActivity(),
                         parameters.getFragment()))
                 .applicationName(configuration.getAppContext().getPackageName())
@@ -131,6 +131,7 @@ public class CommandParametersAdapter {
                 .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
                 .sdkType(SdkType.MSAL)
                 .sdkVersion(PublicClientApplication.getSdkVersion())
+                .preferredBrowser(configuration.getPreferredBrowser())
                 .browserSafeList(configuration.getBrowserSafeList())
                 .authority(authority)
                 .claimsRequestJson(claimsRequestJson)
@@ -174,13 +175,13 @@ public class CommandParametersAdapter {
         final boolean forceRefresh = claimsRequest != null || parameters.getForceRefresh();
 
         final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
-                AndroidPlatformComponents.createFromContext(configuration.getAppContext()),
+                AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
                 parameters.getAuthenticationScheme()
         );
 
         final SilentTokenCommandParameters commandParameters = SilentTokenCommandParameters
                 .builder()
-                .platformComponents(AndroidPlatformComponents.createFromContext(configuration.getAppContext()))
+                .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
                 .applicationName(configuration.getAppContext().getPackageName())
                 .applicationVersion(getPackageVersion(configuration.getAppContext()))
                 .clientId(configuration.getClientId())
@@ -248,7 +249,7 @@ public class CommandParametersAdapter {
         final AbstractAuthenticationScheme authenticationScheme = new BearerAuthenticationSchemeInternal();
 
         final DeviceCodeFlowCommandParameters commandParameters = DeviceCodeFlowCommandParameters.builder()
-                .platformComponents(AndroidPlatformComponents.createFromContext(configuration.getAppContext()))
+                .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
                 .applicationName(configuration.getAppContext().getPackageName())
                 .applicationVersion(getPackageVersion(configuration.getAppContext()))
                 .clientId(configuration.getClientId())
@@ -463,7 +464,7 @@ public class CommandParametersAdapter {
             @NonNull final PoPAuthenticationScheme popParameters) {
         final Context context = clientConfig.getAppContext();
         return GenerateShrCommandParameters.builder()
-                .platformComponents(AndroidPlatformComponents.createFromContext(context))
+                .platformComponents(AndroidPlatformComponentsFactory.createFromContext(context))
                 .applicationName(context.getPackageName())
                 .applicationVersion(getPackageVersion(context))
                 .clientId(clientConfig.getClientId())

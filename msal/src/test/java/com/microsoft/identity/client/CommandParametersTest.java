@@ -32,7 +32,7 @@ import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.claims.RequestedClaim;
 import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
 import com.microsoft.identity.client.internal.CommandParametersAdapter;
-import com.microsoft.identity.common.AndroidPlatformComponents;
+import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory;
 import com.microsoft.identity.common.java.cache.IAccountCredentialAdapter;
 import com.microsoft.identity.common.java.cache.IAccountCredentialCache;
 import com.microsoft.identity.common.java.cache.MsalOAuth2TokenCache;
@@ -329,7 +329,7 @@ public class CommandParametersTest {
          */
         @SuppressWarnings("unchecked")
         public TestOAuth2TokenCache(Context context, IAccountCredentialCache accountCredentialCache, IAccountCredentialAdapter accountCredentialAdapter) {
-            super(AndroidPlatformComponents.createFromContext(context), accountCredentialCache, accountCredentialAdapter);
+            super(AndroidPlatformComponentsFactory.createFromContext(context), accountCredentialCache, accountCredentialAdapter);
         }
     }
 

@@ -4,6 +4,7 @@ plugins {
     id 'pmd'
     id 'checkstyle'
     id 'maven-publish'
+    id 'kotlin-android'
 }
 
 apply from: 'versioning/version_tasks.gradle'
@@ -44,8 +45,6 @@ android {
 //        }
 //    }
 
-    /*
-    //Commenting out until the next major version of common/msal/etc...
     compileOptions {
         // Flag to enable support for the new language APIs
         coreLibraryDesugaringEnabled true
@@ -53,7 +52,7 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    */
+
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
@@ -125,7 +124,7 @@ android {
     sourceSets {
         main {
             manifest.srcFile 'src/main/AndroidManifest.xml'
-            java.srcDirs = ['src/main/java']
+            java.srcDirs = ['src/main/java', 'src/main/kotlin']
         }
     }
 
@@ -189,6 +188,10 @@ dependencies {
 
     def mockito_version = 'latest.release'
 
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
+    androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
+
     implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
     implementation "androidx.browser:browser:$rootProject.ext.browserVersion"
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
@@ -234,6 +237,8 @@ dependencies {
     String common4jVersion = project.hasProperty("distCommon4jVersion") ? project.distCommon4jVersion : "0.0.+"
     testDistImplementation(testFixtures("com.microsoft.identity:common4j:${common4jVersion}"))
 
+    implementation platform("io.opentelemetry:opentelemetry-bom:1.18.0")
+    implementation('io.opentelemetry:opentelemetry-api:1.18.0')
 }
 
 def configDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')

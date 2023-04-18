@@ -22,6 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.testapp;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 
@@ -56,7 +57,10 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
+import com.microsoft.identity.client.opentelemetry.exporter.AriaMetricExporter;
+import com.microsoft.identity.client.opentelemetry.exporter.AriaSpanExporter;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
+import com.microsoft.identity.common.java.util.StringUtil;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
@@ -68,6 +72,12 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
+
+import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
+import io.opentelemetry.sdk.trace.samplers.Sampler;
 
 /**
  * The app's main activity.
@@ -156,6 +166,35 @@ public class MainActivity extends AppCompatActivity
             // auto select the first item
             onNavigationItemSelected(navigationView.getMenu().getItem(0));
         }
+
+        if (!StringUtil.isNullOrEmpty(BuildConfig.otelAriaToken)) {
+            initOpenTelemetry(getApplicationContext());
+        }
+    }
+
+    /**
+     * Initializes Open Telemetry by configuring the {@link io.opentelemetry.sdk.trace.export.SpanExporter}
+     * to be used for the {@link OpenTelemetrySdk}.
+     *
+     * @param applicationContext the application context
+     */
+    private static synchronized void initOpenTelemetry(@lombok.NonNull final Context applicationContext) {
+        final Resource resource = Resource.getDefault();
+
+        final AriaSpanExporter ariaSpanExporter = new AriaSpanExporter(
+                applicationContext, BuildConfig.otelAriaToken, null
+        );
+
+        final SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
+                .addSpanProcessor(BatchSpanProcessor.builder(ariaSpanExporter).build())
+                .setResource(resource)
+                // No Sampling for our test app
+                // because the data is all going into test db
+                .build();
+
+        OpenTelemetrySdk.builder()
+                .setTracerProvider(sdkTracerProvider)
+                .buildAndRegisterGlobal();
     }
 
     private Fragment getCurrentFragment(){
