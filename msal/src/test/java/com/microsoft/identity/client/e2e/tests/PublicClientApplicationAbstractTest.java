@@ -35,7 +35,7 @@ import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.common.AndroidPlatformComponents;
+import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper;
 import com.microsoft.identity.common.java.interfaces.IPlatformComponents;
 
@@ -59,7 +59,7 @@ public abstract class PublicClientApplicationAbstractTest implements IPublicClie
     @Before
     public void setup() {
         mContext = ApplicationProvider.getApplicationContext();
-        mComponents = AndroidPlatformComponents.createFromContext(mContext);
+        mComponents = AndroidPlatformComponentsFactory.createFromContext(mContext);
         mActivity = Mockito.mock(Activity.class);
         Mockito.when(mActivity.getApplicationContext()).thenReturn(mContext);
         setupPCA();

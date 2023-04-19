@@ -75,9 +75,9 @@ import com.microsoft.identity.client.internal.AsyncResult;
 import com.microsoft.identity.client.internal.CommandParametersAdapter;
 import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
 import com.microsoft.identity.client.internal.controllers.MsalExceptionAdapter;
-import com.microsoft.identity.common.AndroidPlatformComponents;
 import com.microsoft.identity.common.adal.internal.tokensharing.ITokenShareResultInternal;
 import com.microsoft.identity.common.adal.internal.tokensharing.TokenShareUtility;
+import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory;
 import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
@@ -2027,7 +2027,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     private OAuth2TokenCache<?, ?, ?> getOAuth2TokenCache() {
-        return MsalOAuth2TokenCache.create(AndroidPlatformComponents.createFromContext(mPublicClientConfiguration.getAppContext()));
+        return MsalOAuth2TokenCache.create(AndroidPlatformComponentsFactory.createFromContext(mPublicClientConfiguration.getAppContext()));
     }
 
     protected class AccountMatcher {
