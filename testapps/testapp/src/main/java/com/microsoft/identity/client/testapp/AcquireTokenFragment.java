@@ -22,6 +22,8 @@
 //   THE SOFTWARE.
 package com.microsoft.identity.client.testapp;
 
+import static com.microsoft.identity.client.testapp.R.id.enablePII;
+
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -56,8 +58,6 @@ import com.microsoft.identity.common.java.opentelemetry.OTelUtility;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.microsoft.identity.client.testapp.R.id.enablePII;
 
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
@@ -298,7 +298,9 @@ public class AcquireTokenFragment extends Fragment {
         mGetUsers.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mOnFragmentInteractionListener.onGetUsers();
+                mOnFragmentInteractionListener.onGetUsers(
+                        Constants.getResourceIdFromConfigFile(getCurrentRequestOptions().getConfigFile())
+                );
             }
         });
 
@@ -349,7 +351,6 @@ public class AcquireTokenFragment extends Fragment {
             }
         });
 
-        loadMsalApplicationFromRequestParameters(getCurrentRequestOptions());
         return view;
     }
 
@@ -397,7 +398,7 @@ public class AcquireTokenFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        loadAccounts();
+        loadMsalApplicationFromRequestParameters(getCurrentRequestOptions());
     }
 
     private void loadAccounts() {
@@ -564,6 +565,6 @@ public class AcquireTokenFragment extends Fragment {
 
         void onGetStringResult(String valueToDisplay);
 
-        void onGetUsers();
+        void onGetUsers(int configFileResourceId);
     }
 }
