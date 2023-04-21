@@ -104,7 +104,7 @@ public interface IPublicClientApplication {
      * Important: Use of this API requires setting the minimum_required_broker_protocol_version to
      * "11.0" or higher.
      */
-    void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback, @Nullable ClaimsRequest claims, @Nullable UUID correlationId);
+    void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback, @Nullable final ClaimsRequest claims, @Nullable final UUID correlationId);
 
     /**
      * Perform the Device Code Flow (DCF) protocol to allow a device without input capability to authenticate and get a new access token.
