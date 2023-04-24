@@ -55,6 +55,11 @@ public class UsersFragment extends Fragment {
 
     private ListView mUserList;
     private Gson mGson;
+    private final int mIntConfigResourceId;
+
+    public UsersFragment(final int configResourceId) {
+        mIntConfigResourceId = configResourceId;
+    }
 
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
@@ -63,7 +68,7 @@ public class UsersFragment extends Fragment {
         mUserList = view.findViewById(R.id.user_list);
 
         MsalWrapper.create(getContext(),
-                R.raw.msal_config_default,
+                mIntConfigResourceId,
                 new INotifyOperationResultCallback<MsalWrapper>() {
                     @Override
                     public void onSuccess(MsalWrapper msalWrapper) {
