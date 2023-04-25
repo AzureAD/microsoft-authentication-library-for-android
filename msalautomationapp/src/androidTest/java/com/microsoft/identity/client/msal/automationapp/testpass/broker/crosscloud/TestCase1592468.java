@@ -107,7 +107,6 @@ public class TestCase1592468 extends AbstractGuestAccountMsalBrokerUiTest {
                 .build();
 
         // Set EnableCrossCloudTokenRequests flight to true
-        mBroker.setFlights("EnableCrossCloudTokenRequests", "true");
 
         Logger.setLogger("TEST_LOGGER", (tag, logLevel, message, containsPII) -> {
             // Not expecting the BrokerJoinedAccountController to be used for the cross cloud request
