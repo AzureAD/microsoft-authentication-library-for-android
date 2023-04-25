@@ -257,8 +257,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onGetUsers() {
-        final Fragment fragment = new UsersFragment();
+    public void onGetUsers(final int configResourceId) {
+        final Fragment fragment = new UsersFragment(configResourceId);
         attachFragment(fragment);
     }
 

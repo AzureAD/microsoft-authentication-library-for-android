@@ -79,6 +79,7 @@ import com.microsoft.identity.common.adal.internal.tokensharing.ITokenShareResul
 import com.microsoft.identity.common.adal.internal.tokensharing.TokenShareUtility;
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory;
 import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager;
+import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
 import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommandCallback;
@@ -2231,4 +2232,14 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         return isAccountHomeTenant;
     }
 
+    /**
+     * Returns true if the provided package name is a valid broker app.
+     *
+     * @param context       application context.
+     * @param packageName   package name of the app to be verified.
+     **/
+    public boolean isValidBrokerPackage(@NonNull final Context context,
+                                        @NonNull final String packageName){
+        return new BrokerValidator(context).isValidBrokerPackage(packageName);
+    }
 }
