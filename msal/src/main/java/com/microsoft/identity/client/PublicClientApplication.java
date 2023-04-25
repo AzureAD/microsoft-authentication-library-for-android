@@ -2202,7 +2202,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                             mPublicClientConfiguration.getAppContext(),
                             "com.microsoft.aad.adal.cache",
                             new AndroidAuthSdkStorageEncryptionManager(
-                                    mPublicClientConfiguration.getAppContext(), null)
+                                    mPublicClientConfiguration.getAppContext())
                     );
 
             // Load the old TokenCacheItems as key/value JSON
