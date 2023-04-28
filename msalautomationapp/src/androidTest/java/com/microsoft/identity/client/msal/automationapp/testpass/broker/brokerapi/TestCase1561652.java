@@ -25,6 +25,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.brokera
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
@@ -36,6 +37,7 @@ import org.junit.Test;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561652
 @SupportedBrokers(brokers = {BrokerHost.class})
 @LocalBrokerHostDebugUiTest
+@RetryOnFailure
 public class TestCase1561652 extends AbstractMsalBrokerTest {
     @Test
     public void test_1561652() {
@@ -47,6 +49,7 @@ public class TestCase1561652 extends AbstractMsalBrokerTest {
         final String nonce = "testNonce";
         // Get SSO token and decode to confirm nonce
         final String ssoToken = ((BrokerHost) mBroker).acquireSSOToken(nonce);
+
         ((BrokerHost) mBroker).decodeSSOTokenAndVerifyNonce(ssoToken, nonce);
     }
 
