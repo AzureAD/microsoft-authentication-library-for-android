@@ -9,7 +9,7 @@ if (project.hasProperty("distMsalVersion")) {
 android {
 
     packagingOptions {
-        pickFirst  'META-INF/*'
+        pickFirst  'META-INF/common4j.kotlin_module'
     }
 
     compileOptions {
