@@ -34,6 +34,7 @@ import static com.microsoft.identity.client.internal.controllers.MsalExceptionAd
 import static com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudience.isHomeTenantAlias;
 import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST;
 import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST_ASYNC;
+import static com.microsoft.identity.common.java.exception.ClientException.NOT_VALID_BROKER_FOUND;
 import static com.microsoft.identity.common.java.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
 import static com.microsoft.identity.common.java.exception.ClientException.TOKEN_SHARING_DESERIALIZATION_ERROR;
 import static com.microsoft.identity.common.java.exception.ClientException.TOKEN_SHARING_MSA_PERSISTENCE_ERROR;
@@ -2234,6 +2235,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     /**
      * Returns true if the provided package name is a valid broker app.
+     * NOTE: Expose to Company Portal for Shared Device Mode broker validation.
      *
      * @param context       application context.
      * @param packageName   package name of the app to be verified.
@@ -2241,5 +2243,26 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     public boolean isValidBrokerPackage(@NonNull final Context context,
                                         @NonNull final String packageName){
         return new BrokerValidator(context).isValidBrokerPackage(packageName);
+    }
+
+    /**
+     * Returns active name of the broker app.
+     * NOTE: Expose to Company Portal for telemetry purpose.
+     *
+     * @param context application context.
+     * @return active broker package name. Null if active broker isn't installed.
+     **/
+    @Nullable
+    public String getActiveBrokerPackageName(@NonNull final Context context)
+            throws MsalException {
+        try {
+            return new BrokerValidator(context).getCurrentActiveBrokerPackageName();
+        } catch (final ClientException e){
+            if (NOT_VALID_BROKER_FOUND.equalsIgnoreCase(e.getErrorCode())) {
+                return null;
+            }
+
+            throw MsalExceptionAdapter.msalExceptionFromBaseException(e);
+        }
     }
 }
