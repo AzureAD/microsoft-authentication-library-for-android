@@ -2235,6 +2235,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     /**
      * Returns true if the provided package name is a valid broker app.
+     * NOTE: Expose to Company Portal for Shared Device Mode broker validation.
      *
      * @param context       application context.
      * @param packageName   package name of the app to be verified.
@@ -2246,6 +2247,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     /**
      * Returns active name of the broker app.
+     * NOTE: Expose to Company Portal for telemetry purpose.
      *
      * @param context application context.
      * @return active broker package name. Null if active broker isn't installed.
