@@ -44,7 +44,7 @@ import org.junit.rules.TestRule
 // So this should also cover TestCase831570
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/831570
 @SupportedBrokers(brokers = [BrokerHost::class])
-class TestCase2519809 : AbstractMsalMultipleWpjBrokerTest() {
+class TestCase2519809 : AbstractMsalBrokerTest() {
     private lateinit var mUsGovLabAccount: ILabAccount
 
     @get:Rule
@@ -58,7 +58,7 @@ class TestCase2519809 : AbstractMsalMultipleWpjBrokerTest() {
         val usGovUsername = mUsGovLabAccount.username
         val usGovPassword = mUsGovLabAccount.password
         val brokerHostApp = broker as BrokerHost
-
+        brokerHostApp.enableMultipleWpj()
         brokerHostApp.performDeviceRegistrationMultiple(username, password)
         brokerHostApp.performDeviceRegistrationMultiple(usGovUsername, usGovPassword)
         val deviceRegistrationRecords = brokerHostApp.allRecords

@@ -59,7 +59,7 @@ class TestCase2519833 : AbstractMsalBrokerTest() {
         val usGovUsername = mUsGovLabAccount.username
         val usGovPassword = mUsGovLabAccount.password
         val brokerHostApp = broker as BrokerHost
-
+        brokerHostApp.enableMultipleWpj()
         brokerHostApp.performDeviceRegistrationMultiple(username, password)
         brokerHostApp.performDeviceRegistrationMultiple(usGovUsername, usGovPassword)
         val deviceRegistrationRecords = brokerHostApp.allRecords

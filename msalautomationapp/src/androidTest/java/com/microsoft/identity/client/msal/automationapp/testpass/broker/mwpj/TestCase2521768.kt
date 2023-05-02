@@ -67,7 +67,7 @@ class TestCase2521768 : AbstractMsalBrokerTest() {
         val secondUsername = mSecondLabAccount.username
         val secondPassword = mSecondLabAccount.password
         val brokerHostApp = broker as BrokerHost
-
+        brokerHostApp.enableMultipleWpj()
         // Make an interactive call with MSAL using the first account
         val msalSdk = MsalSdk()
         val authTestParamsForInteractiveRequest = MsalAuthTestParams.builder()

@@ -57,11 +57,13 @@ class TestCase2519783 : AbstractMsalBrokerTest() {
         val password = mLabAccount.password
         val usGovUsername = mUsGovLabAccount.username
         val usGovPassword = mUsGovLabAccount.password
-        (broker as BrokerHost).performDeviceRegistrationMultiple(username, password)
-        (broker as BrokerHost).performDeviceRegistrationMultiple(usGovUsername, usGovPassword)
+        val brokerHostApp = broker as BrokerHost
+        brokerHostApp.enableMultipleWpj()
+        brokerHostApp.performDeviceRegistrationMultiple(username, password)
+        brokerHostApp.performDeviceRegistrationMultiple(usGovUsername, usGovPassword)
         val deviceRegistrationRecords = (broker as BrokerHost).allRecords
-        (broker as BrokerHost).installCertificateMultiple(deviceRegistrationRecords[0]["TenantId"] as String)
-        (broker as BrokerHost).installCertificateMultiple(deviceRegistrationRecords[1]["TenantId"] as String)
+        brokerHostApp.installCertificateMultiple(deviceRegistrationRecords[0]["TenantId"] as String)
+        brokerHostApp.installCertificateMultiple(deviceRegistrationRecords[1]["TenantId"] as String)
     }
 
     override fun getLabQuery(): LabQuery {

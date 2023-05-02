@@ -61,6 +61,7 @@ class TestCase2521946 : AbstractMsalBrokerTest() {
         val usGovUsername = mUsGovLabAccount.username
         val usGovPassword = mUsGovLabAccount.password
         val brokerHostApp = broker as BrokerHost
+        brokerHostApp.enableMultipleWpj()
         // Register 2 accounts from different tenants
         brokerHostApp.performDeviceRegistrationMultiple(usGovUsername, usGovPassword)
         brokerHostApp.performDeviceRegistrationMultiple(username, password)
