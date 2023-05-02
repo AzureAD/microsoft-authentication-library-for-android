@@ -205,6 +205,13 @@ public class CommandParametersAdapter {
         return commandParameters;
     }
 
+    /**
+     * Adapter method to create DeviceCodeFlowCommandParameters from DeviceCodeFlowParameters
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param parameters deviceCodeFlowParameters
+     * @return DeviceCodeFlowCommandParameters
+     */
     public static DeviceCodeFlowCommandParameters createDeviceCodeFlowWithClaimsCommandParameters(
             @NonNull final PublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
