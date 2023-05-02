@@ -22,7 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.mwpj
 
-import com.microsoft.identity.client.broker.automationapp.testpass.endshift.AbstractFirstPartyBrokerTest
+import com.microsoft.identity.client.msal.automationapp.R
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost
@@ -43,7 +43,7 @@ import org.junit.rules.TestRule
 // So this should also cover TestCase831570
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/831570
 @SupportedBrokers(brokers = [BrokerHost::class])
-class TestCase1234567 : AbstractMsalBrokerTest() {
+class TestCase2519783 : AbstractMsalBrokerTest() {
 
     private lateinit var mUsGovLabAccount: ILabAccount
 
@@ -51,7 +51,7 @@ class TestCase1234567 : AbstractMsalBrokerTest() {
     val loadAdditionalLabUserRule: TestRule = LoadLabUserTestRule(getAdditionalLabQuery())
 
     @Test
-    fun test_123456() {
+    fun test_2519783() {
 
         val username = mLabAccount.username
         val password = mLabAccount.password
@@ -62,7 +62,6 @@ class TestCase1234567 : AbstractMsalBrokerTest() {
         val deviceRegistrationRecords = (broker as BrokerHost).allRecords
         (broker as BrokerHost).installCertificateMultiple(deviceRegistrationRecords[0]["TenantId"] as String)
         (broker as BrokerHost).installCertificateMultiple(deviceRegistrationRecords[1]["TenantId"] as String)
-        //perfom client tls
     }
 
     override fun getLabQuery(): LabQuery {
@@ -85,5 +84,32 @@ class TestCase1234567 : AbstractMsalBrokerTest() {
     @Before
     fun before() {
         mUsGovLabAccount = (loadAdditionalLabUserRule as LoadLabUserTestRule).labAccount
+    }
+
+    /**
+     * Get the scopes that can be used for an acquire token test.
+     *
+     * @return A string array consisting of OAUTH2 Scopes
+     */
+    override fun getScopes(): Array<String> {
+        return arrayOf("User.read")
+    }
+
+    /**
+     * Get the authority url that can be used for an acquire token test.
+     *
+     * @return A string representing the url for an authority that can be used as token issuer
+     */
+    override fun getAuthority(): String {
+        return mApplication.configuration.defaultAuthority.authorityURL.toString()
+    }
+
+    /**
+     * The MSAL config file that should be used to create a PublicClientApplication for the test.
+     *
+     * @return config file resource id
+     */
+    override fun getConfigFileResourceId(): Int {
+        return R.raw.msal_config_default
     }
 }

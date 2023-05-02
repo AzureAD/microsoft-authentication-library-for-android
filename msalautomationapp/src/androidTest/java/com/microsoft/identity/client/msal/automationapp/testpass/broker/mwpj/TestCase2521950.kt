@@ -42,36 +42,52 @@ import org.junit.rules.TestRule
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/831655
 // Technically this works on Samsung device too (at least Galaxy S6)
 // So this should also cover TestCase831570
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/831570
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2521950
 @SupportedBrokers(brokers = [BrokerHost::class])
-class TestCase2519833 : AbstractMsalBrokerTest() {
-
+class TestCase2521950 : AbstractMsalBrokerTest() {
     private lateinit var mUsGovLabAccount: ILabAccount
+    private lateinit var mTempAccount: ILabAccount
 
     @get:Rule
-    val loadAdditionalLabUserRule: TestRule = LoadLabUserTestRule(getAdditionalLabQuery())
+    val loadUsGovLabAccountUserRule: TestRule = LoadLabUserTestRule(getAdditionalLabQuery())
+
+    @get:Rule
+    val loadAdditionalLabUserRule: TestRule = LoadLabUserTestRule(TempUserType.BASIC)
 
     @Test
-    fun test_2519833() {
+    fun test_2521950() {
 
         val username = mLabAccount.username
         val password = mLabAccount.password
+        val usernameTmp = mTempAccount.username
+        val passwordTmp = mTempAccount.password
         val usGovUsername = mUsGovLabAccount.username
         val usGovPassword = mUsGovLabAccount.password
         val brokerHostApp = broker as BrokerHost
-
-        brokerHostApp.performDeviceRegistrationMultiple(username, password)
+        // Register 2 accounts from different tenants
         brokerHostApp.performDeviceRegistrationMultiple(usGovUsername, usGovPassword)
+        brokerHostApp.performDeviceRegistrationMultiple(username, password)
         val deviceRegistrationRecords = brokerHostApp.allRecords
         Assert.assertEquals(2, deviceRegistrationRecords.size)
-        val record0 = brokerHostApp.getRecordByTenantId(deviceRegistrationRecords[0]["TenantId"] as String)
-        Assert.assertEquals(deviceRegistrationRecords[0], record0)
-        val record1 = brokerHostApp.getRecordByUpn(deviceRegistrationRecords[0]["Upn"] as String)
-        Assert.assertEquals(deviceRegistrationRecords[0], record1)
-        val record2 = brokerHostApp.getRecordByTenantId(deviceRegistrationRecords[1]["TenantId"] as String)
-        Assert.assertEquals(deviceRegistrationRecords[1], record2)
-        val record3 = brokerHostApp.getRecordByUpn(deviceRegistrationRecords[1]["Upn"] as String)
-        Assert.assertEquals(deviceRegistrationRecords[1], record3)
+        // Unregister the device from the legacy space
+        brokerHostApp.unregisterDeviceMultiple(usGovUsername)
+        // Verify that the device is unregistered for the first account using the legacy API
+        val errorMessage = brokerHostApp.accountUpn
+        Assert.assertNotNull(errorMessage)
+        Assert.assertTrue(errorMessage!!.contains("Device is not Workplace Joined"))
+        val recordInExtendedSpace = brokerHostApp.getRecordByUpn(username)
+        // Register the device with the temp account using the legacy API
+        brokerHostApp.performDeviceRegistration(usernameTmp, passwordTmp)
+        // Verify that the device is registered with the temp account using the legacy API
+        val legacyAccountMessage = brokerHostApp.accountUpn
+        Assert.assertNotNull(legacyAccountMessage)
+        Assert.assertTrue(legacyAccountMessage!!.contains(usernameTmp))
+        // Verify the entry changed.
+        val recordInLegacy = brokerHostApp.getRecordByUpn(usernameTmp)
+        Assert.assertEquals(recordInExtendedSpace["TenantId"], recordInLegacy["TenantId"])
+        Assert.assertNotEquals(recordInExtendedSpace["Upn"], recordInLegacy["Upn"])
+        Assert.assertNotEquals(recordInExtendedSpace["DeviceId"], recordInLegacy["DeviceId"])
+
     }
 
     override fun getLabQuery(): LabQuery {
@@ -93,7 +109,12 @@ class TestCase2519833 : AbstractMsalBrokerTest() {
 
     @Before
     fun before() {
-        mUsGovLabAccount = (loadAdditionalLabUserRule as LoadLabUserTestRule).labAccount
+        mUsGovLabAccount = (loadUsGovLabAccountUserRule as LoadLabUserTestRule).labAccount
+        mTempAccount = (loadAdditionalLabUserRule as LoadLabUserTestRule).labAccount
+        Assert.assertEquals(
+                "Lab account and tmp account are not in the same tenant",
+                mTempAccount.homeTenantId, mLabAccount.homeTenantId
+        )
     }
 
     /**

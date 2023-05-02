@@ -68,11 +68,9 @@ class TestCase2521768 : AbstractMsalBrokerTest() {
         val secondPassword = mSecondLabAccount.password
         val brokerHostApp = broker as BrokerHost
 
-        // Make an interactive call with MSAL
-
-        // Make an interactive call with MSAL
+        // Make an interactive call with MSAL using the first account
         val msalSdk = MsalSdk()
-        val authTestParams = MsalAuthTestParams.builder()
+        val authTestParamsForInteractiveRequest = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
                 .scopes(listOf(*mScopes))
@@ -81,7 +79,7 @@ class TestCase2521768 : AbstractMsalBrokerTest() {
                 .build()
 
         val authResult = msalSdk.acquireTokenInteractive(
-                authTestParams,
+                authTestParamsForInteractiveRequest,
                 {
                     val promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
                             .prompt(PromptParameter.SELECT_ACCOUNT)
@@ -95,55 +93,58 @@ class TestCase2521768 : AbstractMsalBrokerTest() {
         )
         authResult.assertSuccess()
 
-        // Account must be different but home tenant id must be same
+        // Using a second account, perform device registration
+        // Note: the second account must be different but home tenant id must be same
         Assert.assertEquals(mSecondLabAccount.homeTenantId, mLabAccount.homeTenantId)
         Assert.assertNotEquals(secondUsername, username)
-
         brokerHostApp.performDeviceRegistrationMultiple(secondUsername, secondPassword)
 
-
-        // start silent token request in MSAL
-        val authTestSilentParams = MsalAuthTestParams.builder()
+        // start silent token request in MSAL for the first account, and verify that the device id claim is not present
+        val authTestParamsForSilentRequest = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
                 .scopes(listOf(*mScopes))
-                .authority(getAuthority())
+                .authority(authority)
                 .resource(mScopes[0])
                 .msalConfigResourceId(configFileResourceId)
                 .build()
-        val authResult2 = msalSdk.acquireTokenSilent(authTestSilentParams, TokenRequestTimeout.MEDIUM)
+        val authResult2 = msalSdk.acquireTokenSilent(authTestParamsForSilentRequest, TokenRequestTimeout.MEDIUM)
         authResult2.assertSuccess()
-
         val claims = JWTParserFactory.INSTANCE.jwtParser.parseJWT(authResult2.accessToken)
-        Assert.assertFalse("Device id clim is present", claims.containsKey("deviceid"))
+        Assert.assertFalse("Device id claim is present", claims.containsKey("deviceid"))
 
-
-        // create claims request object
+        // start silent token request in MSAL with device id claim for the first account, and verify that an exception is thrown.
         val claimsRequest = ClaimsRequest()
         val requestedClaimAdditionalInformation = RequestedClaimAdditionalInformation()
         requestedClaimAdditionalInformation.essential = true
         claimsRequest.requestClaimInIdToken("deviceid", requestedClaimAdditionalInformation)
 
-        val authTestSilentParamsWithClaim = MsalAuthTestParams.builder()
+        val authTestParamsForSilentRequestWithDeviceIdClaim = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
                 .scopes(listOf(*mScopes))
-                .authority(getAuthority())
+                .authority(authority)
                 .resource(mScopes[0])
                 .claims(claimsRequest)
                 .msalConfigResourceId(configFileResourceId)
                 .build()
 
-        val authResult3 = msalSdk.acquireTokenSilent(authTestSilentParamsWithClaim, TokenRequestTimeout.MEDIUM)
+        val authResult3 = msalSdk.acquireTokenSilent(
+                authTestParamsForSilentRequestWithDeviceIdClaim,
+                TokenRequestTimeout.MEDIUM
+        )
         authResult3.assertFailure()
-        Assert.assertNotNull("exception message is null" + authResult3.exception, authResult3.exception.message)
+        Assert.assertNotNull(
+                "exception message is null" + authResult3.exception,
+                authResult3.exception.message
+        )
         Assert.assertTrue(
                 "exception message is not as expected" + authResult3.exception.message,
                 authResult3.exception.message!!.contains("AADSTS50187")
         )
 
-
-        val authTestparamwithclaim = MsalAuthTestParams.builder()
+        // Make an interactive call with device id claim using the first account, and verify that the device id claim is present.
+        val authTestParamsForInteractiveRequestWithDeviceIdClaim = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
                 .scopes(listOf(*mScopes))
@@ -152,9 +153,8 @@ class TestCase2521768 : AbstractMsalBrokerTest() {
                 .msalConfigResourceId(configFileResourceId)
                 .build()
 
-
         val authResult4 = msalSdk.acquireTokenInteractive(
-                authTestparamwithclaim,
+                authTestParamsForInteractiveRequestWithDeviceIdClaim,
                 {
                     val promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
                             .prompt(PromptParameter.WHEN_REQUIRED)
@@ -169,7 +169,7 @@ class TestCase2521768 : AbstractMsalBrokerTest() {
         )
         authResult4.assertSuccess()
         val claims2 = JWTParserFactory.INSTANCE.jwtParser.parseJWT(authResult4.accessToken)
-        Assert.assertTrue("Device id clim is present", claims2.containsKey("deviceid"))
+        Assert.assertTrue("Device id claim is present", claims2.containsKey("deviceid"))
     }
 
     /**
