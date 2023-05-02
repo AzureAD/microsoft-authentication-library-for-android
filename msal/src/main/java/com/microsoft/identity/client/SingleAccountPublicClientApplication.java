@@ -109,7 +109,7 @@ public class SingleAccountPublicClientApplication
         sharedPreferencesFileManager = new SharedPreferencesFileManager(
                 context,
                 SINGLE_ACCOUNT_CREDENTIAL_SHARED_PREFERENCES,
-                new AndroidAuthSdkStorageEncryptionManager(context, null)
+                new AndroidAuthSdkStorageEncryptionManager(context)
         );
     }
 
