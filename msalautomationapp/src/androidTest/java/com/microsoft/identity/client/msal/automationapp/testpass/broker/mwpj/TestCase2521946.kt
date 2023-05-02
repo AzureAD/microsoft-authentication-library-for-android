@@ -40,11 +40,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestRule
 
-// Verify WPJ Cert installation on a Non samsung device with Authenticator
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/831655
-// Technically this works on Samsung device too (at least Galaxy S6)
-// So this should also cover TestCase831570
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/831570
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2521946
 @SupportedBrokers(brokers = [BrokerHost::class])
 class TestCase2521946 : AbstractMsalBrokerTest() {
 
