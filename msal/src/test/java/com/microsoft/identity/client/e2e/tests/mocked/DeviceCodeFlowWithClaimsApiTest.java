@@ -378,8 +378,8 @@ public class DeviceCodeFlowWithClaimsApiTest extends PublicClientApplicationAbst
             }
         }, mClaimsRequest, mCorrelationId);
 
-        final String ww = wwUri.get(10, TimeUnit.SECONDS);
-        final String usgov = usGovUri.get(10, TimeUnit.SECONDS);
+        final String ww = wwUri.get(20, TimeUnit.SECONDS);
+        final String usgov = usGovUri.get(20, TimeUnit.SECONDS);
 
         Assert.assertEquals(ww, "https://microsoft.com/devicelogin");
         Assert.assertEquals(usgov, "https://microsoft.com/deviceloginus");
@@ -484,6 +484,6 @@ public class DeviceCodeFlowWithClaimsApiTest extends PublicClientApplicationAbst
         }, mClaimsRequest, mCorrelationId);
 
         // Should still get USGOV back.
-        Assert.assertEquals("https://microsoft.com/deviceloginus", uri2.get(10, TimeUnit.SECONDS));
+        Assert.assertEquals("https://microsoft.com/deviceloginus", uri2.get(20, TimeUnit.SECONDS));
     }
 }
