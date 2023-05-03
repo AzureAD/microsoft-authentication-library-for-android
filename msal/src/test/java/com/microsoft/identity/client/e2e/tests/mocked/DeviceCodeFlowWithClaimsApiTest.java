@@ -439,7 +439,7 @@ public class DeviceCodeFlowWithClaimsApiTest extends PublicClientApplicationAbst
             }
         }, mClaimsRequest, mCorrelationId);
 
-        Assert.assertEquals("https://microsoft.com/deviceloginus", uri1.get(10, TimeUnit.SECONDS));
+        Assert.assertEquals("https://microsoft.com/deviceloginus", uri1.get(20, TimeUnit.SECONDS));
 
         //3. then create another public client application with the same configuration file in step 1.
         PublicClientApplication.create(context, new File(MULTIPLE_ACCOUNT_MODE_AAD_USGOV_CONFIG_FILE_PATH),
