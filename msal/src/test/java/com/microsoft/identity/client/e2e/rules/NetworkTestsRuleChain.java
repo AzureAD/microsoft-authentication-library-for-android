@@ -25,6 +25,7 @@ package com.microsoft.identity.client.e2e.rules;
 import com.microsoft.identity.internal.testutils.BuildConfig;
 import com.microsoft.identity.internal.testutils.kusto.CaptureKustoTestResultRule;
 
+import org.junit.Ignore;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
 import org.junit.rules.Timeout;

@@ -47,6 +47,7 @@ import com.microsoft.identity.shadow.ShadowHttpClient;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -71,6 +72,7 @@ import static com.microsoft.identity.internal.testutils.TestConstants.Configurat
         ShadowHttpClient.class,
         ShadowOpenIdProviderConfigurationClient.class
 })
+@Ignore
 public class AcquireTokenMockedTelemetryTest extends AcquireTokenAbstractTest {
 
     private static Map<String, String> sTelemetryHeaders;

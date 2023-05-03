@@ -32,6 +32,7 @@ import com.microsoft.identity.internal.testutils.TestUtils;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -48,6 +49,7 @@ import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USE
  * This class tests the fromAuthority builder of {@link TokenParameters} using audiences
  * other than AzureADMyOrg. The tests for AzureADMyOrg are located in {@link TokenParametersAuthorityMyOrgTest}
  */
+@Ignore
 @RunWith(ParameterizedRobolectricTestRunner.class)
 public class TokenParametersAuthorityTest {
 

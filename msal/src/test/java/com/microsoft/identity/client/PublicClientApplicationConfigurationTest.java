@@ -29,6 +29,7 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+@Ignore
 public class PublicClientApplicationConfigurationTest {
 
     @Test

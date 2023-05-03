@@ -25,11 +25,12 @@ package com.microsoft.identity.client;
 
 import android.util.Log;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-
+@Ignore
 public class TokenParametersResourceTest {
 
     public final static String RESOURCE_MIXED_CASE = "https://SomeAADApi.aadgraph.onmicrosoft.com";

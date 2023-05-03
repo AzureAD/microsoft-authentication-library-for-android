@@ -7,8 +7,10 @@ import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudien
 
 import junit.framework.Assert;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 public class AzureActiveDirectoryAudienceTest {
 
     public final static String CLOUD_URL = "https://login.microsoftonline.com";

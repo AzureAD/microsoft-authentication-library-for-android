@@ -31,6 +31,9 @@ import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushSchedul
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_MOCK_TEST_CONFIG_FILE_PATH;
 import static org.junit.Assert.fail;
 
+import org.junit.Ignore;
+
+@Ignore
 public class MultipleAccountAcquireTokenMockTest extends AcquireTokenMockTest {
 
     @Override

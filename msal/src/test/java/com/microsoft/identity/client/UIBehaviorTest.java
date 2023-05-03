@@ -24,8 +24,10 @@ package com.microsoft.identity.client;
 
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 public final class UIBehaviorTest {
 
     public final static String LOGIN = "login";

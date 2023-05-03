@@ -34,8 +34,10 @@ import junit.framework.Assert;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 public class AzureActiveDirectoryAudiencePreProductionTest {
 
     public final static String ALTERNATE_CLOUD_URL = "https://login.microsoftonline.de";

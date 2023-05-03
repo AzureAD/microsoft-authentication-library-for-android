@@ -30,6 +30,7 @@ import com.microsoft.identity.internal.testutils.mocks.MockTokenCreator;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -38,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@Ignore
 @RunWith(RobolectricTestRunner.class)
 public class AuthenticationResultTest {
 

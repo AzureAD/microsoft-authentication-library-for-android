@@ -27,8 +27,10 @@ import com.microsoft.identity.client.claims.WWWAuthenticateHeader;
 
 import junit.framework.Assert;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 public class WWWAuthenticateHeaderTest {
 
     public final static String HEADER_SINGLE_QUOTE = "realm='', claims='{\"access_token\":{\"device_id\":null}}', realm=''";

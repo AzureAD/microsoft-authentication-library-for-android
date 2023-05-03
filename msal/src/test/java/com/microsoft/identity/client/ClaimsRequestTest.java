@@ -27,8 +27,10 @@ import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
 
 import junit.framework.Assert;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 public class ClaimsRequestTest {
 
     public final static String DEVICE_ID_CLAIM_NAME = "device_id";

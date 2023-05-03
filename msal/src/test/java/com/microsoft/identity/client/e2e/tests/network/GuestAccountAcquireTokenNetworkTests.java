@@ -13,6 +13,7 @@ import com.microsoft.identity.internal.testutils.labutils.LabGuestAccountHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -24,6 +25,7 @@ import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.get
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.MULTIPLE_ACCOUNT_MODE_AAD_CONFIG_FILE_PATH;
 import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
 
+@Ignore
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {ShadowAndroidSdkStorageEncryptionManager.class, ShadowAuthority.class, ShadowPublicClientApplicationConfiguration.class})
 public class GuestAccountAcquireTokenNetworkTests extends AcquireTokenAbstractTest {

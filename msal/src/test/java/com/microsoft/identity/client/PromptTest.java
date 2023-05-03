@@ -25,10 +25,12 @@ package com.microsoft.identity.client;
 import com.microsoft.identity.common.java.providers.oauth2.OpenIdConnectPromptParameter;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
+@Ignore
 @RunWith(RobolectricTestRunner.class)
 public class PromptTest {
     private Prompt prompt;

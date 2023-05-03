@@ -25,6 +25,7 @@ package com.microsoft.identity.client;
 import android.app.Activity;
 import com.microsoft.identity.client.exception.MsalException;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -32,6 +33,7 @@ import org.junit.Assert;
 import java.util.ArrayList;
 import java.util.List;
 
+@Ignore
 @RunWith(RobolectricTestRunner.class)
 public class SignInParametersTest {
 

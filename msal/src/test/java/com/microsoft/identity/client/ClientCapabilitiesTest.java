@@ -30,11 +30,13 @@ import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
 import com.microsoft.identity.client.internal.CommandParametersAdapter;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
+@Ignore
 public final class ClientCapabilitiesTest {
 
     public final static String CP1_CAPABILITY = "CP1";

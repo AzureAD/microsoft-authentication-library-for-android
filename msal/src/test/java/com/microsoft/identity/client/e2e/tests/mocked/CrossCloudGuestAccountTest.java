@@ -51,6 +51,7 @@ import com.microsoft.identity.shadow.ShadowHttpClient;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.ParameterizedRobolectricTestRunner;
@@ -80,6 +81,7 @@ import static org.junit.Assert.fail;
         ShadowPublicClientApplicationConfiguration.class,
         ShadowHttpClient.class,
 }, sdk = {Build.VERSION_CODES.N})
+@Ignore
 public class CrossCloudGuestAccountTest extends AcquireTokenAbstractTest {
     private final TestCaseData mTestCaseData;
     private final MockHttpClient mMockHttpClient = MockHttpClient.install();

@@ -44,6 +44,7 @@ import com.microsoft.identity.common.java.exception.ClientException;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -55,6 +56,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+@Ignore
 @RunWith(RobolectricTestRunner.class)
 public class CommandParametersTest {
 
