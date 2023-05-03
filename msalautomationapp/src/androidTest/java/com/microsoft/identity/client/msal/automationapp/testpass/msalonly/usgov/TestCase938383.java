@@ -31,6 +31,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.app.IApp;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
@@ -46,6 +47,7 @@ import java.util.Arrays;
 
 // [USGOV][MSAL-ONLY] Acquire token silent with unexpired RT with USGov authority
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938383
+@RetryOnFailure
 public class TestCase938383 extends AbstractMsalUiTest {
 
     @Test

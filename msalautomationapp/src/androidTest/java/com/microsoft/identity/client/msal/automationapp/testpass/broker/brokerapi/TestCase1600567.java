@@ -26,6 +26,7 @@ import androidx.test.uiautomator.UiObject;
 
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
@@ -39,6 +40,7 @@ import org.junit.Test;
 // Invoke each API from non-allowed apps. the request should be blocked.
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1600567
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
+@RetryOnFailure
 public class TestCase1600567 extends AbstractMsalBrokerTest {
     @Test
     public void test_1600567() throws Throwable {
@@ -46,41 +48,38 @@ public class TestCase1600567 extends AbstractMsalBrokerTest {
         brokerHost.install();
         brokerHost.launch();
 
+        brokerHost.brokerApiFragment.launch();
         // verify getAccounts call gives calling app not verified
-        UiAutomatorUtils.obtainChildInScrollable("Get Accounts");
-        UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/buttonGetAccounts");
+        UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/button_get_accounts");
         brokerHost.confirmCallingAppNotVerified();
 
         // verify removeAccount call gives calling app not verified
         final UiObject usernameTxt = UiAutomatorUtils.obtainChildInScrollable("someone@contoso.com");
         usernameTxt.setText("test@microsoft.com");
         final UiObject removeAccount = UiAutomatorUtils.obtainUiObjectWithResourceId(
-                "com.microsoft.identity.testuserapp:id/buttonRemoveAccount"
+                "com.microsoft.identity.testuserapp:id/button_remove_account"
         );
         removeAccount.click();
         brokerHost.confirmCallingAppNotVerified();
 
         // verify update BRT call gives calling app not verified
         // fill BRT
-        final UiObject brokerRTTxt = UiAutomatorUtils.obtainChildInScrollable("Broker RT");
-        brokerRTTxt.setText("5e0c0ce6-0f40-4738-b2d4-3d83a5a2b555");
+        UiAutomatorUtils.handleInput("com.microsoft.identity.testuserapp:id/edit_text_broker_rt", "5e0c0ce6-0f40-4738-b2d4-3d83a5a2b555");
         // fill home authority
-        final UiObject homeAuthorityTxt = UiAutomatorUtils.obtainChildInScrollable("Home Authority");
-        homeAuthorityTxt.setText("https://login.microsoftonline.com/common");
+        UiAutomatorUtils.handleInput("com.microsoft.identity.testuserapp:id/edit_text_home_authority", "https://login.microsoftonline.com/common");
         // click on update BRT
-        UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/buttonUpdateBRT");
+        UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/button_update_brt");
         brokerHost.confirmCallingAppNotVerified();
 
+        brokerHost.brokerFlightsFragment.launch();
         // verify setFlights call gives calling app not verified
-        UiAutomatorUtils.obtainChildInScrollable("Update Flights");
-        UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/flightProvider_localStorage");
-        UiAutomatorUtils.handleInput("com.microsoft.identity.testuserapp:id/editTextFlights", "{test : true}");
-        UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/setFlightsButton");
+        UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/flight_provider_local_storage");
+        UiAutomatorUtils.handleInput("com.microsoft.identity.testuserapp:id/edit_text_flights", "{test : true}");
+        UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/button_set_flights");
         brokerHost.confirmCallingAppNotVerified();
 
         // verify getFlights call gives calling app not verified
-        final UiObject getFlightsBtn = UiAutomatorUtils.obtainChildInScrollable("Get Flights");
-        getFlightsBtn.click();
+        UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/button_get_flights");
         brokerHost.confirmCallingAppNotVerified();
     }
 
