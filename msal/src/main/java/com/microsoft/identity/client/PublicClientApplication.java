@@ -1839,7 +1839,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         }
     }
 
-    public void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback, @Nullable final ClaimsRequest claimsRequest, @Nullable final UUID correlationId) {
+    private void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback, @Nullable final ClaimsRequest claimsRequest, @Nullable final UUID correlationId) {
         DeviceCodeFlowParameters.Builder builder = new DeviceCodeFlowParameters.Builder();
 
         if (null != correlationId) {
