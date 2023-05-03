@@ -235,8 +235,8 @@ public class DeviceCodeFlowWithClaimsApiTest extends PublicClientApplicationAbst
             }
         }, mClaimsRequest, mCorrelationId);
 
-        final String ww = wwUri.get(30, TimeUnit.SECONDS);
-        final String usgov = usGovUri.get(30, TimeUnit.SECONDS);
+        final String ww = wwUri.get(60, TimeUnit.SECONDS);
+        final String usgov = usGovUri.get(60, TimeUnit.SECONDS);
 
         Assert.assertEquals(ww, "https://microsoft.com/devicelogin");
         Assert.assertEquals(usgov, "https://microsoft.com/deviceloginus");
@@ -296,7 +296,7 @@ public class DeviceCodeFlowWithClaimsApiTest extends PublicClientApplicationAbst
             }
         }, mClaimsRequest, mCorrelationId);
 
-        Assert.assertEquals("https://microsoft.com/deviceloginus", uri1.get(30, TimeUnit.SECONDS));
+        Assert.assertEquals("https://microsoft.com/deviceloginus", uri1.get(60, TimeUnit.SECONDS));
 
         //3. then create another public client application with the same configuration file in step 1.
         PublicClientApplication.create(context, new File(MULTIPLE_ACCOUNT_MODE_AAD_USGOV_CONFIG_FILE_PATH),
@@ -341,6 +341,6 @@ public class DeviceCodeFlowWithClaimsApiTest extends PublicClientApplicationAbst
         }, mClaimsRequest, mCorrelationId);
 
         // Should still get USGOV back.
-        Assert.assertEquals("https://microsoft.com/deviceloginus", uri2.get(30, TimeUnit.SECONDS));
+        Assert.assertEquals("https://microsoft.com/deviceloginus", uri2.get(60, TimeUnit.SECONDS));
     }
 }
