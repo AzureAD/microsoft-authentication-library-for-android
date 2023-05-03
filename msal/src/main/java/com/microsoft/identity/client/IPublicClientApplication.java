@@ -103,6 +103,7 @@ public interface IPublicClientApplication {
      *
      * Important: Use of this API requires setting the minimum_required_broker_protocol_version to
      * "11.0" or higher.
+     * Note: This API is in testing phase and might return not supported error until fully supported.
      */
     void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback, @Nullable final ClaimsRequest claims, @Nullable final UUID correlationId);
 
