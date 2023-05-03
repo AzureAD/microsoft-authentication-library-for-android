@@ -24,6 +24,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.mwpj
 
 import com.microsoft.identity.client.msal.automationapp.R
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
+import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters
@@ -42,6 +43,7 @@ import org.junit.rules.TestRule
 
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2521946
 @SupportedBrokers(brokers = [BrokerHost::class])
+@LocalBrokerHostDebugUiTest
 class TestCase2521946 : AbstractMsalBrokerTest() {
 
     private lateinit var mUsGovLabAccount: ILabAccount
