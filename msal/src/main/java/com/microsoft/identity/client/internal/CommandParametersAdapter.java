@@ -51,6 +51,7 @@ public class CommandParametersAdapter {
 
     private static final String TAG = CommandParametersAdapter.class.getSimpleName();
     public static final String CLIENT_CAPABILITIES_CLAIM = "xms_cc";
+    public static final String MSAL_TO_BROKER_PROTOCOL_BROKER_DCF_WITH_CLAIMS_SUPPORT_MINIMUM_VERSION = "13.0";
 
     public static CommandParameters createCommandParameters(
             @NonNull final PublicClientApplicationConfiguration configuration,
@@ -230,7 +231,7 @@ public class CommandParametersAdapter {
                 .isSharedDevice(configuration.getIsSharedDevice())
                 .redirectUri(configuration.getRedirectUri())
                 .oAuth2TokenCache(tokenCache)
-                .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
+                .requiredBrokerProtocolVersion(MSAL_TO_BROKER_PROTOCOL_BROKER_DCF_WITH_CLAIMS_SUPPORT_MINIMUM_VERSION)
                 .sdkType(SdkType.MSAL)
                 .sdkVersion(PublicClientApplication.getSdkVersion())
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
