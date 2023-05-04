@@ -22,10 +22,10 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.shadows;
 
+import com.microsoft.identity.common.java.commands.DeviceCodeFlowCommand;
+import com.microsoft.identity.common.java.commands.DeviceCodeFlowCommandCallback;
 import com.microsoft.identity.common.java.exception.ErrorStrings;
 import com.microsoft.identity.common.java.exception.ServiceException;
-import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
-import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommandCallback;
 import com.microsoft.identity.common.java.result.AcquireTokenResult;
 
 import org.robolectric.annotation.Implements;
