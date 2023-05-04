@@ -1839,48 +1839,48 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         }
     }
 
-//    public void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback, @Nullable final ClaimsRequest claimsRequest, @Nullable final UUID correlationId) {
-//        DeviceCodeFlowParameters.Builder builder = new DeviceCodeFlowParameters.Builder();
-//
-//        if (null != correlationId) {
-//            builder.withCorrelationId(correlationId);
-//        }
-//
-//        DeviceCodeFlowParameters deviceCodeFlowParameters =
-//                builder.withScopes(scopes)
-//                        .withClaims(claimsRequest)
-//                        .build();
-//
-//        final DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter
-//                .createDeviceCodeFlowWithClaimsCommandParameters(
-//                        mPublicClientConfiguration,
-//                        mPublicClientConfiguration.getOAuth2TokenCache(),
-//                        deviceCodeFlowParameters);
-//
-//        final DeviceCodeFlowCommandCallback deviceCodeFlowCommandCallback = getDeviceCodeFlowCommandCallback(callback);
-//
-//        try {
-//            final DeviceCodeFlowCommand deviceCodeFlowCommand = new DeviceCodeFlowCommand(
-//                    commandParameters,
-//                    MSALControllerFactory.getDefaultController(
-//                            mPublicClientConfiguration.getAppContext(),
-//                            commandParameters.getAuthority(),
-//                            mPublicClientConfiguration
-//                    ),
-//                    deviceCodeFlowCommandCallback,
-//                    PublicApiId.DEVICE_CODE_FLOW_WITH_CLAIMS_AND_CALLBACK
-//            );
-//
-//            CommandDispatcher.submitSilent(deviceCodeFlowCommand);
-//        } catch (final MsalClientException e) {
-//            final MsalClientException clientException = new MsalClientException(
-//                    UNKNOWN_ERROR,
-//                    "Unexpected error while acquiring token with device code.",
-//                    e
-//            );
-//            callback.onError(clientException);
-//        }
-//    }
+    public void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback, @Nullable final ClaimsRequest claimsRequest, @Nullable final UUID correlationId) {
+        DeviceCodeFlowParameters.Builder builder = new DeviceCodeFlowParameters.Builder();
+
+        if (null != correlationId) {
+            builder.withCorrelationId(correlationId);
+        }
+
+        DeviceCodeFlowParameters deviceCodeFlowParameters =
+                builder.withScopes(scopes)
+                        .withClaims(claimsRequest)
+                        .build();
+
+        final DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter
+                .createDeviceCodeFlowWithClaimsCommandParameters(
+                        mPublicClientConfiguration,
+                        mPublicClientConfiguration.getOAuth2TokenCache(),
+                        deviceCodeFlowParameters);
+
+        final DeviceCodeFlowCommandCallback deviceCodeFlowCommandCallback = getDeviceCodeFlowCommandCallback(callback);
+
+        try {
+            final DeviceCodeFlowCommand deviceCodeFlowCommand = new DeviceCodeFlowCommand(
+                    commandParameters,
+                    MSALControllerFactory.getDefaultController(
+                            mPublicClientConfiguration.getAppContext(),
+                            commandParameters.getAuthority(),
+                            mPublicClientConfiguration
+                    ),
+                    deviceCodeFlowCommandCallback,
+                    PublicApiId.DEVICE_CODE_FLOW_WITH_CLAIMS_AND_CALLBACK
+            );
+
+            CommandDispatcher.submitSilent(deviceCodeFlowCommand);
+        } catch (final MsalClientException e) {
+            final MsalClientException clientException = new MsalClientException(
+                    UNKNOWN_ERROR,
+                    "Unexpected error while acquiring token with device code.",
+                    e
+            );
+            callback.onError(clientException);
+        }
+    }
 
     public void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback) {
         // Create a DeviceCodeFlowCommandParameters object that takes in the desired scopes and the callback object
