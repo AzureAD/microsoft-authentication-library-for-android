@@ -29,12 +29,14 @@ import androidx.annotation.NonNull;
 import androidx.test.core.app.ApplicationProvider;
 
 import com.microsoft.identity.client.claims.ClaimsRequest;
+import com.microsoft.identity.client.claims.RequestedClaim;
 import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
 import com.microsoft.identity.client.internal.CommandParametersAdapter;
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory;
 import com.microsoft.identity.common.java.cache.IAccountCredentialAdapter;
 import com.microsoft.identity.common.java.cache.IAccountCredentialCache;
 import com.microsoft.identity.common.java.cache.MsalOAuth2TokenCache;
+import com.microsoft.identity.common.java.commands.parameters.DeviceCodeFlowCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.InteractiveTokenCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.SilentTokenCommandParameters;
 import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
@@ -50,6 +52,7 @@ import org.robolectric.RobolectricTestRunner;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 @RunWith(RobolectricTestRunner.class)
@@ -146,6 +149,30 @@ public class CommandParametersTest {
         Assert.assertEquals(correlationId.toString(), commandParameters.getCorrelationId());
     }
 
+    @Test
+    public void testDeviceCodeFlowOperationWithClaimsWithCorrelationId() throws ClientException {
+        final UUID correlationId = UUID.randomUUID();
+        DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter.createDeviceCodeFlowWithClaimsCommandParameters(getConfiguration(AAD_NONE_CONFIG_FILE), getCache(), getDeviceCodeFlowParametersWithClaimsWithCorrelationId(correlationId));
+        Assert.assertNotNull(commandParameters.getCorrelationId());
+        Assert.assertEquals(correlationId.toString(), commandParameters.getCorrelationId());
+        validateDeviceCodeFlowClaimsInCommandParameter(commandParameters);
+    }
+
+    @Test
+    public void testDeviceCodeFlowOperationWithClaimsWithoutCorrelationId() throws ClientException {
+        DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter.createDeviceCodeFlowWithClaimsCommandParameters(getConfiguration(AAD_NONE_CONFIG_FILE), getCache(), getDeviceCodeFlowParametersWithClaimsWithoutCorrelationId());
+        Assert.assertNull(commandParameters.getCorrelationId());
+        validateDeviceCodeFlowClaimsInCommandParameter(commandParameters);
+    }
+
+    @Test
+    public void testDeviceCodeFlowOperationWithoutClaims() throws ClientException {
+        DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter.createDeviceCodeFlowWithClaimsCommandParameters(getConfiguration(AAD_NONE_CONFIG_FILE), getCache(), getDeviceCodeFlowParametersWithoutClaims());
+        Assert.assertNull(commandParameters.getCorrelationId());
+        Assert.assertNull(commandParameters.getClaimsRequestJson());
+    }
+
+
     private ClaimsRequest getAccessTokenClaimsRequest(@NonNull String claimName, @NonNull String claimValue) {
         ClaimsRequest cp1ClaimsRequest = new ClaimsRequest();
         RequestedClaimAdditionalInformation info = new RequestedClaimAdditionalInformation();
@@ -230,6 +257,53 @@ public class CommandParametersTest {
                 .build();
 
         return parameters;
+    }
+
+    private DeviceCodeFlowParameters getDeviceCodeFlowParametersWithClaimsWithCorrelationId(final UUID correlationId) {
+        DeviceCodeFlowParameters parameters = new DeviceCodeFlowParameters.Builder()
+                .withClaims(getDeviceCodeFlowClaimsRequest())
+                .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
+                .withCorrelationId(correlationId)
+                .build();
+
+        return parameters;
+    }
+
+    private DeviceCodeFlowParameters getDeviceCodeFlowParametersWithClaimsWithoutCorrelationId() {
+        DeviceCodeFlowParameters parameters = new DeviceCodeFlowParameters.Builder()
+                .withClaims(getDeviceCodeFlowClaimsRequest())
+                .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
+                .build();
+
+        return parameters;
+    }
+
+    private DeviceCodeFlowParameters getDeviceCodeFlowParametersWithoutClaims() {
+        DeviceCodeFlowParameters parameters = new DeviceCodeFlowParameters.Builder()
+                .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
+                .build();
+
+        return parameters;
+    }
+
+    private ClaimsRequest getDeviceCodeFlowClaimsRequest() {
+        RequestedClaimAdditionalInformation information = new RequestedClaimAdditionalInformation();
+        information.setEssential(true);
+        ClaimsRequest claimsRequest = new ClaimsRequest();
+        claimsRequest.requestClaimInAccessToken("deviceid", information);
+        return claimsRequest;
+    }
+
+    private void validateDeviceCodeFlowClaimsInCommandParameter(DeviceCodeFlowCommandParameters deviceCodeFlowCommandParameters) {
+        Assert.assertNotNull(deviceCodeFlowCommandParameters.getClaimsRequestJson());
+        ClaimsRequest claimsRequest = ClaimsRequest.getClaimsRequestFromJsonString(deviceCodeFlowCommandParameters.getClaimsRequestJson());
+        Assert.assertNotNull(claimsRequest);
+        Assert.assertNotNull(claimsRequest.getAccessTokenClaimsRequested());
+        RequestedClaim requestedClaim = claimsRequest.getAccessTokenClaimsRequested().get(0);
+        Assert.assertNotNull(requestedClaim);
+
+        Assert.assertEquals("deviceid", requestedClaim.getName());
+        Assert.assertTrue(requestedClaim.getAdditionalInformation().getEssential());
     }
 
     private PublicClientApplicationConfiguration getConfiguration(String path) {
