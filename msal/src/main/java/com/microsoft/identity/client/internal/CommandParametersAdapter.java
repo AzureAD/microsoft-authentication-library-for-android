@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
+import com.microsoft.identity.client.DeviceCodeFlowParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.ITenantProfile;
 import com.microsoft.identity.client.MultiTenantAccount;
@@ -197,6 +198,46 @@ public class CommandParametersAdapter {
                 .authenticationScheme(authenticationScheme)
                 .scopes(new HashSet<>(parameters.getScopes()))
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                .correlationId(parameters.getCorrelationId())
+                .build();
+
+        return commandParameters;
+    }
+
+    /**
+     * Adapter method to create DeviceCodeFlowCommandParameters from DeviceCodeFlowParameters
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param parameters deviceCodeFlowParameters
+     * @return DeviceCodeFlowCommandParameters
+     */
+    public static DeviceCodeFlowCommandParameters createDeviceCodeFlowWithClaimsCommandParameters(
+            @NonNull final PublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final DeviceCodeFlowParameters parameters) {
+
+        final String claimsRequestJson = ClaimsRequest.getJsonStringFromClaimsRequest(parameters.getClaimsRequest());
+
+        final Authority authority = configuration.getDefaultAuthority();
+
+        final AbstractAuthenticationScheme authenticationScheme = new BearerAuthenticationSchemeInternal();
+
+        final DeviceCodeFlowCommandParameters commandParameters = DeviceCodeFlowCommandParameters.builder()
+                .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
+                .applicationName(configuration.getAppContext().getPackageName())
+                .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                .clientId(configuration.getClientId())
+                .isSharedDevice(configuration.getIsSharedDevice())
+                .redirectUri(configuration.getRedirectUri())
+                .oAuth2TokenCache(tokenCache)
+                .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
+                .sdkType(SdkType.MSAL)
+                .sdkVersion(PublicClientApplication.getSdkVersion())
+                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                .authenticationScheme(authenticationScheme)
+                .scopes(new HashSet<>(parameters.getScopes()))
+                .authority(authority)
+                .claimsRequestJson(claimsRequestJson)
                 .correlationId(parameters.getCorrelationId())
                 .build();
 
