@@ -36,7 +36,6 @@ import com.microsoft.identity.client.ui.automation.broker.BrokerHost
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters
-import com.microsoft.identity.client.ui.automation.rules.LoadLabUserTestRule
 import com.microsoft.identity.labapi.utilities.client.ILabAccount
 import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
@@ -44,9 +43,7 @@ import com.microsoft.identity.labapi.utilities.constants.UserType
 import com.microsoft.identity.labapi.utilities.jwt.JWTParserFactory
 import org.junit.Assert
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestRule
 
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2521768
 // [MWPJ] An account with no PRT use no Joined flow even if the tenant is registered
@@ -56,9 +53,6 @@ class TestCase2521768 : AbstractMsalBrokerTest() {
 
     private lateinit var mLabAccount2: ILabAccount
     private lateinit var mBrokerHostApp: BrokerHost
-
-    @get:Rule
-    val loadAdditionalLabUserRule: TestRule = LoadLabUserTestRule(TempUserType.BASIC)
 
     @Test
     fun test_2521768() {
@@ -204,7 +198,7 @@ class TestCase2521768 : AbstractMsalBrokerTest() {
 
     @Before
     fun before() {
-        mLabAccount2 = (loadAdditionalLabUserRule as LoadLabUserTestRule).labAccount
+        mLabAccount2 = mLabClient.createTempAccount(TempUserType.BASIC)
         Assert.assertEquals(
                 "Lab accounts are not in the same tenant",
                 mLabAccount2.homeTenantId, mLabAccount.homeTenantId

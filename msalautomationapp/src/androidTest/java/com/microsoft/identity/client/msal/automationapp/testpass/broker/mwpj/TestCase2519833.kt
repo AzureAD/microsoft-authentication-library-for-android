@@ -27,7 +27,6 @@ import com.microsoft.identity.client.msal.automationapp.testpass.broker.Abstract
 import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost
-import com.microsoft.identity.client.ui.automation.rules.LoadLabUserTestRule
 import com.microsoft.identity.labapi.utilities.client.ILabAccount
 import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment
@@ -35,9 +34,7 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Assert
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestRule
 
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2519833
 // [MWPJ] Get records by tenant id and upn
@@ -46,9 +43,6 @@ import org.junit.rules.TestRule
 class TestCase2519833 : AbstractMsalBrokerTest() {
     private lateinit var mUsGovAccount: ILabAccount
     private lateinit var mBrokerHostApp: BrokerHost
-
-    @get:Rule
-    val loadAdditionalLabUserRule: TestRule = LoadLabUserTestRule(getAdditionalLabQuery())
 
     @Test
     fun test_2519833() {
@@ -81,7 +75,7 @@ class TestCase2519833 : AbstractMsalBrokerTest() {
         return null
     }
 
-    private fun getAdditionalLabQuery(): LabQuery {
+    private fun getUsGovLabQuery(): LabQuery {
         return LabQuery.builder()
                 .userType(UserType.CLOUD)
                 .azureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT)
@@ -90,7 +84,7 @@ class TestCase2519833 : AbstractMsalBrokerTest() {
 
     @Before
     fun before() {
-        mUsGovAccount = (loadAdditionalLabUserRule as LoadLabUserTestRule).labAccount
+        mUsGovAccount = mLabClient.getLabAccount(getUsGovLabQuery())
         mBrokerHostApp = broker as BrokerHost
         mBrokerHostApp.enableMultipleWpj()
     }

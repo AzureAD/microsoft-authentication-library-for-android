@@ -38,7 +38,6 @@ import org.junit.Test
 @SupportedBrokers(brokers = [BrokerHost::class])
 @LocalBrokerHostDebugUiTest
 class TestCase2563653 : AbstractMsalBrokerTest() {
-    private lateinit var mBrokerHostApp: BrokerHost
 
     @Test
     fun test_2563653() {
