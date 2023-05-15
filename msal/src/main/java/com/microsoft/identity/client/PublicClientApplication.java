@@ -82,8 +82,6 @@ import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory
 import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
-import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommand;
-import com.microsoft.identity.common.internal.commands.DeviceCodeFlowCommandCallback;
 import com.microsoft.identity.common.internal.commands.GenerateShrCommand;
 import com.microsoft.identity.common.internal.commands.GetDeviceModeCommand;
 import com.microsoft.identity.common.internal.controllers.LocalMSALController;
@@ -100,6 +98,8 @@ import com.microsoft.identity.common.java.cache.IMultiTypeNameValueStorage;
 import com.microsoft.identity.common.java.cache.IShareSingleSignOnState;
 import com.microsoft.identity.common.java.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.java.commands.CommandCallback;
+import com.microsoft.identity.common.java.commands.DeviceCodeFlowCommand;
+import com.microsoft.identity.common.java.commands.DeviceCodeFlowCommandCallback;
 import com.microsoft.identity.common.java.commands.InteractiveTokenCommand;
 import com.microsoft.identity.common.java.commands.SilentTokenCommand;
 import com.microsoft.identity.common.java.commands.parameters.CommandParameters;
@@ -136,6 +136,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -1837,6 +1838,49 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             );
         }
     }
+
+//    public void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback, @Nullable final ClaimsRequest claimsRequest, @Nullable final UUID correlationId) {
+//        DeviceCodeFlowParameters.Builder builder = new DeviceCodeFlowParameters.Builder();
+//
+//        if (null != correlationId) {
+//            builder.withCorrelationId(correlationId);
+//        }
+//
+//        DeviceCodeFlowParameters deviceCodeFlowParameters =
+//                builder.withScopes(scopes)
+//                        .withClaims(claimsRequest)
+//                        .build();
+//
+//        final DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter
+//                .createDeviceCodeFlowWithClaimsCommandParameters(
+//                        mPublicClientConfiguration,
+//                        mPublicClientConfiguration.getOAuth2TokenCache(),
+//                        deviceCodeFlowParameters);
+//
+//        final DeviceCodeFlowCommandCallback deviceCodeFlowCommandCallback = getDeviceCodeFlowCommandCallback(callback);
+//
+//        try {
+//            final DeviceCodeFlowCommand deviceCodeFlowCommand = new DeviceCodeFlowCommand(
+//                    commandParameters,
+//                    MSALControllerFactory.getDefaultController(
+//                            mPublicClientConfiguration.getAppContext(),
+//                            commandParameters.getAuthority(),
+//                            mPublicClientConfiguration
+//                    ),
+//                    deviceCodeFlowCommandCallback,
+//                    PublicApiId.DEVICE_CODE_FLOW_WITH_CLAIMS_AND_CALLBACK
+//            );
+//
+//            CommandDispatcher.submitSilent(deviceCodeFlowCommand);
+//        } catch (final MsalClientException e) {
+//            final MsalClientException clientException = new MsalClientException(
+//                    UNKNOWN_ERROR,
+//                    "Unexpected error while acquiring token with device code.",
+//                    e
+//            );
+//            callback.onError(clientException);
+//        }
+//    }
 
     public void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback) {
         // Create a DeviceCodeFlowCommandParameters object that takes in the desired scopes and the callback object
