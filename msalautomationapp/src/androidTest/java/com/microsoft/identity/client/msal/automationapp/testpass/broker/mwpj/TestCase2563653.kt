@@ -34,21 +34,21 @@ import org.junit.Assert
 import org.junit.Test
 
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2563653
+// [MWPJ] Join with MWPJ API and get account with legacy API
 @SupportedBrokers(brokers = [BrokerHost::class])
 @LocalBrokerHostDebugUiTest
 class TestCase2563653 : AbstractMsalBrokerTest() {
+    private lateinit var mBrokerHostApp: BrokerHost
 
     @Test
     fun test_2563653() {
-
-        val username = mLabAccount.username
-        val password = mLabAccount.password
         val brokerHostApp = broker as BrokerHost
-        brokerHostApp.enableMultipleWpj()
+
         // Register tenant with new WPJ API
-        brokerHostApp.performDeviceRegistrationMultiple(username, password)
-        // Legacy should return tenant
-        Assert.assertTrue(brokerHostApp.accountUpn!!.contains(username))
+        brokerHostApp.performDeviceRegistrationMultiple(mLabAccount.username, mLabAccount.password)
+
+        // Legacy API should be able to get the account
+        Assert.assertTrue(brokerHostApp.accountUpn!!.contains(mLabAccount.username))
     }
 
     override fun getLabQuery(): LabQuery {

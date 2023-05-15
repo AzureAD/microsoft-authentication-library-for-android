@@ -40,30 +40,28 @@ import org.junit.Test
 import org.junit.rules.TestRule
 
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2519809
+// [MWPJ] Unregister 2 WPJ entries.
 @SupportedBrokers(brokers = [BrokerHost::class])
 @LocalBrokerHostDebugUiTest
 class TestCase2519809 : AbstractMsalBrokerTest() {
-    private lateinit var mUsGovLabAccount: ILabAccount
+    private lateinit var mUsGovAccount: ILabAccount
+    private lateinit var mBrokerHostApp: BrokerHost
 
     @get:Rule
     val loadAdditionalLabUserRule: TestRule = LoadLabUserTestRule(getAdditionalLabQuery())
 
     @Test
     fun test_2519809() {
-
-        val username = mLabAccount.username
-        val password = mLabAccount.password
-        val usGovUsername = mUsGovLabAccount.username
-        val usGovPassword = mUsGovLabAccount.password
-        val brokerHostApp = broker as BrokerHost
-        brokerHostApp.enableMultipleWpj()
-        brokerHostApp.performDeviceRegistrationMultiple(username, password)
-        brokerHostApp.performDeviceRegistrationMultiple(usGovUsername, usGovPassword)
-        val deviceRegistrationRecords = brokerHostApp.allRecords
+        // Register 2 accounts from different tenants
+        mBrokerHostApp.performDeviceRegistrationMultiple(mLabAccount.username, mLabAccount.password)
+        mBrokerHostApp.performDeviceRegistrationMultiple(mUsGovAccount.username, mUsGovAccount.password)
+        val deviceRegistrationRecords = mBrokerHostApp.allRecords
         Assert.assertEquals(2, deviceRegistrationRecords.size)
-        brokerHostApp.unregisterDeviceMultiple(deviceRegistrationRecords[0]["Upn"] as String)
-        brokerHostApp.unregisterDeviceMultiple(deviceRegistrationRecords[1]["Upn"] as String)
-        Assert.assertEquals(0, brokerHostApp.allRecords.size)
+
+        // Unregister both accounts
+        mBrokerHostApp.unregisterDeviceMultiple(deviceRegistrationRecords[0]["Upn"] as String)
+        mBrokerHostApp.unregisterDeviceMultiple(deviceRegistrationRecords[1]["Upn"] as String)
+        Assert.assertEquals(0, mBrokerHostApp.allRecords.size)
     }
 
     override fun getLabQuery(): LabQuery {
@@ -85,7 +83,9 @@ class TestCase2519809 : AbstractMsalBrokerTest() {
 
     @Before
     fun before() {
-        mUsGovLabAccount = (loadAdditionalLabUserRule as LoadLabUserTestRule).labAccount
+        mUsGovAccount = (loadAdditionalLabUserRule as LoadLabUserTestRule).labAccount
+        mBrokerHostApp = broker as BrokerHost
+        mBrokerHostApp.enableMultipleWpj()
     }
 
     /**

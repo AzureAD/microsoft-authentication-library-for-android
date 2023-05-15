@@ -41,55 +41,60 @@ import org.junit.Test
 import org.junit.rules.TestRule
 
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2563668
+// [MWPJ] Entry using MWPJ should work with old broker. (backward compatibility)
 @SupportedBrokers(brokers = [BrokerHost::class])
 @LocalBrokerHostDebugUiTest
 class TestCase2563668 : AbstractMsalBrokerTest() {
-    private lateinit var mUsGovLabAccount: ILabAccount
+    private lateinit var mUsGovAccount: ILabAccount
+    private lateinit var mBrokerHostApp: BrokerHost
 
     @get:Rule
     val loadAdditionalLabUserRule: TestRule = LoadLabUserTestRule(getAdditionalLabQuery())
 
     @Test
     fun test_2563668() {
-        val username = mLabAccount.username
-        val password = mLabAccount.password
-        val usGovUsername = mUsGovLabAccount.username
-        val usGovPassword = mUsGovLabAccount.password
-        val brokerHostApp = broker as BrokerHost
-        brokerHostApp.disableMultipleWpj()
         // Register tenant A with MWPJ API
-        brokerHostApp.performDeviceRegistrationMultiple(username, password)
+        mBrokerHostApp.performDeviceRegistrationMultiple(mLabAccount.username, mLabAccount.password)
+
         // Try to register tenant B with MWPJ API, This should fail because broker has MWPJ disabled
-        val errorMessage = brokerHostApp.performDeviceRegistrationMultipleDontValidate(usGovUsername, usGovPassword)
+        val errorMessage = mBrokerHostApp.performDeviceRegistrationMultipleDontValidate(mUsGovAccount.username, mUsGovAccount.password)
         Assert.assertTrue(errorMessage!!.contains("Upgrade is required, please update"))
+
         // Test other APIs
         //Get all records
-        val deviceRegistrationRecords = brokerHostApp.allRecords
+        val deviceRegistrationRecords = mBrokerHostApp.allRecords
         Assert.assertEquals(1, deviceRegistrationRecords.size)
         val record = deviceRegistrationRecords[0]
         Assert.assertEquals(mLabAccount.homeTenantId, record["TenantId"])
-        Assert.assertEquals(username, record["Upn"])
+        Assert.assertEquals(mLabAccount.username, record["Upn"])
+
         //Get record by tenantId
-        val recordByTenantId = brokerHostApp.getRecordByTenantId(mLabAccount.homeTenantId)
+        val recordByTenantId = mBrokerHostApp.getRecordByTenantId(mLabAccount.homeTenantId)
         Assert.assertEquals(record, recordByTenantId)
+
         //Get record by upn
-        val recordByUpn = brokerHostApp.getRecordByUpn(username)
+        val recordByUpn = mBrokerHostApp.getRecordByUpn(mLabAccount.username)
         Assert.assertEquals(record, recordByUpn)
+
         //Get device token
-        val deviceToken = brokerHostApp.getDeviceTokenMultiple(username)
+        val deviceToken = mBrokerHostApp.getDeviceTokenMultiple(mLabAccount.username)
         val claims = JWTParserFactory.INSTANCE.jwtParser.parseJWT(deviceToken)
         Assert.assertTrue(claims.containsKey("deviceid"))
         Assert.assertEquals(record["DeviceId"], claims["deviceid"])
+
         //Install certificate
-        brokerHostApp.installCertificateMultiple(username)
+        mBrokerHostApp.installCertificateMultiple(mLabAccount.username)
+
         //Get device state
-        val deviceState = brokerHostApp.getDeviceStateMultiple(username)
+        val deviceState = mBrokerHostApp.getDeviceStateMultiple(mLabAccount.username)
         Assert.assertTrue(deviceState.contains("DEVICE_VALID"))
+
         // Unregister device
-        brokerHostApp.unregisterDeviceMultiple(username)
-        Assert.assertEquals(0, brokerHostApp.allRecords.size)
+        mBrokerHostApp.unregisterDeviceMultiple(mLabAccount.username)
+        Assert.assertEquals(0, mBrokerHostApp.allRecords.size)
+
         //Get Blob
-        val blob = brokerHostApp.getBlobMultiple(mLabAccount.homeTenantId)
+        val blob = mBrokerHostApp.getBlobMultiple(mLabAccount.homeTenantId)
         val claims2 = JWTParserFactory.INSTANCE.jwtParser.parseJWT(blob)
         Assert.assertTrue(claims2.containsKey("nonce"))
     }
@@ -113,7 +118,9 @@ class TestCase2563668 : AbstractMsalBrokerTest() {
 
     @Before
     fun before() {
-        mUsGovLabAccount = (loadAdditionalLabUserRule as LoadLabUserTestRule).labAccount
+        mUsGovAccount = (loadAdditionalLabUserRule as LoadLabUserTestRule).labAccount
+        mBrokerHostApp = broker as BrokerHost
+        mBrokerHostApp.disableMultipleWpj()
     }
 
     /**

@@ -49,28 +49,24 @@ import org.junit.Test
 import org.junit.rules.TestRule
 
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2521768
+// [MWPJ] An account with no PRT use no Joined flow even if the tenant is registered
 @SupportedBrokers(brokers = [BrokerHost::class])
 @LocalBrokerHostDebugUiTest
 class TestCase2521768 : AbstractMsalBrokerTest() {
 
-    private lateinit var mSecondLabAccount: ILabAccount
+    private lateinit var mLabAccount2: ILabAccount
+    private lateinit var mBrokerHostApp: BrokerHost
 
     @get:Rule
     val loadAdditionalLabUserRule: TestRule = LoadLabUserTestRule(TempUserType.BASIC)
 
     @Test
     fun test_2521768() {
-        val username = mLabAccount.username
-        val password = mLabAccount.password
-        val secondUsername = mSecondLabAccount.username
-        val secondPassword = mSecondLabAccount.password
-        val brokerHostApp = broker as BrokerHost
-        brokerHostApp.enableMultipleWpj()
         // Make an interactive call with MSAL using the first account
         val msalSdk = MsalSdk()
         val authTestParamsForInteractiveRequest = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .loginHint(username)
+                .loginHint(mLabAccount.username)
                 .scopes(listOf(*mScopes))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(configFileResourceId)
@@ -81,26 +77,24 @@ class TestCase2521768 : AbstractMsalBrokerTest() {
                 {
                     val promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
                             .prompt(PromptParameter.SELECT_ACCOUNT)
-                            .loginHint(username)
+                            .loginHint(mLabAccount.username)
                             .sessionExpected(false)
                             .consentPageExpected(false)
                             .build()
-                    MicrosoftStsPromptHandler(promptHandlerParameters).handlePrompt(username, password)
+                    MicrosoftStsPromptHandler(promptHandlerParameters).handlePrompt(mLabAccount.username, mLabAccount.password)
                 },
                 TokenRequestTimeout.MEDIUM
         )
         authResult.assertSuccess()
 
-        // Using a second account, perform device registration
-        // Note: the second account must be different but home tenant id must be same
-        Assert.assertEquals(mSecondLabAccount.homeTenantId, mLabAccount.homeTenantId)
-        Assert.assertNotEquals(secondUsername, username)
-        brokerHostApp.performDeviceRegistrationMultiple(secondUsername, secondPassword)
+        // Using a second account from the same tenant, perform device registration
+        mBrokerHostApp.performDeviceRegistrationMultiple(mLabAccount2.username, mLabAccount2.password)
 
         // start silent token request in MSAL for the first account, and verify that the device id claim is not present
+        // First account uses BrokerLocalController because it doesn't have a PRT, and return AT from cache.
         val authTestParamsForSilentRequest = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .loginHint(username)
+                .loginHint(mLabAccount.username)
                 .scopes(listOf(*mScopes))
                 .authority(authority)
                 .resource(mScopes[0])
@@ -112,6 +106,7 @@ class TestCase2521768 : AbstractMsalBrokerTest() {
         Assert.assertFalse("Device id claim is present", claims.containsKey("deviceid"))
 
         // start silent token request in MSAL with device id claim for the first account, and verify that an exception is thrown.
+        // Note: PkeyAuth is not triggered unless broker_msal version is 9.0 or higher
         val claimsRequest = ClaimsRequest()
         val requestedClaimAdditionalInformation = RequestedClaimAdditionalInformation()
         requestedClaimAdditionalInformation.essential = true
@@ -119,7 +114,7 @@ class TestCase2521768 : AbstractMsalBrokerTest() {
 
         val authTestParamsForSilentRequestWithDeviceIdClaim = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .loginHint(username)
+                .loginHint(mLabAccount.username)
                 .scopes(listOf(*mScopes))
                 .authority(authority)
                 .resource(mScopes[0])
@@ -144,7 +139,7 @@ class TestCase2521768 : AbstractMsalBrokerTest() {
         // Make an interactive call with device id claim using the first account, and verify that the device id claim is present.
         val authTestParamsForInteractiveRequestWithDeviceIdClaim = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .loginHint(username)
+                .loginHint(mLabAccount.username)
                 .scopes(listOf(*mScopes))
                 .claims(claimsRequest)
                 .promptParameter(Prompt.SELECT_ACCOUNT)
@@ -156,12 +151,12 @@ class TestCase2521768 : AbstractMsalBrokerTest() {
                 {
                     val promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
                             .prompt(PromptParameter.WHEN_REQUIRED)
-                            .loginHint(username)
+                            .loginHint(mLabAccount.username)
                             .consentPageExpected(false)
                             .passwordPageExpected(false)
                             .sessionExpected(true)
                             .build()
-                    MicrosoftStsPromptHandler(promptHandlerParameters).handlePrompt(username, password)
+                    MicrosoftStsPromptHandler(promptHandlerParameters).handlePrompt(mLabAccount.username, mLabAccount.password)
                 },
                 TokenRequestTimeout.MEDIUM
         )
@@ -209,6 +204,16 @@ class TestCase2521768 : AbstractMsalBrokerTest() {
 
     @Before
     fun before() {
-        mSecondLabAccount = (loadAdditionalLabUserRule as LoadLabUserTestRule).labAccount
+        mLabAccount2 = (loadAdditionalLabUserRule as LoadLabUserTestRule).labAccount
+        Assert.assertEquals(
+                "Lab accounts are not in the same tenant",
+                mLabAccount2.homeTenantId, mLabAccount.homeTenantId
+        )
+        Assert.assertNotEquals(
+                "Lab accounts are the same",
+                mLabAccount2.username, mLabAccount.username
+        )
+        mBrokerHostApp = broker as BrokerHost
+        mBrokerHostApp.enableMultipleWpj()
     }
 }

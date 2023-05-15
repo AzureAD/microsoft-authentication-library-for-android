@@ -42,53 +42,55 @@ import org.junit.Test
 import org.junit.rules.TestRule
 
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2521946
+// [MWPJ] Device registration entry migration (same upn)
 @SupportedBrokers(brokers = [BrokerHost::class])
 @LocalBrokerHostDebugUiTest
 class TestCase2521946 : AbstractMsalBrokerTest() {
-
-    private lateinit var mUsGovLabAccount: ILabAccount
+    private lateinit var mUsGovAccount: ILabAccount
+    private lateinit var mBrokerHostApp: BrokerHost
 
     @get:Rule
     val loadAdditionalLabUserRule: TestRule = LoadLabUserTestRule(getAdditionalLabQuery())
 
     @Test
     fun test_2521946() {
-
-        val username = mLabAccount.username
-        val password = mLabAccount.password
-        val usGovUsername = mUsGovLabAccount.username
-        val usGovPassword = mUsGovLabAccount.password
-        val brokerHostApp = broker as BrokerHost
-        brokerHostApp.enableMultipleWpj()
         // Register 2 accounts from different tenants
-        brokerHostApp.performDeviceRegistrationMultiple(usGovUsername, usGovPassword)
-        brokerHostApp.performDeviceRegistrationMultiple(username, password)
-        val deviceRegistrationRecords = brokerHostApp.allRecords
+        mBrokerHostApp.performDeviceRegistrationMultiple(mUsGovAccount.username, mUsGovAccount.password)
+        mBrokerHostApp.performDeviceRegistrationMultiple(mLabAccount.username, mLabAccount.password)
+        val deviceRegistrationRecords = mBrokerHostApp.allRecords
         Assert.assertEquals(2, deviceRegistrationRecords.size)
+
         // Unregister the device from the legacy space
-        brokerHostApp.unregisterDeviceMultiple(usGovUsername)
-        // Verify that the device is unregistered for the first account using the legacy API
-        val errorMessage = brokerHostApp.accountUpn
+        mBrokerHostApp.unregisterDeviceMultiple(mUsGovAccount.username)
+
+        // Verify that the device is unregistered for the legacy API
+        val errorMessage = mBrokerHostApp.accountUpn
         Assert.assertNotNull(errorMessage)
         Assert.assertTrue(errorMessage!!.contains("Device is not Workplace Joined"))
-        val recordInExtendedSpace = brokerHostApp.getRecordByUpn(username)
-        // re-register the device for the first account using the legacy API
+
+        // Verify that the device is still registered for the second account using the MWPJ API.
+        val recordInExtendedSpace = mBrokerHostApp.getRecordByUpn(mLabAccount.username)
+        Assert.assertNotNull(recordInExtendedSpace)
+
+        // re-register the device with the same account using the legacy API
         val promptHandlerParameters = PromptHandlerParameters.builder()
                 .prompt(PromptParameter.WHEN_REQUIRED)
                 .consentPageExpected(false)
                 .passwordPageExpected(false)
                 .sessionExpected(true)
-                .loginHint(username)
+                .loginHint(mLabAccount.username)
                 .build()
-        brokerHostApp.performDeviceRegistration(username, password, promptHandlerParameters)
-        // Verify that the device is registered for the first account using the legacy API
-        val legacyAccountMessage = brokerHostApp.accountUpn
-        Assert.assertNotNull(legacyAccountMessage)
-        Assert.assertTrue(legacyAccountMessage!!.contains(username))
-        val recordInLegacy = brokerHostApp.getRecordByUpn(username)
-        // Verify the entry is the same, it was just migrated
-        Assert.assertEquals(recordInExtendedSpace, recordInLegacy)
 
+        mBrokerHostApp.performDeviceRegistration(mLabAccount.username, mLabAccount.password, promptHandlerParameters)
+
+        // Verify the device is registered for the legacy API
+        val legacyAccountMessage = mBrokerHostApp.accountUpn
+        Assert.assertNotNull(legacyAccountMessage)
+        Assert.assertTrue(legacyAccountMessage!!.contains(mLabAccount.username))
+
+        // Verify the entry is the same, it was just migrated
+        val recordInLegacy = mBrokerHostApp.getRecordByUpn(mLabAccount.username)
+        Assert.assertEquals(recordInExtendedSpace, recordInLegacy)
     }
 
     override fun getLabQuery(): LabQuery {
@@ -110,7 +112,9 @@ class TestCase2521946 : AbstractMsalBrokerTest() {
 
     @Before
     fun before() {
-        mUsGovLabAccount = (loadAdditionalLabUserRule as LoadLabUserTestRule).labAccount
+        mUsGovAccount = (loadAdditionalLabUserRule as LoadLabUserTestRule).labAccount
+        mBrokerHostApp = broker as BrokerHost
+        mBrokerHostApp.enableMultipleWpj()
     }
 
     /**

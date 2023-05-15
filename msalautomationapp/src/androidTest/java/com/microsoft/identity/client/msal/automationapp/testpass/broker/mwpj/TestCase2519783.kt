@@ -33,35 +33,34 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestRule
 
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2519783
+// [MWPJ] Install WPJ certificate for browser access in both registrations.
 @LocalBrokerHostDebugUiTest
 @SupportedBrokers(brokers = [BrokerHost::class])
 class TestCase2519783 : AbstractMsalBrokerTest() {
 
-    private lateinit var mUsGovLabAccount: ILabAccount
-
+    private lateinit var mUsGovAccount: ILabAccount
+    private lateinit var mBrokerHostApp: BrokerHost
     @get:Rule
     val loadAdditionalLabUserRule: TestRule = LoadLabUserTestRule(getAdditionalLabQuery())
 
     @Test
     fun test_2519783() {
-
-        val username = mLabAccount.username
-        val password = mLabAccount.password
-        val usGovUsername = mUsGovLabAccount.username
-        val usGovPassword = mUsGovLabAccount.password
-        val brokerHostApp = broker as BrokerHost
-        brokerHostApp.enableMultipleWpj()
-        brokerHostApp.performDeviceRegistrationMultiple(username, password)
-        brokerHostApp.performDeviceRegistrationMultiple(usGovUsername, usGovPassword)
+        // Register 2 accounts from different tenants
+        mBrokerHostApp.performDeviceRegistrationMultiple(mLabAccount.username, mLabAccount.password)
+        mBrokerHostApp.performDeviceRegistrationMultiple(mUsGovAccount.username, mUsGovAccount.password)
         val deviceRegistrationRecords = (broker as BrokerHost).allRecords
-        brokerHostApp.installCertificateMultiple(deviceRegistrationRecords[0]["TenantId"] as String)
-        brokerHostApp.installCertificateMultiple(deviceRegistrationRecords[1]["TenantId"] as String)
+        Assert.assertEquals(2, deviceRegistrationRecords.size)
+
+        // Install WPJ certificate for browser access in both registrations.
+        mBrokerHostApp.installCertificateMultiple(deviceRegistrationRecords[0]["TenantId"] as String)
+        mBrokerHostApp.installCertificateMultiple(deviceRegistrationRecords[1]["TenantId"] as String)
     }
 
     override fun getLabQuery(): LabQuery {
@@ -83,7 +82,9 @@ class TestCase2519783 : AbstractMsalBrokerTest() {
 
     @Before
     fun before() {
-        mUsGovLabAccount = (loadAdditionalLabUserRule as LoadLabUserTestRule).labAccount
+        mUsGovAccount = (loadAdditionalLabUserRule as LoadLabUserTestRule).labAccount
+        mBrokerHostApp = broker as BrokerHost
+        mBrokerHostApp.enableMultipleWpj()
     }
 
     /**

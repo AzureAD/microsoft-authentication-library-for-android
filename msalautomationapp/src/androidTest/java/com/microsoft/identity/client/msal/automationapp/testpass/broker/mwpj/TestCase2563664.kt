@@ -40,33 +40,27 @@ import org.junit.Test
 import org.junit.rules.TestRule
 
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2563664
+// [MWPJ] MWPJ can access two both record while legacy API can access only the first one
 @SupportedBrokers(brokers = [BrokerHost::class])
 @LocalBrokerHostDebugUiTest
 class TestCase2563664 : AbstractMsalBrokerTest() {
-    private lateinit var mUsGovLabAccount: ILabAccount
+    private lateinit var mUsGovAccount: ILabAccount
+    private lateinit var mBrokerHostApp: BrokerHost
 
     @get:Rule
     val loadAdditionalLabUserRule: TestRule = LoadLabUserTestRule(getAdditionalLabQuery())
 
     @Test
     fun test_2563664() {
-
-        val username = mLabAccount.username
-        val password = mLabAccount.password
-        val usGovUsername = mUsGovLabAccount.username
-        val usGovPassword = mUsGovLabAccount.password
-        val brokerHostApp = broker as BrokerHost
-        brokerHostApp.enableMultipleWpj()
         // Register tenant A with legacy WPJ API
-        brokerHostApp.performDeviceRegistration(username, password)
+        mBrokerHostApp.performDeviceRegistration(mLabAccount.username, mLabAccount.password)
         // Register tenant B with new WPJ API
-        brokerHostApp.performDeviceRegistrationMultiple(usGovUsername, usGovPassword)
+        mBrokerHostApp.performDeviceRegistrationMultiple(mUsGovAccount.username, mUsGovAccount.password)
         // Legacy should return tenant A
-        Assert.assertTrue(brokerHostApp.accountUpn!!.contains(username))
+        Assert.assertTrue(mBrokerHostApp.accountUpn!!.contains(mLabAccount.username))
         // new WPJ API should return both
-        val deviceRegistrationRecords = brokerHostApp.allRecords
+        val deviceRegistrationRecords = mBrokerHostApp.allRecords
         Assert.assertEquals(2, deviceRegistrationRecords.size)
-
     }
 
     override fun getLabQuery(): LabQuery {
@@ -88,7 +82,9 @@ class TestCase2563664 : AbstractMsalBrokerTest() {
 
     @Before
     fun before() {
-        mUsGovLabAccount = (loadAdditionalLabUserRule as LoadLabUserTestRule).labAccount
+        mUsGovAccount = (loadAdditionalLabUserRule as LoadLabUserTestRule).labAccount
+        mBrokerHostApp = broker as BrokerHost
+        mBrokerHostApp.enableMultipleWpj()
     }
 
     /**

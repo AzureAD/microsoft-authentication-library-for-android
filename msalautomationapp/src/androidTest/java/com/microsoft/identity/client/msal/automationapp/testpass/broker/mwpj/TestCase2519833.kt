@@ -40,35 +40,34 @@ import org.junit.Test
 import org.junit.rules.TestRule
 
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2519833
+// [MWPJ] Get records by tenant id and upn
 @SupportedBrokers(brokers = [BrokerHost::class])
 @LocalBrokerHostDebugUiTest
 class TestCase2519833 : AbstractMsalBrokerTest() {
-
-    private lateinit var mUsGovLabAccount: ILabAccount
+    private lateinit var mUsGovAccount: ILabAccount
+    private lateinit var mBrokerHostApp: BrokerHost
 
     @get:Rule
     val loadAdditionalLabUserRule: TestRule = LoadLabUserTestRule(getAdditionalLabQuery())
 
     @Test
     fun test_2519833() {
-
-        val username = mLabAccount.username
-        val password = mLabAccount.password
-        val usGovUsername = mUsGovLabAccount.username
-        val usGovPassword = mUsGovLabAccount.password
-        val brokerHostApp = broker as BrokerHost
-        brokerHostApp.enableMultipleWpj()
-        brokerHostApp.performDeviceRegistrationMultiple(username, password)
-        brokerHostApp.performDeviceRegistrationMultiple(usGovUsername, usGovPassword)
-        val deviceRegistrationRecords = brokerHostApp.allRecords
+        // Register 2 accounts from different tenants
+        mBrokerHostApp.performDeviceRegistrationMultiple(mUsGovAccount.username, mUsGovAccount.password)
+        mBrokerHostApp.performDeviceRegistrationMultiple(mLabAccount.username, mLabAccount.password)
+        val deviceRegistrationRecords = mBrokerHostApp.allRecords
         Assert.assertEquals(2, deviceRegistrationRecords.size)
-        val record0 = brokerHostApp.getRecordByTenantId(deviceRegistrationRecords[0]["TenantId"] as String)
+
+        // Get record by tenant id
+        val record0 = mBrokerHostApp.getRecordByTenantId(deviceRegistrationRecords[0]["TenantId"] as String)
         Assert.assertEquals(deviceRegistrationRecords[0], record0)
-        val record1 = brokerHostApp.getRecordByUpn(deviceRegistrationRecords[0]["Upn"] as String)
-        Assert.assertEquals(deviceRegistrationRecords[0], record1)
-        val record2 = brokerHostApp.getRecordByTenantId(deviceRegistrationRecords[1]["TenantId"] as String)
-        Assert.assertEquals(deviceRegistrationRecords[1], record2)
-        val record3 = brokerHostApp.getRecordByUpn(deviceRegistrationRecords[1]["Upn"] as String)
+        val record1 = mBrokerHostApp.getRecordByTenantId(deviceRegistrationRecords[1]["TenantId"] as String)
+        Assert.assertEquals(deviceRegistrationRecords[1], record1)
+
+        // Get record by upn
+        val record2 = mBrokerHostApp.getRecordByUpn(deviceRegistrationRecords[0]["Upn"] as String)
+        Assert.assertEquals(deviceRegistrationRecords[0], record2)
+        val record3 = mBrokerHostApp.getRecordByUpn(deviceRegistrationRecords[1]["Upn"] as String)
         Assert.assertEquals(deviceRegistrationRecords[1], record3)
     }
 
@@ -91,7 +90,9 @@ class TestCase2519833 : AbstractMsalBrokerTest() {
 
     @Before
     fun before() {
-        mUsGovLabAccount = (loadAdditionalLabUserRule as LoadLabUserTestRule).labAccount
+        mUsGovAccount = (loadAdditionalLabUserRule as LoadLabUserTestRule).labAccount
+        mBrokerHostApp = broker as BrokerHost
+        mBrokerHostApp.enableMultipleWpj()
     }
 
     /**
