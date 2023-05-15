@@ -22,17 +22,27 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.mwpj
 
+import com.microsoft.identity.client.Prompt
+import com.microsoft.identity.client.claims.ClaimsRequest
+import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation
 import com.microsoft.identity.client.msal.automationapp.R
+import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams
+import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
+import com.microsoft.identity.client.ui.automation.TokenRequestTimeout
 import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost
+import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters
 import com.microsoft.identity.client.ui.automation.rules.LoadLabUserTestRule
 import com.microsoft.identity.labapi.utilities.client.ILabAccount
 import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
+import com.microsoft.identity.labapi.utilities.jwt.JWTParserFactory
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
@@ -55,7 +65,7 @@ class TestCase2521960 : AbstractMsalBrokerTest() {
     val loadAdditionalLabUserRule: TestRule = LoadLabUserTestRule(TempUserType.BASIC)
 
     @Test
-    fun test_2521950() {
+    fun test_2521960() {
         // Register 2 accounts from different tenants
         mBrokerHostApp.performDeviceRegistrationMultiple(mUsGovAccount.username, mUsGovAccount.password)
         mBrokerHostApp.performDeviceRegistrationMultiple(mLabAccount.username, mLabAccount.password)
@@ -88,6 +98,39 @@ class TestCase2521960 : AbstractMsalBrokerTest() {
         Assert.assertEquals(recordInExtendedSpace["TenantId"], recordInLegacy[0]["TenantId"])
         Assert.assertNotEquals(recordInExtendedSpace["Upn"], recordInLegacy[0]["Upn"])
         Assert.assertNotEquals(recordInExtendedSpace["DeviceId"], recordInLegacy[0]["DeviceId"])
+
+        //  SSO shall not break (PRT is still usable without extra prompts)
+        val claimsRequest = ClaimsRequest()
+        val requestedClaimAdditionalInformation = RequestedClaimAdditionalInformation()
+        requestedClaimAdditionalInformation.essential = true
+        claimsRequest.requestClaimInIdToken("deviceid", requestedClaimAdditionalInformation)
+
+        val authTestParamsForInteractiveRequestWithDeviceIdClaim = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .loginHint(mLabAccount2.username)
+                .scopes(listOf(*mScopes))
+                .claims(claimsRequest)
+                .promptParameter(Prompt.SELECT_ACCOUNT)
+                .msalConfigResourceId(configFileResourceId)
+                .build()
+
+        val authResult = MsalSdk().acquireTokenInteractive(
+                authTestParamsForInteractiveRequestWithDeviceIdClaim,
+                {
+                    val promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
+                            .prompt(PromptParameter.WHEN_REQUIRED)
+                            .loginHint(mLabAccount2.username)
+                            .consentPageExpected(false)
+                            .passwordPageExpected(false)
+                            .sessionExpected(true)
+                            .build()
+                    MicrosoftStsPromptHandler(promptHandlerParameters).handlePrompt(mLabAccount2.username, mLabAccount2.password)
+                },
+                TokenRequestTimeout.MEDIUM
+        )
+        authResult.assertSuccess()
+        val claims2 = JWTParserFactory.INSTANCE.jwtParser.parseJWT(authResult.accessToken)
+        Assert.assertTrue("Device id claim is present", claims2.containsKey("deviceid"))
     }
 
     override fun getLabQuery(): LabQuery {
