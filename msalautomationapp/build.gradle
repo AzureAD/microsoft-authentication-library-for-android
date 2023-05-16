@@ -23,6 +23,7 @@ android {
     final String BROKER_HOST = "BrokerHost"
     final String BROKER_MICROSOFT_AUTHENTICATOR = "BrokerMicrosoftAuthenticator"
     final String BROKER_COMPANY_PORTAL = "BrokerCompanyPortal"
+    final String BROKER_LTW = "BrokerLTW"
     final String AUTO_BROKER = "AutoBroker"
     final String SELECTED_BROKER = "SELECTED_BROKER"
 
@@ -61,6 +62,7 @@ android {
         // constants
         buildConfigField("String", BROKER_MICROSOFT_AUTHENTICATOR, "\"$BROKER_MICROSOFT_AUTHENTICATOR\"")
         buildConfigField("String", BROKER_COMPANY_PORTAL, "\"$BROKER_COMPANY_PORTAL\"")
+        buildConfigField("String", BROKER_LTW, "\"$BROKER_LTW\"")
         buildConfigField("String", BROKER_HOST, "\"$BROKER_HOST\"")
         buildConfigField("String", AUTO_BROKER, "\"$AUTO_BROKER\"")
     }
@@ -115,6 +117,11 @@ android {
         BrokerCompanyPortal {
             dimension "broker"
             buildConfigField("String", SELECTED_BROKER, "\"$BROKER_COMPANY_PORTAL\"")
+        }
+
+        BrokerLTW {
+            dimension "broker"
+            buildConfigField("String", SELECTED_BROKER, "\"$BROKER_LTW\"")
         }
 
         BrokerHost {
