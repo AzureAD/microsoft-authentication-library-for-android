@@ -1,3 +1,25 @@
+//  Copyright (c) Microsoft Corporation.
+//  All rights reserved.
+//
+//  This code is licensed under the MIT License.
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files(the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions :
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.update
 
 import com.microsoft.identity.client.Prompt
@@ -23,14 +45,12 @@ import java.util.*
 class TestCaseUpdateAuthenticator : AbstractMsalCustomBrokerInstallationTest() {
 
     private val mAuthenticator: BrokerMicrosoftAuthenticator = installOldAuthenticator()
+
     @Test
     @Throws(Throwable::class)
     fun test_UpdateAuthenticator() {
         val username = mLabAccount.username
         val password = mLabAccount.password
-       // mBroker.isInstalled
-        val brokerAuthenticator = BrokerMicrosoftAuthenticator()
-        brokerAuthenticator.install()
 
         val msalSdk = MsalSdk()
         val authTestParams = MsalAuthTestParams.builder()
@@ -61,10 +81,7 @@ class TestCaseUpdateAuthenticator : AbstractMsalCustomBrokerInstallationTest() {
         MsalAuthResult.verifyATForPop(authResult.accessToken)
 
         // Update the authenticator app
-        //mBroker.update()
         mAuthenticator.update()
-        //brokerAuthenticator.update()
-        // start silent token request in MSAL
 
         // start silent token request in MSAL
         val authTestSilentParams = MsalAuthTestParams.builder()
@@ -76,7 +93,8 @@ class TestCaseUpdateAuthenticator : AbstractMsalCustomBrokerInstallationTest() {
             .msalConfigResourceId(configFileResourceId)
             .build()
 
-        val authResultPostUpdate : MsalAuthResult = msalSdk.acquireTokenSilent(authTestSilentParams, TokenRequestTimeout.SILENT)
+        val authResultPostUpdate: MsalAuthResult =
+            msalSdk.acquireTokenSilent(authTestSilentParams, TokenRequestTimeout.SILENT)
         authResultPostUpdate.assertSuccess()
         MsalAuthResult.verifyATForPop(authResult.accessToken)
     }
@@ -102,5 +120,4 @@ class TestCaseUpdateAuthenticator : AbstractMsalCustomBrokerInstallationTest() {
     override fun getConfigFileResourceId(): Int {
         return R.raw.msal_config_default
     }
-
 }
