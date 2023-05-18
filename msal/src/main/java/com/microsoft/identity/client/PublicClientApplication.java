@@ -81,6 +81,7 @@ import com.microsoft.identity.common.adal.internal.tokensharing.TokenShareUtilit
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory;
 import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
+import com.microsoft.identity.common.internal.broker.PackageHelper;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.commands.GenerateShrCommand;
 import com.microsoft.identity.common.internal.commands.GetDeviceModeCommand;
@@ -205,6 +206,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     private static final String TAG = PublicClientApplication.class.getSimpleName();
     private static final String INTERNET_PERMISSION = "android.permission.INTERNET";
     private static final String ACCESS_NETWORK_STATE_PERMISSION = "android.permission.ACCESS_NETWORK_STATE";
+    private static final String ERR_UNSUPPORTED_OPERATION = "This method is unsupported.";
     private static final ExecutorService sBackgroundExecutor = Executors.newCachedThreadPool();
 
     static class NONNULL_CONSTANTS {
@@ -1839,48 +1841,56 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         }
     }
 
-//    public void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback, @Nullable final ClaimsRequest claimsRequest, @Nullable final UUID correlationId) {
-//        DeviceCodeFlowParameters.Builder builder = new DeviceCodeFlowParameters.Builder();
-//
-//        if (null != correlationId) {
-//            builder.withCorrelationId(correlationId);
-//        }
-//
-//        DeviceCodeFlowParameters deviceCodeFlowParameters =
-//                builder.withScopes(scopes)
-//                        .withClaims(claimsRequest)
-//                        .build();
-//
-//        final DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter
-//                .createDeviceCodeFlowWithClaimsCommandParameters(
-//                        mPublicClientConfiguration,
-//                        mPublicClientConfiguration.getOAuth2TokenCache(),
-//                        deviceCodeFlowParameters);
-//
-//        final DeviceCodeFlowCommandCallback deviceCodeFlowCommandCallback = getDeviceCodeFlowCommandCallback(callback);
-//
-//        try {
-//            final DeviceCodeFlowCommand deviceCodeFlowCommand = new DeviceCodeFlowCommand(
-//                    commandParameters,
-//                    MSALControllerFactory.getDefaultController(
-//                            mPublicClientConfiguration.getAppContext(),
-//                            commandParameters.getAuthority(),
-//                            mPublicClientConfiguration
-//                    ),
-//                    deviceCodeFlowCommandCallback,
-//                    PublicApiId.DEVICE_CODE_FLOW_WITH_CLAIMS_AND_CALLBACK
-//            );
-//
-//            CommandDispatcher.submitSilent(deviceCodeFlowCommand);
-//        } catch (final MsalClientException e) {
-//            final MsalClientException clientException = new MsalClientException(
-//                    UNKNOWN_ERROR,
-//                    "Unexpected error while acquiring token with device code.",
-//                    e
-//            );
-//            callback.onError(clientException);
-//        }
-//    }
+    public void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback, @Nullable final ClaimsRequest claimsRequest, @Nullable final UUID correlationId) {
+        final Context context = mPublicClientConfiguration.getAppContext();
+        PackageHelper packageHelper = new PackageHelper(context);
+
+        // Currently this method is only supported for Teams app
+        if (!packageHelper.verifyIfValidTeamsPackage(context.getPackageName())) {
+            throw new UnsupportedOperationException(ERR_UNSUPPORTED_OPERATION);
+        } else {
+            DeviceCodeFlowParameters.Builder builder = new DeviceCodeFlowParameters.Builder();
+
+            if (null != correlationId) {
+                builder.withCorrelationId(correlationId);
+            }
+
+            DeviceCodeFlowParameters deviceCodeFlowParameters =
+                    builder.withScopes(scopes)
+                            .withClaims(claimsRequest)
+                            .build();
+
+            final DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter
+                    .createDeviceCodeFlowWithClaimsCommandParameters(
+                            mPublicClientConfiguration,
+                            mPublicClientConfiguration.getOAuth2TokenCache(),
+                            deviceCodeFlowParameters);
+
+            final DeviceCodeFlowCommandCallback deviceCodeFlowCommandCallback = getDeviceCodeFlowCommandCallback(callback);
+
+            try {
+                final DeviceCodeFlowCommand deviceCodeFlowCommand = new DeviceCodeFlowCommand(
+                        commandParameters,
+                        MSALControllerFactory.getDefaultController(
+                                mPublicClientConfiguration.getAppContext(),
+                                commandParameters.getAuthority(),
+                                mPublicClientConfiguration
+                        ),
+                        deviceCodeFlowCommandCallback,
+                        PublicApiId.DEVICE_CODE_FLOW_WITH_CLAIMS_AND_CALLBACK
+                );
+
+                CommandDispatcher.submitSilent(deviceCodeFlowCommand);
+            } catch (final MsalClientException e) {
+                final MsalClientException clientException = new MsalClientException(
+                        UNKNOWN_ERROR,
+                        "Unexpected error while acquiring token with device code.",
+                        e
+                );
+                callback.onError(clientException);
+            }
+        }
+    }
 
     public void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback) {
         // Create a DeviceCodeFlowCommandParameters object that takes in the desired scopes and the callback object
