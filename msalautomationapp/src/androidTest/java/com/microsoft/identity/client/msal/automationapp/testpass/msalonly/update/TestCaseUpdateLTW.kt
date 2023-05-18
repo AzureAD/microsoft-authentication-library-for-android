@@ -5,11 +5,9 @@ import com.microsoft.identity.client.msal.automationapp.R
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk
-import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerUpdateTest
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalCustomBrokerInstallationTest
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
-import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.broker.BrokerLTW
 import com.microsoft.identity.client.ui.automation.constants.AuthScheme
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters
@@ -21,18 +19,16 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import org.junit.Test
 import java.util.*
 
-//@SupportedBrokers(brokers = [BrokerLTW::class])
 @RetryOnFailure
 class TestCaseUpdateLTW : AbstractMsalCustomBrokerInstallationTest() {
 
+    private val mBrokerLTW : BrokerLTW = installOldLtw()
+
     @Test
     @Throws(Throwable::class)
-    fun test_UpdateAuthenticator() {
+    fun test_UpdateLTW() {
         val username = mLabAccount.username
         val password = mLabAccount.password
-
-        val brokerLTW = BrokerLTW()
-        brokerLTW.install()
 
         val msalSdk = MsalSdk()
         val authTestParams = MsalAuthTestParams.builder()
@@ -51,7 +47,7 @@ class TestCaseUpdateLTW : AbstractMsalCustomBrokerInstallationTest() {
                 .sessionExpected(false)
                 .consentPageExpected(false)
                 .speedBumpExpected(false)
-                .broker(null)
+                .broker(mBrokerLTW)
                 .expectingBrokerAccountChooserActivity(false)
                 .build()
             AadPromptHandler(promptHandlerParameters)
@@ -63,10 +59,9 @@ class TestCaseUpdateLTW : AbstractMsalCustomBrokerInstallationTest() {
         MsalAuthResult.verifyATForPop(authResult.accessToken)
 
         // Update the authenticator app
-        brokerLTW.update()
+        mBrokerLTW.update()
         // start silent token request in MSAL
 
-        // start silent token request in MSAL
         val authTestSilentParams = MsalAuthTestParams.builder()
             .activity(mActivity)
             .loginHint(username)
@@ -81,8 +76,6 @@ class TestCaseUpdateLTW : AbstractMsalCustomBrokerInstallationTest() {
         MsalAuthResult.verifyATForPop(authResult.accessToken)
     }
 
-
-
     override fun getLabQuery(): LabQuery {
         return LabQuery.builder()
             .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
@@ -90,7 +83,7 @@ class TestCaseUpdateLTW : AbstractMsalCustomBrokerInstallationTest() {
     }
 
     override fun getTempUserType(): TempUserType? {
-        return null
+        return TempUserType.BASIC
     }
 
     override fun getScopes(): Array<String>? {

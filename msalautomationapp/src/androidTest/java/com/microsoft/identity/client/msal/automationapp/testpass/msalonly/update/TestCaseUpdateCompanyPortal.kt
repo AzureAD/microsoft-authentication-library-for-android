@@ -11,6 +11,7 @@ import com.microsoft.identity.client.ui.automation.TokenRequestTimeout
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal
+import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator
 import com.microsoft.identity.client.ui.automation.constants.AuthScheme
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
@@ -21,18 +22,16 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import org.junit.Test
 import java.util.*
 
-//@SupportedBrokers(brokers = [BrokerCompanyPortal::class])
 @RetryOnFailure
 class TestCaseUpdateCompanyPortal : AbstractMsalCustomBrokerInstallationTest() {
 
+    private val mCompanyPortal: BrokerCompanyPortal = installOldCompanyPortal()
+
     @Test
     @Throws(Throwable::class)
-    fun test_UpdateAuthenticator() {
+    fun test_UpdateCompanyPortal() {
         val username = mLabAccount.username
         val password = mLabAccount.password
-
-        val brokerCompanyPortal = BrokerCompanyPortal()
-        brokerCompanyPortal.install()
 
         val msalSdk = MsalSdk()
         val authTestParams = MsalAuthTestParams.builder()
@@ -51,7 +50,7 @@ class TestCaseUpdateCompanyPortal : AbstractMsalCustomBrokerInstallationTest() {
                 .sessionExpected(false)
                 .consentPageExpected(false)
                 .speedBumpExpected(false)
-                .broker(null)
+                .broker(mCompanyPortal)
                 .expectingBrokerAccountChooserActivity(false)
                 .build()
             AadPromptHandler(promptHandlerParameters)
@@ -63,7 +62,7 @@ class TestCaseUpdateCompanyPortal : AbstractMsalCustomBrokerInstallationTest() {
         MsalAuthResult.verifyATForPop(authResult.accessToken)
 
         // Update the authenticator app
-        brokerCompanyPortal.update()
+        mCompanyPortal.update()
         // start silent token request in MSAL
 
         // start silent token request in MSAL
@@ -90,7 +89,7 @@ class TestCaseUpdateCompanyPortal : AbstractMsalCustomBrokerInstallationTest() {
     }
 
     override fun getTempUserType(): TempUserType? {
-        return null
+        return TempUserType.BASIC
     }
 
     override fun getScopes(): Array<String>? {

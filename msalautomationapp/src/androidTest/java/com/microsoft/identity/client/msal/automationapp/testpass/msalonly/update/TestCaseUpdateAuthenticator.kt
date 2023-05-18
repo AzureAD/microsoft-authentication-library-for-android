@@ -19,16 +19,16 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import org.junit.Test
 import java.util.*
 
-//@SupportedBrokers(brokers = [BrokerMicrosoftAuthenticator::class])
 @RetryOnFailure
 class TestCaseUpdateAuthenticator : AbstractMsalCustomBrokerInstallationTest() {
 
+    private val mAuthenticator: BrokerMicrosoftAuthenticator = installOldAuthenticator()
     @Test
     @Throws(Throwable::class)
     fun test_UpdateAuthenticator() {
         val username = mLabAccount.username
         val password = mLabAccount.password
-
+       // mBroker.isInstalled
         val brokerAuthenticator = BrokerMicrosoftAuthenticator()
         brokerAuthenticator.install()
 
@@ -49,7 +49,7 @@ class TestCaseUpdateAuthenticator : AbstractMsalCustomBrokerInstallationTest() {
                 .sessionExpected(false)
                 .consentPageExpected(false)
                 .speedBumpExpected(false)
-                .broker(null)
+                .broker(mAuthenticator)
                 .expectingBrokerAccountChooserActivity(false)
                 .build()
             AadPromptHandler(promptHandlerParameters)
@@ -61,7 +61,9 @@ class TestCaseUpdateAuthenticator : AbstractMsalCustomBrokerInstallationTest() {
         MsalAuthResult.verifyATForPop(authResult.accessToken)
 
         // Update the authenticator app
-        brokerAuthenticator.update()
+        //mBroker.update()
+        mAuthenticator.update()
+        //brokerAuthenticator.update()
         // start silent token request in MSAL
 
         // start silent token request in MSAL
@@ -79,8 +81,6 @@ class TestCaseUpdateAuthenticator : AbstractMsalCustomBrokerInstallationTest() {
         MsalAuthResult.verifyATForPop(authResult.accessToken)
     }
 
-
-
     override fun getLabQuery(): LabQuery {
         return LabQuery.builder()
             .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
@@ -88,7 +88,7 @@ class TestCaseUpdateAuthenticator : AbstractMsalCustomBrokerInstallationTest() {
     }
 
     override fun getTempUserType(): TempUserType? {
-        return null
+        return TempUserType.BASIC
     }
 
     override fun getScopes(): Array<String>? {
