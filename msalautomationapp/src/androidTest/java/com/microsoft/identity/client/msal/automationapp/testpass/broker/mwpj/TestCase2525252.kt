@@ -24,38 +24,75 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.mwpj
 
 import com.microsoft.identity.client.msal.automationapp.R
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
+import com.microsoft.identity.client.ui.automation.ICustomBrokerInstallationTest
 import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost
+import com.microsoft.identity.client.ui.automation.broker.ITestBroker
 import com.microsoft.identity.labapi.utilities.client.ILabAccount
 import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
+import com.microsoft.identity.labapi.utilities.jwt.JWTParserFactory
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2519783
-// [MWPJ] Install WPJ certificate for browser access in both registrations.
-@LocalBrokerHostDebugUiTest
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2525252
+// TODO
 @SupportedBrokers(brokers = [BrokerHost::class])
-class TestCase2519783 : AbstractMsalBrokerTest() {
-
+@LocalBrokerHostDebugUiTest
+class TestCase2525252 : AbstractMsalBrokerTest() , ICustomBrokerInstallationTest {
     private lateinit var mUsGovAccount: ILabAccount
     private lateinit var mBrokerHostApp: BrokerHost
 
-    @Test
-    fun test_2519783() {
-        // Register 2 accounts from different tenants
-        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mLabAccount.username, mLabAccount.password)
-        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mUsGovAccount.username, mUsGovAccount.password)
-        val deviceRegistrationRecords = mBrokerHostApp.multipleWpjApiFragment.allRecords
-        Assert.assertEquals(2, deviceRegistrationRecords.size)
+    //@Test
+    fun test_2525252() {
+        // Register tenant using legacy API
+        mBrokerHostApp.performDeviceRegistrationLegacyApp(mLabAccount.username, mLabAccount.password)
 
-        // Install WPJ certificate for browser access in both registrations.
-        mBrokerHostApp.multipleWpjApiFragment.installCertificate(deviceRegistrationRecords[0]["TenantId"] as String)
-        mBrokerHostApp.multipleWpjApiFragment.installCertificate(deviceRegistrationRecords[1]["TenantId"] as String)
+        //Upgrade broker
+        updateBrokerHostApp()
+        mBrokerHostApp.enableMultipleWpj()
+
+        // Test other APIs
+        //Get all records
+        val deviceRegistrationRecords = mBrokerHostApp.multipleWpjApiFragment.allRecords
+        Assert.assertEquals(1, deviceRegistrationRecords.size)
+        val record = deviceRegistrationRecords[0]
+        Assert.assertEquals(mLabAccount.homeTenantId, record["TenantId"])
+        Assert.assertEquals(mLabAccount.username, record["Upn"])
+
+        //Get record by tenantId
+        val recordByTenantId = mBrokerHostApp.multipleWpjApiFragment.getRecordByTenantId(mLabAccount.homeTenantId)
+        Assert.assertEquals(record, recordByTenantId)
+
+        //Get record by upn
+        val recordByUpn = mBrokerHostApp.multipleWpjApiFragment.getRecordByUpn(mLabAccount.username)
+        Assert.assertEquals(record, recordByUpn)
+
+        //Get device token
+        val deviceToken = mBrokerHostApp.multipleWpjApiFragment.getDeviceToken(mLabAccount.username)
+        val claims = JWTParserFactory.INSTANCE.jwtParser.parseJWT(deviceToken)
+        Assert.assertTrue(claims.containsKey("deviceid"))
+        Assert.assertEquals(record["DeviceId"], claims["deviceid"])
+
+        //Install certificate
+        mBrokerHostApp.multipleWpjApiFragment.installCertificate(mLabAccount.username)
+
+        //Get device state
+        val deviceState = mBrokerHostApp.multipleWpjApiFragment.getDeviceState(mLabAccount.username)
+        Assert.assertTrue(deviceState.contains("DEVICE_VALID"))
+
+        // Unregister device
+        mBrokerHostApp.multipleWpjApiFragment.unregister(mLabAccount.username)
+        Assert.assertEquals(0, mBrokerHostApp.multipleWpjApiFragment.allRecords.size)
+
+        //Get Blob
+        val blob = mBrokerHostApp.multipleWpjApiFragment.getBlob(mLabAccount.homeTenantId)
+        val claims2 = JWTParserFactory.INSTANCE.jwtParser.parseJWT(blob)
+        Assert.assertTrue(claims2.containsKey("nonce"))
     }
 
     override fun getLabQuery(): LabQuery {
@@ -79,7 +116,6 @@ class TestCase2519783 : AbstractMsalBrokerTest() {
     fun before() {
         mUsGovAccount = mLabClient.getLabAccount(getUsGovLabQuery())
         mBrokerHostApp = broker as BrokerHost
-        mBrokerHostApp.enableMultipleWpj()
     }
 
     /**
@@ -108,4 +144,19 @@ class TestCase2519783 : AbstractMsalBrokerTest() {
     override fun getConfigFileResourceId(): Int {
         return R.raw.msal_config_default
     }
+
+    override fun getBroker(): ITestBroker {
+        if (mBroker == null) {
+            mBroker = installOldBrokerHost()
+        }
+        return mBroker
+    }
+
+    private fun updateBrokerHostApp() {
+        val brokerHost = BrokerHost()
+        brokerHost.install()
+        mBroker = brokerHost
+        mBrokerHostApp = mBroker as BrokerHost
+    }
+
 }

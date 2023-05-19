@@ -43,7 +43,9 @@ public class Constants {
         MSA,
         MSA_ONLY,
         NO_ADMIN_CONSENT,
-        CIAM
+        CIAM,
+        PKEY_AUTH_SILENT
+
     }
 
     public static int getResourceIdFromConfigFile(ConfigFile configFile) {
@@ -89,6 +91,9 @@ public class Constants {
 
             case CIAM:
                 return R.raw.msal_config_ciam;
+
+            case PKEY_AUTH_SILENT:
+                return R.raw.msal_config_pkey_auth_silent;
         }
 
         return R.raw.msal_config_default;

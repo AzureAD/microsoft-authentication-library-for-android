@@ -47,21 +47,21 @@ class TestCase2519833 : AbstractMsalBrokerTest() {
     @Test
     fun test_2519833() {
         // Register 2 accounts from different tenants
-        mBrokerHostApp.performDeviceRegistrationMultiple(mUsGovAccount.username, mUsGovAccount.password)
-        mBrokerHostApp.performDeviceRegistrationMultiple(mLabAccount.username, mLabAccount.password)
-        val deviceRegistrationRecords = mBrokerHostApp.allRecords
+        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mUsGovAccount.username, mUsGovAccount.password)
+        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mLabAccount.username, mLabAccount.password)
+        val deviceRegistrationRecords = mBrokerHostApp.multipleWpjApiFragment.allRecords
         Assert.assertEquals(2, deviceRegistrationRecords.size)
 
         // Get record by tenant id
-        val record0 = mBrokerHostApp.getRecordByTenantId(deviceRegistrationRecords[0]["TenantId"] as String)
+        val record0 = mBrokerHostApp.multipleWpjApiFragment.getRecordByTenantId(deviceRegistrationRecords[0]["TenantId"] as String)
         Assert.assertEquals(deviceRegistrationRecords[0], record0)
-        val record1 = mBrokerHostApp.getRecordByTenantId(deviceRegistrationRecords[1]["TenantId"] as String)
+        val record1 = mBrokerHostApp.multipleWpjApiFragment.getRecordByTenantId(deviceRegistrationRecords[1]["TenantId"] as String)
         Assert.assertEquals(deviceRegistrationRecords[1], record1)
 
         // Get record by upn
-        val record2 = mBrokerHostApp.getRecordByUpn(deviceRegistrationRecords[0]["Upn"] as String)
+        val record2 = mBrokerHostApp.multipleWpjApiFragment.getRecordByUpn(deviceRegistrationRecords[0]["Upn"] as String)
         Assert.assertEquals(deviceRegistrationRecords[0], record2)
-        val record3 = mBrokerHostApp.getRecordByUpn(deviceRegistrationRecords[1]["Upn"] as String)
+        val record3 = mBrokerHostApp.multipleWpjApiFragment.getRecordByUpn(deviceRegistrationRecords[1]["Upn"] as String)
         Assert.assertEquals(deviceRegistrationRecords[1], record3)
     }
 

@@ -49,11 +49,11 @@ class TestCase2563664 : AbstractMsalBrokerTest() {
         // Register tenant A with legacy WPJ API
         mBrokerHostApp.performDeviceRegistration(mLabAccount.username, mLabAccount.password)
         // Register tenant B with new WPJ API
-        mBrokerHostApp.performDeviceRegistrationMultiple(mUsGovAccount.username, mUsGovAccount.password)
+        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mUsGovAccount.username, mUsGovAccount.password)
         // Legacy should return tenant A
         Assert.assertTrue(mBrokerHostApp.accountUpn!!.contains(mLabAccount.username))
         // new WPJ API should return both
-        val deviceRegistrationRecords = mBrokerHostApp.allRecords
+        val deviceRegistrationRecords = mBrokerHostApp.multipleWpjApiFragment.allRecords
         Assert.assertEquals(2, deviceRegistrationRecords.size)
     }
 

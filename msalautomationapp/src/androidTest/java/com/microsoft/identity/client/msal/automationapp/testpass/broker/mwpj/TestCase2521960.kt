@@ -67,13 +67,13 @@ class TestCase2521960 : AbstractMsalBrokerTest() {
     @Test
     fun test_2521960() {
         // Register 2 accounts from different tenants
-        mBrokerHostApp.performDeviceRegistrationMultiple(mUsGovAccount.username, mUsGovAccount.password)
-        mBrokerHostApp.performDeviceRegistrationMultiple(mLabAccount.username, mLabAccount.password)
-        val deviceRegistrationRecords = mBrokerHostApp.allRecords
+        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mUsGovAccount.username, mUsGovAccount.password)
+        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mLabAccount.username, mLabAccount.password)
+        val deviceRegistrationRecords = mBrokerHostApp.multipleWpjApiFragment.allRecords
         Assert.assertEquals(2, deviceRegistrationRecords.size)
 
         // Unregister the device from the legacy space
-        mBrokerHostApp.unregisterDeviceMultiple(mUsGovAccount.username)
+        mBrokerHostApp.multipleWpjApiFragment.unregister(mUsGovAccount.username)
 
         // Verify that the device is unregistered for the legacy API
         val errorMessage = mBrokerHostApp.accountUpn
@@ -81,7 +81,7 @@ class TestCase2521960 : AbstractMsalBrokerTest() {
         Assert.assertTrue(errorMessage!!.contains("Device is not Workplace Joined"))
 
         // Verify that the device is still registered for the second account using the MWPJ API.
-        val recordInExtendedSpace = mBrokerHostApp.getRecordByUpn(mLabAccount.username)
+        val recordInExtendedSpace = mBrokerHostApp.multipleWpjApiFragment.getRecordByUpn(mLabAccount.username)
         Assert.assertNotNull(recordInExtendedSpace)
 
         // Register the device with the second account (same tenant different upn) using the legacy API
@@ -93,7 +93,7 @@ class TestCase2521960 : AbstractMsalBrokerTest() {
         Assert.assertTrue(legacyAccountMessage!!.contains(mLabAccount2.username))
 
         // Verify the entry in the extended space was removed and replaced with the entry from the second account.
-        val recordInLegacy = mBrokerHostApp.allRecords
+        val recordInLegacy = mBrokerHostApp.multipleWpjApiFragment.allRecords
         Assert.assertEquals(1, recordInLegacy.size)
         Assert.assertEquals(recordInExtendedSpace["TenantId"], recordInLegacy[0]["TenantId"])
         Assert.assertNotEquals(recordInExtendedSpace["Upn"], recordInLegacy[0]["Upn"])

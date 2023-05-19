@@ -44,7 +44,7 @@ class TestCase2563653 : AbstractMsalBrokerTest() {
         val brokerHostApp = broker as BrokerHost
 
         // Register tenant with new WPJ API
-        brokerHostApp.performDeviceRegistrationMultiple(mLabAccount.username, mLabAccount.password)
+        brokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mLabAccount.username, mLabAccount.password)
 
         // Legacy API should be able to get the account
         Assert.assertTrue(brokerHostApp.accountUpn!!.contains(mLabAccount.username))

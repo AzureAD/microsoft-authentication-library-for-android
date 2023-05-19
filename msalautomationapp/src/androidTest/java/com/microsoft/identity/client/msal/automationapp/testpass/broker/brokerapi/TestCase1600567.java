@@ -28,6 +28,7 @@ import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
+import com.microsoft.identity.client.ui.automation.broker.AbstractBrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
@@ -51,7 +52,7 @@ public class TestCase1600567 extends AbstractMsalBrokerTest {
         brokerHost.brokerApiFragment.launch();
         // verify getAccounts call gives calling app not verified
         UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/button_get_accounts");
-        brokerHost.confirmCallingAppNotVerified();
+       confirmCallingAppNotVerified();
 
         // verify removeAccount call gives calling app not verified
         final UiObject usernameTxt = UiAutomatorUtils.obtainChildInScrollable("someone@contoso.com");
@@ -60,7 +61,7 @@ public class TestCase1600567 extends AbstractMsalBrokerTest {
                 "com.microsoft.identity.testuserapp:id/button_remove_account"
         );
         removeAccount.click();
-        brokerHost.confirmCallingAppNotVerified();
+        confirmCallingAppNotVerified();
 
         // verify update BRT call gives calling app not verified
         // fill BRT
@@ -69,18 +70,18 @@ public class TestCase1600567 extends AbstractMsalBrokerTest {
         UiAutomatorUtils.handleInput("com.microsoft.identity.testuserapp:id/edit_text_home_authority", "https://login.microsoftonline.com/common");
         // click on update BRT
         UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/button_update_brt");
-        brokerHost.confirmCallingAppNotVerified();
+        confirmCallingAppNotVerified();
 
         brokerHost.brokerFlightsFragment.launch();
         // verify setFlights call gives calling app not verified
         UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/flight_provider_local_storage");
         UiAutomatorUtils.handleInput("com.microsoft.identity.testuserapp:id/edit_text_flights", "{test : true}");
         UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/button_set_flights");
-        brokerHost.confirmCallingAppNotVerified();
+        confirmCallingAppNotVerified();
 
         // verify getFlights call gives calling app not verified
         UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/button_get_flights");
-        brokerHost.confirmCallingAppNotVerified();
+        confirmCallingAppNotVerified();
     }
 
 
@@ -110,5 +111,13 @@ public class TestCase1600567 extends AbstractMsalBrokerTest {
     public int getConfigFileResourceId() {
         return R.raw.msal_config_default;
     }
+
+    /**
+     * Confirm that the calling app is not verified
+     */
+    public void confirmCallingAppNotVerified() {
+        AbstractBrokerHost.dismissDialogBoxAndAssertContainsText("Calling app could not be verified");
+    }
+
 }
 

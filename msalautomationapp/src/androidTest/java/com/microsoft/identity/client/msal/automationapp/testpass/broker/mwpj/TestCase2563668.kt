@@ -48,47 +48,47 @@ class TestCase2563668 : AbstractMsalBrokerTest() {
     @Test
     fun test_2563668() {
         // Register tenant A with MWPJ API
-        mBrokerHostApp.performDeviceRegistrationMultiple(mLabAccount.username, mLabAccount.password)
+        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mLabAccount.username, mLabAccount.password)
 
         // Try to register tenant B with MWPJ API, This should fail because broker has MWPJ disabled
-        val errorMessage = mBrokerHostApp.performDeviceRegistrationMultipleDontValidate(mUsGovAccount.username, mUsGovAccount.password)
+        val errorMessage = mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistrationDontValidate(mUsGovAccount.username, mUsGovAccount.password)
         Assert.assertTrue(errorMessage!!.contains("Upgrade is required, please update"))
 
         // Test other APIs
         //Get all records
-        val deviceRegistrationRecords = mBrokerHostApp.allRecords
+        val deviceRegistrationRecords = mBrokerHostApp.multipleWpjApiFragment.allRecords
         Assert.assertEquals(1, deviceRegistrationRecords.size)
         val record = deviceRegistrationRecords[0]
         Assert.assertEquals(mLabAccount.homeTenantId, record["TenantId"])
         Assert.assertEquals(mLabAccount.username, record["Upn"])
 
         //Get record by tenantId
-        val recordByTenantId = mBrokerHostApp.getRecordByTenantId(mLabAccount.homeTenantId)
+        val recordByTenantId = mBrokerHostApp.multipleWpjApiFragment.getRecordByTenantId(mLabAccount.homeTenantId)
         Assert.assertEquals(record, recordByTenantId)
 
         //Get record by upn
-        val recordByUpn = mBrokerHostApp.getRecordByUpn(mLabAccount.username)
+        val recordByUpn = mBrokerHostApp.multipleWpjApiFragment.getRecordByUpn(mLabAccount.username)
         Assert.assertEquals(record, recordByUpn)
 
         //Get device token
-        val deviceToken = mBrokerHostApp.getDeviceTokenMultiple(mLabAccount.username)
+        val deviceToken = mBrokerHostApp.multipleWpjApiFragment.getDeviceToken(mLabAccount.username)
         val claims = JWTParserFactory.INSTANCE.jwtParser.parseJWT(deviceToken)
         Assert.assertTrue(claims.containsKey("deviceid"))
         Assert.assertEquals(record["DeviceId"], claims["deviceid"])
 
         //Install certificate
-        mBrokerHostApp.installCertificateMultiple(mLabAccount.username)
+        mBrokerHostApp.multipleWpjApiFragment.installCertificate(mLabAccount.username)
 
         //Get device state
-        val deviceState = mBrokerHostApp.getDeviceStateMultiple(mLabAccount.username)
+        val deviceState = mBrokerHostApp.multipleWpjApiFragment.getDeviceState(mLabAccount.username)
         Assert.assertTrue(deviceState.contains("DEVICE_VALID"))
 
         // Unregister device
-        mBrokerHostApp.unregisterDeviceMultiple(mLabAccount.username)
-        Assert.assertEquals(0, mBrokerHostApp.allRecords.size)
+        mBrokerHostApp.multipleWpjApiFragment.unregister(mLabAccount.username)
+        Assert.assertEquals(0, mBrokerHostApp.multipleWpjApiFragment.allRecords.size)
 
         //Get Blob
-        val blob = mBrokerHostApp.getBlobMultiple(mLabAccount.homeTenantId)
+        val blob = mBrokerHostApp.multipleWpjApiFragment.getBlob(mLabAccount.homeTenantId)
         val claims2 = JWTParserFactory.INSTANCE.jwtParser.parseJWT(blob)
         Assert.assertTrue(claims2.containsKey("nonce"))
     }

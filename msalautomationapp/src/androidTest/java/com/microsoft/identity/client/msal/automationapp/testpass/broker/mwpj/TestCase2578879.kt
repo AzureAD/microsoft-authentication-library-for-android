@@ -45,17 +45,17 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2521768
-// [MWPJ] An account with no PRT use no Joined flow even if the tenant is registered
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2578879
+// [MWPJ] An account with no PRT use no Joined flow even if the tenant is registered (Pkey AUth enable)
 @SupportedBrokers(brokers = [BrokerHost::class])
 @LocalBrokerHostDebugUiTest
-class TestCase2521768 : AbstractMsalBrokerTest() {
+class TestCase2578879 : AbstractMsalBrokerTest() {
 
     private lateinit var mLabAccount2: ILabAccount
     private lateinit var mBrokerHostApp: BrokerHost
 
     @Test
-    fun test_2521768() {
+    fun test_2578879() {
         // Make an interactive call with MSAL using the first account
         val msalSdk = MsalSdk()
         val authTestParamsForInteractiveRequest = MsalAuthTestParams.builder()
@@ -99,36 +99,29 @@ class TestCase2521768 : AbstractMsalBrokerTest() {
         val claims = JWTParserFactory.INSTANCE.jwtParser.parseJWT(authResult2.accessToken)
         Assert.assertFalse("Device id claim is present", claims.containsKey("deviceid"))
 
-        // Make an interactive call with device id claim using the first account, and verify that the device id claim is present.
+        // start silent token request in MSAL with device id claim for the first account, and verify that an exception is thrown.
+        // Note: PkeyAuth is not triggered unless broker_msal version is 9.0 or higher
         val claimsRequest = ClaimsRequest()
         val requestedClaimAdditionalInformation = RequestedClaimAdditionalInformation()
         requestedClaimAdditionalInformation.essential = true
         claimsRequest.requestClaimInIdToken("deviceid", requestedClaimAdditionalInformation)
-        val authTestParamsForInteractiveRequestWithDeviceIdClaim = MsalAuthTestParams.builder()
+
+        val authTestParamsForSilentRequestWithDeviceIdClaim = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(mLabAccount.username)
                 .scopes(listOf(*mScopes))
+                .authority(authority)
+                .resource(mScopes[0])
                 .claims(claimsRequest)
-                .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(configFileResourceId)
                 .build()
 
-        val authResult4 = msalSdk.acquireTokenInteractive(
-                authTestParamsForInteractiveRequestWithDeviceIdClaim,
-                {
-                    val promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
-                            .prompt(PromptParameter.WHEN_REQUIRED)
-                            .loginHint(mLabAccount.username)
-                            .consentPageExpected(false)
-                            .passwordPageExpected(false)
-                            .sessionExpected(true)
-                            .build()
-                    MicrosoftStsPromptHandler(promptHandlerParameters).handlePrompt(mLabAccount.username, mLabAccount.password)
-                },
+        val authResult3 = msalSdk.acquireTokenSilent(
+                authTestParamsForSilentRequestWithDeviceIdClaim,
                 TokenRequestTimeout.MEDIUM
         )
-        authResult4.assertSuccess()
-        val claims2 = JWTParserFactory.INSTANCE.jwtParser.parseJWT(authResult4.accessToken)
+        authResult3.assertSuccess()
+        val claims2 = JWTParserFactory.INSTANCE.jwtParser.parseJWT(authResult3.accessToken)
         Assert.assertTrue("Device id claim is present", claims2.containsKey("deviceid"))
     }
 
@@ -156,7 +149,7 @@ class TestCase2521768 : AbstractMsalBrokerTest() {
      * @return config file resource id
      */
     override fun getConfigFileResourceId(): Int {
-        return R.raw.msal_config_default
+        return R.raw.msal_config_pkey_auth_silent
     }
 
     override fun getLabQuery(): LabQuery {

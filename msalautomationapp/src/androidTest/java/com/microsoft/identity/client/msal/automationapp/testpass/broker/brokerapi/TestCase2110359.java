@@ -23,11 +23,19 @@
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.brokerapi;
 
 
+import androidx.annotation.Nullable;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.uiautomator.UiDevice;
+import androidx.test.uiautomator.UiObject;
+import androidx.test.uiautomator.UiObjectNotFoundException;
+import androidx.test.uiautomator.UiSelector;
+
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
+import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
@@ -41,12 +49,12 @@ import org.junit.Test;
 @SupportedBrokers(brokers = BrokerHost.class)
 @LocalBrokerHostDebugUiTest
 public class TestCase2110359 extends AbstractMsalBrokerTest{
+    // tenant id where lab api and key vault api is registered
+    private final static String LAB_API_TENANT_ID = "72f988bf-86f1-41af-91ab-2d7cd011db47";
 
     @Test
     public void test_2110359() {
-        BrokerHost brokerHost = (BrokerHost) mBroker;
-
-        brokerHost.checkForDcfOption(null);
+        checkForDcfOption(null);
     }
 
     @Override
@@ -75,4 +83,42 @@ public class TestCase2110359 extends AbstractMsalBrokerTest{
     public int getConfigFileResourceId() {
         return R.raw.msal_config_default;
     }
+
+    /**
+     * Check if the Device Code Flow option shows up in sign in flow.
+     *
+     * @param tenantId tenant ID to use in Join Tenant
+     */
+    public void checkForDcfOption(@Nullable final String tenantId) {
+        final String tenantIdToUse;
+
+        // If no tenant ID is specified, default to microsoft tenant
+        if (tenantId == null) {
+            tenantIdToUse = LAB_API_TENANT_ID;
+        } else {
+            tenantIdToUse = tenantId;
+        }
+        BrokerHost brokerHost = (BrokerHost) mBroker;
+        brokerHost.launch();
+        brokerHost.clickJoinTenant(tenantIdToUse);
+
+        // Apparently, there are two UI objects with exact text "Sign-in options", one is a button the other is a view
+        // Have to specify the search to button class
+        final UiDevice device =
+                UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
+
+        final UiObject optionsObject = device.findObject(new UiSelector()
+                .text("Sign-in options").className("android.widget.Button"));
+
+        try {
+            optionsObject.click();
+        } catch (UiObjectNotFoundException e) {
+            throw new AssertionError(e);
+        }
+        UiAutomatorUtils.handleButtonClickForObjectWithText("Sign in from another device");
+
+        // Doesn't look like the page with the device code is readable to the UI automation,
+        // this is a sufficient stopping point
+    }
+
 }

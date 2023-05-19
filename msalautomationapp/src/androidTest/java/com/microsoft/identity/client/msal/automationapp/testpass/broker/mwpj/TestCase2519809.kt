@@ -47,15 +47,15 @@ class TestCase2519809 : AbstractMsalBrokerTest() {
     @Test
     fun test_2519809() {
         // Register 2 accounts from different tenants
-        mBrokerHostApp.performDeviceRegistrationMultiple(mLabAccount.username, mLabAccount.password)
-        mBrokerHostApp.performDeviceRegistrationMultiple(mUsGovAccount.username, mUsGovAccount.password)
-        val deviceRegistrationRecords = mBrokerHostApp.allRecords
+        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mLabAccount.username, mLabAccount.password)
+        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mUsGovAccount.username, mUsGovAccount.password)
+        val deviceRegistrationRecords = mBrokerHostApp.multipleWpjApiFragment.allRecords
         Assert.assertEquals(2, deviceRegistrationRecords.size)
 
         // Unregister both accounts
-        mBrokerHostApp.unregisterDeviceMultiple(deviceRegistrationRecords[0]["Upn"] as String)
-        mBrokerHostApp.unregisterDeviceMultiple(deviceRegistrationRecords[1]["Upn"] as String)
-        Assert.assertEquals(0, mBrokerHostApp.allRecords.size)
+        mBrokerHostApp.multipleWpjApiFragment.unregister(deviceRegistrationRecords[0]["Upn"] as String)
+        mBrokerHostApp.multipleWpjApiFragment.unregister(deviceRegistrationRecords[1]["Upn"] as String)
+        Assert.assertEquals(0, mBrokerHostApp.multipleWpjApiFragment.allRecords.size)
     }
 
     override fun getLabQuery(): LabQuery {
