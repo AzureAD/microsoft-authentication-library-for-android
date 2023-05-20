@@ -36,6 +36,7 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 // Invoke each API from non-allowed apps. the request should be blocked.
@@ -116,7 +117,8 @@ public class TestCase1600567 extends AbstractMsalBrokerTest {
      * Confirm that the calling app is not verified
      */
     public void confirmCallingAppNotVerified() {
-        AbstractBrokerHost.dismissDialogBoxAndAssertContainsText("Calling app could not be verified");
+        String dialogMessage = ((BrokerHost)getBroker()).dismissDialog();
+        Assert.assertTrue(dialogMessage.contains("Calling app could not be verified"));
     }
 
 }
