@@ -67,7 +67,7 @@ class TestCase2579654 : AbstractMsalBrokerTest() {
     @Test
     fun test_2579654() {
         // Register 2 accounts from different tenants
-        mBrokerHostApp.multipleWpjApiFragment.performSharedDeviceRegistration(mUsGovAccount.username, mUsGovAccount.password)
+        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mUsGovAccount.username, mUsGovAccount.password)
         mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mLabAccount.username, mLabAccount.password)
         val deviceRegistrationRecords = mBrokerHostApp.multipleWpjApiFragment.allRecords
         Assert.assertEquals(2, deviceRegistrationRecords.size)
