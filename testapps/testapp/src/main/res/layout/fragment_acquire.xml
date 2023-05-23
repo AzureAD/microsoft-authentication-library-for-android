@@ -613,12 +613,21 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="horizontal">
-
+            <Button
+                android:id="@+id/btnGetActiveBroker"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_weight="5"
+                android:gravity="center"
+                android:text="@string/get_active_broker" />
             <ToggleButton
                 android:id="@+id/btn_trust_debug_brkr"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
+                android:layout_weight="5"
+                android:gravity="center"
+                android:layout_gravity="center_vertical"
                 android:text="@string/trust_debug_broker" />
         </LinearLayout>
 

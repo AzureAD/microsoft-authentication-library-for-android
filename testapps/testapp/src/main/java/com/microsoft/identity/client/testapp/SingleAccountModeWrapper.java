@@ -22,6 +22,8 @@
 //   THE SOFTWARE.
 package com.microsoft.identity.client.testapp;
 
+import android.app.Activity;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -31,6 +33,8 @@ import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.PoPAuthenticationScheme;
+import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.internal.ui.browser.BrowserSelector;
 import com.microsoft.identity.common.java.exception.ClientException;
@@ -125,6 +129,11 @@ public class SingleAccountModeWrapper extends MsalWrapper {
     @Override
     void acquireTokenSilentAsyncInternal(@NonNull AcquireTokenSilentParameters parameters) {
         mApp.acquireTokenSilentAsync(parameters);
+    }
+
+    @Override
+    String getActiveBrokerPkgName(@NonNull Activity activity) {
+        return ((PublicClientApplication) mApp).getActiveBrokerPackageName(activity.getApplicationContext());
     }
 
     @Override
