@@ -47,7 +47,7 @@ class TestCase2525252 : AbstractMsalBrokerTest() , ICustomBrokerInstallationTest
     private lateinit var mUsGovAccount: ILabAccount
     private lateinit var mBrokerHostApp: BrokerHost
 
-    //@Test
+    @Test
     fun test_2525252() {
         // Register tenant using legacy API
         mBrokerHostApp.performDeviceRegistrationLegacyApp(mLabAccount.username, mLabAccount.password)
@@ -116,6 +116,7 @@ class TestCase2525252 : AbstractMsalBrokerTest() , ICustomBrokerInstallationTest
     fun before() {
         mUsGovAccount = mLabClient.getLabAccount(getUsGovLabQuery())
         mBrokerHostApp = broker as BrokerHost
+        mBrokerHostApp.launch()
     }
 
     /**
