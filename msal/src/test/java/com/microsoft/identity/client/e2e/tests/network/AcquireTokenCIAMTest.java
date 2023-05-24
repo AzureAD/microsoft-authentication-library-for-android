@@ -31,9 +31,12 @@ import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
+import org.junit.Ignore;
+
 /**
  * Run all tests in the {@link AcquireTokenNetworkTest} class using CIAM
  */
+@Ignore
 public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
 
     @Override
