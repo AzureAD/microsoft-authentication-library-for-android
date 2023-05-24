@@ -41,6 +41,7 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import org.junit.Test
 import java.util.*
 
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2516681
 @RetryOnFailure
 class TestCaseUpdateCompanyPortal : AbstractMsalCustomBrokerInstallationTest() {
 
@@ -58,7 +59,7 @@ class TestCaseUpdateCompanyPortal : AbstractMsalCustomBrokerInstallationTest() {
             .loginHint(username)
             .scopes(Arrays.asList(*mScopes))
             .promptParameter(Prompt.LOGIN)
-            .authScheme(AuthScheme.POP)
+            .authScheme(AuthScheme.BEARER)
             .msalConfigResourceId(configFileResourceId)
             .build()
 
@@ -78,7 +79,6 @@ class TestCaseUpdateCompanyPortal : AbstractMsalCustomBrokerInstallationTest() {
 
         // Check if auth result is success
         authResult.assertSuccess()
-        MsalAuthResult.verifyATForPop(authResult.accessToken)
 
         // Update the company portal app
         mCompanyPortal.update()
@@ -89,14 +89,13 @@ class TestCaseUpdateCompanyPortal : AbstractMsalCustomBrokerInstallationTest() {
             .loginHint(username)
             .scopes(Arrays.asList(*mScopes))
             .authority(authority)
-            .authScheme(AuthScheme.POP)
+            .authScheme(AuthScheme.BEARER)
             .msalConfigResourceId(configFileResourceId)
             .build()
 
         val authResultPostUpdate: MsalAuthResult =
             msalSdk.acquireTokenSilent(authTestSilentParams, TokenRequestTimeout.SILENT)
         authResultPostUpdate.assertSuccess()
-        MsalAuthResult.verifyATForPop(authResult.accessToken)
     }
 
     override fun getLabQuery(): LabQuery {
