@@ -24,9 +24,11 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.mwpj
 
 import com.microsoft.identity.client.msal.automationapp.R
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
+import com.microsoft.identity.client.ui.automation.ICustomBrokerInstallationTest
 import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost
+import com.microsoft.identity.client.ui.automation.broker.ITestBroker
 import com.microsoft.identity.labapi.utilities.client.ILabAccount
 import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment
@@ -38,21 +40,21 @@ import org.junit.Before
 import org.junit.Test
 
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2563668
-// [MWPJ] Entry using MWPJ should work with old broker. (backward compatibility)
+// [MWPJ] Legacy entry should work with new broker (Upgrade scenario)
 @SupportedBrokers(brokers = [BrokerHost::class])
 @LocalBrokerHostDebugUiTest
-class TestCase2563668 : AbstractMsalBrokerTest() {
+class TestCase2563668 : AbstractMsalBrokerTest() , ICustomBrokerInstallationTest {
     private lateinit var mUsGovAccount: ILabAccount
     private lateinit var mBrokerHostApp: BrokerHost
 
     @Test
     fun test_2563668() {
-        // Register tenant A with MWPJ API
-        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mLabAccount.username, mLabAccount.password)
+        // Register tenant using legacy API
+        mBrokerHostApp.performDeviceRegistrationLegacyApp(mLabAccount.username, mLabAccount.password)
 
-        // Try to register tenant B with MWPJ API, This should fail because broker has MWPJ disabled
-        val errorMessage = mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistrationDontValidate(mUsGovAccount.username, mUsGovAccount.password)
-        Assert.assertTrue(errorMessage!!.contains("Upgrade is required, please update"))
+        //Upgrade broker
+        updateBrokerHostApp()
+        mBrokerHostApp.enableMultipleWpj()
 
         // Test other APIs
         //Get all records
@@ -114,7 +116,7 @@ class TestCase2563668 : AbstractMsalBrokerTest() {
     fun before() {
         mUsGovAccount = mLabClient.getLabAccount(getUsGovLabQuery())
         mBrokerHostApp = broker as BrokerHost
-        mBrokerHostApp.disableMultipleWpj()
+        mBrokerHostApp.launch()
     }
 
     /**
@@ -143,4 +145,19 @@ class TestCase2563668 : AbstractMsalBrokerTest() {
     override fun getConfigFileResourceId(): Int {
         return R.raw.msal_config_default
     }
+
+    override fun getBroker(): ITestBroker {
+        if (mBroker == null) {
+            mBroker = installOldBrokerHost()
+        }
+        return mBroker
+    }
+
+    private fun updateBrokerHostApp() {
+        val brokerHost = BrokerHost()
+        brokerHost.install()
+        mBroker = brokerHost
+        mBrokerHostApp = mBroker as BrokerHost
+    }
+
 }
