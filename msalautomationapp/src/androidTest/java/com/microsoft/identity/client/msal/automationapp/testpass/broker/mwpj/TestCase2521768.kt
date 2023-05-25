@@ -84,7 +84,8 @@ class TestCase2521768 : AbstractMsalBrokerTest() {
         // Using a second account from the same tenant, perform device registration
         mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mLabAccount2.username, mLabAccount2.password)
 
-        // start silent token request in MSAL for the first account, and verify that the device id claim is not present
+        // Start a silent token request for the first account;
+        // Verify that the operation was successful and there is no device id claim present.
         // First account uses BrokerLocalController because it doesn't have a PRT, and return AT from cache.
         val authTestParamsForSilentRequest = MsalAuthTestParams.builder()
                 .activity(mActivity)
@@ -99,16 +100,32 @@ class TestCase2521768 : AbstractMsalBrokerTest() {
         val claims = JWTParserFactory.INSTANCE.jwtParser.parseJWT(authResult2.accessToken)
         Assert.assertFalse("Device id claim is present", claims.containsKey("deviceid"))
 
+        val authTestParamsForSilentRequestWithDeviceIdClaim = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .loginHint(mLabAccount.username)
+                .scopes(listOf(*mScopes))
+                .authority(authority)
+                .resource(mScopes[0])
+                .msalConfigResourceId(configFileResourceId)
+                .build()
+        val authResult3= msalSdk.acquireTokenSilent(authTestParamsForSilentRequestWithDeviceIdClaim, TokenRequestTimeout.MEDIUM)
+        authResult3.assertFailure()
+        Assert.assertNotNull(
+                "exception message is null" + authResult3.exception,
+                authResult3.exception.message
+        )
+        Assert.assertTrue(
+                "exception message is not as expected" + authResult3.exception.message,
+                authResult3.exception.message!!.contains("AADSTS50187")
+        )
+
         // Make an interactive call with device id claim using the first account, and verify that the device id claim is present.
-        val claimsRequest = ClaimsRequest()
-        val requestedClaimAdditionalInformation = RequestedClaimAdditionalInformation()
-        requestedClaimAdditionalInformation.essential = true
-        claimsRequest.requestClaimInIdToken("deviceid", requestedClaimAdditionalInformation)
+
         val authTestParamsForInteractiveRequestWithDeviceIdClaim = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(mLabAccount.username)
                 .scopes(listOf(*mScopes))
-                .claims(claimsRequest)
+                .claims(getDeviceIdClaimRequest())
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(configFileResourceId)
                 .build()
@@ -182,5 +199,13 @@ class TestCase2521768 : AbstractMsalBrokerTest() {
         )
         mBrokerHostApp = broker as BrokerHost
         mBrokerHostApp.enableMultipleWpj()
+    }
+
+    private fun getDeviceIdClaimRequest(): ClaimsRequest {
+        val claimsRequest = ClaimsRequest()
+        val requestedClaimAdditionalInformation = RequestedClaimAdditionalInformation()
+        requestedClaimAdditionalInformation.essential = true
+        claimsRequest.requestClaimInIdToken("deviceid", requestedClaimAdditionalInformation)
+        return claimsRequest
     }
 }

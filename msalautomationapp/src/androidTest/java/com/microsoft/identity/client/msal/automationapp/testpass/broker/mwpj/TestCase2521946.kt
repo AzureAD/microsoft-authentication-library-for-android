@@ -51,8 +51,7 @@ class TestCase2521946 : AbstractMsalBrokerTest() {
         // Register 2 accounts from different tenants
         mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mUsGovAccount.username, mUsGovAccount.password)
         mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mLabAccount.username, mLabAccount.password)
-        val deviceRegistrationRecords = mBrokerHostApp.multipleWpjApiFragment.allRecords
-        Assert.assertEquals(2, deviceRegistrationRecords.size)
+        Assert.assertEquals(2, mBrokerHostApp.multipleWpjApiFragment.allRecords.size)
 
         // Unregister the device from the legacy space
         mBrokerHostApp.multipleWpjApiFragment.unregister(mUsGovAccount.username)
@@ -81,10 +80,14 @@ class TestCase2521946 : AbstractMsalBrokerTest() {
         val legacyAccountMessage = mBrokerHostApp.accountUpn
         Assert.assertNotNull(legacyAccountMessage)
         Assert.assertTrue(legacyAccountMessage!!.contains(mLabAccount.username))
+        val legacyAccountDeviceId = mBrokerHostApp.obtainDeviceId()
 
         // Verify the entry is the same, it was just migrated
-        val recordInLegacy = mBrokerHostApp.multipleWpjApiFragment.getRecordByUpn(mLabAccount.username)
-        Assert.assertEquals(recordInExtendedSpace, recordInLegacy)
+        val recordsAfterMigration = mBrokerHostApp.multipleWpjApiFragment.allRecords
+        Assert.assertEquals(1, recordsAfterMigration.size)
+        Assert.assertEquals(legacyAccountMessage, recordsAfterMigration[0]["Upn"])
+        Assert.assertEquals(legacyAccountDeviceId, recordsAfterMigration[0]["DeviceId"])
+
     }
 
     override fun getLabQuery(): LabQuery {

@@ -49,8 +49,11 @@ class TestCase2563668 : AbstractMsalBrokerTest() , ICustomBrokerInstallationTest
 
     @Test
     fun test_2563668() {
-        // Register tenant using legacy API
+        // Register tenant using legacy broker
         mBrokerHostApp.performDeviceRegistrationLegacyApp(mLabAccount.username, mLabAccount.password)
+
+        // Get device id using legacy broker
+        val deviceIdObtainedUsingLegacyBroker = mBrokerHostApp.obtainDeviceId();
 
         //Upgrade broker
         updateBrokerHostApp()
@@ -76,7 +79,7 @@ class TestCase2563668 : AbstractMsalBrokerTest() , ICustomBrokerInstallationTest
         val deviceToken = mBrokerHostApp.multipleWpjApiFragment.getDeviceToken(mLabAccount.username)
         val claims = JWTParserFactory.INSTANCE.jwtParser.parseJWT(deviceToken)
         Assert.assertTrue(claims.containsKey("deviceid"))
-        Assert.assertEquals(record["DeviceId"], claims["deviceid"])
+        Assert.assertEquals(deviceIdObtainedUsingLegacyBroker, claims["deviceid"])
 
         //Install certificate
         mBrokerHostApp.multipleWpjApiFragment.installCertificate(mLabAccount.username)
