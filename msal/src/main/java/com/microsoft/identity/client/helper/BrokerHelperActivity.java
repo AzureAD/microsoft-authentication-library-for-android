@@ -62,7 +62,7 @@ public class BrokerHelperActivity extends Activity {
     private String getSignature(final boolean urlEncode) {
 
         final PackageHelper info = new PackageHelper(this.getApplicationContext().getPackageManager());
-        final String signatureDigest = info.getCurrentSignatureForPackage(this.getPackageName());
+        final String signatureDigest = info.getSha1SignatureForPackage(this.getPackageName());
         String signature = "";
 
         try {
