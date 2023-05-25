@@ -100,10 +100,14 @@ class TestCase2521768 : AbstractMsalBrokerTest() {
         val claims = JWTParserFactory.INSTANCE.jwtParser.parseJWT(authResult2.accessToken)
         Assert.assertFalse("Device id claim is present", claims.containsKey("deviceid"))
 
+        // Start a silent token request for the first account with device id claims;
+        // Verify that the operation failed with error code AADSTS50187.
+        // Requires an interactive call because PkeyAuth is not triggered unless broker_msal version is 9.0 or higher
         val authTestParamsForSilentRequestWithDeviceIdClaim = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(mLabAccount.username)
                 .scopes(listOf(*mScopes))
+                .claims(getDeviceIdClaimRequest())
                 .authority(authority)
                 .resource(mScopes[0])
                 .msalConfigResourceId(configFileResourceId)
