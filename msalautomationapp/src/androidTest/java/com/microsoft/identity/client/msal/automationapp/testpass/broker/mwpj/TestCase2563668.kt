@@ -53,7 +53,7 @@ class TestCase2563668 : AbstractMsalBrokerTest() , ICustomBrokerInstallationTest
         mBrokerHostApp.performDeviceRegistrationLegacyApp(mLabAccount.username, mLabAccount.password)
 
         // Get device id using legacy broker
-        val deviceIdObtainedUsingLegacyBroker = mBrokerHostApp.obtainDeviceId();
+        val deviceIdObtainedUsingLegacyBroker = mBrokerHostApp.obtainDeviceIdLegacyApp();
 
         //Upgrade broker
         updateBrokerHostApp()
