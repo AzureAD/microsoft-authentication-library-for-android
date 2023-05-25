@@ -59,8 +59,8 @@ class AccountAdapter {
             for (final ICacheRecord cacheRecord : records) {
                 final String acctHomeAccountId = cacheRecord.getAccount().getHomeAccountId();
                 final String acctLocalAccountId = cacheRecord.getAccount().getLocalAccountId();
-
-                if (!acctHomeAccountId.contains(acctLocalAccountId)) {
+                Logger.verbose(TAG, "acctHomeAccountId " + acctHomeAccountId + " acctLocalAccountId " + acctLocalAccountId);
+                if (acctLocalAccountId != null && !acctHomeAccountId.contains(acctLocalAccountId)) {
                     result.add(cacheRecord);
                 }
             }
