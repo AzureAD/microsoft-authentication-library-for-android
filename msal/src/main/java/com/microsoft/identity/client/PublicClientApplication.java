@@ -1855,7 +1855,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         final Span span = OTelUtility.createSpan(SpanName.AcquireTokenDcf.name());
         try (final Scope scope = SpanExtension.makeCurrentSpan(span)) {
-            span.setAttribute(AttributeName.correlation_id.name(), correlationId.toString());
             span.setAttribute(AttributeName.application_name.name(), mPublicClientConfiguration.getAppContext().getPackageName());
 
             // Currently this method is only supported for Teams app
@@ -1867,6 +1866,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
                 if (null != correlationId) {
                     builder.withCorrelationId(correlationId);
+                    span.setAttribute(AttributeName.correlation_id.name(), correlationId.toString());
                 }
 
                 DeviceCodeFlowParameters deviceCodeFlowParameters =
