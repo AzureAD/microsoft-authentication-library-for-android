@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
 
 def msalVersion = "4.+"
 
@@ -146,12 +147,12 @@ android {
     sourceSets {
         main {
             manifest.srcFile 'src/main/AndroidManifest.xml'
-            java.srcDirs = ['src/main/java']
+            java.srcDirs = ['src/main/java', 'src/main/kotlin']
         }
 
         androidTest {
             manifest.srcFile 'src/androidTest/AndroidManifest.xml'
-            res.srcDirs = ['src/main/res']
+            res.srcDirs = ['src/main/res', 'src/main/kotlin']
         }
     }
 }
@@ -184,5 +185,8 @@ dependencies {
     }
     androidTestImplementation "androidx.test:runner:$rootProject.ext.androidxTestRunnerVersion"
     androidTestUtil "androidx.test:orchestrator:$rootProject.ext.androidxTestOrchestratorVersion"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
+    androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
 }
 
