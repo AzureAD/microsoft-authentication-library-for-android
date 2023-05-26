@@ -1859,7 +1859,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             span.setAttribute(AttributeName.application_name.name(), mPublicClientConfiguration.getAppContext().getPackageName());
 
             // Currently this method is only supported for Teams app
-            if (false/*!packageHelper.verifyIfValidTeamsPackage(context.getPackageName())*/) {
+            if (!packageHelper.verifyIfValidTeamsPackage(context.getPackageName())) {
                 span.setAttribute(AttributeName.error_message.name(), "acquireTokenWithDeviceCode with claims is not supported for current package.");
                 throw new UnsupportedOperationException(ERR_UNSUPPORTED_OPERATION);
             } else {
