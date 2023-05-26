@@ -87,6 +87,7 @@ class TestCase2521946 : AbstractMsalBrokerTest() {
         Assert.assertEquals(1, recordsAfterMigration.size)
         Assert.assertEquals(legacyAccountMessage, recordsAfterMigration[0]["Upn"])
         Assert.assertEquals(legacyAccountDeviceId, recordsAfterMigration[0]["DeviceId"])
+        Assert.assertEquals(recordInExtendedSpace, recordsAfterMigration[0])
 
     }
 

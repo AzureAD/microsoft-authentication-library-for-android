@@ -50,7 +50,7 @@ import org.junit.Test
 import org.junit.rules.TestRule
 
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2579654
-// [MWPJ] Device registration entry migration (different upn - same tenant)
+// [MWPJ] After entry migration PRT is still usable without extra prompts.
 @LocalBrokerHostDebugUiTest
 @SupportedBrokers(brokers = [BrokerHost::class])
 class TestCase2579654 : AbstractMsalBrokerTest() {
