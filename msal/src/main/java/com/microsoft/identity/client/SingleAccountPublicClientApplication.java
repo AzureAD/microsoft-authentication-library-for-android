@@ -659,8 +659,10 @@ public class SingleAccountPublicClientApplication
                             "This is unexpected in Single account mode." +
                             "Returning the first adapted account.");
         }
-
+        if (account!=null && account.size()>0 )
         return (MultiTenantAccount) account.get(0);
+        else
+            return null;
     }
 
     @Override
