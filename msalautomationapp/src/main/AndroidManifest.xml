@@ -45,6 +45,7 @@
         <package android:name="com.microsoft.office.word" />
         <package android:name="com.microsoft.teams" />
         <package android:name="com.azuresamples.msalandroidapp" />
+        <package android:name="com.microsoft.identity.client.testapp" />
     </queries>
 
 </manifest>
