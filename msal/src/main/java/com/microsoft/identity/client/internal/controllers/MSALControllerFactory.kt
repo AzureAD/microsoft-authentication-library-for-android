@@ -110,7 +110,7 @@ class MSALControllerFactory(
             )
         }
 
-        return controllers
+        return controllers.toList()
     }
 
     /**
@@ -122,7 +122,7 @@ class MSALControllerFactory(
     }
 
     /**
-     * Determine if request is eligible to use the broker
+     * Determine if request is eligible to use the broker.
      *
      * Client indicates that it wants to use broker
      * Authority == AzureActiveDirectoryAuthority

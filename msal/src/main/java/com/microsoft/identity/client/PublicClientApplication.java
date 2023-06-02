@@ -925,8 +925,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         final GetDeviceModeCommand command = new GetDeviceModeCommand(
                 params,
-                new MSALControllerFactory(config).
-                        getDefaultController(config.getDefaultAuthority()),
+                new MSALControllerFactory(config).getDefaultController(
+                        config.getDefaultAuthority()),
                 new CommandCallback<Boolean, BaseException>() {
                     @Override
                     public void onError(BaseException error) {
@@ -1547,8 +1547,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
                     final InteractiveTokenCommand command = new InteractiveTokenCommand(
                             params,
-                            new MSALControllerFactory(mPublicClientConfiguration).
-                                    getDefaultController(params.getAuthority()),
+                            new MSALControllerFactory(mPublicClientConfiguration).getDefaultController(
+                                    params.getAuthority()),
                             localAuthenticationCallback,
                             publicApiId
                     );
@@ -1864,8 +1864,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 final DeviceCodeFlowCommandCallback deviceCodeFlowCommandCallback = getDeviceCodeFlowCommandCallback(callback);
                 final DeviceCodeFlowCommand deviceCodeFlowCommand = new DeviceCodeFlowCommand(
                         commandParameters,
-                        new MSALControllerFactory(mPublicClientConfiguration).
-                                getDefaultController(commandParameters.getAuthority()),
+                        new MSALControllerFactory(mPublicClientConfiguration).getDefaultController(
+                                commandParameters.getAuthority()),
                         deviceCodeFlowCommandCallback,
                         PublicApiId.DEVICE_CODE_FLOW_WITH_CLAIMS_AND_CALLBACK
                 );
@@ -2297,16 +2297,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      * @return active broker package name. Null if active broker isn't installed.
      **/
     @Nullable
-    public String getActiveBrokerPackageName(@NonNull final Context context)
-            throws MsalException {
+    public String getActiveBrokerPackageName(@NonNull final Context context) {
         final BrokerData activeBroker = BrokerDiscoveryClientFactory.getInstance(context,
                         AndroidPlatformComponentsFactory.createFromContext(context))
                 .getActiveBroker(false);
 
-        if (activeBroker != null) {
-            return activeBroker.getPackageName();
-        }
-
-        return null;
+        return activeBroker != null ? activeBroker.getPackageName() : null;
     }
 }
