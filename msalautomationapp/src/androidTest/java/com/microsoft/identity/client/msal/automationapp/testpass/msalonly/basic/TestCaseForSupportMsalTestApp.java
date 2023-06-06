@@ -9,6 +9,7 @@ import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
+import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.UiResponse;
@@ -23,7 +24,7 @@ import java.util.List;
 
 @RetryOnFailure(retryCount = 2)
 @RunOnAPI29Minus
-@SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
+@SupportedBrokers(brokers = {BrokerLTW.class})
 public class TestCaseForSupportMsalTestApp extends AbstractMsalBrokerTest {
 
     @Test
