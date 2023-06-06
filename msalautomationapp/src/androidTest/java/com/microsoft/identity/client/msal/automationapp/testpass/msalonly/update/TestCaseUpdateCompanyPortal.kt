@@ -105,7 +105,7 @@ class TestCaseUpdateCompanyPortal : AbstractMsalCustomBrokerInstallationTest() {
     }
 
     override fun getTempUserType(): TempUserType? {
-        return TempUserType.BASIC
+        return null
     }
 
     override fun getScopes(): Array<String>? {

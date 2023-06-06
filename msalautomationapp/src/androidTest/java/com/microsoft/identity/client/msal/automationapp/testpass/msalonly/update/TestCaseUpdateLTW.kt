@@ -80,7 +80,7 @@ class TestCaseUpdateLTW : AbstractMsalCustomBrokerInstallationTest() {
         // Check if auth result is success
         authResult.assertSuccess()
 
-        // Update the authenticator app
+        // Update the LTW app
         mBrokerLTW.update()
         // start silent token request in MSAL
 
@@ -105,7 +105,7 @@ class TestCaseUpdateLTW : AbstractMsalCustomBrokerInstallationTest() {
     }
 
     override fun getTempUserType(): TempUserType? {
-        return TempUserType.BASIC
+        return null
     }
 
     override fun getScopes(): Array<String>? {
