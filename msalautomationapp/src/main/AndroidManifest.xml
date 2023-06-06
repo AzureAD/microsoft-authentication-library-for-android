@@ -32,7 +32,7 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:scheme="msauth"
-                    android:host="com.msft.identity.client.sample.local"
+                    android:host="${applicationId}"
                     android:path="/1wIqXSqBj7w+h11ZifsnqwgyKrY="/>
             </intent-filter>
         </activity>
@@ -45,7 +45,7 @@
         <package android:name="com.microsoft.office.word" />
         <package android:name="com.microsoft.teams" />
         <package android:name="com.azuresamples.msalandroidapp" />
-        <package android:name="com.microsoft.identity.client.testapp" />
+        <package android:name="com.msft.identity.client.sample.local" />
     </queries>
 
 </manifest>

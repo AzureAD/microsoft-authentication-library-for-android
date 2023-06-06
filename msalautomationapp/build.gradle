@@ -45,7 +45,7 @@ android {
 
     defaultConfig {
         multiDexEnabled true
-        applicationId "com.msft.identity.client.sample"
+        applicationId "com.microsoft.identity.client.msal.automationapp"
         minSdkVersion rootProject.ext.automationAppMinSDKVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
