@@ -22,16 +22,26 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.brokerapi;
 
+import android.util.Base64;
+
+import androidx.annotation.NonNull;
+
+import com.google.gson.Gson;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
+import com.microsoft.identity.common.java.util.StringUtil;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
+import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.Map;
+import java.util.Set;
 
 // SSO Token Requests
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561652
@@ -50,7 +60,7 @@ public class TestCase1561652 extends AbstractMsalBrokerTest {
         // Get SSO token and decode to confirm nonce
         final String ssoToken = ((BrokerHost) mBroker).acquireSSOToken(nonce);
 
-        ((BrokerHost) mBroker).decodeSSOTokenAndVerifyNonce(ssoToken, nonce);
+        decodeSSOTokenAndVerifyNonce(ssoToken, nonce);
     }
 
     @Override
@@ -76,5 +86,33 @@ public class TestCase1561652 extends AbstractMsalBrokerTest {
     @Override
     public int getConfigFileResourceId() {
         return R.raw.msal_config_default;
+    }
+
+    /**
+     * Decode SSO token and verify the expected nonce
+     */
+    public void decodeSSOTokenAndVerifyNonce(@NonNull final String ssoToken,
+                                             @NonNull final String nonce) {
+        Assert.assertFalse("Passed an empty or null token", StringUtil.isNullOrEmpty(ssoToken));
+        String token = new String(Base64.decode(ssoToken.split("\\.")[1], Base64.NO_WRAP));
+        final Map<Object, Object> map = new Gson().fromJson(token, Map.class);
+        StringBuilder sb = new StringBuilder();
+        final Set<Map.Entry<Object, Object>> set = map.entrySet();
+        for (Map.Entry<Object, Object> e : set) {
+            sb.append(e.getKey()).append(" => ")
+                    .append(e.getValue())
+                    .append('\n');
+        }
+        final String decodedToken = sb.toString();
+        if (decodedToken.contains("request_nonce")) {
+            final String[] str = decodedToken.split("request_nonce => ");
+            if (str.length > 1) {
+                Assert.assertEquals(str[1].trim(), nonce);
+            } else {
+                Assert.fail("decoded token does not contain correct nonce");
+            }
+        } else {
+            Assert.fail("decoded token does not contain correct nonce");
+        }
     }
 }

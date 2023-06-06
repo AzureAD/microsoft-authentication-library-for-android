@@ -34,7 +34,6 @@ import static com.microsoft.identity.client.internal.controllers.MsalExceptionAd
 import static com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudience.isHomeTenantAlias;
 import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST;
 import static com.microsoft.identity.common.java.eststelemetry.PublicApiId.PCA_GENERATE_SIGNED_HTTP_REQUEST_ASYNC;
-import static com.microsoft.identity.common.java.exception.ClientException.NOT_VALID_BROKER_FOUND;
 import static com.microsoft.identity.common.java.exception.ClientException.TOKEN_CACHE_ITEM_NOT_FOUND;
 import static com.microsoft.identity.common.java.exception.ClientException.TOKEN_SHARING_DESERIALIZATION_ERROR;
 import static com.microsoft.identity.common.java.exception.ClientException.TOKEN_SHARING_MSA_PERSISTENCE_ERROR;
@@ -80,7 +79,10 @@ import com.microsoft.identity.common.adal.internal.tokensharing.ITokenShareResul
 import com.microsoft.identity.common.adal.internal.tokensharing.TokenShareUtility;
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory;
 import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager;
+import com.microsoft.identity.common.internal.activebrokerdiscovery.BrokerDiscoveryClientFactory;
+import com.microsoft.identity.common.internal.broker.BrokerData;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
+import com.microsoft.identity.common.internal.broker.PackageHelper;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.commands.GenerateShrCommand;
 import com.microsoft.identity.common.internal.commands.GetDeviceModeCommand;
@@ -107,7 +109,6 @@ import com.microsoft.identity.common.java.commands.parameters.DeviceCodeFlowComm
 import com.microsoft.identity.common.java.commands.parameters.GenerateShrCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.InteractiveTokenCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.SilentTokenCommandParameters;
-import com.microsoft.identity.common.java.controllers.BaseController;
 import com.microsoft.identity.common.java.controllers.CommandDispatcher;
 import com.microsoft.identity.common.java.controllers.ExceptionAdapter;
 import com.microsoft.identity.common.java.dto.AccountRecord;
@@ -116,7 +117,11 @@ import com.microsoft.identity.common.java.exception.BaseException;
 import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.exception.ErrorStrings;
 import com.microsoft.identity.common.java.exception.ServiceException;
+import com.microsoft.identity.common.java.opentelemetry.AttributeName;
+import com.microsoft.identity.common.java.opentelemetry.OTelUtility;
 import com.microsoft.identity.common.java.opentelemetry.OtelContextExtension;
+import com.microsoft.identity.common.java.opentelemetry.SpanExtension;
+import com.microsoft.identity.common.java.opentelemetry.SpanName;
 import com.microsoft.identity.common.java.providers.microsoft.MicrosoftAccount;
 import com.microsoft.identity.common.java.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
@@ -140,6 +145,10 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.context.Scope;
 
 /**
  * <p>
@@ -205,6 +214,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     private static final String TAG = PublicClientApplication.class.getSimpleName();
     private static final String INTERNET_PERMISSION = "android.permission.INTERNET";
     private static final String ACCESS_NETWORK_STATE_PERMISSION = "android.permission.ACCESS_NETWORK_STATE";
+    private static final String ERR_UNSUPPORTED_OPERATION = "This method is unsupported.";
     private static final ExecutorService sBackgroundExecutor = Executors.newCachedThreadPool();
 
     static class NONNULL_CONSTANTS {
@@ -913,20 +923,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         final CommandParameters params = CommandParametersAdapter.createCommandParameters(config, config.getOAuth2TokenCache());
 
-        final BaseController controller;
-        try {
-            controller = MSALControllerFactory.getDefaultController(
-                    config.getAppContext(),
-                    config.getDefaultAuthority(),
-                    config);
-        } catch (MsalClientException e) {
-            listener.onError(e);
-            return;
-        }
-
         final GetDeviceModeCommand command = new GetDeviceModeCommand(
                 params,
-                controller,
+                new MSALControllerFactory(config).getDefaultController(
+                        config.getDefaultAuthority()),
                 new CommandCallback<Boolean, BaseException>() {
                     @Override
                     public void onError(BaseException error) {
@@ -1210,10 +1210,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     private void validateBrokerNotInUse() throws MsalClientException {
-        if (MSALControllerFactory.brokerEligible(
-                mPublicClientConfiguration.getAppContext(),
-                mPublicClientConfiguration.getDefaultAuthority(),
-                mPublicClientConfiguration
+        if (new MSALControllerFactory(mPublicClientConfiguration).brokerEligibleAndInstalled(
+                mPublicClientConfiguration.getDefaultAuthority()
         )) {
             throw new MsalClientException(
                     "Cannot perform this action - broker is enabled."
@@ -1367,10 +1365,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         return new GenerateShrCommand(
                 cmdParams,
-                MSALControllerFactory.getAllControllers(
-                        mPublicClientConfiguration.getAppContext(),
-                        mPublicClientConfiguration.getDefaultAuthority(),
-                        mPublicClientConfiguration
+                new MSALControllerFactory(mPublicClientConfiguration).getAllControllers(
+                        mPublicClientConfiguration.getDefaultAuthority()
                 ),
                 cmdCallback,
                 publicApiId
@@ -1551,11 +1547,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
                     final InteractiveTokenCommand command = new InteractiveTokenCommand(
                             params,
-                            MSALControllerFactory.getDefaultController(
-                                    mPublicClientConfiguration.getAppContext(),
-                                    params.getAuthority(),
-                                    mPublicClientConfiguration
-                            ),
+                            new MSALControllerFactory(mPublicClientConfiguration).getDefaultController(
+                                    params.getAuthority()),
                             localAuthenticationCallback,
                             publicApiId
                     );
@@ -1636,10 +1629,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
                     final SilentTokenCommand silentTokenCommand = new SilentTokenCommand(
                             params,
-                            MSALControllerFactory.getAllControllers(
-                                    mPublicClientConfiguration.getAppContext(),
-                                    params.getAuthority(),
-                                    mPublicClientConfiguration
+                            new MSALControllerFactory(mPublicClientConfiguration).getAllControllers(
+                                    params.getAuthority()
                             ),
                             callback,
                             publicApiId
@@ -1839,48 +1830,57 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         }
     }
 
-//    public void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback, @Nullable final ClaimsRequest claimsRequest, @Nullable final UUID correlationId) {
-//        DeviceCodeFlowParameters.Builder builder = new DeviceCodeFlowParameters.Builder();
-//
-//        if (null != correlationId) {
-//            builder.withCorrelationId(correlationId);
-//        }
-//
-//        DeviceCodeFlowParameters deviceCodeFlowParameters =
-//                builder.withScopes(scopes)
-//                        .withClaims(claimsRequest)
-//                        .build();
-//
-//        final DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter
-//                .createDeviceCodeFlowWithClaimsCommandParameters(
-//                        mPublicClientConfiguration,
-//                        mPublicClientConfiguration.getOAuth2TokenCache(),
-//                        deviceCodeFlowParameters);
-//
-//        final DeviceCodeFlowCommandCallback deviceCodeFlowCommandCallback = getDeviceCodeFlowCommandCallback(callback);
-//
-//        try {
-//            final DeviceCodeFlowCommand deviceCodeFlowCommand = new DeviceCodeFlowCommand(
-//                    commandParameters,
-//                    MSALControllerFactory.getDefaultController(
-//                            mPublicClientConfiguration.getAppContext(),
-//                            commandParameters.getAuthority(),
-//                            mPublicClientConfiguration
-//                    ),
-//                    deviceCodeFlowCommandCallback,
-//                    PublicApiId.DEVICE_CODE_FLOW_WITH_CLAIMS_AND_CALLBACK
-//            );
-//
-//            CommandDispatcher.submitSilent(deviceCodeFlowCommand);
-//        } catch (final MsalClientException e) {
-//            final MsalClientException clientException = new MsalClientException(
-//                    UNKNOWN_ERROR,
-//                    "Unexpected error while acquiring token with device code.",
-//                    e
-//            );
-//            callback.onError(clientException);
-//        }
-//    }
+    public void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback, @Nullable final ClaimsRequest claimsRequest, @Nullable final UUID correlationId) {
+        final Context context = mPublicClientConfiguration.getAppContext();
+        PackageHelper packageHelper = new PackageHelper(context);
+
+        final Span span = OTelUtility.createSpan(SpanName.AcquireTokenDcf.name());
+        try (final Scope scope = SpanExtension.makeCurrentSpan(span)) {
+            span.setAttribute(AttributeName.application_name.name(), mPublicClientConfiguration.getAppContext().getPackageName());
+
+            // Currently this method is only supported for Teams app
+            if (!packageHelper.verifyIfValidTeamsPackage(context.getPackageName())) {
+                span.setAttribute(AttributeName.error_message.name(), "acquireTokenWithDeviceCode with claims is not supported for current package.");
+                throw new UnsupportedOperationException(ERR_UNSUPPORTED_OPERATION);
+            } else {
+                DeviceCodeFlowParameters.Builder builder = new DeviceCodeFlowParameters.Builder();
+
+                if (null != correlationId) {
+                    builder.withCorrelationId(correlationId);
+                    span.setAttribute(AttributeName.correlation_id.name(), correlationId.toString());
+                }
+
+                DeviceCodeFlowParameters deviceCodeFlowParameters =
+                        builder.withScopes(scopes)
+                                .withClaims(claimsRequest)
+                                .build();
+
+                final DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter
+                        .createDeviceCodeFlowWithClaimsCommandParameters(
+                                mPublicClientConfiguration,
+                                mPublicClientConfiguration.getOAuth2TokenCache(),
+                                deviceCodeFlowParameters);
+
+                final DeviceCodeFlowCommandCallback deviceCodeFlowCommandCallback = getDeviceCodeFlowCommandCallback(callback);
+                final DeviceCodeFlowCommand deviceCodeFlowCommand = new DeviceCodeFlowCommand(
+                        commandParameters,
+                        new MSALControllerFactory(mPublicClientConfiguration).getDefaultController(
+                                commandParameters.getAuthority()),
+                        deviceCodeFlowCommandCallback,
+                        PublicApiId.DEVICE_CODE_FLOW_WITH_CLAIMS_AND_CALLBACK
+                );
+
+                CommandDispatcher.submitSilent(deviceCodeFlowCommand);
+            }
+            span.setStatus(StatusCode.OK);
+        } catch (final Throwable throwable) {
+            span.setStatus(StatusCode.ERROR);
+            span.recordException(throwable);
+            throw throwable;
+        } finally {
+            span.end();
+        }
+    }
 
     public void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback) {
         // Create a DeviceCodeFlowCommandParameters object that takes in the desired scopes and the callback object
@@ -2297,16 +2297,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      * @return active broker package name. Null if active broker isn't installed.
      **/
     @Nullable
-    public String getActiveBrokerPackageName(@NonNull final Context context)
-            throws MsalException {
-        try {
-            return new BrokerValidator(context).getCurrentActiveBrokerPackageName();
-        } catch (final ClientException e){
-            if (NOT_VALID_BROKER_FOUND.equalsIgnoreCase(e.getErrorCode())) {
-                return null;
-            }
+    public String getActiveBrokerPackageName(@NonNull final Context context) {
+        final BrokerData activeBroker = BrokerDiscoveryClientFactory.getInstance(context,
+                        AndroidPlatformComponentsFactory.createFromContext(context))
+                .getActiveBroker(false);
 
-            throw MsalExceptionAdapter.msalExceptionFromBaseException(e);
-        }
+        return activeBroker != null ? activeBroker.getPackageName() : null;
     }
 }

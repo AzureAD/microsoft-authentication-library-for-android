@@ -22,6 +22,15 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.mocked;
 
+import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
+import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushSchedulerWithDelay;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.HELLO_ERROR_CODE;
+import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.Broker.HELLO_ERROR_MESSAGE;
+import static com.microsoft.identity.internal.testutils.TestConstants.Authorities.AAD_MOCK_AUTHORITY;
+import static org.junit.Assert.fail;
+
+import android.os.Bundle;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -34,10 +43,10 @@ import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.RoboTestCacheHelper;
 import com.microsoft.identity.client.SilentAuthenticationCallback;
-import com.microsoft.identity.client.e2e.shadows.ShadowMockAuthority;
-import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
-import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
+import com.microsoft.identity.client.e2e.shadows.ShadowMockAuthority;
+import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
+import com.microsoft.identity.client.e2e.shadows.ShadowPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.e2e.shadows.ShadowStrategyResultServerError;
 import com.microsoft.identity.client.e2e.shadows.ShadowStrategyResultUnsuccessful;
 import com.microsoft.identity.client.e2e.tests.AcquireTokenAbstractTest;
@@ -45,12 +54,18 @@ import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.e2e.utils.ErrorCodes;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalUnsupportedBrokerException;
-import com.microsoft.identity.common.java.exception.ClientException;
+import com.microsoft.identity.client.internal.controllers.MSALControllerFactory;
+import com.microsoft.identity.common.exception.BrokerCommunicationException;
+import com.microsoft.identity.common.internal.broker.ipc.BrokerOperationBundle;
+import com.microsoft.identity.common.internal.broker.ipc.IIpcStrategy;
+import com.microsoft.identity.common.internal.controllers.BrokerMsalController;
+import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.common.java.cache.ICacheRecord;
+import com.microsoft.identity.common.java.exception.ClientException;
+import com.microsoft.identity.common.java.exception.ErrorStrings;
 import com.microsoft.identity.common.java.net.HttpClient;
 import com.microsoft.identity.common.java.net.HttpResponse;
 import com.microsoft.identity.common.java.providers.oauth2.TokenResponse;
-import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.http.HttpRequestInterceptor;
 import com.microsoft.identity.http.HttpRequestMatcher;
 import com.microsoft.identity.internal.testutils.TestConstants;
@@ -69,14 +84,9 @@ import org.robolectric.annotation.Config;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
-
-import static com.microsoft.identity.client.e2e.tests.mocked.ShadowBrokerMsalControllerWithMockIpcStrategyReturningHandshakeFailure.MOCK_ACTIVE_BROKER_NAME;
-import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
-import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushSchedulerWithDelay;
-import static com.microsoft.identity.internal.testutils.TestConstants.Authorities.AAD_MOCK_AUTHORITY;
-import static org.junit.Assert.fail;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(shadows = {
@@ -116,7 +126,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
 
     @After
     public void tearDown(){
-        ShadowMockMsalControllerFactory.sRouteRequestToBrokerMsalController = false;
+        MSALControllerFactory.setInjectedMockDefaultController(null);
     }
 
     @Test
@@ -505,13 +515,30 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
     }
 
     @Test
-    @Config(shadows = {
-            ShadowMockMsalControllerFactory.class,
-            ShadowBrokerMsalControllerWithMockIpcStrategyReturningHandshakeFailure.class})
     public void testAcquireTokenBrokerHandshakeFailed() {
         final String username = "fake@test.com";
+        final String MOCK_ACTIVE_BROKER_NAME = "MOCK_BROKER";
 
-        ShadowMockMsalControllerFactory.sRouteRequestToBrokerMsalController = true;
+        MSALControllerFactory.setInjectedMockDefaultController(new BrokerMsalController(
+                mContext,
+                mComponents,
+                MOCK_ACTIVE_BROKER_NAME
+                , Collections.singletonList(
+                new IIpcStrategy() {
+                    @Override
+                    public Bundle communicateToBroker(@NonNull BrokerOperationBundle bundle) throws BrokerCommunicationException {
+                        final Bundle errorBundle = new Bundle();
+                        errorBundle.putString(HELLO_ERROR_CODE, ErrorStrings.UNSUPPORTED_BROKER_VERSION_ERROR_CODE);
+                        errorBundle.putString(HELLO_ERROR_MESSAGE, ErrorStrings.UNSUPPORTED_BROKER_VERSION_ERROR_MESSAGE);
+                        return errorBundle;
+                    }
+
+                    @Override
+                    public Type getType() {
+                        return Type.CONTENT_PROVIDER;
+                    }
+                }
+        )));
 
         final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(mActivity)
