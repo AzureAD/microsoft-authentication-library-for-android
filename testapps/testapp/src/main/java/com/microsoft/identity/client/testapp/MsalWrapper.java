@@ -203,6 +203,8 @@ abstract class MsalWrapper {
 
     abstract void acquireTokenSilentAsyncInternal(@NonNull final AcquireTokenSilentParameters parameters);
 
+    abstract String getActiveBrokerPkgName(@NonNull final Activity activity);
+
     public void acquireTokenWithDeviceCodeFlow(@NonNull RequestOptions requestOptions,
                                                @NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback) {
 

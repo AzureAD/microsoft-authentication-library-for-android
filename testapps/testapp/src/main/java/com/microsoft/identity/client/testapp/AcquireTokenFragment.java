@@ -53,8 +53,10 @@ import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.java.opentelemetry.OTelUtility;
+import com.microsoft.identity.common.java.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -86,6 +88,7 @@ public class AcquireTokenFragment extends Fragment {
     private Button mAcquireTokenSilentWithResource;
     private Button mAcquireTokenWithDeviceCodeFlow;
     private Button mBrokerHelper;
+    private Button mGetActiveBrokerPkg;
     private Button mGenerateSHR;
     private Spinner mSelectAccount;
     private Spinner mConfigFileSpinner;
@@ -153,6 +156,7 @@ public class AcquireTokenFragment extends Fragment {
         mAcquireTokenSilentWithResource = view.findViewById(R.id.btn_acquiretokensilentWithResource);
         mAcquireTokenWithDeviceCodeFlow = view.findViewById(R.id.btn_acquiretokenWithDeviceCodeFlow);
         mBrokerHelper = view.findViewById(R.id.btnBrokerHelper);
+        mGetActiveBrokerPkg = view.findViewById(R.id.btnGetActiveBroker);
         mGenerateSHR = view.findViewById(R.id.btn_generate_shr);
         mConfigFileSpinner = view.findViewById(R.id.configFile);
         mAuthScheme = view.findViewById(R.id.authentication_scheme);
@@ -292,6 +296,15 @@ public class AcquireTokenFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 PublicClientApplication.showExpectedMsalRedirectUriInfo(activity);
+            }
+        });
+
+        mGetActiveBrokerPkg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final String activeBrokerPkgName = mMsalWrapper.getActiveBrokerPkgName(activity);
+                final String activeBrokerPkgNameMsg = StringUtil.isNullOrEmpty(activeBrokerPkgName) ? "Could not find a valid broker" : "Active broker pkg name : " + activeBrokerPkgName;
+                AcquireTokenFragment.this.showMessage(activeBrokerPkgNameMsg);
             }
         });
 
