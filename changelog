@@ -1,7 +1,9 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
-V.NEXT
+Version 4.6.1
 ----------
+- [PATCH] Version 4.6.0 was built with common which had lint errors, updating common after fixing the errors
 - [MINOR] Replacing SHA-1 used in broker validation with SHA-512 (#1826)
+- [PATCH] Update common @13.0.1
 
 Version 4.5.0
 ----------
