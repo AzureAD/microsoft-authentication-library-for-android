@@ -29,7 +29,6 @@ import androidx.annotation.VisibleForTesting
 import com.microsoft.identity.client.PublicClientApplicationConfiguration
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory
 import com.microsoft.identity.common.internal.activebrokerdiscovery.BrokerDiscoveryClientFactory
-import com.microsoft.identity.common.internal.broker.BrokerValidator
 import com.microsoft.identity.common.internal.controllers.BrokerMsalController
 import com.microsoft.identity.common.internal.controllers.LocalMSALController
 import com.microsoft.identity.common.java.authorities.Authority
@@ -38,7 +37,6 @@ import com.microsoft.identity.common.java.controllers.BaseController
 import com.microsoft.identity.common.java.interfaces.IPlatformComponents
 import com.microsoft.identity.common.logging.Logger
 import com.microsoft.identity.msal.BuildConfig
-import kotlin.jvm.Throws
 
 class MSALControllerFactory(
     private val applicationContext: Context,
