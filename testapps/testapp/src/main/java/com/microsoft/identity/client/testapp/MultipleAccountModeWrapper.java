@@ -22,6 +22,8 @@
 //   THE SOFTWARE.
 package com.microsoft.identity.client.testapp;
 
+import android.app.Activity;
+
 import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
@@ -30,6 +32,8 @@ import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.PoPAuthenticationScheme;
+import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.internal.ui.browser.BrowserSelector;
 import com.microsoft.identity.common.java.exception.ClientException;
@@ -135,5 +139,10 @@ public class MultipleAccountModeWrapper extends MsalWrapper {
                     }
                 }
         );
+    }
+
+    @Override
+    public String getActiveBrokerPkgName(@NonNull final Activity activity) {
+        return ((PublicClientApplication) mApp).getActiveBrokerPackageName(activity.getApplicationContext());
     }
 }

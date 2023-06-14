@@ -215,6 +215,7 @@ dependencies {
     testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"
     testLocalImplementation project(':testutils')
     testDistImplementation("com.microsoft.identity:testutils:0.0+") {
+        exclude module: 'common'
         exclude group: 'com.microsoft.identity', module: 'LabApiUtilities'
     }
     // instrumentation test dependencies

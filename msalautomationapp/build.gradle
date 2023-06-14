@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
 
 def msalVersion = "4.+"
 
@@ -23,6 +24,7 @@ android {
     final String BROKER_HOST = "BrokerHost"
     final String BROKER_MICROSOFT_AUTHENTICATOR = "BrokerMicrosoftAuthenticator"
     final String BROKER_COMPANY_PORTAL = "BrokerCompanyPortal"
+    final String BROKER_LTW = "BrokerLTW"
     final String AUTO_BROKER = "AutoBroker"
     final String SELECTED_BROKER = "SELECTED_BROKER"
 
@@ -61,6 +63,7 @@ android {
         // constants
         buildConfigField("String", BROKER_MICROSOFT_AUTHENTICATOR, "\"$BROKER_MICROSOFT_AUTHENTICATOR\"")
         buildConfigField("String", BROKER_COMPANY_PORTAL, "\"$BROKER_COMPANY_PORTAL\"")
+        buildConfigField("String", BROKER_LTW, "\"$BROKER_LTW\"")
         buildConfigField("String", BROKER_HOST, "\"$BROKER_HOST\"")
         buildConfigField("String", AUTO_BROKER, "\"$AUTO_BROKER\"")
     }
@@ -117,6 +120,11 @@ android {
             buildConfigField("String", SELECTED_BROKER, "\"$BROKER_COMPANY_PORTAL\"")
         }
 
+        BrokerLTW {
+            dimension "broker"
+            buildConfigField("String", SELECTED_BROKER, "\"$BROKER_LTW\"")
+        }
+
         BrokerHost {
             dimension "broker"
             buildConfigField("String", SELECTED_BROKER, "\"$BROKER_HOST\"")
@@ -146,17 +154,18 @@ android {
     sourceSets {
         main {
             manifest.srcFile 'src/main/AndroidManifest.xml'
-            java.srcDirs = ['src/main/java']
+            java.srcDirs = ['src/main/java', 'src/main/kotlin']
         }
 
         androidTest {
             manifest.srcFile 'src/androidTest/AndroidManifest.xml'
-            res.srcDirs = ['src/main/res']
+            res.srcDirs = ['src/main/res', 'src/main/kotlin']
         }
     }
 }
 
 dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
 
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
 
@@ -184,5 +193,8 @@ dependencies {
     }
     androidTestImplementation "androidx.test:runner:$rootProject.ext.androidxTestRunnerVersion"
     androidTestUtil "androidx.test:orchestrator:$rootProject.ext.androidxTestOrchestratorVersion"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
+    androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
 }
 

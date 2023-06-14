@@ -79,6 +79,9 @@ public abstract class AbstractMsalBrokerUpdateTest extends AbstractMsalUiTest im
             case BuildConfig.BrokerCompanyPortal:
                 return new BrokerCompanyPortal(BrokerCompanyPortal.OLD_COMPANY_PORTAL_APK,
                         BrokerCompanyPortal.COMPANY_PORTAL_APK);
+            case BuildConfig.BrokerLTW:
+                return new BrokerLTW(BrokerLTW.OLD_BROKER_LTW_APK,
+                        BrokerLTW.BROKER_LTW_APK);
             case BuildConfig.AutoBroker: {
                 if (supportedBrokersAnnotation == null) {
                     return new BrokerMicrosoftAuthenticator(BrokerMicrosoftAuthenticator.OLD_AUTHENTICATOR_APK,

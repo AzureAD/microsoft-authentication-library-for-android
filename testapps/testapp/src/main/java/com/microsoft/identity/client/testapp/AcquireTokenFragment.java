@@ -45,6 +45,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.microsoft.identity.client.HttpMethod;
@@ -53,8 +54,15 @@ import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory;
+import com.microsoft.identity.common.internal.activebrokerdiscovery.BrokerDiscoveryClientFactory;
+import com.microsoft.identity.common.internal.broker.BrokerData;
 import com.microsoft.identity.common.internal.broker.BrokerValidator;
+import com.microsoft.identity.common.internal.cache.ClientActiveBrokerCache;
+import com.microsoft.identity.common.internal.cache.IActiveBrokerCache;
 import com.microsoft.identity.common.java.opentelemetry.OTelUtility;
+import com.microsoft.identity.common.java.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +70,7 @@ import java.util.List;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.Scope;
+import kotlin.Unit;
 
 /**
  * acquireToken Fragment, contains the flow for acquireToken interactively, acquireTokenSilent, getUsers, removeUser.
@@ -78,6 +87,9 @@ public class AcquireTokenFragment extends Fragment {
     private Button mAddNgcMfaClaimButton;
     private Switch mEnablePII;
     private Switch mForceRefresh;
+    private Switch mEnableNewBrokerDiscovery;
+    private Button mClearActiveBrokerDiscoveryCache;
+    private TextView mCachedActiveBrokerName;
     private Button mGetUsers;
     private Button mClearCache;
     private Button mAcquireToken;
@@ -86,6 +98,7 @@ public class AcquireTokenFragment extends Fragment {
     private Button mAcquireTokenSilentWithResource;
     private Button mAcquireTokenWithDeviceCodeFlow;
     private Button mBrokerHelper;
+    private Button mGetActiveBrokerPkg;
     private Button mGenerateSHR;
     private Spinner mSelectAccount;
     private Spinner mConfigFileSpinner;
@@ -97,16 +110,14 @@ public class AcquireTokenFragment extends Fragment {
     private Spinner mPopHttpMethod;
     private EditText mPopResourceUrl;
     private EditText mPopClientClaims;
-
     private LinearLayout mPopSection;
     private LinearLayout mLoginHintSection;
-
     private ToggleButton mDebugBrokers;
-
     private OnFragmentInteractionListener mOnFragmentInteractionListener;
     private MsalWrapper mMsalWrapper;
     private List<IAccount> mLoadedAccounts = new ArrayList<>();
 
+    private IActiveBrokerCache mCache;
     public AcquireTokenFragment() {
         // left empty
     }
@@ -153,6 +164,7 @@ public class AcquireTokenFragment extends Fragment {
         mAcquireTokenSilentWithResource = view.findViewById(R.id.btn_acquiretokensilentWithResource);
         mAcquireTokenWithDeviceCodeFlow = view.findViewById(R.id.btn_acquiretokenWithDeviceCodeFlow);
         mBrokerHelper = view.findViewById(R.id.btnBrokerHelper);
+        mGetActiveBrokerPkg = view.findViewById(R.id.btnGetActiveBroker);
         mGenerateSHR = view.findViewById(R.id.btn_generate_shr);
         mConfigFileSpinner = view.findViewById(R.id.configFile);
         mAuthScheme = view.findViewById(R.id.authentication_scheme);
@@ -167,6 +179,31 @@ public class AcquireTokenFragment extends Fragment {
         mDebugBrokers.setTextOff("Prod Brokers");
         mDebugBrokers.setTextOn("Debug Brokers");
         mDebugBrokers.setChecked(BrokerValidator.getShouldTrustDebugBrokers());
+
+        mCache = ClientActiveBrokerCache.Companion.getBrokerMetadataStoreOnSdkSide(
+                AndroidPlatformComponentsFactory.createFromContext(getContext()).getStorageSupplier()
+        );
+
+        mEnableNewBrokerDiscovery = view.findViewById(R.id.enableBrokerDiscovery);
+        mCachedActiveBrokerName = view.findViewById(R.id.cachedActiveBrokerName);
+        mClearActiveBrokerDiscoveryCache = view.findViewById(R.id.clearActiveBrokerDiscoveryCache);
+
+        mEnableNewBrokerDiscovery.setChecked(BrokerDiscoveryClientFactory.isNewBrokerDiscoveryEnabled());
+        mEnableNewBrokerDiscovery.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton v, boolean value) {
+                BrokerDiscoveryClientFactory.setNewBrokerDiscoveryEnabled(value);
+                setActiveBrokerTextFromCache();
+            }
+        });
+
+        mClearActiveBrokerDiscoveryCache.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mCache.clearCachedActiveBroker();
+                setActiveBrokerTextFromCache();
+            }
+        });
 
         mPopSection = view.findViewById(R.id.pop_section);
         mLoginHintSection = view.findViewById(R.id.login_hint_section);
@@ -295,6 +332,15 @@ public class AcquireTokenFragment extends Fragment {
             }
         });
 
+        mGetActiveBrokerPkg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final String activeBrokerPkgName = mMsalWrapper.getActiveBrokerPkgName(activity);
+                final String activeBrokerPkgNameMsg = StringUtil.isNullOrEmpty(activeBrokerPkgName) ? "Could not find a valid broker" : "Active broker pkg name : " + activeBrokerPkgName;
+                AcquireTokenFragment.this.showMessage(activeBrokerPkgNameMsg);
+            }
+        });
+
         mGetUsers.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -354,6 +400,11 @@ public class AcquireTokenFragment extends Fragment {
         return view;
     }
 
+    private void setActiveBrokerTextFromCache() {
+        final BrokerData activeBroker = mCache.getCachedActiveBroker();
+        mCachedActiveBrokerName.setText(activeBroker == null ? "none" : activeBroker.getPackageName());
+    }
+
     private void updateUiBasedOnAuthScheme() {
         final Constants.AuthScheme authScheme = Constants.AuthScheme.valueOf(mAuthScheme.getSelectedItem().toString());
         if (authScheme == Constants.AuthScheme.POP) {
@@ -399,6 +450,7 @@ public class AcquireTokenFragment extends Fragment {
     public void onResume() {
         super.onResume();
         loadMsalApplicationFromRequestParameters(getCurrentRequestOptions());
+        setActiveBrokerTextFromCache();
     }
 
     private void loadAccounts() {

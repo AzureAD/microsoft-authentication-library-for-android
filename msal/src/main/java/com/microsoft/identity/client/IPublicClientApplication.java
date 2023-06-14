@@ -92,20 +92,20 @@ public interface IPublicClientApplication {
     @WorkerThread
     IAuthenticationResult acquireTokenSilent(@NonNull final AcquireTokenSilentParameters acquireTokenSilentParameters) throws InterruptedException, MsalException;
 
-//    /**
-//     * Perform the Device Code Flow (DCF) protocol to allow a device without input capability to authenticate and get a new access token.
-//     * This flow is now supported in Broker as well. It also supports requesting Claims using the "claims" Request. Parameter.
-//     *
-//     * @param scopes   the desired access scopes
-//     * @param callback callback object used to communicate with the API throughout the protocol
-//     * @param claims claims Authentication Request parameter requests that specific Claims be returned from the UserInfo Endpoint and/or in the ID Token.
-//     * @param correlationId  correlation id of this request
-//     *
-//     * Important: Use of this API requires setting the minimum_required_broker_protocol_version to
-//     * "13.0" or higher.
-//     * Note: This API is in testing phase and might return not supported error until fully supported.
-//     */
-//    void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback, @Nullable final ClaimsRequest claims, @Nullable final UUID correlationId);
+    /**
+     * Perform the Device Code Flow (DCF) protocol to allow a device without input capability to authenticate and get a new access token.
+     * This flow is now supported in Broker as well. It also supports requesting Claims using the "claims" Request. Parameter.
+     *
+     * @param scopes   the desired access scopes
+     * @param callback callback object used to communicate with the API throughout the protocol
+     * @param claims claims Authentication Request parameter requests that specific Claims be returned from the UserInfo Endpoint and/or in the ID Token.
+     * @param correlationId  correlation id of this request
+     *
+     * Important: Use of this API requires setting the minimum_required_broker_protocol_version to
+     * "13.0" or higher.
+     * Note: This API is in testing phase and might return not supported error until fully supported.
+     */
+    void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback, @Nullable final ClaimsRequest claims, @Nullable final UUID correlationId);
 
     /**
      * Perform the Device Code Flow (DCF) protocol to allow a device without input capability to authenticate and get a new access token.
