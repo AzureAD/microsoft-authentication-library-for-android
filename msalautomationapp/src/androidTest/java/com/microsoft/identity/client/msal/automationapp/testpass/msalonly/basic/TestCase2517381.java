@@ -26,7 +26,7 @@ public class TestCase2517381 extends AbstractMsalBrokerTest {
         final String password = mLabAccount.getPassword();
 
         // MsalTestApp acquires token interactively and silently
-        MsalTestApp msalTestApp = new MsalTestApp("OldMsalTestApp.apk","MsalTestApp.apk");
+        MsalTestApp msalTestApp = new MsalTestApp(true);
         msalTestApp.uninstall();
         msalTestApp.install();
         msalTestApp.launch();
