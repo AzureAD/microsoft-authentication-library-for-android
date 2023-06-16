@@ -54,7 +54,7 @@ public class TestCase2517374 extends AbstractMsalBrokerTest {
                 .howWouldYouLikeToSignInExpected(false)
                 .build();
 
-        String token = msalTestApp.acquireToken(username, password, promptHandlerParameters);
+        String token = msalTestApp.acquireToken(username, password, promptHandlerParameters, true);
         Assert.assertNotNull(token);
 
         // then acquire token silently and validate the token

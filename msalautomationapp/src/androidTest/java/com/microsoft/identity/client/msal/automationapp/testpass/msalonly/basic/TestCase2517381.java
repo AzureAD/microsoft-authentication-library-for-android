@@ -51,7 +51,7 @@ public class TestCase2517381 extends AbstractMsalBrokerTest {
                 .howWouldYouLikeToSignInExpected(false)
                 .build();
 
-        String token = msalTestApp.acquireToken(username, password, promptHandlerParameters);
+        String token = msalTestApp.acquireToken(username, password, promptHandlerParameters,true);
         Assert.assertNotNull(token);
 
         // then acquire token silently and validate the token
@@ -67,7 +67,7 @@ public class TestCase2517381 extends AbstractMsalBrokerTest {
         msalTestApp.handleFirstRun();
 
         // acquire token interactively and silently without prompting for creds
-        String tokenAfterUpdated = msalTestApp.acquireToken(username, password, null);
+        String tokenAfterUpdated = msalTestApp.acquireToken(username, password, promptHandlerParameters, false);
         Assert.assertNotNull(tokenAfterUpdated);
 
         msalTestApp.forceStop();
