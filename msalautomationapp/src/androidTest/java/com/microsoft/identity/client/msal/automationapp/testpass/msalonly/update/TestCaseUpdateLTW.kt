@@ -29,6 +29,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalCustomBrokerInstallationTest
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout
+import com.microsoft.identity.client.ui.automation.annotations.LTWTests
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.broker.BrokerLTW
 import com.microsoft.identity.client.ui.automation.constants.AuthScheme
@@ -44,7 +45,7 @@ import java.util.*
 
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2516681
 @RetryOnFailure
-@Ignore("Ignoring this as uninstalling LTW is broken atm? not sure why yet")
+@LTWTests
 class TestCaseUpdateLTW : AbstractMsalCustomBrokerInstallationTest() {
 
     private val mBrokerLTW: BrokerLTW = installOldLtw()
