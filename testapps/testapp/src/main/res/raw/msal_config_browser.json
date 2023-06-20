@@ -9,5 +9,11 @@
         "type": "AzureADMultipleOrgs"
       }
     }
-  ]
+  ],
+  "preferred_browser" : {
+    "browser_package_name": "org.mozilla.firefox",
+    "browser_signature_hashes": [
+      "2gCe6pR_AO_Q2Vu8Iep-4AsiKNnUHQxu0FaDHO_qa178GByKybdT_BuE8_dYk99G5Uvx_gdONXAOO2EaXidpVQ=="
+    ]
+  }
 }

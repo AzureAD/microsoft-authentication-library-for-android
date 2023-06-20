@@ -431,7 +431,6 @@ public class CommandParametersAdapter {
 
     private static boolean getBrokerBrowserSupportEnabled(@NonNull final AcquireTokenParameters parameters) {
         final String methodTag = TAG + ":getBrokerBrowserSupportEnabled";
-
         // Special case only for Intune COBO app, where they use Intune AcquireTokenParameters (an internal class)
         // to set browser support in broker to share SSO from System WebView login.
         if (parameters instanceof IntuneAcquireTokenParameters) {
@@ -444,7 +443,7 @@ public class CommandParametersAdapter {
             return brokerBrowserEnabled;
         }
 
-        return false;
+        return true;
     }
 
     private static OpenIdConnectPromptParameter getPromptParameter(@NonNull final AcquireTokenParameters parameters) {
