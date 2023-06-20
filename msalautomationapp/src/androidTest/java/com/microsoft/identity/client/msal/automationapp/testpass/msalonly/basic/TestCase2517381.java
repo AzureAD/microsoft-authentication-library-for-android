@@ -24,7 +24,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.basic
 
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
+import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
@@ -37,7 +37,9 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import org.junit.Assert;
 import org.junit.Test;
 
-@RunOnAPI29Minus
+// Add a UI testcase with update scenarios on OneAuthTest and MsalTest apps
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2517381
+@LTWTests
 @SupportedBrokers(brokers = {BrokerCompanyPortal.class})
 public class TestCase2517381 extends AbstractMsalBrokerTest {
 

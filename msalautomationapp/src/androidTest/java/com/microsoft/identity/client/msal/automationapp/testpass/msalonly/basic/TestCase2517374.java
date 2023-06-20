@@ -26,7 +26,7 @@ import android.util.Log;
 
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
+import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
@@ -39,8 +39,9 @@ import org.junit.Assert;
 import org.junit.Test;
 import java.util.List;
 
-
-@RunOnAPI29Minus
+// Add a UI test on MsalTestApp
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2517374
+@LTWTests
 @SupportedBrokers(brokers = {BrokerCompanyPortal.class})
 public class TestCase2517374 extends AbstractMsalBrokerTest {
 
