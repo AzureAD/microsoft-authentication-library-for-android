@@ -56,7 +56,6 @@ import java.util.Arrays;
 // "Add another account" option in Account Chooser Activity
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/796050
 @RetryOnFailure(retryCount = 2)
-@DoNotRunOnPipeline("This seems broken with daily libraries, but not release? Getting some app permission error when signing in with truemam ca account")
 public class TestCase796050 extends AbstractMsalBrokerTest {
 
     @Test
