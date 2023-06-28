@@ -386,8 +386,6 @@ publishing {
 }
 
 tasks.whenTaskAdded { task ->
-
-
     if (task.name.contains('assemble')) {
         task.dependsOn 'pmd', 'lint'
     }
@@ -399,7 +397,7 @@ tasks.whenTaskAdded { task ->
         task.dependsOn 'javadocJar', 'sourcesJar'
     }
 
-
-
-
+    if (task.name == 'assembleLocal') {
+        task.dependsOn 'lintLocalDebug', 'pmd'
+    }
 }
