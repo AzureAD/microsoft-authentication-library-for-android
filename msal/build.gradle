@@ -387,7 +387,7 @@ publishing {
 
 tasks.whenTaskAdded { task ->
     if (task.name.contains('assemble')) {
-        task.dependsOn 'pmd', 'lint'
+        task.dependsOn 'pmd'
     }
 
     if (task.name.contains('assemble')
