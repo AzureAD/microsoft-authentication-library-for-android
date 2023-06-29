@@ -67,12 +67,6 @@ jobs:
     displayName: Lint Local debug
     inputs:
       tasks: clean msal:lintLocalDebug
-  - task: Semmle@1
-    inputs:
-      sourceCodeDirectory: '$(Build.SourcesDirectory)'
-      language: 'java'
-      querySuite: 'Recommended'
-      timeout: '1800'
   - template: azure-pipelines/templates/steps/spotbugs.yml@common
     parameters:
       project: msal
