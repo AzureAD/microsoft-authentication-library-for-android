@@ -65,6 +65,7 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.getAccount;
+import static com.microsoft.identity.common.java.cache.AbstractAccountCredentialCache.SHA1_APPLICATION_IDENTIFIER_ACCESS_TOKEN_CLEARED;
 import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -297,8 +298,13 @@ public class CrossCloudGuestAccountTest extends AcquireTokenAbstractTest {
                 .getEncryptedFileStore(SHARED_PREFERENCES_NAME);
         final Map<String, ?> cacheValues = sharedPreferences.getAll();
 
-        assertEquals("Verify number of Cache records (AT, RT, IdToken, AccountRecord) for non removed account",
-                4, cacheValues.size());
+        if (cacheValues.size() == 5) {
+            assertNotNull("If number of cache records = 5, check that one of them is sha1-cleared",
+                    cacheValues.get(SHA1_APPLICATION_IDENTIFIER_ACCESS_TOKEN_CLEARED));
+        } else {
+            assertEquals("Verify number of Cache records (AT, RT, IdToken, AccountRecord) for non removed account",
+                    4, cacheValues.size());
+        }
 
         for (String key : cacheValues.keySet()) {
             assertFalse("Verify cache record not found for homeAccountId of removed account",
