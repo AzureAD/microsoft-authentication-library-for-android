@@ -602,7 +602,7 @@ public class SingleAccountPublicClientApplication
     private MultiTenantAccount getAccountFromICacheRecordList(@NonNull final List<ICacheRecord> cacheRecords) {
         final String methodTag = TAG + ":getAccountFromICacheRecords";
 
-        if (cacheRecords == null || cacheRecords.size() == 0) {
+        if (cacheRecords.size() == 0) {
             return null;
         }
 
@@ -616,7 +616,9 @@ public class SingleAccountPublicClientApplication
                             "Returning the first adapted account.");
         }
 
-        return (MultiTenantAccount) account.get(0);
+        if (!account.isEmpty())
+            return (MultiTenantAccount) account.get(0);
+        return null;
     }
 
     @Override
