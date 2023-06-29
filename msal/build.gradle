@@ -396,8 +396,4 @@ tasks.whenTaskAdded { task ->
         && !task.name.contains('Local')) {
         task.dependsOn 'javadocJar', 'sourcesJar'
     }
-
-    if (task.name == 'assembleLocal') {
-        task.dependsOn 'lintLocalDebug', 'pmd'
-    }
 }

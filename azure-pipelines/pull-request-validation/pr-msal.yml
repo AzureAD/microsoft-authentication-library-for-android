@@ -48,9 +48,14 @@ jobs:
     inputs:
       jdkArchitectureOption: x64
       jdkSourceOption: PreInstalled
+  - task: CmdLine@1
+    displayName: Set Office MVN Access Token in Environment
+    inputs:
+      filename: echo
+      arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROIDCOMMON_ACCESSTOKEN]$(System.AccessToken)'
   - task: Gradle@2
     name: Gradle1
-    displayName: Assemble Release
+    displayName: Assemble Local
     inputs:
       tasks: clean msal:assembleLocal
       publishJUnitResults: false
@@ -58,6 +63,16 @@ jobs:
       jdkVersion: $(BuildParameters.jdkVersion)
       jdkArchitecture: $(BuildParameters.jdkArchitecture)
       sqGradlePluginVersion: 2.0.1
+  - task: Gradle@1
+    displayName: Lint Local debug
+    inputs:
+      tasks: clean msal:lintLocalDebug
+  - task: Semmle@1
+    inputs:
+      sourceCodeDirectory: '$(Build.SourcesDirectory)'
+      language: 'java'
+      querySuite: 'Recommended'
+      timeout: '1800'
   - template: azure-pipelines/templates/steps/spotbugs.yml@common
     parameters:
       project: msal
