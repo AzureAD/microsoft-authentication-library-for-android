@@ -297,22 +297,17 @@ public class CrossCloudGuestAccountTest extends AcquireTokenAbstractTest {
         final IMultiTypeNameValueStorage sharedPreferences = mComponents.getStorageSupplier()
                 .getEncryptedFileStore(SHARED_PREFERENCES_NAME);
         final Map<String, ?> cacheValues = sharedPreferences.getAll();
+        //Getting rid of the SHA-1 cleared flag so it doesn't mess with the assertions below.
+        cacheValues.remove(SHA1_APPLICATION_IDENTIFIER_ACCESS_TOKEN_CLEARED);
 
-        if (cacheValues.size() == 5) {
-            assertNotNull("Verify number of Cache records (AT, RT, IdToken, AccountRecord) for non removed account; check that one of them is the sha1-cleared flag",
-                    cacheValues.get(SHA1_APPLICATION_IDENTIFIER_ACCESS_TOKEN_CLEARED));
-        } else {
-            assertEquals("Verify number of Cache records (AT, RT, IdToken, AccountRecord) for non removed account",
-                    4, cacheValues.size());
-        }
+        assertEquals("Verify number of Cache records (AT, RT, IdToken, AccountRecord) for non removed account",
+                4, cacheValues.size());
 
         for (String key : cacheValues.keySet()) {
-            if (!key.equals(SHA1_APPLICATION_IDENTIFIER_ACCESS_TOKEN_CLEARED)) {
-                assertFalse("Verify cache record not found for homeAccountId of removed account",
-                        key.contains(mTestCaseData.homeAccountId));
-                assertTrue("Verify cache record found for account that was not removed",
-                        key.contains(accountNotToRemove.getId()));
-            }
+            assertFalse("Verify cache record not found for homeAccountId of removed account",
+                    key.contains(mTestCaseData.homeAccountId));
+            assertTrue("Verify cache record found for account that was not removed",
+                    key.contains(accountNotToRemove.getId()));
         }
     }
 
