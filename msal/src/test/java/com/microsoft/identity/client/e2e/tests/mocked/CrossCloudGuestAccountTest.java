@@ -307,10 +307,12 @@ public class CrossCloudGuestAccountTest extends AcquireTokenAbstractTest {
         }
 
         for (String key : cacheValues.keySet()) {
-            assertFalse("Verify cache record not found for homeAccountId of removed account",
-                    key.contains(mTestCaseData.homeAccountId));
-            assertTrue("Verify cache record found for account that was not removed",
-                    key.contains(accountNotToRemove.getId()));
+            if (!key.equals(SHA1_APPLICATION_IDENTIFIER_ACCESS_TOKEN_CLEARED)) {
+                assertFalse("Verify cache record not found for homeAccountId of removed account",
+                        key.contains(mTestCaseData.homeAccountId));
+                assertTrue("Verify cache record found for account that was not removed",
+                        key.contains(accountNotToRemove.getId()));
+            }
         }
     }
 
