@@ -299,7 +299,7 @@ public class CrossCloudGuestAccountTest extends AcquireTokenAbstractTest {
         final Map<String, ?> cacheValues = sharedPreferences.getAll();
 
         if (cacheValues.size() == 5) {
-            assertNotNull("If number of cache records = 5, check that one of them is sha1-cleared",
+            assertNotNull("Verify number of Cache records (AT, RT, IdToken, AccountRecord) for non removed account; check that one of them is the sha1-cleared flag",
                     cacheValues.get(SHA1_APPLICATION_IDENTIFIER_ACCESS_TOKEN_CLEARED));
         } else {
             assertEquals("Verify number of Cache records (AT, RT, IdToken, AccountRecord) for non removed account",
