@@ -568,29 +568,11 @@ public class SingleAccountPublicClientApplication
     private MultiTenantAccount getPersistedCurrentAccount() {
         synchronized(SingleAccountPublicClientApplication.class) {
             final String currentAccountJsonString = sharedPreferencesFileManager.getString(CURRENT_ACCOUNT_SHARED_PREFERENCE_KEY);
-            Logger.verbose(
-                    TAG, "currentAccountJsonString "+currentAccountJsonString);
             if (StringExtensions.isNullOrBlank(currentAccountJsonString)) {
                 return null;
             }
 
             final List<ICacheRecord> cacheRecordList = JsonExtensions.getICacheRecordListFromJsonString(currentAccountJsonString);
-            for (ICacheRecord cacheRecord : cacheRecordList) {
-                if (cacheRecord.getAccount()!=null) {
-                    Logger.verbose(TAG, "cache record : " + cacheRecord.getAccount());
-                    if (cacheRecord.getAccount().getUsername() != null ){
-                        Logger.verbose(TAG, "cache record username : " + cacheRecord.getAccount().getUsername());
-                    }
-
-                    if (cacheRecord.getAccount().getLocalAccountId() != null ){
-                        Logger.verbose(TAG, "cache record localAccountId : " + cacheRecord.getAccount().getLocalAccountId());
-                    }
-
-                    if (cacheRecord.getAccount().getHomeAccountId() != null ){
-                        Logger.verbose(TAG, "cache record HomeAccountId : " + cacheRecord.getAccount().getHomeAccountId());
-                    }
-                }
-            }
             return getAccountFromICacheRecordList(cacheRecordList);
         }
     }
@@ -607,16 +589,8 @@ public class SingleAccountPublicClientApplication
                 sharedPreferencesFileManager.clear();
                 return;
             }
-            Logger.verbose(TAG,"persistCurrentAccount method with cacheRecords size " + cacheRecords.size());
+            Logger.info(TAG,"persisting cache records with size " + cacheRecords.size());
             final String currentAccountJsonString = JsonExtensions.getJsonStringFromICacheRecordList(cacheRecords);
-            Logger.verbose(TAG,"persisting following string :  " + currentAccountJsonString);
-            for (ICacheRecord cacheRecord : cacheRecords) {
-                if (cacheRecord.getAccount()!=null && cacheRecord.getAccount().getLocalAccountId()!=null)
-                Logger.verbose(TAG, "persisted the cacheRecord with localAccountId : "+ cacheRecord.getAccount().getLocalAccountId());
-                else if (cacheRecord.getAccount()!=null) {
-                    Logger.verbose(TAG, "localAccountId sent by broker was null!");
-                }
-            }
             sharedPreferencesFileManager.putString(CURRENT_ACCOUNT_SHARED_PREFERENCE_KEY, currentAccountJsonString);
         }
     }
