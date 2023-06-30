@@ -24,6 +24,8 @@ package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.basic
 
 import android.util.Log;
 
+import androidx.test.uiautomator.UiObject;
+
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
@@ -80,19 +82,25 @@ public class TestCase2517374 extends AbstractMsalBrokerTest {
         Assert.assertNotNull(token);
 
         // then acquire token silently and validate the token
-        msalTestApp.forceStop();
-        msalTestApp.launch();
-        msalTestApp.handleFirstRun();
+        msalTestApp.handleBackButton();
         String silentToken = msalTestApp.acquireTokenSilent();
         Assert.assertNotNull(silentToken);
 
         // finally get users and validate the users
-        msalTestApp.forceStop();
-        msalTestApp.launch();
-        msalTestApp.handleFirstRun();
+        msalTestApp.handleBackButton();
         List<String> users = msalTestApp.getUsers();
-        Log.d("TestCaseForSupportMsalTestApp", "TestCaseForSupportMsalTestApp: userList = " + users);
         Assert.assertTrue(users.size() == 1);
+
+        // select POP from auth scheme spinner
+        msalTestApp.handleBackButton();
+        msalTestApp.selectFromAuthScheme("POP");
+        String SHRToken = msalTestApp.generateSHR();
+        Assert.assertTrue(SHRToken != null && !SHRToken.isEmpty());
+
+        // validate toast message when remove account
+        msalTestApp.handleBackButton();
+        UiObject toast = msalTestApp.removeUser("The account is successfully removed.");
+        Assert.assertTrue(toast.exists());
     }
 
     // if getLabQuery return null then will use getTempUserType to create account
