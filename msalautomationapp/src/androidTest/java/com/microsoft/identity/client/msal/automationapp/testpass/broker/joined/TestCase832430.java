@@ -43,8 +43,6 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Test;
 
-import java.util.concurrent.TimeUnit;
-
 // [Joined][MSAL] Acquire Token + Acquire Token Silent with resource (Prompt.SELECT_ACCOUNT)
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/832430
 @RetryOnFailure(retryCount = 2)
