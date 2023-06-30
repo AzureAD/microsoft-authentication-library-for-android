@@ -92,4 +92,32 @@ jobs:
     displayName: Lint Local debug
     inputs:
       tasks: clean msal:lintLocalDebug
+      publishJUnitResults: false
+- job: codeql
+  displayName: CodeQL
+  cancelTimeoutInMinutes: 1
+  steps:
+  - checkout: self
+    clean: true
+    submodules: recursive
+    persistCredentials: True
+  - task: CmdLine@1
+    displayName: Set Office MVN Access Token in Environment
+    inputs:
+      filename: echo
+      arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN]$(System.AccessToken)'
+  - task: Semmle@1
+    inputs:
+      sourceCodeDirectory: '$(Build.SourcesDirectory)'
+      language: 'java'
+      buildCommandsString: 'gradlew.bat clean msal:assembleLocal'
+      querySuite: 'Recommended'
+      timeout: '1800'
+  - task: PublishPipelineArtifact@1
+    displayName: 'Publish code analysis artifacts'
+    inputs:
+      targetPath: '$(Build.SourcesDirectory)\build\outputs\'
+      ArtifactName: 'outputs'
+    condition: failed()
+
 ...
