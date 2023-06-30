@@ -31,12 +31,12 @@ resources:
     ref: dev
     endpoint: ANDROID_GITHUB
 
+pool:
+  name: Hosted Windows 2019 with VS2019
 jobs:
 - job: build_test
   displayName: Build & Test
   cancelTimeoutInMinutes: 1
-  pool:
-    name: Hosted Windows 2019 with VS2019
   steps:
   - checkout: self
     clean: true
@@ -48,11 +48,6 @@ jobs:
     inputs:
       jdkArchitectureOption: x64
       jdkSourceOption: PreInstalled
-  - task: CmdLine@1
-    displayName: Set Office MVN Access Token in Environment
-    inputs:
-      filename: echo
-      arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN]$(System.AccessToken)'
   - task: Gradle@2
     name: Gradle1
     displayName: Assemble Local
@@ -63,17 +58,38 @@ jobs:
       jdkVersion: $(BuildParameters.jdkVersion)
       jdkArchitecture: $(BuildParameters.jdkArchitecture)
       sqGradlePluginVersion: 2.0.1
-  - task: Gradle@1
-    displayName: Lint Local debug
-    inputs:
-      tasks: clean msal:lintLocalDebug
-  - template: azure-pipelines/templates/steps/spotbugs.yml@common
-    parameters:
-      project: msal
   - task: Gradle@2
     displayName: Run Unit tests
     inputs:
       tasks: msal:testLocalDebugUnitTest -Plabtest -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}}
       javaHomeSelection: $(BuildParameters.javaHomeSelection)
       jdkVersion: 1.11
+- job: spotbugs
+  displayName: SpotBugs
+  cancelTimeoutInMinutes: 1
+  steps:
+  - checkout: self
+    clean: true
+    submodules: recursive
+    persistCredentials: True
+  - template: azure-pipelines/templates/steps/spotbugs.yml@common
+    parameters:
+      project: msal
+- job: lint
+  displayName: Lint
+  cancelTimeoutInMinutes: 1
+  steps:
+  - checkout: self
+    clean: true
+    submodules: recursive
+    persistCredentials: True
+  - task: CmdLine@1
+    displayName: Set Office MVN Access Token in Environment
+    inputs:
+      filename: echo
+      arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN]$(System.AccessToken)'
+  - task: Gradle@1
+    displayName: Lint Local debug
+    inputs:
+      tasks: clean msal:lintLocalDebug
 ...
