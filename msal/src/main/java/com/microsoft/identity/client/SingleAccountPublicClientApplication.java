@@ -616,8 +616,9 @@ public class SingleAccountPublicClientApplication
                             "Returning the first adapted account.");
         }
 
-        if (!account.isEmpty())
+        if (!account.isEmpty()) {
             return (MultiTenantAccount) account.get(0);
+        }
         return null;
     }
 
