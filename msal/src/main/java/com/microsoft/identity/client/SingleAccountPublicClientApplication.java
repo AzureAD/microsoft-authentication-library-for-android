@@ -262,13 +262,12 @@ public class SingleAccountPublicClientApplication
 
         if (signInParameters.getPrompt() == null) {
             acquireTokenInternal(acquireTokenParameters, SINGLE_ACCOUNT_PCA_SIGN_IN_WITH_PARAMETERS);
-        }
-        else {
+        } else {
             acquireTokenInternal(acquireTokenParameters, SINGLE_ACCOUNT_PCA_SIGN_IN_WITH_PARAMETERS_PROMPT);
         }
 
     }
-    
+
     @Deprecated
     @Override
     public void signIn(@NonNull final Activity activity,
@@ -305,9 +304,9 @@ public class SingleAccountPublicClientApplication
     }
 
     /**
-     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of {@link SignInParameters} as the
-     *              parameters for the SingleAccountPublicClientApplication API.
-     *              Use {@link SingleAccountPublicClientApplication#signIn(SignInParameters)} instead.
+     * @deprecated This method is now deprecated. The library is moving towards standardizing the use of {@link SignInParameters} as the
+     * parameters for the SingleAccountPublicClientApplication API.
+     * Use {@link SingleAccountPublicClientApplication#signIn(SignInParameters)} instead.
      */
     @Deprecated
     @Override
@@ -371,17 +370,16 @@ public class SingleAccountPublicClientApplication
 
         if (signInParameters.getPrompt() == null) {
             acquireTokenInternal(acquireTokenParameters, SINGLE_ACCOUNT_PCA_EXISTING_SIGN_IN_WITH_PARAMETERS);
-        }
-        else {
+        } else {
             acquireTokenInternal(acquireTokenParameters, SINGLE_ACCOUNT_PCA_EXISTING_SIGN_IN_WITH_PARAMETERS_PROMPT);
         }
     }
 
 
     /**
-     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of {@link SignInParameters} as the
-     *              parameters for the SingleAccountPublicClientApplication API.
-     *              Use {@link SingleAccountPublicClientApplication#signInAgain(SignInParameters)} instead.
+     * @deprecated This method is now deprecated. The library is moving towards standardizing the use of {@link SignInParameters} as the
+     * parameters for the SingleAccountPublicClientApplication API.
+     * Use {@link SingleAccountPublicClientApplication#signInAgain(SignInParameters)} instead.
      */
     @Deprecated
     @Override
@@ -453,7 +451,7 @@ public class SingleAccountPublicClientApplication
 
     /**
      * Returns true if the account ID of both account matches (or both accounts are null).
-     * */
+     */
     private boolean isHomeAccountIdMatching(@Nullable final IAccount firstAccount, @Nullable final IAccount secondAccount) {
         final MultiTenantAccount firstMultiTenantAccount = firstAccount instanceof MultiTenantAccount ? (MultiTenantAccount) firstAccount : null;
         final MultiTenantAccount secondMultiTenantAccount = secondAccount instanceof MultiTenantAccount ? (MultiTenantAccount) secondAccount : null;
@@ -565,9 +563,8 @@ public class SingleAccountPublicClientApplication
      * @return a persisted MultiTenantAccount. This could be null.
      */
     private MultiTenantAccount getPersistedCurrentAccount() {
-        synchronized(SingleAccountPublicClientApplication.class) {
+        synchronized (SingleAccountPublicClientApplication.class) {
             final String currentAccountJsonString = sharedPreferencesFileManager.getString(CURRENT_ACCOUNT_SHARED_PREFERENCE_KEY);
-
             if (StringExtensions.isNullOrBlank(currentAccountJsonString)) {
                 return null;
             }
@@ -584,12 +581,12 @@ public class SingleAccountPublicClientApplication
      *                     Please note that this layer will not verify if the list belongs to a single account or not.
      */
     private void persistCurrentAccount(@Nullable final List<ICacheRecord> cacheRecords) {
-        synchronized(SingleAccountPublicClientApplication.class) {
+        synchronized (SingleAccountPublicClientApplication.class) {
             if (cacheRecords == null || cacheRecords.size() == 0) {
                 sharedPreferencesFileManager.clear();
                 return;
             }
-
+            Logger.info(TAG, "persisting cache records with size " + cacheRecords.size());
             final String currentAccountJsonString = JsonExtensions.getJsonStringFromICacheRecordList(cacheRecords);
             sharedPreferencesFileManager.putString(CURRENT_ACCOUNT_SHARED_PREFERENCE_KEY, currentAccountJsonString);
         }
@@ -605,7 +602,7 @@ public class SingleAccountPublicClientApplication
     private MultiTenantAccount getAccountFromICacheRecordList(@NonNull final List<ICacheRecord> cacheRecords) {
         final String methodTag = TAG + ":getAccountFromICacheRecords";
 
-        if (cacheRecords == null || cacheRecords.size() == 0) {
+        if (cacheRecords.size() == 0) {
             return null;
         }
 
@@ -619,7 +616,10 @@ public class SingleAccountPublicClientApplication
                             "Returning the first adapted account.");
         }
 
-        return (MultiTenantAccount) account.get(0);
+        if (!account.isEmpty()) {
+            return (MultiTenantAccount) account.get(0);
+        }
+        return null;
     }
 
     @Override
@@ -630,7 +630,7 @@ public class SingleAccountPublicClientApplication
         if (persistedAccount != null) {
             // Nothing is provided.
             if (acquireTokenParameters.getAccount() == null &&
-                    StringExtensions.isNullOrBlank(acquireTokenParameters.getLoginHint())){
+                    StringExtensions.isNullOrBlank(acquireTokenParameters.getLoginHint())) {
                 acquireTokenParameters
                         .getCallback()
                         .onError(new MsalClientException(MsalClientException.CURRENT_ACCOUNT_MISMATCH,
@@ -650,7 +650,7 @@ public class SingleAccountPublicClientApplication
 
             // If login hint is provided, check if the login hint matches with the persisted account's.
             if (!StringExtensions.isNullOrBlank(acquireTokenParameters.getLoginHint()) &&
-                    !persistedAccount.getUsername().equalsIgnoreCase(acquireTokenParameters.getLoginHint())){
+                    !persistedAccount.getUsername().equalsIgnoreCase(acquireTokenParameters.getLoginHint())) {
                 acquireTokenParameters
                         .getCallback()
                         .onError(new MsalClientException(MsalClientException.CURRENT_ACCOUNT_MISMATCH,
@@ -663,9 +663,9 @@ public class SingleAccountPublicClientApplication
     }
 
     /**
-     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of {@link SignInParameters} as the
-     *              parameters for the SingleAccountPublicClientApplication API.
-     *              Use {@link SingleAccountPublicClientApplication#acquireToken(AcquireTokenParameters)} instead.
+     * @deprecated This method is now deprecated. The library is moving towards standardizing the use of {@link SignInParameters} as the
+     * parameters for the SingleAccountPublicClientApplication API.
+     * Use {@link SingleAccountPublicClientApplication#acquireToken(AcquireTokenParameters)} instead.
      */
     @Override
     @Deprecated
@@ -700,9 +700,9 @@ public class SingleAccountPublicClientApplication
     }
 
     /**
-     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of {@link SignInParameters} as the
-     *              parameters for the SingleAccountPublicClientApplication API.
-     *              Use {@link SingleAccountPublicClientApplication#acquireTokenSilentAsync(AcquireTokenSilentParameters)} instead.
+     * @deprecated This method is now deprecated. The library is moving towards standardizing the use of {@link SignInParameters} as the
+     * parameters for the SingleAccountPublicClientApplication API.
+     * Use {@link SingleAccountPublicClientApplication#acquireTokenSilentAsync(AcquireTokenSilentParameters)} instead.
      */
     @Deprecated
     @Override
@@ -732,9 +732,9 @@ public class SingleAccountPublicClientApplication
     }
 
     /**
-     * @deprecated  This method is now deprecated. The library is moving towards standardizing the use of {@link SignInParameters} as the
-     *              parameters for the SingleAccountPublicClientApplication API.
-     *              Use {@link SingleAccountPublicClientApplication#acquireTokenSilent(AcquireTokenSilentParameters)} instead.
+     * @deprecated This method is now deprecated. The library is moving towards standardizing the use of {@link SignInParameters} as the
+     * parameters for the SingleAccountPublicClientApplication API.
+     * Use {@link SingleAccountPublicClientApplication#acquireTokenSilent(AcquireTokenSilentParameters)} instead.
      */
     @Deprecated
     @WorkerThread

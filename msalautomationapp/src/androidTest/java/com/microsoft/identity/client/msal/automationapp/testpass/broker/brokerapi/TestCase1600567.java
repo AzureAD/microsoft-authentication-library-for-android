@@ -22,6 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.brokerapi;
 
+import androidx.annotation.NonNull;
 import androidx.test.uiautomator.UiObject;
 
 import com.microsoft.identity.client.msal.automationapp.R;
@@ -52,7 +53,7 @@ public class TestCase1600567 extends AbstractMsalBrokerTest {
         brokerHost.brokerApiFragment.launch();
         // verify getAccounts call gives calling app not verified
         UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/button_get_accounts");
-       confirmCallingAppNotVerified();
+        confirmCallingAppNotVerified(brokerHost);
 
         // verify removeAccount call gives calling app not verified
         final UiObject usernameTxt = UiAutomatorUtils.obtainChildInScrollable("someone@contoso.com");
@@ -61,7 +62,7 @@ public class TestCase1600567 extends AbstractMsalBrokerTest {
                 "com.microsoft.identity.testuserapp:id/button_remove_account"
         );
         removeAccount.click();
-        confirmCallingAppNotVerified();
+        confirmCallingAppNotVerified(brokerHost);
 
         // verify update BRT call gives calling app not verified
         // fill BRT
@@ -70,18 +71,18 @@ public class TestCase1600567 extends AbstractMsalBrokerTest {
         UiAutomatorUtils.handleInput("com.microsoft.identity.testuserapp:id/edit_text_home_authority", "https://login.microsoftonline.com/common");
         // click on update BRT
         UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/button_update_brt");
-        confirmCallingAppNotVerified();
+        confirmCallingAppNotVerified(brokerHost);
 
         brokerHost.brokerFlightsFragment.launch();
         // verify setFlights call gives calling app not verified
         UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/flight_provider_local_storage");
         UiAutomatorUtils.handleInput("com.microsoft.identity.testuserapp:id/edit_text_flights", "{test : true}");
         UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/button_set_flights");
-        confirmCallingAppNotVerified();
+        confirmCallingAppNotVerified(brokerHost);
 
         // verify getFlights call gives calling app not verified
         UiAutomatorUtils.handleButtonClick("com.microsoft.identity.testuserapp:id/button_get_flights");
-        confirmCallingAppNotVerified();
+        confirmCallingAppNotVerified(brokerHost);
     }
 
 
@@ -115,8 +116,8 @@ public class TestCase1600567 extends AbstractMsalBrokerTest {
     /**
      * Confirm that the calling app is not verified
      */
-    public void confirmCallingAppNotVerified() {
-        String dialogMessage = ((BrokerHost)getBroker()).dismissDialog();
+    private void confirmCallingAppNotVerified(@NonNull final BrokerHost brokerHost) {
+        String dialogMessage = brokerHost.dismissDialog();
         Assert.assertTrue(dialogMessage.contains("Calling app could not be verified"));
     }
 
