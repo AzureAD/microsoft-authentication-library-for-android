@@ -22,13 +22,17 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.basic;
 
+import android.text.TextUtils;
+
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
+import com.microsoft.identity.client.ui.automation.app.OneAuthTestApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
+import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
@@ -48,14 +52,14 @@ public class TestCase2517381 extends AbstractMsalBrokerTest {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
-        // MsalTestApp acquires token interactively and silently
-        MsalTestApp msalTestApp = new MsalTestApp(true);
+        // install old MsalTestApp then acquires token interactively and silently
+        MsalTestApp msalTestApp = new MsalTestApp();
         msalTestApp.uninstall();
-        msalTestApp.install();
+        msalTestApp.installOldApk();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
 
-        final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
+        final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
                 .prompt(PromptParameter.SELECT_ACCOUNT)
                 .loginHint(username)
                 .sessionExpected(false)
@@ -74,15 +78,40 @@ public class TestCase2517381 extends AbstractMsalBrokerTest {
                 .howWouldYouLikeToSignInExpected(false)
                 .build();
 
-        String token = msalTestApp.acquireToken(username, password, promptHandlerParameters,true);
+        String token = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal,true);
         Assert.assertNotNull(token);
 
         // then acquire token silently and validate the token
-        msalTestApp.forceStop();
-        msalTestApp.launch();
-        msalTestApp.handleFirstRun();
+        msalTestApp.handleBackButton();
         String silentToken = msalTestApp.acquireTokenSilent();
         Assert.assertNotNull(silentToken);
+
+        // install old OneAuthTestApp then acquires token interactively and silently
+        final OneAuthTestApp oneAuthApp = new OneAuthTestApp();
+        oneAuthApp.installOldApk();
+        oneAuthApp.launch();
+        oneAuthApp.handleFirstRun();
+
+        final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
+                .broker(mBroker)
+                .prompt(PromptParameter.LOGIN)
+                .loginHint(username)
+                .consentPageExpected(false)
+                .speedBumpExpected(false)
+                .sessionExpected(false)
+                .expectingBrokerAccountChooserActivity(false)
+                .expectingLoginPageAccountPicker(false)
+                .enrollPageExpected(false)
+                .build();
+        oneAuthApp.addFirstAccount(username, password, promptHandlerParametersOneAuth);
+        oneAuthApp.confirmAccount(username);
+
+        // Hit back button to go on launch screen
+        oneAuthApp.handleBackButton();
+
+        final String silentTokenOneAuth = oneAuthApp.acquireTokenSilent();
+        Assert.assertFalse(TextUtils.isEmpty(silentTokenOneAuth));
+        oneAuthApp.assertSuccess();
 
         // update msal test app
         msalTestApp.update();
@@ -90,14 +119,17 @@ public class TestCase2517381 extends AbstractMsalBrokerTest {
         msalTestApp.handleFirstRun();
 
         // acquire token interactively and silently without prompting for creds
-        String tokenAfterUpdated = msalTestApp.acquireToken(username, password, promptHandlerParameters, false);
+        String tokenAfterUpdated = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, false);
         Assert.assertNotNull(tokenAfterUpdated);
 
-        msalTestApp.forceStop();
-        msalTestApp.launch();
-        msalTestApp.handleFirstRun();
+        msalTestApp.handleBackButton();
         String silentTokenAfterUpdated = msalTestApp.acquireTokenSilent();
         Assert.assertNotNull(silentTokenAfterUpdated);
+
+        // update oneauth test app
+        oneAuthApp.update();
+        oneAuthApp.launch();
+        oneAuthApp.handleFirstRun();
     }
 
     @Override
