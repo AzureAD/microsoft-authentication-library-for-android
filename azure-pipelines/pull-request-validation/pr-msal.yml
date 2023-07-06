@@ -25,7 +25,7 @@ trigger:
 
 resources:
   repositories:
-  - repository: android-complete
+  - repository: common
     type: github
     name: AzureAD/microsoft-authentication-library-common-for-android
     ref: dev
