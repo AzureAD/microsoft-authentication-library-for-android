@@ -96,6 +96,8 @@ jobs:
 - job: codeql
   displayName: CodeQL
   cancelTimeoutInMinutes: 1
+  variables:
+    Semmle.UploadSnapshot: true
   steps:
   - checkout: self
     clean: true
