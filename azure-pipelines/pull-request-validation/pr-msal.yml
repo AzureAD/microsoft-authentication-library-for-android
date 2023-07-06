@@ -27,8 +27,8 @@ resources:
   repositories:
   - repository: android-complete
     type: github
-    name: AzureAD/android-complete
-    ref: master
+    name: AzureAD/microsoft-authentication-library-common-for-android
+    ref: dev
     endpoint: ANDROID_GITHUB
 
 pool:
@@ -72,7 +72,7 @@ jobs:
     clean: true
     submodules: recursive
     persistCredentials: True
-  - template: azure-pipelines/templates/spotbugs.yml@android-complete
+  - template: azure-pipelines/templates/steps/spotbugs.yml@common
     parameters:
       project: msal
 - job: lint
