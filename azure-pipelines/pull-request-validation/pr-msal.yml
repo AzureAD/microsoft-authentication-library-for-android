@@ -107,6 +107,8 @@ jobs:
       filename: echo
       arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN]$(System.AccessToken)'
   - task: Semmle@1
+    env:
+      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
     inputs:
       sourceCodeDirectory: '$(Build.SourcesDirectory)'
       language: 'java'
