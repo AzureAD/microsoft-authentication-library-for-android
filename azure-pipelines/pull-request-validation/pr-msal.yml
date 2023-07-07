@@ -96,8 +96,6 @@ jobs:
 - job: codeql
   displayName: CodeQL
   cancelTimeoutInMinutes: 1
-  variables:
-    Semmle.UploadSnapshot: true
   steps:
   - checkout: self
     clean: true
@@ -108,6 +106,7 @@ jobs:
     inputs:
       filename: echo
       arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN]$(System.AccessToken)'
+  # https://semmleportal.azurewebsites.net/codeql/guardian
   - task: Semmle@1
     env:
       SYSTEM_ACCESSTOKEN: $(System.AccessToken)
