@@ -178,7 +178,7 @@ public class AcquireTokenFragment extends Fragment {
         mDebugBrokers = view.findViewById(R.id.btn_trust_debug_brkr);
         mDebugBrokers.setTextOff("Prod Brokers");
         mDebugBrokers.setTextOn("Debug Brokers");
-        mDebugBrokers.setChecked(BrokerValidator.getShouldTrustDebugBrokers());
+        mDebugBrokers.setChecked(BrokerData.getShouldTrustDebugBrokers());
 
         mCache = ClientActiveBrokerCache.Companion.getBrokerMetadataStoreOnSdkSide(
                 AndroidPlatformComponentsFactory.createFromContext(getContext()).getStorageSupplier()
@@ -393,7 +393,7 @@ public class AcquireTokenFragment extends Fragment {
         mDebugBrokers.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton v, boolean debugBrokers) {
-                BrokerValidator.setShouldTrustDebugBrokers(debugBrokers);
+                BrokerData.setShouldTrustDebugBrokers(debugBrokers);
             }
         });
 
