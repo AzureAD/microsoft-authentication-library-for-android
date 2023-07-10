@@ -109,7 +109,7 @@ public class TestCase2579095 extends AbstractMsalBrokerTest {
                     .expectingLoginPageAccountPicker(false)
                     .expectingProvidedAccountInCookie(false)
                     .consentPageExpected(false)
-                    .passwordPageExpected(true)
+                    .passwordPageExpected(false)
                     .speedBumpExpected(false)
                     .registerPageExpected(false)
                     .enrollPageExpected(false)
@@ -118,12 +118,12 @@ public class TestCase2579095 extends AbstractMsalBrokerTest {
                     .howWouldYouLikeToSignInExpected(false)
                     .build();
 
-            String tokenMsal = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, true);
+            String tokenMsal = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, false);
             Assert.assertNotNull(tokenMsal);
 
             // getPackageName on MsalTestApp and should be Company Portal
             msalTestApp.handleBackButton();
-            final UiObject activeBroker = msalTestApp.getPackageName(brokerCompanyPortal.COMPANY_PORTAL_APP_PACKAGE_NAME);
+            final UiObject activeBroker = msalTestApp.getPackageName(BrokerCompanyPortal.COMPANY_PORTAL_APP_PACKAGE_NAME);
             Assert.assertTrue(activeBroker.exists());
         }
 
