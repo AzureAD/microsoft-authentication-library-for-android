@@ -22,17 +22,15 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.basic;
 
-import android.text.TextUtils;
+import androidx.test.uiautomator.UiObject;
 
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
-import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
-import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
-import com.microsoft.identity.client.ui.automation.app.OneAuthTestApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
-import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters;
+import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
+import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
@@ -41,25 +39,36 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import org.junit.Assert;
 import org.junit.Test;
 
-// Add a UI testcase with update scenarios on OneAuthTest and MsalTest apps
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2517381
+// Authenticator has highest priority  - Case2 (LTW, CP, Auth)
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2584409
 @LTWTests
-@SupportedBrokers(brokers = {BrokerCompanyPortal.class})
-public class TestCase2517381 extends AbstractMsalBrokerTest {
-
+public class TestCase2584409 extends AbstractMsalBrokerTest {
     @Test
-    public void test_2517381 () throws Throwable {
+    public void test_2584409() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
-        // install old MsalTestApp then acquires token interactively and silently
-        MsalTestApp msalTestApp = new MsalTestApp();
+        mBroker.uninstall();
+
+        final BrokerLTW brokerLTW = new BrokerLTW();
+        brokerLTW.uninstall();
+        brokerLTW.install();
+
+        final BrokerCompanyPortal brokerCompanyPortal = new BrokerCompanyPortal();
+        brokerCompanyPortal.uninstall();
+        brokerCompanyPortal.install();
+
+        final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator();
+        brokerMicrosoftAuthenticator.uninstall();
+        brokerMicrosoftAuthenticator.install();
+
+        final MsalTestApp msalTestApp = new MsalTestApp();
         msalTestApp.uninstall();
-        msalTestApp.installOldApk();
+        msalTestApp.install();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
 
-        final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
+        final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
                 .prompt(PromptParameter.SELECT_ACCOUNT)
                 .loginHint(username)
                 .sessionExpected(false)
@@ -78,58 +87,12 @@ public class TestCase2517381 extends AbstractMsalBrokerTest {
                 .howWouldYouLikeToSignInExpected(false)
                 .build();
 
-        String token = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal,true);
+        String token = msalTestApp.acquireToken(username, password, promptHandlerParameters, true);
         Assert.assertNotNull(token);
 
-        // then acquire token silently and validate the token
         msalTestApp.handleBackButton();
-        String silentToken = msalTestApp.acquireTokenSilent();
-        Assert.assertNotNull(silentToken);
-
-        // install old OneAuthTestApp then acquires token interactively and silently
-        final OneAuthTestApp oneAuthApp = new OneAuthTestApp();
-        oneAuthApp.installOldApk();
-        oneAuthApp.launch();
-        oneAuthApp.handleFirstRun();
-
-        final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
-                .broker(mBroker)
-                .prompt(PromptParameter.LOGIN)
-                .loginHint(username)
-                .consentPageExpected(false)
-                .speedBumpExpected(false)
-                .sessionExpected(false)
-                .expectingBrokerAccountChooserActivity(false)
-                .expectingLoginPageAccountPicker(false)
-                .enrollPageExpected(false)
-                .build();
-        oneAuthApp.addFirstAccount(username, password, promptHandlerParametersOneAuth);
-        oneAuthApp.confirmAccount(username);
-
-        // Hit back button to go on launch screen
-        oneAuthApp.handleBackButton();
-
-        final String silentTokenOneAuth = oneAuthApp.acquireTokenSilent();
-        Assert.assertFalse(TextUtils.isEmpty(silentTokenOneAuth));
-        oneAuthApp.assertSuccess();
-
-        // update msal test app
-        msalTestApp.update();
-        msalTestApp.launch();
-        msalTestApp.handleFirstRun();
-
-        // acquire token interactively and silently without prompting for creds
-        String tokenAfterUpdated = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, false);
-        Assert.assertNotNull(tokenAfterUpdated);
-
-        msalTestApp.handleBackButton();
-        String silentTokenAfterUpdated = msalTestApp.acquireTokenSilent();
-        Assert.assertNotNull(silentTokenAfterUpdated);
-
-        // update oneauth test app
-        oneAuthApp.update();
-        oneAuthApp.launch();
-        oneAuthApp.handleFirstRun();
+        final UiObject activeBroker = msalTestApp.getPackageName(brokerMicrosoftAuthenticator.AUTHENTICATOR_APP_PACKAGE_NAME);
+        Assert.assertTrue(activeBroker.exists());
     }
 
     @Override
