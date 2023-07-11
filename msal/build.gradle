@@ -54,7 +54,7 @@ android {
     }
 
 
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdkVersion 34
 
     defaultConfig {
         multiDexEnabled true
