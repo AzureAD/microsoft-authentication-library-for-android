@@ -2,7 +2,11 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 V.NEXT
 ----------
 - [PATCH] Accommodating broker validator refactoring (#1851)
+
+Version 4.6.2
+----------
 - [PATCH] Wire new Broker Discovery Client into MSAL - still disabled by default (#1835)
+- [PATCH] Update common @14.0.0
 
 Version 4.6.1
 ----------
