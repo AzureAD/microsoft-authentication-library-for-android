@@ -221,8 +221,8 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
 
         // Previously authenticated code
         tokenRequest.setDeviceCode(
-                "RAQABAAEAAAD--DLA3VO7QrddgJg7Wevr1ZjzsZahhQ7tf1UbQnuYj5aR2K_lM_quXWpH5cCy4IY2V2G93Chy1HdrO1N9ARsEcp-" +
-                        "4UHWSXKVIEfKvgPcHR65UCJ3-OA-Sm9kFctGnoamKI7bVKjT0Q-ecrhdl-L3cOxnjn1QljlX3o7NkJTpQCKAgJyP4xReURk7pKJg9sE0gAA");
+                "AAQABAAEAAAAm-06blBE1TpVMil8KPQ41e5vDLI7te0y-3XHYO_uurPryAiyBiPiKnjEVzAQZQzCyGZERne4a" +
+                        "IwYAiBlQ8an93ENYuVOO-vEAt48FEJSEMQqq-zHZVD59bkc6eYIAViZKVvTv5_qilKj4uEjVE9BGkIxY5B6Uq1K8oWHEqzH-w6CiWjC8vQc6mSV_FPCbnAggAA");
 
         final TokenResult tokenResult = strategy.requestToken(tokenRequest);
         Assert.assertNull(tokenResult.getTokenResponse());
