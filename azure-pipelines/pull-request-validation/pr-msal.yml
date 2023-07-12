@@ -79,16 +79,16 @@ jobs:
   displayName: Lint
   cancelTimeoutInMinutes: 1
   steps:
-    - checkout: self
+  - checkout: self
     clean: true
     submodules: recursive
     persistCredentials: True
-    - task: CmdLine@1
+  - task: CmdLine@1
     displayName: Set Office MVN Access Token in Environment
     inputs:
       filename: echo
       arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN]$(System.AccessToken)'
-    - task: Gradle@1
+  - task: Gradle@1
     displayName: Lint Local debug
     inputs:
       tasks: clean msal:lintLocalDebug
