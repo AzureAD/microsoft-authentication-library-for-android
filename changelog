@@ -2,6 +2,7 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 V.NEXT
 ----------
 - [PATCH] Accommodating broker validator refactoring (#1851)
+- [MINOR] Update YubiKit version to 2.3.0 (#1854)
 
 Version 4.6.2
 ----------
