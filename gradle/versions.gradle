@@ -11,7 +11,7 @@ ext {
 
     // Plugins
     gradleVersion = '4.2.2'
-    kotlinVersion = '1.7.21'
+    kotlinVersion = '1.9.0'
     spotBugsGradlePluginVersion = '4.7.1'
     jupiterApiVersion = '5.6.0'
 
@@ -19,6 +19,7 @@ ext {
     coreLibraryDesugaringVersion = "1.0.9"
 
     // Libraries
+    kotlinxCoroutinesVersion = '1.7.2'
     androidxTestRunnerVersion = "1.4.0"
     androidxTestOrchestratorVersion = "1.4.1"
     androidxTestMonitorVersion = "1.4.0"
