@@ -3,6 +3,7 @@ V.NEXT
 ----------
 - [PATCH] Accommodating broker validator refactoring (#1851)
 - [MINOR] Update YubiKit version to 2.3.0 (#1854)
+- [MINOR] MSA UI tests for Brokered Auth (#1856)
 
 Version 4.6.2
 ----------
