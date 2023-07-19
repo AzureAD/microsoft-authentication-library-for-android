@@ -22,14 +22,14 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.basic;
 
-import androidx.test.uiautomator.UiObject;
-
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
-import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
+import com.microsoft.identity.client.ui.automation.app.OneAuthTestApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
+import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
+import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
@@ -38,33 +38,35 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import org.junit.Assert;
 import org.junit.Test;
 
-// LTW has higher priority than CP - Case2
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2572283
+// Uninstall scenario - with old Auth app new LTW
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2571565
 @LTWTests
-public class TestCase2572283 extends AbstractMsalBrokerTest {
+public class TestCase2571565 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_2572283() throws Throwable {
+    public void test_2571565() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
         mBroker.uninstall();
 
-        final BrokerCompanyPortal brokerCompanyPortal = new BrokerCompanyPortal();
-        brokerCompanyPortal.uninstall();
-        brokerCompanyPortal.install();
+        // Install legacy authenticator app
+        final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator(BrokerMicrosoftAuthenticator.OLD_AUTHENTICATOR_APK, BrokerMicrosoftAuthenticator.AUTHENTICATOR_APK);
+        brokerMicrosoftAuthenticator.uninstall();
+        brokerMicrosoftAuthenticator.install();
 
+        // Install new LTW
         final BrokerLTW brokerLTW = new BrokerLTW();
         brokerLTW.uninstall();
         brokerLTW.install();
 
+        // AcquireToken Interactively in MsalTestApp
         final MsalTestApp msalTestApp = new MsalTestApp();
         msalTestApp.uninstall();
         msalTestApp.install();
-        msalTestApp.launch();
         msalTestApp.handleFirstRun();
 
-        final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
+        final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
                 .prompt(PromptParameter.SELECT_ACCOUNT)
                 .loginHint(username)
                 .sessionExpected(false)
@@ -83,13 +85,36 @@ public class TestCase2572283 extends AbstractMsalBrokerTest {
                 .howWouldYouLikeToSignInExpected(false)
                 .build();
 
-        String token = msalTestApp.acquireToken(username, password, promptHandlerParameters, true);
-        Assert.assertNotNull(token);
+        String tokenMsal = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, true);
+        Assert.assertNotNull(tokenMsal);
 
-        msalTestApp.handleBackButton();
-        final UiObject activeBroker = msalTestApp.getPackageName(BrokerLTW.BROKER_LTW_APP_PACKAGE_NAME);
-        Assert.assertTrue(activeBroker.exists());
+        // Uninstall legacy authenticator app
+        brokerMicrosoftAuthenticator.uninstall();
+
+        // Install new oneAuthTestApp
+        final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
+        oneAuthTestApp.uninstall();
+        oneAuthTestApp.install();
+        oneAuthTestApp.handleFirstRun();
+
+        // AcquireToken Interactively in OneAuthTestApp, should prompt for password
+        final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
+                .broker(mBroker)
+                .prompt(PromptParameter.LOGIN)
+                .loginHint(username)
+                .consentPageExpected(false)
+                .speedBumpExpected(false)
+                .sessionExpected(false)
+                .expectingBrokerAccountChooserActivity(false)
+                .expectingLoginPageAccountPicker(false)
+                .enrollPageExpected(false)
+                .build();
+        oneAuthTestApp.addFirstAccount(username, password, promptHandlerParametersOneAuth);
+        oneAuthTestApp.confirmAccount(username);
+        String tokenOneAuth = oneAuthTestApp.acquireTokenInteractive(username, password, promptHandlerParametersOneAuth);
+        Assert.assertNotNull(tokenOneAuth);
     }
+
     @Override
     public LabQuery getLabQuery() {
         return null;
