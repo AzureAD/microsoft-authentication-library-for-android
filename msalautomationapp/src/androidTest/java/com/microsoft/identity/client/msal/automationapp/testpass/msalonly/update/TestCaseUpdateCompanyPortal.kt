@@ -29,6 +29,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalCustomBrokerInstallationTest
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout
+import com.microsoft.identity.client.ui.automation.annotations.LTWTests
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal
 import com.microsoft.identity.client.ui.automation.constants.AuthScheme
@@ -43,6 +44,7 @@ import java.util.*
 
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2516681
 @RetryOnFailure
+@LTWTests
 class TestCaseUpdateCompanyPortal : AbstractMsalCustomBrokerInstallationTest() {
 
     private val mCompanyPortal: BrokerCompanyPortal = installOldCompanyPortal()
