@@ -1,4 +1,8 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
+Version 4.6.3
+----------
+- [PATCH] Update common @14.0.1
+
 Version 4.6.2
 ----------
 - [PATCH] Wire new Broker Discovery Client into MSAL - still disabled by default (#1835)
