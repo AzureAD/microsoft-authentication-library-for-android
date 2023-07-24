@@ -54,7 +54,7 @@ android {
     compileSdkVersion rootProject.ext.compileSdkVersion
     defaultConfig {
         multiDexEnabled true
-        applicationId "com.msft.identity.client.sample"
+        applicationId "com.msft.identity.client.msal.automationapp"
         minSdkVersion 24
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

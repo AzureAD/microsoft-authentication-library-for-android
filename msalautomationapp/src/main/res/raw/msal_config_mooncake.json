@@ -1,7 +1,7 @@
 {
   "client_id" : "920cd637-4ca3-496b-8a6a-f7c6ca1b2b82",
   "authorization_user_agent" : "DEFAULT",
-  "redirect_uri" : "msauth://com.msft.identity.client.sample.local/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D",
+  "redirect_uri" : "msauth://com.msft.identity.client.msal.automationapp.local/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D",
   "authorities" : [
     {
       "type": "AAD",

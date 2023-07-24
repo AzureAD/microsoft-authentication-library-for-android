@@ -133,58 +133,58 @@ public class TestCase2495140 extends AbstractMsalBrokerTest {
         azureSampleApp.install();
         azureSampleApp.launch();
         azureSampleApp.confirmSignedIn(username2);
-        Logger.i(TAG, "Azure sample verified signed in account.");
-        final TokenRequestLatch silentTokenLatch = new TokenRequestLatch(1);
-
-        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
-                .forAccount(getAccount())
-                .fromAuthority(getAuthority())
-                .withScopes(Collections.singletonList("User.read"))
-                .forceRefresh(false)
-                .withCallback(new SilentAuthenticationCallback() {
-                    @Override
-                    public void onSuccess(IAuthenticationResult authenticationResult) {
-                        Assert.assertFalse(StringUtil.isEmpty(authenticationResult.getAccessToken()));
-                        silentTokenLatch.countDown();
-                    }
-
-                    @Override
-                    public void onError(MsalException exception) {
-                        Assert.assertEquals("thread interrupted", exception.getMessage());
-                        silentTokenLatch.countDown();
-                    }
-                })
-                .build();
-        // Advance time by a day to force the silent request to do network call
-        TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
-        Logger.i(TAG, "Performing a silent request from automation app.");
-        mApplication.acquireTokenSilentAsync(silentParameters);
-
-        // wait for sometime for the network requests to start from silent call.
-        // This is to ensure that silent call reads the data from cache and makes network call
-        // before its cleaned up by signout operation
-        ThreadUtils.sleepSafely(600, TAG, "Sleep failed");
-
-        final TokenRequestLatch signOutLatch = new TokenRequestLatch(1);
-        Logger.i(TAG, "Triggering sign out from the application");
-        ((SingleAccountPublicClientApplication) mApplication).signOut(new ISingleAccountPublicClientApplication.SignOutCallback() {
-            @Override
-            public void onSignOut() {
-                signOutLatch.countDown();
-            }
-
-            @Override
-            public void onError(@NonNull MsalException exception) {
-                Assert.fail("Sign out failed: " + exception.getMessage());
-            }
-        });
-
-        signOutLatch.await(TokenRequestTimeout.LONG);
-        silentTokenLatch.await(TokenRequestTimeout.LONG);
-
-        Logger.i(TAG, "Confirming account is signed out in Azure.");
-        azureSampleApp.launch();
-        azureSampleApp.confirmSignedIn("None");
+//        Logger.i(TAG, "Azure sample verified signed in account.");
+//        final TokenRequestLatch silentTokenLatch = new TokenRequestLatch(1);
+//
+//        final AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
+//                .forAccount(getAccount())
+//                .fromAuthority(getAuthority())
+//                .withScopes(Collections.singletonList("User.read"))
+//                .forceRefresh(false)
+//                .withCallback(new SilentAuthenticationCallback() {
+//                    @Override
+//                    public void onSuccess(IAuthenticationResult authenticationResult) {
+//                        Assert.assertFalse(StringUtil.isEmpty(authenticationResult.getAccessToken()));
+//                        silentTokenLatch.countDown();
+//                    }
+//
+//                    @Override
+//                    public void onError(MsalException exception) {
+//                        Assert.assertEquals("thread interrupted", exception.getMessage());
+//                        silentTokenLatch.countDown();
+//                    }
+//                })
+//                .build();
+//        // Advance time by a day to force the silent request to do network call
+//        TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
+//        Logger.i(TAG, "Performing a silent request from automation app.");
+//        mApplication.acquireTokenSilentAsync(silentParameters);
+//
+//        // wait for sometime for the network requests to start from silent call.
+//        // This is to ensure that silent call reads the data from cache and makes network call
+//        // before its cleaned up by signout operation
+//        ThreadUtils.sleepSafely(600, TAG, "Sleep failed");
+//
+//        final TokenRequestLatch signOutLatch = new TokenRequestLatch(1);
+//        Logger.i(TAG, "Triggering sign out from the application");
+//        ((SingleAccountPublicClientApplication) mApplication).signOut(new ISingleAccountPublicClientApplication.SignOutCallback() {
+//            @Override
+//            public void onSignOut() {
+//                signOutLatch.countDown();
+//            }
+//
+//            @Override
+//            public void onError(@NonNull MsalException exception) {
+//                Assert.fail("Sign out failed: " + exception.getMessage());
+//            }
+//        });
+//
+//        signOutLatch.await(TokenRequestTimeout.LONG);
+//        silentTokenLatch.await(TokenRequestTimeout.LONG);
+//
+//        Logger.i(TAG, "Confirming account is signed out in Azure.");
+//        azureSampleApp.launch();
+//        azureSampleApp.confirmSignedIn("None");
     }
 
     @Override

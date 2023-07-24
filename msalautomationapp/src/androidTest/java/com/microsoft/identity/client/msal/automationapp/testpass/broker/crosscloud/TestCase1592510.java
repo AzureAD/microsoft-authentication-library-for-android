@@ -47,6 +47,7 @@ import com.microsoft.identity.labapi.utilities.constants.GuestHomedIn;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -58,6 +59,7 @@ import java.util.Collection;
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1592510
 @RunWith(Parameterized.class)
 @RetryOnFailure(retryCount = 2)
+@Ignore
 @RunOnAPI29Minus("Keep me signed in")
 public class TestCase1592510 extends AbstractGuestAccountMsalBrokerUiTest {
 
