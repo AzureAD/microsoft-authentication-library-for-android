@@ -19,7 +19,7 @@ ext {
     coreLibraryDesugaringVersion = "1.0.9"
 
     // Libraries
-    kotlinxCoroutinesVersion = '1.7.4'
+    kotlinxCoroutinesVersion = '1.7.2'
     androidxTestRunnerVersion = "1.4.0"
     androidxTestOrchestratorVersion = "1.4.1"
     androidxTestMonitorVersion = "1.4.0"
