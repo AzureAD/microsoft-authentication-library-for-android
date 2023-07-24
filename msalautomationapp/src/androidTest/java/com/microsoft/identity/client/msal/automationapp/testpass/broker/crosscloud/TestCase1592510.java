@@ -58,7 +58,7 @@ import java.util.Collection;
 // Acquire Token from home cloud after acquiring token from cross cloud
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1592510
 @RunWith(Parameterized.class)
-@RetryOnFailure(retryCount = 2)
+//@RetryOnFailure(retryCount = 2)
 @Ignore
 @RunOnAPI29Minus("Keep me signed in")
 public class TestCase1592510 extends AbstractGuestAccountMsalBrokerUiTest {

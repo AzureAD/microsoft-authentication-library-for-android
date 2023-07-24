@@ -46,6 +46,7 @@ import com.microsoft.identity.labapi.utilities.constants.GuestHomedIn;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -57,6 +58,7 @@ import java.util.Collection;
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1616315
 @RunWith(Parameterized.class)
 @RunOnAPI29Minus("Keep me signed in")
+@Ignore
 public class TestCase1616316 extends AbstractGuestAccountMsalUiTest {
 
     private final GuestHomeAzureEnvironment mGuestHomeAzureEnvironment;

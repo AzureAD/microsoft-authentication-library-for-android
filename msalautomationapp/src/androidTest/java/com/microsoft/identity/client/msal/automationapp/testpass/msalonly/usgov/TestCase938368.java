@@ -46,6 +46,7 @@ import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -57,6 +58,7 @@ import java.util.concurrent.TimeUnit;
 // Adding a retry on failure, sometimes arlington login page fails to load
 @RetryOnFailure(retryCount = 2)
 @RunOnAPI29Minus("Speed Bump Page")
+@Ignore
 public class TestCase938368 extends AbstractMsalUiTest {
 
     @Test

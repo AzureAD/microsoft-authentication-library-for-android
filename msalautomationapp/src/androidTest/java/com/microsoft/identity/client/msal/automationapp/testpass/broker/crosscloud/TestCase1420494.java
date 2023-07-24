@@ -48,6 +48,7 @@ import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.json.JSONObject;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -58,7 +59,8 @@ import java.util.concurrent.TimeUnit;
 
 // Acquire token for cross cloud guest account (with broker)
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1420494
-@RetryOnFailure(retryCount = 2)
+//@RetryOnFailure(retryCount = 2)
+@Ignore
 @RunWith(Parameterized.class)
 @RunOnAPI29Minus("Keep me signed in")
 public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {

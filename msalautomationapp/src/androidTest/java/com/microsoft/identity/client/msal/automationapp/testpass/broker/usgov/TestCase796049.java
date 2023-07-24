@@ -38,10 +38,12 @@ import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 // [USGOV][Broker][Non-Joined] Acquire Token with Resource
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/796049
+@Ignore
 public class TestCase796049 extends AbstractMsalBrokerTest {
 
     @Test

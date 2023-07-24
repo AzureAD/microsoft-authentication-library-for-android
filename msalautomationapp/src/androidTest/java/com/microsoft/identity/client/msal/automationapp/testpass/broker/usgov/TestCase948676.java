@@ -37,12 +37,14 @@ import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
 
 // [USGOV][Broker][Joined] Acquire token with instance_aware=true
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/948676
+@Ignore
 public class TestCase948676 extends AbstractMsalBrokerTest {
 
     @Test

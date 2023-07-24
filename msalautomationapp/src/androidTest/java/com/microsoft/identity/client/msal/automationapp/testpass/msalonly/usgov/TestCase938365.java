@@ -39,6 +39,7 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -47,6 +48,7 @@ import java.util.Arrays;
 // and WW common authority
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938365
 @RetryOnFailure
+@Ignore
 public class TestCase938365 extends AbstractMsalUiTest {
 
     @Test

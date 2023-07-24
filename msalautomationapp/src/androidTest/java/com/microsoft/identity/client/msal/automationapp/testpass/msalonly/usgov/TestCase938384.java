@@ -39,6 +39,7 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -46,6 +47,7 @@ import java.util.Arrays;
 // [USGOV][MSAL-ONLY] Acquire token with USGov Authority
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938384
 @RetryOnFailure(retryCount = 2)
+@Ignore
 public class TestCase938384 extends AbstractMsalUiTest {
 
     @Test

@@ -57,7 +57,7 @@ import androidx.annotation.NonNull;
 
 // Acquire token from cross cloud when Device CA is required (via PKeyAuth)
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/1592468
-@RetryOnFailure(retryCount = 2)
+//@RetryOnFailure(retryCount = 2)
 @RunWith(Parameterized.class)
 @Ignore
 @RunOnAPI29Minus("Keep me signed in")
