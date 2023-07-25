@@ -109,6 +109,7 @@ public class TestCase2571508  extends AbstractMsalBrokerTest {
 
         // Add login hint as the username and Click on AcquireToken button
         // NOT prompted for credentials.
+        msalTestApp.handleUserNameInput(username);
         final String token = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, false);
         Assert.assertNotNull(token);
 
