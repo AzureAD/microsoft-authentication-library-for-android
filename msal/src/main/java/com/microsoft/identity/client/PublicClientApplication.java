@@ -661,6 +661,121 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
     /**
      * {@link PublicClientApplication#createSingleAccountPublicClientApplication(Context, int, ISingleAccountApplicationCreatedListener)}
+     * will read the client id and other configuration settings from configuration object provided.
+     *
+     * <p><p>This function will pass back an {@link MsalClientException} object if it is unable to
+     * return {@link ISingleAccountApplicationCreatedListener}. For example, AccountMode in
+     * configuration is not set to single. </p></p>
+     *
+     * @param context              Application's {@link Context}. The sdk requires the application
+     *                             context to be passed in {@link PublicClientApplication}.
+     *                             Cannot be null.
+     *                             <p>
+     *                             Note: The {@link Context} should be the application context
+     *                             instead of the running activity's context, which could
+     *                             potentially make the sdk hold a
+     *                             strong reference to the activity, thus preventing correct
+     *                             garbage collection and causing bugs.
+     *                             </p>
+     * @param devConfig            A developer provided PublicClientApplicationConfiguration
+     *                             for the SingleAccountPublicClientApplication.
+     *                             <p>
+     *                             For more information on the schema of the MSAL config json,
+     *                             please see <a href="https://developer.android.com/guide/topics/resources/providing-resources">Android app resource overview</a>
+     *                             and <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
+     *                             </p>
+     * @param listener             a callback to be invoked when the object is successfully created.
+     *                             Cannot be null.
+     * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, int, ISingleAccountApplicationCreatedListener)
+     * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, String, String, String, ISingleAccountApplicationCreatedListener)
+     * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, int)
+     * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, File)
+     */
+    public static void createSingleAccountPublicClientApplication(@NonNull final Context context,
+                                                                  @NonNull final PublicClientApplicationConfiguration devConfig,
+                                                                  @NonNull final ISingleAccountApplicationCreatedListener listener) {
+        validateNonNullArgument(listener, NONNULL_CONSTANTS.LISTENER);
+
+        runOnBackground(new Runnable() {
+            @Override
+            public void run() {
+                createSingleAccountPublicClientApplication(
+                        devConfig,
+                        listener
+                );
+            }
+        });
+    }
+    /**
+     * {@link PublicClientApplication#createSingleAccountPublicClientApplication(Context, int, ISingleAccountApplicationCreatedListener)}
+     * will read the client id and other configuration settings from configuration object provided.
+     *
+     * <p><p>This function will pass back an {@link MsalClientException} object if it is unable to
+     * return {@link ISingleAccountApplicationCreatedListener}. For example, AccountMode in
+     * configuration is not set to single. </p></p>
+     *
+     * @param context              Application's {@link Context}. The sdk requires the application
+     *                             context to be passed in {@link PublicClientApplication}.
+     *                             Cannot be null.
+     *                             <p>
+     *                             Note: The {@link Context} should be the application context
+     *                             instead of the running activity's context, which could
+     *                             potentially make the sdk hold a
+     *                             strong reference to the activity, thus preventing correct
+     *                             garbage collection and causing bugs.
+     *                             </p>
+     *  @param clientId            The application client id. Cannot be null.
+     *  @param authority           The default authority to be used for the authority. If this is null, the default authority will be used.
+     *  @param redirectUri         The redirect URI of the application.
+     *  @param listener            a callback to be invoked when the object is successfully created.
+     *                             Cannot be null.
+     *                             <p>
+     *                             For more information on the schema of the MSAL config json,
+     *                             please see <a href="https://developer.android.com/guide/topics/resources/providing-resources">Android app resource overview</a>
+     *                             and <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
+     *                             </p>
+     * @param listener             a callback to be invoked when the object is successfully created.
+     *                             Cannot be null.
+     * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, int, ISingleAccountApplicationCreatedListener)
+     * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, PublicClientApplicationConfiguration, ISingleAccountApplicationCreatedListener)
+     * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, int)
+     * @see PublicClientApplication#createSingleAccountPublicClientApplication(Context, File)
+     */
+    private static void createSingleAccountPublicClientApplication(@NonNull final Context context,
+                                                                   @Nullable final String clientId,
+                               @Nullable final String authority,
+                               @Nullable final String redirectUri,
+                               @NonNull final ISingleAccountApplicationCreatedListener listener){
+        validateNonNullArgument(listener, NONNULL_CONSTANTS.LISTENER);
+        PublicClientApplicationConfiguration config = initializeConfiguration(context);
+        if (clientId != null){
+            config.setClientId(clientId);
+        }
+
+        if (authority != null){
+            config.getAuthorities().clear();
+
+            final Authority authorityObject = Authority.getAuthorityFromAuthorityUrl(authority);
+            authorityObject.setDefault(true);
+            config.getAuthorities().add(authorityObject);
+        }
+
+        if (redirectUri != null) {
+            config.setRedirectUri(redirectUri);
+        }
+        runOnBackground(new Runnable() {
+            @Override
+            public void run() {
+                createSingleAccountPublicClientApplication(
+                        config,
+                        listener
+                );
+            }
+        });
+    }
+
+    /**
+     * {@link PublicClientApplication#createSingleAccountPublicClientApplication(Context, int, ISingleAccountApplicationCreatedListener)}
      * will read the client id and other configuration settings from the file included in your
      * application resources.
      *
