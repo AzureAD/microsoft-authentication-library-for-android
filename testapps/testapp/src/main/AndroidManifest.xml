@@ -51,7 +51,8 @@
             android:name="com.microsoft.identity.client.testapp.StartActivity"
             android:taskAffinity=""
             android:theme="@style/AppTheme.NoActionBar"
-            android:windowSoftInputMode="stateHidden">
+            android:windowSoftInputMode="stateHidden"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
@@ -63,7 +64,8 @@
             android:theme="@style/AppTheme.NoActionBar"
             android:taskAffinity=""
             android:documentLaunchMode="always"
-            android:configChanges="keyboardHidden|keyboard">
+            android:configChanges="keyboardHidden|keyboard"
+            android:exported="false">
         </activity>
 
         <activity
