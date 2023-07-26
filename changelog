@@ -3,6 +3,7 @@ V.NEXT
 ----------
 - [PATCH] Accommodating broker validator refactoring (#1851)
 - [MINOR] Update YubiKit version to 2.3.0 (#1854)
+- [MINOR] Updated target and compile SDK versions to 34 (#1865)
 
 Version 4.6.2
 ----------
