@@ -45,7 +45,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.microsoft.identity.client.HttpMethod;
@@ -54,11 +53,9 @@ import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.PublicClientApplication;
-import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory;
 import com.microsoft.identity.common.internal.activebrokerdiscovery.BrokerDiscoveryClientFactory;
 import com.microsoft.identity.common.internal.broker.BrokerData;
-import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.internal.cache.ClientActiveBrokerCache;
 import com.microsoft.identity.common.internal.cache.IActiveBrokerCache;
 import com.microsoft.identity.common.java.opentelemetry.OTelUtility;
@@ -70,7 +67,6 @@ import java.util.List;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.Scope;
-import kotlin.Unit;
 
 /**
  * acquireToken Fragment, contains the flow for acquireToken interactively, acquireTokenSilent, getUsers, removeUser.
@@ -180,7 +176,7 @@ public class AcquireTokenFragment extends Fragment {
         mDebugBrokers.setTextOn("Debug Brokers");
         mDebugBrokers.setChecked(BrokerData.getShouldTrustDebugBrokers());
 
-        mCache = ClientActiveBrokerCache.Companion.getBrokerMetadataStoreOnSdkSide(
+        mCache = ClientActiveBrokerCache.Companion.getCache(
                 AndroidPlatformComponentsFactory.createFromContext(getContext()).getStorageSupplier()
         );
 
