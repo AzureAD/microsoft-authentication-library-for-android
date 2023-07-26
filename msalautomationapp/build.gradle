@@ -43,7 +43,7 @@ android {
         }
     }
 
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdkVersion rootProject.ext.automationAndTestAppCompileSDK
 
     defaultConfig {
         multiDexEnabled true
