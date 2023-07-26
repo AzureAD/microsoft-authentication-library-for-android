@@ -7,8 +7,9 @@ V.NEXT
 - [MINOR] MSA UI tests for Brokered Auth (#1856)
 
 Version 4.6.3
-----------
 - [PATCH] Update common @14.0.1
+- [MINOR] Updated target and compile SDK versions to 34 (#1865)
+
 
 Version 4.6.2
 ----------
