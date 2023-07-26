@@ -69,8 +69,10 @@
         </activity>
 
         <activity
+            tools:replace="android:exported"
             android:name="com.microsoft.identity.client.BrowserTabActivity"
-            android:launchMode="singleTask">
+            android:launchMode="singleTask"
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
