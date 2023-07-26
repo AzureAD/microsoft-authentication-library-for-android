@@ -68,7 +68,7 @@ ext {
     javaAssistVersion = "3.27.0-GA"
     yubikitAndroidVersion = "2.3.0"
     yubikitPivVersion = "2.3.0"
-    powerliftAndroidVersion="1.0.0"
+    powerliftAndroidVersion="1.0.3"
 
     // microsoft-diagnostics-uploader app versions
     powerliftVersion = "0.14.7"
