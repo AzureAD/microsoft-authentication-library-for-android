@@ -7,11 +7,10 @@ ext {
     automationAppMinSDKVersion = 21
     targetSdkVersion = 34
     compileSdkVersion = 34
-    automationAndTestAppCompileSDK = 33
     buildToolsVersion = "28.0.3"
 
     // Plugins
-    gradleVersion = '4.2.2'
+    gradleVersion = '7.4.2'
     kotlinVersion = '1.7.21'
     spotBugsGradlePluginVersion = '4.7.1'
     jupiterApiVersion = '5.6.0'
