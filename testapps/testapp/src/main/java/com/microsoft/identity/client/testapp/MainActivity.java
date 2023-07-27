@@ -179,22 +179,22 @@ public class MainActivity extends AppCompatActivity
      * @param applicationContext the application context
      */
     private static synchronized void initOpenTelemetry(@lombok.NonNull final Context applicationContext) {
-        final Resource resource = Resource.getDefault();
-
-        final AriaSpanExporter ariaSpanExporter = new AriaSpanExporter(
-                applicationContext, BuildConfig.otelAriaToken, null
-        );
-
-        final SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
-                .addSpanProcessor(BatchSpanProcessor.builder(ariaSpanExporter).build())
-                .setResource(resource)
-                // No Sampling for our test app
-                // because the data is all going into test db
-                .build();
-
-        OpenTelemetrySdk.builder()
-                .setTracerProvider(sdkTracerProvider)
-                .buildAndRegisterGlobal();
+//        final Resource resource = Resource.getDefault();
+//
+//        final AriaSpanExporter ariaSpanExporter = new AriaSpanExporter(
+//                applicationContext, BuildConfig.otelAriaToken, null
+//        );
+//
+//        final SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
+//                .addSpanProcessor(BatchSpanProcessor.builder(ariaSpanExporter).build())
+//                .setResource(resource)
+//                // No Sampling for our test app
+//                // because the data is all going into test db
+//                .build();
+//
+//        OpenTelemetrySdk.builder()
+//                .setTracerProvider(sdkTracerProvider)
+//                .buildAndRegisterGlobal();
     }
 
     private Fragment getCurrentFragment(){
