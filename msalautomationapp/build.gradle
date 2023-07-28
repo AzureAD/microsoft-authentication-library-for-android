@@ -9,16 +9,16 @@ if (project.hasProperty("distMsalVersion")) {
 
 android {
 
-    packagingOptions {
-        pickFirst  'META-INF/common4j.kotlin_module'
-    }
+//    packagingOptions {
+//        pickFirst  'META-INF/common4j.kotlin_module'
+//    }
 
     compileOptions {
         // Flag to enable support for the new language APIs
-        coreLibraryDesugaringEnabled true
+        coreLibraryDesugaringEnabled false
         // Sets Java compatibility to Java 8
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility = "11"
+        targetCompatibility = "11"
     }
 
     final String BROKER_HOST = "BrokerHost"
@@ -47,6 +47,7 @@ android {
 
     defaultConfig {
         multiDexEnabled true
+        namespace = "com.microsoft.identity.client.msal.automationapp"
         applicationId "com.msft.identity.client.sample"
         minSdkVersion rootProject.ext.automationAppMinSDKVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
@@ -76,18 +77,12 @@ android {
     buildTypes {
         release {
             debuggable true
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
         }
-
-        debug {
-            // testCoverageEnabled flag is set to true to get coverage reports for Android Tests
-            testCoverageEnabled false
-            multiDexKeepProguard file('proguard-multidex-rules.pro')
-        }
     }
-
+//
     testBuildType = "debug"
 
     lintOptions {
@@ -175,7 +170,7 @@ dependencies {
     distImplementation "com.microsoft.identity.client:msal:${msalVersion}"
     implementation "androidx.constraintlayout:constraintlayout:$rootProject.ext.constraintLayoutVersion"
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
-    implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
+    implementation "androidx.appcompat:appcompat:1.6.1"
     implementation 'junit:junit:4.13'
     implementation "androidx.legacy:legacy-support-v4:$rootProject.ext.legacySupportV4Version"
     implementation "com.google.android.material:material:$rootProject.ext.materialVersion"
