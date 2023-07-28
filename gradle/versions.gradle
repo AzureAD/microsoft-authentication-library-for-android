@@ -34,7 +34,7 @@ ext {
     junitVersion = "4.12"
     legacySupportV4Version = "1.0.0"
     localBroadcastManagerVersion = "1.0.0"
-    lombokVersion = "1.18.12"
+    lombokVersion = "1.18.22"
     materialVersion = "1.0.0"
     mockitoCoreVersion = "3.6.28"
     mockitoAndroidVersion = "3.6.28"
