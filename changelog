@@ -5,6 +5,10 @@ V.NEXT
 - [MINOR] Update YubiKit version to 2.3.0 (#1854)
 - [MINOR] MSA UI tests for Brokered Auth (#1856)
 
+Version 4.6.3
+----------
+- [PATCH] Update common @14.0.1
+
 Version 4.6.2
 ----------
 - [PATCH] Wire new Broker Discovery Client into MSAL - still disabled by default (#1835)
