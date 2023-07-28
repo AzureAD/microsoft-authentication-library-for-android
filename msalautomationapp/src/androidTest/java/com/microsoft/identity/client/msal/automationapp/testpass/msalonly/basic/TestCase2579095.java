@@ -116,6 +116,7 @@ public class TestCase2579095 extends AbstractMsalBrokerTest {
                     .howWouldYouLikeToSignInExpected(false)
                     .build();
 
+            msalTestApp.handleUserNameInput(username);
             String tokenMsal = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, false);
             Assert.assertNotNull(tokenMsal);
 
