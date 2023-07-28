@@ -129,7 +129,6 @@ public class TestCase2517381 extends AbstractMsalBrokerTest {
         // update oneauth test app
         oneAuthApp.update();
         oneAuthApp.launch();
-        oneAuthApp.handleFirstRun();
 
         // acquire token without prompting for creds
         final String tokenAfterUpdatedOneAuth = oneAuthApp.acquireTokenSilent();

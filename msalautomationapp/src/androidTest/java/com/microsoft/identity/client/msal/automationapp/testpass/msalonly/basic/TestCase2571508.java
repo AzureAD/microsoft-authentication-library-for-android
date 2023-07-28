@@ -65,6 +65,7 @@ public class TestCase2571508  extends AbstractMsalBrokerTest {
         final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
         oneAuthTestApp.uninstall();
         oneAuthTestApp.install();
+        oneAuthTestApp.launch();
         oneAuthTestApp.handleFirstRun();
 
         final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
@@ -86,6 +87,7 @@ public class TestCase2571508  extends AbstractMsalBrokerTest {
         final MsalTestApp msalTestApp = new MsalTestApp();
         msalTestApp.uninstall();
         msalTestApp.install();
+        msalTestApp.launch();
         msalTestApp.handleFirstRun();
 
         final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()

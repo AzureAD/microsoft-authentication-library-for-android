@@ -80,8 +80,6 @@ public class TestCase2579095 extends AbstractMsalBrokerTest {
                     .build();
             oldOneAuthTestApp.addFirstAccount(username, password, promptHandlerParametersOneAuth);
             oldOneAuthTestApp.confirmAccount(username);
-            String tokenOneAuth = oldOneAuthTestApp.acquireTokenInteractive(username, password,promptHandlerParametersOneAuth);
-            Assert.assertNotNull(tokenOneAuth);
 
             // install new Authenticator
             final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator();

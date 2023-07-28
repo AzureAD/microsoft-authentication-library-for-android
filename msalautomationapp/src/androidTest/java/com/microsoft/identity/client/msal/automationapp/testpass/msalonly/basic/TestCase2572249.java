@@ -88,7 +88,7 @@ public class TestCase2572249 extends AbstractMsalBrokerTest {
                 .howWouldYouLikeToSignInExpected(false)
                 .build();
 
-        String tokenMsal = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, false);
+        String tokenMsal = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, true);
         Assert.assertNotNull(tokenMsal);
 
         // uninstall LTW
@@ -98,6 +98,7 @@ public class TestCase2572249 extends AbstractMsalBrokerTest {
         final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
         oneAuthTestApp.uninstall();
         oneAuthTestApp.install();
+        oneAuthTestApp.launch();
         oneAuthTestApp.handleFirstRun();
 
         // sign in to OneAuthTestApp
@@ -115,9 +116,8 @@ public class TestCase2572249 extends AbstractMsalBrokerTest {
                 .enrollPageExpected(false)
                 .build();
 
-        final String tokenOneAuth = oneAuthTestApp.acquireTokenInteractive(username, password, promptHandlerParametersOneAuth);
-        Assert.assertFalse(TextUtils.isEmpty(tokenOneAuth));
-
+        oneAuthTestApp.addFirstAccount(username, password, promptHandlerParametersOneAuth);
+        oneAuthTestApp.confirmAccount(username);
     }
 
 

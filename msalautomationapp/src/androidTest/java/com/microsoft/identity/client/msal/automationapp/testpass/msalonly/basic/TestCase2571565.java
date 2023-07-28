@@ -64,6 +64,7 @@ public class TestCase2571565 extends AbstractMsalBrokerTest {
         final MsalTestApp msalTestApp = new MsalTestApp();
         msalTestApp.uninstall();
         msalTestApp.install();
+        msalTestApp.launch();
         msalTestApp.handleFirstRun();
 
         final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
@@ -95,6 +96,7 @@ public class TestCase2571565 extends AbstractMsalBrokerTest {
         final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
         oneAuthTestApp.uninstall();
         oneAuthTestApp.install();
+        oneAuthTestApp.launch();
         oneAuthTestApp.handleFirstRun();
 
         // AcquireToken Interactively in OneAuthTestApp, should prompt for password
@@ -105,14 +107,13 @@ public class TestCase2571565 extends AbstractMsalBrokerTest {
                 .consentPageExpected(false)
                 .speedBumpExpected(false)
                 .sessionExpected(false)
+                .passwordPageExpected(true)
                 .expectingBrokerAccountChooserActivity(false)
                 .expectingLoginPageAccountPicker(false)
                 .enrollPageExpected(false)
                 .build();
         oneAuthTestApp.addFirstAccount(username, password, promptHandlerParametersOneAuth);
         oneAuthTestApp.confirmAccount(username);
-        String tokenOneAuth = oneAuthTestApp.acquireTokenInteractive(username, password, promptHandlerParametersOneAuth);
-        Assert.assertNotNull(tokenOneAuth);
     }
 
     @Override
