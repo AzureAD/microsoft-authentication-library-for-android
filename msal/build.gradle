@@ -161,6 +161,7 @@ android {
 task javadoc(type: Javadoc) {
     failOnError false
     source = android.sourceSets.main.java.srcDirs
+    configurations.implementation.setCanBeResolved(true)
     classpath += configurations.implementation
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
 
