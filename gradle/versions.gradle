@@ -5,7 +5,7 @@ ext {
     minSdkVersion = 16
     brokerProjectMinSdkVersion = 24
     automationAppMinSDKVersion = 21
-    targetSdkVersion = 34
+    targetSdkVersion = 33
     compileSdkVersion = 34
     buildToolsVersion = "28.0.3"
 
@@ -61,7 +61,7 @@ ext {
     junitVintageEngineVersion = "5.7.2"
     dbusJavaVersion = "3.3.0"
     dbusJavaUtilsVersion = "3.3.0"
-    bouncyCastleVersion = "1.67"
+    bouncyCastleVersion = "1.69"
     oshiCoreVersion = "5.7.5"
     tokenShare = "1.6.5"
     intuneAppSdkVersion = "8.6.3"
