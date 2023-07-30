@@ -99,8 +99,8 @@ public class TestCase2517374 extends AbstractMsalBrokerTest {
 
         // validate toast message when remove account
         msalTestApp.handleBackButton();
-        UiObject toast = msalTestApp.removeUser("The account is successfully removed.");
-        Assert.assertTrue(toast.exists());
+        final String msg = msalTestApp.removeUser();
+        Assert.assertEquals("The account is successfully removed.", msg);
     }
 
     // if getLabQuery return null then will use getTempUserType to create account

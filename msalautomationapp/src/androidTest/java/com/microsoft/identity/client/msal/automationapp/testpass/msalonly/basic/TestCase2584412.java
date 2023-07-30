@@ -92,8 +92,8 @@ public class TestCase2584412 extends AbstractMsalBrokerTest {
         Assert.assertNotNull(token);
 
         msalTestApp.handleBackButton();
-        final UiObject activeBroker = msalTestApp.getPackageName(BrokerMicrosoftAuthenticator.AUTHENTICATOR_APP_PACKAGE_NAME);
-        Assert.assertTrue(activeBroker.exists());
+        final String activeBroker = msalTestApp.getPackageName();
+        Assert.assertEquals(activeBroker, BrokerMicrosoftAuthenticator.AUTHENTICATOR_APP_PACKAGE_NAME);
     }
     @Override
     public LabQuery getLabQuery() {

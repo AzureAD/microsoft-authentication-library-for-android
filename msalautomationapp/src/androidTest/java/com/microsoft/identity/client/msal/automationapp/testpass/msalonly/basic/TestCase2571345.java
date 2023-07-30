@@ -62,7 +62,6 @@ public class TestCase2571345 extends AbstractMsalBrokerTest {
         oneAuthTestApp.launch();
         oneAuthTestApp.handleFirstRun();
 
-
         final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
                 .broker(mBroker)
                 .prompt(PromptParameter.LOGIN)
@@ -113,8 +112,8 @@ public class TestCase2571345 extends AbstractMsalBrokerTest {
         // Click on "Get Active Broker Pkg Name" button
         //The response msg should show LTW's pkg name
         msalTestApp.handleBackButton();
-        final UiObject activeBroker = msalTestApp.getPackageName(BrokerLTW.BROKER_LTW_APP_PACKAGE_NAME);
-        Assert.assertTrue(activeBroker.exists());
+        final String activeBroker = msalTestApp.getPackageName();
+        Assert.assertEquals(BrokerLTW.BROKER_LTW_APP_PACKAGE_NAME, activeBroker);
     }
 
     @Override

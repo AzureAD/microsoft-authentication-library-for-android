@@ -73,38 +73,6 @@ public class TestCase2584411 extends AbstractMsalBrokerTest {
         brokerLTW.uninstall();
         brokerLTW.install();
 
-
-//        final MsalSdk msalSdk = new MsalSdk();
-//
-//        msalSdk.setNewBrokerDiscoveryEnabled(true);
-//
-//        final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
-//                .activity(mActivity)
-//                .loginHint(username)
-//                .scopes(Arrays.asList(mScopes))
-//                .promptParameter(Prompt.SELECT_ACCOUNT)
-//                .msalConfigResourceId(getConfigFileResourceId())
-//                .build();
-//
-//        final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
-//            @Override
-//            public void handleUserInteraction() {
-//                final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
-//                        .prompt(PromptParameter.SELECT_ACCOUNT)
-//                        .loginHint(username)
-//                        .sessionExpected(false)
-//                        .speedBumpExpected(false)
-//                        .build();
-//
-//                new AadPromptHandler(promptHandlerParameters)
-//                        .handlePrompt(username, password);
-//            }
-//        }, TokenRequestTimeout.MEDIUM);
-//        authResult.assertSuccess();
-//
-//        final String packageName = msalSdk.getActiveBrokerPkgName(mActivity, getConfigFileResourceId());
-//        Assert.assertEquals("com.microsoft.appmanager", packageName);
-
         final MsalTestApp msalTestApp = new MsalTestApp();
         msalTestApp.uninstall();
         msalTestApp.install();
@@ -134,8 +102,8 @@ public class TestCase2584411 extends AbstractMsalBrokerTest {
         Assert.assertNotNull(token);
 
         msalTestApp.handleBackButton();
-        final UiObject activeBroker = msalTestApp.getPackageName(BrokerMicrosoftAuthenticator.AUTHENTICATOR_APP_PACKAGE_NAME);
-        Assert.assertTrue(activeBroker.exists());
+        final String activeBroker = msalTestApp.getPackageName();
+        Assert.assertEquals(activeBroker, BrokerMicrosoftAuthenticator.AUTHENTICATOR_APP_PACKAGE_NAME);
     }
 
     @Override

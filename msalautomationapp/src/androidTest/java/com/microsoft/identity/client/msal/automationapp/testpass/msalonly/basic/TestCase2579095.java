@@ -122,8 +122,8 @@ public class TestCase2579095 extends AbstractMsalBrokerTest {
 
             // getPackageName on MsalTestApp and should be Company Portal
             msalTestApp.handleBackButton();
-            final UiObject activeBroker = msalTestApp.getPackageName(BrokerCompanyPortal.COMPANY_PORTAL_APP_PACKAGE_NAME);
-            Assert.assertTrue(activeBroker.exists());
+            final String activeBroker = msalTestApp.getPackageName();
+            Assert.assertEquals(BrokerCompanyPortal.COMPANY_PORTAL_APP_PACKAGE_NAME, activeBroker);
         }
 
     @Override
