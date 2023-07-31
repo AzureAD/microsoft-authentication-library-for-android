@@ -88,8 +88,8 @@ public class TestCase2572280 extends AbstractMsalBrokerTest {
         Assert.assertNotNull(token);
 
         msalTestApp.handleBackButton();
-        final String activeBroker = msalTestApp.getPackageName();
-        Assert.assertEquals(activeBroker, BrokerLTW.BROKER_LTW_APP_PACKAGE_NAME);
+        final String activeBroker = msalTestApp.getActiveBrokerPackageName();
+        Assert.assertEquals(BrokerLTW.BROKER_LTW_APP_PACKAGE_NAME, activeBroker);
     }
     @Override
     public LabQuery getLabQuery() {

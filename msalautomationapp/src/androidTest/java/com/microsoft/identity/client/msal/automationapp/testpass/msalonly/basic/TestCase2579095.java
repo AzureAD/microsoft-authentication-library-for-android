@@ -122,7 +122,7 @@ public class TestCase2579095 extends AbstractMsalBrokerTest {
 
             // getPackageName on MsalTestApp and should be Company Portal
             msalTestApp.handleBackButton();
-            final String activeBroker = msalTestApp.getPackageName();
+            final String activeBroker = msalTestApp.getActiveBrokerPackageName();
             Assert.assertEquals(BrokerCompanyPortal.COMPANY_PORTAL_APP_PACKAGE_NAME, activeBroker);
         }
 
