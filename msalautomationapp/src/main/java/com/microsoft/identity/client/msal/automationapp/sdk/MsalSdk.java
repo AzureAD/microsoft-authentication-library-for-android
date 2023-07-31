@@ -51,6 +51,7 @@ import com.microsoft.identity.client.ui.automation.constants.AuthScheme;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.sdk.ResultFuture;
 import com.microsoft.identity.client.ui.automation.sdk.IAuthSdk;
+import com.microsoft.identity.common.internal.activebrokerdiscovery.BrokerDiscoveryClientFactory;
 import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryB2CAuthority;
 import com.microsoft.identity.common.java.util.ThreadUtils;
@@ -67,7 +68,6 @@ import java.util.concurrent.TimeUnit;
  * parameters and get back the final result.
  */
 public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
-
     @Override
     public MsalAuthResult acquireTokenInteractive(@NonNull MsalAuthTestParams authTestParams, final OnInteractionRequired interactionRequiredCallback, @NonNull final TokenRequestTimeout tokenRequestTimeout) throws Throwable {
         final IPublicClientApplication pca = setupPCA(
@@ -340,5 +340,17 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
         } catch (final Exception exception) {
             throw exception;
         }
+    }
+
+    public String getActiveBrokerPkgName(@NonNull final Activity activity, final int msalConfigResourceId) {
+        final IPublicClientApplication pca = setupPCA(
+                activity,
+                msalConfigResourceId
+        );
+        return ((PublicClientApplication) pca).getActiveBrokerPackageName(activity.getApplicationContext());
+    }
+
+    public void setNewBrokerDiscoveryEnabled(Boolean isEnabled) {
+        BrokerDiscoveryClientFactory.setNewBrokerDiscoveryEnabled(isEnabled);
     }
 }
