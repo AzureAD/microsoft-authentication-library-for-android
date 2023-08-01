@@ -43,7 +43,6 @@ import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
