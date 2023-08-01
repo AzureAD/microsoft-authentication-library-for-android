@@ -27,6 +27,7 @@ import com.microsoft.identity.client.msal.automationapp.R
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout
+import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost
@@ -39,6 +40,7 @@ import java.util.*
 // [PRTv3] Brokered Auth for MSA account - Acquire Token Silent
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2637846
 @SupportedBrokers(brokers = [BrokerHost::class])
+@LocalBrokerHostDebugUiTest
 @RetryOnFailure
 class TestCase2637846 : AbstractMsaBrokerTest() {
     @Test
