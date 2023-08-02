@@ -34,6 +34,7 @@ import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.PoPAuthenticationScheme;
 import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.internal.ui.browser.BrowserSelector;
@@ -138,8 +139,9 @@ public class SingleAccountModeWrapper extends MsalWrapper {
 
     @Override
     void acquireTokenWithDeviceCodeFlowInternal(@NonNull List<String> scopes,
+                                                @Nullable final ClaimsRequest claimsRequest,
                                                 @NonNull final IPublicClientApplication.DeviceCodeFlowCallback callback) {
-        mApp.acquireTokenWithDeviceCode(scopes, callback);
+        mApp.acquireTokenWithDeviceCode(scopes, callback, claimsRequest, null);
     }
 
     @Override

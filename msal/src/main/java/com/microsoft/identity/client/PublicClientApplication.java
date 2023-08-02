@@ -137,6 +137,7 @@ import com.microsoft.identity.msal.BuildConfig;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -1830,7 +1831,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         }
     }
 
-    public void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback, @Nullable final ClaimsRequest claimsRequest, @Nullable final UUID correlationId) {
+    public void acquireTokenWithDeviceCode(@NonNull List<String> scopes,
+                                           @NonNull final DeviceCodeFlowCallback callback,
+                                           @Nullable final ClaimsRequest claimsRequest,
+                                           @Nullable final UUID correlationId) {
         final Context context = mPublicClientConfiguration.getAppContext();
         PackageHelper packageHelper = new PackageHelper(context);
 
