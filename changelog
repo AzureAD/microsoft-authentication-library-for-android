@@ -1,5 +1,5 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
-V.NEXT
+Version 4.7.0
 ----------
 - [PATCH] Accommodating broker validator refactoring (#1851)
 - [MINOR] Update YubiKit version to 2.3.0 (#1854)
