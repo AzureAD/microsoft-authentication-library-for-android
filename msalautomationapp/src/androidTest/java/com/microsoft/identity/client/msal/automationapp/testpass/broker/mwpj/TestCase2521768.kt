@@ -25,7 +25,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.mwpj
 import com.microsoft.identity.client.Prompt
 import com.microsoft.identity.client.claims.ClaimsRequest
 import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation
-import com.microsoft.identity.client.msal.automationapp.R
+import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest

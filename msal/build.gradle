@@ -138,6 +138,7 @@ android {
     libraryVariants.all { variant ->
         variant.outputs.all {
             def fileName = "${archivesBaseName}-${version}.aar"
+            println "output file name !!!!!!!!!!!! "+ fileName
             outputFileName = fileName
         }
     }
@@ -161,8 +162,8 @@ android {
 task javadoc(type: Javadoc) {
     failOnError false
     source = android.sourceSets.main.java.srcDirs
-    configurations.implementation.setCanBeResolved(true)
-    classpath += configurations.implementation
+    configurations.api.setCanBeResolved(true)
+    classpath += configurations.api
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
 
     options.memberLevel = JavadocMemberLevel.PUBLIC
@@ -384,6 +385,11 @@ publishing {
             }
         }
     }
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
 }
 
 tasks.whenTaskAdded { task ->
