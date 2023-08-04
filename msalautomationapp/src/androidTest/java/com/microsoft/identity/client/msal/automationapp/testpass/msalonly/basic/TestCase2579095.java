@@ -22,9 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.basic;
 
-import androidx.test.uiautomator.UiObject;
-import androidx.test.uiautomator.UiObjectNotFoundException;
-
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
@@ -123,7 +120,7 @@ public class TestCase2579095 extends AbstractMsalBrokerTest {
             // getPackageName on MsalTestApp and should be Company Portal
             msalTestApp.handleBackButton();
             final String activeBroker = msalTestApp.getActiveBrokerPackageName();
-            Assert.assertEquals(BrokerCompanyPortal.COMPANY_PORTAL_APP_PACKAGE_NAME, activeBroker);
+            Assert.assertEquals("Active broker pkg name : " + BrokerCompanyPortal.COMPANY_PORTAL_APP_PACKAGE_NAME, activeBroker);
         }
 
     @Override
