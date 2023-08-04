@@ -112,7 +112,7 @@ public class TestCase2571345 extends AbstractMsalBrokerTest {
         // Click on "Get Active Broker Pkg Name" button
         //The response msg should show LTW's pkg name
         msalTestApp.handleBackButton();
-        final String activeBroker = msalTestApp.getPackageName();
+        final String activeBroker = msalTestApp.getActiveBrokerPackageName();
         Assert.assertEquals(BrokerLTW.BROKER_LTW_APP_PACKAGE_NAME, activeBroker);
     }
 
