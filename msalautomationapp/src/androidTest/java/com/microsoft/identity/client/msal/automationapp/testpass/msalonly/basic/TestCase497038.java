@@ -112,7 +112,6 @@ public class TestCase497038 extends AbstractMsalUiTest {
                         .sessionExpected(true)
                         .consentPageExpected(false)
                         .speedBumpExpected(true)
-                        .speedBumpResponse(UiResponse.ACCEPT)
                         .build();
 
                 new AadPromptHandler(promptHandlerParameters)
