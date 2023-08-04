@@ -22,8 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.basic;
 
-import androidx.test.uiautomator.UiObject;
-
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
@@ -92,7 +90,7 @@ public class TestCase2584409 extends AbstractMsalBrokerTest {
 
         msalTestApp.handleBackButton();
         final String activeBroker = msalTestApp.getActiveBrokerPackageName();
-        Assert.assertEquals(BrokerMicrosoftAuthenticator.AUTHENTICATOR_APP_PACKAGE_NAME, activeBroker);
+        Assert.assertEquals("Active broker pkg name : " + BrokerMicrosoftAuthenticator.AUTHENTICATOR_APP_PACKAGE_NAME, activeBroker);
     }
 
     @Override

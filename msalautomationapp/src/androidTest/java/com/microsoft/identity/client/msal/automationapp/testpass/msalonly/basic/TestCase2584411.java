@@ -22,33 +22,20 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.basic;
 
-import androidx.test.uiautomator.UiObject;
-
-import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
-import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
-import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
-import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
-import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
-import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
-import com.microsoft.identity.client.ui.automation.interaction.UiResponse;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.Arrays;
 
 // Authenticator has highest priority  - Case4 (Auth, CP, LTW)
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2584411
@@ -103,7 +90,7 @@ public class TestCase2584411 extends AbstractMsalBrokerTest {
 
         msalTestApp.handleBackButton();
         final String activeBroker = msalTestApp.getActiveBrokerPackageName();
-        Assert.assertEquals(BrokerMicrosoftAuthenticator.AUTHENTICATOR_APP_PACKAGE_NAME, activeBroker);
+        Assert.assertEquals("Active broker pkg name : " + BrokerMicrosoftAuthenticator.AUTHENTICATOR_APP_PACKAGE_NAME, activeBroker);
     }
 
     @Override
