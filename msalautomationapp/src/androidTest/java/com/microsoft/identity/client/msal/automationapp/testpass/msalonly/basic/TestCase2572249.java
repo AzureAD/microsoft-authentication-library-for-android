@@ -103,21 +103,13 @@ public class TestCase2572249 extends AbstractMsalBrokerTest {
 
         // sign in to OneAuthTestApp
         // should not prompt for password
-        final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
-                .broker(mBroker)
-                .prompt(PromptParameter.LOGIN)
-                .loginHint(username)
-                .passwordPageExpected(false)
-                .consentPageExpected(false)
-                .speedBumpExpected(false)
-                .sessionExpected(false)
-                .expectingBrokerAccountChooserActivity(false)
-                .expectingLoginPageAccountPicker(false)
-                .enrollPageExpected(false)
-                .build();
+        oneAuthTestApp.handleUserNameInput(username);
+        oneAuthTestApp.selectFromAppConfiguration("com.microsoft.identity.LabsApi.Guest");
+        oneAuthTestApp.handlePreferBrokerSwitchButton();
 
-        oneAuthTestApp.addFirstAccount(username, password, promptHandlerParametersOneAuth);
-        oneAuthTestApp.confirmAccount(username);
+        final String tokenOneAuth = oneAuthTestApp.handleSignInWithoutPrompt();
+        Assert.assertNotNull(tokenOneAuth);
+        oneAuthTestApp.assertSuccess();
     }
 
 
