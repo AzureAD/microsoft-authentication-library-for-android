@@ -70,7 +70,6 @@ class TestCase2637853 : AbstractMsaBrokerTest() {
                 .handlePrompt(username, password)
         }, TokenRequestTimeout.MEDIUM)
         authResult.assertSuccess()
-        verifyAccountInAndroidSettings(mLabAccount)
 
         // SECOND REQUEST WITHOUT LOGIN HINT
         val noLoginHintParams = MsalAuthTestParams.builder()

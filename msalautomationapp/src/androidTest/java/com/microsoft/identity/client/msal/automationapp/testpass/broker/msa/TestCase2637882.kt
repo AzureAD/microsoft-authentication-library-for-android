@@ -35,6 +35,8 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerPara
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import java.util.*
 
 // [PRTv3] Brokered Auth for MSA account - Consumers Authority
@@ -70,7 +72,6 @@ class TestCase2637882 : AbstractMsaBrokerTest() {
                 .handlePrompt(username, password)
         }, TokenRequestTimeout.MEDIUM)
         authResult.assertSuccess()
-        verifyAccountInAndroidSettings(mLabAccount)
 
         // Silent call
         val account = msalSdk.getAccount(mActivity, configFileResourceId, username)

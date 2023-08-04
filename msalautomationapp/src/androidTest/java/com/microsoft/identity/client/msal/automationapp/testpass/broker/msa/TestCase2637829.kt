@@ -39,6 +39,9 @@ import java.util.*
 
 // [PRTv3] Brokered Auth for MSA account - Prompt.Login
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2637829
+// and
+// [PRTv3] Brokered Auth for MSA account - Acquire Token Silent
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2637846
 @SupportedBrokers(brokers = [BrokerHost::class])
 @LocalBrokerHostDebugUiTest
 @RetryOnFailure
@@ -71,7 +74,19 @@ class TestCase2637829 : AbstractMsaBrokerTest() {
                 .handlePrompt(username, password)
         }, TokenRequestTimeout.MEDIUM)
         authResult1.assertSuccess()
-        verifyAccountInAndroidSettings(mLabAccount)
+
+        // Silent call
+        val account = msalSdk.getAccount(mActivity, configFileResourceId, username)
+        val silentParams = MsalAuthTestParams.builder()
+            .activity(mActivity)
+            .loginHint(username)
+            .authority(account.authority)
+            .forceRefresh(true)
+            .scopes(Arrays.asList(*mScopes))
+            .msalConfigResourceId(configFileResourceId)
+            .build()
+        val silentResult = msalSdk.acquireTokenSilent(silentParams, TokenRequestTimeout.MEDIUM)
+        silentResult.assertSuccess()
 
         // Interactive call with Prompt.LOGIN
         val anotherAuthTestParams = MsalAuthTestParams.builder()

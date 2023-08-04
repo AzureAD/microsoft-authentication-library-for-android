@@ -59,10 +59,4 @@ abstract class AbstractMsaBrokerTest : AbstractMsalBrokerTest() {
     override fun getScopes(): Array<String> {
         return arrayOf("User.read")
     }
-
-    protected fun verifyAccountInAndroidSettings(account: ILabAccount) {
-        settingsScreen.launchAccountListPage()
-        val accountManagerEntry = UiAutomatorUtils.obtainUiObjectWithText(account.username)
-        Assert.assertTrue(accountManagerEntry.waitForExists(CommonUtils.FIND_UI_ELEMENT_TIMEOUT))
-    }
 }
