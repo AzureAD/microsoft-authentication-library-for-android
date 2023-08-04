@@ -65,7 +65,6 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.getAccount;
-import static com.microsoft.identity.common.java.cache.AbstractAccountCredentialCache.SHA1_APPLICATION_IDENTIFIER_ACCESS_TOKEN_CLEARED;
 import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -297,8 +296,6 @@ public class CrossCloudGuestAccountTest extends AcquireTokenAbstractTest {
         final IMultiTypeNameValueStorage sharedPreferences = mComponents.getStorageSupplier()
                 .getEncryptedFileStore(SHARED_PREFERENCES_NAME);
         final Map<String, ?> cacheValues = sharedPreferences.getAll();
-        //Getting rid of the SHA-1 cleared flag so it doesn't mess with the assertions below.
-        cacheValues.remove(SHA1_APPLICATION_IDENTIFIER_ACCESS_TOKEN_CLEARED);
 
         assertEquals("Verify number of Cache records (AT, RT, IdToken, AccountRecord) for non removed account",
                 4, cacheValues.size());
