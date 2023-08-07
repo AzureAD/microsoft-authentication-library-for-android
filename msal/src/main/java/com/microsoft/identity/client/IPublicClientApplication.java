@@ -109,7 +109,7 @@ public interface IPublicClientApplication {
 
     /**
      * Perform the Device Code Flow (DCF) protocol to allow a device without input capability to authenticate and get a new access token.
-     * Currently, flow is only supported in local MSAL. No Broker support.
+     * NOTE: This API has no Broker support.
      *
      * @param scopes   the desired access scopes
      * @param callback callback object used to communicate with the API throughout the protocol
@@ -121,7 +121,7 @@ public interface IPublicClientApplication {
      *              Use {@link IPublicClientApplication#acquireTokenWithDeviceCode(List, DeviceCodeFlowCallback)} instead.
      *
      * Perform the Device Code Flow (DCF) protocol to allow a device without input capability to authenticate and get a new access token.
-     * Currently, flow is only supported in local MSAL. No Broker support.
+     * NOTE: This API has no Broker support.
      *
      * @param scopes   the desired access scopes
      * @param callback callback object used to communicate with the API throughout the protocol
