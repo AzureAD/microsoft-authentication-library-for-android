@@ -40,6 +40,8 @@ import org.junit.Test;
 
 import java.util.List;
 
+// If LTW is the active broker, and request is made through CP from MSAL in non-shared device mode, nothing should break
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2582291
 @LTWTests
 @RunOnAPI29Minus
 public class TestCase2582291 extends AbstractMsalBrokerTest {
