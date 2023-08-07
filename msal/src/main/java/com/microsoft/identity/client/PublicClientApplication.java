@@ -1830,7 +1830,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         }
     }
 
-    public void acquireTokenWithDeviceCode(@NonNull List<String> scopes, @NonNull final DeviceCodeFlowCallback callback, @Nullable final ClaimsRequest claimsRequest, @Nullable final UUID correlationId) {
+    public void acquireTokenWithDeviceCode(@NonNull List<String> scopes,
+                                           @NonNull final DeviceCodeFlowCallback callback,
+                                           @Nullable final ClaimsRequest claimsRequest,
+                                           @Nullable final UUID correlationId) {
         final Context context = mPublicClientConfiguration.getAppContext();
         PackageHelper packageHelper = new PackageHelper(context);
 
