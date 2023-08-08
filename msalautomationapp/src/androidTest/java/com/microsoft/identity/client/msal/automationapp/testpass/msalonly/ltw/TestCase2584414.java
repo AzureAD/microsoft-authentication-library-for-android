@@ -20,7 +20,7 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.basic;
+package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.ltw;
 
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
@@ -28,6 +28,7 @@ import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
+import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
@@ -36,25 +37,29 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import org.junit.Assert;
 import org.junit.Test;
 
-// LTW has higher priority than CP
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2572280
+// Authenticator has highest priority  - Case6 (CP, LTW, Auth)
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2584414
 @LTWTests
-public class TestCase2572280 extends AbstractMsalBrokerTest {
+public class TestCase2584414 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_2572280() throws Throwable {
+    public void test_2584414() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
         mBroker.uninstall();
 
+        final BrokerCompanyPortal brokerCompanyPortal = new BrokerCompanyPortal();
+        brokerCompanyPortal.uninstall();
+        brokerCompanyPortal.install();
+
         final BrokerLTW brokerLTW = new BrokerLTW();
         brokerLTW.uninstall();
         brokerLTW.install();
 
-        final BrokerCompanyPortal brokerCompanyPortal = new BrokerCompanyPortal();
-        brokerCompanyPortal.uninstall();
-        brokerCompanyPortal.install();
+        final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator();
+        brokerMicrosoftAuthenticator.uninstall();
+        brokerMicrosoftAuthenticator.install();
 
         final MsalTestApp msalTestApp = new MsalTestApp();
         msalTestApp.uninstall();
@@ -86,7 +91,7 @@ public class TestCase2572280 extends AbstractMsalBrokerTest {
 
         msalTestApp.handleBackButton();
         final String activeBroker = msalTestApp.getActiveBrokerPackageName();
-        Assert.assertEquals("Active broker pkg name : " + BrokerLTW.BROKER_LTW_APP_PACKAGE_NAME, activeBroker);
+        Assert.assertEquals("Active broker pkg name : " + BrokerMicrosoftAuthenticator.AUTHENTICATOR_APP_PACKAGE_NAME, activeBroker);
     }
     @Override
     public LabQuery getLabQuery() {
