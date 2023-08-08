@@ -5,6 +5,7 @@ import android.content.Context;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
@@ -208,8 +209,14 @@ abstract class MsalWrapper {
     public void acquireTokenWithDeviceCodeFlow(@NonNull RequestOptions requestOptions,
                                                @NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback) {
 
+        ClaimsRequest claimsRequest = null;
+        if (!StringUtil.isNullOrEmpty(requestOptions.getClaims())) {
+            claimsRequest = ClaimsRequest.getClaimsRequestFromJsonString(requestOptions.getClaims());
+        }
+
         acquireTokenWithDeviceCodeFlowInternal(
                 Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")),
+                claimsRequest,
                 new IPublicClientApplication.DeviceCodeFlowCallback() {
                     @Override
                     public void onUserCodeReceived(@NonNull String vUri,
@@ -235,7 +242,9 @@ abstract class MsalWrapper {
                 });
     }
 
-    abstract void acquireTokenWithDeviceCodeFlowInternal(@NonNull List<String> scopes, @NonNull final IPublicClientApplication.DeviceCodeFlowCallback callback);
+    abstract void acquireTokenWithDeviceCodeFlowInternal(@NonNull List<String> scopes,
+                                                         @Nullable ClaimsRequest claimsRequest,
+                                                         @NonNull final IPublicClientApplication.DeviceCodeFlowCallback callback);
 
     AuthenticationCallback getAuthenticationCallback(@NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback) {
         return new AuthenticationCallback() {
