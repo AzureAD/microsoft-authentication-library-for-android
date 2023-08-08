@@ -20,14 +20,19 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.basic;
+package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.ltw;
+
+import android.text.TextUtils;
 
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
+import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
-import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
+import com.microsoft.identity.client.ui.automation.app.OneAuthTestApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
+import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
+import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
@@ -36,33 +41,37 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import org.junit.Assert;
 import org.junit.Test;
 
-// LTW has higher priority than CP - Case2
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2572283
+//  Updated LTW, Updated Auth app and uninstall LTW
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2572249
 @LTWTests
-public class TestCase2572283 extends AbstractMsalBrokerTest {
+@RunOnAPI29Minus
+public class TestCase2572249 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_2572283() throws Throwable {
+    public void test_2572249() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
         mBroker.uninstall();
 
-        final BrokerCompanyPortal brokerCompanyPortal = new BrokerCompanyPortal();
-        brokerCompanyPortal.uninstall();
-        brokerCompanyPortal.install();
-
+        // install updated LTW
         final BrokerLTW brokerLTW = new BrokerLTW();
         brokerLTW.uninstall();
         brokerLTW.install();
 
+        // install updated auth app
+        final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator();
+        brokerMicrosoftAuthenticator.uninstall();
+        brokerMicrosoftAuthenticator.install();
+
+        // acquire token interactively in MsalTestApp
         final MsalTestApp msalTestApp = new MsalTestApp();
         msalTestApp.uninstall();
         msalTestApp.install();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
 
-        final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
+        final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
                 .prompt(PromptParameter.SELECT_ACCOUNT)
                 .loginHint(username)
                 .sessionExpected(false)
@@ -81,13 +90,39 @@ public class TestCase2572283 extends AbstractMsalBrokerTest {
                 .howWouldYouLikeToSignInExpected(false)
                 .build();
 
-        String token = msalTestApp.acquireToken(username, password, promptHandlerParameters, true);
-        Assert.assertNotNull(token);
+        String tokenMsal = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, true);
+        Assert.assertNotNull(tokenMsal);
 
-        msalTestApp.handleBackButton();
-        final String activeBroker = msalTestApp.getActiveBrokerPackageName();
-        Assert.assertEquals("Active broker pkg name : " + BrokerLTW.BROKER_LTW_APP_PACKAGE_NAME, activeBroker);
+        // uninstall LTW
+        brokerLTW.uninstall();
+
+        // install OneAuthTestApp
+        final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
+        oneAuthTestApp.uninstall();
+        oneAuthTestApp.install();
+        oneAuthTestApp.launch();
+        oneAuthTestApp.handleFirstRun();
+
+        // sign in to OneAuthTestApp
+        // should not prompt for password
+        final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
+                .broker(mBroker)
+                .prompt(PromptParameter.LOGIN)
+                .loginHint(username)
+                .passwordPageExpected(false)
+                .consentPageExpected(false)
+                .speedBumpExpected(false)
+                .sessionExpected(false)
+                .expectingBrokerAccountChooserActivity(false)
+                .expectingLoginPageAccountPicker(false)
+                .enrollPageExpected(false)
+                .build();
+
+        oneAuthTestApp.addFirstAccount(username, password, promptHandlerParametersOneAuth);
+        oneAuthTestApp.confirmAccount(username);
     }
+
+
     @Override
     public LabQuery getLabQuery() {
         return null;
