@@ -25,6 +25,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.ltw;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
+import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
@@ -40,17 +41,12 @@ import org.junit.Test;
 // Authenticator has highest priority  - Case2 (LTW, CP, Auth)
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2584409
 @LTWTests
+@SupportedBrokers(brokers = {BrokerLTW.class})
 public class TestCase2584409 extends AbstractMsalBrokerTest {
     @Test
     public void test_2584409() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
-
-        mBroker.uninstall();
-
-        final BrokerLTW brokerLTW = new BrokerLTW();
-        brokerLTW.uninstall();
-        brokerLTW.install();
 
         final BrokerCompanyPortal brokerCompanyPortal = new BrokerCompanyPortal();
         brokerCompanyPortal.uninstall();
