@@ -617,9 +617,14 @@ public class AcquireTokenFragment extends Fragment {
                 builder.setView(dialogView);
 
                 TextView dialogMessage = dialogView.findViewById(R.id.dialog_message);
+                Button okButton = dialogView.findViewById(R.id.dialog_ok_button);
                 dialogMessage.setText(msg);
 
                 AlertDialog dialog = builder.create();
+                okButton.setOnClickListener(v -> {
+                    dialog.dismiss();
+                });
+
                 dialog.show();
             }
         });
