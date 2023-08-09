@@ -172,7 +172,7 @@ public class MainActivity extends AppCompatActivity
         final Resource resource = Resource.getDefault();
 
         final AriaSpanExporter ariaSpanExporter = new AriaSpanExporter(
-                BuildConfig.otelAriaToken, null
+                BuildConfig.otelAriaToken, null, applicationContext
         );
 
         final SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
