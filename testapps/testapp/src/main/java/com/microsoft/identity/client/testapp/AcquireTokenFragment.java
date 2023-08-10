@@ -59,6 +59,7 @@ import com.microsoft.identity.common.internal.broker.BrokerData;
 import com.microsoft.identity.common.internal.cache.ClientActiveBrokerCache;
 import com.microsoft.identity.common.internal.cache.IActiveBrokerCache;
 import com.microsoft.identity.common.java.opentelemetry.OTelUtility;
+import com.microsoft.identity.common.java.opentelemetry.SpanExtension;
 import com.microsoft.identity.common.java.util.StringUtil;
 
 import java.util.ArrayList;
@@ -270,7 +271,7 @@ public class AcquireTokenFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 final Span span = OTelUtility.createSpan("TestApp_AcquireToken");
-                try (Scope scope = span.makeCurrent()) {
+                try (Scope scope = SpanExtension.makeCurrentSpan(span)) {
                     mMsalWrapper.acquireToken(getActivity(), getCurrentRequestOptions(), acquireTokenCallback);
                     span.setStatus(StatusCode.OK);
                 } catch (final Throwable throwable) {
@@ -286,7 +287,7 @@ public class AcquireTokenFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 final Span span = OTelUtility.createSpan("TestApp_AcquireTokenSilent");
-                try (Scope scope = span.makeCurrent()) {
+                try (Scope scope = SpanExtension.makeCurrentSpan(span)) {
                     mMsalWrapper.acquireTokenSilent(getCurrentRequestOptions(), acquireTokenCallback);
                     span.setStatus(StatusCode.OK);
                 } catch (final Throwable throwable) {
