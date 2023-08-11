@@ -76,8 +76,8 @@
                 <!-- To Test PPE:  msal7cc2dd84-bb0f-4711-8fca-4c7d01249f56 -->
                 <!-- To Test Sovereign: msalcb7faed4-b8c0-49ee-b421-f5ed16894c83 -->
                 <data android:scheme="msauth"
-                    android:host="${applicationId}"
-                    android:path="/1wIqXSqBj7w+h11ZifsnqwgyKrY="/>
+                    android:host="com.microsoft.teams"
+                    android:path="/VCpKgbYCXucoq1mZ4BZPsh5taNE="/>
             </intent-filter>
         </activity>
     </application>
