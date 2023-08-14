@@ -25,6 +25,7 @@ package com.microsoft.identity.client.testapp;
 import static com.microsoft.identity.client.testapp.R.id.enablePII;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -59,6 +60,7 @@ import com.microsoft.identity.common.internal.broker.BrokerData;
 import com.microsoft.identity.common.internal.cache.ClientActiveBrokerCache;
 import com.microsoft.identity.common.internal.cache.IActiveBrokerCache;
 import com.microsoft.identity.common.java.opentelemetry.OTelUtility;
+import com.microsoft.identity.common.java.opentelemetry.SpanExtension;
 import com.microsoft.identity.common.java.util.StringUtil;
 
 import java.util.ArrayList;
@@ -270,7 +272,7 @@ public class AcquireTokenFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 final Span span = OTelUtility.createSpan("TestApp_AcquireToken");
-                try (Scope scope = span.makeCurrent()) {
+                try (Scope scope = SpanExtension.makeCurrentSpan(span)) {
                     mMsalWrapper.acquireToken(getActivity(), getCurrentRequestOptions(), acquireTokenCallback);
                     span.setStatus(StatusCode.OK);
                 } catch (final Throwable throwable) {
@@ -286,7 +288,7 @@ public class AcquireTokenFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 final Span span = OTelUtility.createSpan("TestApp_AcquireTokenSilent");
-                try (Scope scope = span.makeCurrent()) {
+                try (Scope scope = SpanExtension.makeCurrentSpan(span)) {
                     mMsalWrapper.acquireTokenSilent(getCurrentRequestOptions(), acquireTokenCallback);
                     span.setStatus(StatusCode.OK);
                 } catch (final Throwable throwable) {
@@ -333,7 +335,7 @@ public class AcquireTokenFragment extends Fragment {
             public void onClick(View v) {
                 final String activeBrokerPkgName = mMsalWrapper.getActiveBrokerPkgName(activity);
                 final String activeBrokerPkgNameMsg = StringUtil.isNullOrEmpty(activeBrokerPkgName) ? "Could not find a valid broker" : "Active broker pkg name : " + activeBrokerPkgName;
-                AcquireTokenFragment.this.showMessage(activeBrokerPkgNameMsg);
+                AcquireTokenFragment.this.showDialog(activeBrokerPkgNameMsg);
             }
         });
 
@@ -359,7 +361,7 @@ public class AcquireTokenFragment extends Fragment {
 
                             @Override
                             public void showMessage(String message) {
-                                AcquireTokenFragment.this.showMessage(message);
+                                AcquireTokenFragment.this.showDialog(message);
                             }
                         });
             }
@@ -599,11 +601,32 @@ public class AcquireTokenFragment extends Fragment {
 
     private void showMessage(final String msg) {
         new Handler(getActivity().getMainLooper()).post(new Runnable() {
-
             @Override
             public void run() {
                 Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
                 mStatus.setText(msg);
+            }
+        });
+    }
+
+    private void showDialog(final String msg) {
+        new Handler(getActivity().getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.custom_dialog_layout, null);
+                builder.setView(dialogView);
+
+                TextView dialogMessage = dialogView.findViewById(R.id.dialog_message);
+                Button okButton = dialogView.findViewById(R.id.dialog_ok_button);
+                dialogMessage.setText(msg);
+
+                AlertDialog dialog = builder.create();
+                okButton.setOnClickListener(v -> {
+                    dialog.dismiss();
+                });
+
+                dialog.show();
             }
         });
     }
