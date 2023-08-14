@@ -31,6 +31,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.FailsWithDailyVersions;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
@@ -46,6 +47,7 @@ import org.junit.Test;
 // [Joined][MSAL] Acquire Token + Acquire Token Silent with resource (Prompt.SELECT_ACCOUNT)
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/832430
 @RetryOnFailure(retryCount = 2)
+@FailsWithDailyVersions("ESTS Seems to have a check against 0.0.X versions for MAM CA")
 public class TestCase832430 extends AbstractMsalBrokerTest {
 
     @Test

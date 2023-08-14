@@ -122,10 +122,10 @@ dependencies {
     if (findProject(":otelexporter") != null) {
         localImplementation(project(':otelexporter'))
     } else {
-        localImplementation "com.microsoft.identity.client:opentelemetry.exporter:1.0.0"
+        localImplementation "com.microsoft.identity.client:opentelemetry.exporter:1.+"
     }
 
-    distImplementation "com.microsoft.identity.client:opentelemetry.exporter:1.0.0"
+    distImplementation "com.microsoft.identity.client:opentelemetry.exporter:1.+"
     implementation platform("io.opentelemetry:opentelemetry-bom:1.18.0")
     implementation("io.opentelemetry:opentelemetry-sdk:1.18.0")
 }
