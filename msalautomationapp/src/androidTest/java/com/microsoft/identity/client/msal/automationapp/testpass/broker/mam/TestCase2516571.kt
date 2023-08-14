@@ -26,9 +26,8 @@ import com.microsoft.identity.client.msal.automationapp.R
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
 import com.microsoft.identity.client.ui.automation.annotations.DoNotRunOnPipeline
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
-import com.microsoft.identity.client.ui.automation.app.TeamsApp
-import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal
-import com.microsoft.identity.client.ui.automation.broker.IMdmAgent
+import com.microsoft.identity.client.ui.automation.app.OutlookApp
+import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator
 import com.microsoft.identity.client.ui.automation.installer.LocalApkInstaller
 import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
@@ -38,53 +37,37 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Test
 
-// TrueMAM: Sign In with Teams and then SignOut and Sign Back In
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2506936
-@SupportedBrokers(brokers = [BrokerCompanyPortal::class])
+// Using TrueMAM account when broker is Authenticator will require installation of CP
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2516571
+@SupportedBrokers(brokers = [BrokerMicrosoftAuthenticator::class])
 @DoNotRunOnPipeline
-class TestCase2506936 : AbstractMsalBrokerTest(){
+class TestCase2516571 : AbstractMsalBrokerTest(){
 
     @Test
-    fun test_2506936() {
+    fun test_2516571() {
         // Fetch credentials
         val username: String = mLabAccount.username
         val password: String = mLabAccount.password
 
-        val teams = TeamsApp(LocalApkInstaller())
-        teams.install()
-        teams.launch()
-        teams.handleFirstRun()
+        val outlook = OutlookApp(LocalApkInstaller())
+        outlook.install()
+        outlook.launch()
+        outlook.handleFirstRun()
 
-        val teamsPromptHandlerParameters = FirstPartyAppPromptHandlerParameters.builder()
+        val promptHandlerParameters = FirstPartyAppPromptHandlerParameters.builder()
+            .broker(mBroker)
             .prompt(PromptParameter.SELECT_ACCOUNT)
             .loginHint(username)
-            .broker(mBroker)
-            .registerPageExpected(false)
-            .enrollPageExpected(false)
             .consentPageExpected(false)
-            .speedBumpExpected(false)
-            .sessionExpected(true)
-            .expectingBrokerAccountChooserActivity(true)
+            .sessionExpected(false)
+            .expectingBrokerAccountChooserActivity(false)
             .expectingLoginPageAccountPicker(false)
-            .expectingNonZeroAccountsInTSL(true)
-            .expectingProvidedAccountInTSL(true)
+            .registerPageExpected(true)
             .build()
 
-        // Sign in the first time
-        teams.addFirstAccount(username, password, teamsPromptHandlerParameters)
-        teams.onAccountAdded()
-        // handle app protection policy in CP i.e. setup PIN when asked
-        (mBroker as IMdmAgent).handleAppProtectionPolicy()
-        teams.confirmAccount(username)
-        teams.forceStop() // Teams sometimes seems to like to pop up on screen randomly
-
-        // Need to implement this
-        // teams.signOut()
-
-        // Sign in again
-        teams.addFirstAccount(username, password, teamsPromptHandlerParameters)
-        teams.onAccountAdded()
-        teams.confirmAccount(username)
+        // add first account in Outlook
+        outlook.addFirstAccount(username, password, promptHandlerParameters)
+        outlook.onAccountAdded()
     }
 
     override fun getScopes(): Array<String> {

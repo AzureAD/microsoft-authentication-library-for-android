@@ -22,13 +22,10 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.mam
 
+import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest
 import com.microsoft.identity.client.msal.automationapp.R
-import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
 import com.microsoft.identity.client.ui.automation.annotations.DoNotRunOnPipeline
-import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.app.TeamsApp
-import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal
-import com.microsoft.identity.client.ui.automation.broker.IMdmAgent
 import com.microsoft.identity.client.ui.automation.installer.LocalApkInstaller
 import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
@@ -38,14 +35,11 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Test
 
-// TrueMAM: Sign In with Teams and then SignOut and Sign Back In
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2506936
-@SupportedBrokers(brokers = [BrokerCompanyPortal::class])
 @DoNotRunOnPipeline
-class TestCase2506936 : AbstractMsalBrokerTest(){
+class TestCase2516613 : AbstractMsalUiTest(){
 
     @Test
-    fun test_2506936() {
+    fun test_2516613() {
         // Fetch credentials
         val username: String = mLabAccount.username
         val password: String = mLabAccount.password
@@ -58,7 +52,6 @@ class TestCase2506936 : AbstractMsalBrokerTest(){
         val teamsPromptHandlerParameters = FirstPartyAppPromptHandlerParameters.builder()
             .prompt(PromptParameter.SELECT_ACCOUNT)
             .loginHint(username)
-            .broker(mBroker)
             .registerPageExpected(false)
             .enrollPageExpected(false)
             .consentPageExpected(false)
@@ -72,19 +65,6 @@ class TestCase2506936 : AbstractMsalBrokerTest(){
 
         // Sign in the first time
         teams.addFirstAccount(username, password, teamsPromptHandlerParameters)
-        teams.onAccountAdded()
-        // handle app protection policy in CP i.e. setup PIN when asked
-        (mBroker as IMdmAgent).handleAppProtectionPolicy()
-        teams.confirmAccount(username)
-        teams.forceStop() // Teams sometimes seems to like to pop up on screen randomly
-
-        // Need to implement this
-        // teams.signOut()
-
-        // Sign in again
-        teams.addFirstAccount(username, password, teamsPromptHandlerParameters)
-        teams.onAccountAdded()
-        teams.confirmAccount(username)
     }
 
     override fun getScopes(): Array<String> {
