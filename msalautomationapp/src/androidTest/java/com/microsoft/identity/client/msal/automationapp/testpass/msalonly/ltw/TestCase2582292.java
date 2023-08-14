@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.ltw;
 
+import androidx.test.uiautomator.UiObjectNotFoundException;
+
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
@@ -29,6 +31,8 @@ import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
+import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
@@ -38,14 +42,17 @@ import com.microsoft.identity.labapi.utilities.constants.UserRole;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
+import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.List;
 
 @LTWTests
 @SupportedBrokers(brokers = {BrokerLTW.class})
 public class TestCase2582292 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_2582292() throws LabApiException {
+    public void test_2582292() throws LabApiException, InterruptedException, UiObjectNotFoundException {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
@@ -65,13 +72,51 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
         brokerMicrosoftAuthenticator.performSharedDeviceRegistration(username, password);
 
         // Check mode in MSAL test app
+        final String mode = msalTestApp.checkMode();
+        Assert.assertEquals("Single Account", mode);
 
+        // performs AcquireToken with an account from the a same tenant with the WPJed account.
         final LabQuery query = LabQuery.builder()
                 .userType(UserType.CLOUD)
                 .build();
 
         final ILabAccount difAccount = mLabClient.getLabAccount(query);
+        final String usernameDif = difAccount.getUsername();
+        final String passwordDif = difAccount.getPassword();
 
+        final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
+                .prompt(PromptParameter.SELECT_ACCOUNT)
+                .loginHint(username)
+                .sessionExpected(false)
+                .broker(mBroker)
+                .expectingBrokerAccountChooserActivity(false)
+                .expectingProvidedAccountInBroker(false)
+                .expectingLoginPageAccountPicker(false)
+                .expectingProvidedAccountInCookie(false)
+                .consentPageExpected(false)
+                .passwordPageExpected(true)
+                .speedBumpExpected(false)
+                .registerPageExpected(false)
+                .enrollPageExpected(false)
+                .staySignedInPageExpected(false)
+                .verifyYourIdentityPageExpected(false)
+                .howWouldYouLikeToSignInExpected(false)
+                .build();
+
+        String token = msalTestApp.acquireToken(usernameDif, passwordDif, promptHandlerParameters, true);
+        Assert.assertNotNull(token);
+
+        // Click on "GetUsers" button
+        // You should see the signed in user
+        final List<String> users = msalTestApp.getUsers();
+        Assert.assertEquals(1, users.size());
+        Assert.assertEquals(usernameDif, users.get(0));
+
+        // Click on "RemoveUsers" button
+        // Account should be removed from MSAL
+        final String msg = msalTestApp.removeUser();
+        Assert.assertEquals("The account is successfully removed.", msg);
+        Assert.assertEquals(0, msalTestApp.getUsers().size());
     }
 
     @Override
