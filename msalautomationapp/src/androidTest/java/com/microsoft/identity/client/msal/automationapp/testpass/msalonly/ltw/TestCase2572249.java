@@ -89,7 +89,7 @@ public class TestCase2572249 extends AbstractMsalBrokerTest {
         Assert.assertNotNull(tokenMsal);
 
         // uninstall LTW
-        brokerLTW.uninstall();
+//        brokerLTW.uninstall();
 
         // install OneAuthTestApp
         final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();

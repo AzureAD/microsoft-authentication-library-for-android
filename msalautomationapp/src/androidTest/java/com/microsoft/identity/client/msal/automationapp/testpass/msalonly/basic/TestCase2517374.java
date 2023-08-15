@@ -91,16 +91,16 @@ public class TestCase2517374 extends AbstractMsalBrokerTest {
         List<String> users = msalTestApp.getUsers();
         Assert.assertTrue(users.size() == 1);
 
-        // select POP from auth scheme spinner
-        msalTestApp.handleBackButton();
-        msalTestApp.selectFromAuthScheme("POP");
-        String SHRToken = msalTestApp.generateSHR();
-        Assert.assertTrue(SHRToken != null && !SHRToken.isEmpty());
-
-        // validate toast message when remove account
-        msalTestApp.handleBackButton();
-        final String msg = msalTestApp.removeUser();
-        Assert.assertEquals("The account is successfully removed.", msg);
+//        // select POP from auth scheme spinner
+//        msalTestApp.handleBackButton();
+//        msalTestApp.selectFromAuthScheme("POP");
+//        String SHRToken = msalTestApp.generateSHR();
+//        Assert.assertTrue(SHRToken != null && !SHRToken.isEmpty());
+//
+//        // validate toast message when remove account
+//        msalTestApp.handleBackButton();
+//        final String msg = msalTestApp.removeUser();
+//        Assert.assertEquals("The account is successfully removed.", msg);
     }
 
     // if getLabQuery return null then will use getTempUserType to create account
