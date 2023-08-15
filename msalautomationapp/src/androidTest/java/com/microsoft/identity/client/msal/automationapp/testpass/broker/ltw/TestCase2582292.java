@@ -20,7 +20,7 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.ltw;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
 import androidx.test.uiautomator.UiObjectNotFoundException;
 
@@ -64,16 +64,16 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
         // Install legacy MSAL Test app (Msal test app with no broker selection logic)
         final MsalTestApp msalTestApp = new MsalTestApp();
         msalTestApp.installOldApk();
-        msalTestApp.launch();
-        msalTestApp.handleFirstRun();
 
         // Set up shared device mode
         // Open Authenticator app -> ... -> Settings
         brokerMicrosoftAuthenticator.performSharedDeviceRegistration(username, password);
 
         // Check mode in MSAL test app
+        msalTestApp.launch();
+        msalTestApp.handleFirstRun();
         final String mode = msalTestApp.checkMode();
-        Assert.assertEquals("Single Account", mode);
+        Assert.assertTrue(mode.contains("Single Account"));
 
         // performs AcquireToken with an account from the a same tenant with the WPJed account.
         final LabQuery query = LabQuery.builder()
@@ -108,9 +108,10 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
 
         // Click on "GetUsers" button
         // You should see the signed in user
+        msalTestApp.handleBackButton();
         final List<String> users = msalTestApp.getUsers();
         Assert.assertEquals(1, users.size());
-        Assert.assertEquals(usernameDif, users.get(0));
+        Assert.assertTrue(users.get(0).contains(usernameDif));
 
         // Click on "RemoveUsers" button
         // Account should be removed from MSAL
