@@ -8,7 +8,7 @@ V.NEXT
 
 Version 4.6.3
 - [PATCH] Update common @14.0.1
-- [MINOR] Updated target and compile SDK versions to 34 (#1865)
+- [MINOR] Updated target, compile SDK, AGP and gradle versions(#1882)
 
 
 Version 4.6.2
