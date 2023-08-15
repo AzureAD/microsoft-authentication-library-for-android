@@ -50,20 +50,20 @@ android {
         coreLibraryDesugaringEnabled true
         // Sets Java compatibility to Java 8
         sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
 
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdk rootProject.ext.compileSdkVersion
 
     defaultConfig {
         multiDexEnabled true
         minSdkVersion rootProject.ext.minSdkVersion
         if(project.getProperties().get("robolectricSdkVersion")){
             println "Using command line parameter robolectricSdkVersion for target sdk version " + project.getProperties().get("robolectricSdkVersion")
-            targetSdkVersion 33
-        }else{
-            targetSdkVersion 33
+            targetSdkVersion project.getProperties().get("robolectricSdkVersion")
+        } else{
+            targetSdkVersion rootProject.ext.targetSdkVersion
         }
         versionCode getAppVersionCode()
         versionName getAppVersionName()
@@ -138,7 +138,6 @@ android {
     libraryVariants.all { variant ->
         variant.outputs.all {
             def fileName = "${archivesBaseName}-${version}.aar"
-            println "output file name !!!!!!!!!!!! "+ fileName
             outputFileName = fileName
         }
     }
@@ -220,7 +219,7 @@ dependencies {
     //mockito-inline was introduced in mockito 2.7.6
     //see: https://javadoc.io/static/org.mockito/mockito-core/3.6.28/org/mockito/Mockito.html#0.1
     testImplementation "org.mockito:mockito-inline:$rootProject.ext.mockitoCoreVersion"
-    testImplementation ("org.robolectric:robolectric:4.9")
+    testImplementation ("org.robolectric:robolectric:$rootProject.ext.robolectricVersion")
     testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"
     testLocalImplementation project(':testutils')
     testDistImplementation("com.microsoft.identity:testutils:0.0+") {
@@ -385,11 +384,6 @@ publishing {
             }
         }
     }
-}
-
-artifacts {
-    archives javadocJar
-    archives sourcesJar
 }
 
 tasks.whenTaskAdded { task ->

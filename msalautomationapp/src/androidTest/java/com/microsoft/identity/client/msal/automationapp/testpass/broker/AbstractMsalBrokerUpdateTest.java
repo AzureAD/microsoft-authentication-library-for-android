@@ -26,8 +26,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
-import com.microsoft.identity.client.msal.automationapp.BrokerTestHelper;
-import com.microsoft.identity.client.msal.automationapp.BuildConfig;;
+import com.microsoft.identity.client.msal.automationapp.BuildConfig;
 import com.microsoft.identity.client.ui.automation.IBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
