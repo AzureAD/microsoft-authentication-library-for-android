@@ -7,13 +7,13 @@ name: $(date:yyyyMMdd)$(rev:.r)
 
 variables:
 - name: BuildParameters.jdkVersion
-  value: 1.8
+  value: 1.11
 - name: BuildParameters.jdkArchitecture
   value: x64
 - name: BuildParameters.javaHomeSelection
   value: JDKVersion
 - name: robolectricSdkVersion
-  value: 28
+  value: 33
 
 trigger:
   branches:
