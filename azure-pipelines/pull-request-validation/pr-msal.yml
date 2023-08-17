@@ -89,11 +89,12 @@ jobs:
     inputs:
       filename: echo
       arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN]$(System.AccessToken)'
-  - task: Gradle@1
+  - task: Gradle@3
     displayName: Lint Local debug
     inputs:
       tasks: clean msal:lintLocalDebug
       publishJUnitResults: false
+      jdkVersion: 1.11
 - job: codeql
   displayName: CodeQL
   cancelTimeoutInMinutes: 1
