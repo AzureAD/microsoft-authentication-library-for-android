@@ -103,6 +103,12 @@ jobs:
     clean: true
     submodules: recursive
     persistCredentials: True
+  - task: JavaToolInstaller@0
+    displayName: Use Java 11
+    inputs:
+      versionSpec: '11'
+      jdkArchitectureOption: x64
+      jdkSourceOption: PreInstalled
   - task: CmdLine@1
     displayName: Set Office MVN Access Token in Environment
     inputs:
