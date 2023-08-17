@@ -22,10 +22,13 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.mam
 
-import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest
 import com.microsoft.identity.client.msal.automationapp.R
+import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
 import com.microsoft.identity.client.ui.automation.annotations.DoNotRunOnPipeline
-import com.microsoft.identity.client.ui.automation.app.TeamsApp
+import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
+import com.microsoft.identity.client.ui.automation.app.OutlookApp
+import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal
+import com.microsoft.identity.client.ui.automation.broker.BrokerHost
 import com.microsoft.identity.client.ui.automation.installer.LocalApkInstaller
 import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
@@ -35,38 +38,47 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Test
 
-// MAM account requires installation of Broker if Broker not installed
-// https://identitydivision.visualstudio.com/Engineering/_testPlans/define?planId=2007357&suiteId=2506916
+// Can use Outlook with True MAM account upon re-registration
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2516967
+@SupportedBrokers(brokers = [BrokerCompanyPortal::class])
 @DoNotRunOnPipeline
-class TestCase2516613 : AbstractMsalUiTest(){
+class TestCase2516967 : AbstractMsalBrokerTest(){
 
     @Test
-    fun test_2516613() {
+    fun test_2516967() {
         // Fetch credentials
         val username: String = mLabAccount.username
         val password: String = mLabAccount.password
 
-        val teams = TeamsApp(LocalApkInstaller())
-        teams.install()
-        teams.launch()
-        teams.handleFirstRun()
+        val outlook = OutlookApp(LocalApkInstaller())
+        outlook.install()
+        outlook.launch()
+        outlook.handleFirstRun()
 
-        val teamsPromptHandlerParameters = FirstPartyAppPromptHandlerParameters.builder()
+        val promptHandlerParameters = FirstPartyAppPromptHandlerParameters.builder()
+            .broker(mBroker)
             .prompt(PromptParameter.SELECT_ACCOUNT)
             .loginHint(username)
-            .registerPageExpected(false)
-            .enrollPageExpected(false)
             .consentPageExpected(false)
-            .speedBumpExpected(false)
-            .sessionExpected(true)
-            .expectingBrokerAccountChooserActivity(true)
+            .sessionExpected(false)
+            .expectingBrokerAccountChooserActivity(false)
             .expectingLoginPageAccountPicker(false)
-            .expectingNonZeroAccountsInTSL(true)
-            .expectingProvidedAccountInTSL(true)
+            .registerPageExpected(true)
             .build()
 
-        // Sign in the first time
-        teams.addFirstAccount(username, password, teamsPromptHandlerParameters)
+        // add first account in Outlook
+        outlook.addFirstAccount(username, password, promptHandlerParameters)
+        outlook.onAccountAdded()
+
+        val brokerHost = BrokerHost()
+        brokerHost.install()
+
+        brokerHost.wpjLeave()
+
+        // advance clock by more than an hour to expire AT in cache
+        settingsScreen.forwardDeviceTimeForOneDay()
+
+        outlook.launch()
     }
 
     override fun getScopes(): Array<String> {
