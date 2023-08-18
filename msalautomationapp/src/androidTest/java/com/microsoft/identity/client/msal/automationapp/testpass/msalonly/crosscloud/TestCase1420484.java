@@ -28,7 +28,6 @@ import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.AbstractGuestAccountMsalUiTest;
-import com.microsoft.identity.client.msal.automationapp.sdk.Constants;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
