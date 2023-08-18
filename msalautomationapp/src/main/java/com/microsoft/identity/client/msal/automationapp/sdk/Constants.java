@@ -32,6 +32,4 @@ public class Constants {
     public static final String TOKEN_URL_PATH = "p";
 
     public static final String TOKEN_HTTP_METHOD = "m";
-
-    public static final boolean IS_EXPECTING_SECOND_SPEED_BUMP = false;
 }
