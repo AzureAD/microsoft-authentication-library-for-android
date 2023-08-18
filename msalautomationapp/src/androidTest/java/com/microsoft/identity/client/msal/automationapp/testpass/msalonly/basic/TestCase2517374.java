@@ -53,7 +53,6 @@ public class TestCase2517374 extends AbstractMsalBrokerTest {
         final String password = mLabAccount.getPassword();
 
         MsalTestApp msalTestApp = new MsalTestApp();
-        msalTestApp.uninstall();
         msalTestApp.install();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
