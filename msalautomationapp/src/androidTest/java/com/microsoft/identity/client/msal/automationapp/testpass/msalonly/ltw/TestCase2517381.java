@@ -20,11 +20,9 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.basic;
+package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.ltw;
 
-import android.util.Log;
-
-import androidx.test.uiautomator.UiObject;
+import android.text.TextUtils;
 
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
@@ -32,33 +30,36 @@ import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
+import com.microsoft.identity.client.ui.automation.app.OneAuthTestApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
+import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+
 import org.junit.Assert;
 import org.junit.Test;
-import java.util.List;
 
-// Add a UI test on MsalTestApp
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2517374
+// Add a UI testcase with update scenarios on OneAuthTest and MsalTest apps
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2517381
 @LTWTests
 @SupportedBrokers(brokers = {BrokerCompanyPortal.class})
-public class TestCase2517374 extends AbstractMsalBrokerTest {
+@RunOnAPI29Minus
+public class TestCase2517381 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_2517374 () throws Throwable {
+    public void test_2517381 () throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
+        // install old MsalTestApp then acquires token interactively and silently
         MsalTestApp msalTestApp = new MsalTestApp();
-        msalTestApp.install();
+        msalTestApp.installOldApk();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
 
-        // acquire toke interactively and validate the token
-        final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
+        final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
                 .prompt(PromptParameter.SELECT_ACCOUNT)
                 .loginHint(username)
                 .sessionExpected(false)
@@ -77,7 +78,7 @@ public class TestCase2517374 extends AbstractMsalBrokerTest {
                 .howWouldYouLikeToSignInExpected(false)
                 .build();
 
-        String token = msalTestApp.acquireToken(username, password, promptHandlerParameters, true);
+        String token = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal,true);
         Assert.assertNotNull(token);
 
         // then acquire token silently and validate the token
@@ -85,24 +86,55 @@ public class TestCase2517374 extends AbstractMsalBrokerTest {
         String silentToken = msalTestApp.acquireTokenSilent();
         Assert.assertNotNull(silentToken);
 
-        // finally get users and validate the users
-        msalTestApp.handleBackButton();
-        List<String> users = msalTestApp.getUsers();
-        Assert.assertTrue(users.size() == 1);
+        // install old OneAuthTestApp then acquires token interactively and silently
+        final OneAuthTestApp oneAuthApp = new OneAuthTestApp();
+        oneAuthApp.installOldApk();
+        oneAuthApp.launch();
+        oneAuthApp.handleFirstRun();
 
-        // select POP from auth scheme spinner
-        msalTestApp.handleBackButton();
-        msalTestApp.selectFromAuthScheme("POP");
-        String SHRToken = msalTestApp.generateSHR();
-        Assert.assertTrue(SHRToken != null && !SHRToken.isEmpty());
+        final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
+                .broker(mBroker)
+                .prompt(PromptParameter.LOGIN)
+                .loginHint(username)
+                .consentPageExpected(false)
+                .speedBumpExpected(false)
+                .sessionExpected(false)
+                .expectingBrokerAccountChooserActivity(false)
+                .expectingLoginPageAccountPicker(false)
+                .enrollPageExpected(false)
+                .build();
+        oneAuthApp.addFirstAccount(username, password, promptHandlerParametersOneAuth);
+        oneAuthApp.confirmAccount(username);
 
-        // validate toast message when remove account
+        // Hit back button to go on launch screen
+        oneAuthApp.handleBackButton();
+
+        final String silentTokenOneAuth = oneAuthApp.acquireTokenSilent();
+        Assert.assertFalse(TextUtils.isEmpty(silentTokenOneAuth));
+        oneAuthApp.assertSuccess();
+
+        // update msal test app
+        msalTestApp.update();
+        msalTestApp.launch();
+        msalTestApp.handleFirstRun();
+
+        // acquire token interactively and silently without prompting for creds
+        final String tokenAfterUpdatedMsal = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, false);
+        Assert.assertNotNull(tokenAfterUpdatedMsal);
+
         msalTestApp.handleBackButton();
-        final String msg = msalTestApp.removeUser();
-        Assert.assertEquals("The account is successfully removed.", msg);
+        final String silentTokenAfterUpdatedMsal = msalTestApp.acquireTokenSilent();
+        Assert.assertNotNull(silentTokenAfterUpdatedMsal);
+
+        // update oneauth test app
+        oneAuthApp.update();
+        oneAuthApp.launch();
+
+        // acquire token without prompting for creds
+        final String tokenAfterUpdatedOneAuth = oneAuthApp.acquireTokenSilent();
+        Assert.assertFalse(TextUtils.isEmpty(tokenAfterUpdatedOneAuth));
     }
 
-    // if getLabQuery return null then will use getTempUserType to create account
     @Override
     public LabQuery getLabQuery() {
         return null;
