@@ -20,7 +20,7 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.ltw;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
@@ -37,20 +37,20 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import org.junit.Assert;
 import org.junit.Test;
 
-// LTW has higher priority than CP
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2572280
+// LTW has higher priority than CP - Case2
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2572283
 @LTWTests
-@SupportedBrokers(brokers = {BrokerLTW.class})
-public class TestCase2572280 extends AbstractMsalBrokerTest {
+@SupportedBrokers(brokers = {BrokerCompanyPortal.class})
+public class TestCase2572283 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_2572280() throws Throwable {
+    public void test_2572283() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
-        final BrokerCompanyPortal brokerCompanyPortal = new BrokerCompanyPortal();
-        brokerCompanyPortal.uninstall();
-        brokerCompanyPortal.install();
+        final BrokerLTW brokerLTW = new BrokerLTW();
+        brokerLTW.uninstall();
+        brokerLTW.install();
 
         final MsalTestApp msalTestApp = new MsalTestApp();
         msalTestApp.install();
