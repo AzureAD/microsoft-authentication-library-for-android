@@ -20,7 +20,7 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.ltw;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
@@ -40,25 +40,26 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import org.junit.Assert;
 import org.junit.Test;
 
-// Samsung GA Coverage
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2571345
+// If Company Portal is installed after LTW, user should still get SSO
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2571361
 @LTWTests
 @RunOnAPI29Minus
 @SupportedBrokers(brokers = {BrokerLTW.class})
-public class TestCase2571345 extends AbstractMsalBrokerTest {
+public class TestCase2571361 extends AbstractMsalBrokerTest {
+
     @Test
-    public void test_2571345() throws Throwable{
+    public void test_2571361() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
-        // Install new OneAuthTestApp
+        // AcquireToken interactively on OneAuthTestApp
         final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
         oneAuthTestApp.uninstall();
         oneAuthTestApp.install();
         oneAuthTestApp.launch();
         oneAuthTestApp.handleFirstRun();
 
-        final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
+        final FirstPartyAppPromptHandlerParameters promptHandlerParameters = FirstPartyAppPromptHandlerParameters.builder()
                 .broker(mBroker)
                 .prompt(PromptParameter.LOGIN)
                 .loginHint(username)
@@ -69,9 +70,13 @@ public class TestCase2571345 extends AbstractMsalBrokerTest {
                 .expectingLoginPageAccountPicker(false)
                 .enrollPageExpected(false)
                 .build();
-        // Click on sign in button, prompted to enter username and password
-        oneAuthTestApp.addFirstAccount(username, password, promptHandlerParametersOneAuth);
+        oneAuthTestApp.addFirstAccount(username, password, promptHandlerParameters);
         oneAuthTestApp.confirmAccount(username);
+
+        // Install new Company Portal
+        final BrokerCompanyPortal brokerCompanyPortal = new BrokerCompanyPortal();
+        brokerCompanyPortal.uninstall();
+        brokerCompanyPortal.install();
 
         // Install new MsalTestApp
         final MsalTestApp msalTestApp = new MsalTestApp();
@@ -98,8 +103,8 @@ public class TestCase2571345 extends AbstractMsalBrokerTest {
                 .howWouldYouLikeToSignInExpected(false)
                 .build();
 
-        // Add login hint as the username and Click on AcquireToken button
-        // NOT prompted for credentials.
+        // Add login hint and click on acquireToken button
+        // will not be prompted to enter credentials
         msalTestApp.handleUserNameInput(username);
         final String token = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, false);
         Assert.assertNotNull(token);
