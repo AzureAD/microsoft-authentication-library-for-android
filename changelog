@@ -11,8 +11,9 @@ Version 4.7.0
 - [PATCH] Update common @15.0.0
 
 Version 4.6.3
-----------
 - [PATCH] Update common @14.0.1
+- [MINOR] Updated target and compile SDK versions to 34 (#1865)
+
 
 Version 4.6.2
 ----------
