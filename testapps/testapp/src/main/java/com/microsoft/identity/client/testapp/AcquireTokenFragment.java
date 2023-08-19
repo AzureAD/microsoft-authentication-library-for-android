@@ -58,7 +58,7 @@ import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory
 import com.microsoft.identity.common.internal.activebrokerdiscovery.BrokerDiscoveryClientFactory;
 import com.microsoft.identity.common.internal.broker.BrokerData;
 import com.microsoft.identity.common.internal.cache.ClientActiveBrokerCache;
-import com.microsoft.identity.common.internal.cache.IActiveBrokerCache;
+import com.microsoft.identity.common.internal.cache.IClientActiveBrokerCache;
 import com.microsoft.identity.common.java.opentelemetry.OTelUtility;
 import com.microsoft.identity.common.java.opentelemetry.SpanExtension;
 import com.microsoft.identity.common.java.util.StringUtil;
@@ -88,6 +88,8 @@ public class AcquireTokenFragment extends Fragment {
     private Switch mEnableNewBrokerDiscovery;
     private Button mClearActiveBrokerDiscoveryCache;
     private TextView mCachedActiveBrokerName;
+    private Spinner mKnownBrokerApps;
+    private Button mSetCachedActiveBrokerButton;
     private Button mGetUsers;
     private Button mClearCache;
     private Button mAcquireToken;
@@ -115,7 +117,7 @@ public class AcquireTokenFragment extends Fragment {
     private MsalWrapper mMsalWrapper;
     private List<IAccount> mLoadedAccounts = new ArrayList<>();
 
-    private IActiveBrokerCache mCache;
+    private IClientActiveBrokerCache mCache;
     public AcquireTokenFragment() {
         // left empty
     }
@@ -202,6 +204,23 @@ public class AcquireTokenFragment extends Fragment {
                 setActiveBrokerTextFromCache();
             }
         });
+
+        mKnownBrokerApps = view.findViewById(R.id.spinner_knownBrokerApps);
+        mSetCachedActiveBrokerButton = view.findViewById(R.id.btn_setCachedActiveBroker);
+
+        final List<BrokerData> debugBrokers = new ArrayList<>(BrokerData.getDebugBrokers());
+        final List<BrokerData> prodBrokers = new ArrayList<>(BrokerData.getProdBrokers());
+        bindKnownBrokerAppList(mKnownBrokerApps, debugBrokers, prodBrokers);
+        mSetCachedActiveBrokerButton.setOnClickListener(v -> {
+            int selectedItem =  mKnownBrokerApps.getSelectedItemPosition();
+            if (selectedItem < debugBrokers.size()){
+                mCache.setCachedActiveBroker(debugBrokers.get(selectedItem));
+            } else {
+                mCache.setCachedActiveBroker(prodBrokers.get(selectedItem - debugBrokers.size()));
+            }
+            setActiveBrokerTextFromCache();
+        });
+
 
         mPopSection = view.findViewById(R.id.pop_section);
         mLoginHintSection = view.findViewById(R.id.login_hint_section);
@@ -493,6 +512,26 @@ public class AcquireTokenFragment extends Fragment {
         }
 
         return mLoadedAccounts.get(selectedAccountPosition);
+    }
+
+    private void bindKnownBrokerAppList(final Spinner spinner,
+                                        final List<BrokerData> debugBrokers,
+                                        final List<BrokerData> prodBrokers) {
+        final ArrayAdapter<String> userAdapter = new ArrayAdapter<>(
+                getContext(),
+                android.R.layout.simple_spinner_item,
+                new ArrayList<String>() {{
+                    for (BrokerData brokerData: debugBrokers) {
+                        add("[DEBUG]"+ brokerData.getPackageName());
+                    }
+                    for (BrokerData brokerData: prodBrokers) {
+                        add("[PROD]"+ brokerData.getPackageName());
+                    }
+                }}
+        );
+        userAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(userAdapter);
+        spinner.setSelection(0, false);
     }
 
     private void bindSelectAccountSpinner(final Spinner spinner,
