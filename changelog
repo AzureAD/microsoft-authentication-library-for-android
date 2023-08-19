@@ -2,7 +2,6 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 V.NEXT
 ----------
 - [MINOR] MSA UI tests for Brokered Auth (#1856)
-- [MINOR] Daily dev version dependency now uses 1.0.+ (#1886)
 
 Version 4.7.0
 ----------
