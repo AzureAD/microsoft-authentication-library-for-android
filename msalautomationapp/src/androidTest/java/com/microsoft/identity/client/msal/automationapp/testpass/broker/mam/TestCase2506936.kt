@@ -24,7 +24,6 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.mam
 
 import com.microsoft.identity.client.msal.automationapp.R
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
-import com.microsoft.identity.client.ui.automation.annotations.DoNotRunOnPipeline
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.app.TeamsApp
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal
@@ -41,7 +40,6 @@ import org.junit.Test
 // TrueMAM: Sign In with Teams and then SignOut and Sign Back In
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2506936
 @SupportedBrokers(brokers = [BrokerCompanyPortal::class])
-@DoNotRunOnPipeline
 class TestCase2506936 : AbstractMsalBrokerTest(){
 
     @Test
@@ -59,32 +57,38 @@ class TestCase2506936 : AbstractMsalBrokerTest(){
             .prompt(PromptParameter.SELECT_ACCOUNT)
             .loginHint(username)
             .broker(mBroker)
-            .registerPageExpected(false)
+            .registerPageExpected(true)
             .enrollPageExpected(false)
             .consentPageExpected(false)
             .speedBumpExpected(false)
-            .sessionExpected(true)
-            .expectingBrokerAccountChooserActivity(true)
-            .expectingLoginPageAccountPicker(false)
-            .expectingNonZeroAccountsInTSL(true)
-            .expectingProvidedAccountInTSL(true)
             .build()
 
         // Sign in the first time
         teams.addFirstAccount(username, password, teamsPromptHandlerParameters)
-        teams.onAccountAdded()
         // handle app protection policy in CP i.e. setup PIN when asked
         (mBroker as IMdmAgent).handleAppProtectionPolicy()
-        teams.confirmAccount(username)
+        teams.onAccountAdded()
         teams.forceStop() // Teams sometimes seems to like to pop up on screen randomly
 
         // Need to implement this
-        // teams.signOut()
+        teams.signOut()
 
         // Sign in again
-        teams.addFirstAccount(username, password, teamsPromptHandlerParameters)
+        val teamsPromptHandlerParameters2 = FirstPartyAppPromptHandlerParameters.builder()
+            .prompt(PromptParameter.SELECT_ACCOUNT)
+            .loginHint(username)
+            .broker(mBroker)
+            .registerPageExpected(false)
+            .enrollPageExpected(false)
+            .consentPageExpected(false)
+            .speedBumpExpected(false)
+            .secondPasswordPageExpected(true)
+            .build()
+
+        teams.addFirstAccount(username, password, teamsPromptHandlerParameters2)
+        // handle app protection policy in CP i.e. setup PIN when asked
+        (mBroker as IMdmAgent).handleAppProtectionPolicy()
         teams.onAccountAdded()
-        teams.confirmAccount(username)
     }
 
     override fun getScopes(): Array<String> {

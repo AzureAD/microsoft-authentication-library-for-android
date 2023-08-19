@@ -24,8 +24,8 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.mam
 
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest
 import com.microsoft.identity.client.msal.automationapp.R
-import com.microsoft.identity.client.ui.automation.annotations.DoNotRunOnPipeline
 import com.microsoft.identity.client.ui.automation.app.TeamsApp
+import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal
 import com.microsoft.identity.client.ui.automation.installer.LocalApkInstaller
 import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
@@ -36,8 +36,7 @@ import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Test
 
 // MAM account requires installation of Broker if Broker not installed
-// https://identitydivision.visualstudio.com/Engineering/_testPlans/define?planId=2007357&suiteId=2506916
-@DoNotRunOnPipeline
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2516613
 class TestCase2516613 : AbstractMsalUiTest(){
 
     @Test
@@ -58,15 +57,29 @@ class TestCase2516613 : AbstractMsalUiTest(){
             .enrollPageExpected(false)
             .consentPageExpected(false)
             .speedBumpExpected(false)
-            .sessionExpected(true)
-            .expectingBrokerAccountChooserActivity(true)
-            .expectingLoginPageAccountPicker(false)
-            .expectingNonZeroAccountsInTSL(true)
-            .expectingProvidedAccountInTSL(true)
+            .getTheAppExpected(true)
             .build()
 
         // Sign in the first time
         teams.addFirstAccount(username, password, teamsPromptHandlerParameters)
+
+        val companyPortal = BrokerCompanyPortal()
+        companyPortal.install();
+
+        // Sign in after cp install
+        val teamsPromptHandlerParameters2 = FirstPartyAppPromptHandlerParameters.builder()
+            .prompt(PromptParameter.SELECT_ACCOUNT)
+            .loginHint(username)
+            .registerPageExpected(true)
+            .enrollPageExpected(false)
+            .consentPageExpected(false)
+            .speedBumpExpected(false)
+            .build()
+
+        teams.launch()
+        teams.addFirstAccount(username, password, teamsPromptHandlerParameters2)
+        companyPortal.handleAppProtectionPolicy()
+        teams.onAccountAdded()
     }
 
     override fun getScopes(): Array<String> {

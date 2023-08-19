@@ -24,23 +24,24 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.mam
 
 import com.microsoft.identity.client.msal.automationapp.R
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
-import com.microsoft.identity.client.ui.automation.annotations.DoNotRunOnPipeline
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.app.OutlookApp
+import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator
 import com.microsoft.identity.client.ui.automation.installer.LocalApkInstaller
 import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
+import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils
 import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
+import org.junit.Assert
 import org.junit.Test
 
 // Using TrueMAM account when broker is Authenticator will require installation of CP
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2516571
 @SupportedBrokers(brokers = [BrokerMicrosoftAuthenticator::class])
-@DoNotRunOnPipeline
 class TestCase2516571 : AbstractMsalBrokerTest(){
 
     @Test
@@ -67,7 +68,21 @@ class TestCase2516571 : AbstractMsalBrokerTest(){
 
         // add first account in Outlook
         outlook.addFirstAccount(username, password, promptHandlerParameters)
+
+        // Check for GO TO STORE button
+        val intuneRequirementDialogConfirmBtn =
+            UiAutomatorUtils.obtainUiObjectWithText("GO TO STORE")
+        Assert.assertTrue(intuneRequirementDialogConfirmBtn.exists())
+
+        val companyPortal = BrokerCompanyPortal()
+        companyPortal.install();
+
+        // add account in Outlook after CP install
+        outlook.launch()
+        outlook.addExistingFirstAccount(username)
         outlook.onAccountAdded()
+        companyPortal.handleAppProtectionPolicy()
+        outlook.confirmAccount(username)
     }
 
     override fun getScopes(): Array<String> {

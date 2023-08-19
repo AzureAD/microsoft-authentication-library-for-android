@@ -24,24 +24,25 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.mam
 
 import com.microsoft.identity.client.msal.automationapp.R
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
-import com.microsoft.identity.client.ui.automation.annotations.DoNotRunOnPipeline
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.app.OutlookApp
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost
+import com.microsoft.identity.client.ui.automation.broker.IMdmAgent
 import com.microsoft.identity.client.ui.automation.installer.LocalApkInstaller
 import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
+import com.microsoft.identity.common.java.util.ThreadUtils
 import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
+import org.junit.Assert
 import org.junit.Test
 
 // Can use Outlook with True MAM account upon re-registration
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2516967
 @SupportedBrokers(brokers = [BrokerCompanyPortal::class])
-@DoNotRunOnPipeline
 class TestCase2516967 : AbstractMsalBrokerTest(){
 
     @Test
@@ -69,16 +70,26 @@ class TestCase2516967 : AbstractMsalBrokerTest(){
         // add first account in Outlook
         outlook.addFirstAccount(username, password, promptHandlerParameters)
         outlook.onAccountAdded()
+        // handle app protection policy in CP i.e. setup PIN when asked
+        (mBroker as IMdmAgent).handleAppProtectionPolicy()
 
         val brokerHost = BrokerHost()
         brokerHost.install()
-
         brokerHost.wpjLeave()
 
         // advance clock by more than an hour to expire AT in cache
         settingsScreen.forwardDeviceTimeForOneDay()
 
+        // Log in again in outlook, should get a prompt in the snackbar
         outlook.launch()
+        outlook.signInThroughSnackBar(username, password, promptHandlerParameters)
+
+        ThreadUtils.sleepSafely(2000, "sleeping", "interrupted sleep")
+
+        outlook.forceStop()
+        outlook.launch()
+        Assert.assertFalse("SIGN IN Button still present", outlook.isSignInSnackBarPresent)
+        outlook.confirmAccount(username)
     }
 
     override fun getScopes(): Array<String> {
