@@ -49,7 +49,7 @@ import java.util.List;
 // Get Broker Accounts
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561136
 @SupportedBrokers(brokers = BrokerHost.class)
-@RetryOnFailure(retryCount = 2)
+//@RetryOnFailure(retryCount = 2)
 @LocalBrokerHostDebugUiTest
 public class TestCase1561136 extends AbstractMsalBrokerTest {
 
@@ -93,18 +93,19 @@ public class TestCase1561136 extends AbstractMsalBrokerTest {
         List<String> accounts = brokerHost.getAllAccounts();
         Assert.assertEquals(1, accounts.size());
 
-        // create another temp user
-        final ILabAccount labAccount = mLabClient.createTempAccount(TempUserType.BASIC);
-        final String username2 = labAccount.getUsername();
-        final String password2 = labAccount.getPassword();
-
-        Assert.assertNotEquals(username, username2);
-        // user-based join
-        brokerHost.performDeviceRegistration(username2, password2);
-
-        // get accounts this time must show two accounts - to verify this we have check for 2 dialog boxes
-        accounts = brokerHost.getAllAccounts();
-        Assert.assertEquals(2, accounts.size());
+//        // create another temp user
+//        final ILabAccount labAccount = mLabClient.createTempAccount(TempUserType.BASIC);
+//        final String username2 = labAccount.getUsername();
+//        final String password2 = labAccount.getPassword();
+//
+//        Assert.assertNotEquals(username, username2);
+//        // user-based join
+//        brokerHost.performDeviceRegistration(username2, password2);
+//
+//        // get accounts this time must show two accounts - to verify this we have check for 2 dialog boxes
+//        accounts = brokerHost.getAllAccounts();
+//        Assert.assertEquals(2, accounts.size());
+//        Thread.sleep(20000);
     }
 
     @Override

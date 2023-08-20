@@ -51,12 +51,13 @@ android {
     }
 
 
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdk 31
     defaultConfig {
+        namespace "com.microsoft.identity.client.testapp"
         multiDexEnabled true
         applicationId "com.msft.identity.client.sample"
         minSdkVersion 24
-        targetSdkVersion rootProject.ext.targetSdkVersion
+        targetSdkVersion 31
         versionCode 1
         versionName "1.0"
         buildConfigField("String", "otelAriaToken", "\"${otelAriaToken}\"" )

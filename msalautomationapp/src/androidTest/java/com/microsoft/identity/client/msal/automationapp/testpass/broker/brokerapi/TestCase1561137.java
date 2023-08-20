@@ -46,7 +46,7 @@ import java.util.Arrays;
 // Remove Broker Account
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561137
 @SupportedBrokers(brokers = BrokerHost.class)
-@RetryOnFailure(retryCount = 2)
+//@RetryOnFailure(retryCount = 2)
 @LocalBrokerHostDebugUiTest
 public class TestCase1561137 extends AbstractMsalBrokerTest {
     @Test

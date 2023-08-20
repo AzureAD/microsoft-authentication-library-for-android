@@ -57,7 +57,7 @@ import java.util.concurrent.TimeUnit;
 // End My Shift - In Shared device mode, only account from the same tenant should be able to acquire token.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833513
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
-@RunOnAPI29Minus("Checking for text error in WebView")
+//@RunOnAPI29Minus("Checking for text error in WebView")
 public class TestCase833513 extends AbstractMsalBrokerTest {
 
     @Test

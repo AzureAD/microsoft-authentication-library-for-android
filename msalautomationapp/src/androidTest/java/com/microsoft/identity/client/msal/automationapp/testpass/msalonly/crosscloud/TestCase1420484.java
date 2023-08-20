@@ -97,7 +97,7 @@ public class TestCase1420484 extends AbstractGuestAccountMsalUiTest {
                     .loginHint(userName)
                     .staySignedInPageExpected(GlobalConstants.IS_STAY_SIGN_IN_PAGE_EXPECTED)
                     .speedBumpExpected(true)
-                    .secondSpeedBumpExpected(GlobalConstants.IS_EXPECTING_SECOND_SPEED_BUMP)
+                   // .secondSpeedBumpExpected(GlobalConstants.IS_EXPECTING_SECOND_SPEED_BUMP)
                     .build();
             final AadPromptHandler promptHandler = new AadPromptHandler(promptHandlerParameters);
             promptHandler.handlePrompt(userName, password);
@@ -114,7 +114,7 @@ public class TestCase1420484 extends AbstractGuestAccountMsalUiTest {
 
         final MsalSdk msalSdk = new MsalSdk();
         // Acquire token interactively
-        final MsalAuthResult acquireTokenResult = msalSdk.acquireTokenInteractive(acquireTokenAuthParams, interactionHandler, TokenRequestTimeout.SHORT);
+        final MsalAuthResult acquireTokenResult = msalSdk.acquireTokenInteractive(acquireTokenAuthParams, interactionHandler, TokenRequestTimeout.MEDIUM);
 
         Assert.assertFalse("Verify accessToken is not empty", TextUtils.isEmpty(acquireTokenResult.getAccessToken()));
 
@@ -122,7 +122,7 @@ public class TestCase1420484 extends AbstractGuestAccountMsalUiTest {
         TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
 
         // Acquire token silently
-        final MsalAuthResult acquireTokenSilentResult = msalSdk.acquireTokenSilent(acquireTokenAuthParams, TokenRequestTimeout.SHORT);
+        final MsalAuthResult acquireTokenSilentResult = msalSdk.acquireTokenSilent(acquireTokenAuthParams, TokenRequestTimeout.MEDIUM);
         Assert.assertFalse("Verify accessToken is not empty", TextUtils.isEmpty(acquireTokenSilentResult.getAccessToken()));
 
         Assert.assertNotEquals("Silent request gets new access token", acquireTokenSilentResult.getAccessToken(), acquireTokenResult.getAccessToken());

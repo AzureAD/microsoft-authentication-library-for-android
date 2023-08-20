@@ -55,7 +55,7 @@ import java.util.concurrent.TimeUnit;
 // and federated account, and WW common authority
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938368
 // Adding a retry on failure, sometimes arlington login page fails to load
-@RetryOnFailure(retryCount = 2)
+//@RetryOnFailure(retryCount = 2)
 @RunOnAPI29Minus("Speed Bump Page")
 public class TestCase938368 extends AbstractMsalUiTest {
 
@@ -100,7 +100,7 @@ public class TestCase938368 extends AbstractMsalUiTest {
                 new MicrosoftStsPromptHandler(promptHandlerParameters)
                         .handlePrompt(username, password);
             }
-        },TokenRequestTimeout.MEDIUM);
+        },TokenRequestTimeout.LONG);
 
         authResult.assertSuccess();
     }

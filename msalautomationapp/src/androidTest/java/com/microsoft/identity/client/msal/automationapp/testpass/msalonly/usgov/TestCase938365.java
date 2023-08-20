@@ -46,7 +46,7 @@ import java.util.Arrays;
 // [USGOV][MSAL-ONLY] Acquire token with instance_aware=true, no login hint, and cloud account,
 // and WW common authority
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/938365
-@RetryOnFailure
+//@RetryOnFailure
 public class TestCase938365 extends AbstractMsalUiTest {
 
     @Test

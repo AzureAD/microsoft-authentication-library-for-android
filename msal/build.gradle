@@ -54,16 +54,17 @@ android {
     }
 
 
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdk 34
 
     defaultConfig {
+        namespace "com.microsoft.identity.msal"
         multiDexEnabled true
         minSdkVersion rootProject.ext.minSdkVersion
         if(project.getProperties().get("robolectricSdkVersion")){
             println "Using command line parameter robolectricSdkVersion for target sdk version " + project.getProperties().get("robolectricSdkVersion")
             targetSdkVersion project.getProperties().get("robolectricSdkVersion")
-        }else{
-            targetSdkVersion rootProject.ext.targetSdkVersion
+        } else{
+            targetSdkVersion 33
         }
         versionCode getAppVersionCode()
         versionName getAppVersionName()
@@ -161,7 +162,8 @@ android {
 task javadoc(type: Javadoc) {
     failOnError false
     source = android.sourceSets.main.java.srcDirs
-    classpath += configurations.compile
+    configurations.api.setCanBeResolved(true)
+    classpath += configurations.api
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
 
     options.memberLevel = JavadocMemberLevel.PUBLIC
@@ -191,7 +193,7 @@ String commonVersion = project.hasProperty("distCommonVersion") ? project.distCo
 
 dependencies {
     //Please leave this in... desugaring is currently disabled by default; however it's required for running some tests
-    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
+    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:${rootProject.ext.coreLibraryDesugaringVersion}"
 
     def mockito_version = 'latest.release'
 
@@ -218,7 +220,7 @@ dependencies {
     //mockito-inline was introduced in mockito 2.7.6
     //see: https://javadoc.io/static/org.mockito/mockito-core/3.6.28/org/mockito/Mockito.html#0.1
     testImplementation "org.mockito:mockito-inline:$rootProject.ext.mockitoCoreVersion"
-    testImplementation ("org.robolectric:robolectric:4.5.1")
+    testImplementation ("org.robolectric:robolectric:$rootProject.ext.robolectricVersion")
     testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"
     testLocalImplementation project(':testutils')
     testDistImplementation("com.microsoft.identity:testutils:0.0+") {
@@ -234,6 +236,9 @@ dependencies {
     localApi(project(":common")) {
         transitive = true
     }
+//    localApi("com.microsoft.identity:common:0.0.20230818-dev.11") {
+//        transitive = true
+//    }
 
     snapshotApi(group: 'com.microsoft.identity', name: 'common', version: commonVersion, changing: true)
 
