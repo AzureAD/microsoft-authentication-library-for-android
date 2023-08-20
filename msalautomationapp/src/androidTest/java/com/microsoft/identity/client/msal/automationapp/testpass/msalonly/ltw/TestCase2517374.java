@@ -22,14 +22,9 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.ltw;
 
-import android.util.Log;
-
-import androidx.test.uiautomator.UiObject;
-
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
-import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
@@ -48,7 +43,7 @@ import java.util.List;
 public class TestCase2517374 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_2517374 () throws Throwable {
+    public void test_2517374() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
@@ -88,7 +83,7 @@ public class TestCase2517374 extends AbstractMsalBrokerTest {
         // finally get users and validate the users
         msalTestApp.handleBackButton();
         List<String> users = msalTestApp.getUsers();
-        Assert.assertTrue(users.size() == 1);
+        Assert.assertEquals(1, users.size());
     }
 
     // if getLabQuery return null then will use getTempUserType to create account
