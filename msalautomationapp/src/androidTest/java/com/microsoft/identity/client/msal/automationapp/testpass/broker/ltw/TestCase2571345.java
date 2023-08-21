@@ -53,7 +53,6 @@ public class TestCase2571345 extends AbstractMsalBrokerTest {
 
         // Install new OneAuthTestApp
         final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
-        oneAuthTestApp.uninstall();
         oneAuthTestApp.install();
         oneAuthTestApp.launch();
         oneAuthTestApp.handleFirstRun();

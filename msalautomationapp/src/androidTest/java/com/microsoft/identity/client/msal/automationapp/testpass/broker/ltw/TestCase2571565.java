@@ -54,12 +54,10 @@ public class TestCase2571565 extends AbstractMsalBrokerTest {
 
         // Install legacy authenticator app
         final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator(BrokerMicrosoftAuthenticator.OLD_AUTHENTICATOR_APK, BrokerMicrosoftAuthenticator.AUTHENTICATOR_APK);
-        brokerMicrosoftAuthenticator.uninstall();
         brokerMicrosoftAuthenticator.install();
 
         // Install new LTW
         final BrokerLTW brokerLTW = new BrokerLTW();
-        brokerLTW.uninstall();
         brokerLTW.install();
 
         // AcquireToken Interactively in MsalTestApp
@@ -95,7 +93,6 @@ public class TestCase2571565 extends AbstractMsalBrokerTest {
 
         // Install new oneAuthTestApp
         final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
-        oneAuthTestApp.uninstall();
         oneAuthTestApp.install();
         oneAuthTestApp.launch();
         oneAuthTestApp.handleFirstRun();

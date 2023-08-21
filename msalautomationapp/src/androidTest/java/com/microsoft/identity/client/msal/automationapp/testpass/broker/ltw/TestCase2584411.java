@@ -47,11 +47,9 @@ public class TestCase2584411 extends AbstractMsalBrokerTest {
         final String password = mLabAccount.getPassword();
 
         final BrokerCompanyPortal brokerCompanyPortal = new BrokerCompanyPortal();
-        brokerCompanyPortal.uninstall();
         brokerCompanyPortal.install();
 
         final BrokerLTW brokerLTW = new BrokerLTW();
-        brokerLTW.uninstall();
         brokerLTW.install();
 
         final MsalTestApp msalTestApp = new MsalTestApp();
