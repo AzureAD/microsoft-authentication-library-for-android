@@ -67,7 +67,7 @@
     <string name="trust_debug_broker">DebugBroker?</string>
     <string name="enable_new_broker_discovery">Enable New Broker Discovery</string>
     <string name="clear_active_broker_cache">Clear Active Broker Cache</string>
-    <string name="current_cached_active_broker">Current Cached Active Broker</string>
+    <string name="current_cached_active_broker">Cached Active Broker</string>
     <string name="none">None</string>
     <string name="webauthn_query_parameters">WebAuthn Query Parameter</string>
 </resources>
