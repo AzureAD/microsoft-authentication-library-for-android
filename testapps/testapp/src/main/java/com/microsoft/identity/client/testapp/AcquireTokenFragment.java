@@ -81,6 +81,7 @@ public class AcquireTokenFragment extends Fragment {
     private EditText mClaims;
     private Button mAddDeviceIdClaimButton;
     private Button mAddNgcMfaClaimButton;
+    private Switch mWebauthnQueryParameter;
     private Switch mEnablePII;
     private Switch mForceRefresh;
     private Switch mEnableNewBrokerDiscovery;
@@ -149,6 +150,7 @@ public class AcquireTokenFragment extends Fragment {
             }
         });
 
+        mWebauthnQueryParameter = view.findViewById(R.id.webauthnQueryParameter);
         mEnablePII = view.findViewById(enablePII);
         mForceRefresh = view.findViewById(R.id.forceRefresh);
         mSelectAccount = view.findViewById(R.id.select_user);
@@ -541,6 +543,7 @@ public class AcquireTokenFragment extends Fragment {
         final String scopes = mScope.getText().toString();
         final String extraScopesToConsent = mExtraScope.getText().toString();
         final String claims = mClaims.getText().toString();
+        final boolean webauthnQueryParameter = mWebauthnQueryParameter.isChecked();
         final boolean enablePII = mEnablePII.isChecked();
         final boolean forceRefresh = mForceRefresh.isChecked();
         final String authority = mAuthority.getText().toString();
@@ -560,6 +563,7 @@ public class AcquireTokenFragment extends Fragment {
                 scopes,
                 extraScopesToConsent,
                 claims,
+                webauthnQueryParameter,
                 enablePII,
                 forceRefresh,
                 authority,

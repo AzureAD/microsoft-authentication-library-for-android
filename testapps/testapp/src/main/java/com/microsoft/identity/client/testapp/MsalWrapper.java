@@ -25,13 +25,17 @@ import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
+import com.microsoft.identity.common.internal.fido.FidoConstants;
 import com.microsoft.identity.common.java.util.StringUtil;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /// Acting as a bridge between the result of MsalWrapper's results and the outside world.
 interface INotifyOperationResultCallback<T> {
@@ -119,6 +123,16 @@ abstract class MsalWrapper {
 
         if (!StringUtil.isNullOrEmpty(requestOptions.getClaims())) {
             builder.withClaims(ClaimsRequest.getClaimsRequestFromJsonString(requestOptions.getClaims()));
+        }
+
+        if (requestOptions.isWebauthnQueryParameter()) {
+            final List<Map.Entry<String, String>> extraQueryParameters = new ArrayList<>();
+            extraQueryParameters.add(
+                    new AbstractMap.SimpleEntry<>(
+                            FidoConstants.WEBAUTHN_QUERY_PARAMETER_FIELD,
+                            FidoConstants.WEBAUTHN_QUERY_PARAMETER_VALUE
+                    ));
+            builder.withAuthorizationQueryStringParameters(extraQueryParameters);
         }
 
         if (requestOptions.getAuthScheme() == Constants.AuthScheme.POP) {
