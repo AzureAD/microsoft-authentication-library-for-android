@@ -55,12 +55,10 @@ public class TestCase2579095 extends AbstractMsalBrokerTest {
             // install legacy company portal
             final BrokerCompanyPortal brokerCompanyPortal = new BrokerCompanyPortal(BrokerCompanyPortal.OLD_COMPANY_PORTAL_APK,
                     BrokerCompanyPortal.COMPANY_PORTAL_APK);
-            brokerCompanyPortal.uninstall();
             brokerCompanyPortal.install();
 
             // install old OneAuthTestApp
             final OneAuthTestApp oldOneAuthTestApp = new OneAuthTestApp();
-            oldOneAuthTestApp.uninstall();
             oldOneAuthTestApp.installOldApk();
             oldOneAuthTestApp.launch();
             oldOneAuthTestApp.handleFirstRun();
@@ -82,7 +80,6 @@ public class TestCase2579095 extends AbstractMsalBrokerTest {
 
             // install new Authenticator
             final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator();
-            brokerMicrosoftAuthenticator.uninstall();
             brokerMicrosoftAuthenticator.install();
 
             // update Company Portal
