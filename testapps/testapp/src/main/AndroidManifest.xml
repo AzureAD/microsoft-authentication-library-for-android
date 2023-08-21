@@ -64,15 +64,14 @@
             android:theme="@style/AppTheme.NoActionBar"
             android:taskAffinity=""
             android:documentLaunchMode="always"
-            android:configChanges="keyboardHidden|keyboard"
-            android:exported="false">
+            android:configChanges="keyboardHidden|keyboard">
         </activity>
 
         <activity
             tools:replace="android:exported"
             android:name="com.microsoft.identity.client.BrowserTabActivity"
             android:launchMode="singleTask"
-            android:exported="false">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />

@@ -11,7 +11,7 @@
         android:theme="@style/AppTheme">
         <activity 
             android:name="com.microsoft.inspector.MainActivity"
-            android:exported="false">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

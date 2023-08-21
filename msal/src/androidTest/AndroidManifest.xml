@@ -21,7 +21,7 @@
         <activity
             tools:replace="android:exported"
             android:name="com.microsoft.identity.client.BrowserTabActivity"
-            android:exported="false">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
