@@ -36,7 +36,6 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.Micr
 import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
-import com.microsoft.identity.labapi.utilities.constants.FederationProvider;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserRole;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
@@ -47,6 +46,8 @@ import org.junit.Test;
 
 import java.util.List;
 
+// If LTW is the active broker, and request is made through Authenticator from an old MSAL in shared device mode, nothing should break
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2582292
 @LTWTests
 @SupportedBrokers(brokers = {BrokerLTW.class})
 public class TestCase2582292 extends AbstractMsalBrokerTest {
@@ -58,7 +59,6 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
 
         // Install new Auth app with broker SDK changes of broker selection logic
         final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator();
-        brokerMicrosoftAuthenticator.uninstall();
         brokerMicrosoftAuthenticator.install();
 
         // Install legacy MSAL Test app (Msal test app with no broker selection logic)
@@ -75,7 +75,7 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
         final String mode = msalTestApp.checkMode();
         Assert.assertTrue(mode.contains("Single Account"));
 
-        // performs AcquireToken with an account from the a same tenant with the WPJed account.
+        // performs AcquireToken with an account from the same tenant with the WPJed account.
         final LabQuery query = LabQuery.builder()
                 .userType(UserType.CLOUD)
                 .build();
