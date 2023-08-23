@@ -57,7 +57,7 @@ public class TestCase2582297 extends AbstractMsalBrokerTest {
         brokerCompanyPortal.install();
 
         // Install old BrokerHost app with no broker SDK changes of broker selection logic
-        final BrokerHost brokerHost = new BrokerHost(BrokerHost.OLD_BROKER_HOST_APK);
+        final BrokerHost brokerHost = new BrokerHost(BrokerHost.BROKER_HOST_WITHOUT_BROKER_SELECTION_APK);
         brokerHost.install();
         brokerHost.launch();
 
