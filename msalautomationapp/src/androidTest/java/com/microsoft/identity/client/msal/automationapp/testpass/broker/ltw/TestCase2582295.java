@@ -49,12 +49,10 @@ public class TestCase2582295 extends AbstractMsalBrokerTest {
 
         // Install new CP app with broker SDK changes of broker selection logic
         final BrokerCompanyPortal brokerCompanyPortal = new BrokerCompanyPortal();
-        brokerCompanyPortal.uninstall();
         brokerCompanyPortal.install();
 
         // Install old BrokerHost app with no broker SDK changes of broker selection logic
         final BrokerHost brokerHost = new BrokerHost(BrokerHost.OLD_BROKER_HOST_APK);
-        brokerHost.uninstall();
         brokerHost.install();
         brokerHost.launch();
 
