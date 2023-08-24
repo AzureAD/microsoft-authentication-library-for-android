@@ -43,6 +43,7 @@ class RequestOptions {
     private final String mScopes;
     private final String mExtraScope;
     private final String mClaims;
+    private final boolean mWebauthnQueryParameter;
     private final boolean mEnablePII;
     private final boolean mForceRefresh;
     private final String mAuthority;
