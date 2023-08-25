@@ -50,8 +50,8 @@ ext {
     daggerCompilerVersion = "2.31.2"
     msal4jVersion = "1.10.0"
     mseberaApacheHttpClientVersion = "4.5.8"
-    moshiVersion = "1.12.0"
-    moshiAdaptersVersion = "1.12.0"
+    moshiVersion = "1.14.0"
+    moshiAdaptersVersion = "1.14.0"
     openpojoVersion = "0.9.1"
     equalsVerifierVersion = "3.6.1"
     jsonGeneratorVersion = "0.4.3"
@@ -69,6 +69,9 @@ ext {
     yubikitAndroidVersion = "2.3.0"
     yubikitPivVersion = "2.3.0"
     powerliftAndroidVersion="1.0.3"
+    lifecycleKtxVersion="2.5.1"
+    AndroidCredentialsVersion="1.2.0-beta03"
+    AndroidCredentialsPlayServicesAuthVersion="1.2.0-beta03"
 
     // microsoft-diagnostics-uploader app versions
     powerliftVersion = "0.14.7"
