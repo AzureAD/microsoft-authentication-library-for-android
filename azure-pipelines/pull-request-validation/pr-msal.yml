@@ -7,13 +7,13 @@ name: $(date:yyyyMMdd)$(rev:.r)
 
 variables:
 - name: BuildParameters.jdkVersion
-  value: 1.8
+  value: 1.11
 - name: BuildParameters.jdkArchitecture
   value: x64
 - name: BuildParameters.javaHomeSelection
   value: JDKVersion
 - name: robolectricSdkVersion
-  value: 28
+  value: 33
 
 trigger:
   branches:
@@ -44,8 +44,9 @@ jobs:
     persistCredentials: True
   - template: azure-pipelines/templates/steps/automation-cert.yml@common
   - task: JavaToolInstaller@0
-    displayName: Use Java 8
+    displayName: Use Java 11
     inputs:
+      versionSpec: '11'
       jdkArchitectureOption: x64
       jdkSourceOption: PreInstalled
   - task: Gradle@2
@@ -88,11 +89,12 @@ jobs:
     inputs:
       filename: echo
       arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN]$(System.AccessToken)'
-  - task: Gradle@1
+  - task: Gradle@3
     displayName: Lint Local debug
     inputs:
       tasks: clean msal:lintLocalDebug
       publishJUnitResults: false
+      jdkVersion: 1.11
 - job: codeql
   displayName: CodeQL
   cancelTimeoutInMinutes: 1
@@ -101,6 +103,12 @@ jobs:
     clean: true
     submodules: recursive
     persistCredentials: True
+  - task: JavaToolInstaller@0
+    displayName: Use Java 11
+    inputs:
+      versionSpec: '11'
+      jdkArchitectureOption: x64
+      jdkSourceOption: PreInstalled
   - task: CmdLine@1
     displayName: Set Office MVN Access Token in Environment
     inputs:

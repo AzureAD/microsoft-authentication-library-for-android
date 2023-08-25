@@ -753,7 +753,9 @@ public class PublicClientApplicationConfiguration {
                             .appendPath(signatureHash)
                             .build();
 
-                    if (mRedirectUri.equalsIgnoreCase(uri.toString()) || mRedirectUri.equalsIgnoreCase(AuthenticationConstants.Broker.BROKER_REDIRECT_URI)) {
+                    if (mRedirectUri.equalsIgnoreCase(uri.toString()) ||
+                            mRedirectUri.equalsIgnoreCase(AuthenticationConstants.Broker.BROKER_REDIRECT_URI) ||
+                            mRedirectUri.equalsIgnoreCase(AuthenticationConstants.Broker.NEW_BROKER_REDIRECT_URI)) {
                         return true;
                     }
                 }
