@@ -126,19 +126,18 @@ public class TestCase2582291 extends AbstractMsalBrokerTest {
 
         // Install updated oneAuthTestApp
         final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
-        oneAuthTestApp.uninstall();
         oneAuthTestApp.install();
         oneAuthTestApp.launch();
         oneAuthTestApp.handleFirstRun();
 
         // Enter username in account name
         oneAuthTestApp.handleUserNameInput(username);
+        oneAuthTestApp.selectFromAppConfiguration("com.microsoft.identity.LabsApi.Guest");
+        oneAuthTestApp.handlePreferBrokerSwitchButton();
 
         // Click on getAccessToken
         // Accesstoken should be retrieved successully
-        final String accessToken = oneAuthTestApp.acquireTokenSilent();
-        Assert.assertNotNull(accessToken);
-        oneAuthTestApp.assertSuccess();
+        oneAuthTestApp.handleSignInWithoutPrompt();
     }
     @Override
     public LabQuery getLabQuery() {

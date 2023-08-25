@@ -48,7 +48,6 @@ import org.junit.Test;
 @RunOnAPI29Minus("OneAuth test app dependency")
 @SupportedBrokers(brokers = {BrokerLTW.class})
 public class TestCase2582289 extends AbstractMsalBrokerTest {
-
     @Test
     public void test_2582289() throws Throwable {
         final String username = mLabAccount.getUsername();
@@ -96,9 +95,7 @@ public class TestCase2582289 extends AbstractMsalBrokerTest {
 
         // Click on getAccessToken
         // User should not be prompted for credentials and token is returned
-        final String tokenOneAuth = oneAuthTestApp.acquireTokenSilent();
-        Assert.assertNotNull(tokenOneAuth);
-        Assert.assertNotEquals("", tokenOneAuth);
+        oneAuthTestApp.handleSignInWithoutPrompt();
     }
 
     @Override
