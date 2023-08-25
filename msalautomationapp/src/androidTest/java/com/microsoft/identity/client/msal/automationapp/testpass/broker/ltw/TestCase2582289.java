@@ -20,14 +20,11 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.ltw;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
-import com.microsoft.identity.client.broker.automationapp.testpass.adal.AbstractAdalBrokerTest;
-import com.microsoft.identity.client.broker.automationapp.testpass.adal.Constants;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
@@ -56,12 +53,10 @@ public class TestCase2582289 extends AbstractMsalBrokerTest {
 
         // Install new CP app with broker SDK changes of broker selection logic
         final BrokerCompanyPortal brokerCompanyPortal = new BrokerCompanyPortal();
-        brokerCompanyPortal.uninstall();
         brokerCompanyPortal.install();
 
         // Install old MsalTestApp
         final MsalTestApp msalTestApp = new MsalTestApp();
-        msalTestApp.uninstall();
         msalTestApp.installOldApk();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
@@ -84,7 +79,6 @@ public class TestCase2582289 extends AbstractMsalBrokerTest {
 
         // Install old OneAuthTestApp
         final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
-        oneAuthTestApp.uninstall();
         oneAuthTestApp.installOldApk();
         oneAuthTestApp.launch();
         oneAuthTestApp.handleFirstRun();

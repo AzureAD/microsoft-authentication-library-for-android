@@ -20,16 +20,17 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.ltw;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
+import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
 import com.microsoft.identity.client.ui.automation.app.OneAuthTestApp;
+import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
-import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
@@ -40,32 +41,24 @@ import org.junit.Test;
 
 import java.util.List;
 
-// If LTW is the active broker, and request is made through Authenticator from MSAL in non-shared device mode, nothing should break
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2582290
+// If LTW is the active broker, and request is made through CP from MSAL in non-shared device mode, nothing should break
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2582291
 @LTWTests
 @RunOnAPI29Minus
-public class TestCase2582290 extends AbstractMsalBrokerTest {
+@SupportedBrokers(brokers = {BrokerLTW.class})
+public class TestCase2582291 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_2582290() throws Throwable{
+    public void test_2582291() throws Throwable{
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
-        mBroker.uninstall();
-
-        // Install new LTW with broker SDK changes of broker selection logic
-        final BrokerLTW brokerLTW = new BrokerLTW();
-        brokerLTW.uninstall();
-        brokerLTW.install();
-
-        // Install new Authenticator with broker SDK changes of broker selection logic
-        final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator();
-        brokerMicrosoftAuthenticator.uninstall();
-        brokerMicrosoftAuthenticator.install();
+        // Install new CP app with broker SDK changes of broker selection logic
+        final BrokerCompanyPortal brokerCompanyPortal = new BrokerCompanyPortal();
+        brokerCompanyPortal.install();
 
         // Install old MSALTestApp
         final MsalTestApp msalTestApp = new MsalTestApp();
-        msalTestApp.uninstall();
         msalTestApp.installOldApk();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
@@ -140,7 +133,6 @@ public class TestCase2582290 extends AbstractMsalBrokerTest {
         Assert.assertNotNull(accessToken);
         oneAuthTestApp.assertSuccess();
     }
-
     @Override
     public LabQuery getLabQuery() {
         return null;
