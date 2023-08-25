@@ -54,7 +54,7 @@ android {
     }
 
 
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdk rootProject.ext.compileSdkVersion
 
     defaultConfig {
         multiDexEnabled true
@@ -62,7 +62,7 @@ android {
         if(project.getProperties().get("robolectricSdkVersion")){
             println "Using command line parameter robolectricSdkVersion for target sdk version " + project.getProperties().get("robolectricSdkVersion")
             targetSdkVersion project.getProperties().get("robolectricSdkVersion")
-        }else{
+        } else{
             targetSdkVersion rootProject.ext.targetSdkVersion
         }
         versionCode getAppVersionCode()
@@ -161,7 +161,8 @@ android {
 task javadoc(type: Javadoc) {
     failOnError false
     source = android.sourceSets.main.java.srcDirs
-    classpath += configurations.compile
+    configurations.api.setCanBeResolved(true)
+    classpath += configurations.api
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
 
     options.memberLevel = JavadocMemberLevel.PUBLIC
@@ -185,9 +186,9 @@ task sourcesJar(type: Jar) {
     destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
 }
 
-// In dev, we want to keep the dependencies(common4j, broker4j, common) to 0.0.+ to be able to be consumed by daily dev pipeline.
+// In dev, we want to keep the dependencies (common4j, common) to 1.0.+ to be able to be consumed by daily dev pipeline.
 // In release/*, we change these to specific versions being consumed.
-String commonVersion = project.hasProperty("distCommonVersion") ? project.distCommonVersion : "0.0.+"
+String commonVersion = project.hasProperty("distCommonVersion") ? project.distCommonVersion : "1.0.+"
 
 dependencies {
     //Please leave this in... desugaring is currently disabled by default; however it's required for running some tests
@@ -218,7 +219,7 @@ dependencies {
     //mockito-inline was introduced in mockito 2.7.6
     //see: https://javadoc.io/static/org.mockito/mockito-core/3.6.28/org/mockito/Mockito.html#0.1
     testImplementation "org.mockito:mockito-inline:$rootProject.ext.mockitoCoreVersion"
-    testImplementation ("org.robolectric:robolectric:4.5.1")
+    testImplementation ("org.robolectric:robolectric:$rootProject.ext.robolectricVersion")
     testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"
     testLocalImplementation project(':testutils')
     testDistImplementation("com.microsoft.identity:testutils:0.0+") {
@@ -242,7 +243,7 @@ dependencies {
     }
 
     testLocalImplementation(testFixtures(project(":common4j")))
-    String common4jVersion = project.hasProperty("distCommon4jVersion") ? project.distCommon4jVersion : "0.0.+"
+    String common4jVersion = project.hasProperty("distCommon4jVersion") ? project.distCommon4jVersion : "1.0.+"
     testDistImplementation(testFixtures("com.microsoft.identity:common4j:${common4jVersion}"))
 
     implementation platform("io.opentelemetry:opentelemetry-bom:1.18.0")
