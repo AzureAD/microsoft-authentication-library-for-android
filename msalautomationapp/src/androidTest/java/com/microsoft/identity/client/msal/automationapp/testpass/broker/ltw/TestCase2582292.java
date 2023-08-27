@@ -54,8 +54,8 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_2582292() throws LabApiException, InterruptedException, UiObjectNotFoundException {
-        final String username = mLabAccount.getUsername();
-        final String password = mLabAccount.getPassword();
+        final String username1 = mLabAccount.getUsername();
+        final String password1 = mLabAccount.getPassword();
 
         // Install new Auth app with broker SDK changes of broker selection logic
         final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator();
@@ -67,7 +67,7 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
 
         // Set up shared device mode
         // Open Authenticator app -> ... -> Settings
-        brokerMicrosoftAuthenticator.performSharedDeviceRegistration(username, password);
+        brokerMicrosoftAuthenticator.performSharedDeviceRegistration(username1, password1);
 
         // Check mode in MSAL test app
         msalTestApp.launch();
@@ -81,12 +81,12 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
                 .build();
 
         final ILabAccount difAccount = mLabClient.getLabAccount(query);
-        final String usernameDif = difAccount.getUsername();
-        final String passwordDif = difAccount.getPassword();
+        final String username2 = difAccount.getUsername();
+        final String password2 = difAccount.getPassword();
 
         final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
                 .prompt(PromptParameter.SELECT_ACCOUNT)
-                .loginHint(username)
+                .loginHint(username2)
                 .sessionExpected(false)
                 .broker(mBroker)
                 .expectingBrokerAccountChooserActivity(false)
@@ -103,7 +103,7 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
                 .howWouldYouLikeToSignInExpected(false)
                 .build();
 
-        String token = msalTestApp.acquireToken(usernameDif, passwordDif, promptHandlerParameters, true);
+        String token = msalTestApp.acquireToken(username2, password2, promptHandlerParameters, true);
         Assert.assertNotNull(token);
 
         // Click on "GetUsers" button
@@ -111,7 +111,7 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
         msalTestApp.handleBackButton();
         final List<String> users = msalTestApp.getUsers();
         Assert.assertEquals(1, users.size());
-        Assert.assertTrue(users.get(0).contains(usernameDif));
+        Assert.assertTrue(users.get(0).contains(username2));
 
         // Click on "RemoveUsers" button
         // Account should be removed from MSAL
