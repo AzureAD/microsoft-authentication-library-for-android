@@ -84,10 +84,13 @@ class TestCase2516967 : AbstractMsalBrokerTest(){
         outlook.launch()
         outlook.signInThroughSnackBar(username, password, promptHandlerParameters)
 
-        ThreadUtils.sleepSafely(2000, "sleeping", "interrupted sleep")
-
+        // Sometimes outlook takes some time to remove the SignIn refresh snackbar
+        ThreadUtils.sleepSafely(6000, "sleeping", "interrupted sleep")
         outlook.forceStop()
         outlook.launch()
+        outlook.forceStop()
+        outlook.launch()
+
         Assert.assertFalse("SIGN IN Button still present", outlook.isSignInSnackBarPresent)
         outlook.confirmAccount(username)
     }

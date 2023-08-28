@@ -70,7 +70,6 @@ class TestCase2506936 : AbstractMsalBrokerTest(){
         teams.onAccountAdded()
         teams.forceStop() // Teams sometimes seems to like to pop up on screen randomly
 
-        // Need to implement this
         teams.signOut()
 
         // Sign in again

@@ -23,22 +23,21 @@
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.flw;
 
 import androidx.test.uiautomator.UiObject;
+import androidx.test.uiautomator.UiObjectNotFoundException;
 
 import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
-import com.microsoft.identity.client.SignInParameters;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
+import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AdfsPromptHandler;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
@@ -51,7 +50,6 @@ import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 // End My Shift - In Shared device mode, only account from the same tenant should be able to acquire token.
@@ -61,7 +59,7 @@ import java.util.concurrent.TimeUnit;
 public class TestCase833513 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_833513() throws MsalException, InterruptedException, LabApiException {
+    public void test_833513() throws MsalException, InterruptedException, LabApiException, UiObjectNotFoundException {
         final String username1 = mLabAccount.getUsername();
         final String password1 = mLabAccount.getPassword();
 
@@ -95,19 +93,10 @@ public class TestCase833513 extends AbstractMsalBrokerTest {
         final String username2 = difTenantAccount.getUsername();
         final String password2 = difTenantAccount.getPassword();
 
-        final SingleAccountPublicClientApplication singleAccountPCA =
-                (SingleAccountPublicClientApplication) mApplication;
-
-        // try sign in with an account from a different tenant
-        // passing null for latch as we don't need to receive the result from this call
-        // we just want to get into the webview and look for the error in AAD page
-        final SignInParameters signInParameters = SignInParameters.builder()
-                .withActivity(mActivity)
-                .withLoginHint(username2)
-                .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulInteractiveCallback(null))
-                .build();
-        singleAccountPCA.signIn(signInParameters);
+        final MsalTestApp msalTestApp = new MsalTestApp();
+        msalTestApp.install();
+        msalTestApp.launch();
+        msalTestApp.handleFirstRun();
 
         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                 .loginHint(username2)
@@ -120,8 +109,7 @@ public class TestCase833513 extends AbstractMsalBrokerTest {
                 .chooseCertificateExpected(true)
                 .build();
 
-        AdfsPromptHandler adfsPromptHandler = new AdfsPromptHandler(promptHandlerParameters);
-        adfsPromptHandler.handlePrompt(username2, password2);
+        msalTestApp.acquireTokenWithoutFetchingToken(username2, password2, promptHandlerParameters, true);
 
         // expecting error in WebView now
         final UiObject errMsg = UiAutomatorUtils.obtainUiObjectWithText("AADSTS50020");
