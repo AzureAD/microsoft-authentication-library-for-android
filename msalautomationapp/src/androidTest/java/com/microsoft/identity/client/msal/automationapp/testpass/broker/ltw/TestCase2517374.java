@@ -20,55 +20,46 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.ltw;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
+
+import android.util.Log;
+
+import androidx.test.uiautomator.UiObject;
 
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
+import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
-import com.microsoft.identity.client.ui.automation.app.OneAuthTestApp;
-import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
-import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
-import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters;
+import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
-
 import org.junit.Assert;
 import org.junit.Test;
+import java.util.List;
 
-// Legacy auth app, updated LTW and uninstall LTW
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2571580
+// Add a UI test on MsalTestApp
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2517374
 @LTWTests
-@RunOnAPI29Minus
-public class TestCase2571580 extends AbstractMsalBrokerTest {
+@SupportedBrokers(brokers = {BrokerCompanyPortal.class})
+public class TestCase2517374 extends AbstractMsalBrokerTest {
+
     @Test
-    public void test_2571580() throws Throwable {
+    public void test_2517374 () throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
-        mBroker.uninstall();
-
-        // Install legacy authenticator app
-        final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator(BrokerMicrosoftAuthenticator.OLD_AUTHENTICATOR_APK, BrokerMicrosoftAuthenticator.AUTHENTICATOR_APK);
-        brokerMicrosoftAuthenticator.uninstall();
-        brokerMicrosoftAuthenticator.install();
-
-        // Install update LTW app
-        final BrokerLTW brokerLTW = new BrokerLTW();
-        brokerLTW.uninstall();
-        brokerLTW.install();
-
-        // AcquireToken Interactively in MsalTestApp
-        final MsalTestApp msalTestApp = new MsalTestApp();
+        MsalTestApp msalTestApp = new MsalTestApp();
         msalTestApp.uninstall();
         msalTestApp.install();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
 
-        final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
+        // acquire toke interactively and validate the token
+        final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
                 .prompt(PromptParameter.SELECT_ACCOUNT)
                 .loginHint(username)
                 .sessionExpected(false)
@@ -87,35 +78,32 @@ public class TestCase2571580 extends AbstractMsalBrokerTest {
                 .howWouldYouLikeToSignInExpected(false)
                 .build();
 
-        String tokenMsal = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, true);
-        Assert.assertNotNull(tokenMsal);
+        String token = msalTestApp.acquireToken(username, password, promptHandlerParameters, true);
+        Assert.assertNotNull(token);
 
-        // Uninstall LTW
-        brokerLTW.uninstall();
+        // then acquire token silently and validate the token
+        msalTestApp.handleBackButton();
+        String silentToken = msalTestApp.acquireTokenSilent();
+        Assert.assertNotNull(silentToken);
 
-        // Install updated OneAuthTestApp
-        final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
-        oneAuthTestApp.uninstall();
-        oneAuthTestApp.install();
-        oneAuthTestApp.launch();
-        oneAuthTestApp.handleFirstRun();
+        // finally get users and validate the users
+        msalTestApp.handleBackButton();
+        List<String> users = msalTestApp.getUsers();
+        Assert.assertTrue(users.size() == 1);
 
-        // AcquireToken Interactively in OneAuthTestApp, should not prompt for password
-        final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
-                .broker(mBroker)
-                .prompt(PromptParameter.LOGIN)
-                .loginHint(username)
-                .consentPageExpected(false)
-                .speedBumpExpected(false)
-                .sessionExpected(false)
-                .expectingBrokerAccountChooserActivity(false)
-                .expectingLoginPageAccountPicker(false)
-                .enrollPageExpected(false)
-                .build();
-        oneAuthTestApp.addFirstAccount(username, password, promptHandlerParametersOneAuth);
-        oneAuthTestApp.confirmAccount(username);
+//        // select POP from auth scheme spinner
+//        msalTestApp.handleBackButton();
+//        msalTestApp.selectFromAuthScheme("POP");
+//        String SHRToken = msalTestApp.generateSHR();
+//        Assert.assertTrue(SHRToken != null && !SHRToken.isEmpty());
+//
+//        // validate toast message when remove account
+//        msalTestApp.handleBackButton();
+//        final String msg = msalTestApp.removeUser();
+//        Assert.assertEquals("The account is successfully removed.", msg);
     }
 
+    // if getLabQuery return null then will use getTempUserType to create account
     @Override
     public LabQuery getLabQuery() {
         return null;

@@ -20,7 +20,7 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.ltw;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
@@ -39,30 +39,44 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import org.junit.Assert;
 import org.junit.Test;
 
-// Uninstall scenario - with old Auth app new LTW
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2571565
+// If LTW without broker is installed, updated MSAL should still get SSO
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2571508
 @LTWTests
 @RunOnAPI29Minus
-public class TestCase2571565 extends AbstractMsalBrokerTest {
-
+public class TestCase2571508  extends AbstractMsalBrokerTest {
     @Test
-    public void test_2571565() throws Throwable {
+    public void test_2571508() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
-        mBroker.uninstall();
-
-        // Install legacy authenticator app
-        final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator(BrokerMicrosoftAuthenticator.OLD_AUTHENTICATOR_APK, BrokerMicrosoftAuthenticator.AUTHENTICATOR_APK);
-        brokerMicrosoftAuthenticator.uninstall();
-        brokerMicrosoftAuthenticator.install();
-
-        // Install new LTW
-        final BrokerLTW brokerLTW = new BrokerLTW();
+        // Install old LTW
+        final BrokerLTW brokerLTW = new BrokerLTW(BrokerLTW.OLD_BROKER_LTW_APK, BrokerLTW.BROKER_LTW_APK);
         brokerLTW.uninstall();
         brokerLTW.install();
 
-        // AcquireToken Interactively in MsalTestApp
+        // AcquireToken interactively on OneAuthTestApp
+        final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
+        oneAuthTestApp.uninstall();
+        oneAuthTestApp.install();
+        oneAuthTestApp.launch();
+        oneAuthTestApp.handleFirstRun();
+
+        final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
+                .broker(mBroker)
+                .prompt(PromptParameter.LOGIN)
+                .loginHint(username)
+                .consentPageExpected(false)
+                .speedBumpExpected(false)
+                .sessionExpected(false)
+                .expectingBrokerAccountChooserActivity(false)
+                .expectingLoginPageAccountPicker(false)
+                .enrollPageExpected(false)
+                .build();
+        // Click on sign in button, prompted to enter username and password
+        oneAuthTestApp.addFirstAccount(username, password, promptHandlerParametersOneAuth);
+        oneAuthTestApp.confirmAccount(username);
+
+        // Install new MSALTestApp
         final MsalTestApp msalTestApp = new MsalTestApp();
         msalTestApp.uninstall();
         msalTestApp.install();
@@ -79,7 +93,7 @@ public class TestCase2571565 extends AbstractMsalBrokerTest {
                 .expectingLoginPageAccountPicker(false)
                 .expectingProvidedAccountInCookie(false)
                 .consentPageExpected(false)
-                .passwordPageExpected(true)
+                .passwordPageExpected(false)
                 .speedBumpExpected(false)
                 .registerPageExpected(false)
                 .enrollPageExpected(false)
@@ -88,34 +102,17 @@ public class TestCase2571565 extends AbstractMsalBrokerTest {
                 .howWouldYouLikeToSignInExpected(false)
                 .build();
 
-        String tokenMsal = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, true);
-        Assert.assertNotNull(tokenMsal);
+        // Add login hint as the username and Click on AcquireToken button
+        // NOT prompted for credentials.
+        msalTestApp.handleUserNameInput(username);
+        final String token = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, false);
+        Assert.assertNotNull(token);
 
-        // Uninstall legacy authenticator app
-        brokerMicrosoftAuthenticator.uninstall();
-
-        // Install new oneAuthTestApp
-        final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
-        oneAuthTestApp.uninstall();
-        oneAuthTestApp.install();
-        oneAuthTestApp.launch();
-        oneAuthTestApp.handleFirstRun();
-
-        // AcquireToken Interactively in OneAuthTestApp, should prompt for password
-        final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
-                .broker(mBroker)
-                .prompt(PromptParameter.LOGIN)
-                .loginHint(username)
-                .consentPageExpected(false)
-                .speedBumpExpected(false)
-                .sessionExpected(false)
-                .passwordPageExpected(true)
-                .expectingBrokerAccountChooserActivity(false)
-                .expectingLoginPageAccountPicker(false)
-                .enrollPageExpected(false)
-                .build();
-        oneAuthTestApp.addFirstAccount(username, password, promptHandlerParametersOneAuth);
-        oneAuthTestApp.confirmAccount(username);
+        // Click on "Get Active Broker Pkg Name" button
+        // return Authenticator app package name
+        msalTestApp.handleBackButton();
+        final String activeBroker = msalTestApp.getActiveBrokerPackageName();
+        Assert.assertEquals("Active broker pkg name : " + BrokerMicrosoftAuthenticator.AUTHENTICATOR_APP_PACKAGE_NAME, activeBroker);
     }
 
     @Override

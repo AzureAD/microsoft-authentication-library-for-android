@@ -20,7 +20,7 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.ltw;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
@@ -38,20 +38,19 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import org.junit.Assert;
 import org.junit.Test;
 
-// Authenticator has highest priority  - Case6 (CP, LTW, Auth)
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2584414
+// Authenticator has highest priority  - Case2 (LTW, CP, Auth)
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2584409
 @LTWTests
-@SupportedBrokers(brokers = {BrokerCompanyPortal.class})
-public class TestCase2584414 extends AbstractMsalBrokerTest {
-
+@SupportedBrokers(brokers = {BrokerLTW.class})
+public class TestCase2584409 extends AbstractMsalBrokerTest {
     @Test
-    public void test_2584414() throws Throwable {
+    public void test_2584409() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
-        final BrokerLTW brokerLTW = new BrokerLTW();
-        brokerLTW.uninstall();
-        brokerLTW.install();
+        final BrokerCompanyPortal brokerCompanyPortal = new BrokerCompanyPortal();
+        brokerCompanyPortal.uninstall();
+        brokerCompanyPortal.install();
 
         final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator();
         brokerMicrosoftAuthenticator.uninstall();
@@ -89,6 +88,7 @@ public class TestCase2584414 extends AbstractMsalBrokerTest {
         final String activeBroker = msalTestApp.getActiveBrokerPackageName();
         Assert.assertEquals("Active broker pkg name : " + BrokerMicrosoftAuthenticator.AUTHENTICATOR_APP_PACKAGE_NAME, activeBroker);
     }
+
     @Override
     public LabQuery getLabQuery() {
         return null;

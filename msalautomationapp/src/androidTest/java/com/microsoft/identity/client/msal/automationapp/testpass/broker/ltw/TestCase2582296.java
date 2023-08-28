@@ -20,7 +20,7 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.ltw;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
 import android.text.TextUtils;
 
@@ -28,7 +28,6 @@ import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
-import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
@@ -41,21 +40,21 @@ import org.junit.Test;
 import java.util.List;
 import java.util.Map;
 
-// Test Case 2582297: If LTW is the active broker, and request is made through CP from Multiple WorkplaceJoin API from a legacy broker test app, nothing should break.
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2582297
+// Test Case 2582296: If LTW is the active broker, and request is made through Authenticator from Multiple WorkplaceJoin API from a legacy broker test app, nothing should break.
+//https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2582296
 @LTWTests
 @SupportedBrokers(brokers = {BrokerLTW.class})
-public class TestCase2582297 extends AbstractMsalBrokerTest {
+public class TestCase2582296 extends AbstractMsalBrokerTest {
     @Test
-    public void test_2582297() throws Throwable {
+    public void test_2582296() {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
         final String tenantId = mLabAccount.getHomeTenantId();
 
-        // Install new CP app with broker SDK changes of broker selection logic
-        final BrokerCompanyPortal brokerCompanyPortal = new BrokerCompanyPortal();
-        brokerCompanyPortal.uninstall();
-        brokerCompanyPortal.install();
+        // Install new Authenticator with broker SDK changes of broker selection logic
+        final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator();
+        brokerMicrosoftAuthenticator.uninstall();
+        brokerMicrosoftAuthenticator.install();
 
         // Install old BrokerHost app with no broker SDK changes of broker selection logic
         final BrokerHost brokerHost = new BrokerHost(BrokerHost.OLD_BROKER_HOST_APK);
@@ -100,6 +99,7 @@ public class TestCase2582297 extends AbstractMsalBrokerTest {
         final List<Map<String, String>> allRecords = brokerHost.multipleWpjApiFragment.getAllRecords();
         Assert.assertEquals(0, allRecords.size());
     }
+
     @Override
     public LabQuery getLabQuery() {
         return null;

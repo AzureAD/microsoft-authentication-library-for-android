@@ -20,69 +20,43 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.ltw;
-
-import androidx.test.uiautomator.UiObjectNotFoundException;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
+import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
-import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
-import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
-import com.microsoft.identity.labapi.utilities.constants.FederationProvider;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
-import com.microsoft.identity.labapi.utilities.constants.UserRole;
-import com.microsoft.identity.labapi.utilities.constants.UserType;
-import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.List;
-
+// LTW has higher priority than CP - Case2
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2572283
 @LTWTests
-@SupportedBrokers(brokers = {BrokerLTW.class})
-public class TestCase2582292 extends AbstractMsalBrokerTest {
+@SupportedBrokers(brokers = {BrokerCompanyPortal.class})
+public class TestCase2572283 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_2582292() throws LabApiException, InterruptedException, UiObjectNotFoundException {
+    public void test_2572283() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
-        // Install new Auth app with broker SDK changes of broker selection logic
-        final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator();
-        brokerMicrosoftAuthenticator.uninstall();
-        brokerMicrosoftAuthenticator.install();
+        final BrokerLTW brokerLTW = new BrokerLTW();
+        brokerLTW.uninstall();
+        brokerLTW.install();
 
-        // Install legacy MSAL Test app (Msal test app with no broker selection logic)
         final MsalTestApp msalTestApp = new MsalTestApp();
-        msalTestApp.installOldApk();
+        msalTestApp.uninstall();
+        msalTestApp.install();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
-
-        // Set up shared device mode
-        // Open Authenticator app -> ... -> Settings
-        brokerMicrosoftAuthenticator.performSharedDeviceRegistration(username, password);
-
-        // Check mode in MSAL test app
-        final String mode = msalTestApp.checkMode();
-        Assert.assertEquals("Single Account", mode);
-
-        // performs AcquireToken with an account from the a same tenant with the WPJed account.
-        final LabQuery query = LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .build();
-
-        final ILabAccount difAccount = mLabClient.getLabAccount(query);
-        final String usernameDif = difAccount.getUsername();
-        final String passwordDif = difAccount.getPassword();
 
         final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
                 .prompt(PromptParameter.SELECT_ACCOUNT)
@@ -103,33 +77,21 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
                 .howWouldYouLikeToSignInExpected(false)
                 .build();
 
-        String token = msalTestApp.acquireToken(usernameDif, passwordDif, promptHandlerParameters, true);
+        String token = msalTestApp.acquireToken(username, password, promptHandlerParameters, true);
         Assert.assertNotNull(token);
 
-        // Click on "GetUsers" button
-        // You should see the signed in user
-        final List<String> users = msalTestApp.getUsers();
-        Assert.assertEquals(1, users.size());
-        Assert.assertEquals(usernameDif, users.get(0));
-
-        // Click on "RemoveUsers" button
-        // Account should be removed from MSAL
-        final String msg = msalTestApp.removeUser();
-        Assert.assertEquals("The account is successfully removed.", msg);
-        Assert.assertEquals(0, msalTestApp.getUsers().size());
+        msalTestApp.handleBackButton();
+        final String activeBroker = msalTestApp.getActiveBrokerPackageName();
+        Assert.assertEquals("Active broker pkg name : " + BrokerLTW.BROKER_LTW_APP_PACKAGE_NAME, activeBroker);
     }
-
     @Override
     public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
-                .userRole(UserRole.CLOUD_DEVICE_ADMINISTRATOR)
-                .build();
+        return null;
     }
 
     @Override
     public TempUserType getTempUserType() {
-        return null;
+        return TempUserType.BASIC;
     }
 
     @Override
