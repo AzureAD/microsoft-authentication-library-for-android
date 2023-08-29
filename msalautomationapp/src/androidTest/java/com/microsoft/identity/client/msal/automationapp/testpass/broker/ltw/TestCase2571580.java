@@ -103,7 +103,7 @@ public class TestCase2571580 extends AbstractMsalBrokerTest {
                 .loginHint(username)
                 .consentPageExpected(false)
                 .speedBumpExpected(false)
-                .sessionExpected(false)
+                .sessionExpected(true)
                 .expectingBrokerAccountChooserActivity(false)
                 .expectingLoginPageAccountPicker(false)
                 .enrollPageExpected(false)
