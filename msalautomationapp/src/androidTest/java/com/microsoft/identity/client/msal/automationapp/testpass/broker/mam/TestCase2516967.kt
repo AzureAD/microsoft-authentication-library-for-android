@@ -24,6 +24,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.mam
 
 import com.microsoft.identity.client.msal.automationapp.R
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.app.OutlookApp
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal
@@ -43,6 +44,7 @@ import org.junit.Test
 // Can use Outlook with True MAM account upon re-registration
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2516967
 @SupportedBrokers(brokers = [BrokerCompanyPortal::class])
+@RetryOnFailure
 class TestCase2516967 : AbstractMsalBrokerTest(){
 
     @Test
@@ -85,6 +87,7 @@ class TestCase2516967 : AbstractMsalBrokerTest(){
         outlook.signInThroughSnackBar(username, password, promptHandlerParameters)
 
         // Sometimes outlook takes some time to remove the SignIn refresh snackbar
+        // We relaunch outlook twice, to try and make sure we don't see the snackbar when we shouldn't
         ThreadUtils.sleepSafely(6000, "sleeping", "interrupted sleep")
         outlook.forceStop()
         outlook.launch()

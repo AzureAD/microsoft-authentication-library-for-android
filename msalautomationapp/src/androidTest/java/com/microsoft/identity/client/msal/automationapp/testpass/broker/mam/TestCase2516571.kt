@@ -24,6 +24,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.mam
 
 import com.microsoft.identity.client.msal.automationapp.R
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.app.OutlookApp
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal
@@ -42,6 +43,7 @@ import org.junit.Test
 // Using TrueMAM account when broker is Authenticator will require installation of CP
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2516571
 @SupportedBrokers(brokers = [BrokerMicrosoftAuthenticator::class])
+@RetryOnFailure
 class TestCase2516571 : AbstractMsalBrokerTest(){
 
     @Test

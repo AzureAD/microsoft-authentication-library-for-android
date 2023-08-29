@@ -87,7 +87,6 @@ class TestCase2506936 : AbstractMsalBrokerTest(){
         teams.addFirstAccount(username, password, teamsPromptHandlerParameters2)
         // handle app protection policy in CP i.e. setup PIN when asked
         (mBroker as IMdmAgent).handleAppProtectionPolicy()
-        teams.onAccountAdded()
     }
 
     override fun getScopes(): Array<String> {
