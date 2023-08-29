@@ -125,8 +125,6 @@ public class TestCase2582290 extends AbstractMsalBrokerTest {
 
         // Enter username in account name
         oneAuthTestApp.handleUserNameInput(username);
-        oneAuthTestApp.selectFromAppConfiguration("com.microsoft.identity.LabsApi.Guest");
-        oneAuthTestApp.handlePreferBrokerSwitchButton();
 
         // Click on getAccessToken
         // Accesstoken should be retrieved successully
