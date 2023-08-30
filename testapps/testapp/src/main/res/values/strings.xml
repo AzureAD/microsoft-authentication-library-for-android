@@ -54,6 +54,7 @@
     <string name="config_file_text">Config File</string>
     <string name="auth_scheme_text">Auth Scheme</string>
     <string name="launch_main_activity_button">Start Task</string>
+    <string name="get_active_broker">Get active broker package</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
@@ -64,4 +65,8 @@
     <string name="status">Status:</string>
     <string name="pop_client_claims">PoP client claims</string>
     <string name="trust_debug_broker">DebugBroker?</string>
+    <string name="enable_new_broker_discovery">Enable New Broker Discovery</string>
+    <string name="clear_active_broker_cache">Clear Active Broker Cache</string>
+    <string name="current_cached_active_broker">Cached Active Broker</string>
+    <string name="none">None</string>
 </resources>

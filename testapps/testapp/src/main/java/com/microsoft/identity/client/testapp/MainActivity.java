@@ -25,39 +25,31 @@ package com.microsoft.identity.client.testapp;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.MenuItem;
+import android.widget.RelativeLayout;
+import android.widget.Toast;
 
-import com.google.android.material.navigation.NavigationView;
-
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
-import android.view.MenuItem;
-import android.widget.ArrayAdapter;
-import android.widget.RelativeLayout;
-import android.widget.Spinner;
-import android.widget.Toast;
-
+import com.google.android.material.navigation.NavigationView;
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.AuthenticationResult;
-import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.ILoggerCallback;
-import com.microsoft.identity.client.ITenantProfile;
 import com.microsoft.identity.client.Logger;
-import com.microsoft.identity.client.MultiTenantAccount;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
-import com.microsoft.identity.client.opentelemetry.exporter.AriaMetricExporter;
+import com.microsoft.identity.client.opentelemetry.exporter.AriaInitializer;
 import com.microsoft.identity.client.opentelemetry.exporter.AriaSpanExporter;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
 import com.microsoft.identity.common.java.util.StringUtil;
@@ -65,8 +57,6 @@ import com.microsoft.identity.common.java.util.StringUtil;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -77,7 +67,6 @@ import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
-import io.opentelemetry.sdk.trace.samplers.Sampler;
 
 /**
  * The app's main activity.
@@ -179,10 +168,11 @@ public class MainActivity extends AppCompatActivity
      * @param applicationContext the application context
      */
     private static synchronized void initOpenTelemetry(@lombok.NonNull final Context applicationContext) {
+        AriaInitializer.initializeAria(applicationContext, BuildConfig.otelAriaToken);
         final Resource resource = Resource.getDefault();
 
         final AriaSpanExporter ariaSpanExporter = new AriaSpanExporter(
-                applicationContext, BuildConfig.otelAriaToken, null
+                BuildConfig.otelAriaToken, null, applicationContext
         );
 
         final SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()

@@ -7,13 +7,13 @@ name: $(date:yyyyMMdd)$(rev:.r)
 
 variables:
 - name: BuildParameters.jdkVersion
-  value: 1.8
+  value: 1.11
 - name: BuildParameters.jdkArchitecture
   value: x64
 - name: BuildParameters.javaHomeSelection
   value: JDKVersion
 - name: robolectricSdkVersion
-  value: 28
+  value: 33
 
 trigger:
   branches:
@@ -31,12 +31,12 @@ resources:
     ref: dev
     endpoint: ANDROID_GITHUB
 
+pool:
+  name: Hosted Windows 2019 with VS2019
 jobs:
 - job: build_test
   displayName: Build & Test
   cancelTimeoutInMinutes: 1
-  pool:
-    name: Hosted Windows 2019 with VS2019
   steps:
   - checkout: self
     clean: true
@@ -44,13 +44,14 @@ jobs:
     persistCredentials: True
   - template: azure-pipelines/templates/steps/automation-cert.yml@common
   - task: JavaToolInstaller@0
-    displayName: Use Java 8
+    displayName: Use Java 11
     inputs:
+      versionSpec: '11'
       jdkArchitectureOption: x64
       jdkSourceOption: PreInstalled
   - task: Gradle@2
     name: Gradle1
-    displayName: Assemble Release
+    displayName: Assemble Local
     inputs:
       tasks: clean msal:assembleLocal
       publishJUnitResults: false
@@ -58,13 +59,76 @@ jobs:
       jdkVersion: $(BuildParameters.jdkVersion)
       jdkArchitecture: $(BuildParameters.jdkArchitecture)
       sqGradlePluginVersion: 2.0.1
-  - template: azure-pipelines/templates/steps/spotbugs.yml@common
-    parameters:
-      project: msal
   - task: Gradle@2
     displayName: Run Unit tests
     inputs:
       tasks: msal:testLocalDebugUnitTest -Plabtest -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}}
       javaHomeSelection: $(BuildParameters.javaHomeSelection)
       jdkVersion: 1.11
+- job: spotbugs
+  displayName: SpotBugs
+  cancelTimeoutInMinutes: 1
+  steps:
+  - checkout: self
+    clean: true
+    submodules: recursive
+    persistCredentials: True
+  - template: azure-pipelines/templates/steps/spotbugs.yml@common
+    parameters:
+      project: msal
+- job: lint
+  displayName: Lint
+  cancelTimeoutInMinutes: 1
+  steps:
+  - checkout: self
+    clean: true
+    submodules: recursive
+    persistCredentials: True
+  - task: CmdLine@1
+    displayName: Set Office MVN Access Token in Environment
+    inputs:
+      filename: echo
+      arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN]$(System.AccessToken)'
+  - task: Gradle@3
+    displayName: Lint Local debug
+    inputs:
+      tasks: clean msal:lintLocalDebug
+      publishJUnitResults: false
+      jdkVersion: 1.11
+- job: codeql
+  displayName: CodeQL
+  cancelTimeoutInMinutes: 1
+  steps:
+  - checkout: self
+    clean: true
+    submodules: recursive
+    persistCredentials: True
+  - task: JavaToolInstaller@0
+    displayName: Use Java 11
+    inputs:
+      versionSpec: '11'
+      jdkArchitectureOption: x64
+      jdkSourceOption: PreInstalled
+  - task: CmdLine@1
+    displayName: Set Office MVN Access Token in Environment
+    inputs:
+      filename: echo
+      arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN]$(System.AccessToken)'
+  # https://semmleportal.azurewebsites.net/codeql/guardian
+  - task: Semmle@1
+    env:
+      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+    inputs:
+      sourceCodeDirectory: '$(Build.SourcesDirectory)'
+      language: 'java'
+      buildCommandsString: 'gradlew.bat clean msal:assembleLocal'
+      querySuite: 'Recommended'
+      timeout: '1800'
+  - task: PublishPipelineArtifact@1
+    displayName: 'Publish code analysis artifacts'
+    inputs:
+      targetPath: '$(Build.SourcesDirectory)\build\outputs\'
+      ArtifactName: 'outputs'
+    condition: failed()
+
 ...

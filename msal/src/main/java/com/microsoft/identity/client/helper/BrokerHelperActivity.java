@@ -10,7 +10,6 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.internal.broker.BrokerValidator;
 import com.microsoft.identity.common.internal.broker.PackageHelper;
 import com.microsoft.identity.msal.R;
 
@@ -54,7 +53,7 @@ public class BrokerHelperActivity extends Activity {
         mManifest = findViewById(R.id.txtManifest);
 
         mSignature.append(getSignature(false));
-        mRedirect.append(BrokerValidator.getBrokerRedirectUri(this.getApplicationContext(), this.getPackageName()));
+        mRedirect.append(PackageHelper.getBrokerRedirectUri(this.getApplicationContext(), this.getPackageName()));
         mManifest.append(String.format(MANIFEST_TEMPLATE, this.getPackageName(), getSignature(false)));
         mPackageName.append(this.getPackageName());
     }

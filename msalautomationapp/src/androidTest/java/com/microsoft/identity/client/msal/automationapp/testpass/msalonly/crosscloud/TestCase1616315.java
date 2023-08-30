@@ -100,6 +100,7 @@ public class TestCase1616315 extends AbstractGuestAccountMsalUiTest {
                             .loginHint(userName)
                             .staySignedInPageExpected(GlobalConstants.IS_STAY_SIGN_IN_PAGE_EXPECTED)
                             .speedBumpExpected(true)
+                            .secondSpeedBumpExpected(GlobalConstants.IS_EXPECTING_SECOND_SPEED_BUMP)
                             .build();
             final AadPromptHandler promptHandler = new AadPromptHandler(promptHandlerParameters);
             promptHandler.handlePrompt(userName, password);

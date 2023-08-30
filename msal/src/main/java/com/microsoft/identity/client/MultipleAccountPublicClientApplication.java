@@ -122,36 +122,17 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         TokenMigrationCallback migrationCallback = new TokenMigrationCallback() {
             @Override
             public void onMigrationFinished(int numberOfAccountsMigrated) {
-                final Handler handler;
+                final CommandParameters params = CommandParametersAdapter.createCommandParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
+                final LoadAccountCommand loadAccountCommand = new LoadAccountCommand(
+                        params,
+                        new MSALControllerFactory(mPublicClientConfiguration).getAllControllers(
+                                mPublicClientConfiguration.getDefaultAuthority()
+                        ),
+                        getLoadAccountsCallback(callback),
+                        publicApiId
+                );
 
-                if (null != Looper.myLooper() && Looper.getMainLooper() != Looper.myLooper()) {
-                    handler = new Handler(Looper.myLooper());
-                } else {
-                    handler = new Handler(Looper.getMainLooper());
-                }
-
-                try {
-                    final CommandParameters params = CommandParametersAdapter.createCommandParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
-                    final LoadAccountCommand loadAccountCommand = new LoadAccountCommand(
-                            params,
-                            MSALControllerFactory.getAllControllers(
-                                    mPublicClientConfiguration.getAppContext(),
-                                    mPublicClientConfiguration.getDefaultAuthority(),
-                                    mPublicClientConfiguration
-                            ),
-                            getLoadAccountsCallback(callback),
-                            publicApiId
-                    );
-
-                    CommandDispatcher.submitSilent(loadAccountCommand);
-                } catch (final MsalClientException e) {
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            callback.onError(e);
-                        }
-                    });
-                }
+                CommandDispatcher.submitSilent(loadAccountCommand);
             }
         };
 
@@ -235,70 +216,63 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
                 Logger.verbose(methodTag, "Get account with the identifier.");
 
-                try {
-                    final CommandParameters params = CommandParametersAdapter.createCommandParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
-                    final LoadAccountCommand loadAccountCommand = new LoadAccountCommand(
-                            params,
-                            MSALControllerFactory.getAllControllers(
-                                    mPublicClientConfiguration.getAppContext(),
-                                    mPublicClientConfiguration.getDefaultAuthority(),
-                                    mPublicClientConfiguration
-                            ),
-                            new CommandCallback<List<ICacheRecord>, BaseException>() {
-                                @Override
-                                public void onTaskCompleted(final List<ICacheRecord> result) {
-                                    if (null == result || result.size() == 0) {
-                                        Logger.verbose(methodTag, "No account found.");
-                                        callback.onTaskCompleted(null);
-                                    } else {
-                                        // First, transform the result into IAccount + TenantProfile form
-                                        final List<IAccount>
-                                                accounts = AccountAdapter.adapt(result);
+                final CommandParameters params = CommandParametersAdapter.createCommandParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
+                final LoadAccountCommand loadAccountCommand = new LoadAccountCommand(
+                        params,
+                        new MSALControllerFactory(mPublicClientConfiguration).getAllControllers(
+                                mPublicClientConfiguration.getDefaultAuthority()
+                        ),
+                        new CommandCallback<List<ICacheRecord>, BaseException>() {
+                            @Override
+                            public void onTaskCompleted(final List<ICacheRecord> result) {
+                                if (null == result || result.size() == 0) {
+                                    Logger.verbose(methodTag, "No account found.");
+                                    callback.onTaskCompleted(null);
+                                } else {
+                                    // First, transform the result into IAccount + TenantProfile form
+                                    final List<IAccount>
+                                            accounts = AccountAdapter.adapt(result);
 
-                                        final String trimmedIdentifier = identifier.trim();
+                                    final String trimmedIdentifier = identifier.trim();
 
-                                        // Evaluation precedence...
-                                        //     1. home_account_id
-                                        //     2. local_account_id
-                                        //     3. username
-                                        //     4. Give up.
+                                    // Evaluation precedence...
+                                    //     1. home_account_id
+                                    //     2. local_account_id
+                                    //     3. username
+                                    //     4. Give up.
 
-                                        final AccountMatcher accountMatcher = new AccountMatcher(
-                                                homeAccountMatcher,
-                                                localAccountMatcher,
-                                                usernameMatcher
-                                        );
+                                    final AccountMatcher accountMatcher = new AccountMatcher(
+                                            homeAccountMatcher,
+                                            localAccountMatcher,
+                                            usernameMatcher
+                                    );
 
-                                        for (final IAccount account : accounts) {
-                                            if (accountMatcher.matches(trimmedIdentifier, account)) {
-                                                callback.onTaskCompleted(account);
-                                                return;
-                                            }
+                                    for (final IAccount account : accounts) {
+                                        if (accountMatcher.matches(trimmedIdentifier, account)) {
+                                            callback.onTaskCompleted(account);
+                                            return;
                                         }
-
-                                        callback.onTaskCompleted(null);
                                     }
+
+                                    callback.onTaskCompleted(null);
                                 }
+                            }
 
-                                @Override
-                                public void onError(final BaseException exception) {
-                                    Logger.error(methodTag, exception.getMessage(), exception);
-                                    callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(exception));
-                                }
+                            @Override
+                            public void onError(final BaseException exception) {
+                                Logger.error(methodTag, exception.getMessage(), exception);
+                                callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(exception));
+                            }
 
-                                @Override
-                                public void onCancel() {
+                            @Override
+                            public void onCancel() {
 
-                                }
-                            },
-                            publicApiId
-                    );
+                            }
+                        },
+                        publicApiId
+                );
 
-                    CommandDispatcher.submitSilent(loadAccountCommand);
-                } catch (final MsalClientException e) {
-                    Logger.error(methodTag, e.getMessage(), e);
-                    callback.onError(e);
-                }
+                CommandDispatcher.submitSilent(loadAccountCommand);
             }
         };
 
@@ -379,38 +353,31 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                         requestAccountRecord
                 );
 
-        try {
-            final RemoveAccountCommand removeAccountCommand = new RemoveAccountCommand(
-                    params,
-                    MSALControllerFactory.getAllControllers(
-                            mPublicClientConfiguration.getAppContext(),
-                            mPublicClientConfiguration.getDefaultAuthority(),
-                            mPublicClientConfiguration
-                    ),
-                    new CommandCallback<Boolean, BaseException>() {
-                        @Override
-                        public void onError(BaseException error) {
-                            callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(error));
-                        }
+        final RemoveAccountCommand removeAccountCommand = new RemoveAccountCommand(
+                params,
+                new MSALControllerFactory(mPublicClientConfiguration).getAllControllers(
+                        mPublicClientConfiguration.getDefaultAuthority()
+                ),
+                new CommandCallback<Boolean, BaseException>() {
+                    @Override
+                    public void onError(BaseException error) {
+                        callback.onError(MsalExceptionAdapter.msalExceptionFromBaseException(error));
+                    }
 
-                        @Override
-                        public void onTaskCompleted(Boolean success) {
-                            callback.onRemoved();
-                        }
+                    @Override
+                    public void onTaskCompleted(Boolean success) {
+                        callback.onRemoved();
+                    }
 
-                        @Override
-                        public void onCancel() {
-                            //Do nothing
-                        }
-                    },
-                    publicApiId
-            );
+                    @Override
+                    public void onCancel() {
+                        //Do nothing
+                    }
+                },
+                publicApiId
+        );
 
-            CommandDispatcher.submitSilent(removeAccountCommand);
-
-        } catch (final MsalClientException e) {
-            callback.onError(e);
-        }
+        CommandDispatcher.submitSilent(removeAccountCommand);
     }
 
     @Override

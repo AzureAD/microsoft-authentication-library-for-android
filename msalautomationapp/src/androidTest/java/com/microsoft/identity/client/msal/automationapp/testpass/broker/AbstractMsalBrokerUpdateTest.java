@@ -26,7 +26,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
-import com.microsoft.identity.client.msal.automationapp.BrokerTestHelper;
 import com.microsoft.identity.client.msal.automationapp.BuildConfig;
 import com.microsoft.identity.client.ui.automation.IBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
@@ -79,6 +78,9 @@ public abstract class AbstractMsalBrokerUpdateTest extends AbstractMsalUiTest im
             case BuildConfig.BrokerCompanyPortal:
                 return new BrokerCompanyPortal(BrokerCompanyPortal.OLD_COMPANY_PORTAL_APK,
                         BrokerCompanyPortal.COMPANY_PORTAL_APK);
+            case BuildConfig.BrokerLTW:
+                return new BrokerLTW(BrokerLTW.OLD_BROKER_LTW_APK,
+                        BrokerLTW.BROKER_LTW_APK);
             case BuildConfig.AutoBroker: {
                 if (supportedBrokersAnnotation == null) {
                     return new BrokerMicrosoftAuthenticator(BrokerMicrosoftAuthenticator.OLD_AUTHENTICATOR_APK,

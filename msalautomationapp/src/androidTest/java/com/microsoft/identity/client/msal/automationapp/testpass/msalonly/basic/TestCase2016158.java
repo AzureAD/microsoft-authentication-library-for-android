@@ -30,6 +30,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
@@ -46,6 +47,7 @@ import java.util.Arrays;
 // [MSAL-Only] A single-tenant app makes a silent request with common authority. It should fail..
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/2016158
 @RunOnAPI29Minus("Consent Page")
+@RetryOnFailure
 public class TestCase2016158 extends AbstractMsalUiTest {
 
     @Test

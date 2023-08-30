@@ -22,7 +22,10 @@
 //   THE SOFTWARE.
 package com.microsoft.identity.client.testapp;
 
+import android.app.Activity;
+
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
@@ -30,6 +33,9 @@ import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.PoPAuthenticationScheme;
+import com.microsoft.identity.client.PublicClientApplication;
+import com.microsoft.identity.client.claims.ClaimsRequest;
+import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.internal.ui.browser.BrowserSelector;
 import com.microsoft.identity.common.java.exception.ClientException;
@@ -112,8 +118,9 @@ public class MultipleAccountModeWrapper extends MsalWrapper {
 
     @Override
     void acquireTokenWithDeviceCodeFlowInternal(@NonNull List<String> scopes,
+                                                @Nullable final ClaimsRequest claimsRequest,
                                                 @NonNull final IPublicClientApplication.DeviceCodeFlowCallback callback) {
-        mApp.acquireTokenWithDeviceCode(scopes, callback);
+        mApp.acquireTokenWithDeviceCode(scopes, callback, claimsRequest, null);
     }
 
     @Override
@@ -135,5 +142,10 @@ public class MultipleAccountModeWrapper extends MsalWrapper {
                     }
                 }
         );
+    }
+
+    @Override
+    public String getActiveBrokerPkgName(@NonNull final Activity activity) {
+        return ((PublicClientApplication) mApp).getActiveBrokerPackageName(activity.getApplicationContext());
     }
 }
