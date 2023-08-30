@@ -86,8 +86,8 @@ class TestCase2516967 : AbstractMsalBrokerTest(){
         outlook.launch()
         outlook.signInThroughSnackBar(username, password, promptHandlerParameters)
 
-        // Sometimes outlook takes some time to remove the SignIn refresh snackbar
-        // We relaunch outlook twice, to try and make sure we don't see the snackbar when we shouldn't
+        // Not totally sure what prompt outlook to take the snackbar away, sometimes it still appears after re-authentication
+        // We wait a bit and relaunch outlook twice, this seems improve the chance of the snackbar disappearing
         ThreadUtils.sleepSafely(6000, "sleeping", "interrupted sleep")
         outlook.forceStop()
         outlook.launch()
