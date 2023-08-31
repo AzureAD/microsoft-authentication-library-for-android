@@ -24,6 +24,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.mam
 
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest
 import com.microsoft.identity.client.msal.automationapp.R
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.app.TeamsApp
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal
 import com.microsoft.identity.client.ui.automation.installer.LocalApkInstaller
@@ -37,6 +38,7 @@ import org.junit.Test
 
 // MAM account requires installation of Broker if Broker not installed
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2516613
+@RetryOnFailure
 class TestCase2516613 : AbstractMsalUiTest(){
 
     @Test
