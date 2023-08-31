@@ -50,6 +50,7 @@ public class TestCase2571565 extends AbstractMsalBrokerTest {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
+        // To make sure the device is in clean slate, uninstall mBroker here.
         mBroker.uninstall();
 
         // Install legacy authenticator app
