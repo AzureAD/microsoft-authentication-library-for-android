@@ -43,7 +43,7 @@ class MSALControllerFactory(
     private val platformComponents: IPlatformComponents,
     private val applicationConfiguration: PublicClientApplicationConfiguration) {
 
-    private val discoveryClient = BrokerDiscoveryClientFactory.getInstance(
+    private val discoveryClient = BrokerDiscoveryClientFactory.getInstanceForClientSdk(
         context = applicationContext,
         platformComponents = platformComponents
     )
