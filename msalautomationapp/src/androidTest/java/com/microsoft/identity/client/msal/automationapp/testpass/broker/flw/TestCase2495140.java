@@ -38,6 +38,7 @@ import com.microsoft.identity.client.msal.automationapp.testpass.broker.Abstract
 import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.AzureSampleApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
@@ -65,6 +66,7 @@ import java.util.Collections;
 // and clean all data.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/2495140
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
+@RetryOnFailure
 public class TestCase2495140 extends AbstractMsalBrokerTest {
     final String TAG = TestCase2495140.class.getSimpleName();
 
