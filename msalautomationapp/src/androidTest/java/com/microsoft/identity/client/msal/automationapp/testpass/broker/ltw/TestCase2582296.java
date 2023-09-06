@@ -27,6 +27,7 @@ import android.text.TextUtils;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
@@ -43,6 +44,7 @@ import java.util.Map;
 // Test Case 2582296: If LTW is the active broker, and request is made through Authenticator from Multiple WorkplaceJoin API from a legacy broker test app, nothing should break.
 //https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2582296
 @LTWTests
+@RetryOnFailure
 @SupportedBrokers(brokers = {BrokerLTW.class})
 public class TestCase2582296 extends AbstractMsalBrokerTest {
     @Test
@@ -82,6 +84,7 @@ public class TestCase2582296 extends AbstractMsalBrokerTest {
         Assert.assertEquals(record, recordByUpn);
 
         // Click on "Get State" button
+        Thread.sleep(3000); // add sleep time as some buffer for the response from server
         final String state = brokerHost.multipleWpjApiFragment.getDeviceState(username);
         Assert.assertTrue(state.contains("DEVICE_VALID"));
 
