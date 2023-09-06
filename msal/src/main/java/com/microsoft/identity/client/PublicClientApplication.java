@@ -2301,7 +2301,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      **/
     @Nullable
     public String getActiveBrokerPackageName(@NonNull final Context context) {
-        final BrokerData activeBroker = BrokerDiscoveryClientFactory.getInstance(context,
+        final BrokerData activeBroker = BrokerDiscoveryClientFactory.getInstanceForClientSdk(context,
                         AndroidPlatformComponentsFactory.createFromContext(context))
                 .getActiveBroker(false);
 
