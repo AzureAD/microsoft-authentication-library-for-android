@@ -180,7 +180,7 @@ public class AcquireTokenFragment extends Fragment {
         mDebugBrokers.setTextOn("Debug Brokers");
         mDebugBrokers.setChecked(BrokerData.getShouldTrustDebugBrokers());
 
-        mCache = ClientActiveBrokerCache.Companion.getCache(
+        mCache = ClientActiveBrokerCache.getClientSdkCache(
                 AndroidPlatformComponentsFactory.createFromContext(getContext()).getStorageSupplier()
         );
 
