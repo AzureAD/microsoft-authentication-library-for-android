@@ -42,7 +42,6 @@ import com.microsoft.identity.client.configuration.AccountMode;
 import com.microsoft.identity.client.configuration.HttpConfiguration;
 import com.microsoft.identity.client.configuration.LoggerConfiguration;
 import com.microsoft.identity.client.exception.MsalClientException;
-import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
 import com.microsoft.identity.common.java.authorities.Authority;
@@ -336,6 +335,15 @@ public class PublicClientApplicationConfiguration {
     }
 
     /**
+     * Sets the account mode id for the PublicClientApplication.
+     *
+     * @param accountMode the account mode.
+     */
+    public void setAccountMode(final AccountMode accountMode) {
+        this.mAccountMode = accountMode;
+    }
+
+    /**
      * Gets the currently configured capabilities for the PublicClientApplication.
      *
      * @return The capabilities supported by this application.
@@ -361,7 +369,7 @@ public class PublicClientApplicationConfiguration {
         mAppContext = applicationContext;
     }
 
-    OAuth2TokenCache getOAuth2TokenCache() {
+    public OAuth2TokenCache getOAuth2TokenCache() {
         return mOAuth2TokenCache;
     }
 
@@ -484,7 +492,7 @@ public class PublicClientApplicationConfiguration {
             this.mBrowserSafeList.addAll(config.mBrowserSafeList);
         }
         // Multiple is the default mode.
-        this.mAccountMode = config.mAccountMode != AccountMode.MULTIPLE ? config.mAccountMode : this.mAccountMode;
+        this.mAccountMode = config.mAccountMode != AccountMode.MULTIPLE && config.mAccountMode != null ? config.mAccountMode : this.mAccountMode;
         this.mClientCapabilities = config.mClientCapabilities == null ? this.mClientCapabilities : config.mClientCapabilities;
         this.mIsSharedDevice = config.mIsSharedDevice == true ? this.mIsSharedDevice : config.mIsSharedDevice;
         this.mLoggerConfiguration = config.mLoggerConfiguration == null ? this.mLoggerConfiguration : config.mLoggerConfiguration;

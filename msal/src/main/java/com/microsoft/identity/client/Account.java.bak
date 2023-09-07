@@ -129,7 +129,7 @@ public class Account implements IAccount {
     }
 
     @NonNull
-    public String getHomeAccountId() {
+    String getHomeAccountId() {
         return getId() + "." + mHomeTenantId;
     }
 
@@ -138,7 +138,7 @@ public class Account implements IAccount {
     }
 
     @NonNull
-    public String getEnvironment() {
+    String getEnvironment() {
         return mEnvironment;
     }
 

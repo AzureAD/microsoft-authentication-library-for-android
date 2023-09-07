@@ -36,6 +36,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+
 public interface IPublicClientApplication {
 
     /**
@@ -258,6 +259,21 @@ public interface IPublicClientApplication {
          * Called once IMultipleAccountPublicClientApplication can't be created.
          */
         void onError(final MsalException exception);
+    }
+
+    /**
+     * Listener callback for asynchronous initialization of INativeAuthPublicClientApplication object.
+     */
+    interface INativeAuthApplicationCreatedListener {
+        /**
+         * Called once an IMultipleAccountPublicClientApplication is successfully created.
+         */
+        void onCreated(final @NonNull INativeAuthPublicClientApplication application);
+
+        /**
+         * Called once IMultipleAccountPublicClientApplication can't be created.
+         */
+        void onError(final @NonNull MsalException exception);
     }
 
     /**

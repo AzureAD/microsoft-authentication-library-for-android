@@ -239,7 +239,6 @@ dependencies {
     }
 
     testImplementation "io.mockk:mockk:1.11.0"
-
     // instrumentation test dependencies
     androidTestImplementation "androidx.test.ext:junit:$rootProject.ext.androidxJunitVersion"
     // Set this dependency to use JUnit 4 rules
