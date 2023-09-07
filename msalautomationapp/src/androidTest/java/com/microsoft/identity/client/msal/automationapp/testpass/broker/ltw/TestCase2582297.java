@@ -85,7 +85,11 @@ public class TestCase2582297 extends AbstractMsalBrokerTest {
         Assert.assertEquals(record, recordByUpn);
 
         // Click on "Get State" button
-        Thread.sleep(3000); // add sleep time as some buffer for the response from server
+        try {
+            Thread.sleep(3000); // add sleep time as some buffer for the response from server
+        } catch (final InterruptedException e) {
+            throw new AssertionError(e);
+        }
         final String state = brokerHost.multipleWpjApiFragment.getDeviceState(username);
         Assert.assertTrue(state.contains("DEVICE_VALID"));
 
