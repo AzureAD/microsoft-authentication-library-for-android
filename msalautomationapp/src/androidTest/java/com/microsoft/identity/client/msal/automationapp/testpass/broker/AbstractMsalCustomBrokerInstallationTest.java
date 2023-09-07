@@ -22,16 +22,30 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
+import androidx.test.rule.ActivityTestRule;
+
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
+import com.microsoft.identity.client.msal.automationapp.MainActivity;
+import com.microsoft.identity.client.msal.automationapp.MsalLoggingRule;
 import com.microsoft.identity.client.ui.automation.ICustomBrokerInstallationTest;
-import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
-import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
-import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
-import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
+
+import org.junit.Rule;
+import org.junit.rules.RuleChain;
 
 /**
  * Msal UI Testing class that allows devs to easily install old/legacy and updated versions of brokers
  * quickly to test complex update scenarios.
  */
 public abstract class AbstractMsalCustomBrokerInstallationTest extends AbstractMsalUiTest implements ICustomBrokerInstallationTest {
+
+    @Rule(order = 0)
+    public RuleChain primaryRules = getPrimaryRules();
+
+    @Rule(order = 1)
+    public ActivityTestRule<MainActivity> mActivityRule =
+            new ActivityTestRule(MainActivity.class);
+
+    @Rule(order = 2)
+    public MsalLoggingRule msalLoggingRule = new MsalLoggingRule();
+
 }
