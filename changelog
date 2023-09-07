@@ -3,6 +3,7 @@ V.NEXT
 ----------
 - [MINOR] MSA UI tests for Brokered Auth (#1856)
 - [MINOR] Updated target, compile SDK, AGP and gradle versions(#1882)
+- [MINOR] Adding webauthn_capable property option for MSAL config files (#1895)
 
 Version 4.7.0
 ----------
