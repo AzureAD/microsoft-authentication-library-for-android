@@ -47,13 +47,13 @@ import java.util.*
 @LTWTests
 class TestCaseUpdateAuthenticator : AbstractMsalCustomBrokerInstallationTest() {
 
-    private val mAuthenticator: BrokerMicrosoftAuthenticator = installOldAuthenticator()
-
     @Test
     @Throws(Throwable::class)
     fun test_UpdateAuthenticator() {
         val username = mLabAccount.username
         val password = mLabAccount.password
+
+        val mAuthenticator: BrokerMicrosoftAuthenticator = installOldAuthenticator()
 
         val msalSdk = MsalSdk()
         val authTestParams = MsalAuthTestParams.builder()
