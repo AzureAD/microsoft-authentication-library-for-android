@@ -500,7 +500,7 @@ public class CommandParametersAdapter {
      * @return combined list of query string parameters.
      */
     @Nullable
-    public static List<Map.Entry<String, String>> getExtraQueryStringParameters(
+    private static List<Map.Entry<String, String>> getExtraQueryStringParameters(
             @Nullable final List<Map.Entry<String, String>> queryStringParameters,
             @NonNull final PublicClientApplicationConfiguration configuration) {
         if (configuration.isWebauthnCapable()) {
