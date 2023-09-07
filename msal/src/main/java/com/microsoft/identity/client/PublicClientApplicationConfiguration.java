@@ -418,7 +418,7 @@ public class PublicClientApplicationConfiguration {
     }
 
     public Boolean isWebauthnCapable() {
-        return webauthnCapable != null ? webauthnCapable : false;
+        return webauthnCapable != null && webauthnCapable;
     }
 
     public Authority getDefaultAuthority() {
