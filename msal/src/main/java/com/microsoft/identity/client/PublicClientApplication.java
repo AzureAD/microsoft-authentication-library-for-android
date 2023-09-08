@@ -1874,7 +1874,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         final Authority authority;
 
-        if (BuildValues.USE_REAL_AUTHORITY) {
+        if (BuildValues.shouldUseReadAuthority()) {
             authority = Authority.getAuthorityFromAuthorityUrl(requestAuthority);
         } else {
             authority = new CIAMAuthority(requestAuthority);
