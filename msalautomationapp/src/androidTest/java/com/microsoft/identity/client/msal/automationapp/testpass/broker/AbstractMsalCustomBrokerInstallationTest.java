@@ -24,14 +24,11 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.ui.automation.ICustomBrokerInstallationTest;
-import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
-import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
-import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
-import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 
 /**
  * Msal UI Testing class that allows devs to easily install old/legacy and updated versions of brokers
  * quickly to test complex update scenarios.
  */
 public abstract class AbstractMsalCustomBrokerInstallationTest extends AbstractMsalUiTest implements ICustomBrokerInstallationTest {
+
 }
