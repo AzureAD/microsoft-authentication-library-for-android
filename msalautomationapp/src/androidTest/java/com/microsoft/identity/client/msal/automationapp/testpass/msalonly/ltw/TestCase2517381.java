@@ -90,6 +90,11 @@ public class TestCase2517381 extends AbstractMsalUiTest {
         final OneAuthTestApp oneAuthApp = new OneAuthTestApp();
         oneAuthApp.installOldApk();
         oneAuthApp.launch();
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e){
+            e.printStackTrace();
+        }
         oneAuthApp.handleFirstRun();
 
         final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()

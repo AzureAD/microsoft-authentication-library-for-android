@@ -26,6 +26,7 @@ import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
+import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
@@ -40,6 +41,7 @@ import java.util.List;
 // Add a UI test on MsalTestApp
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2517374
 @LTWTests
+@RunOnAPI29Minus
 public class TestCase2517374 extends AbstractMsalUiTest {
 
     @Test

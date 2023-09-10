@@ -61,6 +61,11 @@ public class TestCase2579095 extends AbstractMsalBrokerTest {
             final OneAuthTestApp oldOneAuthTestApp = new OneAuthTestApp();
             oldOneAuthTestApp.installOldApk();
             oldOneAuthTestApp.launch();
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e){
+                e.printStackTrace();
+            }
             oldOneAuthTestApp.handleFirstRun();
 
             // acquire token interactively on OneAuthTestApp
