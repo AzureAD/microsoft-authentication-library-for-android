@@ -93,6 +93,11 @@ public class TestCase2572249 extends AbstractMsalBrokerTest {
         final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
         oneAuthTestApp.install();
         oneAuthTestApp.launch();
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e){
+            e.printStackTrace();
+        }
         oneAuthTestApp.handleFirstRun();
 
         // sign in to OneAuthTestApp
