@@ -191,8 +191,8 @@ task sourcesJar(type: Jar) {
 String commonVersion = project.hasProperty("distCommonVersion") ? project.distCommonVersion : "1.0.+"
 
 dependencies {
-    implementation "androidx.core:core-ktx:$rootProject.ext.coreKtxVersion"
-    testImplementation project(path: ':common4j')
+    //implementation "androidx.core:core-ktx:$rootProject.ext.coreKtxVersion"
+    //testImplementation project(path: ':common4j')
 
     //Please leave this in... desugaring is currently disabled by default; however it's required for running some tests
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
@@ -238,7 +238,7 @@ dependencies {
         exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib'
     }
 
-    testImplementation "io.mockk:mockk:1.11.0"
+    testImplementation "io.mockk:mockk:$rootProject.ext.mockkVersion"
 
     // instrumentation test dependencies
     androidTestImplementation "androidx.test.ext:junit:$rootProject.ext.androidxJunitVersion"

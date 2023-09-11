@@ -26,6 +26,7 @@ package com.microsoft.identity.client;
 import static com.microsoft.identity.client.NativeAuthPublicClientApplicationConfigurationFactory.Companion;
 import static com.microsoft.identity.client.PublicClientApplicationConfigurationFactory.initializeConfiguration;
 import static com.microsoft.identity.client.exception.MsalClientException.NATIVE_AUTH_APPLICATION_CREATION_UNKNOWN_ERROR_MESSAGE;
+import static com.microsoft.identity.client.exception.MsalClientException.SAPCA_USE_WITH_MULTI_POLICY_B2C;
 import static com.microsoft.identity.client.exception.MsalClientException.UNKNOWN_ERROR;
 import static com.microsoft.identity.client.internal.CommandParametersAdapter.createGenerateShrCommandParameters;
 import static com.microsoft.identity.client.internal.MsalUtils.throwOnMainThread;
@@ -1165,6 +1166,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     "Warning! B2C applications should use MultipleAccountPublicClientApplication. "
                             + "Use of SingleAccount mode with multiple IEF policies is unsupported."
             );
+
+            if (config.getAuthorities().size() > 1) {
+                throw new MsalClientException(SAPCA_USE_WITH_MULTI_POLICY_B2C);                
+            }
         }
     }
 
@@ -2465,22 +2470,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         }
     }
 
-    protected static void runOnBackground(@NonNull final Runnable runnable) {
+    private static void runOnBackground(@NonNull final Runnable runnable) {
         new Thread(runnable).start();
-    }
-
-    protected static void runOnBackground(@NonNull final Runnable runnable, INativeAuthApplicationCreatedListener listener) {
-        final Thread t = new Thread(runnable);
-        Thread.UncaughtExceptionHandler h = new Thread.UncaughtExceptionHandler() {
-            @Override
-            public void uncaughtException(@NonNull Thread th, @NonNull Throwable ex) {
-                if (ex instanceof MsalException) {
-                    listener.onError((MsalException) ex);
-                }
-            }
-        };
-        t.setUncaughtExceptionHandler(h);
-        t.start();
     }
 
     private static boolean isAccountHomeTenant(@Nullable final Map<String, ?> claims,
