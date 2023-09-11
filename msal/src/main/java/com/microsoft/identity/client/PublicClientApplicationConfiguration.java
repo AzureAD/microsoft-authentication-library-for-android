@@ -765,7 +765,7 @@ public class PublicClientApplicationConfiguration {
                                                     @NonNull final String expectedProdSha512SigningCertificateThumbprint,
                                                     @NonNull final String expectedDebugSha512SigningCertificateThumbprint) {
         final PackageHelper info = new PackageHelper(mAppContext.getPackageManager());
-        final String sha512SignatureDigest = info.getSha1SignatureForPackage(packageName);
+        final String sha512SignatureDigest = info.getSha512SignatureForPackage(packageName);
         if (sha512SignatureDigest == null){
             return false;
         }
