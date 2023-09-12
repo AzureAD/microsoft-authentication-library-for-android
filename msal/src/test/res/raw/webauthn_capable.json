@@ -5,7 +5,7 @@
   "multiple_clouds_supported":true,
   "broker_redirect_uri_registered": true,
   "account_mode": "MULTIPLE",
-  "webauthn_capable": "true",
+  "webauthn_capable": true,
   "authorities" : [
     {
       "type": "AAD",
