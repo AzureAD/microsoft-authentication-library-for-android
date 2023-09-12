@@ -142,7 +142,7 @@ public class CommandParametersAdapter {
                 .forceRefresh(parameters.getClaimsRequest() != null)
                 .scopes(new HashSet<>(parameters.getScopes()))
                 .extraScopesToConsent(parameters.getExtraScopesToConsent())
-                .extraQueryStringParameters(getExtraQueryStringParameters(
+                .extraQueryStringParameters(appendToExtraQueryParametersIfWebAuthnCapable(
                         parameters.getExtraQueryStringParameters(),
                         configuration))
                 .loginHint(getLoginHint(parameters))
@@ -500,7 +500,7 @@ public class CommandParametersAdapter {
      * @return combined list of query string parameters.
      */
     @Nullable
-    private static List<Map.Entry<String, String>> getExtraQueryStringParameters(
+    public static List<Map.Entry<String, String>> appendToExtraQueryParametersIfWebAuthnCapable(
             @Nullable final List<Map.Entry<String, String>> queryStringParameters,
             @NonNull final PublicClientApplicationConfiguration configuration) {
         if (configuration.isWebauthnCapable()) {
@@ -508,10 +508,16 @@ public class CommandParametersAdapter {
                     FidoConstants.WEBAUTHN_QUERY_PARAMETER_FIELD,
                     FidoConstants.WEBAUTHN_QUERY_PARAMETER_VALUE);
             if (queryStringParameters == null) {
-                return Collections.singletonList(webauthnExtraParameter);
+                return new ArrayList<>(Collections.singletonList(webauthnExtraParameter));
             }
             if (!queryStringParameters.contains(webauthnExtraParameter)) {
-                queryStringParameters.add(webauthnExtraParameter);
+                try {
+                    queryStringParameters.add(webauthnExtraParameter);
+                } catch (final UnsupportedOperationException e) {
+                    final List<Map.Entry<String, String>> result = new ArrayList<>(queryStringParameters);
+                    result.add(webauthnExtraParameter);
+                    return result;
+                }
             }
         }
         return queryStringParameters;
