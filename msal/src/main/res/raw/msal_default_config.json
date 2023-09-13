@@ -18,6 +18,7 @@
   "power_opt_check_for_network_req_enabled": true,
   "handle_null_taskaffinity": false,
   "authorization_in_current_task": false,
+  "webauthn_capable": false,
   "http": {
     "connect_timeout": 10000,
     "read_timeout": 30000

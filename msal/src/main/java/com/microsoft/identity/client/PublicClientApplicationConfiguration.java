@@ -42,7 +42,6 @@ import com.microsoft.identity.client.configuration.AccountMode;
 import com.microsoft.identity.client.configuration.HttpConfiguration;
 import com.microsoft.identity.client.configuration.LoggerConfiguration;
 import com.microsoft.identity.client.exception.MsalClientException;
-import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
 import com.microsoft.identity.common.java.authorities.Authority;
@@ -82,6 +81,7 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REQUIRED_BROKER_PROTOCOL_VERSION;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.TELEMETRY;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.USE_BROKER;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEBAUTHN_CAPABLE;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEB_VIEW_ZOOM_CONTROLS_ENABLED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEB_VIEW_ZOOM_ENABLED;
 import static com.microsoft.identity.client.exception.MsalClientException.APP_MANIFEST_VALIDATION_ERROR;
@@ -113,6 +113,7 @@ public class PublicClientApplicationConfiguration {
         static final String POWER_OPT_CHECK_FOR_NETWORK_REQUEST_ENABLED = "power_opt_check_for_network_req_enabled";
         static final String HANDLE_TASKS_WITH_NULL_TASKAFFINITY = "handle_null_taskaffinity";
         static final String AUTHORIZATION_IN_CURRENT_TASK = "authorization_in_current_task";
+        static final String WEBAUTHN_CAPABLE = "webauthn_capable";
     }
 
     @SerializedName(CLIENT_ID)
@@ -178,6 +179,13 @@ public class PublicClientApplicationConfiguration {
      */
     @SerializedName(AUTHORIZATION_IN_CURRENT_TASK)
     private Boolean isAuthorizationInCurrentTask;
+
+    /**
+     * When set to true, a passkey option will be visible in WebView.
+     * Host apps should set flag as true after ensuring they have provided the correct info for passkey support.
+     */
+    @SerializedName(WEBAUTHN_CAPABLE)
+    private Boolean webauthnCapable;
 
     transient private OAuth2TokenCache mOAuth2TokenCache;
 
@@ -409,6 +417,10 @@ public class PublicClientApplicationConfiguration {
         return isAuthorizationInCurrentTask;
     }
 
+    public Boolean isWebauthnCapable() {
+        return Boolean.TRUE.equals(webauthnCapable);
+    }
+
     public Authority getDefaultAuthority() {
         if (mAuthorities != null) {
             if (mAuthorities.size() > 1) {
@@ -493,6 +505,7 @@ public class PublicClientApplicationConfiguration {
         this.powerOptCheckEnabled = config.powerOptCheckEnabled == null ? this.powerOptCheckEnabled : config.powerOptCheckEnabled;
         this.handleNullTaskAffinity = config.handleNullTaskAffinity == null ? this.handleNullTaskAffinity : config.handleNullTaskAffinity;
         this.isAuthorizationInCurrentTask = config.isAuthorizationInCurrentTask == null ? this.isAuthorizationInCurrentTask : config.isAuthorizationInCurrentTask;
+        this.webauthnCapable = config.webauthnCapable == null ? this.webauthnCapable : config.webauthnCapable;
     }
 
     void validateConfiguration() {
