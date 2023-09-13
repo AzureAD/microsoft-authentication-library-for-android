@@ -99,7 +99,7 @@ public class TestCase2571580 extends AbstractMsalBrokerTest {
         } catch (InterruptedException e){
             e.printStackTrace();
         }
-//        oneAuthTestApp.handleFirstRun();
+        oneAuthTestApp.handleFirstRun();
 
         // AcquireToken Interactively in OneAuthTestApp, should not prompt for password
         oneAuthTestApp.handleUserNameInput(username);
