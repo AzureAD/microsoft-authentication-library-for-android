@@ -60,7 +60,7 @@ public class TestCase2571345 extends AbstractMsalBrokerTest {
         } catch (InterruptedException e){
             e.printStackTrace();
         }
-//        oneAuthTestApp.handleFirstRun();
+        oneAuthTestApp.handleFirstRun();
 
         final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
                 .broker(mBroker)
