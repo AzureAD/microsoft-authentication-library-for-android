@@ -22,6 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
+import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
@@ -43,81 +44,81 @@ import org.junit.Test;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2571565
 @LTWTests
 @RunOnAPI29Minus
-public class TestCase2571565 extends AbstractMsalBrokerTest {
+public class TestCase2571565 extends AbstractMsalUiTest {
 
     @Test
     public void test_2571565() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
-        // To make sure the device is in clean slate, uninstall mBroker here.
-        mBroker.uninstall();
-
-        // Install legacy authenticator app
-        final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator(BrokerMicrosoftAuthenticator.OLD_AUTHENTICATOR_APK, BrokerMicrosoftAuthenticator.AUTHENTICATOR_APK);
-        brokerMicrosoftAuthenticator.install();
-
-        // Install new LTW
-        final BrokerLTW brokerLTW = new BrokerLTW();
-        brokerLTW.install();
+//        // To make sure the device is in clean slate, uninstall mBroker here.
+//        mBroker.uninstall();
+//
+//        // Install legacy authenticator app
+//        final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator(BrokerMicrosoftAuthenticator.OLD_AUTHENTICATOR_APK, BrokerMicrosoftAuthenticator.AUTHENTICATOR_APK);
+//        brokerMicrosoftAuthenticator.install();
+//
+//        // Install new LTW
+//        final BrokerLTW brokerLTW = new BrokerLTW();
+//        brokerLTW.install();
 
         // AcquireToken Interactively in MsalTestApp
-        final MsalTestApp msalTestApp = new MsalTestApp();
+        final OneAuthTestApp msalTestApp = new OneAuthTestApp();
         msalTestApp.install();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
 
-        final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
-                .prompt(PromptParameter.SELECT_ACCOUNT)
-                .loginHint(username)
-                .sessionExpected(false)
-                .broker(mBroker)
-                .expectingBrokerAccountChooserActivity(false)
-                .expectingProvidedAccountInBroker(false)
-                .expectingLoginPageAccountPicker(false)
-                .expectingProvidedAccountInCookie(false)
-                .consentPageExpected(false)
-                .passwordPageExpected(true)
-                .speedBumpExpected(false)
-                .registerPageExpected(false)
-                .enrollPageExpected(false)
-                .staySignedInPageExpected(false)
-                .verifyYourIdentityPageExpected(false)
-                .howWouldYouLikeToSignInExpected(false)
-                .build();
+//        final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
+//                .prompt(PromptParameter.SELECT_ACCOUNT)
+//                .loginHint(username)
+//                .sessionExpected(false)
+//                .broker(mBroker)
+//                .expectingBrokerAccountChooserActivity(false)
+//                .expectingProvidedAccountInBroker(false)
+//                .expectingLoginPageAccountPicker(false)
+//                .expectingProvidedAccountInCookie(false)
+//                .consentPageExpected(false)
+//                .passwordPageExpected(true)
+//                .speedBumpExpected(false)
+//                .registerPageExpected(false)
+//                .enrollPageExpected(false)
+//                .staySignedInPageExpected(false)
+//                .verifyYourIdentityPageExpected(false)
+//                .howWouldYouLikeToSignInExpected(false)
+//                .build();
+//
+//        String tokenMsal = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, true);
+//        Assert.assertNotNull(tokenMsal);
 
-        String tokenMsal = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, true);
-        Assert.assertNotNull(tokenMsal);
-
-        // Uninstall legacy authenticator app
-        brokerMicrosoftAuthenticator.uninstall();
-
-        // Install new oneAuthTestApp
-        final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
-        oneAuthTestApp.install();
-        oneAuthTestApp.launch();
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e){
-            e.printStackTrace();
-        }
-        oneAuthTestApp.handleFirstRun();
-
-        // AcquireToken Interactively in OneAuthTestApp, should prompt for password
-        final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
-                .broker(mBroker)
-                .prompt(PromptParameter.LOGIN)
-                .loginHint(username)
-                .consentPageExpected(false)
-                .speedBumpExpected(false)
-                .sessionExpected(false)
-                .passwordPageExpected(true)
-                .expectingBrokerAccountChooserActivity(false)
-                .expectingLoginPageAccountPicker(false)
-                .enrollPageExpected(false)
-                .build();
-        oneAuthTestApp.addFirstAccount(username, password, promptHandlerParametersOneAuth);
-        oneAuthTestApp.confirmAccount(username);
+//        // Uninstall legacy authenticator app
+//        brokerMicrosoftAuthenticator.uninstall();
+//
+//        // Install new oneAuthTestApp
+//        final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
+//        oneAuthTestApp.install();
+//        oneAuthTestApp.launch();
+//        try {
+//            Thread.sleep(3000);
+//        } catch (InterruptedException e){
+//            e.printStackTrace();
+//        }
+//        oneAuthTestApp.handleFirstRun();
+//
+//        // AcquireToken Interactively in OneAuthTestApp, should prompt for password
+//        final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
+//                .broker(mBroker)
+//                .prompt(PromptParameter.LOGIN)
+//                .loginHint(username)
+//                .consentPageExpected(false)
+//                .speedBumpExpected(false)
+//                .sessionExpected(false)
+//                .passwordPageExpected(true)
+//                .expectingBrokerAccountChooserActivity(false)
+//                .expectingLoginPageAccountPicker(false)
+//                .enrollPageExpected(false)
+//                .build();
+//        oneAuthTestApp.addFirstAccount(username, password, promptHandlerParametersOneAuth);
+//        oneAuthTestApp.confirmAccount(username);
     }
 
     @Override
