@@ -2,6 +2,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
+import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
 import com.microsoft.identity.client.ui.automation.app.OneAuthTestApp;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
@@ -11,6 +12,7 @@ import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Test;
 
+@LTWTests
 public class TestCaseFixOneAuthIssue extends AbstractMsalBrokerTest {
     @Test
     public void test_oneAuthIssue() throws Throwable {
