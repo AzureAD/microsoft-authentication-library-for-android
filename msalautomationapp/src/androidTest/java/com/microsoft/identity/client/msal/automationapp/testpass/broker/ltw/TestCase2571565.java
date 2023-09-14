@@ -96,11 +96,6 @@ public class TestCase2571565 extends AbstractMsalBrokerTest {
         final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
         oneAuthTestApp.install();
         oneAuthTestApp.launch();
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e){
-            e.printStackTrace();
-        }
         oneAuthTestApp.handleFirstRun();
 
         // AcquireToken Interactively in OneAuthTestApp, should prompt for password
