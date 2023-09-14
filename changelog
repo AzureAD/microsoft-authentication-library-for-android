@@ -1,9 +1,15 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
+Version 4.8.1
+----------
+- [MINOR] Add LTW as prod broker app (#2179)
+- [PATCH] Update common @16.0.1
+
 Version 4.8.0
 ----------
 - [MINOR] Use Active Broker cache specifically for Client SDK (#1892)
 - [MINOR] MSA UI tests for Brokered Auth (#1856)
 - [MINOR] Updated target, compile SDK, AGP and gradle versions(#1882)
+- [PATCH] Update common @16.0.0
 
 Version 4.7.0
 ----------
