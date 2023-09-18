@@ -25,10 +25,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
-<<<<<<< HEAD
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
-=======
->>>>>>> user/yixi/LTW_broker_test_cases
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
