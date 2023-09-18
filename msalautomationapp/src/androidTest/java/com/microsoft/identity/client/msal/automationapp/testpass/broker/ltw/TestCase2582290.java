@@ -31,6 +31,7 @@ import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
 import com.microsoft.identity.client.ui.automation.app.OneAuthTestApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
+import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
@@ -52,6 +53,31 @@ public class TestCase2582290 extends AbstractMsalBrokerTest {
     public void test_2582290() throws Throwable{
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
+
+        //Install new LTW with broker SDK changes of broker selection logic
+        // in supportedBrokers annotation
+
+        // Install updated oneAuthTestApp
+        final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
+        oneAuthTestApp.install();
+        oneAuthTestApp.launch();
+        oneAuthTestApp.handleFirstRun();
+
+        // Performs AcquireToken
+        // User is Prompted for creds
+        final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
+                .broker(mBroker)
+                .prompt(PromptParameter.LOGIN)
+                .loginHint(username)
+                .consentPageExpected(false)
+                .speedBumpExpected(false)
+                .sessionExpected(false)
+                .expectingBrokerAccountChooserActivity(false)
+                .expectingLoginPageAccountPicker(false)
+                .enrollPageExpected(false)
+                .build();
+        oneAuthTestApp.addFirstAccount(username, password, promptHandlerParametersOneAuth);
+        oneAuthTestApp.confirmAccount(username);
 
         // Install new Authenticator with broker SDK changes of broker selection logic
         final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator();
@@ -116,19 +142,6 @@ public class TestCase2582290 extends AbstractMsalBrokerTest {
         // UI updated with message "The account is successfully removed"
         final String removeUserMessage = msalTestApp.removeUser();
         Assert.assertEquals("The account is successfully removed.", removeUserMessage);
-
-        // Install updated oneAuthTestApp
-        final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
-        oneAuthTestApp.install();
-        oneAuthTestApp.launch();
-        oneAuthTestApp.handleFirstRun();
-
-        // Enter username in account name
-        oneAuthTestApp.handleUserNameInput(username);
-
-        // Click on getAccessToken
-        // Accesstoken should be retrieved successully
-        oneAuthTestApp.handleSignInWithoutPrompt();
     }
 
     @Override

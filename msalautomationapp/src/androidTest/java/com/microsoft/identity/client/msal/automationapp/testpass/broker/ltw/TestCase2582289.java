@@ -50,13 +50,12 @@ public class TestCase2582289 extends AbstractMsalBrokerTest {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
-        // Install new CP app with broker SDK changes of broker selection logic
-        final BrokerCompanyPortal brokerCompanyPortal = new BrokerCompanyPortal();
-        brokerCompanyPortal.install();
+        //Install new LTW with broker SDK changes of broker selection logic
+        // in supportedBrokers annotation
 
-        // Install old MsalTestApp
+        // Install MsalTestApp with Broker selection logic enabled
         final MsalTestApp msalTestApp = new MsalTestApp();
-        msalTestApp.installOldApk();
+        msalTestApp.install();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
 
@@ -75,6 +74,10 @@ public class TestCase2582289 extends AbstractMsalBrokerTest {
 
         final String tokenMsal = msalTestApp.acquireToken(username, password, promptHandlerParameters, true);
         Assert.assertNotNull(tokenMsal);
+
+        // Install new CP app with broker SDK changes of broker selection logic
+        final BrokerCompanyPortal brokerCompanyPortal = new BrokerCompanyPortal();
+        brokerCompanyPortal.install();
 
         // Install old OneAuthTestApp
         final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
