@@ -54,34 +54,41 @@ public class TestCase2582296 extends AbstractMsalBrokerTest {
         final String password = mLabAccount.getPassword();
         final String tenantId = mLabAccount.getHomeTenantId();
 
+        // Set up LTW with mwpj (non-shared)
+
+        // Install new LTW with broker SDK changes of broker selection logic AND MWPJ mode enabled.
+        // installed with supportedbrokers annotation
+
+        // Install BrokerHost app with broker selection logic
+        final BrokerHost brokerHost = new BrokerHost();
+        brokerHost.install();
+        brokerHost.launch();
+
+        // Enter username and Click on "Device Registration" button
+        brokerHost.multipleWpjApiFragment.performDeviceRegistration(username, password);
+
+        // Uninstall BrokerHost
+        brokerHost.uninstall();
+
         // Install new Authenticator with broker SDK changes of broker selection logic
         final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator();
         brokerMicrosoftAuthenticator.install();
 
-        // Install old BrokerHost app with no broker SDK changes of broker selection logic
-        final BrokerHost brokerHost = new BrokerHost(BrokerHost.BROKER_HOST_WITHOUT_BROKER_SELECTION_APK);
-        brokerHost.install();
-        brokerHost.launch();
-
-        // Switch to Multiple WPJ API from hamburger menu on the top left
-        // Enter username retrieved
-        // Click on "Device Registration" button
-        brokerHost.multipleWpjApiFragment.performDeviceRegistration(username, password);
-
-        // Enter tenantId and Click on "Get Blob" button
-        final String blob = brokerHost.multipleWpjApiFragment.getBlob(tenantId);
-        Assert.assertTrue(!TextUtils.isEmpty(blob));
+        // Install BrokerHost with no broker selection logic
+        final BrokerHost brokerHostWithoutBrokerSelection = new BrokerHost(BrokerHost.BROKER_HOST_WITHOUT_BROKER_SELECTION_APK);
+        brokerHostWithoutBrokerSelection.install();
+        brokerHostWithoutBrokerSelection.launch();
 
         // Click on "Get all records" button
         // A popup with all the registered entries is shown.
-        final List<Map<String, String>> records = brokerHost.multipleWpjApiFragment.getAllRecords();
+        final List<Map<String, String>> records = brokerHostWithoutBrokerSelection.multipleWpjApiFragment.getAllRecords();
         Assert.assertEquals(1, records.size());
         final Map<String, String> record = records.get(0);
         Assert.assertEquals(username, record.get("Upn"));
         Assert.assertEquals(tenantId, record.get("TenantId"));
 
         // Click on "Get record by Upn" button
-        final Map<String, String> recordByUpn = brokerHost.multipleWpjApiFragment.getRecordByUpn(username);
+        final Map<String, String> recordByUpn = brokerHostWithoutBrokerSelection.multipleWpjApiFragment.getRecordByUpn(username);
         Assert.assertEquals(record, recordByUpn);
 
         // Click on "Get State" button
@@ -90,20 +97,28 @@ public class TestCase2582296 extends AbstractMsalBrokerTest {
         } catch (final InterruptedException e) {
             throw new AssertionError(e);
         }
-        final String state = brokerHost.multipleWpjApiFragment.getDeviceState(username);
+        final String state = brokerHostWithoutBrokerSelection.multipleWpjApiFragment.getDeviceState(username);
         Assert.assertTrue(state.contains("DEVICE_VALID"));
 
         // Click on "Install certificate" button
-        brokerHost.multipleWpjApiFragment.installCertificate(username);
+        brokerHostWithoutBrokerSelection.multipleWpjApiFragment.installCertificate(username);
 
         // Click on "Get device token" button
-        final String token = brokerHost.multipleWpjApiFragment.getDeviceToken(username);
+        final String token = brokerHostWithoutBrokerSelection.multipleWpjApiFragment.getDeviceToken(username);
         Assert.assertTrue(!TextUtils.isEmpty(token.replace("Device token:", "")));
 
         // Click on "Unregister" button
-        brokerHost.multipleWpjApiFragment.unregister(username);
-        final List<Map<String, String>> allRecords = brokerHost.multipleWpjApiFragment.getAllRecords();
+        brokerHostWithoutBrokerSelection.multipleWpjApiFragment.unregister(username);
+        final List<Map<String, String>> allRecords = brokerHostWithoutBrokerSelection.multipleWpjApiFragment.getAllRecords();
         Assert.assertEquals(0, allRecords.size());
+
+        // Enter tenantId and Click on "Get Blob" button
+        final String blob = brokerHostWithoutBrokerSelection.multipleWpjApiFragment.getBlob(tenantId);
+        Assert.assertTrue(!TextUtils.isEmpty(blob));
+
+        // Enter the same Username and click on "Device Registration" button
+        // A popup with join successful message should be returned. Also, there will be a tenantId displayed in the popup
+        brokerHostWithoutBrokerSelection.multipleWpjApiFragment.performDeviceRegistration(username, password);
     }
 
     @Override
