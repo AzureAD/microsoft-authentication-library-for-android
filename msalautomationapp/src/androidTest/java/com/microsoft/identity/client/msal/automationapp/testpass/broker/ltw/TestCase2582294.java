@@ -47,55 +47,70 @@ public class TestCase2582294 extends AbstractMsalBrokerTest {
         final String password = mLabAccount.getPassword();
         final String homeTenantId = mLabAccount.getHomeTenantId();
 
+        // Shared Steps 2693823: Set up LTW with WPJ cert (non-joined)
+        // Install new LTW with broker SDK changes of broker selection logic
+        // installed LTW by SupportedBrokers annotation
+
+        // Install BrokerHost app with broker selection logic
+        final BrokerHost brokerHost = new BrokerHost();
+        brokerHost.install();
+        brokerHost.launch();
+
+        // Under Multiple WPJ - Click on "Device Registration" button
+        brokerHost.multipleWpjApiFragment.performDeviceRegistration(username, password);
+
+        // Uninstall brokerHost
+        brokerHost.uninstall();
+
         // Install new Authenticator with broker SDK changes of broker selection logic
         final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator();
         brokerMicrosoftAuthenticator.install();
 
-        // Install old BrokerHost app with no broker SDK changes of broker selection logic
-        final BrokerHost brokerHost = new BrokerHost(BrokerHost.BROKER_HOST_WITHOUT_BROKER_SELECTION_APK);
-        brokerHost.install();
-        brokerHost.launch();
-
-        // Enter tenantId in tenantId text box
-        // Click on "Get preprovisioning blob" button
-        // You should see a popup with the blob
-        final String blob = brokerHost.getBlob(homeTenantId);
-        Assert.assertTrue(!blob.isEmpty());
-
-        // Enter username in username textbox
-        // Click on "User based join" button
-        // Complete the device registration flow. See a popup message that the flow was successful
-        brokerHost.performDeviceRegistration(username, password);
+        // Install BrokerHost with NO Broker Selection Logic. Navigate to "Single WPJ API" Tab.
+        final BrokerHost brokerHostWithoutBrokerSelection = new BrokerHost(BrokerHost.BROKER_HOST_WITHOUT_BROKER_SELECTION_APK);
+        brokerHostWithoutBrokerSelection.install();
+        brokerHostWithoutBrokerSelection.launch();
 
         // click on "device id" button
         // You should see a popup with a deviceId
-        final String deviceId = brokerHost.obtainDeviceId();
+        final String deviceId = brokerHostWithoutBrokerSelection.obtainDeviceId();
         Assert.assertTrue(!deviceId.isEmpty());
 
         // click on "device state" button
         // You should see the "joined" state
-        final String state = brokerHost.getDeviceState();
+        final String state = brokerHostWithoutBrokerSelection.getDeviceState();
         Assert.assertTrue("Assert that the device state is true", state.contains("true"));
 
         // click on "install cert" button
         // popup to select certificate type is shown
         // Choose "Vpn and app user cert" and click on ok
         // popup with name of cert is shown. let the default name be there. Upon clicking on ok, a toast message with "Certificate is installed" is shown
-        brokerHost.enableBrowserAccess();
+        brokerHostWithoutBrokerSelection.enableBrowserAccess();
 
         // click on "get wpj upn" button
         // You should see the upn with which we performed join
-        final String upn = brokerHost.getAccountUpn();
+        final String upn = brokerHostWithoutBrokerSelection.getAccountUpn();
         Assert.assertEquals(username, upn);
 
         // click on "get device token"
         // You should see the popup with device token
-        final String token = brokerHost.getDeviceToken();
+        final String token = brokerHostWithoutBrokerSelection.getDeviceToken();
         Assert.assertTrue(!token.isEmpty());
 
         // Click on "wpj leave" button
         // Device should WPJ leave successfully. A popup with leave successful message should be shown
-        brokerHost.wpjLeave();
+        brokerHostWithoutBrokerSelection.wpjLeave();
+
+        // Enter tenantId in tenantId text box
+        // Click on "Get preprovisioning blob" button
+        // You should see a popup with the blob
+        final String blob = brokerHostWithoutBrokerSelection.getBlob(homeTenantId);
+        Assert.assertTrue(!blob.isEmpty());
+
+        // Enter username in username textbox
+        // Click on "User based join" button
+        // Complete the device registration flow. See a popup message that the flow was successful
+        brokerHostWithoutBrokerSelection.performDeviceRegistration(username, password);
     }
 
     @Override

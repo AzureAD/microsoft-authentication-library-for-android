@@ -29,6 +29,7 @@ import com.microsoft.identity.client.msal.automationapp.testpass.broker.Abstract
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
+import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
@@ -57,6 +58,21 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
         final String username1 = mLabAccount.getUsername();
         final String password1 = mLabAccount.getPassword();
 
+        // Shared Steps 2582325: Set up shared device mode on LTW Broker
+        // Install LTW app with broker selection logic enabled
+        // installed LTW by SupportedBrokers annotation
+
+        // Install Broker Host app (with broker selection logic enabled)
+        final BrokerHost brokerHost = new BrokerHost();
+        brokerHost.install();
+        brokerHost.launch();
+
+        // In brokerHost Multiple WPJ mode: perform a shared device registration with a cloud device admin account from the LAB API
+        brokerHost.multipleWpjApiFragment.performDeviceRegistration(username1, password1);
+
+        // Uninstall BrokerHost App
+        brokerHost.uninstall();
+
         // Install new Auth app with broker SDK changes of broker selection logic
         final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator();
         brokerMicrosoftAuthenticator.install();
@@ -65,15 +81,12 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
         final MsalTestApp msalTestApp = new MsalTestApp();
         msalTestApp.installOldApk();
 
-        // Set up shared device mode
-        // Open Authenticator app -> ... -> Settings
-        brokerMicrosoftAuthenticator.performSharedDeviceRegistration(username1, password1);
-
         // Check mode in MSAL test app
+        // MSAL should be in "Shared Device" mode
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
         final String mode = msalTestApp.checkMode();
-        Assert.assertTrue(mode.contains("Single Account"));
+        Assert.assertTrue(mode.contains("Shared Device"));
 
         // performs AcquireToken with an account from the same tenant with the WPJed account.
         final LabQuery query = LabQuery.builder()
