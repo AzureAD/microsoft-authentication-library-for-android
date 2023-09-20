@@ -5,6 +5,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
@@ -19,6 +20,7 @@ import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory;
 import com.microsoft.identity.common.internal.commands.parameters.AndroidActivityInteractiveTokenCommandParameters;
+import com.microsoft.identity.common.java.constants.FidoConstants;
 import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryB2CAuthority;
@@ -41,8 +43,10 @@ import com.microsoft.identity.common.java.ui.AuthorizationAgent;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.common.logging.Logger;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -138,7 +142,9 @@ public class CommandParametersAdapter {
                 .forceRefresh(parameters.getClaimsRequest() != null)
                 .scopes(new HashSet<>(parameters.getScopes()))
                 .extraScopesToConsent(parameters.getExtraScopesToConsent())
-                .extraQueryStringParameters(parameters.getExtraQueryStringParameters())
+                .extraQueryStringParameters(appendToExtraQueryParametersIfWebAuthnCapable(
+                        parameters.getExtraQueryStringParameters(),
+                        configuration))
                 .loginHint(getLoginHint(parameters))
                 .account(parameters.getAccountRecord())
                 .authenticationScheme(authenticationScheme)
@@ -485,5 +491,35 @@ public class CommandParametersAdapter {
                 .homeAccountId(homeAccountId)
                 .popParameters(popParameters)
                 .build();
+    }
+
+    /**
+     * Adds additional query string parameters to original list.
+     * @param queryStringParameters extra query string parameters inputted.
+     * @param configuration configuration created from MSAL config file.
+     * @return combined list of query string parameters.
+     */
+    @Nullable
+    public static List<Map.Entry<String, String>> appendToExtraQueryParametersIfWebAuthnCapable(
+            @Nullable final List<Map.Entry<String, String>> queryStringParameters,
+            @NonNull final PublicClientApplicationConfiguration configuration) {
+        if (configuration.isWebauthnCapable()) {
+            final Map.Entry<String, String> webauthnExtraParameter = new AbstractMap.SimpleEntry<>(
+                    FidoConstants.WEBAUTHN_QUERY_PARAMETER_FIELD,
+                    FidoConstants.WEBAUTHN_QUERY_PARAMETER_VALUE);
+            if (queryStringParameters == null) {
+                return new ArrayList<>(Collections.singletonList(webauthnExtraParameter));
+            }
+            if (!queryStringParameters.contains(webauthnExtraParameter)) {
+                try {
+                    queryStringParameters.add(webauthnExtraParameter);
+                } catch (final UnsupportedOperationException e) {
+                    final List<Map.Entry<String, String>> result = new ArrayList<>(queryStringParameters);
+                    result.add(webauthnExtraParameter);
+                    return result;
+                }
+            }
+        }
+        return queryStringParameters;
     }
 }
