@@ -74,7 +74,7 @@ public class TestCase2517374 extends AbstractMsalUiTest {
                 .howWouldYouLikeToSignInExpected(false)
                 .build();
 
-        String token = msalTestApp.acquireToken(username, password, promptHandlerParameters, true);
+        String token = msalTestApp.acquireToken(username, password, promptHandlerParameters, mBrowser, true, true);
         Assert.assertNotNull(token);
 
         // then acquire token silently and validate the token
