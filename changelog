@@ -1,8 +1,11 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 V.NEXT
 ----------
+- [MINOR] Use Active Broker cache specifically for Client SDK (#1892)
 - [MINOR] MSA UI tests for Brokered Auth (#1856)
 - [MINOR] Updated target, compile SDK, AGP and gradle versions(#1882)
+- [MINOR] Adding webauthn_capable property option for MSAL config files (#1895)
+- [MINOR] kotlinx.serialization version (#1899)
 
 Version 4.7.0
 ----------

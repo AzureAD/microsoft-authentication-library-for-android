@@ -47,13 +47,13 @@ import java.util.*
 @LTWTests
 class TestCaseUpdateCompanyPortal : AbstractMsalCustomBrokerInstallationTest() {
 
-    private val mCompanyPortal: BrokerCompanyPortal = installOldCompanyPortal()
-
     @Test
     @Throws(Throwable::class)
     fun test_UpdateCompanyPortal() {
         val username = mLabAccount.username
         val password = mLabAccount.password
+
+        val mCompanyPortal: BrokerCompanyPortal = installOldCompanyPortal()
 
         val msalSdk = MsalSdk()
         val authTestParams = MsalAuthTestParams.builder()
