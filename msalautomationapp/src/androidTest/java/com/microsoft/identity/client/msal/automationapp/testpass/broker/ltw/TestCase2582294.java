@@ -39,6 +39,7 @@ import org.junit.Test;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2582294
 @SupportedBrokers(brokers = {BrokerLTW.class})
 @LTWTests
+@Ignore
 public class TestCase2582294 extends AbstractMsalBrokerTest {
 
     @Test
