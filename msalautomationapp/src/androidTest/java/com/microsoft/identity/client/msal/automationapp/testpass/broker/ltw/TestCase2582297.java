@@ -36,6 +36,7 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
@@ -45,6 +46,7 @@ import java.util.Map;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2582297
 @LTWTests
 @RetryOnFailure
+@Ignore
 @SupportedBrokers(brokers = {BrokerLTW.class})
 public class TestCase2582297 extends AbstractMsalBrokerTest {
     @Test

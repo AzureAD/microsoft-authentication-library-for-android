@@ -33,6 +33,7 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 // Test Case 2582295: If LTW is the active broker, and request is made through CP from Legacy WorkplaceJoin API, nothing should break
