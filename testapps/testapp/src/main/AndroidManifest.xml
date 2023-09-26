@@ -67,20 +67,37 @@
             android:configChanges="keyboardHidden|keyboard">
         </activity>
 
+        <activity
+            tools:replace="android:exported"
+            android:name="com.microsoft.identity.client.BrowserTabActivity"
+            android:launchMode="singleTask"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!-- To Test PPE:  msal7cc2dd84-bb0f-4711-8fca-4c7d01249f56 -->
+                <!-- To Test Sovereign: msalcb7faed4-b8c0-49ee-b421-f5ed16894c83 -->
+                <data android:scheme="msauth"
+                    android:host="${applicationId}"
+                    android:path="/1wIqXSqBj7w+h11ZifsnqwgyKrY="/>
+            </intent-filter>
+        </activity>
+
 <!--        <activity-->
 <!--            tools:replace="android:exported"-->
 <!--            android:name="com.microsoft.identity.client.BrowserTabActivity"-->
 <!--            android:launchMode="singleTask"-->
 <!--            android:exported="true">-->
-<!--            <intent-filter>-->
+<!--            <intent-filter android:autoVerify="true">-->
 <!--                <action android:name="android.intent.action.VIEW" />-->
 <!--                <category android:name="android.intent.category.DEFAULT" />-->
 <!--                <category android:name="android.intent.category.BROWSABLE" />-->
 <!--                &lt;!&ndash; To Test PPE:  msal7cc2dd84-bb0f-4711-8fca-4c7d01249f56 &ndash;&gt;-->
 <!--                &lt;!&ndash; To Test Sovereign: msalcb7faed4-b8c0-49ee-b421-f5ed16894c83 &ndash;&gt;-->
-<!--                <data android:scheme="msauth"-->
-<!--                    android:host="${applicationId}"-->
-<!--                    android:path="/1wIqXSqBj7w+h11ZifsnqwgyKrY="/>-->
+<!--                <data android:scheme="https"-->
+<!--                    android:host="login.microsoftonline.com"-->
+<!--                    android:path="/common/oauth2/nativeclient"/>-->
 <!--            </intent-filter>-->
 <!--        </activity>-->
     </application>
