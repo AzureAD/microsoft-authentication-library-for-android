@@ -50,7 +50,7 @@ class NativeAuthPublicClientApplicationConfiguration :
 
     private object NativeAuthSerializedNames {
         const val CHALLENGE_TYPES = "challenge_types"
-        const val USE_REAL_AUTHORITY = "useRealAuthority"
+        const val USE_REAL_AUTHORITY = "use_real_authority"
         const val DC = "dc"
     }
 
@@ -82,11 +82,15 @@ class NativeAuthPublicClientApplicationConfiguration :
 
         // Handle Native Auth specific fields
         challengeTypes = if (config.challengeTypes == null) challengeTypes else config.challengeTypes
+
+        useRealAuthority = if (config.useRealAuthority == null) useRealAuthority else config.useRealAuthority
+
+        dc = if (config.dc == null) dc else config.dc
     }
 
     /**
      * Override base validateConfiguration() method as native auth validation is different
-     * Had to make this function private as companion object in
+     * Had to make this function public as companion object in
      * [NativeAuthPublicClientApplicationConfigurationFactory] cannot access it otherwise
      */
     public override fun validateConfiguration() {
@@ -103,7 +107,7 @@ class NativeAuthPublicClientApplicationConfiguration :
         if (redirectUri != null) {
             super.validateConfiguration()
         } else {
-            LogSession.log(TAG, Logger.LogLevel.WARN, "No redirect URI was passed. You cannot use browser-based auth flow to handle BrowserRequired error.")
+            LogSession.log(TAG, Logger.LogLevel.WARN, "No redirect URI was passed.")
         }
 
         // Enforce that account mode must be "SINGLE"
@@ -115,20 +119,20 @@ class NativeAuthPublicClientApplicationConfiguration :
         }
 
         // We only allow one authority being passed
-        if (authorities == null || authorities.size != 1) {
+        if (authorities == null || authorities.size == 0) {
             // Throw is no authority passed
-            if (authorities == null || authorities.size == 0) {
-                throw MsalClientException(
-                    MsalClientException.NATIVE_AUTH_USE_WITH_NO_AUTHORITY_ERROR_CODE,
-                    MsalClientException.NATIVE_AUTH_USE_WITH_NO_AUTHORITY_ERROR_MESSAGE
-                )
-            } else {
-                // This throws when more than one authority is passed
-                throw MsalClientException(
-                    MsalClientException.NATIVE_AUTH_USE_WITH_MULTI_AUTHORITY_ERROR_CODE,
-                    MsalClientException.NATIVE_AUTH_USE_WITH_MULTI_AUTHORITY_ERROR_MESSAGE
-                )
-            }
+            throw MsalClientException(
+                MsalClientException.NATIVE_AUTH_USE_WITH_NO_AUTHORITY_ERROR_CODE,
+                MsalClientException.NATIVE_AUTH_USE_WITH_NO_AUTHORITY_ERROR_MESSAGE
+            )
+        }
+        else if (authorities.size > 1)
+        {
+            // This throws when more than one authority is passed
+            throw MsalClientException(
+                MsalClientException.NATIVE_AUTH_USE_WITH_MULTI_AUTHORITY_ERROR_CODE,
+                MsalClientException.NATIVE_AUTH_USE_WITH_MULTI_AUTHORITY_ERROR_MESSAGE
+            )
         }
 
         if (defaultAuthority !is NativeAuthCIAMAuthority) {
@@ -195,8 +199,6 @@ class NativeAuthPublicClientApplicationConfiguration :
      */
     @Throws(MsalClientException::class)
     override fun checkIntentFilterAddedToAppManifestForBrokerFlow() {
-        // TODO wonder if we really even need this, as broker is not used so we might also pass the check anyway.
-        //  Not too sure
         if (redirectUri != null) {
             super.checkIntentFilterAddedToAppManifestForBrokerFlow()
         }

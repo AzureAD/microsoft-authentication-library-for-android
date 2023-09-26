@@ -49,6 +49,10 @@ import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.InputStream
 
+/**
+ * NativeAuthPublicClientApplicationConfigurationFactory manages the initialisation and loads the
+ * configuration from a resource file for NativeAuthClient
+ */
 class NativeAuthPublicClientApplicationConfigurationFactory :
     PublicClientApplicationConfigurationFactory() {
 

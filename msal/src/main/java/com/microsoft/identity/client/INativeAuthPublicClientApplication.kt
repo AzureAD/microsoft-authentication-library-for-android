@@ -22,11 +22,25 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client
 
+import com.microsoft.identity.client.exception.MsalException
 
 /**
  * An interface that contains list of operations that are available when MSAL is in Native Auth
  * mode.
  */
 interface INativeAuthPublicClientApplication : IPublicClientApplication {
+    /**
+     * Listener callback for asynchronous initialization of INativeAuthPublicClientApplication object.
+     */
+    interface INativeAuthApplicationCreatedListener {
+        /**
+         * Called once an IMultipleAccountPublicClientApplication is successfully created.
+         */
+        fun onCreated(application: INativeAuthPublicClientApplication)
 
+        /**
+         * Called once IMultipleAccountPublicClientApplication can't be created.
+         */
+        fun onError(exception: MsalException)
+    }
 }

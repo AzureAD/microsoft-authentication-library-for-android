@@ -58,6 +58,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * NativeAuthPublicClientApplication provides implementation for the top level interface
+ * [INativeAuthPublicClientApplication] used by third party developers.
+ */
 class NativeAuthPublicClientApplication(
     private val nativeAuthConfig: NativeAuthPublicClientApplicationConfiguration
 ) : INativeAuthPublicClientApplication, PublicClientApplication(nativeAuthConfig) {

@@ -335,7 +335,7 @@ public class PublicClientApplicationConfiguration {
     }
 
     /**
-     * Sets the account mode id for the PublicClientApplication.
+     * Sets the account mode for the PublicClientApplication.
      *
      * @param accountMode the account mode.
      */

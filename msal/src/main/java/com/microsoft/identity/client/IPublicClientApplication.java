@@ -266,12 +266,12 @@ public interface IPublicClientApplication {
      */
     interface INativeAuthApplicationCreatedListener {
         /**
-         * Called once an IMultipleAccountPublicClientApplication is successfully created.
+         * Called once an INativeAuthApplicationCreatedListener is successfully created.
          */
         void onCreated(final @NonNull INativeAuthPublicClientApplication application);
 
         /**
-         * Called once IMultipleAccountPublicClientApplication can't be created.
+         * Called once INativeAuthApplicationCreatedListener can't be created.
          */
         void onError(final @NonNull MsalException exception);
     }
