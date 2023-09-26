@@ -1168,7 +1168,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             );
 
             if (config.getAuthorities().size() > 1) {
-                throw new MsalClientException(SAPCA_USE_WITH_MULTI_POLICY_B2C);                
+                throw new MsalClientException(SAPCA_USE_WITH_MULTI_POLICY_B2C);
             }
         }
     }

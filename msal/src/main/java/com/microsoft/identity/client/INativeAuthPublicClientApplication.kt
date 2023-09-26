@@ -25,8 +25,8 @@ package com.microsoft.identity.client
 import com.microsoft.identity.client.exception.MsalException
 
 /**
- * An interface that contains list of operations that are available when MSAL is in Native Auth
- * mode.
+ * INativeAuthPublicClientApplication provides top level interface that is used by dpp developers
+ * to use Native Auth methods
  */
 interface INativeAuthPublicClientApplication : IPublicClientApplication {
     /**
