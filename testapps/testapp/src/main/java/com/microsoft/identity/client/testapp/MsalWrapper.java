@@ -134,6 +134,7 @@ abstract class MsalWrapper {
                 callback.showMessage("Unexpected error." + e.getMessage());
             }
         }
+        builder.withPreferredAuthMethod("QR");
 
         return builder;
     }

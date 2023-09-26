@@ -43,11 +43,14 @@ public class AcquireTokenParameters extends TokenParameters {
     private List<Map.Entry<String, String>> mExtraQueryStringParameters;
     private AuthenticationCallback mCallback;
 
+    private String mPreferredAuthMethod;
+
     public AcquireTokenParameters(AcquireTokenParameters.Builder builder) {
         super(builder);
         mActivity = builder.mActivity;
         mFragment = builder.mFragment;
         mLoginHint = builder.mLoginHint;
+        mPreferredAuthMethod = builder.mPreferredAuthMethod;
         mPrompt = builder.mPrompt;
         mExtraScopesToConsent = builder.mExtraScopesToConsent;
         mExtraQueryStringParameters = builder.mExtraQueryStringParameters;
@@ -84,6 +87,10 @@ public class AcquireTokenParameters extends TokenParameters {
      */
     void setLoginHint(String loginHint) {
         this.mLoginHint = loginHint;
+    }
+
+    public String getPreferredAuthMethod() {
+        return this.mPreferredAuthMethod;
     }
 
     /**
@@ -137,6 +144,8 @@ public class AcquireTokenParameters extends TokenParameters {
         private Activity mActivity;
         private Fragment mFragment;
         private String mLoginHint;
+
+        private String mPreferredAuthMethod;
         private Prompt mPrompt;
         private List<String> mExtraScopesToConsent;
         private List<Map.Entry<String, String>> mExtraQueryStringParameters;
@@ -156,6 +165,12 @@ public class AcquireTokenParameters extends TokenParameters {
             mLoginHint = loginHint;
             return self();
         }
+
+        public AcquireTokenParameters.Builder withPreferredAuthMethod(String preferredAuthMethod) {
+            mPreferredAuthMethod = preferredAuthMethod;
+            return self();
+        }
+
 
         public AcquireTokenParameters.Builder withPrompt(Prompt prompt) {
             mPrompt = prompt;
