@@ -82,6 +82,9 @@ class NativeAuthPublicClientApplication(
 
         internal val TAG = NativeAuthPublicClientApplication::class.java.toString()
 
+        //  The Native Auth client code works on the basis of callbacks and coroutines.
+        //  To avoid duplicating the code, callback methods are routed through their
+        //  coroutine-equivalent through this CoroutineScope.
         val pcaScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     }
 
