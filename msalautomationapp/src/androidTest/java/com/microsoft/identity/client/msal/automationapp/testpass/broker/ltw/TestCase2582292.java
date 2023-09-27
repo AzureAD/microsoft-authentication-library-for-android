@@ -41,6 +41,7 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserRole;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 import com.microsoft.identity.labapi.utilities.exception.LabApiException;
+import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -49,6 +50,7 @@ import java.util.List;
 
 // If LTW is the active broker, and request is made through Authenticator from an old MSAL in shared device mode, nothing should break
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2582292
+@LocalBrokerHostDebugUiTest
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
 public class TestCase2582292 extends AbstractMsalBrokerTest {
 
