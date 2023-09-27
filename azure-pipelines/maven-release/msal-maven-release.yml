@@ -32,7 +32,7 @@ jobs:
     gradleGeneratePomFiletask: msal:generatePomFileForMsalPublication
     aarSourceFolder: msal/build/outputs/aar
     jarSourceFolder: msal/build/outputs/jar
-    pomSourceFolder: msal/build/publications/msal
+    pomSourceFolder: msal/build/poms
     gpgAar: true
     gpgSourcesJar: true
     gpgJavadocJar: true
