@@ -30,6 +30,7 @@ import com.microsoft.identity.common.java.authorities.CIAMAuthority
 import com.microsoft.identity.common.java.authorities.NativeAuthCIAMAuthority
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
+import com.microsoft.identity.common.java.providers.nativeauth.NativeAuthConstants
 import lombok.Getter
 import lombok.experimental.Accessors
 import java.io.Serializable
@@ -45,7 +46,8 @@ class NativeAuthPublicClientApplicationConfiguration :
     Serializable {
     companion object {
         private val TAG = NativeAuthPublicClientApplicationConfiguration::class.java.simpleName
-        private val VALID_CHALLENGE_TYPES = listOf("password", "oob", "redirect")
+        private val VALID_CHALLENGE_TYPES = listOf(NativeAuthConstants.GrantType.PASSWORD,
+            NativeAuthConstants.GrantType.OOB, NativeAuthConstants.GrantType.REDIRECT)
     }
 
     private object NativeAuthSerializedNames {
@@ -54,12 +56,18 @@ class NativeAuthPublicClientApplicationConfiguration :
         const val DC = "dc"
     }
 
+    //List of challenge types supported by the client.
+    //For a complete list of challenge types see [NativeAuthConstants.GrantType]
     @SerializedName(NativeAuthSerializedNames.CHALLENGE_TYPES)
     private var challengeTypes: List<String>? = null
 
+    //The mock API authority used for testing will be rejected by validation logic run on
+    // instantiation. This flag is used to bypass those checks in various points in the application
     @SerializedName(NativeAuthSerializedNames.USE_REAL_AUTHORITY)
     var useRealAuthority: Boolean? = null
 
+    // Appended to the URL constructed in NativeAuthOAuth2Configuration,
+    // used for making calls to tenants on test slices
     @SerializedName(NativeAuthSerializedNames.DC)
     var dc: String? = null
 
@@ -107,7 +115,7 @@ class NativeAuthPublicClientApplicationConfiguration :
         if (redirectUri != null) {
             super.validateConfiguration()
         } else {
-            LogSession.log(TAG, Logger.LogLevel.WARN, "No redirect URI was passed.")
+            Logger.warn(TAG, "No redirect URI was passed.")
         }
 
         // Enforce that account mode must be "SINGLE"

@@ -38,7 +38,7 @@ import com.microsoft.identity.client.statemachine.UserNotFoundError
 import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager
 import com.microsoft.identity.common.internal.controllers.LocalMSALController
-import com.microsoft.identity.common.internal.controllers.NativeAuthController
+import com.microsoft.identity.common.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.common.internal.net.cache.HttpCache
 import com.microsoft.identity.common.java.authorities.Authority
 import com.microsoft.identity.common.java.cache.ICacheRecord
@@ -92,7 +92,6 @@ class NativeAuthPublicClientApplication(
     private fun initializeApplication() {
         val context = nativeAuthConfig.appContext
 
-        setupTelemetry(context, nativeAuthConfig)
         AzureActiveDirectory.setEnvironment(nativeAuthConfig.environment)
         Authority.addKnownAuthorities(nativeAuthConfig.authorities)
         initializeLoggerSettings(nativeAuthConfig.loggerConfiguration)
