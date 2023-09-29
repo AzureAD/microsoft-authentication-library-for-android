@@ -23,7 +23,6 @@
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.nestedAppAuth;
 
 
-import com.microsoft.identity.client.broker.automationapp.testpass.endshift.AbstractFirstPartyBrokerTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest;
