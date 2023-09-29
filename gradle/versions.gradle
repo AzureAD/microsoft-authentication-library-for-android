@@ -69,7 +69,6 @@ ext {
     yubikitAndroidVersion = "2.3.0"
     yubikitPivVersion = "2.3.0"
     powerliftAndroidVersion="1.0.3"
-    kotlinxSerializationVersion = "1.4.1"
 
     // microsoft-diagnostics-uploader app versions
     powerliftVersion = "0.14.7"
