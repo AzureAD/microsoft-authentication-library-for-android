@@ -1264,6 +1264,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         final String methodTag = TAG + ":initializeApplication";
 
         final Context context = mPublicClientConfiguration.getAppContext();
+        setupTelemetry(context, mPublicClientConfiguration);
 
         AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getEnvironment());
         Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
@@ -1311,6 +1312,21 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         } else {
             throw new IllegalStateException("TSL support mandates use of the MsalOAuth2TokenCache");
         }
+    }
+
+    private static void setupTelemetry(@NonNull final Context context,
+                                         @NonNull final PublicClientApplicationConfiguration developerConfig) {
+        final String methodTag = TAG + ":setupTelemetry";
+        if (null != developerConfig.getTelemetryConfiguration()) {
+            Logger.verbose(methodTag, "Telemetry configuration is set. Telemetry is enabled.");
+        } else {
+            Logger.verbose(methodTag, "Telemetry configuration is null. Telemetry is disabled.");
+        }
+
+        new com.microsoft.identity.common.internal.telemetry.Telemetry.Builder()
+                .withContext(context)
+                .defaultConfiguration(developerConfig.getTelemetryConfiguration())
+                .build();
     }
 
     @Override
@@ -1863,10 +1879,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         final Authority authority;
 
-        if (BuildValues.shouldUseRealAuthority()) {
-            authority = Authority.getAuthorityFromAuthorityUrl(requestAuthority);
-        } else {
+        if (BuildValues.shouldUseMockApiForNativeAuth()) {
             authority = new CIAMAuthority(requestAuthority);
+        } else {
+            authority = Authority.getAuthorityFromAuthorityUrl(requestAuthority);
         }
 
         if (authority instanceof AzureActiveDirectoryB2CAuthority || authority instanceof CIAMAuthority) {

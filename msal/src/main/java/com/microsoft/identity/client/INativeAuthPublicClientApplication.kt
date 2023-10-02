@@ -26,7 +26,7 @@ import com.microsoft.identity.client.exception.MsalException
 
 /**
  * INativeAuthPublicClientApplication provides top level interface that is used by dpp developers
- * to use Native Auth methods
+ * to use Native Auth methods.
  */
 interface INativeAuthPublicClientApplication : IPublicClientApplication {
     /**
@@ -34,12 +34,12 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
      */
     interface INativeAuthApplicationCreatedListener {
         /**
-         * Called once an IMultipleAccountPublicClientApplication is successfully created.
+         * Called once an INativeAuthPublicClientApplication is successfully created.
          */
         fun onCreated(application: INativeAuthPublicClientApplication)
 
         /**
-         * Called once IMultipleAccountPublicClientApplication can't be created.
+         * Called once INativeAuthPublicClientApplication can't be created.
          */
         fun onError(exception: MsalException)
     }

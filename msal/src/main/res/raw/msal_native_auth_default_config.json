@@ -1,4 +1,4 @@
 {
-  "broker_redirect_uri_registered": false,
+  "broker_redirect_uri_registered": true,
   "account_mode": "SINGLE"
 }

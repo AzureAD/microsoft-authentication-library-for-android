@@ -50,8 +50,8 @@ import java.io.IOException
 import java.io.InputStream
 
 /**
- * NativeAuthPublicClientApplicationConfigurationFactory manages the initialisation and loads the
- * configuration from a resource file for NativeAuthClient
+ * NativeAuthPublicClientApplicationConfigurationFactory manages the initialization and loads the
+ * configuration from a resource file for NativeAuthClient.
  */
 class NativeAuthPublicClientApplicationConfigurationFactory :
     PublicClientApplicationConfigurationFactory() {
@@ -189,34 +189,22 @@ class NativeAuthPublicClientApplicationConfigurationFactory :
         ): NativeAuthPublicClientApplicationConfiguration {
             val methodTag = "$TAG:loadConfiguration"
             val buffer: ByteArray
+
             try {
-                buffer = ByteArray(configStream.available())
-                configStream.read(buffer)
+                configStream.use {
+                    buffer = ByteArray(configStream.available())
+                    configStream.read(buffer)
+                }
             } catch (e: IOException) {
                 if (isDefaultConfiguration) {
-                    throw IllegalStateException("Unable to open default native auth configuration file.", e)
+                    throw IllegalStateException(
+                        "Unable to open default native auth configuration file.", e)
                 } else {
-                    throw IllegalArgumentException("Unable to open provided native auth configuration file.", e)
-                }
-            } finally {
-                try {
-                    configStream.close()
-                } catch (e: IOException) {
-                    if (isDefaultConfiguration) {
-                        Logger.warn(
-                            methodTag,
-                            "Unable to close default native auth configuration file. " +
-                                "This can cause memory leak."
-                        )
-                    } else {
-                        Logger.warn(
-                            methodTag,
-                            "Unable to close provided native auth configuration file. " +
-                                "This can cause memory leak."
-                        )
-                    }
+                    throw IllegalArgumentException(
+                        "Unable to open provided native auth configuration file.", e)
                 }
             }
+
             val config = String(buffer)
             val gson = getGsonForLoadingConfiguration()
             return try {

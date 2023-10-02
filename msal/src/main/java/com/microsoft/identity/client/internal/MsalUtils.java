@@ -500,6 +500,8 @@ public final class MsalUtils {
     }
 
     /**
+     * throwOnMainThread throws an [IllegalStateException] exception if it's called from the main
+     * thread. This prevents a developer calling background functions from UI (main) thread.
      * @param methodName
      */
     public static void throwOnMainThread(final String methodName) {
@@ -508,6 +510,10 @@ public final class MsalUtils {
         }
     }
 
+    /**
+     * throwOnMainThread throws an [IllegalStateException] exception if it's called from the main
+     * thread. This prevents a developer calling background functions from UI (main) thread.
+     */
     public static void throwOnMainThread(final BaseException exception) {
         if (Looper.myLooper() == Looper.getMainLooper()) {
             throw new IllegalStateException(exception);

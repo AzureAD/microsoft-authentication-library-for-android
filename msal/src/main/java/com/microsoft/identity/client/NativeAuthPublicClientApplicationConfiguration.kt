@@ -169,16 +169,8 @@ class NativeAuthPublicClientApplicationConfiguration :
             )
         }
 
-        // Enforce that dev cannot set "broker_redirect_uri_registered = true"
-        // This check is technically not necessary, since Native Auth configuration only loads with a
-        // CIAM authority, which does not result in creating a broker controller
-        // Adding it for clarity with devs
-        if (useBroker) {
-            throw MsalClientException(
-                MsalClientException.NATIVE_AUTH_ATTEMPTING_TO_USE_BROKER_ERROR_CODE,
-                MsalClientException.NATIVE_AUTH_ATTEMPTING_TO_USE_BROKER_ERROR_MESSAGE
-            )
-        }
+        // Developers cannot set "broker_redirect_uri_registered = true" so check for broker is not
+        // required.
 
         // Check that challenge types are all valid
         validateChallengeTypes()

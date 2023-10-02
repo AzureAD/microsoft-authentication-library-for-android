@@ -222,14 +222,12 @@ dependencies {
     //see: https://javadoc.io/static/org.mockito/mockito-core/3.6.28/org/mockito/Mockito.html#0.1
     testImplementation "org.mockito:mockito-inline:$rootProject.ext.mockitoCoreVersion"
     testImplementation ("org.robolectric:robolectric:$rootProject.ext.robolectricVersion")
-    testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"
-    testImplementation "org.powermock:powermock-module-junit4:$rootProject.ext.powerMockVersion"
+    testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"    
     testLocalImplementation project(':testutils')
     testDistImplementation("com.microsoft.identity:testutils:0.0+") {
         exclude module: 'common'
         exclude group: 'com.microsoft.identity', module: 'LabApiUtilities'
     }
-    testImplementation "org.powermock:powermock-module-junit4:$rootProject.ext.powerMockVersion"
     testImplementation project(':testutils')
     testImplementation("org.mockito.kotlin:mockito-kotlin:$rootProject.ext.mockitoKotlinVersion") {
         exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib'

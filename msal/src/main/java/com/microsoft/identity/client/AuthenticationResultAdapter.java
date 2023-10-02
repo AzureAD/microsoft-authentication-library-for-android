@@ -35,6 +35,10 @@ import java.util.Set;
 
 import androidx.annotation.NonNull;
 
+/**
+ * AuthenticationResultAdapter is an adapter class that converts results in the form of
+ * [ILocalAuthenticationResult] objects to [IAuthenticationResult] objects.
+ */
 public class AuthenticationResultAdapter {
 
     private static final String TAG = AuthenticationResultAdapter.class.getName();
