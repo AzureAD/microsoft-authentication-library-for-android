@@ -22,10 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.ltw;
 
-import android.util.Log;
-
-import com.microsoft.identity.client.broker.automationapp.testpass.adal.AbstractAdalBrokerTest;
-import com.microsoft.identity.client.broker.automationapp.testpass.adal.Constants;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
