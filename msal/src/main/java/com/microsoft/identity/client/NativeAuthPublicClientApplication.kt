@@ -35,8 +35,17 @@ import com.microsoft.identity.client.statemachine.InvalidPasswordError
 import com.microsoft.identity.client.statemachine.PasswordIncorrectError
 import com.microsoft.identity.client.statemachine.UserAlreadyExistsError
 import com.microsoft.identity.client.statemachine.UserNotFoundError
+import com.microsoft.identity.client.statemachine.results.SignUpResult
+import com.microsoft.identity.client.statemachine.results.SignUpUsingPasswordResult
+import com.microsoft.identity.client.statemachine.states.Callback
+import com.microsoft.identity.client.statemachine.states.SignInAfterSignUpState
+import com.microsoft.identity.client.statemachine.states.SignUpAttributesRequiredState
+import com.microsoft.identity.client.statemachine.states.SignUpCodeRequiredState
+import com.microsoft.identity.client.statemachine.states.SignUpPasswordRequiredState
 import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager
+import com.microsoft.identity.common.internal.commands.GetCurrentAccountCommand
+import com.microsoft.identity.common.internal.commands.SignUpStartCommand
 import com.microsoft.identity.common.internal.controllers.LocalMSALController
 import com.microsoft.identity.common.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.common.internal.net.cache.HttpCache
@@ -45,9 +54,12 @@ import com.microsoft.identity.common.java.cache.ICacheRecord
 import com.microsoft.identity.common.java.commands.CommandCallback
 import com.microsoft.identity.common.java.controllers.CommandDispatcher
 import com.microsoft.identity.common.java.controllers.results.ICommandResult
+import com.microsoft.identity.common.java.controllers.results.SignUpCommandResult
+import com.microsoft.identity.common.java.controllers.results.SignUpStartCommandResult
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.logging.LogSession
+import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.logging.Logger.LogLevel
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory
 import com.microsoft.identity.common.java.util.ResultFuture
@@ -86,6 +98,73 @@ class NativeAuthPublicClientApplication(
         //  To avoid duplicating the code, callback methods are routed through their
         //  coroutine-equivalent through this CoroutineScope.
         val pcaScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+        fun getCurrentAccountInternal(config: NativeAuthPublicClientApplicationConfiguration): IAccount? {
+            LogSession.logMethodCall(TAG, "${TAG}.getCurrentAccountInternal")
+
+            val params = CommandParametersAdapter.createCommandParameters(
+                config,
+                config.oAuth2TokenCache
+            )
+
+            val command = GetCurrentAccountCommand(
+                params,
+                LocalMSALController(),
+                object : CommandCallback<List<ICacheRecord?>?, BaseException?> {
+                    override fun onTaskCompleted(result: List<ICacheRecord?>?) {
+                        // Do nothing, handled by CommandDispatcher.submitSilentReturningFuture()
+                    }
+
+                    override fun onError(error: BaseException?) {
+                        // Do nothing, handled by CommandDispatcher.submitSilentReturningFuture()
+                    }
+
+                    override fun onCancel() {
+                        // Not required
+                    }
+                },
+                PublicApiId.NATIVE_AUTH_GET_ACCOUNT
+            )
+            val result = CommandDispatcher.submitSilentReturningFuture(command)
+                .get().result as List<ICacheRecord?>?
+
+            // To simplify the logic, if more than one account is returned, the first account will be picked.
+            // We do not support switching from MULTIPLE to SINGLE.
+            return getAccountFromICacheRecordsList(result)
+        }
+
+        /**
+         * Get an IAccount from a list of ICacheRecord.
+         *
+         * @param cacheRecords list of cache record that belongs to an account.
+         * If the list can be converted to multiple accounts, only the first one will be returned.
+         */
+        private fun getAccountFromICacheRecordsList(cacheRecords: List<ICacheRecord?>?): IAccount? {
+            LogSession.logMethodCall(TAG, "${TAG}.getAccountFromICacheRecordsList")
+            if (cacheRecords.isNullOrEmpty()) {
+                return null
+            }
+            val account = AccountAdapter.adapt(cacheRecords)
+            if (account.isNullOrEmpty()) {
+                Logger.error(
+                    TAG,
+                    "Returned cacheRecords were adapted into empty or null IAccount list. " +
+                        "This is unexpected in native auth mode." +
+                        "Returning null.",
+                    null
+                )
+                return null
+            }
+            if (account.size != 1) {
+                Logger.warn(
+                    TAG,
+                    "Returned cacheRecords were adapted into multiple IAccount. " +
+                        "This is unexpected in native auth mode." +
+                        "Returning the first adapted account."
+                )
+            }
+            return account[0]
+        }
     }
 
     @Throws(MsalClientException::class)
@@ -111,5 +190,430 @@ class NativeAuthPublicClientApplication(
             NATIVE_AUTH_CREDENTIAL_SHARED_PREFERENCES,
             AndroidAuthSdkStorageEncryptionManager(context)
         )
-    }    
+    }
+
+    interface GetCurrentAccountCallback : Callback<AccountResult?>
+
+    /**
+     * Retrieve the current signed in account from cache; callback variant.
+     *
+     * @param callback [com.microsoft.identity.client.NativeAuthPublicClientApplication.GetCurrentAccountCallback] to receive the result.
+     * @return [com.microsoft.identity.client.statemachine.states.AccountResult] if there is a signed in account, null otherwise.
+     */
+    override fun getCurrentAccount(callback: GetCurrentAccountCallback) {
+        pcaScope.launch {
+            try {
+                val result = getCurrentAccount()
+                callback.onResult(result)
+            } catch (e: MsalException) {
+                callback.onError(e)
+            }
+        }
+    }
+
+    interface SignUpUsingPasswordCallback : Callback<SignUpUsingPasswordResult>
+
+    /**
+     * Sign up the account using username and password; callback variant.
+     *
+     * @param username username of the account to sign up.
+     * @param password password of the account to sign up.
+     * @param attributes (Optional) user attributes to be used during account creation
+     * @param callback [com.microsoft.identity.client.NativeAuthPublicClientApplication.SignUpUsingPasswordCallback] to receive the result.
+     * @return [com.microsoft.identity.client.statemachine.results.SignUpUsingPasswordResult] see detailed possible return state under the object.
+     * @throws MsalClientException if an account is already signed in.
+     */
+    override fun signUpUsingPassword(
+        username: String,
+        password: String,
+        attributes: UserAttributes?,
+        callback: SignUpUsingPasswordCallback
+    ) {
+        LogSession.logMethodCall(TAG, "${TAG}.signUpUsingPassword")
+        pcaScope.launch {
+            try {
+                val result = signUpUsingPassword(username, password, attributes)
+                callback.onResult(result)
+            } catch (e: MsalException) {
+                Logger.error(TAG, "Exception thrown in signUpUsingPassword", e)
+                callback.onError(e)
+            }
+        }
+    }
+
+    /**
+     * Sign up the account using username and password. Kotlin coroutines variant.
+     *
+     * @param username username of the account to sign up.
+     * @param password password of the account to sign up.
+     * @param attributes (Optional) user attributes to be used during account creation
+     * @return [com.microsoft.identity.client.statemachine.results.SignUpUsingPasswordResult] see detailed possible return state under the object.
+     * @throws MsalClientException if an account is already signed in.
+     */
+    override suspend fun signUpUsingPassword(
+        username: String,
+        password: String,
+        attributes: UserAttributes?
+    ): SignUpUsingPasswordResult {
+        LogSession.logMethodCall(TAG, "${TAG}.signUpUsingPassword(username: String, password: String, attributes: UserAttributes?)")
+
+        return withContext(Dispatchers.IO) {
+            val doesAccountExist = checkForPersistedAccount().get()
+            if (doesAccountExist) {
+                throw MsalClientException(
+                    MsalClientException.INVALID_PARAMETER,
+                    "An account is already signed in."
+                )
+            }
+
+            val parameters =
+                CommandParametersAdapter.createSignUpStartUsingPasswordCommandParameters(
+                    nativeAuthConfig,
+                    nativeAuthConfig.oAuth2TokenCache,
+                    username,
+                    password,
+                    attributes?.toMap()
+                )
+
+            val command = SignUpStartCommand(
+                parameters,
+                NativeAuthMsalController(),
+                PublicApiId.NATIVE_AUTH_SIGN_UP_START_WITH_PASSWORD
+            )
+
+            val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
+
+            return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<SignUpStartCommandResult>()) {
+                is SignUpCommandResult.AuthNotSupported -> {
+                    SignUpUsingPasswordResult.AuthNotSupported(
+                        error = GeneralError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId
+                        )
+                    )
+                }
+
+                is SignUpCommandResult.InvalidPassword -> {
+                    SignUpResult.InvalidPassword(
+                        InvalidPasswordError(
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
+                        )
+                    )
+                }
+
+                is SignUpCommandResult.AttributesRequired -> {
+                    SignUpResult.AttributesRequired(
+                        nextState = SignUpAttributesRequiredState(
+                            flowToken = result.signupToken,
+                            username = username,
+                            config = nativeAuthConfig
+                        ),
+                        requiredAttributes = result.requiredAttributes.toListOfRequiredUserAttribute()
+                    )
+                }
+
+                is SignUpCommandResult.CodeRequired -> {
+                    SignUpResult.CodeRequired(
+                        nextState = SignUpCodeRequiredState(
+                            flowToken = result.signupToken,
+                            username = username,
+                            config = nativeAuthConfig
+                        ),
+                        codeLength = result.codeLength,
+                        sentTo = result.challengeTargetLabel,
+                        channel = result.challengeChannel,
+                    )
+                }
+
+                is SignUpCommandResult.UsernameAlreadyExists -> {
+                    SignUpResult.UserAlreadyExists(
+                        error = UserAlreadyExistsError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId
+                        )
+                    )
+                }
+
+                is SignUpCommandResult.InvalidEmail -> {
+                    SignUpResult.InvalidEmail(
+                        error = InvalidEmailError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId
+                        )
+                    )
+                }
+
+                is SignUpCommandResult.InvalidAttributes -> {
+                    SignUpResult.InvalidAttributes(
+                        error = InvalidAttributesError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId
+                        ),
+                        invalidAttributes = result.invalidAttributes
+                    )
+                }
+
+                is SignUpCommandResult.Complete -> {
+                    SignUpResult.Complete(
+                        nextState = SignInAfterSignUpState(
+                            signInVerificationCode = result.signInSLT,
+                            username = username,
+                            config = nativeAuthConfig
+                        )
+                    )
+                }
+
+                is ICommandResult.Redirect -> {
+                    SignUpResult.BrowserRequired(
+                        error = BrowserRequiredError(
+                            correlationId = result.correlationId
+                        )
+                    )
+                }
+
+                is ICommandResult.UnknownError -> {
+                    SignUpResult.UnexpectedError(
+                        error = GeneralError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId,
+                            details = result.details,
+                            exception = result.exception
+                        )
+                    )
+                }
+
+                is SignUpCommandResult.PasswordRequired -> {
+                    Logger.warn(
+                        TAG,
+                        "Unexpected result $result"
+                    )
+                    SignUpResult.UnexpectedError(
+                        error = GeneralError(
+                            errorMessage = "Unexpected state",
+                            error = "unexpected_state",
+                            correlationId = "UNSET"
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    interface SignUpCallback : Callback<SignUpResult>
+
+    /**
+     * Sign up the account starting from a username; callback variant.
+     *
+     * @param username username of the account to sign up.
+     * @param attributes (Optional) user attributes to be used during account creation.
+     * @param callback [com.microsoft.identity.client.NativeAuthPublicClientApplication.SignUpCallback] to receive the result.
+     * @return [com.microsoft.identity.client.statemachine.results.SignUpResult] see detailed possible return state under the object.
+     * @throws MsalClientException if an account is already signed in.
+     */
+    override fun signUp(
+        username: String,
+        attributes: UserAttributes?,
+        callback: SignUpCallback
+    ) {
+        LogSession.logMethodCall(TAG, "${TAG}.signUp")
+
+        pcaScope.launch {
+            try {
+                val result = signUp(username, attributes)
+                callback.onResult(result)
+            } catch (e: MsalException) {
+                Logger.error(TAG, "Exception thrown in signUp", e)
+                callback.onError(e)
+            }
+        }
+    }
+
+    /**
+     * Sign up the account starting from a username; Kotlin coroutines variant.
+     *
+     * @param username username of the account to sign up.
+     * @param attributes (Optional) user attributes to be used during account creation.
+     * @return [com.microsoft.identity.client.statemachine.results.SignUpResult] see detailed possible return state under the object.
+     * @throws MsalClientException if an account is already signed in.
+     */
+    override suspend fun signUp(
+        username: String,
+        attributes: UserAttributes?
+    ): SignUpResult {
+        LogSession.logMethodCall(TAG, "${TAG}.signUp(username: String, attributes: UserAttributes?)")
+
+        return withContext(Dispatchers.IO) {
+            val doesAccountExist = checkForPersistedAccount().get()
+            if (doesAccountExist) {
+                throw MsalClientException(
+                    MsalClientException.INVALID_PARAMETER,
+                    "An account is already signed in."
+                )
+            }
+
+            val parameters =
+                CommandParametersAdapter.createSignUpStartCommandParameters(
+                    nativeAuthConfig,
+                    nativeAuthConfig.oAuth2TokenCache,
+                    username,
+                    attributes?.userAttributes
+                )
+
+            val command = SignUpStartCommand(
+                parameters,
+                NativeAuthMsalController(),
+                PublicApiId.NATIVE_AUTH_SIGN_UP_START
+            )
+            val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
+
+            return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<SignUpStartCommandResult>()) {
+                is SignUpCommandResult.AttributesRequired -> {
+                    SignUpResult.AttributesRequired(
+                        nextState = SignUpAttributesRequiredState(
+                            flowToken = result.signupToken,
+                            username = username,
+                            config = nativeAuthConfig
+                        ),
+                        requiredAttributes = result.requiredAttributes.toListOfRequiredUserAttribute()
+                    )
+                }
+
+                is SignUpCommandResult.CodeRequired -> {
+                    SignUpResult.CodeRequired(
+                        nextState = SignUpCodeRequiredState(
+                            flowToken = result.signupToken,
+                            username = username,
+                            config = nativeAuthConfig
+                        ),
+                        codeLength = result.codeLength,
+                        sentTo = result.challengeTargetLabel,
+                        channel = result.challengeChannel,
+                    )
+                }
+
+                is SignUpCommandResult.UsernameAlreadyExists -> {
+                    SignUpResult.UserAlreadyExists(
+                        error = UserAlreadyExistsError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId
+                        )
+                    )
+                }
+
+                is SignUpCommandResult.InvalidEmail -> {
+                    SignUpResult.InvalidEmail(
+                        error = InvalidEmailError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId
+                        )
+                    )
+                }
+
+                is SignUpCommandResult.InvalidAttributes -> {
+                    SignUpResult.InvalidAttributes(
+                        error = InvalidAttributesError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId
+                        ),
+                        invalidAttributes = result.invalidAttributes
+                    )
+                }
+
+                is SignUpCommandResult.PasswordRequired -> {
+                    SignUpResult.PasswordRequired(
+                        nextState = SignUpPasswordRequiredState(
+                            flowToken = result.signupToken,
+                            username = username,
+                            config = nativeAuthConfig
+                        )
+                    )
+                }
+
+                is SignUpCommandResult.Complete -> {
+                    SignUpResult.Complete(
+                        nextState = SignInAfterSignUpState(
+                            signInVerificationCode = result.signInSLT,
+                            username = username,
+                            config = nativeAuthConfig
+                        )
+                    )
+                }
+
+                is ICommandResult.Redirect -> {
+                    SignUpResult.BrowserRequired(
+                        error = BrowserRequiredError(
+                            correlationId = result.correlationId
+                        )
+                    )
+                }
+
+                is ICommandResult.UnknownError -> {
+                    SignUpResult.UnexpectedError(
+                        error = GeneralError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId,
+                            details = result.details,
+                            exception = result.exception
+                        )
+                    )
+                }
+
+                is SignUpCommandResult.InvalidPassword -> {
+                    Logger.warn(
+                        TAG,
+                        "Unexpected result $result"
+                    )
+                    SignUpResult.UnexpectedError(
+                        error = GeneralError(
+                            errorMessage = "Unexpected state",
+                            error = "unexpected_state",
+                            correlationId = result.correlationId
+                        )
+                    )
+                }
+
+                is SignUpCommandResult.AuthNotSupported -> {
+                    Logger.warn(
+                        TAG,
+                        "Unexpected result $result"
+                    )
+                    SignUpResult.UnexpectedError(
+                        error = GeneralError(
+                            errorMessage = "Unexpected state",
+                            error = "unexpected_state",
+                            correlationId = result.correlationId
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    private fun checkForPersistedAccount(): ResultFuture<Boolean> {
+        LogSession.logMethodCall(TAG, "${TAG}.checkForPersistedAccount")
+        val future = ResultFuture<Boolean>()
+        getCurrentAccount(object : GetCurrentAccountCallback {
+            override fun onResult(result: AccountResult?) {
+                future.setResult(result != null)
+            }
+
+            override fun onError(exception: BaseException) {
+                Logger.error(TAG, "Exception thrown in checkForPersistedAccount", exception)
+                future.setException(exception)
+            }
+        })
+
+        return future
+    }
 }
