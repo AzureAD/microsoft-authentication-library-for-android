@@ -61,7 +61,7 @@ public class TestCase2579095 extends AbstractMsalBrokerTest {
             final OneAuthTestApp oldOneAuthTestApp = new OneAuthTestApp();
             oldOneAuthTestApp.installOldApk();
             oldOneAuthTestApp.launch();
-            oldOneAuthTestApp.handleFirstRun();
+            handleOneAuthTestAppFirstRunCorrectly(oldOneAuthTestApp);
 
             // acquire token interactively on OneAuthTestApp
             final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()

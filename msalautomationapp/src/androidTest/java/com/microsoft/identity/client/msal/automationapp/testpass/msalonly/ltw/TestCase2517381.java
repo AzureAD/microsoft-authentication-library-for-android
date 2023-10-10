@@ -26,13 +26,10 @@ import android.text.TextUtils;
 
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
-import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
-import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
 import com.microsoft.identity.client.ui.automation.app.OneAuthTestApp;
-import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
@@ -78,7 +75,7 @@ public class TestCase2517381 extends AbstractMsalUiTest {
                 .howWouldYouLikeToSignInExpected(false)
                 .build();
 
-        String token = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal,true);
+        String token = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, mBrowser, true, true);
         Assert.assertNotNull(token);
 
         // then acquire token silently and validate the token

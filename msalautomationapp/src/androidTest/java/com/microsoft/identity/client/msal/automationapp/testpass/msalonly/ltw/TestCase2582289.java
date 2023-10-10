@@ -25,7 +25,6 @@ package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.ltw;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
@@ -84,7 +83,7 @@ public class TestCase2582289 extends AbstractMsalBrokerTest {
         oneAuthTestApp.uninstall();
         oneAuthTestApp.installOldApk();
         oneAuthTestApp.launch();
-        oneAuthTestApp.handleFirstRun();
+        handleOneAuthTestAppFirstRunCorrectly(oneAuthTestApp);
 
         // Enter username in AccountName textbox
         oneAuthTestApp.handleUserNameInput(username);

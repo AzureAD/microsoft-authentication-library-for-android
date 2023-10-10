@@ -56,7 +56,7 @@ public class TestCase2571361 extends AbstractMsalBrokerTest {
         final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
         oneAuthTestApp.install();
         oneAuthTestApp.launch();
-        oneAuthTestApp.handleFirstRun();
+        handleOneAuthTestAppFirstRunCorrectly(oneAuthTestApp);
 
         final FirstPartyAppPromptHandlerParameters promptHandlerParameters = FirstPartyAppPromptHandlerParameters.builder()
                 .broker(mBroker)
