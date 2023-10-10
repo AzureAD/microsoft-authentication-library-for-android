@@ -35,8 +35,16 @@ import com.microsoft.identity.client.statemachine.InvalidPasswordError
 import com.microsoft.identity.client.statemachine.PasswordIncorrectError
 import com.microsoft.identity.client.statemachine.UserAlreadyExistsError
 import com.microsoft.identity.client.statemachine.UserNotFoundError
+import com.microsoft.identity.client.statemachine.results.SignInResult
+import com.microsoft.identity.client.statemachine.results.SignInUsingPasswordResult
+import com.microsoft.identity.client.statemachine.states.AccountResult
+import com.microsoft.identity.client.statemachine.states.Callback
+import com.microsoft.identity.client.statemachine.states.SignInCodeRequiredState
+import com.microsoft.identity.client.statemachine.states.SignInPasswordRequiredState
 import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager
+import com.microsoft.identity.common.internal.commands.GetCurrentAccountCommand
+import com.microsoft.identity.common.internal.commands.SignInStartCommand
 import com.microsoft.identity.common.internal.controllers.LocalMSALController
 import com.microsoft.identity.common.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.common.internal.net.cache.HttpCache
@@ -45,10 +53,12 @@ import com.microsoft.identity.common.java.cache.ICacheRecord
 import com.microsoft.identity.common.java.commands.CommandCallback
 import com.microsoft.identity.common.java.controllers.CommandDispatcher
 import com.microsoft.identity.common.java.controllers.results.ICommandResult
+import com.microsoft.identity.common.java.controllers.results.SignInCommandResult
+import com.microsoft.identity.common.java.controllers.results.SignInStartCommandResult
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.logging.LogSession
-import com.microsoft.identity.common.java.logging.Logger.LogLevel
+import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory
 import com.microsoft.identity.common.java.util.ResultFuture
 import com.microsoft.identity.common.java.util.checkAndWrapCommandResultType
@@ -86,6 +96,73 @@ class NativeAuthPublicClientApplication(
         //  To avoid duplicating the code, callback methods are routed through their
         //  coroutine-equivalent through this CoroutineScope.
         val pcaScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+        fun getCurrentAccountInternal(config: NativeAuthPublicClientApplicationConfiguration): IAccount? {
+            LogSession.logMethodCall(TAG, "${TAG}.getCurrentAccountInternal")
+
+            val params = CommandParametersAdapter.createCommandParameters(
+                config,
+                config.oAuth2TokenCache
+            )
+
+            val command = GetCurrentAccountCommand(
+                params,
+                LocalMSALController(),
+                object : CommandCallback<List<ICacheRecord?>?, BaseException?> {
+                    override fun onTaskCompleted(result: List<ICacheRecord?>?) {
+                        // Do nothing, handled by CommandDispatcher.submitSilentReturningFuture()
+                    }
+
+                    override fun onError(error: BaseException?) {
+                        // Do nothing, handled by CommandDispatcher.submitSilentReturningFuture()
+                    }
+
+                    override fun onCancel() {
+                        // Not required
+                    }
+                },
+                PublicApiId.NATIVE_AUTH_GET_ACCOUNT
+            )
+            val result = CommandDispatcher.submitSilentReturningFuture(command)
+                .get().result as List<ICacheRecord?>?
+
+            // To simplify the logic, if more than one account is returned, the first account will be picked.
+            // We do not support switching from MULTIPLE to SINGLE.
+            return getAccountFromICacheRecordsList(result)
+        }
+
+        /**
+         * Get an IAccount from a list of ICacheRecord.
+         *
+         * @param cacheRecords list of cache record that belongs to an account.
+         * If the list can be converted to multiple accounts, only the first one will be returned.
+         */
+        private fun getAccountFromICacheRecordsList(cacheRecords: List<ICacheRecord?>?): IAccount? {
+            LogSession.logMethodCall(TAG, "${TAG}.getAccountFromICacheRecordsList")
+            if (cacheRecords.isNullOrEmpty()) {
+                return null
+            }
+            val account = AccountAdapter.adapt(cacheRecords)
+            if (account.isNullOrEmpty()) {
+                Logger.error(
+                    TAG,
+                    "Returned cacheRecords were adapted into empty or null IAccount list. " +
+                        "This is unexpected in native auth mode." +
+                        "Returning null.",
+                    null
+                )
+                return null
+            }
+            if (account.size != 1) {
+                Logger.warn(
+                    TAG,
+                    "Returned cacheRecords were adapted into multiple IAccount. " +
+                        "This is unexpected in native auth mode." +
+                        "Returning the first adapted account."
+                )
+            }
+            return account[0]
+        }
     }
 
     @Throws(MsalClientException::class)
@@ -111,5 +188,375 @@ class NativeAuthPublicClientApplication(
             NATIVE_AUTH_CREDENTIAL_SHARED_PREFERENCES,
             AndroidAuthSdkStorageEncryptionManager(context)
         )
-    }    
+    }
+
+    interface GetCurrentAccountCallback : Callback<AccountResult?>
+
+    /**
+     * Retrieve the current signed in account from cache; callback variant.
+     *
+     * @param callback [com.microsoft.identity.client.NativeAuthPublicClientApplication.GetCurrentAccountCallback] to receive the result.
+     * @return [com.microsoft.identity.client.statemachine.states.AccountResult] if there is a signed in account, null otherwise.
+     */
+    override fun getCurrentAccount(callback: GetCurrentAccountCallback) {
+        pcaScope.launch {
+            try {
+                val result = getCurrentAccount()
+                callback.onResult(result)
+            } catch (e: MsalException) {
+                callback.onError(e)
+            }
+        }
+    }
+
+    /**
+     * Retrieve the current signed in account from cache; Kotlin coroutines variant.
+     *
+     * @return [com.microsoft.identity.client.statemachine.states.AccountResult] if there is a signed in account, null otherwise.
+     */
+    override suspend fun getCurrentAccount(): AccountResult? {
+        return withContext(Dispatchers.IO) {
+            val account = getCurrentAccountInternal(nativeAuthConfig)
+            return@withContext if (account != null) {
+                AccountResult.createFromAccountResult(
+                    account = account,
+                    config = nativeAuthConfig
+                )
+            } else {
+                null
+            }
+        }
+    }
+
+    interface SignInCallback : Callback<SignInResult>
+
+    /**
+     * Sign in a user with a given username; callback variant.
+     *
+     * @param username username of the account to sign in.
+     * @param scopes (Optional) scopes to request during the sign in.
+     * @param callback [com.microsoft.identity.client.NativeAuthPublicClientApplication.SignInCallback] to receive the result.
+     * @return [com.microsoft.identity.client.statemachine.results.SignInResult] see detailed possible return state under the object.
+     * @throws [MsalException] if an account is already signed in.
+     */
+    override fun signIn(username: String, scopes: List<String>?, callback: SignInCallback) {
+        LogSession.logMethodCall(TAG, "${TAG}.signIn(username: String, scopes: List<String>?, callback: SignInCallback)")
+        pcaScope.launch {
+            try {
+                val result = signIn(username, scopes)
+                callback.onResult(result)
+            } catch (e: MsalException) {
+                Logger.error(TAG, "Exception thrown in signIn", e)
+                callback.onError(e)
+            }
+        }
+    }
+
+    /**
+     * Sign in a user with a given username; Kotlin coroutines variant.
+     *
+     * @param username username of the account to sign in.
+     * @param scopes (Optional) scopes to request during the sign in.
+     * @return [com.microsoft.identity.client.statemachine.results.SignInResult] see detailed possible return state under the object.
+     * @throws [MsalException] if an account is already signed in.
+     */
+    override suspend fun signIn(
+        username: String,
+        scopes: List<String>?
+    ): SignInResult {
+        return withContext(Dispatchers.IO) {
+            LogSession.logMethodCall(TAG, "${TAG}.signIn")
+
+            val doesAccountExist = checkForPersistedAccount().get()
+            if (doesAccountExist) {
+                Logger.error(
+                    TAG,
+                    "An account is already signed in.",
+                    null
+                )
+                throw MsalClientException(
+                    MsalClientException.INVALID_PARAMETER,
+                    "An account is already signed in."
+                )
+            }
+
+            val params = CommandParametersAdapter.createSignInStartCommandParameters(
+                nativeAuthConfig,
+                nativeAuthConfig.oAuth2TokenCache,
+                username
+            )
+
+            val command = SignInStartCommand(
+                params,
+                NativeAuthMsalController(),
+                PublicApiId.NATIVE_AUTH_SIGN_IN_WITH_EMAIL
+            )
+
+            val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
+
+            return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<SignInStartCommandResult>()) {
+                is SignInCommandResult.CodeRequired -> {
+                    SignInResult.CodeRequired(
+                        nextState = SignInCodeRequiredState(
+                            flowToken = result.credentialToken,
+                            scopes = scopes,
+                            config = nativeAuthConfig
+                        ),
+                        codeLength = result.codeLength,
+                        sentTo = result.challengeTargetLabel,
+                        channel = result.challengeChannel
+                    )
+                }
+                is ICommandResult.UnknownError -> {
+                    SignInResult.UnexpectedError(
+                        error = GeneralError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId,
+                            details = result.details,
+                            errorCodes = result.errorCodes,
+                            exception = result.exception
+                        )
+                    )
+                }
+                is SignInCommandResult.UserNotFound -> {
+                    SignInResult.UserNotFound(
+                        error = UserNotFoundError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes
+                        )
+                    )
+                }
+                is SignInCommandResult.PasswordRequired -> {
+                    SignInResult.PasswordRequired(
+                        nextState = SignInPasswordRequiredState(
+                            flowToken = result.credentialToken,
+                            scopes = scopes,
+                            config = nativeAuthConfig
+                        )
+                    )
+                }
+                is SignInCommandResult.InvalidCredentials -> {
+                    Logger.warn(
+                        TAG,
+                        "Unexpected result $result"
+                    )
+                    SignInResult.UnexpectedError(
+                        error = GeneralError(
+                            errorMessage = "Unexpected state",
+                            error = "unexpected_state",
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes
+                        )
+                    )
+                }
+                is SignInCommandResult.Complete -> {
+                    Logger.warn(
+                        TAG,
+                        "Unexpected result $result"
+                    )
+                    SignInResult.UnexpectedError(
+                        error = GeneralError(
+                            errorMessage = "Unexpected state",
+                            error = "unexpected_state",
+                            correlationId = "UNSET"
+                        )
+                    )
+                }
+                is ICommandResult.Redirect -> {
+                    SignInResult.BrowserRequired(
+                        error = BrowserRequiredError(
+                            correlationId = result.correlationId
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    interface SignInUsingPasswordCallback : Callback<SignInUsingPasswordResult>
+
+    /**
+     * Sign in the account using username and password; callback variant.
+     *
+     * @param username username of the account to sign in.
+     * @param password password of the account to sign in.
+     * @param scopes (Optional) list of scopes to request.
+     * @param callback [com.microsoft.identity.client.NativeAuthPublicClientApplication.SignInUsingPasswordCallback] to receive the result.
+     * @return [com.microsoft.identity.client.statemachine.results.SignInUsingPasswordResult] see detailed possible return state under the object.
+     * @throws MsalClientException if an account is already signed in.
+     */
+    override fun signInUsingPassword(
+        username: String,
+        password: String,
+        scopes: List<String>?,
+        callback: SignInUsingPasswordCallback
+    ) {
+        LogSession.logMethodCall(TAG, "${TAG}.signIn(username: String, password: String, scopes: List<String>?, callback: SignInUsingPasswordCallback)")
+        pcaScope.launch {
+            try {
+                val result = signInUsingPassword(username, password, scopes)
+                callback.onResult(result)
+            } catch (e: MsalException) {
+                Logger.error(TAG, "Exception thrown in signInUsingPassword", e)
+                callback.onError(e)
+            }
+        }
+    }
+
+    /**
+     * Sign in the account using username and password; Kotlin coroutines variant.
+     *
+     * @param username username of the account to sign in.
+     * @param password password of the account to sign in.
+     * @param scopes (Optional) list of scopes to request.
+     * @return [com.microsoft.identity.client.statemachine.results.SignInUsingPasswordResult] see detailed possible return state under the object.
+     * @throws MsalClientException if an account is already signed in.
+     */
+    override suspend fun signInUsingPassword(
+        username: String,
+        password: String,
+        scopes: List<String>?
+    ): SignInUsingPasswordResult {
+        LogSession.logMethodCall(TAG, "${TAG}.signInUsingPassword")
+        return withContext(Dispatchers.IO) {
+            LogSession.logMethodCall(TAG, "${TAG}.signInUsingPassword.withContext")
+
+            val doesAccountExist = checkForPersistedAccount().get()
+            if (doesAccountExist) {
+                Logger.error(
+                    TAG,
+                    "An account is already signed in.",
+                    null
+                )
+                throw MsalClientException(
+                    MsalClientException.INVALID_PARAMETER,
+                    "An account is already signed in."
+                )
+            }
+
+            val params =
+                CommandParametersAdapter.createSignInStartUsingPasswordCommandParameters(
+                    nativeAuthConfig,
+                    nativeAuthConfig.oAuth2TokenCache,
+                    username,
+                    password,
+                    scopes
+                )
+
+            val command = SignInStartCommand(
+                params,
+                NativeAuthMsalController(),
+                PublicApiId.NATIVE_AUTH_SIGN_IN_WITH_EMAIL_PASSWORD
+            )
+
+            val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
+
+            return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<SignInStartCommandResult>()) {
+                is SignInCommandResult.Complete -> {
+                    val authenticationResult =
+                        AuthenticationResultAdapter.adapt(result.authenticationResult)
+
+                    SignInResult.Complete(
+                        resultValue = AccountResult.createFromAuthenticationResult(
+                            authenticationResult,
+                            nativeAuthConfig
+                        )
+                    )
+                }
+                is SignInCommandResult.CodeRequired -> {
+                    Logger.warn(
+                        TAG,
+                        "Sign in with password flow was started, but server requires" +
+                            "a code. Password was not sent to the API; switching to code " +
+                            "authentication."
+                    )
+                    SignInResult.CodeRequired(
+                        nextState = SignInCodeRequiredState(
+                            flowToken = result.credentialToken,
+                            scopes = scopes,
+                            config = nativeAuthConfig
+                        ),
+                        codeLength = result.codeLength,
+                        sentTo = result.challengeTargetLabel,
+                        channel = result.challengeChannel
+                    )
+                }
+                is SignInCommandResult.UserNotFound -> {
+                    SignInResult.UserNotFound(
+                        error = UserNotFoundError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes
+                        )
+                    )
+                }
+
+                is SignInCommandResult.InvalidCredentials -> {
+                    SignInResult.InvalidCredentials(
+                        error = PasswordIncorrectError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes
+                        )
+                    )
+                }
+
+                is ICommandResult.Redirect -> {
+                    SignInResult.BrowserRequired(
+                        error = BrowserRequiredError(
+                            correlationId = result.correlationId
+                        )
+                    )
+                }
+
+                is ICommandResult.UnknownError -> {
+                    SignInResult.UnexpectedError(
+                        error = GeneralError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId,
+                            details = result.details,
+                            errorCodes = result.errorCodes,
+                            exception = result.exception
+                        )
+                    )
+                }
+                is SignInCommandResult.PasswordRequired -> {
+                    Logger.warn(
+                        TAG,
+                        "Unexpected result $result"
+                    )
+                    SignInResult.UnexpectedError(
+                        error = GeneralError(
+                            errorMessage = "Unexpected state",
+                            error = "unexpected_state",
+                            correlationId = "UNSET"
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    private fun checkForPersistedAccount(): ResultFuture<Boolean> {
+        LogSession.logMethodCall(TAG, "${TAG}.checkForPersistedAccount")
+        val future = ResultFuture<Boolean>()
+        getCurrentAccount(object : GetCurrentAccountCallback {
+            override fun onResult(result: AccountResult?) {
+                future.setResult(result != null)
+            }
+
+            override fun onError(exception: BaseException) {
+                Logger.error(TAG, "Exception thrown in checkForPersistedAccount", exception)
+                future.setException(exception)
+            }
+        })
+
+        return future
+    }
 }

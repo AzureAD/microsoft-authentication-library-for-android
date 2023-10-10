@@ -23,9 +23,12 @@
 package com.microsoft.identity.client
 
 import com.microsoft.identity.client.exception.MsalException
+import com.microsoft.identity.client.statemachine.results.SignInResult
+import com.microsoft.identity.client.statemachine.results.SignInUsingPasswordResult
+import com.microsoft.identity.client.statemachine.states.AccountResult
 
 /**
- * INativeAuthPublicClientApplication provides top level interface that is used by dpp developers
+ * INativeAuthPublicClientApplication provides top level interface that is used by app developers
  * to use Native Auth methods.
  */
 interface INativeAuthPublicClientApplication : IPublicClientApplication {
@@ -43,4 +46,16 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
          */
         fun onError(exception: MsalException)
     }
+
+    suspend fun getCurrentAccount(): AccountResult?
+
+    fun getCurrentAccount(callback: NativeAuthPublicClientApplication.GetCurrentAccountCallback)
+
+    suspend fun signIn(username: String, scopes: List<String>? = null): SignInResult
+
+    fun signIn(username: String, scopes: List<String>? = null, callback: NativeAuthPublicClientApplication.SignInCallback)
+
+    suspend fun signInUsingPassword(username: String, password: String, scopes: List<String>? = null): SignInUsingPasswordResult
+
+    fun signInUsingPassword(username: String, password: String, scopes: List<String>? = null, callback: NativeAuthPublicClientApplication.SignInUsingPasswordCallback)
 }
