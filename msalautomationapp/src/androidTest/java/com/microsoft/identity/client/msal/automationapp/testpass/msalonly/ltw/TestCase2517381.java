@@ -120,7 +120,6 @@ public class TestCase2517381 extends AbstractMsalUiTest {
         msalTestApp.handleFirstRun();
 
         // acquire token interactively and silently without prompting for creds
-        msalTestApp.handleUserNameInput(username);
         final String tokenAfterUpdatedMsal = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, false);
         Assert.assertNotNull(tokenAfterUpdatedMsal);
 
@@ -134,8 +133,8 @@ public class TestCase2517381 extends AbstractMsalUiTest {
 
         // acquire token without prompting for creds
         oneAuthApp.handleUserNameInput(username);
-        oneAuthApp.selectFromAppConfiguration("com.microsoft.identity.LabsApi.Guest");
         oneAuthApp.handlePreferBrokerSwitchButton();
+        oneAuthApp.selectFromAppConfiguration("com.microsoft.identity.LabsApi.Guest");
         oneAuthApp.handleSignInWithoutPrompt();
 
         oneAuthApp.handleBackButton();
