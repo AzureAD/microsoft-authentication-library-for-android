@@ -50,6 +50,8 @@ public class TestCase2571345 extends AbstractMsalBrokerTest {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
+        mBroker.install();
+
         // Install new OneAuthTestApp
         final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
         oneAuthTestApp.uninstall();
