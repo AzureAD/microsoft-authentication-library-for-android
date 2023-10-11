@@ -57,6 +57,7 @@ public class TestCase2572249 extends AbstractMsalBrokerTest {
 
         // acquire token interactively in MsalTestApp
         final MsalTestApp msalTestApp = new MsalTestApp();
+        msalTestApp.uninstall();
         msalTestApp.install();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
@@ -88,6 +89,7 @@ public class TestCase2572249 extends AbstractMsalBrokerTest {
 
         // install OneAuthTestApp
         final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
+        oneAuthTestApp.uninstall();
         oneAuthTestApp.install();
         oneAuthTestApp.launch();
         handleOneAuthTestAppFirstRunCorrectly(oneAuthTestApp);

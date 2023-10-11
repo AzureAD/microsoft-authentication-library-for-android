@@ -84,6 +84,7 @@ public class TestCase2517381 extends AbstractMsalUiTest {
 
         // install old OneAuthTestApp then acquires token interactively and silently
         final OneAuthTestApp oneAuthApp = new OneAuthTestApp();
+        oneAuthApp.uninstall();
         oneAuthApp.installOldApk();
         oneAuthApp.launch();
         try {
