@@ -22,6 +22,11 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.ltw;
 
+import static com.microsoft.identity.client.ui.automation.utils.CommonUtils.FIND_UI_ELEMENT_TIMEOUT;
+
+import androidx.test.uiautomator.UiObject;
+import androidx.test.uiautomator.UiScrollable;
+import androidx.test.uiautomator.UiSelector;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
@@ -32,6 +37,7 @@ import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
+import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
@@ -121,7 +127,13 @@ public class TestCase2582290 extends AbstractMsalBrokerTest {
 
         // Click on "Remove User" button
         // UI updated with message "The account is successfully removed"
-        final String removeUserMessage = msalTestApp.removeUser();
+        final UiObject removeUserButton = UiAutomatorUtils.obtainUiObjectWithResourceId("com.msft.identity.client.sample.local:id/btn_clearCache");
+        UiScrollable scrollable = new UiScrollable(new UiSelector().scrollable(true));
+        scrollable.scrollIntoView(removeUserButton);
+        removeUserButton.waitForExists(FIND_UI_ELEMENT_TIMEOUT);
+        removeUserButton.click();
+        final UiObject textView = UiAutomatorUtils.obtainUiObjectWithResourceId("com.msft.identity.client.sample.local:id/status");
+        final String removeUserMessage = textView.getText();
         Assert.assertEquals("The account is successfully removed.", removeUserMessage);
 
         // Install updated oneAuthTestApp
