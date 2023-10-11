@@ -23,7 +23,6 @@
 package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.ltw;
 
 import android.text.TextUtils;
-
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
@@ -35,7 +34,6 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
-
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -52,6 +50,7 @@ public class TestCase2517381 extends AbstractMsalUiTest {
 
         // install old MsalTestApp then acquires token interactively and silently
         MsalTestApp msalTestApp = new MsalTestApp();
+        msalTestApp.uninstall();
         msalTestApp.installOldApk();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
