@@ -53,7 +53,7 @@ public class TestCase2571508  extends AbstractMsalBrokerTest {
 
         // Install old LTW
         final BrokerLTW oldLTW = new BrokerLTW(BrokerLTW.OLD_BROKER_LTW_APK, BrokerLTW.OLD_BROKER_LTW_APK);
-        oldLTW.installOldApk();
+        oldLTW.install();
 
         // AcquireToken interactively on OneAuthTestApp
         final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
