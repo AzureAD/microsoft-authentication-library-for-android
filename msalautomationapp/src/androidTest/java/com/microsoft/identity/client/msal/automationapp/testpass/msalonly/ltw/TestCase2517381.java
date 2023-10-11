@@ -25,6 +25,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.ltw;
 import android.text.TextUtils;
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
+import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
@@ -41,12 +42,14 @@ import org.junit.Test;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2517381
 @LTWTests
 @RunOnAPI29Minus
-public class TestCase2517381 extends AbstractMsalUiTest {
+public class TestCase2517381 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_2517381 () throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
+
+        mBroker.uninstall();
 
         // install old MsalTestApp then acquires token interactively and silently
         MsalTestApp msalTestApp = new MsalTestApp();
@@ -92,7 +95,7 @@ public class TestCase2517381 extends AbstractMsalUiTest {
         } catch (InterruptedException e){
             e.printStackTrace();
         }
-        oneAuthApp.handleFirstRun();
+        handleOneAuthTestAppFirstRunCorrectly(oneAuthApp);
 
         final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
                 .broker(null)
