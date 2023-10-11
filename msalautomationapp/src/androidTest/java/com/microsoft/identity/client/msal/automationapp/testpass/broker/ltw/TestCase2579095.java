@@ -54,7 +54,7 @@ public class TestCase2579095 extends AbstractMsalBrokerTest {
 
             // install legacy company portal
             final BrokerCompanyPortal brokerCompanyPortal = new BrokerCompanyPortal(BrokerCompanyPortal.OLD_COMPANY_PORTAL_APK,
-                    BrokerCompanyPortal.COMPANY_PORTAL_APK);
+                    BrokerCompanyPortal.OLD_COMPANY_PORTAL_APK);
             brokerCompanyPortal.install();
 
             // install old OneAuthTestApp
