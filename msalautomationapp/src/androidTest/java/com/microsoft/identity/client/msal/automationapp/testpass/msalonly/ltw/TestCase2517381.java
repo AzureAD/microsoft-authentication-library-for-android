@@ -33,6 +33,7 @@ import com.microsoft.identity.client.ui.automation.app.OneAuthTestApp;
 import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
+import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import org.junit.Assert;
@@ -95,7 +96,8 @@ public class TestCase2517381 extends AbstractMsalBrokerTest {
         } catch (InterruptedException e){
             e.printStackTrace();
         }
-        handleOneAuthTestAppFirstRunCorrectly(oneAuthApp);
+        CommonUtils.grantPackagePermission();
+        oneAuthApp.selectFromAppConfiguration("com.microsoft.identity.LabsApi.Guest");
 
         final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
                 .broker(null)
@@ -137,7 +139,6 @@ public class TestCase2517381 extends AbstractMsalBrokerTest {
 
         // acquire token without prompting for creds
         oneAuthApp.handleUserNameInput(username);
-        oneAuthApp.handlePreferBrokerSwitchButton();
         oneAuthApp.selectFromAppConfiguration("com.microsoft.identity.LabsApi.Guest");
         oneAuthApp.handleSignInWithoutPrompt();
 
