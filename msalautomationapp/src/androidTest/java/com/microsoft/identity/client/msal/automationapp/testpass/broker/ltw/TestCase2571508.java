@@ -51,8 +51,7 @@ public class TestCase2571508  extends AbstractMsalBrokerTest {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
         // Install new Authenticator app with new broker selection logic
-        final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator(BrokerMicrosoftAuthenticator.OLD_AUTHENTICATOR_APK,
-                BrokerMicrosoftAuthenticator.AUTHENTICATOR_APK);
+        final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator();
         brokerMicrosoftAuthenticator.install();
 
         // Install old LTW
