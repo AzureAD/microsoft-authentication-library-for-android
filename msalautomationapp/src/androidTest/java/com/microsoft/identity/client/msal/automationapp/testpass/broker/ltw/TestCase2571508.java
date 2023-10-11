@@ -52,8 +52,8 @@ public class TestCase2571508  extends AbstractMsalBrokerTest {
         final String password = mLabAccount.getPassword();
 
         // Install old LTW
-        final BrokerLTW brokerLTW = new BrokerLTW(BrokerLTW.OLD_BROKER_LTW_APK, BrokerLTW.BROKER_LTW_APK);
-        brokerLTW.install();
+        final BrokerLTW oldLTW = new BrokerLTW(BrokerLTW.OLD_BROKER_LTW_APK, BrokerLTW.OLD_BROKER_LTW_APK);
+        oldLTW.installOldApk();
 
         // AcquireToken interactively on OneAuthTestApp
         final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
