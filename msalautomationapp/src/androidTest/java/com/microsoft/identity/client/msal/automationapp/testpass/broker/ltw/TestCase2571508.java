@@ -90,7 +90,7 @@ public class TestCase2571508  extends AbstractMsalBrokerTest {
                 .prompt(PromptParameter.SELECT_ACCOUNT)
                 .loginHint(username)
                 .sessionExpected(false)
-                .broker(mBroker)
+                .broker(null)
                 .expectingBrokerAccountChooserActivity(false)
                 .expectingProvidedAccountInBroker(false)
                 .expectingLoginPageAccountPicker(false)

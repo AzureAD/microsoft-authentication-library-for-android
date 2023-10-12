@@ -34,6 +34,8 @@ import androidx.annotation.Nullable;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.rule.ActivityTestRule;
 
+import androidx.test.uiautomator.UiObject;
+import androidx.test.uiautomator.UiObjectNotFoundException;
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
@@ -44,10 +46,13 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.ui.automation.ILabTest;
 import com.microsoft.identity.client.ui.automation.IRuleBasedTest;
 import com.microsoft.identity.client.ui.automation.TestContext;
+import com.microsoft.identity.client.ui.automation.app.OneAuthTestApp;
 import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
 import com.microsoft.identity.client.ui.automation.browser.IBrowser;
 import com.microsoft.identity.client.ui.automation.device.settings.ISettings;
 import com.microsoft.identity.client.ui.automation.rules.RulesHelper;
+import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
+import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.labapi.utilities.BuildConfig;
 import com.microsoft.identity.labapi.utilities.authentication.LabApiAuthenticationClient;
@@ -342,4 +347,30 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
     protected ISettings getSettingsScreen() {
         return TestContext.getTestContext().getTestDevice().getSettings();
     }
+
+    protected void handleOneAuthTestAppFirstRunCorrectly(OneAuthTestApp oneAuthTestApp) {
+        CommonUtils.grantPackagePermission();
+        oneAuthTestApp.handlePreferBrokerSwitchButton();
+        try {
+            oneAuthTestApp.selectFromAppConfiguration("com.microsoft.identity.LabsApi.Guest");
+        } catch (UiObjectNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected void selectMsalTestAppConfiguration(@NonNull final String text) throws UiObjectNotFoundException {
+        final UiObject appConfigurationSpinner = UiAutomatorUtils.obtainUiObjectWithResourceId("com.msft.identity.client.sample.local:id/configFile");
+        appConfigurationSpinner.click();
+        final UiObject appConfiguration = UiAutomatorUtils.obtainUiObjectWithText(text);
+        appConfiguration.click();
+    }
+
+    protected void selectMsalTestAppPrompt(@NonNull final String text) throws UiObjectNotFoundException {
+        final UiObject appConfigurationSpinner = UiAutomatorUtils.obtainUiObjectWithResourceId("com.msft.identity.client.sample.local:id/promptBehavior");
+        appConfigurationSpinner.click();
+        final UiObject appConfiguration = UiAutomatorUtils.obtainUiObjectWithText(text);
+        appConfiguration.click();
+    }
+
+
 }

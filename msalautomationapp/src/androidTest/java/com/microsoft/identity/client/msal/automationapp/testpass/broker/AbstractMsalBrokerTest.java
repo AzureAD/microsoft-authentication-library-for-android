@@ -58,14 +58,4 @@ public abstract class AbstractMsalBrokerTest extends AbstractMsalUiTest implemen
     public RuleChain getPrimaryRules() {
         return RulesHelper.getPrimaryRules(getBroker());
     }
-
-    protected void handleOneAuthTestAppFirstRunCorrectly(OneAuthTestApp oneAuthTestApp) {
-        CommonUtils.grantPackagePermission();
-        oneAuthTestApp.handlePreferBrokerSwitchButton();
-        try {
-            oneAuthTestApp.selectFromAppConfiguration("com.microsoft.identity.LabsApi.Guest");
-        } catch (UiObjectNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }
