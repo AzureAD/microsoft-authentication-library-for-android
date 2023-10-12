@@ -96,8 +96,7 @@ public class TestCase2517381 extends AbstractMsalBrokerTest {
         } catch (InterruptedException e){
             e.printStackTrace();
         }
-        CommonUtils.grantPackagePermission();
-        oneAuthApp.selectFromAppConfiguration("com.microsoft.identity.LabsApi.Guest");
+        handleOneAuthTestAppFirstRunCorrectly(oneAuthApp);
 
         final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
                 .broker(null)
@@ -139,6 +138,7 @@ public class TestCase2517381 extends AbstractMsalBrokerTest {
 
         // acquire token without prompting for creds
         oneAuthApp.handleUserNameInput(username);
+        oneAuthApp.handlePreferBrokerSwitchButton();
         oneAuthApp.selectFromAppConfiguration("com.microsoft.identity.LabsApi.Guest");
         oneAuthApp.handleSignInWithoutPrompt();
 
