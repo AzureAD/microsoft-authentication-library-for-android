@@ -23,6 +23,9 @@
 package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.ltw;
 
 import android.text.TextUtils;
+
+import androidx.test.uiautomator.UiObjectNotFoundException;
+
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
@@ -43,14 +46,12 @@ import org.junit.Test;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2517381
 @LTWTests
 @RunOnAPI29Minus
-public class TestCase2517381 extends AbstractMsalBrokerTest {
+public class TestCase2517381 extends AbstractMsalUiTest {
 
     @Test
     public void test_2517381 () throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
-
-        mBroker.uninstall();
 
         // install old MsalTestApp then acquires token interactively and silently
         MsalTestApp msalTestApp = new MsalTestApp();
@@ -147,6 +148,16 @@ public class TestCase2517381 extends AbstractMsalBrokerTest {
         // acquire token silently without prompting for creds
         final String tokenAfterUpdatedOneAuth = oneAuthApp.acquireTokenSilent();
         Assert.assertFalse(TextUtils.isEmpty(tokenAfterUpdatedOneAuth));
+    }
+
+    protected void handleOneAuthTestAppFirstRunCorrectly(OneAuthTestApp oneAuthTestApp) {
+        CommonUtils.grantPackagePermission();
+        oneAuthTestApp.handlePreferBrokerSwitchButton();
+        try {
+            oneAuthTestApp.selectFromAppConfiguration("com.microsoft.identity.LabsApi.Guest");
+        } catch (UiObjectNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
