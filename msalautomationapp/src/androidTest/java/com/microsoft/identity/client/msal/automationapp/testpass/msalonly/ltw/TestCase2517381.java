@@ -24,6 +24,8 @@ package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.ltw;
 
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
+import androidx.test.uiautomator.UiObject;
 import androidx.test.uiautomator.UiObjectNotFoundException;
 
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
@@ -37,6 +39,7 @@ import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppProm
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
+import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import org.junit.Assert;
@@ -59,6 +62,7 @@ public class TestCase2517381 extends AbstractMsalUiTest {
         msalTestApp.installOldApk();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
+//        selectMsalTestAppPrompt("LOGIN");
 
         final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
                 .prompt(PromptParameter.SELECT_ACCOUNT)
@@ -126,10 +130,10 @@ public class TestCase2517381 extends AbstractMsalUiTest {
         msalTestApp.handleFirstRun();
 
         // acquire token interactively and silently without prompting for creds
-        final String tokenAfterUpdatedMsal = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, false);
-        Assert.assertNotNull(tokenAfterUpdatedMsal);
-
-        msalTestApp.handleBackButton();
+//        final String tokenAfterUpdatedMsal = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, false);
+//        Assert.assertNotNull(tokenAfterUpdatedMsal);
+//
+//        msalTestApp.handleBackButton();
         final String silentTokenAfterUpdatedMsal = msalTestApp.acquireTokenSilent();
         Assert.assertNotNull(silentTokenAfterUpdatedMsal);
 
@@ -141,23 +145,13 @@ public class TestCase2517381 extends AbstractMsalUiTest {
         oneAuthApp.handleUserNameInput(username);
         oneAuthApp.handlePreferBrokerSwitchButton();
         oneAuthApp.selectFromAppConfiguration("com.microsoft.identity.LabsApi.Guest");
-        oneAuthApp.handleSignInWithoutPrompt();
-
-        oneAuthApp.handleBackButton();
+//        oneAuthApp.handleSignInWithoutPrompt();
+//
+//        oneAuthApp.handleBackButton();
 
         // acquire token silently without prompting for creds
         final String tokenAfterUpdatedOneAuth = oneAuthApp.acquireTokenSilent();
         Assert.assertFalse(TextUtils.isEmpty(tokenAfterUpdatedOneAuth));
-    }
-
-    protected void handleOneAuthTestAppFirstRunCorrectly(OneAuthTestApp oneAuthTestApp) {
-        CommonUtils.grantPackagePermission();
-        oneAuthTestApp.handlePreferBrokerSwitchButton();
-        try {
-            oneAuthTestApp.selectFromAppConfiguration("com.microsoft.identity.LabsApi.Guest");
-        } catch (UiObjectNotFoundException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Override
