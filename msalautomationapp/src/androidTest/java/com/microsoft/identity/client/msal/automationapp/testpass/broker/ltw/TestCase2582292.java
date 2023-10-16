@@ -29,6 +29,7 @@ import com.microsoft.identity.client.msal.automationapp.testpass.broker.Abstract
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
+import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
@@ -50,7 +51,7 @@ import java.util.List;
 
 // If LTW is the active broker, and request is made through Authenticator from an old MSAL in shared device mode, nothing should break
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2582292
-@SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
+@SupportedBrokers(brokers = {BrokerCompanyPortal.class})
 public class TestCase2582292 extends AbstractMsalBrokerTest {
 
     @Test
@@ -68,7 +69,7 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
         brokerHost.launch();
 
         // In brokerHost Multiple WPJ mode: perform a shared device registration with a cloud device admin account from the LAB API
-        brokerHost.multipleWpjApiFragment.performDeviceRegistration(username1, password1);
+        brokerHost.multipleWpjApiFragment.performSharedDeviceRegistration(username1, password1);
 
         // Uninstall BrokerHost App
         brokerHost.uninstall();
@@ -79,6 +80,7 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
 
         // Install legacy MSAL Test app (Msal test app with no broker selection logic)
         final MsalTestApp msalTestApp = new MsalTestApp();
+        msalTestApp.uninstall();
         msalTestApp.installOldApk();
 
         // Check mode in MSAL test app
