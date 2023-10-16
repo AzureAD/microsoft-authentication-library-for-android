@@ -83,7 +83,7 @@ public class TestCase2582288 extends AbstractMsalBrokerTest {
         final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
         oneAuthTestApp.installOldApk();
         oneAuthTestApp.launch();
-        oneAuthTestApp.handleFirstRun();
+        handleOneAuthTestAppFirstRunCorrectly(oneAuthTestApp);
 
         // Enter username in AccountName textbox
         oneAuthTestApp.handleUserNameInput(username);
