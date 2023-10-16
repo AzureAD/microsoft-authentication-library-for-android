@@ -53,6 +53,7 @@ public class TestCase2571508  extends AbstractMsalBrokerTest {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
+        // Somehow the broker is not installed on Firebase devices, call install here to ensure we have broker installed.
         mBroker.install();
 
         // Install old LTW
