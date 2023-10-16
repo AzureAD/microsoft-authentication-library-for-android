@@ -90,7 +90,7 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
         final String mode = msalTestApp.checkMode();
-        Assert.assertTrue(mode.contains("Shared Device"));
+        Assert.assertTrue(mode.contains("Single Account - Shared device"));
 
         // performs AcquireToken with an account from the same tenant with the WPJed account.
         final LabQuery query = LabQuery.builder()
