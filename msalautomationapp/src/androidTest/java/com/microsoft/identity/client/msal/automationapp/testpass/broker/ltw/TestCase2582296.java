@@ -30,6 +30,7 @@ import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
 import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
+import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
@@ -47,8 +48,8 @@ import java.util.Map;
 //https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2582296
 @LTWTests
 @RetryOnFailure
-@LocalBrokerHostDebugUiTest
-@SupportedBrokers(brokers = {BrokerLTW.class})
+//@LocalBrokerHostDebugUiTest
+@SupportedBrokers(brokers = {BrokerCompanyPortal.class})
 public class TestCase2582296 extends AbstractMsalBrokerTest {
     @Test
     public void test_2582296() {

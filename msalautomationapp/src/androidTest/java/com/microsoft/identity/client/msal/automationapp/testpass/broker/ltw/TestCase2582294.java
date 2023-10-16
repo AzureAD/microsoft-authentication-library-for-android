@@ -27,6 +27,7 @@ import com.microsoft.identity.client.msal.automationapp.testpass.broker.Abstract
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
 import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
+import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
@@ -38,9 +39,9 @@ import org.junit.Test;
 
 // If LTW is the active broker, and request is made through Authenticator from Legacy WorkplaceJoin API, nothing should break
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2582294
-@SupportedBrokers(brokers = {BrokerLTW.class})
+@SupportedBrokers(brokers = {BrokerCompanyPortal.class})
 @LTWTests
-@LocalBrokerHostDebugUiTest
+//@LocalBrokerHostDebugUiTest
 public class TestCase2582294 extends AbstractMsalBrokerTest {
 
     @Test
