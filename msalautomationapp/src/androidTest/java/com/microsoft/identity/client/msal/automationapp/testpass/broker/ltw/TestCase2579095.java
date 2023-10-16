@@ -61,7 +61,6 @@ public class TestCase2579095 extends AbstractMsalBrokerTest {
 
             // install old OneAuthTestApp
             final OneAuthTestApp oldOneAuthTestApp = new OneAuthTestApp();
-            oldOneAuthTestApp.uninstall();
             oldOneAuthTestApp.installOldApk();
             oldOneAuthTestApp.launch();
             handleOneAuthTestAppFirstRunCorrectly(oldOneAuthTestApp);
