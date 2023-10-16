@@ -49,6 +49,7 @@
         <package android:name="com.microsoft.teams" />
         <package android:name="com.azuresamples.msalandroidapp" />
         <package android:name="com.microsoft.identity.client.testapp" />
+        <package android:name="com.msft.identity.client.sample.local" />
     </queries>
 
 </manifest>
