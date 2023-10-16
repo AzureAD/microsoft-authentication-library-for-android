@@ -75,7 +75,7 @@ public class TestCase2582289 extends AbstractMsalBrokerTest {
                 .enrollPageExpected(false)
                 .build();
 
-        final String tokenMsal = msalTestApp.acquireToken(username, password, promptHandlerParameters, true);
+        final String tokenMsal = msalTestApp.acquireToken(username, password, promptHandlerParameters, mBrowser, true,true);
         Assert.assertNotNull(tokenMsal);
 
         // Install old OneAuthTestApp
