@@ -27,6 +27,7 @@ import android.text.TextUtils;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
+import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
@@ -46,6 +47,7 @@ import java.util.Map;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2582297
 @LTWTests
 @RetryOnFailure
+@LocalBrokerHostDebugUiTest
 @SupportedBrokers(brokers = {BrokerLTW.class})
 public class TestCase2582297 extends AbstractMsalBrokerTest {
     @Test

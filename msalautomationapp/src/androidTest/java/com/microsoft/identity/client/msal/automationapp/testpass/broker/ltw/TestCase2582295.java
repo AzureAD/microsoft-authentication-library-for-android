@@ -25,6 +25,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
+import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
@@ -38,6 +39,7 @@ import org.junit.Test;
 // Test Case 2582295: If LTW is the active broker, and request is made through CP from Legacy WorkplaceJoin API, nothing should break
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2582295
 @LTWTests
+@LocalBrokerHostDebugUiTest
 @SupportedBrokers(brokers = {BrokerLTW.class})
 public class TestCase2582295 extends AbstractMsalBrokerTest {
 
