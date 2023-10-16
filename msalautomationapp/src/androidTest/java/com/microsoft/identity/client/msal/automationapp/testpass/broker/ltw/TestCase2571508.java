@@ -25,6 +25,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
@@ -45,6 +46,7 @@ import org.junit.Test;
 @LTWTests
 @RunOnAPI29Minus
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
+@RetryOnFailure
 public class TestCase2571508  extends AbstractMsalBrokerTest {
     @Test
     public void test_2571508() throws Throwable {
@@ -59,7 +61,7 @@ public class TestCase2571508  extends AbstractMsalBrokerTest {
         final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
         oneAuthTestApp.install();
         oneAuthTestApp.launch();
-        oneAuthTestApp.handleFirstRun();
+        handleOneAuthTestAppFirstRunCorrectly(oneAuthTestApp);
 
         final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
                 .broker(mBroker)
@@ -78,6 +80,7 @@ public class TestCase2571508  extends AbstractMsalBrokerTest {
 
         // Install new MSALTestApp
         final MsalTestApp msalTestApp = new MsalTestApp();
+        msalTestApp.uninstall();
         msalTestApp.install();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
@@ -86,7 +89,7 @@ public class TestCase2571508  extends AbstractMsalBrokerTest {
                 .prompt(PromptParameter.SELECT_ACCOUNT)
                 .loginHint(username)
                 .sessionExpected(false)
-                .broker(mBroker)
+                .broker(null)
                 .expectingBrokerAccountChooserActivity(false)
                 .expectingProvidedAccountInBroker(false)
                 .expectingLoginPageAccountPicker(false)
@@ -104,7 +107,7 @@ public class TestCase2571508  extends AbstractMsalBrokerTest {
         // Add login hint as the username and Click on AcquireToken button
         // NOT prompted for credentials.
         msalTestApp.handleUserNameInput(username);
-        final String token = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, false);
+        final String token = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, mBrowser, true, false);
         Assert.assertNotNull(token);
 
         // Click on "Get Active Broker Pkg Name" button

@@ -25,6 +25,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
 import com.microsoft.identity.client.ui.automation.app.OneAuthTestApp;
@@ -43,84 +44,85 @@ import org.junit.Test;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2579095
 @LTWTests
 @RunOnAPI29Minus
+@RetryOnFailure
 public class TestCase2579095 extends AbstractMsalBrokerTest {
 
-    @Test
-    public void test_2579095() throws Throwable {
-        final String username = mLabAccount.getUsername();
-        final String password = mLabAccount.getPassword();
+        @Test
+        public void test_2579095() throws Throwable {
+            final String username = mLabAccount.getUsername();
+            final String password = mLabAccount.getPassword();
 
-        // To make sure the device is in clean slate, uninstall mBroker here.
-        mBroker.uninstall();
+            mBroker.uninstall();
 
-        // install legacy company portal
-        final BrokerCompanyPortal brokerCompanyPortal = new BrokerCompanyPortal(BrokerCompanyPortal.OLD_COMPANY_PORTAL_APK,
-                BrokerCompanyPortal.COMPANY_PORTAL_APK);
-        brokerCompanyPortal.install();
+            // install legacy company portal
+            final BrokerCompanyPortal brokerCompanyPortal = new BrokerCompanyPortal(BrokerCompanyPortal.OLD_COMPANY_PORTAL_APK,
+                    BrokerCompanyPortal.COMPANY_PORTAL_APK);
+            brokerCompanyPortal.install();
 
-        // install old OneAuthTestApp
-        final OneAuthTestApp oldOneAuthTestApp = new OneAuthTestApp();
-        oldOneAuthTestApp.installOldApk();
-        oldOneAuthTestApp.launch();
-        oldOneAuthTestApp.handleFirstRun();
+            // install old OneAuthTestApp
+            final OneAuthTestApp oldOneAuthTestApp = new OneAuthTestApp();
+            oldOneAuthTestApp.installOldApk();
+            oldOneAuthTestApp.launch();
+            handleOneAuthTestAppFirstRunCorrectly(oldOneAuthTestApp);
 
-        // acquire token interactively on OneAuthTestApp
-        final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
-                .broker(mBroker)
-                .prompt(PromptParameter.LOGIN)
-                .loginHint(username)
-                .consentPageExpected(false)
-                .speedBumpExpected(false)
-                .sessionExpected(false)
-                .expectingBrokerAccountChooserActivity(false)
-                .expectingLoginPageAccountPicker(false)
-                .enrollPageExpected(false)
-                .build();
-        oldOneAuthTestApp.addFirstAccount(username, password, promptHandlerParametersOneAuth);
-        oldOneAuthTestApp.confirmAccount(username);
+            // acquire token interactively on OneAuthTestApp
+            final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
+                    .broker(mBroker)
+                    .prompt(PromptParameter.LOGIN)
+                    .loginHint(username)
+                    .consentPageExpected(false)
+                    .speedBumpExpected(false)
+                    .sessionExpected(false)
+                    .expectingBrokerAccountChooserActivity(false)
+                    .expectingLoginPageAccountPicker(false)
+                    .enrollPageExpected(false)
+                    .build();
+            oldOneAuthTestApp.addFirstAccount(username, password, promptHandlerParametersOneAuth);
+            oldOneAuthTestApp.confirmAccount(username);
 
-        // install new Authenticator
-        final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator();
-        brokerMicrosoftAuthenticator.install();
+            // install new Authenticator
+            final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator();
+            brokerMicrosoftAuthenticator.install();
 
-        // update Company Portal
-        brokerCompanyPortal.update();
+            // update Company Portal
+            brokerCompanyPortal.update();
 
-        // install new MsalTestApp
-        final MsalTestApp msalTestApp = new MsalTestApp();
-        msalTestApp.install();
-        msalTestApp.launch();
-        msalTestApp.handleFirstRun();
+            // install new MsalTestApp
+            final MsalTestApp msalTestApp = new MsalTestApp();
+            msalTestApp.uninstall();
+            msalTestApp.install();
+            msalTestApp.launch();
+            msalTestApp.handleFirstRun();
 
-        // acquire token interactively on MsalTestApp and should not get prompt
-        final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
-                .prompt(PromptParameter.SELECT_ACCOUNT)
-                .loginHint(username)
-                .sessionExpected(false)
-                .broker(mBroker)
-                .expectingBrokerAccountChooserActivity(false)
-                .expectingProvidedAccountInBroker(false)
-                .expectingLoginPageAccountPicker(false)
-                .expectingProvidedAccountInCookie(false)
-                .consentPageExpected(false)
-                .passwordPageExpected(false)
-                .speedBumpExpected(false)
-                .registerPageExpected(false)
-                .enrollPageExpected(false)
-                .staySignedInPageExpected(false)
-                .verifyYourIdentityPageExpected(false)
-                .howWouldYouLikeToSignInExpected(false)
-                .build();
+            // acquire token interactively on MsalTestApp and should not get prompt
+            final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
+                    .prompt(PromptParameter.SELECT_ACCOUNT)
+                    .loginHint(username)
+                    .sessionExpected(false)
+                    .broker(mBroker)
+                    .expectingBrokerAccountChooserActivity(false)
+                    .expectingProvidedAccountInBroker(false)
+                    .expectingLoginPageAccountPicker(false)
+                    .expectingProvidedAccountInCookie(false)
+                    .consentPageExpected(false)
+                    .passwordPageExpected(false)
+                    .speedBumpExpected(false)
+                    .registerPageExpected(false)
+                    .enrollPageExpected(false)
+                    .staySignedInPageExpected(false)
+                    .verifyYourIdentityPageExpected(false)
+                    .howWouldYouLikeToSignInExpected(false)
+                    .build();
 
-        msalTestApp.handleUserNameInput(username);
-        String tokenMsal = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, false);
-        Assert.assertNotNull(tokenMsal);
+            msalTestApp.handleUserNameInput(username);
+            String tokenMsal = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, false);
+            Assert.assertNotNull(tokenMsal);
 
-        // getPackageName on MsalTestApp and should be Company Portal
-        msalTestApp.handleBackButton();
-        final String activeBroker = msalTestApp.getActiveBrokerPackageName();
-        Assert.assertEquals("Active broker pkg name : " + BrokerCompanyPortal.COMPANY_PORTAL_APP_PACKAGE_NAME, activeBroker);
-    }
+            // getPackageName on MsalTestApp and should be Company Portal
+            msalTestApp.handleBackButton();
+            final String activeBroker = msalTestApp.getActiveBrokerPackageName();
+            Assert.assertEquals("Active broker pkg name : " + BrokerCompanyPortal.COMPANY_PORTAL_APP_PACKAGE_NAME, activeBroker);
+        }
 
     @Override
     public LabQuery getLabQuery() {

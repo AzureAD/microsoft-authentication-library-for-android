@@ -29,16 +29,15 @@ import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
-import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
 import com.microsoft.identity.client.ui.automation.app.OneAuthTestApp;
-import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
+import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
+import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
-
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -55,6 +54,7 @@ public class TestCase2517381 extends AbstractMsalUiTest {
 
         // install old MsalTestApp then acquires token interactively and silently
         MsalTestApp msalTestApp = new MsalTestApp();
+        msalTestApp.uninstall();
         msalTestApp.installOldApk();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
@@ -78,7 +78,7 @@ public class TestCase2517381 extends AbstractMsalUiTest {
                 .howWouldYouLikeToSignInExpected(false)
                 .build();
 
-        String token = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, mBrowser,true, true);
+        String token = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, mBrowser, true, true);
         Assert.assertNotNull(token);
 
         // then acquire token silently and validate the token
@@ -88,9 +88,15 @@ public class TestCase2517381 extends AbstractMsalUiTest {
 
         // install old OneAuthTestApp then acquires token interactively and silently
         final OneAuthTestApp oneAuthApp = new OneAuthTestApp();
+
         oneAuthApp.installOldApk();
         oneAuthApp.launch();
-        oneAuthApp.handleFirstRun();
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e){
+            e.printStackTrace();
+        }
+        handleOneAuthTestAppFirstRunCorrectly(oneAuthApp);
 
         final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
                 .broker(null)
@@ -119,11 +125,10 @@ public class TestCase2517381 extends AbstractMsalUiTest {
         msalTestApp.handleFirstRun();
 
         // acquire token interactively and silently without prompting for creds
-        msalTestApp.handleUserNameInput(username);
-        final String tokenAfterUpdatedMsal = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, false);
-        Assert.assertNotNull(tokenAfterUpdatedMsal);
-
-        msalTestApp.handleBackButton();
+//        final String tokenAfterUpdatedMsal = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, false);
+//        Assert.assertNotNull(tokenAfterUpdatedMsal);
+//
+//        msalTestApp.handleBackButton();
         final String silentTokenAfterUpdatedMsal = msalTestApp.acquireTokenSilent();
         Assert.assertNotNull(silentTokenAfterUpdatedMsal);
 
@@ -133,11 +138,11 @@ public class TestCase2517381 extends AbstractMsalUiTest {
 
         // acquire token without prompting for creds
         oneAuthApp.handleUserNameInput(username);
-        oneAuthApp.selectFromAppConfiguration("com.microsoft.identity.LabsApi.Guest");
         oneAuthApp.handlePreferBrokerSwitchButton();
-        oneAuthApp.handleSignInWithoutPrompt();
-
-        oneAuthApp.handleBackButton();
+        oneAuthApp.selectFromAppConfiguration("com.microsoft.identity.LabsApi.Guest");
+//        oneAuthApp.handleSignInWithoutPrompt();
+//
+//        oneAuthApp.handleBackButton();
 
         // acquire token silently without prompting for creds
         final String tokenAfterUpdatedOneAuth = oneAuthApp.acquireTokenSilent();

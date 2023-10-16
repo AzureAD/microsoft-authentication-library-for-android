@@ -23,13 +23,16 @@
 package com.microsoft.identity.client.msal.automationapp.testpass.broker;
 
 import androidx.annotation.NonNull;
+import androidx.test.uiautomator.UiObjectNotFoundException;
 
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.BrokerTestHelper;
 import com.microsoft.identity.client.ui.automation.IBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
+import com.microsoft.identity.client.ui.automation.app.OneAuthTestApp;
 import com.microsoft.identity.client.ui.automation.broker.ITestBroker;
 import com.microsoft.identity.client.ui.automation.rules.RulesHelper;
+import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
 
 import org.junit.rules.RuleChain;
 
