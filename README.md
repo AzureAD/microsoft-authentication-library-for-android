@@ -1,69 +1,19 @@
 Microsoft Authentication Library (MSAL) for Android
 ==============================================
 
-| [Getting Started](https://docs.microsoft.com/azure/active-directory/develop/quickstart-v2-android) | [Sample Code](https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki/MSAL-Code-Samples)| [Library Reference](http://javadoc.io/doc/com.microsoft.identity.client/msal) | [Support](README.md#community-help-and-support) | [Overview](https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki) | [Feedback](https://forms.office.com/r/3J8pAAqAcj)
+|[📚Documentation](https://learn.microsoft.com/en-us/azure/active-directory/develop/tutorial-v2-android) | [ 🚀 Getting Started](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-mobile-app-android-sign-in) | [💻 Sample Code](https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki/MSAL-Code-Samples)| [ 📖 Library Reference](http://javadoc.io/doc/com.microsoft.identity.client/msal) | [🛠️ Support](README.md#community-help-and-support) | [🌐 Docs Site](https://learn.microsoft.com/en-us/azure/active-directory/develop/scenario-mobile-overview)
 | --- | --- | --- | --- | --- | --- |
-
-The MSAL library for Android gives your app the ability to use the [Microsoft Cloud](https://cloud.microsoft.com) by supporting [Microsoft Azure Active Directory](https://azure.microsoft.com/services/active-directory/) and [Microsoft accounts](https://account.microsoft.com) in a converged experience using industry standard OAuth2 and OpenID Connect. The library also supports [Azure AD B2C](https://azure.microsoft.com/services/active-directory-b2c/).
-
-[![Version Badge](https://img.shields.io/maven-central/v/com.microsoft.identity.client/msal.svg)](https://repo1.maven.org/maven2/com/microsoft/identity/client/msal/)
 
 
 ## Introduction
+The Microsoft Authentication Library (MSAL) for Android enables developers to acquire security tokens from the Microsoft identity platform to authenticate users and access secured web APIs for their Android based applications.
+The MSAL library for Android gives your app the ability to use the [Microsoft Cloud](https://cloud.microsoft.com) by supporting [Microsoft Azure Active Directory](https://azure.microsoft.com/services/active-directory/) and [Microsoft Personal Accounts](https://account.microsoft.com)  using industry standard OAuth2 and OpenID Connect. The library also supports [Azure AD B2C](https://azure.microsoft.com/services/active-directory-b2c/).
 
-### What's new?
+[![Version Badge](https://img.shields.io/maven-central/v/com.microsoft.identity.client/msal.svg)](https://repo1.maven.org/maven2/com/microsoft/identity/client/msal/)
 
-> Looking for developers interested in providing early feedback on a x-platform implementation of MSAL written in C++ and Java, callable from Java, Kotlin and C++.  If you're interested please please contact shoatman@microsoft.com.
+### :exclamation: Migrating from ADAL
 
-***06/25/2021***
-- Silent requests were inadvertently serialized in MSAL v2.0.10-v2.0.12, Common v3.2.0-v3.4.3. This will be fixed in an upcoming release, tentatively scheduled for next week.
-- In the meantime, please *do not use* the mentioned library versions, and *strongly* consider moving to 2.0.8. Details for the issue can be found [here](https://github.com/AzureAD/microsoft-authentication-library-common-for-android/issues/1438).
-
-***11/09/2020***
- - Android changes for SDK30, see [the android developers notice](https://android-developers.googleblog.com/2020/07/preparing-your-build-for-package-visibility-in-android-11.html).
-
-***09/04/2020*** New updates with [MSAL 2.0.0](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v2.0.0)
- - Add Device Code Flow Support (#1112)
- - Introduces new AadAuthorityAudience enum to support new syntax for specifying cloud + audience
- - Broker Content Provider Changes
- - FOCI support for Local MSAL
- - Added new Single Account Public Client Application API overloads
-
-***02/12/2020*** New updates with [MSAL 1.3.0](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v1.3.0):
-
-  - WebView zoom controls are now configurable 
-  - Bugs/issues fixed:
-    - Incorrect id_token returned for B2C app with multiple policies
-    - WebView calls loadUrl multiple times over lifecycle
-    - WebView displays error when connectivity lost
-    - AT caching logic change for scope intersection
-
-***09/30/2019*** MSAL Android is now generally available with [MSAL 1.0](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v1.0.0)!: 
-
-- Supported Authorities
-  - Microsoft [identity platform](https://docs.microsoft.com/azure/active-directory/develop/) (also known as the Azure Active Directory v2 Endpoint)
-  - [Azure Active Directory B2C](https://docs.microsoft.com/azure/active-directory-b2c/)
-    - [Integrate with B2C](https://docs.microsoft.com/azure/active-directory/develop/msal-android-b2c)
-- Microsoft [authentication broker](https://docs.microsoft.com/azure/active-directory/develop/brokered-auth) support
-  - Supports enterprise scenarios including:
-    - Device Registration
-    - Device Management
-    - Intune App Protection
-    - Device Single Sign On
-- Introduction of [Single and Multi Account](https://docs.microsoft.com/azure/active-directory/develop/single-multi-account) Public Client Applications
-- IAccount and access to claims. For more info see [Accounts and tenant profiles](https://docs.microsoft.com/azure/active-directory/develop/accounts-overview)
-- Enable Single Sign-On with different [authorization agents](https://docs.microsoft.com/azure/active-directory/develop/authorization-agents)
-- Support for synchronous methods from worker threads
-- Improved [configuration](https://docs.microsoft.com/azure/active-directory/develop/msal-configuration) and control of your PublicClientApplication using configuration file
-- AndroidX Compatible
-
-### Migrating from ADAL
-
-See the [ADAL to MSAL migration guide for Android](https://docs.microsoft.com/azure/active-directory/develop/migrate-android-adal-msal)
-
-### Sample
-
-Run the [quickstart](https://docs.microsoft.com/azure/active-directory/develop/quickstart-v2-android) to see how our Java sample works, or checkout this [list of all MSAL sample repos](https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki/MSAL-Code-Samples). 
+ADAL Android was deprecated on June 20223. We do not support ADAL. See the [ADAL to MSAL migration guide for Android](https://docs.microsoft.com/azure/active-directory/develop/migrate-android-adal-msal)
 
 ## Using MSAL
 
@@ -71,7 +21,7 @@ Run the [quickstart](https://docs.microsoft.com/azure/active-directory/develop/q
 
 ### Requirements
 
-- Android API Level 16+
+- Android API Level 33+
 
 ### Step 1: Declare dependency on MSAL
 
@@ -79,7 +29,7 @@ Add to your app's build.gradle:
 
 ```gradle
 dependencies {
-    implementation 'com.microsoft.identity.client:msal:3.0.+'
+    implementation 'com.microsoft.identity.client:msal:4.9.+'
 }
 ```
 
@@ -246,19 +196,10 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 ## Android Studio Build Requirement
 Please note that this project uses [Lombok](https://projectlombok.org/) internally and while using Android Studio you will need to install [Lobmok Plugin](https://plugins.jetbrains.com/plugin/6317-lombok) to get the project to build successfully within Android Studio.
 
-## Roadmap
-|Date | Release | Blog post| Main features|
-|---------| --------- | ---------| ---------|
-|09/30/19 | [MSAL 1.0.0](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v1.0.0)| https://developer.microsoft.com/identity/blogs/microsoft-authentication-libraries-for-android-ios-and-macos-are-now-generally-available/ | General Availability of MSAL|
-|12/17/19 | [MSAL 1.1.0](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v1.1.0) | | Expose raw id_token IAccount/ITenantProfile from AuthenticationResult|
-| 02/04/20 | [MSAL 1.2.0](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v1.2.0) | | Adds spinner to WebView interactive requests, replaced PublicClientApplication create methods, adds fragment support to WebView flow, bug fixes|
-| 02/12/20 | [MSAL 1.3.0](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases/tag/v1.3.0) | | Bug fixes & WebView zoom controls configurable|
-|Projected for end of Q4| Proof of Possession ||Access Token Proof of Possession is currently in preview and is not yet recommended for production environments. [Learn more.](https://github.com/AzureAD/microsoft-authentication-library-for-android/blob/dev/docs/access_token-pop.md)
 
+## Recommendation
 
-## Security Library
-
-This library controls how users sign-in and access services. We recommend you always take the latest version of our library in your app when you can. We use [semantic versioning](http://semver.org) so you can control the risk of updating your app. For example, always downloading the latest minor version number (e.g. x.*y*.x) ensures you get the latest security and feature enhanements with the assurance that our API surface area has not changed. You can always see the latest version and release notes under the [Releases](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases) tab of GitHub.
+MSAL is a security library. It controls how users sign-in and access services. We recommend you always take the latest version of our library in your app when you can. We use [semantic versioning](http://semver.org) so you can control the risk of updating your app. For example, always downloading the latest minor version number (e.g. x.*y*.x) ensures you get the latest security and feature enhanements with the assurance that our API surface area has not changed. You can always see the latest version and release notes under the [Releases](https://github.com/AzureAD/microsoft-authentication-library-for-android/releases) tab of GitHub.
 
 ## Security Reporting
 
