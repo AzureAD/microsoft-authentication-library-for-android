@@ -85,6 +85,7 @@ public class TestCase2582290 extends AbstractMsalBrokerTest {
 
         // Install old MSALTestApp
         final MsalTestApp msalTestApp = new MsalTestApp();
+        msalTestApp.uninstall();
         msalTestApp.installOldApk();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
