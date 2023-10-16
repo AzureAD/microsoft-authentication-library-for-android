@@ -99,7 +99,7 @@ public class TestCase2582291 extends AbstractMsalBrokerTest {
 
         // Enter username and pwd from step 2 to complete the acquire token flow
         // Token should be retrieved succeffully
-        final String token = msalTestApp.acquireToken(username, password, promptHandlerParameters, true);
+        final String token = msalTestApp.acquireToken(username, password, promptHandlerParameters, mBrowser, true, true);
         Assert.assertNotNull(token);
         msalTestApp.handleBackButton();
 
