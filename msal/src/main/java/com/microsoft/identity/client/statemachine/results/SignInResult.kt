@@ -33,11 +33,6 @@ import com.microsoft.identity.client.statemachine.states.SignInCodeRequiredState
 import com.microsoft.identity.client.statemachine.states.SignInPasswordRequiredState
 
 /**
- * Results for native sign in flows.
- * TODO add documentation & links to learn.microsoft.com
- */
-
-/**
  * Sign in result, produced by
  * [com.microsoft.identity.client.INativeAuthPublicClientApplication.signIn]
  */
