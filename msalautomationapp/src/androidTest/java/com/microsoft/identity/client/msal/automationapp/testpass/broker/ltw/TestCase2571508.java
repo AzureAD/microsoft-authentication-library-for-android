@@ -22,6 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
+import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
@@ -45,16 +46,15 @@ import org.junit.Test;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2571508
 @LTWTests
 @RunOnAPI29Minus
-@SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
 @RetryOnFailure
-public class TestCase2571508  extends AbstractMsalBrokerTest {
+public class TestCase2571508  extends AbstractMsalUiTest {
     @Test
     public void test_2571508() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
-        // Somehow the broker is not installed on Firebase devices, call install here to ensure we have broker installed.
-        mBroker.install();
+        final BrokerMicrosoftAuthenticator authenticator = new BrokerMicrosoftAuthenticator();
+        authenticator.install();
 
         // Install old LTW
         final BrokerLTW brokerLTW = new BrokerLTW(BrokerLTW.OLD_BROKER_LTW_APK, BrokerLTW.BROKER_LTW_APK);
@@ -67,7 +67,7 @@ public class TestCase2571508  extends AbstractMsalBrokerTest {
         handleOneAuthTestAppFirstRunCorrectly(oneAuthTestApp);
 
         final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
-                .broker(mBroker)
+                .broker(authenticator)
                 .prompt(PromptParameter.LOGIN)
                 .loginHint(username)
                 .consentPageExpected(false)
