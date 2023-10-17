@@ -111,9 +111,10 @@ public class TestCase2582291 extends AbstractMsalBrokerTest {
                 .howWouldYouLikeToSignInExpected(false)
                 .build();
 
-        // Enter username and pwd from step 2 to complete the acquire token flow
-        // Token should be retrieved succeffully
-        final String token = msalTestApp.acquireToken(username, password, promptHandlerParameters, true);
+        // Enter username from step 2 to complete the acquire token flow
+        // Token should be retrieved successfully
+        msalTestApp.handleUserNameInput(username);
+        final String token = msalTestApp.acquireToken(username, password, promptHandlerParameters, false);
         Assert.assertNotNull(token);
         msalTestApp.handleBackButton();
 
