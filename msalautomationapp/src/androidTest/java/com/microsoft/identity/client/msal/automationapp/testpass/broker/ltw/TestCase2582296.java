@@ -48,8 +48,7 @@ import java.util.Map;
 //https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2582296
 @LTWTests
 @RetryOnFailure
-//@LocalBrokerHostDebugUiTest
-@SupportedBrokers(brokers = {BrokerCompanyPortal.class})
+@SupportedBrokers(brokers = {BrokerLTW.class})
 public class TestCase2582296 extends AbstractMsalBrokerTest {
     @Test
     public void test_2582296() {
