@@ -22,6 +22,13 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
+import static com.microsoft.identity.client.ui.automation.utils.CommonUtils.FIND_UI_ELEMENT_TIMEOUT;
+
+import androidx.test.uiautomator.UiObject;
+import androidx.test.uiautomator.UiObjectNotFoundException;
+import androidx.test.uiautomator.UiScrollable;
+import androidx.test.uiautomator.UiSelector;
+
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
@@ -34,6 +41,7 @@ import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
 import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
+import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
@@ -142,9 +150,24 @@ public class TestCase2582291 extends AbstractMsalBrokerTest {
 
         // Click on "Remove User" button
         // UI updated with message "The account is successfully removed"
-        final String removeUserMessage = msalTestApp.removeUser();
+        final String removeUserMessage = removeUser();
         Assert.assertEquals("The account is successfully removed.", removeUserMessage);
     }
+
+    public String removeUser() throws UiObjectNotFoundException {
+        final UiObject removeUserButton = UiAutomatorUtils.obtainUiObjectWithResourceId("com.msft.identity.client.sample.local:id/btn_clearCache");
+        scrollToElement(removeUserButton);
+        removeUserButton.click();
+        final UiObject textView = UiAutomatorUtils.obtainUiObjectWithResourceId("com.msft.identity.client.sample.local:id/status");
+        final String text = textView.getText();
+        return text;
+    }
+    private void scrollToElement(UiObject obj) throws UiObjectNotFoundException {
+        UiScrollable scrollable = new UiScrollable(new UiSelector().scrollable(true));
+        scrollable.scrollIntoView(obj);
+        obj.waitForExists(FIND_UI_ELEMENT_TIMEOUT);
+    }
+
     @Override
     public LabQuery getLabQuery() {
         return null;
