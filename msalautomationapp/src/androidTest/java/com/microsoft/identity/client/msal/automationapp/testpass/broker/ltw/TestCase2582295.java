@@ -30,6 +30,7 @@ import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
+import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
@@ -40,7 +41,7 @@ import org.junit.Test;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2582295
 @LTWTests
 //@LocalBrokerHostDebugUiTest
-@SupportedBrokers(brokers = {BrokerCompanyPortal.class})
+@SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
 public class TestCase2582295 extends AbstractMsalBrokerTest {
 
     @Test
