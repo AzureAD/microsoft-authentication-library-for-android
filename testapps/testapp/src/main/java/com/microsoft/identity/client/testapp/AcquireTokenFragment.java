@@ -97,6 +97,7 @@ public class AcquireTokenFragment extends Fragment {
     private Button mAcquireTokenWithResource;
     private Button mAcquireTokenSilentWithResource;
     private Button mAcquireTokenWithDeviceCodeFlow;
+    private Button mAcquireTokenWithQR;
     private Button mBrokerHelper;
     private Button mGetActiveBrokerPkg;
     private Button mGenerateSHR;
@@ -163,6 +164,7 @@ public class AcquireTokenFragment extends Fragment {
         mAcquireTokenWithResource = view.findViewById(R.id.btn_acquiretokenWithResource);
         mAcquireTokenSilentWithResource = view.findViewById(R.id.btn_acquiretokensilentWithResource);
         mAcquireTokenWithDeviceCodeFlow = view.findViewById(R.id.btn_acquiretokenWithDeviceCodeFlow);
+        mAcquireTokenWithQR = view.findViewById(R.id.btn_acquiretokenWithQR);
         mBrokerHelper = view.findViewById(R.id.btnBrokerHelper);
         mGetActiveBrokerPkg = view.findViewById(R.id.btnGetActiveBroker);
         mGenerateSHR = view.findViewById(R.id.btn_generate_shr);
@@ -340,6 +342,13 @@ public class AcquireTokenFragment extends Fragment {
             }
         });
 
+        mAcquireTokenWithQR.setOnClickListener(
+                v -> 
+                    mMsalWrapper.acquireTokenWithQR(
+                        getActivity(),
+                        getCurrentRequestOptions(),
+                        acquireTokenCallback
+                ));
 
         final Activity activity = this.getActivity();
         mBrokerHelper.setOnClickListener(new View.OnClickListener() {

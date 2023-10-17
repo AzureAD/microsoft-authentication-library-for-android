@@ -27,6 +27,8 @@ import android.app.Activity;
 
 import androidx.fragment.app.Fragment;
 
+import com.microsoft.identity.common.java.ui.PreferredAuthMethod;
+
 import java.util.List;
 import java.util.Map;
 
@@ -43,7 +45,7 @@ public class AcquireTokenParameters extends TokenParameters {
     private List<Map.Entry<String, String>> mExtraQueryStringParameters;
     private AuthenticationCallback mCallback;
 
-    private String mPreferredAuthMethod;
+    private PreferredAuthMethod mPreferredAuthMethod;
 
     public AcquireTokenParameters(AcquireTokenParameters.Builder builder) {
         super(builder);
@@ -89,8 +91,8 @@ public class AcquireTokenParameters extends TokenParameters {
         this.mLoginHint = loginHint;
     }
 
-    public String getPreferredAuthMethod() {
-        return this.mPreferredAuthMethod;
+    public PreferredAuthMethod getPreferredAuthMethod() {
+        return mPreferredAuthMethod;
     }
 
     /**
@@ -145,7 +147,7 @@ public class AcquireTokenParameters extends TokenParameters {
         private Fragment mFragment;
         private String mLoginHint;
 
-        private String mPreferredAuthMethod;
+        private PreferredAuthMethod mPreferredAuthMethod;
         private Prompt mPrompt;
         private List<String> mExtraScopesToConsent;
         private List<Map.Entry<String, String>> mExtraQueryStringParameters;
@@ -166,7 +168,7 @@ public class AcquireTokenParameters extends TokenParameters {
             return self();
         }
 
-        public AcquireTokenParameters.Builder withPreferredAuthMethod(String preferredAuthMethod) {
+        public AcquireTokenParameters.Builder withPreferredAuthMethod(PreferredAuthMethod preferredAuthMethod) {
             mPreferredAuthMethod = preferredAuthMethod;
             return self();
         }
