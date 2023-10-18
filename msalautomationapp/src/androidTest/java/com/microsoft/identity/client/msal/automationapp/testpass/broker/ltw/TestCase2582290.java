@@ -141,7 +141,7 @@ public class TestCase2582290 extends AbstractMsalBrokerTest {
 
         // Click on "Remove User" button
         // UI updated with message "The account is successfully removed"
-        final String removeUserMessage = msalTestApp.removeUser();
+        final String removeUserMessage = msalTestApp.removeUserLegacy();
         Assert.assertEquals("The account is successfully removed.", removeUserMessage);
     }
 
