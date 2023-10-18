@@ -90,10 +90,6 @@ public class TestCase2571508  extends AbstractMsalBrokerTest {
         // Click on "Get Active Broker Pkg Name" button
         // return Authenticator app package name
 
-        final String activeBroker = msalTestApp.getActiveBrokerPackageName();
-        Assert.assertEquals("Active broker pkg name : " + BrokerMicrosoftAuthenticator.AUTHENTICATOR_APP_PACKAGE_NAME, activeBroker);
-        msalTestApp.handleBackButton();
-
         final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
                 .prompt(PromptParameter.SELECT_ACCOUNT)
                 .loginHint(username)
@@ -116,6 +112,11 @@ public class TestCase2571508  extends AbstractMsalBrokerTest {
         // Add login hint as the username and Click on AcquireToken button
         // NOT prompted for credentials.
         msalTestApp.handleUserNameInput(username);
+
+        final String activeBroker = msalTestApp.getActiveBrokerPackageName();
+        Assert.assertEquals("Active broker pkg name : " + BrokerMicrosoftAuthenticator.AUTHENTICATOR_APP_PACKAGE_NAME, activeBroker);
+        msalTestApp.handleBackButton();
+        
         final String token = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, mBrowser, true, false);
         Assert.assertNotNull(token);
     }
