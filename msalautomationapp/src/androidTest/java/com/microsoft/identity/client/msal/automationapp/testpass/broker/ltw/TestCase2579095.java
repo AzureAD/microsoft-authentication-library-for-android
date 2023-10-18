@@ -22,6 +22,16 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
+import static com.microsoft.identity.client.ui.automation.utils.CommonUtils.FIND_UI_ELEMENT_TIMEOUT;
+
+import android.widget.Button;
+import android.widget.EditText;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.test.uiautomator.UiObject;
+import androidx.test.uiautomator.UiObjectNotFoundException;
+import androidx.test.uiautomator.UiScrollable;
+import androidx.test.uiautomator.UiSelector;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
@@ -31,9 +41,13 @@ import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
 import com.microsoft.identity.client.ui.automation.app.OneAuthTestApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
+import com.microsoft.identity.client.ui.automation.browser.IBrowser;
 import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters;
+import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
+import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
@@ -115,7 +129,7 @@ public class TestCase2579095 extends AbstractMsalBrokerTest {
                     .build();
 
             msalTestApp.handleUserNameInput(username);
-            String tokenMsal = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, false);
+            String tokenMsal = acquireTokenInMsalTestApp(msalTestApp, username, password, promptHandlerParametersMsal, null, false, false);
             Assert.assertNotNull(tokenMsal);
 
             // getPackageName on MsalTestApp and should be Company Portal
@@ -123,6 +137,49 @@ public class TestCase2579095 extends AbstractMsalBrokerTest {
             final String activeBroker = msalTestApp.getActiveBrokerPackageName();
             Assert.assertEquals("Active broker pkg name : " + BrokerCompanyPortal.COMPANY_PORTAL_APP_PACKAGE_NAME, activeBroker);
         }
+
+    public String acquireTokenInMsalTestApp(@NonNull final MsalTestApp app,
+                                            @NonNull final String username,
+                               @NonNull final String password,
+                               @NonNull final PromptHandlerParameters promptHandlerParameters,
+                               @Nullable final IBrowser browser,
+                               final boolean shouldHandleBrowserFirstRun,
+                               @NonNull final boolean shouldHandlePrompt) throws UiObjectNotFoundException, InterruptedException {
+
+        final UiObject acquireTokenButton = UiAutomatorUtils.obtainUiObjectWithResourceId("com.msft.identity.client.sample.local:id/btn_acquiretoken", 15000);
+        scrollToElement(acquireTokenButton);
+        acquireTokenButton.click();
+
+        if (promptHandlerParameters.getBroker() == null && browser != null && shouldHandleBrowserFirstRun) {
+            // handle browser first run as applicable
+            browser.handleFirstRun();
+        }
+        // handle prompt if needed
+        if (shouldHandlePrompt) {
+            try {
+                final UiObject emailField = UiAutomatorUtils.obtainUiObjectWithTextAndClassType(
+                        "", EditText.class);
+                emailField.setText(username);
+                final UiObject nextBtn = UiAutomatorUtils.obtainUiObjectWithTextAndClassType(
+                        "Next", Button.class);
+                nextBtn.click();
+            } catch (final UiObjectNotFoundException e) {
+                throw new AssertionError("Could not click on object with txt Next");
+            }
+            final MicrosoftStsPromptHandler microsoftStsPromptHandler = new MicrosoftStsPromptHandler((MicrosoftStsPromptHandlerParameters) promptHandlerParameters);
+            microsoftStsPromptHandler.handlePrompt(username, password);
+        }
+
+        // get token and return
+        final UiObject result = UiAutomatorUtils.obtainUiObjectWithResourceId("com.msft.identity.client.sample.local:id/txt_result", 15000);
+        return result.getText();
+    }
+
+    private void scrollToElement(UiObject obj) throws UiObjectNotFoundException {
+        UiScrollable scrollable = new UiScrollable(new UiSelector().scrollable(true));
+        scrollable.scrollIntoView(obj);
+        obj.waitForExists(FIND_UI_ELEMENT_TIMEOUT);
+    }
 
     @Override
     public LabQuery getLabQuery() {

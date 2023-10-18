@@ -47,14 +47,12 @@ import org.junit.Test;
 @LTWTests
 @RunOnAPI29Minus
 @RetryOnFailure
-public class TestCase2571508  extends AbstractMsalUiTest {
+@SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
+public class TestCase2571508  extends AbstractMsalBrokerTest {
     @Test
     public void test_2571508() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
-
-        final BrokerMicrosoftAuthenticator authenticator = new BrokerMicrosoftAuthenticator();
-        authenticator.install();
 
         // Install old LTW
         final BrokerLTW brokerLTW = new BrokerLTW(BrokerLTW.OLD_BROKER_LTW_APK, BrokerLTW.BROKER_LTW_APK);
@@ -67,7 +65,7 @@ public class TestCase2571508  extends AbstractMsalUiTest {
         handleOneAuthTestAppFirstRunCorrectly(oneAuthTestApp);
 
         final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
-                .broker(authenticator)
+                .broker(mBroker)
                 .prompt(PromptParameter.LOGIN)
                 .loginHint(username)
                 .consentPageExpected(false)
@@ -87,6 +85,13 @@ public class TestCase2571508  extends AbstractMsalUiTest {
         msalTestApp.install();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
+
+        Assert.assertTrue(mBroker instanceof BrokerMicrosoftAuthenticator);
+        // Click on "Get Active Broker Pkg Name" button
+        // return Authenticator app package name
+        msalTestApp.handleBackButton();
+        final String activeBroker = msalTestApp.getActiveBrokerPackageName();
+        Assert.assertEquals("Active broker pkg name : " + BrokerMicrosoftAuthenticator.AUTHENTICATOR_APP_PACKAGE_NAME, activeBroker);
 
         final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
                 .prompt(PromptParameter.SELECT_ACCOUNT)
@@ -112,12 +117,6 @@ public class TestCase2571508  extends AbstractMsalUiTest {
         msalTestApp.handleUserNameInput(username);
         final String token = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, mBrowser, true, false);
         Assert.assertNotNull(token);
-
-        // Click on "Get Active Broker Pkg Name" button
-        // return Authenticator app package name
-        msalTestApp.handleBackButton();
-        final String activeBroker = msalTestApp.getActiveBrokerPackageName();
-        Assert.assertEquals("Active broker pkg name : " + BrokerMicrosoftAuthenticator.AUTHENTICATOR_APP_PACKAGE_NAME, activeBroker);
     }
 
     @Override
