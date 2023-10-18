@@ -48,7 +48,7 @@ android {
     defaultConfig {
         multiDexEnabled true
         namespace = "com.microsoft.identity.client.msal.automationapp"
-        applicationId "com.msft.identity.client.sample"
+        applicationId "com.microsoft.identity.client.msal.automationapp"
         minSdkVersion rootProject.ext.automationAppMinSDKVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
