@@ -43,7 +43,7 @@ import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory;
 import com.microsoft.identity.common.internal.commands.parameters.AndroidActivityInteractiveTokenCommandParameters;
-import com.microsoft.identity.common.java.constants.FidoConstants;
+import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryB2CAuthority;
@@ -51,8 +51,6 @@ import com.microsoft.identity.common.java.authorities.NativeAuthCIAMAuthority;
 import com.microsoft.identity.common.java.authscheme.AbstractAuthenticationScheme;
 import com.microsoft.identity.common.java.authscheme.AuthenticationSchemeFactory;
 import com.microsoft.identity.common.java.authscheme.BearerAuthenticationSchemeInternal;
-import com.microsoft.identity.common.java.exception.ClientException;
-import com.microsoft.identity.common.java.util.SchemaUtil;
 import com.microsoft.identity.common.java.commands.parameters.CommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.DeviceCodeFlowCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.GenerateShrCommandParameters;
@@ -66,12 +64,14 @@ import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignInS
 import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignInSubmitCodeCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignInSubmitPasswordCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignInWithSLTCommandParameters;
+import com.microsoft.identity.common.java.constants.FidoConstants;
 import com.microsoft.identity.common.java.dto.AccountRecord;
+import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.java.providers.oauth2.OpenIdConnectPromptParameter;
 import com.microsoft.identity.common.java.request.SdkType;
 import com.microsoft.identity.common.java.ui.AuthorizationAgent;
-import com.microsoft.identity.common.internal.util.StringUtil;
+import com.microsoft.identity.common.java.util.SchemaUtil;
 import com.microsoft.identity.common.logging.Logger;
 
 import java.util.AbstractMap;
@@ -82,8 +82,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import androidx.annotation.Nullable;
 
+/**
+ * CommandParametersAdapter is a helper class to create various Command parameter objects.
+ */
 public class CommandParametersAdapter {
 
     private static final String TAG = CommandParametersAdapter.class.getSimpleName();
@@ -283,6 +285,16 @@ public class CommandParametersAdapter {
         return commandParameters;
     }
 
+    /**
+     * Creates command parameter for [AcquireTokenNoFixedScopesCommand] of Native Auth.
+     *
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param accountRecord accountRecord object containing account information
+     * @param forceRefresh boolean parameter to denote if refresh should be forced
+     * @return Command parameter object
+     * @throws ClientException
+     */
     public static AcquireTokenNoFixedScopesCommandParameters createAcquireTokenNoFixedScopesCommandParameters(
             @NonNull final PublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
@@ -345,6 +357,14 @@ public class CommandParametersAdapter {
         return commandParameters;
     }
 
+    /**
+     * Creates command parameter for [SignInStartCommand] of Native Auth.
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param username email address of the user
+     * @return Command parameter object
+     * @throws ClientException
+     */
     public static SignInStartCommandParameters createSignInStartCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
@@ -378,6 +398,16 @@ public class CommandParametersAdapter {
         return commandParameters;
     }
 
+    /**
+     * Creates command parameter for [SignInStartCommand] of Native Auth using username and password
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param username email address of the user
+     * @param password password of the user
+     * @param scopes
+     * @return Command parameter object
+     * @throws ClientException
+     */
     public static SignInStartUsingPasswordCommandParameters createSignInStartUsingPasswordCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
@@ -415,6 +445,16 @@ public class CommandParametersAdapter {
         return commandParameters;
     }
 
+    /**
+     * Creates command parameter for [SignInStartCommand] of Native Auth using short lived token
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param signInSLT short lived token
+     * @param username email address of the user
+     * @param scopes
+     * @return Command parameter object
+     * @throws ClientException
+     */
     public static SignInWithSLTCommandParameters createSignInWithSLTCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
@@ -451,6 +491,16 @@ public class CommandParametersAdapter {
         return commandParameters;
     }
 
+    /**
+     * Creates command parameter for [SignInSubmitCodeCommand] of Native Auth
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param code Out of band code
+     * @param credentialToken credential token
+     * @param scopes
+     * @return Command parameter object
+     * @throws ClientException
+     */
     public static SignInSubmitCodeCommandParameters createSignInSubmitCodeCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
@@ -488,6 +538,14 @@ public class CommandParametersAdapter {
         return commandParameters;
     }
 
+    /**
+     * Creates command parameter for [SignInResendCodeCommand] of Native Auth
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param credentialToken credential token
+     * @return Command parameter object
+     * @throws ClientException
+     */
     public static SignInResendCodeCommandParameters createSignInResendCodeCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
@@ -516,6 +574,16 @@ public class CommandParametersAdapter {
         return commandParameters;
     }
 
+    /**
+     * Creates command parameter for [SignInSubmitPasswordCommand] of Native Auth
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param credentialToken credential token
+     * @param password  password of the user
+     * @param scopes
+     * @return Command parameter object
+     * @throws ClientException
+     */
     public static SignInSubmitPasswordCommandParameters createSignInSubmitPasswordCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,

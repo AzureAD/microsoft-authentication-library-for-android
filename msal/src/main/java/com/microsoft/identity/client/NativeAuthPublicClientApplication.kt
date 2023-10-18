@@ -142,8 +142,8 @@ class NativeAuthPublicClientApplication(
             if (cacheRecords.isNullOrEmpty()) {
                 return null
             }
-            val account = AccountAdapter.adapt(cacheRecords)
-            if (account.isNullOrEmpty()) {
+            val accountList = AccountAdapter.adapt(cacheRecords)
+            if (accountList.isNullOrEmpty()) {
                 Logger.error(
                     TAG,
                     "Returned cacheRecords were adapted into empty or null IAccount list. " +
@@ -153,7 +153,7 @@ class NativeAuthPublicClientApplication(
                 )
                 return null
             }
-            if (account.size != 1) {
+            if (accountList.size != 1) {
                 Logger.warn(
                     TAG,
                     "Returned cacheRecords were adapted into multiple IAccount. " +
@@ -161,7 +161,7 @@ class NativeAuthPublicClientApplication(
                         "Returning the first adapted account."
                 )
             }
-            return account[0]
+            return accountList[0]
         }
     }
 
