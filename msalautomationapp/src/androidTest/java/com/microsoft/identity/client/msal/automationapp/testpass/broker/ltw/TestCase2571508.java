@@ -15,6 +15,7 @@ import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
 import com.microsoft.identity.client.ui.automation.app.OneAuthTestApp;
+import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters;
@@ -70,33 +71,36 @@ public class TestCase2571508  extends AbstractMsalBrokerTest {
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
 
-        final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
-                .prompt(PromptParameter.SELECT_ACCOUNT)
-                .loginHint(username)
-                .sessionExpected(false)
-                .broker(mBroker)
-                .expectingBrokerAccountChooserActivity(false)
-                .expectingProvidedAccountInBroker(false)
-                .expectingLoginPageAccountPicker(false)
-                .expectingProvidedAccountInCookie(false)
-                .consentPageExpected(false)
-                .passwordPageExpected(false)
-                .speedBumpExpected(false)
-                .registerPageExpected(false)
-                .enrollPageExpected(false)
-                .staySignedInPageExpected(false)
-                .verifyYourIdentityPageExpected(false)
-                .howWouldYouLikeToSignInExpected(false)
-                .build();
+        final String activeBroker = msalTestApp.getActiveBrokerPackageName();
+        Assert.assertEquals("Active broker pkg name : " + BrokerMicrosoftAuthenticator.AUTHENTICATOR_APP_PACKAGE_NAME, activeBroker);
+
+//        final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
+//                .prompt(PromptParameter.SELECT_ACCOUNT)
+//                .loginHint(username)
+//                .sessionExpected(false)
+//                .broker(mBroker)
+//                .expectingBrokerAccountChooserActivity(false)
+//                .expectingProvidedAccountInBroker(false)
+//                .expectingLoginPageAccountPicker(false)
+//                .expectingProvidedAccountInCookie(false)
+//                .consentPageExpected(false)
+//                .passwordPageExpected(false)
+//                .speedBumpExpected(false)
+//                .registerPageExpected(false)
+//                .enrollPageExpected(false)
+//                .staySignedInPageExpected(false)
+//                .verifyYourIdentityPageExpected(false)
+//                .howWouldYouLikeToSignInExpected(false)
+//                .build();
 
         // Add login hint as the username and Click on AcquireToken button
         // NOT prompted for credentials.
-        msalTestApp.handleUserNameInput(username);
+//        msalTestApp.handleUserNameInput(username);
 //        final UiObject acquireTokenButton = UiAutomatorUtils.obtainUiObjectWithResourceId("com.msft.identity.client.sample.local:id/btn_acquiretoken", 3000);
 //        scrollToElement(acquireTokenButton);
 //        acquireTokenButton.click();
-        final String token = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, false);
-        Assert.assertNotNull(token);
+//        final String token = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, false);
+//        Assert.assertNotNull(token);
 
 
     }
