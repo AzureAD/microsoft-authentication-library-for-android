@@ -27,14 +27,44 @@ package com.microsoft.identity.client.statemachine.results
 import com.microsoft.identity.client.statemachine.Error
 import com.microsoft.identity.client.statemachine.states.State
 
+/**
+ * Result is the base class for all Result classes used in Native Auth.
+ */
 interface Result {
+    /**
+     * SuccessResult which indicates the API call succeeded.
+     */
     open class SuccessResult(open val nextState: State) : Result
+
+    /**
+     * ErrorResult, which indicates that the flow failed.
+     */
     open class ErrorResult(open val error: Error) : Result
+
+    /**
+     * Complete Result, which indicates the flow is complete.
+     */
     open class CompleteResult(open val resultValue: Any? = null) : Result
+
+    /**
+     * CompleteWithNextStateResult which indicates the flow is complete but the next flow
+     * should be started e.g. SignIn flow is started after Signup is complete.
+     */
     open class CompleteWithNextStateResult(override val resultValue: Any? = null, open val nextState: State?) : CompleteResult(resultValue = resultValue)
 
+    /**
+     * Returns true if the current API call succeeded
+     */
     fun isSuccess(): Boolean = this is SuccessResult
+
+    /**
+     * Returns true if the API call failed
+     */
     fun isError(): Boolean = this is ErrorResult
+
+    /**
+     * Returns true if the flow is complete
+     */
     fun isComplete(): Boolean = this is CompleteResult
 }
 
