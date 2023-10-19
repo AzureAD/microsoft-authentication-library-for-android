@@ -60,7 +60,7 @@ class AccountAdapter {
                 final String acctHomeAccountId = cacheRecord.getAccount().getHomeAccountId();
                 final String acctLocalAccountId = cacheRecord.getAccount().getLocalAccountId();
 
-                if (!acctHomeAccountId.contains(acctLocalAccountId)) {
+                if (acctHomeAccountId != null && acctLocalAccountId != null && !acctHomeAccountId.contains(acctLocalAccountId)) {
                     result.add(cacheRecord);
                 }
             }
