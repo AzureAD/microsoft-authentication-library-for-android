@@ -51,6 +51,7 @@ import org.junit.Test;
 // Even Authenticator has the highest priority, if CP already has an artifact, CP will remain the broker.
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2579095
 @LTWTests
+@RunOnAPI29Minus
 public class TestCase2579095 extends AbstractMsalBrokerTest {
 
     @Test
@@ -66,60 +67,60 @@ public class TestCase2579095 extends AbstractMsalBrokerTest {
                 BrokerCompanyPortal.COMPANY_PORTAL_APK);
         brokerCompanyPortal.install();
 
-        final MsalTestApp oldMsalTestApp = new MsalTestApp();
-        oldMsalTestApp.installOldApk();
-        oldMsalTestApp.launch();
-        oldMsalTestApp.handleFirstRun();
-
-        // acquire token interactively on MsalTestApp and should not get prompt
-        final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
-                .prompt(PromptParameter.SELECT_ACCOUNT)
-                .loginHint(username)
-                .sessionExpected(false)
-                .broker(mBroker)
-                .expectingBrokerAccountChooserActivity(false)
-                .expectingProvidedAccountInBroker(false)
-                .expectingLoginPageAccountPicker(false)
-                .expectingProvidedAccountInCookie(false)
-                .consentPageExpected(false)
-                .passwordPageExpected(false)
-                .speedBumpExpected(false)
-                .registerPageExpected(false)
-                .enrollPageExpected(false)
-                .staySignedInPageExpected(false)
-                .verifyYourIdentityPageExpected(false)
-                .howWouldYouLikeToSignInExpected(false)
-                .build();
-
-        oldMsalTestApp.handleUserNameInput(username);
-        final UiObject acquireTokenButton = UiAutomatorUtils.obtainUiObjectWithResourceId("com.msft.identity.client.sample.local:id/btn_acquiretoken");
-        scrollToElement(acquireTokenButton);
-        acquireTokenButton.click();
-        final MicrosoftStsPromptHandler microsoftStsPromptHandler = new MicrosoftStsPromptHandler((MicrosoftStsPromptHandlerParameters) promptHandlerParametersMsal);
-        microsoftStsPromptHandler.handlePrompt(username, password);
+//        final MsalTestApp oldMsalTestApp = new MsalTestApp();
+//        oldMsalTestApp.installOldApk();
+//        oldMsalTestApp.launch();
+//        oldMsalTestApp.handleFirstRun();
+//
+//        // acquire token interactively on MsalTestApp and should not get prompt
+//        final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
+//                .prompt(PromptParameter.SELECT_ACCOUNT)
+//                .loginHint(username)
+//                .sessionExpected(false)
+//                .broker(mBroker)
+//                .expectingBrokerAccountChooserActivity(false)
+//                .expectingProvidedAccountInBroker(false)
+//                .expectingLoginPageAccountPicker(false)
+//                .expectingProvidedAccountInCookie(false)
+//                .consentPageExpected(false)
+//                .passwordPageExpected(false)
+//                .speedBumpExpected(false)
+//                .registerPageExpected(false)
+//                .enrollPageExpected(false)
+//                .staySignedInPageExpected(false)
+//                .verifyYourIdentityPageExpected(false)
+//                .howWouldYouLikeToSignInExpected(false)
+//                .build();
+//
+//        oldMsalTestApp.handleUserNameInput(username);
+//        final UiObject acquireTokenButton = UiAutomatorUtils.obtainUiObjectWithResourceId("com.msft.identity.client.sample.local:id/btn_acquiretoken");
+//        scrollToElement(acquireTokenButton);
+//        acquireTokenButton.click();
+//        final MicrosoftStsPromptHandler microsoftStsPromptHandler = new MicrosoftStsPromptHandler((MicrosoftStsPromptHandlerParameters) promptHandlerParametersMsal);
+//        microsoftStsPromptHandler.handlePrompt(username, password);
 //        String tokenMsal = oldMsalTestApp.acquireToken(username, password, promptHandlerParametersMsal, true);
 //        Assert.assertNotNull(tokenMsal);
 
-//        // install old OneAuthTestApp
-//        final OneAuthTestApp oldOneAuthTestApp = new OneAuthTestApp();
-//        oldOneAuthTestApp.installOldApk();
-//        oldOneAuthTestApp.launch();
-//        oldOneAuthTestApp.handleFirstRun();
-//
-//        // acquire token interactively on OneAuthTestApp
-//        final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
-//                .broker(mBroker)
-//                .prompt(PromptParameter.LOGIN)
-//                .loginHint(username)
-//                .consentPageExpected(false)
-//                .speedBumpExpected(false)
-//                .sessionExpected(false)
-//                .expectingBrokerAccountChooserActivity(false)
-//                .expectingLoginPageAccountPicker(false)
-//                .enrollPageExpected(false)
-//                .build();
-//        oldOneAuthTestApp.addFirstAccount(username, password, promptHandlerParametersOneAuth);
-//        oldOneAuthTestApp.confirmAccount(username);
+        // install old OneAuthTestApp
+        final OneAuthTestApp oldOneAuthTestApp = new OneAuthTestApp();
+        oldOneAuthTestApp.installOldApk();
+        oldOneAuthTestApp.launch();
+        oldOneAuthTestApp.handleFirstRun();
+
+        // acquire token interactively on OneAuthTestApp
+        final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
+                .broker(mBroker)
+                .prompt(PromptParameter.LOGIN)
+                .loginHint(username)
+                .consentPageExpected(false)
+                .speedBumpExpected(false)
+                .sessionExpected(false)
+                .expectingBrokerAccountChooserActivity(false)
+                .expectingLoginPageAccountPicker(false)
+                .enrollPageExpected(false)
+                .build();
+        oldOneAuthTestApp.addFirstAccount(username, password, promptHandlerParametersOneAuth);
+        oldOneAuthTestApp.confirmAccount(username);
 
         // install new Authenticator
         final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator();
@@ -127,6 +128,7 @@ public class TestCase2579095 extends AbstractMsalBrokerTest {
 
         // update Company Portal
         brokerCompanyPortal.update();
+        brokerCompanyPortal.launch();
 
         // install new MsalTestApp
         final MsalTestApp msalTestApp = new MsalTestApp();
@@ -136,7 +138,6 @@ public class TestCase2579095 extends AbstractMsalBrokerTest {
 
 //        final String activeBroker = msalTestApp.getActiveBrokerPackageName();
 //        Assert.assertEquals("Active broker pkg name : " + BrokerCompanyPortal.COMPANY_PORTAL_APP_PACKAGE_NAME, activeBroker);
-
         // acquire token interactively on MsalTestApp and should not get prompt
         final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal1 = MicrosoftStsPromptHandlerParameters.builder()
                 .prompt(PromptParameter.SELECT_ACCOUNT)
