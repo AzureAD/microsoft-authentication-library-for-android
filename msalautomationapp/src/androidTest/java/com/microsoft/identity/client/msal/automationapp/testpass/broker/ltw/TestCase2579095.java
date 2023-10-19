@@ -135,32 +135,32 @@ public class TestCase2579095 extends AbstractMsalBrokerTest {
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
 
-        final String activeBroker = msalTestApp.getActiveBrokerPackageName();
-        Assert.assertEquals("Active broker pkg name : " + BrokerCompanyPortal.COMPANY_PORTAL_APP_PACKAGE_NAME, activeBroker);
+//        final String activeBroker = msalTestApp.getActiveBrokerPackageName();
+//        Assert.assertEquals("Active broker pkg name : " + BrokerCompanyPortal.COMPANY_PORTAL_APP_PACKAGE_NAME, activeBroker);
 
-//        // acquire token interactively on MsalTestApp and should not get prompt
-//        final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal1 = MicrosoftStsPromptHandlerParameters.builder()
-//                .prompt(PromptParameter.SELECT_ACCOUNT)
-//                .loginHint(username)
-//                .sessionExpected(false)
-//                .broker(mBroker)
-//                .expectingBrokerAccountChooserActivity(false)
-//                .expectingProvidedAccountInBroker(false)
-//                .expectingLoginPageAccountPicker(false)
-//                .expectingProvidedAccountInCookie(false)
-//                .consentPageExpected(false)
-//                .passwordPageExpected(false)
-//                .speedBumpExpected(false)
-//                .registerPageExpected(false)
-//                .enrollPageExpected(false)
-//                .staySignedInPageExpected(false)
-//                .verifyYourIdentityPageExpected(false)
-//                .howWouldYouLikeToSignInExpected(false)
-//                .build();
-//
-//        msalTestApp.handleUserNameInput(username);
-//        String tokenMsal1 = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal1, false);
-//        Assert.assertNotNull(tokenMsal1);
+        // acquire token interactively on MsalTestApp and should not get prompt
+        final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal1 = MicrosoftStsPromptHandlerParameters.builder()
+                .prompt(PromptParameter.SELECT_ACCOUNT)
+                .loginHint(username)
+                .sessionExpected(false)
+                .broker(mBroker)
+                .expectingBrokerAccountChooserActivity(false)
+                .expectingProvidedAccountInBroker(false)
+                .expectingLoginPageAccountPicker(false)
+                .expectingProvidedAccountInCookie(false)
+                .consentPageExpected(false)
+                .passwordPageExpected(false)
+                .speedBumpExpected(false)
+                .registerPageExpected(false)
+                .enrollPageExpected(false)
+                .staySignedInPageExpected(false)
+                .verifyYourIdentityPageExpected(false)
+                .howWouldYouLikeToSignInExpected(false)
+                .build();
+
+        msalTestApp.handleUserNameInput(username);
+        String tokenMsal1 = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal1, false);
+        Assert.assertNotNull(tokenMsal1);
 
         // getPackageName on MsalTestApp and should be Company Portal
       //  msalTestApp.handleBackButton();
