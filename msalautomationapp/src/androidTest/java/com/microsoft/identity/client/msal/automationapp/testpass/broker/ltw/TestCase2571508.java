@@ -118,7 +118,7 @@ public class TestCase2571508  extends AbstractMsalBrokerTest {
         Assert.assertEquals("Active broker pkg name : " + BrokerMicrosoftAuthenticator.AUTHENTICATOR_APP_PACKAGE_NAME, activeBroker);
         msalTestApp.handleBackButton();
         
-        final String token = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, mBrowser, true, false);
+        final String token = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, false);
         Assert.assertNotNull(token);
     }
 
