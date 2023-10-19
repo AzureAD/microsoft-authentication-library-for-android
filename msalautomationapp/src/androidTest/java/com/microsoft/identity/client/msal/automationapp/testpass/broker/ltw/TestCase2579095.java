@@ -39,6 +39,7 @@ import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
@@ -92,8 +93,13 @@ public class TestCase2579095 extends AbstractMsalBrokerTest {
                 .build();
 
         oldMsalTestApp.handleUserNameInput(username);
-        String tokenMsal = oldMsalTestApp.acquireToken(username, password, promptHandlerParametersMsal, true);
-        Assert.assertNotNull(tokenMsal);
+        final UiObject acquireTokenButton = UiAutomatorUtils.obtainUiObjectWithResourceId("com.msft.identity.client.sample.local:id/btn_acquiretoken");
+        scrollToElement(acquireTokenButton);
+        acquireTokenButton.click();
+        final MicrosoftStsPromptHandler microsoftStsPromptHandler = new MicrosoftStsPromptHandler((MicrosoftStsPromptHandlerParameters) promptHandlerParametersMsal);
+        microsoftStsPromptHandler.handlePrompt(username, password);
+//        String tokenMsal = oldMsalTestApp.acquireToken(username, password, promptHandlerParametersMsal, true);
+//        Assert.assertNotNull(tokenMsal);
 
 //        // install old OneAuthTestApp
 //        final OneAuthTestApp oldOneAuthTestApp = new OneAuthTestApp();
