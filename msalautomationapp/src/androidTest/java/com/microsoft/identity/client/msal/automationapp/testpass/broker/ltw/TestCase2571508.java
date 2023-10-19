@@ -31,7 +31,6 @@ import org.junit.Test;
 // If LTW without broker is installed, updated MSAL should still get SSO
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2571508
 @LTWTests
-@RunOnAPI29Minus
 public class TestCase2571508  extends AbstractMsalBrokerTest {
     @Test
     public void test_2571508() throws Throwable {

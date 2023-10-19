@@ -51,7 +51,6 @@ import org.junit.Test;
 // Even Authenticator has the highest priority, if CP already has an artifact, CP will remain the broker.
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2579095
 @LTWTests
-@RunOnAPI29Minus
 public class TestCase2579095 extends AbstractMsalBrokerTest {
 
     @Test
