@@ -88,8 +88,6 @@ public class TestCase2571508  extends AbstractMsalBrokerTest {
         msalTestApp.handleFirstRun();
 
         Assert.assertTrue(mBroker instanceof BrokerMicrosoftAuthenticator);
-        // Click on "Get Active Broker Pkg Name" button
-        // return Authenticator app package name
 
         final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
                 .prompt(PromptParameter.SELECT_ACCOUNT)
@@ -114,6 +112,8 @@ public class TestCase2571508  extends AbstractMsalBrokerTest {
         // NOT prompted for credentials.
         msalTestApp.handleUserNameInput(username);
 
+        // Click on "Get Active Broker Pkg Name" button
+        // return Authenticator app package name
         final String activeBroker = msalTestApp.getActiveBrokerPackageName();
         Assert.assertEquals("Active broker pkg name : " + BrokerMicrosoftAuthenticator.AUTHENTICATOR_APP_PACKAGE_NAME, activeBroker);
         msalTestApp.handleBackButton();
