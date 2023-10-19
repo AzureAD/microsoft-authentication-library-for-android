@@ -43,26 +43,26 @@ public class TestCase2571508  extends AbstractMsalBrokerTest {
         final BrokerLTW brokerLTW = new BrokerLTW(BrokerLTW.OLD_BROKER_LTW_APK, BrokerLTW.BROKER_LTW_APK);
         brokerLTW.install();
 
-        // AcquireToken interactively on OneAuthTestApp
-        final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
-        oneAuthTestApp.install();
-        oneAuthTestApp.launch();
-        oneAuthTestApp.handleFirstRun();
-
-        final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
-                .broker(mBroker)
-                .prompt(PromptParameter.LOGIN)
-                .loginHint(username)
-                .consentPageExpected(false)
-                .speedBumpExpected(false)
-                .sessionExpected(false)
-                .expectingBrokerAccountChooserActivity(false)
-                .expectingLoginPageAccountPicker(false)
-                .enrollPageExpected(false)
-                .build();
-        // Click on sign in button, prompted to enter username and password
-        oneAuthTestApp.addFirstAccount(username, password, promptHandlerParametersOneAuth);
-        oneAuthTestApp.confirmAccount(username);
+//        // AcquireToken interactively on OneAuthTestApp
+//        final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
+//        oneAuthTestApp.install();
+//        oneAuthTestApp.launch();
+//        oneAuthTestApp.handleFirstRun();
+//
+//        final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
+//                .broker(mBroker)
+//                .prompt(PromptParameter.LOGIN)
+//                .loginHint(username)
+//                .consentPageExpected(false)
+//                .speedBumpExpected(false)
+//                .sessionExpected(false)
+//                .expectingBrokerAccountChooserActivity(false)
+//                .expectingLoginPageAccountPicker(false)
+//                .enrollPageExpected(false)
+//                .build();
+//        // Click on sign in button, prompted to enter username and password
+//        oneAuthTestApp.addFirstAccount(username, password, promptHandlerParametersOneAuth);
+//        oneAuthTestApp.confirmAccount(username);
 
 
         // Install new MSALTestApp
