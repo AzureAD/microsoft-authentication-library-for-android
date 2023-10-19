@@ -55,6 +55,7 @@ public class TestCase2582289 extends AbstractMsalBrokerTest {
 
         // Install MsalTestApp with Broker selection logic enabled
         final MsalTestApp msalTestApp = new MsalTestApp();
+        msalTestApp.uninstall();
         msalTestApp.install();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
@@ -72,7 +73,7 @@ public class TestCase2582289 extends AbstractMsalBrokerTest {
                 .enrollPageExpected(false)
                 .build();
 
-        final String tokenMsal = msalTestApp.acquireToken(username, password, promptHandlerParameters, true);
+        final String tokenMsal = msalTestApp.acquireToken(username, password, promptHandlerParameters, mBrowser, true, true);
         Assert.assertNotNull(tokenMsal);
 
         // Install new CP app with broker SDK changes of broker selection logic
