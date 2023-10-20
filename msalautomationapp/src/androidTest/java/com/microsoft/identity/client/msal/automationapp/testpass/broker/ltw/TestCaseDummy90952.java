@@ -10,6 +10,7 @@ import androidx.test.uiautomator.UiSelector;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
+import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
 import com.microsoft.identity.client.ui.automation.app.OneAuthTestApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
@@ -24,6 +25,7 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import org.junit.Test;
 
 @LTWTests
+@RunOnAPI29Minus
 public class TestCaseDummy90952 extends AbstractMsalBrokerTest {
     @Test
     public void test_dummy_90952() throws Throwable {
