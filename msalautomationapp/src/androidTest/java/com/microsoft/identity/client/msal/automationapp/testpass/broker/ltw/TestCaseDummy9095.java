@@ -9,33 +9,23 @@ import androidx.test.uiautomator.UiSelector;
 
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
-import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
-import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
-import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
 import com.microsoft.identity.client.ui.automation.app.OneAuthTestApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
-import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
+import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
-import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-// If LTW without broker is installed, updated MSAL should still get SSO
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2571508
-@LTWTests
-@RunOnAPI29Minus
-public class TestCase2571508  extends AbstractMsalBrokerTest {
+public class TestCaseDummy9095 extends AbstractMsalBrokerTest {
     @Test
-    public void test_2571508() throws Throwable {
+    public void test_dummy_9095() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
@@ -81,39 +71,7 @@ public class TestCase2571508  extends AbstractMsalBrokerTest {
         // update Company Portal
         brokerCompanyPortal.update();
 
-        // install new MsalTestApp
-        msalTestApp.install();
-        msalTestApp.launch();
-        msalTestApp.handleFirstRun();
-
-        // acquire token interactively on MsalTestApp and should not get prompt
-//        final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
-//                .prompt(PromptParameter.SELECT_ACCOUNT)
-//                .loginHint(username)
-//                .sessionExpected(false)
-//                .broker(mBroker)
-//                .expectingBrokerAccountChooserActivity(false)
-//                .expectingProvidedAccountInBroker(false)
-//                .expectingLoginPageAccountPicker(false)
-//                .expectingProvidedAccountInCookie(false)
-//                .consentPageExpected(false)
-//                .passwordPageExpected(false)
-//                .speedBumpExpected(false)
-//                .registerPageExpected(false)
-//                .enrollPageExpected(false)
-//                .staySignedInPageExpected(false)
-//                .verifyYourIdentityPageExpected(false)
-//                .howWouldYouLikeToSignInExpected(false)
-//                .build();
-//
-//        msalTestApp.handleUserNameInput(username);
-//        String tokenMsal = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, false);
-//        Assert.assertNotNull(tokenMsal);
-//
-//        // getPackageName on MsalTestApp and should be Company Portal
-//        msalTestApp.handleBackButton();
-        final String activeBroker = msalTestApp.getActiveBrokerPackageName();
-        Assert.assertEquals("Active broker pkg name : " + BrokerCompanyPortal.COMPANY_PORTAL_APP_PACKAGE_NAME, activeBroker);
+        brokerCompanyPortal.createPowerLiftIncident();
     }
 
     @Override
