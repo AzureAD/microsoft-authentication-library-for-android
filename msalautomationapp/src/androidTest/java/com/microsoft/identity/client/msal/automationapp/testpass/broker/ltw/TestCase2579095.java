@@ -72,7 +72,7 @@ public class TestCase2579095 extends AbstractMsalBrokerTest {
             // To make sure the device is in clean slate, uninstall mBroker here.
             mBroker.uninstall();
             final MsalTestApp msalTestApp = new MsalTestApp();
-            msalTestApp.uninstall();
+//            msalTestApp.uninstall();
 
             // install legacy company portal
             final BrokerCompanyPortal brokerCompanyPortal = new BrokerCompanyPortal(BrokerCompanyPortal.OLD_COMPANY_PORTAL_APK,

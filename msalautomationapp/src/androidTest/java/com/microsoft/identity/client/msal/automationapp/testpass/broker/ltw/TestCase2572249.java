@@ -57,7 +57,7 @@ public class TestCase2572249 extends AbstractMsalBrokerTest {
 
         // acquire token interactively in MsalTestApp
         final MsalTestApp msalTestApp = new MsalTestApp();
-        msalTestApp.uninstall();
+//        msalTestApp.uninstall();
         msalTestApp.install();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();

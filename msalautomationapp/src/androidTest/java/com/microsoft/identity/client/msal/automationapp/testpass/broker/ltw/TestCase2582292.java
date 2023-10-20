@@ -81,7 +81,7 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
 
         // Install legacy MSAL Test app (Msal test app with no broker selection logic)
         final MsalTestApp msalTestApp = new MsalTestApp();
-        msalTestApp.uninstall();
+//        msalTestApp.uninstall();
         msalTestApp.installOldApk();
 
         // Check mode in MSAL test app
