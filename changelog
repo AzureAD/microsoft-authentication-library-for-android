@@ -1,6 +1,7 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 vNext
 ----------
+- [PATCH] Adding null checks and logging to filter methods in AccountAdapter (#1929)
 
 Version 4.9.0
 ----------
