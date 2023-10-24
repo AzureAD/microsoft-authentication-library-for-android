@@ -51,27 +51,28 @@ class AccountAdapter {
     }
 
     private static class GuestAccountFilter implements CacheRecordFilter {
+        final static String TAG = GuestAccountFilter.class.getSimpleName();
 
         @Override
         public List<ICacheRecord> filter(@NonNull List<ICacheRecord> records) {
-            final String methodTag = GuestAccountFilter.class.getSimpleName() + ":filter";
+            final String methodTag = TAG + ":filter";
 
             final List<ICacheRecord> result = new ArrayList<>();
 
             for (final ICacheRecord cacheRecord : records) {
                 final String acctHomeAccountId = cacheRecord.getAccount().getHomeAccountId();
                 final String acctLocalAccountId = cacheRecord.getAccount().getLocalAccountId();
-                try {
-                    if (!acctHomeAccountId.contains(acctLocalAccountId)) {
-                        result.add(cacheRecord);
-                    }
-                } catch (final NullPointerException e) {
-                    if (acctHomeAccountId == null) {
-                        Logger.warn(methodTag, "Home account id is null.");
-                    }
-                    if (acctLocalAccountId == null) {
-                        Logger.warn(methodTag, "Local account id is null.");
-                    }
+                boolean notNullorEmpty = true;
+                if (StringUtil.isNullOrEmpty(acctHomeAccountId)) {
+                    Logger.warn(methodTag, "Home account id is null or empty.");
+                    notNullorEmpty = false;
+                }
+                if (StringUtil.isNullOrEmpty(acctLocalAccountId)) {
+                    Logger.warn(methodTag, "Local account id is null or empty.");
+                    notNullorEmpty = false;
+                }
+                if (notNullorEmpty && !acctHomeAccountId.contains(acctLocalAccountId)) {
+                    result.add(cacheRecord);
                 }
             }
 
@@ -84,26 +85,27 @@ class AccountAdapter {
      * constructor initialization.
      */
     private static class HomeAccountFilter implements CacheRecordFilter {
+        final static String TAG = HomeAccountFilter.class.getSimpleName();
 
         @Override
         public List<ICacheRecord> filter(@NonNull final List<ICacheRecord> records) {
-            final String methodTag = HomeAccountFilter.class.getSimpleName() + ":filter";
+            final String methodTag = TAG + ":filter";
             final List<ICacheRecord> result = new ArrayList<>();
 
             for (final ICacheRecord cacheRecord : records) {
                 final String acctHomeAccountId = cacheRecord.getAccount().getHomeAccountId();
                 final String acctLocalAccountId = cacheRecord.getAccount().getLocalAccountId();
-                try {
-                    if (acctHomeAccountId.contains(acctLocalAccountId)) {
-                        result.add(cacheRecord);
-                    }
-                } catch (final NullPointerException e) {
-                    if (acctHomeAccountId == null) {
-                        Logger.warn(methodTag, "Home account id is null.");
-                    }
-                    if (acctLocalAccountId == null) {
-                        Logger.warn(methodTag, "Local account id is null.");
-                    }
+                boolean notNullorEmpty = true;
+                if (StringUtil.isNullOrEmpty(acctHomeAccountId)) {
+                    Logger.warn(methodTag, "Home account id is null or empty.");
+                    notNullorEmpty = false;
+                }
+                if (StringUtil.isNullOrEmpty(acctLocalAccountId)) {
+                    Logger.warn(methodTag, "Local account id is null or empty.");
+                    notNullorEmpty = false;
+                }
+                if (notNullorEmpty && acctHomeAccountId.contains(acctLocalAccountId)) {
+                    result.add(cacheRecord);
                 }
             }
 
@@ -116,13 +118,15 @@ class AccountAdapter {
      */
     private static final CacheRecordFilter guestAccountsWithNoHomeTenantAccountFilter = new CacheRecordFilter() {
 
+        final String TAG = CacheRecordFilter.class.getSimpleName();
+
         private boolean hasNoCorrespondingHomeAccount(@NonNull final ICacheRecord guestRecord,
                                                       @NonNull final List<ICacheRecord> homeRecords) {
-            final String methodTag = CacheRecordFilter.class.getSimpleName() + ":hasNoCorrespondingHomeAccount";
+            final String methodTag = TAG + ":hasNoCorrespondingHomeAccount";
             // Init our sought value
             final String guestAccountHomeAccountId = guestRecord.getAccount().getHomeAccountId();
-            if (guestAccountHomeAccountId == null){
-                Logger.warn(methodTag, "Guest account home account id is null.");
+            if (StringUtil.isNullOrEmpty(guestAccountHomeAccountId)){
+                Logger.warn(methodTag, "Guest account home account id is null or empty.");
                 return true;
             }
 
