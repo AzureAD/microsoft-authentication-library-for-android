@@ -144,7 +144,7 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
         // Account should be removed from MSAL
         msalTestApp.handleBackButton();
         final String msg = removeUserLegacy();
-        Assert.assertEquals("The account is successfully removed.", msg);
+        Assert.assertEquals("The account is successfully signed out.", msg);
         Assert.assertEquals(0, msalTestApp.getUsers().size());
     }
 
