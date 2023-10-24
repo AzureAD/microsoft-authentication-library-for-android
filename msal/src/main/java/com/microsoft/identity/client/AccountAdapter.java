@@ -54,14 +54,24 @@ class AccountAdapter {
 
         @Override
         public List<ICacheRecord> filter(@NonNull List<ICacheRecord> records) {
+            final String methodTag = GuestAccountFilter.class.getSimpleName() + ":filter";
+
             final List<ICacheRecord> result = new ArrayList<>();
 
             for (final ICacheRecord cacheRecord : records) {
                 final String acctHomeAccountId = cacheRecord.getAccount().getHomeAccountId();
                 final String acctLocalAccountId = cacheRecord.getAccount().getLocalAccountId();
-
-                if (!acctHomeAccountId.contains(acctLocalAccountId)) {
-                    result.add(cacheRecord);
+                try {
+                    if (!acctHomeAccountId.contains(acctLocalAccountId)) {
+                        result.add(cacheRecord);
+                    }
+                } catch (final NullPointerException e) {
+                    if (acctHomeAccountId == null) {
+                        Logger.warn(methodTag, "Home account id is null.");
+                    }
+                    if (acctLocalAccountId == null) {
+                        Logger.warn(methodTag, "Local account id is null.");
+                    }
                 }
             }
 
@@ -77,13 +87,23 @@ class AccountAdapter {
 
         @Override
         public List<ICacheRecord> filter(@NonNull final List<ICacheRecord> records) {
+            final String methodTag = HomeAccountFilter.class.getSimpleName() + ":filter";
             final List<ICacheRecord> result = new ArrayList<>();
 
             for (final ICacheRecord cacheRecord : records) {
                 final String acctHomeAccountId = cacheRecord.getAccount().getHomeAccountId();
                 final String acctLocalAccountId = cacheRecord.getAccount().getLocalAccountId();
-                if (acctLocalAccountId != null && acctHomeAccountId.contains(acctLocalAccountId)) {
-                    result.add(cacheRecord);
+                try {
+                    if (acctHomeAccountId.contains(acctLocalAccountId)) {
+                        result.add(cacheRecord);
+                    }
+                } catch (final NullPointerException e) {
+                    if (acctHomeAccountId == null) {
+                        Logger.warn(methodTag, "Home account id is null.");
+                    }
+                    if (acctLocalAccountId == null) {
+                        Logger.warn(methodTag, "Local account id is null.");
+                    }
                 }
             }
 
@@ -98,8 +118,13 @@ class AccountAdapter {
 
         private boolean hasNoCorrespondingHomeAccount(@NonNull final ICacheRecord guestRecord,
                                                       @NonNull final List<ICacheRecord> homeRecords) {
+            final String methodTag = CacheRecordFilter.class.getSimpleName() + ":hasNoCorrespondingHomeAccount";
             // Init our sought value
             final String guestAccountHomeAccountId = guestRecord.getAccount().getHomeAccountId();
+            if (guestAccountHomeAccountId == null){
+                Logger.warn(methodTag, "Guest account home account id is null.");
+                return true;
+            }
 
             // Create a List of home_account_ids from the homeRecords...
             final List<String> homeAccountIds = new ArrayList<String>() {{
