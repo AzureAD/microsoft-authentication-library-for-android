@@ -57,7 +57,6 @@ public class TestCase99267 extends AbstractMsalUiTest {
 
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .loginHint(username)
                 .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
@@ -68,7 +67,6 @@ public class TestCase99267 extends AbstractMsalUiTest {
             public void handleUserInteraction() {
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
-                        .loginHint(username)
                         .sessionExpected(false)
                         .consentPageExpected(true)
                         .speedBumpExpected(false)
