@@ -88,6 +88,11 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
         // MSAL should be in "Shared Device" mode
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
+        try {
+            Thread.sleep(3000);
+        } catch (final InterruptedException e) {
+            throw new AssertionError(e);
+        }
         final String mode = msalTestApp.checkMode();
         Assert.assertTrue(mode.contains("Single Account - Shared device"));
 
