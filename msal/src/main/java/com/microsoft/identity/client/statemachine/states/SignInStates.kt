@@ -42,7 +42,7 @@ import com.microsoft.identity.common.internal.commands.SignInSubmitPasswordComma
 import com.microsoft.identity.common.internal.commands.SignInWithSLTCommand
 import com.microsoft.identity.common.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.common.java.controllers.CommandDispatcher
-import com.microsoft.identity.common.java.controllers.results.ICommandResult
+import com.microsoft.identity.common.java.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.controllers.results.SignInCommandResult
 import com.microsoft.identity.common.java.controllers.results.SignInResendCodeCommandResult
 import com.microsoft.identity.common.java.controllers.results.SignInSubmitCodeCommandResult
@@ -136,7 +136,7 @@ class SignInCodeRequiredState internal constructor(
                     )
                 }
 
-                is ICommandResult.Redirect -> {
+                is INativeAuthCommandResult.Redirect -> {
                     SignInResult.BrowserRequired(
                         error = BrowserRequiredError(
                             correlationId = result.correlationId
@@ -144,7 +144,7 @@ class SignInCodeRequiredState internal constructor(
                     )
                 }
 
-                is ICommandResult.UnknownError -> {
+                is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
                         "Unexpected result: $result"
@@ -221,7 +221,7 @@ class SignInCodeRequiredState internal constructor(
                     )
                 }
 
-                is ICommandResult.Redirect -> {
+                is INativeAuthCommandResult.Redirect -> {
                     SignInResult.BrowserRequired(
                         error = BrowserRequiredError(
                             correlationId = result.correlationId
@@ -229,7 +229,7 @@ class SignInCodeRequiredState internal constructor(
                     )
                 }
 
-                is ICommandResult.UnknownError -> {
+                is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
                         "Unexpected result: $result"
@@ -325,14 +325,14 @@ class SignInPasswordRequiredState(
                         )
                     )
                 }
-                is ICommandResult.Redirect -> {
+                is INativeAuthCommandResult.Redirect -> {
                     SignInResult.BrowserRequired(
                         error = BrowserRequiredError(
                             correlationId = result.correlationId
                         )
                     )
                 }
-                is ICommandResult.UnknownError -> {
+                is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
                         "Unexpected result: $result"
@@ -456,14 +456,14 @@ abstract class SignInAfterSignUpBaseState(
                         )
                     )
                 }
-                is ICommandResult.Redirect -> {
+                is INativeAuthCommandResult.Redirect -> {
                     SignInResult.BrowserRequired(
                         error = BrowserRequiredError(
                             correlationId = result.correlationId
                         )
                     )
                 }
-                is ICommandResult.UnknownError -> {
+                is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
                         "Unexpected result: $result"

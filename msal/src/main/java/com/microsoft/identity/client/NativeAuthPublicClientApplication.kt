@@ -52,7 +52,7 @@ import com.microsoft.identity.common.java.authorities.Authority
 import com.microsoft.identity.common.java.cache.ICacheRecord
 import com.microsoft.identity.common.java.commands.CommandCallback
 import com.microsoft.identity.common.java.controllers.CommandDispatcher
-import com.microsoft.identity.common.java.controllers.results.ICommandResult
+import com.microsoft.identity.common.java.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.controllers.results.SignInCommandResult
 import com.microsoft.identity.common.java.controllers.results.SignInStartCommandResult
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
@@ -307,7 +307,7 @@ class NativeAuthPublicClientApplication(
                         channel = result.challengeChannel
                     )
                 }
-                is ICommandResult.UnknownError -> {
+                is INativeAuthCommandResult.UnknownError -> {
                     SignInResult.UnexpectedError(
                         error = GeneralError(
                             errorMessage = result.errorDescription,
@@ -365,7 +365,7 @@ class NativeAuthPublicClientApplication(
                         )
                     )
                 }
-                is ICommandResult.Redirect -> {
+                is INativeAuthCommandResult.Redirect -> {
                     SignInResult.BrowserRequired(
                         error = BrowserRequiredError(
                             correlationId = result.correlationId
@@ -506,7 +506,7 @@ class NativeAuthPublicClientApplication(
                     )
                 }
 
-                is ICommandResult.Redirect -> {
+                is INativeAuthCommandResult.Redirect -> {
                     SignInResult.BrowserRequired(
                         error = BrowserRequiredError(
                             correlationId = result.correlationId
@@ -514,7 +514,7 @@ class NativeAuthPublicClientApplication(
                     )
                 }
 
-                is ICommandResult.UnknownError -> {
+                is INativeAuthCommandResult.UnknownError -> {
                     SignInResult.UnexpectedError(
                         error = GeneralError(
                             errorMessage = result.errorDescription,
