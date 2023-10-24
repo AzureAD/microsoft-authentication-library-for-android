@@ -62,16 +62,16 @@ class AccountAdapter {
             for (final ICacheRecord cacheRecord : records) {
                 final String acctHomeAccountId = cacheRecord.getAccount().getHomeAccountId();
                 final String acctLocalAccountId = cacheRecord.getAccount().getLocalAccountId();
-                boolean notNullorEmpty = true;
+                boolean isNullorEmpty = false;
                 if (StringUtil.isNullOrEmpty(acctHomeAccountId)) {
                     Logger.warn(methodTag, "Home account id is null or empty.");
-                    notNullorEmpty = false;
+                    isNullorEmpty = true;
                 }
                 if (StringUtil.isNullOrEmpty(acctLocalAccountId)) {
                     Logger.warn(methodTag, "Local account id is null or empty.");
-                    notNullorEmpty = false;
+                    isNullorEmpty = true;
                 }
-                if (notNullorEmpty && !acctHomeAccountId.contains(acctLocalAccountId)) {
+                if (!isNullorEmpty && !acctHomeAccountId.contains(acctLocalAccountId)) {
                     result.add(cacheRecord);
                 }
             }
@@ -95,16 +95,16 @@ class AccountAdapter {
             for (final ICacheRecord cacheRecord : records) {
                 final String acctHomeAccountId = cacheRecord.getAccount().getHomeAccountId();
                 final String acctLocalAccountId = cacheRecord.getAccount().getLocalAccountId();
-                boolean notNullorEmpty = true;
+                boolean isNullorEmpty = false;
                 if (StringUtil.isNullOrEmpty(acctHomeAccountId)) {
                     Logger.warn(methodTag, "Home account id is null or empty.");
-                    notNullorEmpty = false;
+                    isNullorEmpty = true;
                 }
                 if (StringUtil.isNullOrEmpty(acctLocalAccountId)) {
                     Logger.warn(methodTag, "Local account id is null or empty.");
-                    notNullorEmpty = false;
+                    isNullorEmpty = true;
                 }
-                if (notNullorEmpty && acctHomeAccountId.contains(acctLocalAccountId)) {
+                if (!isNullorEmpty && acctHomeAccountId.contains(acctLocalAccountId)) {
                     result.add(cacheRecord);
                 }
             }
