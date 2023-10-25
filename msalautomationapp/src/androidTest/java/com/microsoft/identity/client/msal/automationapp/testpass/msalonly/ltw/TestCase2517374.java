@@ -42,7 +42,7 @@ import java.util.List;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2517374
 @LTWTests
 @RunOnAPI29Minus
-public class TestCase2517374 extends AbstractMsalUiTest {
+public class TestCase2517374 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_2517374() throws Throwable {
@@ -59,7 +59,7 @@ public class TestCase2517374 extends AbstractMsalUiTest {
                 .prompt(PromptParameter.SELECT_ACCOUNT)
                 .loginHint(username)
                 .sessionExpected(false)
-                .broker(null)
+                .broker(mBroker)
                 .expectingBrokerAccountChooserActivity(false)
                 .expectingProvidedAccountInBroker(false)
                 .expectingLoginPageAccountPicker(false)
@@ -74,7 +74,7 @@ public class TestCase2517374 extends AbstractMsalUiTest {
                 .howWouldYouLikeToSignInExpected(false)
                 .build();
 
-        String token = msalTestApp.acquireToken(username, password, promptHandlerParameters, mBrowser, true, true);
+        String token = msalTestApp.acquireToken(username, password, promptHandlerParameters,true);
         Assert.assertNotNull(token);
 
         // then acquire token silently and validate the token
