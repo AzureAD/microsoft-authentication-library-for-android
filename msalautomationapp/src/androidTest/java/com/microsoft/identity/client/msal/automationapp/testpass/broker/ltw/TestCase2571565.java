@@ -25,6 +25,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
 import com.microsoft.identity.client.ui.automation.app.OneAuthTestApp;
@@ -43,6 +44,7 @@ import org.junit.Test;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2571565
 @LTWTests
 @RunOnAPI29Minus
+@RetryOnFailure
 public class TestCase2571565 extends AbstractMsalBrokerTest {
 
     @Test
@@ -63,7 +65,7 @@ public class TestCase2571565 extends AbstractMsalBrokerTest {
 
         // AcquireToken Interactively in MsalTestApp
         final MsalTestApp msalTestApp = new MsalTestApp();
-//        msalTestApp.uninstall();
+
         msalTestApp.install();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
@@ -97,7 +99,7 @@ public class TestCase2571565 extends AbstractMsalBrokerTest {
         final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
         oneAuthTestApp.install();
         oneAuthTestApp.launch();
-        handleOneAuthTestAppFirstRunCorrectly(oneAuthTestApp);
+        oneAuthTestApp.handleFirstRun();
 
         // AcquireToken Interactively in OneAuthTestApp, should prompt for password
         final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()

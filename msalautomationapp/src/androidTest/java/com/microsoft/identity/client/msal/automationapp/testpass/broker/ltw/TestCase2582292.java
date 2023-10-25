@@ -87,7 +87,7 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
 
         // Install legacy MSAL Test app (Msal test app with no broker selection logic)
         final MsalTestApp msalTestApp = new MsalTestApp();
-//        msalTestApp.uninstall();
+
         msalTestApp.installOldApk();
 
         // Check mode in MSAL test app
@@ -143,24 +143,9 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
         // Click on "RemoveUsers" button
         // Account should be removed from MSAL
         msalTestApp.handleBackButton();
-        final String msg = removeUserLegacy();
+        final String msg = msalTestApp.removeUserLegacy();
         Assert.assertEquals("The account is successfully signed out.", msg);
         Assert.assertEquals(0, msalTestApp.getUsers().size());
-    }
-
-    private String removeUserLegacy() throws UiObjectNotFoundException {
-        final UiObject removeUserButton = UiAutomatorUtils.obtainUiObjectWithResourceId("com.msft.identity.client.sample.local:id/btn_clearCache");
-        scrollToElement(removeUserButton);
-        removeUserButton.click();
-        final UiObject textView = UiAutomatorUtils.obtainUiObjectWithResourceId("com.msft.identity.client.sample.local:id/status");
-        final String text = textView.getText();
-        return text;
-    }
-
-    private void scrollToElement(UiObject obj) throws UiObjectNotFoundException {
-        UiScrollable scrollable = new UiScrollable(new UiSelector().scrollable(true));
-        scrollable.scrollIntoView(obj);
-        obj.waitForExists(FIND_UI_ELEMENT_TIMEOUT);
     }
 
     @Override

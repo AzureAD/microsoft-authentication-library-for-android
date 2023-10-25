@@ -55,7 +55,7 @@ public class TestCase2584409 extends AbstractMsalBrokerTest {
         brokerMicrosoftAuthenticator.install();
 
         final MsalTestApp msalTestApp = new MsalTestApp();
-//        msalTestApp.uninstall();
+
         msalTestApp.install();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();

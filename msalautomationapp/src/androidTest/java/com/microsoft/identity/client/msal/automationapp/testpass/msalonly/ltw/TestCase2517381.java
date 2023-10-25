@@ -54,7 +54,6 @@ public class TestCase2517381 extends AbstractMsalUiTest {
 
         // install old MsalTestApp then acquires token interactively and silently
         MsalTestApp msalTestApp = new MsalTestApp();
-        msalTestApp.uninstall();
         msalTestApp.installOldApk();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
@@ -96,7 +95,7 @@ public class TestCase2517381 extends AbstractMsalUiTest {
         } catch (InterruptedException e){
             e.printStackTrace();
         }
-        handleOneAuthTestAppFirstRunCorrectly(oneAuthApp);
+        oneAuthApp.handleFirstRun();
 
         final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
                 .broker(null)

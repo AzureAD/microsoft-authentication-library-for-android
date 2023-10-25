@@ -347,30 +347,4 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
     protected ISettings getSettingsScreen() {
         return TestContext.getTestContext().getTestDevice().getSettings();
     }
-
-    protected void handleOneAuthTestAppFirstRunCorrectly(OneAuthTestApp oneAuthTestApp) {
-        CommonUtils.grantPackagePermission();
-        oneAuthTestApp.handlePreferBrokerSwitchButton();
-        try {
-            oneAuthTestApp.selectFromAppConfiguration("com.microsoft.identity.LabsApi.Guest");
-        } catch (UiObjectNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    protected void selectMsalTestAppConfiguration(@NonNull final String text) throws UiObjectNotFoundException {
-        final UiObject appConfigurationSpinner = UiAutomatorUtils.obtainUiObjectWithResourceId("com.msft.identity.client.sample.local:id/configFile");
-        appConfigurationSpinner.click();
-        final UiObject appConfiguration = UiAutomatorUtils.obtainUiObjectWithText(text);
-        appConfiguration.click();
-    }
-
-    protected void selectMsalTestAppPrompt(@NonNull final String text) throws UiObjectNotFoundException {
-        final UiObject appConfigurationSpinner = UiAutomatorUtils.obtainUiObjectWithResourceId("com.msft.identity.client.sample.local:id/promptBehavior");
-        appConfigurationSpinner.click();
-        final UiObject appConfiguration = UiAutomatorUtils.obtainUiObjectWithText(text);
-        appConfiguration.click();
-    }
-
-
 }

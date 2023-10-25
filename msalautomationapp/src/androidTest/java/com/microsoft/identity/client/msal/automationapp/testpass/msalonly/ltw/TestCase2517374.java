@@ -50,7 +50,6 @@ public class TestCase2517374 extends AbstractMsalUiTest {
         final String password = mLabAccount.getPassword();
 
         MsalTestApp msalTestApp = new MsalTestApp();
-        msalTestApp.uninstall();
         msalTestApp.install();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();

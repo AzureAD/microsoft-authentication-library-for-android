@@ -72,7 +72,7 @@ public class TestCase2579095 extends AbstractMsalBrokerTest {
         // To make sure the device is in clean slate, uninstall mBroker here.
         mBroker.uninstall();
         final MsalTestApp msalTestApp = new MsalTestApp();
-//            msalTestApp.uninstall();
+
 
         // install legacy company portal
         final BrokerCompanyPortal brokerCompanyPortal = new BrokerCompanyPortal(BrokerCompanyPortal.OLD_COMPANY_PORTAL_APK,
@@ -83,7 +83,7 @@ public class TestCase2579095 extends AbstractMsalBrokerTest {
         final OneAuthTestApp oldOneAuthTestApp = new OneAuthTestApp();
         oldOneAuthTestApp.installOldApk();
         oldOneAuthTestApp.launch();
-        handleOneAuthTestAppFirstRunCorrectly(oldOneAuthTestApp);
+        oldOneAuthTestApp.handleFirstRun();
 
         // acquire token interactively on OneAuthTestApp
         final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
