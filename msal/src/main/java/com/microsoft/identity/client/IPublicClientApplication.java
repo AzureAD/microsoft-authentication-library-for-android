@@ -145,6 +145,13 @@ public interface IPublicClientApplication {
     boolean isSharedDevice();
 
     /**
+     * Returns whether the application can support the QR code scanning + PIN protocol.
+     *
+     * @return true if the device supports the QR code scanning + PIN protocol, false otherwise.
+     */
+    boolean isQRPinAvailable();
+
+    /**
      * Signs the provided {@link PoPAuthenticationScheme} parameters into a JWT on behalf of the
      * provided {@link IAccount}.
      * <p>

@@ -67,6 +67,8 @@ abstract class MsalWrapper {
 
     public abstract String getMode();
 
+    public abstract IPublicClientApplication getApp();
+
     public abstract void loadAccounts(@NonNull final INotifyOperationResultCallback<List<IAccount>> callback);
 
     public abstract void removeAccount(@NonNull IAccount account,
@@ -336,4 +338,8 @@ abstract class MsalWrapper {
                                                            @NonNull final PoPAuthenticationScheme params,
                                                            @NonNull final INotifyOperationResultCallback<String> generateShrCallback
     );
+
+    public boolean isQrPinAvailable() {
+        return getApp().isQRPinAvailable();
+    }
 }
