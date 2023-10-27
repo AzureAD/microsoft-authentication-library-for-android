@@ -68,7 +68,7 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
         brokerHost.launch();
 
         // In brokerHost Multiple WPJ mode: perform a shared device registration with a cloud device admin account from the LAB API
-        brokerHost.multipleWpjApiFragment.performDeviceRegistration(username1, password1);
+        brokerHost.multipleWpjApiFragment.performSharedDeviceRegistration(username1, password1);
 
         // Uninstall BrokerHost App
         brokerHost.uninstall();
@@ -85,8 +85,13 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
         // MSAL should be in "Shared Device" mode
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
+        try {
+            Thread.sleep(3000);
+        } catch (final InterruptedException e) {
+            throw new AssertionError(e);
+        }
         final String mode = msalTestApp.checkMode();
-        Assert.assertTrue(mode.contains("Shared Device"));
+        Assert.assertTrue(mode.contains("Single Account - Shared device"));
 
         // performs AcquireToken with an account from the same tenant with the WPJed account.
         final LabQuery query = LabQuery.builder()
@@ -128,8 +133,9 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
 
         // Click on "RemoveUsers" button
         // Account should be removed from MSAL
-        final String msg = msalTestApp.removeUser();
-        Assert.assertEquals("The account is successfully removed.", msg);
+        msalTestApp.handleBackButton();
+        final String msg = msalTestApp.removeUserLegacy();
+        Assert.assertEquals("The account is successfully signed out.", msg);
         Assert.assertEquals(0, msalTestApp.getUsers().size());
     }
 

@@ -32,7 +32,6 @@ import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
-import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
@@ -57,7 +56,7 @@ public class TestCase2582297 extends AbstractMsalBrokerTest {
         // Set up LTW with mwpj (non-shared)
 
         // Install new LTW with broker SDK changes of broker selection logic AND MWPJ mode enabled.
-        // installed with supportedbrokers annotation
+        // installed with SupportedBrokers annotation
 
         // Install BrokerHost app with broker SDK changes of broker selection logic
         final BrokerHost brokerHost = new BrokerHost();

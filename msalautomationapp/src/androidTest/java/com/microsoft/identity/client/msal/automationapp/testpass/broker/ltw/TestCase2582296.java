@@ -38,7 +38,6 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.security.spec.ECField;
 import java.util.List;
 import java.util.Map;
 
