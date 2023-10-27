@@ -1306,6 +1306,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             final CommandResult commandResult = future.get();
             switch (commandResult.getStatus()) {
                 case COMPLETED:
+                    Logger.info(methodTag, "is QR + PIN available? " + commandResult.getResult());
                     return (Boolean) commandResult.getResult();
                 case ERROR:
                     Logger.error(methodTag, "Unexpected error on isQRPinAvailable", (Throwable) commandResult.getResult());
