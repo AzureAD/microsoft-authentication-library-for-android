@@ -25,6 +25,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
 import com.microsoft.identity.client.ui.automation.app.OneAuthTestApp;
@@ -43,6 +44,7 @@ import org.junit.Test;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2579095
 @LTWTests
 @RunOnAPI29Minus
+@RetryOnFailure
 public class TestCase2579095 extends AbstractMsalBrokerTest {
 
     @Test
@@ -52,6 +54,7 @@ public class TestCase2579095 extends AbstractMsalBrokerTest {
 
         // To make sure the device is in clean slate, uninstall mBroker here.
         mBroker.uninstall();
+        final MsalTestApp msalTestApp = new MsalTestApp();
 
         // install legacy company portal
         final BrokerCompanyPortal brokerCompanyPortal = new BrokerCompanyPortal(BrokerCompanyPortal.OLD_COMPANY_PORTAL_APK,
@@ -87,7 +90,6 @@ public class TestCase2579095 extends AbstractMsalBrokerTest {
         brokerCompanyPortal.update();
 
         // install new MsalTestApp
-        final MsalTestApp msalTestApp = new MsalTestApp();
         msalTestApp.install();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();

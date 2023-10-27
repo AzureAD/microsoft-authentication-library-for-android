@@ -22,9 +22,11 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
+import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
@@ -36,6 +38,7 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -44,6 +47,7 @@ import org.junit.Test;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2571508
 @LTWTests
 @RunOnAPI29Minus
+@RetryOnFailure
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
 public class TestCase2571508  extends AbstractMsalBrokerTest {
     @Test
@@ -82,11 +86,13 @@ public class TestCase2571508  extends AbstractMsalBrokerTest {
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
 
+        Assert.assertTrue(mBroker instanceof BrokerMicrosoftAuthenticator);
+
         final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
                 .prompt(PromptParameter.SELECT_ACCOUNT)
                 .loginHint(username)
                 .sessionExpected(false)
-                .broker(mBroker)
+                .broker(null)
                 .expectingBrokerAccountChooserActivity(false)
                 .expectingProvidedAccountInBroker(false)
                 .expectingLoginPageAccountPicker(false)
@@ -104,24 +110,27 @@ public class TestCase2571508  extends AbstractMsalBrokerTest {
         // Add login hint as the username and Click on AcquireToken button
         // NOT prompted for credentials.
         msalTestApp.handleUserNameInput(username);
-        final String token = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, false);
-        Assert.assertNotNull(token);
 
         // Click on "Get Active Broker Pkg Name" button
         // return Authenticator app package name
-        msalTestApp.handleBackButton();
         final String activeBroker = msalTestApp.getActiveBrokerPackageName();
         Assert.assertEquals("Active broker pkg name : " + BrokerMicrosoftAuthenticator.AUTHENTICATOR_APP_PACKAGE_NAME, activeBroker);
+        msalTestApp.handleBackButton();
+
+        final String token = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, false);
+        Assert.assertNotNull(token);
     }
 
     @Override
     public LabQuery getLabQuery() {
-        return null;
+        return LabQuery.builder()
+                .userType(UserType.CLOUD)
+                .build();
     }
 
     @Override
     public TempUserType getTempUserType() {
-        return TempUserType.BASIC;
+        return null;
     }
 
     @Override

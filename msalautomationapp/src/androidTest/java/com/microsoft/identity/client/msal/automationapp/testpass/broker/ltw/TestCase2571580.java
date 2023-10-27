@@ -30,7 +30,6 @@ import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
 import com.microsoft.identity.client.ui.automation.app.OneAuthTestApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
-import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
