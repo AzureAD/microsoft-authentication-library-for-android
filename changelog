@@ -1,6 +1,7 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 vNext
 ----------
+- [MINOR] Add isQRPinAvailable API to MSAL IPublicClientApplication (#1931)
 
 Version 4.9.0
 ----------
