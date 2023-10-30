@@ -56,7 +56,7 @@ ext {
     equalsVerifierVersion = "3.6.1"
     jsonGeneratorVersion = "0.4.7"
     jsonSchemaFriendVersion = "0.12.2"
-    jsonVersion = "20200518"
+    jsonVersion = "20231013"
     junitJupiterEngineVersion = "5.7.2"
     junitVintageEngineVersion = "5.7.2"
     dbusJavaVersion = "3.3.0"
