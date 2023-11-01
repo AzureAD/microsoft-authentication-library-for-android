@@ -3,6 +3,7 @@ vNext
 ----------
 - [PATCH] Fix NPE in SingleAccountPublicClientApplication.getPersistedCurrentAccount (#1933)
 - [PATCH] Updating JSON version (#1932)
+- [MINOR] Updating Moshi versions (#1926)
 
 Version 4.9.0
 ----------
