@@ -13,7 +13,7 @@ The MSAL library for Android gives your app the ability to use the [Microsoft Cl
 
 ### :exclamation: Migrating from ADAL
 
-ADAL Android was deprecated on June 20223. We do not support ADAL. See the [ADAL to MSAL migration guide for Android](https://docs.microsoft.com/azure/active-directory/develop/migrate-android-adal-msal)
+ADAL Android was deprecated on June 2023. We do not support ADAL. See the [ADAL to MSAL migration guide for Android](https://docs.microsoft.com/azure/active-directory/develop/migrate-android-adal-msal)
 
 ## Using MSAL
 
@@ -21,7 +21,9 @@ ADAL Android was deprecated on June 20223. We do not support ADAL. See the [ADAL
 
 ### Requirements
 
-- Android API Level 33+
+- Min SDK Version 16+
+- Target SDK Version 33+
+
 
 ### Step 1: Declare dependency on MSAL
 
@@ -194,7 +196,7 @@ We enthusiastically welcome contributions and feedback. You should [clone the re
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
 ## Android Studio Build Requirement
-Please note that this project uses [Lombok](https://projectlombok.org/) internally and while using Android Studio you will need to install [Lobmok Plugin](https://plugins.jetbrains.com/plugin/6317-lombok) to get the project to build successfully within Android Studio.
+Please note that this project uses [Lombok](https://projectlombok.org/) internally and while using Android Studio you will need to install [Lombmok Plugin](https://plugins.jetbrains.com/plugin/6317-lombok) to get the project to build successfully within Android Studio.
 
 
 ## Recommendation
