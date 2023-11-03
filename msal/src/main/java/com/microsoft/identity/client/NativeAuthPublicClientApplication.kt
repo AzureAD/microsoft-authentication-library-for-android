@@ -61,6 +61,7 @@ import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory
 import com.microsoft.identity.common.java.util.ResultFuture
+import com.microsoft.identity.common.java.util.StringUtil
 import com.microsoft.identity.common.java.util.checkAndWrapCommandResultType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -390,7 +391,7 @@ class NativeAuthPublicClientApplication(
      */
     override fun signInUsingPassword(
         username: String,
-        password: String,
+        password: CharArray,
         scopes: List<String>?,
         callback: SignInUsingPasswordCallback
     ) {
@@ -417,7 +418,7 @@ class NativeAuthPublicClientApplication(
      */
     override suspend fun signInUsingPassword(
         username: String,
-        password: String,
+        password: CharArray,
         scopes: List<String>?
     ): SignInUsingPasswordResult {
         LogSession.logMethodCall(TAG, "${TAG}.signInUsingPassword")
@@ -453,6 +454,7 @@ class NativeAuthPublicClientApplication(
             )
 
             val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
+            StringUtil.overwriteWithZero(params.password)
 
             return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<SignInStartCommandResult>()) {
                 is SignInCommandResult.Complete -> {

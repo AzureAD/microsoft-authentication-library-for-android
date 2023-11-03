@@ -51,7 +51,7 @@ import com.microsoft.identity.common.java.controllers.results.SignInWithSLTComma
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
-import com.microsoft.identity.common.java.logging.Logger.LogLevel
+import com.microsoft.identity.common.java.util.StringUtil
 import com.microsoft.identity.common.java.util.checkAndWrapCommandResultType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -266,7 +266,7 @@ class SignInPasswordRequiredState(
      * @param callback [com.microsoft.identity.client.statemachine.states.SignInPasswordRequiredState.SubmitPasswordCallback] to receive the result on.
      * @return The results of the submit password action.
      */
-    fun submitPassword(password: String, callback: SubmitPasswordCallback) {
+    fun submitPassword(password: CharArray, callback: SubmitPasswordCallback) {
         LogSession.logMethodCall(TAG, "${TAG}.submitPassword")
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
@@ -285,7 +285,7 @@ class SignInPasswordRequiredState(
      * @param password the password to submit.
      * @return The results of the submit password action.
      */
-    suspend fun submitPassword(password: String): SignInSubmitPasswordResult {
+    suspend fun submitPassword(password: CharArray): SignInSubmitPasswordResult {
         LogSession.logMethodCall(TAG, "${TAG}.submitPassword(password: String)")
         return withContext(Dispatchers.IO) {
             val params = CommandParametersAdapter.createSignInSubmitPasswordCommandParameters(
@@ -303,6 +303,8 @@ class SignInPasswordRequiredState(
             )
 
             val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(signInSubmitPasswordCommand).get()
+
+            StringUtil.overwriteWithZero(params.password)
 
             return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<SignInSubmitPasswordCommandResult>()) {
                 is SignInCommandResult.InvalidCredentials -> {

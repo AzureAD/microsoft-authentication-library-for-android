@@ -92,7 +92,7 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
      * @return [com.microsoft.identity.client.statemachine.results.SignInUsingPasswordResult] see detailed possible return state under the object.
      * @throws MsalClientException if an account is already signed in.
      */
-    suspend fun signInUsingPassword(username: String, password: String, scopes: List<String>? = null): SignInUsingPasswordResult
+    suspend fun signInUsingPassword(username: String, password: CharArray, scopes: List<String>? = null): SignInUsingPasswordResult
 
     /**
      * Sign in the account using username and password; callback variant.
@@ -104,5 +104,5 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
      * @return [com.microsoft.identity.client.statemachine.results.SignInUsingPasswordResult] see detailed possible return state under the object.
      * @throws MsalClientException if an account is already signed in.
      */
-    fun signInUsingPassword(username: String, password: String, scopes: List<String>? = null, callback: NativeAuthPublicClientApplication.SignInUsingPasswordCallback)
+    fun signInUsingPassword(username: String, password: CharArray, scopes: List<String>? = null, callback: NativeAuthPublicClientApplication.SignInUsingPasswordCallback)
 }
