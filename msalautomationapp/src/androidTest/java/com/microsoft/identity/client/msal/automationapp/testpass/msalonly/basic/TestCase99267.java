@@ -46,7 +46,6 @@ import java.util.Arrays;
 // Interactive Auth with select_account (no consent record)
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99267
 @RunOnAPI29Minus("Consent Page")
-@RetryOnFailure
 public class TestCase99267 extends AbstractMsalUiTest {
 
     @Test
@@ -58,7 +57,6 @@ public class TestCase99267 extends AbstractMsalUiTest {
 
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .loginHint(username)
                 .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
@@ -69,7 +67,6 @@ public class TestCase99267 extends AbstractMsalUiTest {
             public void handleUserInteraction() {
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
-                        .loginHint(username)
                         .sessionExpected(false)
                         .consentPageExpected(true)
                         .speedBumpExpected(false)
