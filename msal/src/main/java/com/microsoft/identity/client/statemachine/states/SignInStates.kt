@@ -296,60 +296,65 @@ class SignInPasswordRequiredState(
                 scopes
             )
 
-            val signInSubmitPasswordCommand = SignInSubmitPasswordCommand(
-                parameters = params,
-                controller = NativeAuthMsalController(),
-                publicApiId = PublicApiId.NATIVE_AUTH_SIGN_IN_SUBMIT_PASSWORD
-            )
+            try
+            {
+                val signInSubmitPasswordCommand = SignInSubmitPasswordCommand(
+                    parameters = params,
+                    controller = NativeAuthMsalController(),
+                    publicApiId = PublicApiId.NATIVE_AUTH_SIGN_IN_SUBMIT_PASSWORD
+                )
 
-            val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(signInSubmitPasswordCommand).get()
+                val rawCommandResult =
+                    CommandDispatcher.submitSilentReturningFuture(signInSubmitPasswordCommand).get()
 
-            StringUtil.overwriteWithZero(params.password)
-
-            return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<SignInSubmitPasswordCommandResult>()) {
-                is SignInCommandResult.InvalidCredentials -> {
-                    SignInResult.InvalidCredentials(
-                        error = PasswordIncorrectError(
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            errorCodes = result.errorCodes
+                return@withContext when (val result =
+                    rawCommandResult.checkAndWrapCommandResultType<SignInSubmitPasswordCommandResult>()) {
+                    is SignInCommandResult.InvalidCredentials -> {
+                        SignInResult.InvalidCredentials(
+                            error = PasswordIncorrectError(
+                                error = result.error,
+                                errorMessage = result.errorDescription,
+                                correlationId = result.correlationId,
+                                errorCodes = result.errorCodes
+                            )
                         )
-                    )
-                }
-                is SignInCommandResult.Complete -> {
-                    val authenticationResult =
-                        AuthenticationResultAdapter.adapt(result.authenticationResult)
-                    SignInResult.Complete(
-                        resultValue = AccountResult.createFromAuthenticationResult(
-                            authenticationResult = authenticationResult,
-                            config = config
+                    }
+                    is SignInCommandResult.Complete -> {
+                        val authenticationResult =
+                            AuthenticationResultAdapter.adapt(result.authenticationResult)
+                        SignInResult.Complete(
+                            resultValue = AccountResult.createFromAuthenticationResult(
+                                authenticationResult = authenticationResult,
+                                config = config
+                            )
                         )
-                    )
-                }
-                is INativeAuthCommandResult.Redirect -> {
-                    SignInResult.BrowserRequired(
-                        error = BrowserRequiredError(
-                            correlationId = result.correlationId
+                    }
+                    is INativeAuthCommandResult.Redirect -> {
+                        SignInResult.BrowserRequired(
+                            error = BrowserRequiredError(
+                                correlationId = result.correlationId
+                            )
                         )
-                    )
-                }
-                is INativeAuthCommandResult.UnknownError -> {
-                    Logger.warn(
-                        TAG,
-                        "Unexpected result: $result"
-                    )
-                    SignInResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId,
-                            details = result.details,
-                            errorCodes = result.errorCodes,
-                            exception = result.exception
+                    }
+                    is INativeAuthCommandResult.UnknownError -> {
+                        Logger.warn(
+                            TAG,
+                            "Unexpected result: $result"
                         )
-                    )
+                        SignInResult.UnexpectedError(
+                            error = GeneralError(
+                                errorMessage = result.errorDescription,
+                                error = result.error,
+                                correlationId = result.correlationId,
+                                details = result.details,
+                                errorCodes = result.errorCodes,
+                                exception = result.exception
+                            )
+                        )
+                    }
                 }
+            } finally {
+                StringUtil.overwriteWithNull(params.password)
             }
         }
     }

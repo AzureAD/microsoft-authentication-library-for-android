@@ -29,11 +29,7 @@ import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
 import com.microsoft.identity.client.statemachine.BrowserRequiredError
 import com.microsoft.identity.client.statemachine.GeneralError
-import com.microsoft.identity.client.statemachine.InvalidAttributesError
-import com.microsoft.identity.client.statemachine.InvalidEmailError
-import com.microsoft.identity.client.statemachine.InvalidPasswordError
 import com.microsoft.identity.client.statemachine.PasswordIncorrectError
-import com.microsoft.identity.client.statemachine.UserAlreadyExistsError
 import com.microsoft.identity.client.statemachine.UserNotFoundError
 import com.microsoft.identity.client.statemachine.results.SignInResult
 import com.microsoft.identity.client.statemachine.results.SignInUsingPasswordResult
@@ -447,100 +443,105 @@ class NativeAuthPublicClientApplication(
                     scopes
                 )
 
-            val command = SignInStartCommand(
-                params,
-                NativeAuthMsalController(),
-                PublicApiId.NATIVE_AUTH_SIGN_IN_WITH_EMAIL_PASSWORD
-            )
+            try
+            {
+                val command = SignInStartCommand(
+                    params,
+                    NativeAuthMsalController(),
+                    PublicApiId.NATIVE_AUTH_SIGN_IN_WITH_EMAIL_PASSWORD
+                )
 
-            val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
-            StringUtil.overwriteWithZero(params.password)
+                val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
 
-            return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<SignInStartCommandResult>()) {
-                is SignInCommandResult.Complete -> {
-                    val authenticationResult =
-                        AuthenticationResultAdapter.adapt(result.authenticationResult)
+                return@withContext when (val result =
+                    rawCommandResult.checkAndWrapCommandResultType<SignInStartCommandResult>()) {
+                    is SignInCommandResult.Complete -> {
+                        val authenticationResult =
+                            AuthenticationResultAdapter.adapt(result.authenticationResult)
 
-                    SignInResult.Complete(
-                        resultValue = AccountResult.createFromAuthenticationResult(
-                            authenticationResult,
-                            nativeAuthConfig
+                        SignInResult.Complete(
+                            resultValue = AccountResult.createFromAuthenticationResult(
+                                authenticationResult,
+                                nativeAuthConfig
+                            )
                         )
-                    )
-                }
-                is SignInCommandResult.CodeRequired -> {
-                    Logger.warn(
-                        TAG,
-                        "Sign in with password flow was started, but server requires" +
-                            "a code. Password was not sent to the API; switching to code " +
-                            "authentication."
-                    )
-                    SignInResult.CodeRequired(
-                        nextState = SignInCodeRequiredState(
-                            flowToken = result.credentialToken,
-                            scopes = scopes,
-                            config = nativeAuthConfig
-                        ),
-                        codeLength = result.codeLength,
-                        sentTo = result.challengeTargetLabel,
-                        channel = result.challengeChannel
-                    )
-                }
-                is SignInCommandResult.UserNotFound -> {
-                    SignInResult.UserNotFound(
-                        error = UserNotFoundError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId,
-                            errorCodes = result.errorCodes
+                    }
+                    is SignInCommandResult.CodeRequired -> {
+                        Logger.warn(
+                            TAG,
+                            "Sign in with password flow was started, but server requires" +
+                                    "a code. Password was not sent to the API; switching to code " +
+                                    "authentication."
                         )
-                    )
-                }
+                        SignInResult.CodeRequired(
+                            nextState = SignInCodeRequiredState(
+                                flowToken = result.credentialToken,
+                                scopes = scopes,
+                                config = nativeAuthConfig
+                            ),
+                            codeLength = result.codeLength,
+                            sentTo = result.challengeTargetLabel,
+                            channel = result.challengeChannel
+                        )
+                    }
+                    is SignInCommandResult.UserNotFound -> {
+                        SignInResult.UserNotFound(
+                            error = UserNotFoundError(
+                                errorMessage = result.errorDescription,
+                                error = result.error,
+                                correlationId = result.correlationId,
+                                errorCodes = result.errorCodes
+                            )
+                        )
+                    }
 
-                is SignInCommandResult.InvalidCredentials -> {
-                    SignInResult.InvalidCredentials(
-                        error = PasswordIncorrectError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId,
-                            errorCodes = result.errorCodes
+                    is SignInCommandResult.InvalidCredentials -> {
+                        SignInResult.InvalidCredentials(
+                            error = PasswordIncorrectError(
+                                errorMessage = result.errorDescription,
+                                error = result.error,
+                                correlationId = result.correlationId,
+                                errorCodes = result.errorCodes
+                            )
                         )
-                    )
-                }
+                    }
 
-                is INativeAuthCommandResult.Redirect -> {
-                    SignInResult.BrowserRequired(
-                        error = BrowserRequiredError(
-                            correlationId = result.correlationId
+                    is INativeAuthCommandResult.Redirect -> {
+                        SignInResult.BrowserRequired(
+                            error = BrowserRequiredError(
+                                correlationId = result.correlationId
+                            )
                         )
-                    )
-                }
+                    }
 
-                is INativeAuthCommandResult.UnknownError -> {
-                    SignInResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId,
-                            details = result.details,
-                            errorCodes = result.errorCodes,
-                            exception = result.exception
+                    is INativeAuthCommandResult.UnknownError -> {
+                        SignInResult.UnexpectedError(
+                            error = GeneralError(
+                                errorMessage = result.errorDescription,
+                                error = result.error,
+                                correlationId = result.correlationId,
+                                details = result.details,
+                                errorCodes = result.errorCodes,
+                                exception = result.exception
+                            )
                         )
-                    )
-                }
-                is SignInCommandResult.PasswordRequired -> {
-                    Logger.warn(
-                        TAG,
-                        "Unexpected result $result"
-                    )
-                    SignInResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = "Unexpected state",
-                            error = "unexpected_state",
-                            correlationId = "UNSET"
+                    }
+                    is SignInCommandResult.PasswordRequired -> {
+                        Logger.warn(
+                            TAG,
+                            "Unexpected result $result"
                         )
-                    )
+                        SignInResult.UnexpectedError(
+                            error = GeneralError(
+                                errorMessage = "Unexpected state",
+                                error = "unexpected_state",
+                                correlationId = "UNSET"
+                            )
+                        )
+                    }
                 }
+            } finally {
+                StringUtil.overwriteWithNull(params.password)
             }
         }
     }

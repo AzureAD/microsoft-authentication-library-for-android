@@ -421,8 +421,9 @@ public class CommandParametersAdapter {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
-        final SignInStartUsingPasswordCommandParameters commandParameters = SignInStartUsingPasswordCommandParameters.builder()
-                .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
+        SignInStartUsingPasswordCommandParametersBuilder builder = SignInStartUsingPasswordCommandParameters.builder();
+
+        final SignInStartUsingPasswordCommandParameters commandParameters = builder.platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
                 .applicationName(configuration.getAppContext().getPackageName())
                 .applicationVersion(getPackageVersion(configuration.getAppContext()))
                 .clientId(configuration.getClientId())
