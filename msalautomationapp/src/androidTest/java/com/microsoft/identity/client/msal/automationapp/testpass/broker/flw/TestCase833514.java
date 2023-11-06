@@ -139,6 +139,8 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
 
         final IAccount[] accounts = new IAccount[1];
 
+        Thread.sleep(TimeUnit.SECONDS.toMillis(5));
+
         // perform get account from MSAL Automation App
         ((SingleAccountPublicClientApplication) mApplication).getCurrentAccountAsync(new ISingleAccountPublicClientApplication.CurrentAccountCallback() {
             @Override
@@ -166,7 +168,7 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
 
         getAccountLatch.await(TokenRequestTimeout.SILENT);
 
-        Thread.sleep(TimeUnit.SECONDS.toMillis(8));
+        Thread.sleep(TimeUnit.SECONDS.toMillis(5));
 
         final TokenRequestLatch silentLatch = new TokenRequestLatch(1);
 
