@@ -1,5 +1,5 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
-vNext
+Version 4.9.1
 ----------
 - [PATCH] Fix NPE in SingleAccountPublicClientApplication.getPersistedCurrentAccount (#1933)
 
