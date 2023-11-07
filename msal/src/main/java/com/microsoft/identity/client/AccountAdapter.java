@@ -60,9 +60,7 @@ class AccountAdapter {
                 final String acctHomeAccountId = cacheRecord.getAccount().getHomeAccountId();
                 final String acctLocalAccountId = cacheRecord.getAccount().getLocalAccountId();
 
-                // TODO: check the logic on broker side to make sure this value is NOT null.
-                if (acctLocalAccountId != null &&
-                        !acctHomeAccountId.contains(acctLocalAccountId)) {
+                if (!acctHomeAccountId.contains(acctLocalAccountId)) {
                     result.add(cacheRecord);
                 }
             }
@@ -84,7 +82,10 @@ class AccountAdapter {
             for (final ICacheRecord cacheRecord : records) {
                 final String acctHomeAccountId = cacheRecord.getAccount().getHomeAccountId();
                 final String acctLocalAccountId = cacheRecord.getAccount().getLocalAccountId();
-                if (acctHomeAccountId.contains(acctLocalAccountId)) {
+
+                // TODO: check the logic on broker side to make sure this value is NOT null.
+                if (acctLocalAccountId != null &&
+                        acctHomeAccountId.contains(acctLocalAccountId)) {
                     result.add(cacheRecord);
                 }
             }
