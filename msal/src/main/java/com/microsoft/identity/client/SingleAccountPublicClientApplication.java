@@ -120,6 +120,8 @@ public class SingleAccountPublicClientApplication
 
     private void getCurrentAccountAsyncInternal(@NonNull final CurrentAccountCallback callback,
                                                 @NonNull final String publicApiId) {
+        final String methodTag = TAG + ":getCurrentAccountAsyncInternal";
+
         TokenMigrationCallback migrationCallback = new TokenMigrationCallback() {
             @Override
             public void onMigrationFinished(int numberOfAccountsMigrated) {
@@ -136,9 +138,21 @@ public class SingleAccountPublicClientApplication
                                 // To simplify the logic, if more than one account is returned, the first account will be picked.
                                 // We do not support switching from MULTIPLE to SINGLE.
                                 // See getAccountFromICacheRecordList() for more details.
-                                final MultiTenantAccount oldAccount = getPersistedCurrentAccount();
+
+                                MultiTenantAccount oldAccount = null;
+                                boolean forceNotify = false;
+                                try {
+                                    oldAccount = getPersistedCurrentAccount();
+                                } catch (final NullPointerException e){
+                                    // There is an issue where the cached value could be malformed.
+                                    // If that happens, wipe the value, and trigger the callback.
+                                    Logger.error(methodTag, "Failed to load Persisted Current Account", e);
+                                    sharedPreferencesFileManager.remove(CURRENT_ACCOUNT_SHARED_PREFERENCE_KEY);
+                                    forceNotify = true;
+                                }
+
                                 persistCurrentAccount(result);
-                                checkCurrentAccountNotifyCallback(callback, result, oldAccount);
+                                checkCurrentAccountNotifyCallback(callback, result, oldAccount, forceNotify);
                             }
 
                             @Override
@@ -220,12 +234,13 @@ public class SingleAccountPublicClientApplication
 
     private void checkCurrentAccountNotifyCallback(@NonNull final CurrentAccountCallback callback,
                                                    @Nullable final List<ICacheRecord> newAccountRecords,
-                                                   @Nullable final MultiTenantAccount oldAccount) {
+                                                   @Nullable final MultiTenantAccount oldAccount,
+                                                   final boolean forceNotify) {
         final MultiTenantAccount newAccount = newAccountRecords == null
                 ? null
                 : getAccountFromICacheRecordList(newAccountRecords);
 
-        if (!isHomeAccountIdMatching(oldAccount, newAccount)) {
+        if (forceNotify || !isHomeAccountIdMatching(oldAccount, newAccount)) {
             callback.onAccountChanged(oldAccount, newAccount);
         }
 
