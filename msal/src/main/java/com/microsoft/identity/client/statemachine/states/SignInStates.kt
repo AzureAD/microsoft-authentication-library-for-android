@@ -58,6 +58,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.Serializable
 
+/**
+ * Native Auth uses a state machine to denote state and transitions for a user.
+ * SignInCodeRequiredState class represents a state where the user has to provide a code to progress
+ * in the signin flow.
+ * @property flowToken: Flow token to be passed in the next request
+ * @property scopes: List of scopes
+ * @property config Configuration used by Native Auth
+ */
 class SignInCodeRequiredState internal constructor(
     override val flowToken: String,
     private val scopes: List<String>?,
@@ -65,6 +73,9 @@ class SignInCodeRequiredState internal constructor(
 ) : BaseState(flowToken), State, Serializable {
     private val TAG: String = SignInCodeRequiredState::class.java.simpleName
 
+    /**
+     * SubmitCodeCallback receives the result for submit code for SignIn for Native Auth
+     */
     interface SubmitCodeCallback : Callback<SignInSubmitCodeResult>
 
     /**
@@ -164,6 +175,9 @@ class SignInCodeRequiredState internal constructor(
         }
     }
 
+    /**
+     * SubmitCodeCallback receives the result for resend code for SignIn for Native Auth
+     */
     interface ResendCodeCallback : Callback<SignInResendCodeResult>
 
     /**
@@ -250,6 +264,14 @@ class SignInCodeRequiredState internal constructor(
     }
 }
 
+/**
+ * Native Auth uses a state machine to denote state and transitions for a user.
+ * SignInPasswordRequiredState class represents a state where the user has to provide a password to progress
+ * in the signin flow.
+ * @property flowToken: Flow token to be passed in the next request
+ * @property scopes: List of scopes
+ * @property config Configuration used by Native Auth
+ */
 class SignInPasswordRequiredState(
     override val flowToken: String,
     private val scopes: List<String>?,
@@ -257,6 +279,9 @@ class SignInPasswordRequiredState(
 ) : BaseState(flowToken), State {
     private val TAG: String = SignInPasswordRequiredState::class.java.simpleName
 
+    /**
+     * SubmitCodeCallback receives the result for submit password for SignIn for Native Auth
+     */
     interface SubmitPasswordCallback : Callback<SignInSubmitPasswordResult>
 
     /**
@@ -360,12 +385,25 @@ class SignInPasswordRequiredState(
     }
 }
 
+/**
+ * Native Auth uses a state machine to denote state and transitions for a user.
+ * SignInAfterSignUpBaseState class is an abstract class to represent signin state after
+ * successfull signup
+ * in the signin flow.
+ * @property signInVerificationCode: Short lived token from signup APIS
+ * @property username: Username of the user
+ * @property config Configuration used by Native Auth
+ */
 abstract class SignInAfterSignUpBaseState(
     internal open val signInVerificationCode: String?,
     internal open val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
 ) : BaseState(signInVerificationCode), State, Serializable {
     private val TAG: String = SignInAfterSignUpBaseState::class.java.simpleName
+
+    /**
+     * SubmitCodeCallback receives the result for sign in after signup for Native Auth
+     */
     interface SignInAfterSignUpCallback : Callback<SignInResult>
 
     /**

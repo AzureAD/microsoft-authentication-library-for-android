@@ -264,18 +264,7 @@ class NativeAuthPublicClientApplication(
         return withContext(Dispatchers.IO) {
             LogSession.logMethodCall(TAG, "${TAG}.signIn")
 
-            val doesAccountExist = checkForPersistedAccount().get()
-            if (doesAccountExist) {
-                Logger.error(
-                    TAG,
-                    "An account is already signed in.",
-                    null
-                )
-                throw MsalClientException(
-                    MsalClientException.INVALID_PARAMETER,
-                    "An account is already signed in."
-                )
-            }
+            verifyUserIsNotSignedIn()
 
             val params = CommandParametersAdapter.createSignInStartCommandParameters(
                 nativeAuthConfig,
@@ -421,18 +410,7 @@ class NativeAuthPublicClientApplication(
         return withContext(Dispatchers.IO) {
             LogSession.logMethodCall(TAG, "${TAG}.signInUsingPassword.withContext")
 
-            val doesAccountExist = checkForPersistedAccount().get()
-            if (doesAccountExist) {
-                Logger.error(
-                    TAG,
-                    "An account is already signed in.",
-                    null
-                )
-                throw MsalClientException(
-                    MsalClientException.INVALID_PARAMETER,
-                    "An account is already signed in."
-                )
-            }
+            verifyUserIsNotSignedIn()
 
             val params =
                 CommandParametersAdapter.createSignInStartUsingPasswordCommandParameters(
@@ -543,6 +521,21 @@ class NativeAuthPublicClientApplication(
             } finally {
                 StringUtil.overwriteWithNull(params.password)
             }
+        }
+    }
+
+    private fun verifyUserIsNotSignedIn() {
+        val doesAccountExist = checkForPersistedAccount().get()
+        if (doesAccountExist) {
+            Logger.error(
+                TAG,
+                "An account is already signed in.",
+                null
+            )
+            throw MsalClientException(
+                MsalClientException.INVALID_PARAMETER,
+                "An account is already signed in."
+            )
         }
     }
 
