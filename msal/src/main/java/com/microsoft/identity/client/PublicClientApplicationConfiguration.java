@@ -764,15 +764,23 @@ public class PublicClientApplicationConfiguration {
             final PackageInfo info = mAppContext.getPackageManager().getPackageInfo(AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_PACKAGE_NAME, PackageManager.GET_SIGNATURES);
             if (info != null && info.signatures != null && info.signatures.length > 0) {
                 final Signature signature = info.signatures[0];
-                MessageDigest md = MessageDigest.getInstance("SHA");
-                md.update(signature.toByteArray());
-                final String signatureHash = Base64.encodeToString(md.digest(), Base64.NO_WRAP);
-                if (AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_RELEASE_SIGNATURE.equalsIgnoreCase(signatureHash)
-                    || AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_DEBUG_SIGNATURE.equalsIgnoreCase(signatureHash)) {
+
+                final MessageDigest md_sha512 = MessageDigest.getInstance("SHA-512");
+                md_sha512.update(signature.toByteArray());
+                final String sha512_signingCertThumbprint = Base64.encodeToString(md_sha512.digest(), Base64.NO_WRAP);
+
+                if (AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_RELEASE_SIGNATURE_SHA512.equalsIgnoreCase(sha512_signingCertThumbprint)
+                    || AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_DEBUG_SIGNATURE_SHA512.equalsIgnoreCase(sha512_signingCertThumbprint)) {
+
+                    // MSAL still uses SHA-1 format in redirect url.
+                    final MessageDigest md_sha1 = MessageDigest.getInstance("SHA");
+                    md_sha1.update(signature.toByteArray());
+                    final String sha1_signingCertThumbprint = Base64.encodeToString(md_sha1.digest(), Base64.NO_WRAP);
+
                     final Uri.Builder builder = new Uri.Builder();
                     final Uri uri = builder.scheme("msauth")
                             .authority(mAppContext.getPackageName())
-                            .appendPath(signatureHash)
+                            .appendPath(sha1_signingCertThumbprint)
                             .build();
 
                     if (mRedirectUri.equalsIgnoreCase(uri.toString()) ||
