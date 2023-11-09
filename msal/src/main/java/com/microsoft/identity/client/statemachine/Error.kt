@@ -23,6 +23,10 @@
 
 package com.microsoft.identity.client.statemachine
 
+/**
+ * Error is a base class for all errors present in the Native Auth.
+ * This file will be refactored as part of https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2730354
+ */
 sealed class Error(
     open val error: String? = null,
     open val errorMessage: String?,
@@ -32,16 +36,16 @@ sealed class Error(
 )
 
 /**
- * GeneralError is a base class for all errors present in the Native Auth.
+ * GeneralError represents general errors in NativeAuth
  */
-sealed class GeneralError(
-    open var error: String? = null,
-    open val errorMessage: String? = "An unexpected error happened",
-    open val correlationId: String,
-    open val errorCodes: List<Int>? = null,
-    open var exception: Exception? = null
-)
-
+class GeneralError(
+    override var error: String? = null,
+    override val errorMessage: String? = "An unexpected error happened",
+    override val correlationId: String,
+    val details: List<Map<String, String>>? = null,
+    override val errorCodes: List<Int>? = null,
+    override var exception: Exception? = null
+) : Error(errorMessage = errorMessage, error = error, correlationId = correlationId, exception = exception)
 
 /**
  * BrowserRequiredError occurs when authentication cannot be performed via means of Native Auth and
@@ -51,7 +55,7 @@ class BrowserRequiredError(
     override var error: String? = null,
     override val errorMessage: String = "The client's authentication capabilities are insufficient. Please redirect to the browser to complete authentication",
     override val correlationId: String
-) : GeneralError(errorMessage = errorMessage, error = error, correlationId = correlationId)
+) : Error(errorMessage = errorMessage, error = error, correlationId = correlationId)
 
 /**
  * IncorrectCodeError occurs when the user has provided incorrect code for out of band authentication.
@@ -61,7 +65,7 @@ class IncorrectCodeError(
     override val errorMessage: String,
     override val correlationId: String,
     override val errorCodes: List<Int>? = null
-) : GeneralError(errorMessage = errorMessage, error = error, correlationId = correlationId, errorCodes = errorCodes)
+) : Error(errorMessage = errorMessage, error = error, correlationId = correlationId, errorCodes = errorCodes)
 
 /**
  * UserNotFoundError occurs when the user could not be located in the given the username. The authentication
@@ -72,7 +76,7 @@ class UserNotFoundError(
     override val errorMessage: String,
     override val correlationId: String,
     override val errorCodes: List<Int>? = null
-) : GeneralError(errorMessage = errorMessage, error = error, correlationId = correlationId, errorCodes = errorCodes)
+) : Error(errorMessage = errorMessage, error = error, correlationId = correlationId, errorCodes = errorCodes)
 
 /**
  * PasswordIncorrectError occurs when the user has provided incorrect password for signin.
@@ -82,7 +86,7 @@ class PasswordIncorrectError(
     override val errorMessage: String,
     override val correlationId: String,
     override val errorCodes: List<Int>
-) : GeneralError(errorMessage = errorMessage, error = error, correlationId = correlationId, errorCodes = errorCodes)
+) : Error(errorMessage = errorMessage, error = error, correlationId = correlationId, errorCodes = errorCodes)
 
 /**
  * UserAlreadyExistsError has used a username to create an exists for which there is a pre-existing
@@ -92,7 +96,7 @@ class UserAlreadyExistsError(
     override var error: String? = null,
     override val errorMessage: String,
     override val correlationId: String
-) : GeneralError(errorMessage = errorMessage, error = error, correlationId = correlationId)
+) : Error(errorMessage = errorMessage, error = error, correlationId = correlationId)
 
 /**
  * InvalidPasswordError is seen in Signup process when a user provides a password that does not
@@ -102,7 +106,7 @@ class InvalidPasswordError(
     override var error: String? = null,
     override val errorMessage: String,
     override val correlationId: String
-) : GeneralError(errorMessage = errorMessage, error = error, correlationId = correlationId)
+) : Error(errorMessage = errorMessage, error = error, correlationId = correlationId)
 
 /**
  * InvalidPasswordError is seen in Signup process when a user provides a email address that is not
@@ -112,7 +116,7 @@ class InvalidEmailError(
     override var error: String? = null,
     override val errorMessage: String,
     override val correlationId: String
-) : GeneralError(errorMessage = errorMessage, error = error, correlationId = correlationId)
+) : Error(errorMessage = errorMessage, error = error, correlationId = correlationId)
 
 /**
  * InvalidAttributesError is seen in Signup process when a user provides attributes that are not
@@ -122,4 +126,4 @@ class InvalidAttributesError(
     override var error: String? = null,
     override val errorMessage: String,
     override val correlationId: String
-) : GeneralError(errorMessage = errorMessage, error = error, correlationId = correlationId)
+) : Error(errorMessage = errorMessage, error = error, correlationId = correlationId)

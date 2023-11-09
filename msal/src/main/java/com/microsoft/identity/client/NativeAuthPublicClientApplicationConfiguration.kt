@@ -46,8 +46,8 @@ class NativeAuthPublicClientApplicationConfiguration :
     Serializable {
     companion object {
         private val TAG = NativeAuthPublicClientApplicationConfiguration::class.java.simpleName
-        private val VALID_CHALLENGE_TYPES = listOf(NativeAuthConstants.GrantType.PASSWORD,
-            NativeAuthConstants.GrantType.OOB, NativeAuthConstants.GrantType.REDIRECT)
+        private val VALID_CHALLENGE_TYPES = listOf(NativeAuthConstants.ChallengeType.PASSWORD,
+            NativeAuthConstants.ChallengeType.OOB, NativeAuthConstants.ChallengeType.REDIRECT)
     }
 
     private object NativeAuthSerializedNames {
@@ -57,7 +57,7 @@ class NativeAuthPublicClientApplicationConfiguration :
     }
 
     //List of challenge types supported by the client.
-    //For a complete list of challenge types see [NativeAuthConstants.GrantType]
+    //For a complete list of challenge types see [NativeAuthConstants.ChallengeType]
     @SerializedName(NativeAuthSerializedNames.CHALLENGE_TYPES)
     private var challengeTypes: List<String>? = null
 
