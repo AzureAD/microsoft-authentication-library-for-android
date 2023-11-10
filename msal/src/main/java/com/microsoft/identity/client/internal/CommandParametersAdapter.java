@@ -51,6 +51,7 @@ import com.microsoft.identity.common.java.authorities.NativeAuthCIAMAuthority;
 import com.microsoft.identity.common.java.authscheme.AbstractAuthenticationScheme;
 import com.microsoft.identity.common.java.authscheme.AuthenticationSchemeFactory;
 import com.microsoft.identity.common.java.authscheme.BearerAuthenticationSchemeInternal;
+import com.microsoft.identity.common.java.util.SchemaUtil;
 import com.microsoft.identity.common.java.commands.parameters.CommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.DeviceCodeFlowCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.GenerateShrCommandParameters;
@@ -65,13 +66,19 @@ import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignInS
 import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignInSubmitPasswordCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignInWithSLTCommandParameters;
 import com.microsoft.identity.common.java.constants.FidoConstants;
+import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignUpResendCodeCommandParameters;
+import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignUpStartCommandParameters;
+import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignUpStartUsingPasswordCommandParameters;
+import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignUpSubmitCodeCommandParameters;
+import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignUpSubmitPasswordCommandParameters;
+import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignUpSubmitUserAttributesCommandParameters;
 import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.java.providers.oauth2.OpenIdConnectPromptParameter;
 import com.microsoft.identity.common.java.request.SdkType;
 import com.microsoft.identity.common.java.ui.AuthorizationAgent;
-import com.microsoft.identity.common.java.util.SchemaUtil;
+import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.common.logging.Logger;
 
 import java.util.AbstractMap;
@@ -355,6 +362,169 @@ public class CommandParametersAdapter {
                 .build();
 
         return commandParameters;
+    }
+
+    public static SignUpStartCommandParameters createSignUpStartCommandParameters(
+            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final String username,
+            final Map<String, String> userAttributes) {
+        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
+
+        return SignUpStartCommandParameters.builder()
+                .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
+                .applicationName(configuration.getAppContext().getPackageName())
+                .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                .clientId(configuration.getClientId())
+                .isSharedDevice(configuration.getIsSharedDevice())
+                .redirectUri(configuration.getRedirectUri())
+                .oAuth2TokenCache(tokenCache)
+                .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
+                .sdkType(SdkType.MSAL)
+                .sdkVersion(PublicClientApplication.getSdkVersion())
+                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                .authority(authority)
+                .username(username)
+                .challengeType(configuration.getChallengeTypes())
+                .clientId(configuration.getClientId())
+                .userAttributes(userAttributes)
+                .build();
+    }
+
+    public static SignUpStartUsingPasswordCommandParameters createSignUpStartUsingPasswordCommandParameters(
+            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final String username,
+            @NonNull final char[] password,
+            final Map<String, String> userAttributes) {
+
+        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
+
+        return SignUpStartUsingPasswordCommandParameters.builder()
+                .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
+                .applicationName(configuration.getAppContext().getPackageName())
+                .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                .clientId(configuration.getClientId())
+                .isSharedDevice(configuration.getIsSharedDevice())
+                .redirectUri(configuration.getRedirectUri())
+                .oAuth2TokenCache(tokenCache)
+                .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
+                .sdkType(SdkType.MSAL)
+                .sdkVersion(PublicClientApplication.getSdkVersion())
+                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                .authority(authority)
+                .username(username)
+                .password(password)
+                .challengeType(configuration.getChallengeTypes())
+                .userAttributes(userAttributes)
+                .build();
+    }
+
+    public static SignUpSubmitCodeCommandParameters createSignUpSubmitCodeCommandParameters(
+            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final String code,
+            @NonNull final String signupToken) {
+
+        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
+
+        return SignUpSubmitCodeCommandParameters.builder()
+                .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
+                .applicationName(configuration.getAppContext().getPackageName())
+                .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                .clientId(configuration.getClientId())
+                .isSharedDevice(configuration.getIsSharedDevice())
+                .redirectUri(configuration.getRedirectUri())
+                .oAuth2TokenCache(tokenCache)
+                .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
+                .sdkType(SdkType.MSAL)
+                .sdkVersion(PublicClientApplication.getSdkVersion())
+                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                .authority(authority)
+                .challengeType(configuration.getChallengeTypes())
+                .signupToken(signupToken)
+                .code(code)
+                .build();
+    }
+
+    public static SignUpResendCodeCommandParameters createSignUpResendCodeCommandParameters(
+            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final String signupToken) {
+
+        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
+
+        return SignUpResendCodeCommandParameters.builder()
+                .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
+                .applicationName(configuration.getAppContext().getPackageName())
+                .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                .clientId(configuration.getClientId())
+                .isSharedDevice(configuration.getIsSharedDevice())
+                .redirectUri(configuration.getRedirectUri())
+                .oAuth2TokenCache(tokenCache)
+                .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
+                .sdkType(SdkType.MSAL)
+                .sdkVersion(PublicClientApplication.getSdkVersion())
+                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                .challengeType(configuration.getChallengeTypes())
+                .authority(authority)
+                .signupToken(signupToken)
+                .build();
+    }
+
+    public static SignUpSubmitUserAttributesCommandParameters createSignUpStarSubmitUserAttributesCommandParameters(
+            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final String signupToken,
+            final Map<String, String> userAttributes) {
+
+        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
+
+        return SignUpSubmitUserAttributesCommandParameters.builder()
+                .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
+                .applicationName(configuration.getAppContext().getPackageName())
+                .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                .clientId(configuration.getClientId())
+                .isSharedDevice(configuration.getIsSharedDevice())
+                .redirectUri(configuration.getRedirectUri())
+                .oAuth2TokenCache(tokenCache)
+                .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
+                .sdkType(SdkType.MSAL)
+                .sdkVersion(PublicClientApplication.getSdkVersion())
+                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                .authority(authority)
+                .clientId(configuration.getClientId())
+                .challengeType(configuration.getChallengeTypes())
+                .signupToken(signupToken)
+                .userAttributes(userAttributes)
+                .build();
+    }
+
+    public static SignUpSubmitPasswordCommandParameters createSignUpSubmitPasswordCommandParameters(
+            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final String signupToken,
+            @NonNull final char[] password) {
+
+        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
+
+        return SignUpSubmitPasswordCommandParameters.builder()
+                .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
+                .applicationName(configuration.getAppContext().getPackageName())
+                .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                .clientId(configuration.getClientId())
+                .isSharedDevice(configuration.getIsSharedDevice())
+                .redirectUri(configuration.getRedirectUri())
+                .oAuth2TokenCache(tokenCache)
+                .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
+                .sdkType(SdkType.MSAL)
+                .sdkVersion(PublicClientApplication.getSdkVersion())
+                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                .authority(authority)
+                .challengeType(configuration.getChallengeTypes())
+                .signupToken(signupToken)
+                .password(password)
+                .build();
     }
 
     /**

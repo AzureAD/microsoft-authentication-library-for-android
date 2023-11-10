@@ -50,7 +50,6 @@ import com.microsoft.identity.client.statemachine.states.SignUpPasswordRequiredS
 import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager
 import com.microsoft.identity.common.internal.commands.GetCurrentAccountCommand
-import com.microsoft.identity.common.internal.commands.ResetPasswordStartCommand
 import com.microsoft.identity.common.internal.commands.SignInStartCommand
 import com.microsoft.identity.common.internal.commands.SignUpStartCommand
 import com.microsoft.identity.common.internal.controllers.LocalMSALController

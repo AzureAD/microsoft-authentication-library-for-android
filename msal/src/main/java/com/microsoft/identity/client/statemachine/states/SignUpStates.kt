@@ -46,7 +46,7 @@ import com.microsoft.identity.common.internal.commands.SignUpSubmitPasswordComma
 import com.microsoft.identity.common.internal.commands.SignUpSubmitUserAttributesCommand
 import com.microsoft.identity.common.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.common.java.controllers.CommandDispatcher
-import com.microsoft.identity.common.java.controllers.results.ICommandResult
+import com.microsoft.identity.common.java.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.controllers.results.SignUpCommandResult
 import com.microsoft.identity.common.java.controllers.results.SignUpResendCodeCommandResult
 import com.microsoft.identity.common.java.controllers.results.SignUpSubmitCodeCommandResult
@@ -55,7 +55,7 @@ import com.microsoft.identity.common.java.controllers.results.SignUpSubmitUserAt
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
-import com.microsoft.identity.common.java.logging.Logger.LogLevel
+import com.microsoft.identity.common.java.util.StringUtil
 import com.microsoft.identity.common.java.util.checkAndWrapCommandResultType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -159,7 +159,7 @@ class SignUpCodeRequiredState internal constructor(
                     )
                 }
 
-                is ICommandResult.Redirect -> {
+                is INativeAuthCommandResult.Redirect -> {
                     SignUpResult.BrowserRequired(
                         error = BrowserRequiredError(
                             correlationId = result.correlationId
@@ -182,7 +182,7 @@ class SignUpCodeRequiredState internal constructor(
                     )
                 }
 
-                is ICommandResult.UnknownError -> {
+                is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
                         "Unexpected result: $result"
@@ -259,7 +259,7 @@ class SignUpCodeRequiredState internal constructor(
                     )
                 }
 
-                is ICommandResult.Redirect -> {
+                is INativeAuthCommandResult.Redirect -> {
                     SignUpResult.BrowserRequired(
                         error = BrowserRequiredError(
                             correlationId = result.correlationId
@@ -267,7 +267,7 @@ class SignUpCodeRequiredState internal constructor(
                     )
                 }
 
-                is ICommandResult.UnknownError -> {
+                is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
                         "Unexpected result: $result"
@@ -304,7 +304,7 @@ class SignUpPasswordRequiredState internal constructor(
      * @return The results of the submit password action.
      */
     fun submitPassword(
-        password: String,
+        password: CharArray,
         callback: SignUpSubmitPasswordCallback
     ) {
         LogSession.logMethodCall(TAG, "${TAG}.submitPassword")
@@ -325,7 +325,7 @@ class SignUpPasswordRequiredState internal constructor(
      * @param password the password to submit.
      * @return The results of the submit password action.
      */
-    suspend fun submitPassword(password: String): SignUpSubmitPasswordResult {
+    suspend fun submitPassword(password: CharArray): SignUpSubmitPasswordResult {
         LogSession.logMethodCall(TAG, "${TAG}.submitPassword(password: String)")
         return withContext(Dispatchers.IO) {
             val commandParameters =
@@ -341,93 +341,98 @@ class SignUpPasswordRequiredState internal constructor(
                 PublicApiId.NATIVE_AUTH_SIGN_UP_SUBMIT_PASSWORD
             )
 
-            val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
+            try {
+                val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
 
-            return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<SignUpSubmitPasswordCommandResult>()) {
-                is SignUpCommandResult.InvalidPassword -> {
-                    SignUpResult.InvalidPassword(
-                        InvalidPasswordError(
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId
+                return@withContext when (val result =
+                    rawCommandResult.checkAndWrapCommandResultType<SignUpSubmitPasswordCommandResult>()) {
+                    is SignUpCommandResult.InvalidPassword -> {
+                        SignUpResult.InvalidPassword(
+                            InvalidPasswordError(
+                                error = result.error,
+                                errorMessage = result.errorDescription,
+                                correlationId = result.correlationId
+                            )
                         )
-                    )
-                }
+                    }
 
-                is SignUpCommandResult.AttributesRequired -> {
-                    SignUpResult.AttributesRequired(
-                        nextState = SignUpAttributesRequiredState(
-                            flowToken = result.signupToken,
-                            username = username,
-                            config = config
-                        ),
-                        requiredAttributes = result.requiredAttributes.toListOfRequiredUserAttribute()
-                    )
-                }
-
-                is SignUpCommandResult.Complete -> {
-                    SignUpResult.Complete(
-                        nextState = SignInAfterSignUpState(
-                            signInVerificationCode = result.signInSLT,
-                            username = username,
-                            config = config
+                    is SignUpCommandResult.AttributesRequired -> {
+                        SignUpResult.AttributesRequired(
+                            nextState = SignUpAttributesRequiredState(
+                                flowToken = result.signupToken,
+                                username = username,
+                                config = config
+                            ),
+                            requiredAttributes = result.requiredAttributes.toListOfRequiredUserAttribute()
                         )
-                    )
-                }
+                    }
 
-                is ICommandResult.Redirect -> {
-                    SignUpResult.BrowserRequired(
-                        error = BrowserRequiredError(
-                            correlationId = result.correlationId
+                    is SignUpCommandResult.Complete -> {
+                        SignUpResult.Complete(
+                            nextState = SignInAfterSignUpState(
+                                signInVerificationCode = result.signInSLT,
+                                username = username,
+                                config = config
+                            )
                         )
-                    )
-                }
+                    }
 
-                // This should be caught earlier in the flow, so throwing UnexpectedError
-                is SignUpCommandResult.UsernameAlreadyExists -> {
-                    Logger.warn(
-                        TAG,
-                        "Unexpected result: $result"
-                    )
-                    SignUpResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId
+                    is INativeAuthCommandResult.Redirect -> {
+                        SignUpResult.BrowserRequired(
+                            error = BrowserRequiredError(
+                                correlationId = result.correlationId
+                            )
                         )
-                    )
-                }
+                    }
 
-                // This should be caught earlier in the flow, so throwing UnexpectedError
-                is SignUpCommandResult.InvalidEmail -> {
-                    Logger.warn(
-                        TAG,
-                        "Unexpected result: $result"
-                    )
-                    SignUpResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId
+                    // This should be caught earlier in the flow, so throwing UnexpectedError
+                    is SignUpCommandResult.UsernameAlreadyExists -> {
+                        Logger.warn(
+                            TAG,
+                            "Unexpected result: $result"
                         )
-                    )
-                }
+                        SignUpResult.UnexpectedError(
+                            error = GeneralError(
+                                errorMessage = result.errorDescription,
+                                error = result.error,
+                                correlationId = result.correlationId
+                            )
+                        )
+                    }
 
-                is ICommandResult.UnknownError -> {
-                    Logger.warn(
-                        TAG,
-                        "Unexpected result: $result"
-                    )
-                    SignUpResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId,
-                            details = result.details,
-                            exception = result.exception
+                    // This should be caught earlier in the flow, so throwing UnexpectedError
+                    is SignUpCommandResult.InvalidEmail -> {
+                        Logger.warn(
+                            TAG,
+                            "Unexpected result: $result"
                         )
-                    )
+                        SignUpResult.UnexpectedError(
+                            error = GeneralError(
+                                errorMessage = result.errorDescription,
+                                error = result.error,
+                                correlationId = result.correlationId
+                            )
+                        )
+                    }
+
+                    is INativeAuthCommandResult.UnknownError -> {
+                        Logger.warn(
+                            TAG,
+                            "Unexpected result: $result"
+                        )
+                        SignUpResult.UnexpectedError(
+                            error = GeneralError(
+                                errorMessage = result.errorDescription,
+                                error = result.error,
+                                correlationId = result.correlationId,
+                                details = result.details,
+                                exception = result.exception
+                            )
+                        )
+                    }
                 }
+            } finally {
+                StringUtil.overwriteWithNull(commandParameters.password)
             }
         }
     }
@@ -521,7 +526,7 @@ class SignUpAttributesRequiredState internal constructor(
                         )
                     )
                 }
-                is ICommandResult.Redirect -> {
+                is INativeAuthCommandResult.Redirect -> {
                     SignUpResult.BrowserRequired(
                         error = BrowserRequiredError(
                             correlationId = result.correlationId
@@ -542,7 +547,7 @@ class SignUpAttributesRequiredState internal constructor(
                         )
                     )
                 }
-                is ICommandResult.UnknownError -> {
+                is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
                         "Unexpected result: $result"

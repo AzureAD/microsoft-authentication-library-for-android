@@ -321,14 +321,13 @@ class SignInPasswordRequiredState(
                 scopes
             )
 
-            try
-            {
-                val signInSubmitPasswordCommand = SignInSubmitPasswordCommand(
-                    parameters = params,
-                    controller = NativeAuthMsalController(),
-                    publicApiId = PublicApiId.NATIVE_AUTH_SIGN_IN_SUBMIT_PASSWORD
-                )
+            val signInSubmitPasswordCommand = SignInSubmitPasswordCommand(
+                parameters = params,
+                controller = NativeAuthMsalController(),
+                publicApiId = PublicApiId.NATIVE_AUTH_SIGN_IN_SUBMIT_PASSWORD
+            )
 
+            try {
                 val rawCommandResult =
                     CommandDispatcher.submitSilentReturningFuture(signInSubmitPasswordCommand).get()
 
