@@ -62,6 +62,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.Serializable
 
+/**
+ * Native Auth uses a state machine to denote state and transitions for a user.
+ * SignUpCodeRequiredState class represents a state where the user has to provide a code to progress
+ * in the signup flow.
+ * @property flowToken: Flow token to be passed in the next request
+ * @property username: Email address of the user
+ * @property config Configuration used by Native Auth
+ */
 class SignUpCodeRequiredState internal constructor(
     override val flowToken: String,
     private val username: String,
@@ -287,6 +295,14 @@ class SignUpCodeRequiredState internal constructor(
     }
 }
 
+/**
+ * Native Auth uses a state machine to denote state and transitions for a user.
+ * SignUpPasswordRequiredState class represents a state where the user has to provide a password
+ * to progress in the signup flow.
+ * @property flowToken: Flow token to be passed in the next request
+ * @property username: Email address of the user
+ * @property config Configuration used by Native Auth
+ */
 class SignUpPasswordRequiredState internal constructor(
     override val flowToken: String,
     private val username: String,
@@ -438,6 +454,14 @@ class SignUpPasswordRequiredState internal constructor(
     }
 }
 
+/**
+ * Native Auth uses a state machine to denote state and transitions for a user.
+ * SignUpAttributesRequiredState class represents a state where the user has to provide signup
+ * attributes to progress in the signup flow.
+ * @property flowToken: Flow token to be passed in the next request
+ * @property username: Email address of the user
+ * @property config Configuration used by Native Auth
+ */
 class SignUpAttributesRequiredState internal constructor(
     override val flowToken: String,
     private val username: String,
@@ -567,6 +591,14 @@ class SignUpAttributesRequiredState internal constructor(
     }
 }
 
+/**
+ * Native Auth uses a state machine to denote state and transitions for a user.
+ * SignInAfterSignUpState class represents a state where the user must signin after successful
+ * signup flow.
+ * @property signInVerificationCode: Token to be passed in the next request
+ * @property username: Email address of the user
+ * @property config Configuration used by Native Auth
+ */
 class SignInAfterSignUpState internal constructor(
     override val signInVerificationCode: String?,
     override val username: String,

@@ -24,10 +24,20 @@ package com.microsoft.identity.client
 
 import com.microsoft.identity.common.java.providers.nativeauth.responses.UserAttributeApiResult
 
+/**
+ * RequiredUserAttribute represents details about the account attributes required by the server.
+ */
 data class RequiredUserAttribute(
+    //Name of the attribute
     val attributeName: String?,
+
+    //Data type for the attribute
     val type: String?,
+
+    //If the attribute is required
     val required: Boolean?,
+
+    //Attribute value should match the constraints
     val options: RequiredUserAttributeOptions?
 )
 

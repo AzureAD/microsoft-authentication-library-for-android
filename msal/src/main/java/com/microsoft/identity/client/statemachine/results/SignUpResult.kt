@@ -37,11 +37,6 @@ import com.microsoft.identity.client.statemachine.states.SignUpCodeRequiredState
 import com.microsoft.identity.client.statemachine.states.SignUpPasswordRequiredState
 
 /**
- * Results for native sign up flows.
- * TODO add documentation & links to learn.microsoft.com
- */
-
-/**
  * Sign up start result, produced by
  * [com.microsoft.identity.client.INativeAuthPublicClientApplication.signUp]
  */

@@ -24,6 +24,9 @@ package com.microsoft.identity.client
 
 import com.microsoft.identity.common.java.providers.nativeauth.responses.UserAttributeOptionsApiResult
 
+/**
+ * RequiredUserAttributeOptions contains the regular expression that the attribute value must match.
+ */
 data class RequiredUserAttributeOptions(
     val regex: String?
 )

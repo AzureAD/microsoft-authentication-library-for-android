@@ -364,6 +364,14 @@ public class CommandParametersAdapter {
         return commandParameters;
     }
 
+    /**
+     * Creates command parameter for [SignUpStartCommand] of Native Auth.
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param username email address of the user
+     * @return Command parameter object
+     * @throws ClientException
+     */
     public static SignUpStartCommandParameters createSignUpStartCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
@@ -391,6 +399,15 @@ public class CommandParametersAdapter {
                 .build();
     }
 
+    /**
+     * Creates command parameter for [SignUpStartCommand] of Native Auth when password is provided
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param username email address of the user
+     * @param password password of the user
+     * @return Command parameter object
+     * @throws ClientException
+     */
     public static SignUpStartUsingPasswordCommandParameters createSignUpStartUsingPasswordCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
@@ -420,6 +437,15 @@ public class CommandParametersAdapter {
                 .build();
     }
 
+    /**
+     * Creates command parameter for [{@link com.microsoft.identity.common.internal.commands.SignUpSubmitCodeCommand}] of Native Auth.
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param code Out of band code
+     * @param signupToken Signup token received from the start command
+     * @return Command parameter object
+     * @throws ClientException
+     */
     public static SignUpSubmitCodeCommandParameters createSignUpSubmitCodeCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
@@ -447,6 +473,14 @@ public class CommandParametersAdapter {
                 .build();
     }
 
+    /**
+     * Creates command parameter for [{@link com.microsoft.identity.common.internal.commands.SignUpResendCodeCommand}] of Native Auth.
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param signupToken Signup token received from the start command
+     * @return Command parameter object
+     * @throws ClientException
+     */
     public static SignUpResendCodeCommandParameters createSignUpResendCodeCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
@@ -472,6 +506,14 @@ public class CommandParametersAdapter {
                 .build();
     }
 
+    /**
+     * Creates command parameter for [{@link com.microsoft.identity.common.internal.commands.SignUpSubmitUserAttributesCommand}] of Native Auth.
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param signupToken Signup token received from the start command
+     * @return Command parameter object
+     * @throws ClientException
+     */
     public static SignUpSubmitUserAttributesCommandParameters createSignUpStarSubmitUserAttributesCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
@@ -500,6 +542,15 @@ public class CommandParametersAdapter {
                 .build();
     }
 
+    /**
+     * Creates command parameter for [{@link com.microsoft.identity.common.internal.commands.SignUpSubmitPasswordCommand}] of Native Auth.
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param signupToken email address of the user
+     * @param password password for the user
+     * @return Command parameter object
+     * @throws ClientException
+     */
     public static SignUpSubmitPasswordCommandParameters createSignUpSubmitPasswordCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
