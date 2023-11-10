@@ -24,6 +24,7 @@ package com.microsoft.identity.client
 
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
+import com.microsoft.identity.client.statemachine.results.ResetPasswordStartResult
 import com.microsoft.identity.client.statemachine.results.SignInResult
 import com.microsoft.identity.client.statemachine.results.SignInUsingPasswordResult
 import com.microsoft.identity.client.statemachine.states.AccountResult
@@ -105,4 +106,8 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
      * @throws MsalClientException if an account is already signed in.
      */
     fun signInUsingPassword(username: String, password: CharArray, scopes: List<String>? = null, callback: NativeAuthPublicClientApplication.SignInUsingPasswordCallback)
+
+    suspend fun resetPassword(username: String): ResetPasswordStartResult
+
+    fun resetPassword(username: String, callback: NativeAuthPublicClientApplication.ResetPasswordCallback)
 }
