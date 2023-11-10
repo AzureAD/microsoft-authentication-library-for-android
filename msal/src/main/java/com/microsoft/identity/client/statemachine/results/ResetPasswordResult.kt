@@ -32,13 +32,7 @@ import com.microsoft.identity.client.statemachine.states.ResetPasswordCodeRequir
 import com.microsoft.identity.client.statemachine.states.ResetPasswordPasswordRequiredState
 
 /**
- * Results for native Self-service password reset flows.
- * TODO add documentation & links to learn.microsoft.com
- */
-
-/**
  * Self-service password reset.
- * TODO add documentation & links to learn.microsoft.com
  */
 sealed interface ResetPasswordResult : Result {
     /**

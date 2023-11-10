@@ -107,7 +107,22 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
      */
     fun signInUsingPassword(username: String, password: CharArray, scopes: List<String>? = null, callback: NativeAuthPublicClientApplication.SignInUsingPasswordCallback)
 
+    /**
+     * Reset password for the account starting from a username; Kotlin coroutines variant.
+     *
+     * @param username username of the account to reset password.
+     * @return [com.microsoft.identity.client.statemachine.results.ResetPasswordStartResult] see detailed possible return state under the object.
+     * @throws MsalClientException if an account is already signed in.
+     */
     suspend fun resetPassword(username: String): ResetPasswordStartResult
 
+    /**
+     * Reset password for the account starting from a username; callback variant.
+     *
+     * @param username username of the account to reset password.
+     * @param callback [com.microsoft.identity.client.NativeAuthPublicClientApplication.ResetPasswordCallback] to receive the result.
+     * @return [com.microsoft.identity.client.statemachine.results.ResetPasswordStartResult] see detailed possible return state under the object.
+     * @throws MsalClientException if an account is already signed in.
+     */
     fun resetPassword(username: String, callback: NativeAuthPublicClientApplication.ResetPasswordCallback)
 }
