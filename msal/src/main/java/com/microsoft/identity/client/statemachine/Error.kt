@@ -23,6 +23,10 @@
 
 package com.microsoft.identity.client.statemachine
 
+/**
+ * Error is a base class for all errors present in the Native Auth.
+ * This file will be refactored as part of https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2730354
+ */
 sealed class Error(
     open val error: String? = null,
     open val errorMessage: String?,
@@ -32,7 +36,7 @@ sealed class Error(
 )
 
 /**
- * GeneralError is a base class for all errors present in the Native Auth.
+ * GeneralError represents general errors in NativeAuth
  */
 class GeneralError(
     override var error: String? = null,

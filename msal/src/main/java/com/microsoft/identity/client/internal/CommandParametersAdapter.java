@@ -1,3 +1,25 @@
+//  Copyright (c) Microsoft Corporation.
+//  All rights reserved.
+//
+//  This code is licensed under the MIT License.
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files(the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions :
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//  THE SOFTWARE.
 package com.microsoft.identity.client.internal;
 
 import android.content.Context;
@@ -13,6 +35,7 @@ import com.microsoft.identity.client.DeviceCodeFlowParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.ITenantProfile;
 import com.microsoft.identity.client.MultiTenantAccount;
+import com.microsoft.identity.client.NativeAuthPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.PoPAuthenticationScheme;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
@@ -20,27 +43,35 @@ import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory;
 import com.microsoft.identity.common.internal.commands.parameters.AndroidActivityInteractiveTokenCommandParameters;
-import com.microsoft.identity.common.java.constants.FidoConstants;
+import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryB2CAuthority;
+import com.microsoft.identity.common.java.authorities.NativeAuthCIAMAuthority;
 import com.microsoft.identity.common.java.authscheme.AbstractAuthenticationScheme;
 import com.microsoft.identity.common.java.authscheme.AuthenticationSchemeFactory;
 import com.microsoft.identity.common.java.authscheme.BearerAuthenticationSchemeInternal;
-import com.microsoft.identity.common.java.exception.ClientException;
-import com.microsoft.identity.common.java.util.SchemaUtil;
 import com.microsoft.identity.common.java.commands.parameters.CommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.DeviceCodeFlowCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.GenerateShrCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.InteractiveTokenCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.RemoveAccountCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.SilentTokenCommandParameters;
+import com.microsoft.identity.common.java.commands.parameters.nativeauth.AcquireTokenNoFixedScopesCommandParameters;
+import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignInResendCodeCommandParameters;
+import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignInStartCommandParameters;
+import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignInStartUsingPasswordCommandParameters;
+import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignInSubmitCodeCommandParameters;
+import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignInSubmitPasswordCommandParameters;
+import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignInWithSLTCommandParameters;
+import com.microsoft.identity.common.java.constants.FidoConstants;
 import com.microsoft.identity.common.java.dto.AccountRecord;
+import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.java.providers.oauth2.OpenIdConnectPromptParameter;
 import com.microsoft.identity.common.java.request.SdkType;
 import com.microsoft.identity.common.java.ui.AuthorizationAgent;
-import com.microsoft.identity.common.internal.util.StringUtil;
+import com.microsoft.identity.common.java.util.SchemaUtil;
 import com.microsoft.identity.common.logging.Logger;
 
 import java.util.AbstractMap;
@@ -51,6 +82,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+
+/**
+ * CommandParametersAdapter is a helper class to create various Command parameter objects.
+ */
 public class CommandParametersAdapter {
 
     private static final String TAG = CommandParametersAdapter.class.getSimpleName();
@@ -250,6 +285,47 @@ public class CommandParametersAdapter {
         return commandParameters;
     }
 
+    /**
+     * Creates command parameter for [AcquireTokenNoFixedScopesCommand] of Native Auth.
+     *
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param accountRecord accountRecord object containing account information
+     * @param forceRefresh boolean parameter to denote if refresh should be forced
+     * @return Command parameter object
+     * @throws ClientException
+     */
+    public static AcquireTokenNoFixedScopesCommandParameters createAcquireTokenNoFixedScopesCommandParameters(
+            @NonNull final PublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final AccountRecord accountRecord,
+            @NonNull final Boolean forceRefresh) throws ClientException {
+        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
+
+        final AbstractAuthenticationScheme authenticationScheme = new BearerAuthenticationSchemeInternal();
+
+        final AcquireTokenNoFixedScopesCommandParameters commandParameters = AcquireTokenNoFixedScopesCommandParameters
+                .builder()
+                .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
+                .applicationName(configuration.getAppContext().getPackageName())
+                .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                .clientId(configuration.getClientId())
+                .isSharedDevice(configuration.getIsSharedDevice())
+                .oAuth2TokenCache(tokenCache)
+                .redirectUri(configuration.getRedirectUri())
+                .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
+                .sdkType(SdkType.MSAL)
+                .sdkVersion(PublicClientApplication.getSdkVersion())
+                .authority(authority)
+                .authenticationScheme(authenticationScheme)
+                .forceRefresh(forceRefresh)
+                .account(accountRecord)
+                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                .build();
+
+        return commandParameters;
+    }
+
     public static DeviceCodeFlowCommandParameters createDeviceCodeFlowCommandParameters(
             @NonNull final PublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
@@ -280,6 +356,272 @@ public class CommandParametersAdapter {
 
         return commandParameters;
     }
+
+    /**
+     * Creates command parameter for [SignInStartCommand] of Native Auth.
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param username email address of the user
+     * @return Command parameter object
+     * @throws ClientException
+     */
+    public static SignInStartCommandParameters createSignInStartCommandParameters(
+            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final String username) throws ClientException {
+        final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
+                AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
+                null
+        );
+
+        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
+
+        final SignInStartCommandParameters commandParameters = SignInStartCommandParameters.builder()
+                .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
+                .applicationName(configuration.getAppContext().getPackageName())
+                .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                .clientId(configuration.getClientId())
+                .isSharedDevice(configuration.getIsSharedDevice())
+                .redirectUri(configuration.getRedirectUri())
+                .oAuth2TokenCache(tokenCache)
+                .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
+                .sdkType(SdkType.MSAL)
+                .sdkVersion(PublicClientApplication.getSdkVersion())
+                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                .authority(authority)
+                .username(username)
+                .authenticationScheme(authenticationScheme)
+                .clientId(configuration.getClientId())
+                .challengeType(configuration.getChallengeTypes())
+                .build();
+
+        return commandParameters;
+    }
+
+    /**
+     * Creates command parameter for [SignInStartCommand] of Native Auth using username and password
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param username email address of the user
+     * @param password password of the user
+     * @param scopes
+     * @return Command parameter object
+     * @throws ClientException
+     */
+    public static SignInStartUsingPasswordCommandParameters createSignInStartUsingPasswordCommandParameters(
+            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final String username,
+            @NonNull final char[] password,
+            final List<String> scopes) throws ClientException {
+        final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
+                AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
+                null
+        );
+
+        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
+
+        final SignInStartUsingPasswordCommandParameters commandParameters = SignInStartUsingPasswordCommandParameters.builder()
+                .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
+                .applicationName(configuration.getAppContext().getPackageName())
+                .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                .clientId(configuration.getClientId())
+                .isSharedDevice(configuration.getIsSharedDevice())
+                .redirectUri(configuration.getRedirectUri())
+                .oAuth2TokenCache(tokenCache)
+                .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
+                .sdkType(SdkType.MSAL)
+                .sdkVersion(PublicClientApplication.getSdkVersion())
+                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                .authority(authority)
+                .username(username)
+                .password(password)
+                .authenticationScheme(authenticationScheme)
+                .clientId(configuration.getClientId())
+                .challengeType(configuration.getChallengeTypes())
+                .scopes(scopes)
+                .build();
+
+        return commandParameters;
+    }
+
+    /**
+     * Creates command parameter for [SignInStartCommand] of Native Auth using short lived token
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param signInSLT short lived token
+     * @param username email address of the user
+     * @param scopes
+     * @return Command parameter object
+     * @throws ClientException
+     */
+    public static SignInWithSLTCommandParameters createSignInWithSLTCommandParameters(
+            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @Nullable final String signInSLT,
+            @Nullable final String username,
+            final List<String> scopes) throws ClientException {
+        final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
+                AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
+                null
+        );
+
+        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
+
+        final SignInWithSLTCommandParameters commandParameters = SignInWithSLTCommandParameters.builder()
+                .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
+                .applicationName(configuration.getAppContext().getPackageName())
+                .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                .clientId(configuration.getClientId())
+                .isSharedDevice(configuration.getIsSharedDevice())
+                .redirectUri(configuration.getRedirectUri())
+                .oAuth2TokenCache(tokenCache)
+                .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
+                .sdkType(SdkType.MSAL)
+                .sdkVersion(PublicClientApplication.getSdkVersion())
+                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                .authority(authority)
+                .signInSLT(signInSLT)
+                .username(username)
+                .challengeType(configuration.getChallengeTypes())
+                .authenticationScheme(authenticationScheme)
+                .scopes(scopes)
+                .build();
+
+        return commandParameters;
+    }
+
+    /**
+     * Creates command parameter for [SignInSubmitCodeCommand] of Native Auth
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param code Out of band code
+     * @param credentialToken credential token
+     * @param scopes
+     * @return Command parameter object
+     * @throws ClientException
+     */
+    public static SignInSubmitCodeCommandParameters createSignInSubmitCodeCommandParameters(
+            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final String code,
+            @NonNull final String credentialToken,
+            final List<String> scopes) throws ClientException {
+
+        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
+
+        final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
+                AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
+                null
+        );
+
+        final SignInSubmitCodeCommandParameters commandParameters = SignInSubmitCodeCommandParameters.builder()
+                .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
+                .applicationName(configuration.getAppContext().getPackageName())
+                .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                .clientId(configuration.getClientId())
+                .isSharedDevice(configuration.getIsSharedDevice())
+                .redirectUri(configuration.getRedirectUri())
+                .oAuth2TokenCache(tokenCache)
+                .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
+                .sdkType(SdkType.MSAL)
+                .sdkVersion(PublicClientApplication.getSdkVersion())
+                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                .authority(authority)
+                .credentialToken(credentialToken)
+                .authenticationScheme(authenticationScheme)
+                .challengeType(configuration.getChallengeTypes())
+                .code(code)
+                .scopes(scopes)
+                .build();
+
+        return commandParameters;
+    }
+
+    /**
+     * Creates command parameter for [SignInResendCodeCommand] of Native Auth
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param credentialToken credential token
+     * @return Command parameter object
+     * @throws ClientException
+     */
+    public static SignInResendCodeCommandParameters createSignInResendCodeCommandParameters(
+            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final String credentialToken) {
+
+        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
+
+        final SignInResendCodeCommandParameters commandParameters = SignInResendCodeCommandParameters.builder()
+                .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
+                .applicationName(configuration.getAppContext().getPackageName())
+                .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                .clientId(configuration.getClientId())
+                .isSharedDevice(configuration.getIsSharedDevice())
+                .redirectUri(configuration.getRedirectUri())
+                .oAuth2TokenCache(tokenCache)
+                .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
+                .sdkType(SdkType.MSAL)
+                .sdkVersion(PublicClientApplication.getSdkVersion())
+                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                .authority(authority)
+                .challengeType(configuration.getChallengeTypes())
+                .credentialToken(credentialToken)
+                .challengeType(configuration.getChallengeTypes())
+                .build();
+
+        return commandParameters;
+    }
+
+    /**
+     * Creates command parameter for [SignInSubmitPasswordCommand] of Native Auth
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param credentialToken credential token
+     * @param password  password of the user
+     * @param scopes
+     * @return Command parameter object
+     * @throws ClientException
+     */
+    public static SignInSubmitPasswordCommandParameters createSignInSubmitPasswordCommandParameters(
+            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final String credentialToken,
+            @NonNull final char[] password,
+            final List<String> scopes) throws ClientException {
+
+        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
+
+        final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
+                AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
+                null
+        );
+
+        final SignInSubmitPasswordCommandParameters commandParameters =
+                SignInSubmitPasswordCommandParameters.builder()
+                        .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
+                        .applicationName(configuration.getAppContext().getPackageName())
+                        .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                        .clientId(configuration.getClientId())
+                        .isSharedDevice(configuration.getIsSharedDevice())
+                        .redirectUri(configuration.getRedirectUri())
+                        .oAuth2TokenCache(tokenCache)
+                        .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
+                        .sdkType(SdkType.MSAL)
+                        .sdkVersion(PublicClientApplication.getSdkVersion())
+                        .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                        .authority(authority)
+                        .authenticationScheme(authenticationScheme)
+                        .credentialToken(credentialToken)
+                        .password(password)
+                        .scopes(scopes)
+                        .challengeType(configuration.getChallengeTypes())
+                        .build();
+
+        return commandParameters;
+    }
+
 
     private static String getPackageVersion(@NonNull final Context context) {
         final String packageName = context.getPackageName();
@@ -503,7 +845,9 @@ public class CommandParametersAdapter {
     public static List<Map.Entry<String, String>> appendToExtraQueryParametersIfWebAuthnCapable(
             @Nullable final List<Map.Entry<String, String>> queryStringParameters,
             @NonNull final PublicClientApplicationConfiguration configuration) {
-        if (configuration.isWebauthnCapable()) {
+        //Putting behind passkey feature flag until feature is ready.
+        if (FidoConstants.IS_PASSKEY_SUPPORT_READY
+                && configuration.isWebauthnCapable()) {
             final Map.Entry<String, String> webauthnExtraParameter = new AbstractMap.SimpleEntry<>(
                     FidoConstants.WEBAUTHN_QUERY_PARAMETER_FIELD,
                     FidoConstants.WEBAUTHN_QUERY_PARAMETER_VALUE);

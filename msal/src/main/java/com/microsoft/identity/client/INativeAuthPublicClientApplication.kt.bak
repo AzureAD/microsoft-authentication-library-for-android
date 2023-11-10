@@ -115,5 +115,5 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
 
     suspend fun signUpUsingPassword(username: String, password: CharArray, attributes: UserAttributes? = null): SignUpUsingPasswordResult
 
-    fun signUpUsingPassword(username: String, password: CharArray, attributes: UserAttributes? = null, callback: NativeAuthPublicClientApplication.SignUpUsingPasswordCallback)
+    fun signUpUsingPassword(username: String, password: StriCharArrayng, attributes: UserAttributes? = null, callback: NativeAuthPublicClientApplication.SignUpUsingPasswordCallback)
 }

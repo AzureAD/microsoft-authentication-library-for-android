@@ -788,6 +788,7 @@ class NativeAuthPublicClientApplication(
         }
     }
 
+
     /**
      * Sign up the account starting from a username; Kotlin coroutines variant.
      *

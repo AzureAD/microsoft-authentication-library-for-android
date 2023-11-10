@@ -23,23 +23,9 @@
 
 package com.microsoft.identity.client.statemachine.states
 
-import com.microsoft.identity.common.java.exception.BaseException
+sealed interface State
 
 /**
- * Callback<T> class is used when the Native Auth features like SignUp, SignIn and SSPR are
- * called from java code using callback variant.
+ * BaseState is the base class for various states in the Native Auth state machine.
  */
-interface Callback <T> {
-
-    /**
-     * onResult callback is made when the Native Auth API call is successful.
-     * @param result: Result of the successful Native Auth API.
-     */
-    fun onResult(result: T)
-
-    /**
-     * onError callback is made when the Native Auth API call fails.
-     * @param exception: This object captures the exception encountered during the failure.
-     */
-    fun onError(exception: BaseException)
-}
+abstract class BaseState(internal open val flowToken: String?)
