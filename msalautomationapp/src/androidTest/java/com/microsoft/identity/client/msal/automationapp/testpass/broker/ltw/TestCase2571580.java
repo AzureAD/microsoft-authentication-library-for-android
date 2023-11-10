@@ -61,7 +61,6 @@ public class TestCase2571580 extends AbstractMsalBrokerTest {
 
         // AcquireToken Interactively in MsalTestApp
         final MsalTestApp msalTestApp = new MsalTestApp();
-
         msalTestApp.install();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();

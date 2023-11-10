@@ -41,7 +41,6 @@ import java.util.List;
 // Add a UI test on MsalTestApp
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2517374
 @LTWTests
-@RunOnAPI29Minus
 public class TestCase2517374 extends AbstractMsalBrokerTest {
 
     @Test
@@ -73,7 +72,6 @@ public class TestCase2517374 extends AbstractMsalBrokerTest {
                 .verifyYourIdentityPageExpected(false)
                 .howWouldYouLikeToSignInExpected(false)
                 .build();
-
         String token = msalTestApp.acquireToken(username, password, promptHandlerParameters,true);
         Assert.assertNotNull(token);
 

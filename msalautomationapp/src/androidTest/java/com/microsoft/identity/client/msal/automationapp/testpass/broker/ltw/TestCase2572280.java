@@ -54,7 +54,6 @@ public class TestCase2572280 extends AbstractMsalBrokerTest {
         brokerCompanyPortal.install();
 
         final MsalTestApp msalTestApp = new MsalTestApp();
-
         msalTestApp.install();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();

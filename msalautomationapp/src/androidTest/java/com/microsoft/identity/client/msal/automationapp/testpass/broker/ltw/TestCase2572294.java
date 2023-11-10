@@ -55,7 +55,6 @@ public class TestCase2572294 extends AbstractMsalBrokerTest {
         brokerCompanyPortal.install();
 
         final MsalTestApp msalTestApp = new MsalTestApp();
-
         msalTestApp.install();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
@@ -87,28 +86,28 @@ public class TestCase2572294 extends AbstractMsalBrokerTest {
         Assert.assertEquals("Active broker pkg name : " + BrokerMicrosoftAuthenticator.AUTHENTICATOR_APP_PACKAGE_NAME, activeBroker);
     }
 
-        @Override
-        public LabQuery getLabQuery() {
-            return null;
-        }
+    @Override
+    public LabQuery getLabQuery() {
+        return null;
+    }
 
-        @Override
-        public TempUserType getTempUserType() {
-            return TempUserType.BASIC;
-        }
+    @Override
+    public TempUserType getTempUserType() {
+        return TempUserType.BASIC;
+    }
 
-        @Override
-        public String[] getScopes() {
-            return new String[]{"User.read"};
-        }
+    @Override
+    public String[] getScopes() {
+        return new String[]{"User.read"};
+    }
 
-        @Override
-        public String getAuthority() {
-            return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
-        }
+    @Override
+    public String getAuthority() {
+        return mApplication.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
+    }
 
-        @Override
-        public int getConfigFileResourceId() {
-            return R.raw.msal_config_default;
-        }
+    @Override
+    public int getConfigFileResourceId() {
+        return R.raw.msal_config_default;
+    }
 }
