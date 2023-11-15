@@ -627,6 +627,13 @@ public class CommandParametersAdapter {
     }
 
 
+    /**
+     * Creates command parameter for [ResetPasswordStartCommand] of Native Auth.
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param username username associated with password change
+     * @return Command parameter object
+     */
     public static ResetPasswordStartCommandParameters createResetPasswordStartCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
@@ -656,6 +663,14 @@ public class CommandParametersAdapter {
         return commandParameters;
     }
 
+    /**
+     * Creates command parameter for [ResetPasswordSubmitCodeCommand] of Native Auth.
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param code out of band code
+     * @param passwordResetToken password reset token
+     * @return Command parameter object
+     */
     public static ResetPasswordSubmitCodeCommandParameters createResetPasswordSubmitCodeCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
@@ -687,6 +702,13 @@ public class CommandParametersAdapter {
         return commandParameters;
     }
 
+    /**
+     * Creates command parameter for [ResetPasswordResendCodeCommand] of Native Auth.
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param passwordResetToken password reset token
+     * @return Command parameter object
+     */
     public static ResetPasswordResendCodeCommandParameters createResetPasswordResendCodeCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
@@ -716,6 +738,13 @@ public class CommandParametersAdapter {
         return commandParameters;
     }
 
+    /**
+     * Creates command parameter for [ResetPasswordSubmitCodeCommand] of Native Auth.
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param passwordSubmitToken password submit token
+     * @return Command parameter object
+     */
     public static ResetPasswordSubmitNewPasswordCommandParameters createResetPasswordSubmitNewPasswordCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
