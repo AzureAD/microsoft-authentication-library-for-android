@@ -188,7 +188,7 @@ task sourcesJar(type: Jar) {
 
 // In dev, we want to keep the dependencies (common4j, common) to 1.0.+ to be able to be consumed by daily dev pipeline.
 // In release/*, we change these to specific versions being consumed.
-String commonVersion = project.hasProperty("distCommonVersion") ? project.distCommonVersion : "16.2.0"
+String commonVersion = project.hasProperty("distCommonVersion") ? project.distCommonVersion : "1.0.+"
 
 dependencies {
     //Please leave this in... desugaring is currently disabled by default; however it's required for running some tests
