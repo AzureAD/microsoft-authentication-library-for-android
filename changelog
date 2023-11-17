@@ -2,6 +2,9 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 vNext
 ----------
 - [MINOR] Add isQRPinAvailable API to MSAL IPublicClientApplication (#1931)
+- [PATCH] Fix NPE in SingleAccountPublicClientApplication.getPersistedCurrentAccount (#1933)
+- [PATCH] Updating JSON version (#1932)
+- [MINOR] Updating Moshi versions (#1926)
 
 Version 4.9.0
 ----------
