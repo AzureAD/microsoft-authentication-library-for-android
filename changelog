@@ -1,6 +1,7 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 Version 4.10.0
 ----------
+- [PATCH] Update common @16.2.0
 - [PATCH] Fix NPE in SingleAccountPublicClientApplication.getPersistedCurrentAccount (#1933)
 - [PATCH] Updating JSON version (#1932)
 - [MINOR] Updating Moshi versions (#1926)
