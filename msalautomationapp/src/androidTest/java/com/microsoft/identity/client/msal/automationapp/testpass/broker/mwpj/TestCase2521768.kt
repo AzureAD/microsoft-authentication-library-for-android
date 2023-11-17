@@ -101,8 +101,6 @@ class TestCase2521768 : AbstractMsalBrokerTest() {
         Assert.assertFalse("Device id claim is present", claims.containsKey("deviceid"))
 
         // Start a silent token request for the first account with device id claims;
-        // Verify that the operation failed with error code AADSTS50187.
-        // Requires an interactive call because PkeyAuth is not triggered unless broker_msal version is 9.0 or higher
         val authTestParamsForSilentRequestWithDeviceIdClaim = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(mLabAccount.username)
@@ -113,43 +111,8 @@ class TestCase2521768 : AbstractMsalBrokerTest() {
                 .msalConfigResourceId(configFileResourceId)
                 .build()
         val authResult3= msalSdk.acquireTokenSilent(authTestParamsForSilentRequestWithDeviceIdClaim, TokenRequestTimeout.MEDIUM)
-        authResult3.assertFailure()
-        Assert.assertNotNull(
-                "exception message is null" + authResult3.exception,
-                authResult3.exception.message
-        )
-        Assert.assertTrue(
-                "exception message is not as expected" + authResult3.exception.message,
-                authResult3.exception.message!!.contains("AADSTS50187")
-        )
-
-        // Make an interactive call with device id claim using the first account, and verify that the device id claim is present.
-
-        val authTestParamsForInteractiveRequestWithDeviceIdClaim = MsalAuthTestParams.builder()
-                .activity(mActivity)
-                .loginHint(mLabAccount.username)
-                .scopes(listOf(*mScopes))
-                .claims(getDeviceIdClaimRequest())
-                .promptParameter(Prompt.SELECT_ACCOUNT)
-                .msalConfigResourceId(configFileResourceId)
-                .build()
-
-        val authResult4 = msalSdk.acquireTokenInteractive(
-                authTestParamsForInteractiveRequestWithDeviceIdClaim,
-                {
-                    val promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
-                            .prompt(PromptParameter.WHEN_REQUIRED)
-                            .loginHint(mLabAccount.username)
-                            .consentPageExpected(false)
-                            .passwordPageExpected(false)
-                            .sessionExpected(true)
-                            .build()
-                    MicrosoftStsPromptHandler(promptHandlerParameters).handlePrompt(mLabAccount.username, mLabAccount.password)
-                },
-                TokenRequestTimeout.MEDIUM
-        )
-        authResult4.assertSuccess()
-        val claims2 = JWTParserFactory.INSTANCE.jwtParser.parseJWT(authResult4.accessToken)
+        authResult3.assertSuccess()
+        val claims2 = JWTParserFactory.INSTANCE.jwtParser.parseJWT(authResult3.accessToken)
         Assert.assertTrue("Device id claim is present", claims2.containsKey("deviceid"))
     }
 
