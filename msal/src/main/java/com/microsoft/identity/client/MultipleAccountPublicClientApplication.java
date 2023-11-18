@@ -122,6 +122,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
         TokenMigrationCallback migrationCallback = new TokenMigrationCallback() {
             @Override
             public void onMigrationFinished(int numberOfAccountsMigrated) {
+                Logger.info(TAG, "config issue "+ mPublicClientConfiguration.getClientId() + " "+ mPublicClientConfiguration.getUseBroker());
                 final CommandParameters params = CommandParametersAdapter.createCommandParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
                 final LoadAccountCommand loadAccountCommand = new LoadAccountCommand(
                         params,

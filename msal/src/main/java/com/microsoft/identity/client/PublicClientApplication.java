@@ -922,7 +922,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         }
 
         final CommandParameters params = CommandParametersAdapter.createCommandParameters(config, config.getOAuth2TokenCache());
-
+        Logger.info(TAG, "while creating the app "+config.getUseBroker());
         final GetDeviceModeCommand command = new GetDeviceModeCommand(
                 params,
                 new MSALControllerFactory(config).getDefaultController(
@@ -1058,6 +1058,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     //endregion
 
     protected PublicClientApplication(@NonNull final PublicClientApplicationConfiguration configFile) throws MsalClientException {
+        Logger.info(TAG, "while creating the app --  constructor "+ configFile.getUseBroker() + " "+ configFile.getClientId());
         mPublicClientConfiguration = configFile;
         initializeApplication();
     }
@@ -1544,7 +1545,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                     mPublicClientConfiguration.getOAuth2TokenCache(),
                                     acquireTokenParameters
                             );
-
+                    Logger.info(TAG, "while creating the app "+mPublicClientConfiguration.getUseBroker() + " "+ mPublicClientConfiguration.getClientId());
                     final InteractiveTokenCommand command = new InteractiveTokenCommand(
                             params,
                             new MSALControllerFactory(mPublicClientConfiguration).getDefaultController(

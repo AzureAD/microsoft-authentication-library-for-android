@@ -302,5 +302,4 @@ public interface IPublicClientApplication {
          */
         void onError(@NonNull final MsalException exception);
     }
-
 }

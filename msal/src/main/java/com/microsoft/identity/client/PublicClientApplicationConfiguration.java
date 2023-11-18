@@ -700,23 +700,24 @@ public class PublicClientApplicationConfiguration {
 
                 final Uri redirectUri = Uri.parse(mRedirectUri);
 
-                throw new MsalClientException(
-                        APP_MANIFEST_VALIDATION_ERROR,
-                        "Intent filter for: " +
-                                activityClassName +
-                                " is missing. " +
-                                " Please make sure you have the following activity in your AndroidManifest.xml \n\n" +
-                                "<activity android:name=\"com.microsoft.identity.client." + activityClassName + "\">" + "\n" +
-                                "\t" + "<intent-filter>" + "\n" +
-                                "\t\t" + "<action android:name=\"android.intent.action.VIEW\" />" + "\n" +
-                                "\t\t" + "<category android:name=\"android.intent.category.DEFAULT\" />" + "\n" +
-                                "\t\t" + "<category android:name=\"android.intent.category.BROWSABLE\" />" + "\n" +
-                                "\t\t" + "<data" + "\n" +
-                                "\t\t\t" + "android:host=\"" + redirectUri.getHost() + "\"" + "\n" +
-                                "\t\t\t" + "android:path=\"" + redirectUri.getPath() + "\"" + "\n" +
-                                "\t\t\t" + "android:scheme=\"" + redirectUri.getScheme() + "\" />" + "\n" +
-                                "\t" + "</intent-filter>" + "\n" +
-                                "</activity>" + "\n");
+//                throw new MsalClientException(
+//                        APP_MANIFEST_VALIDATION_ERROR,
+//                        "Intent filter for: " +
+//                                activityClassName +
+//                                " is missing. " +
+//                                " Please make sure you have the following activity in your AndroidManifest.xml \n\n" +
+//                                "<activity android:name=\"com.microsoft.identity.client." + activityClassName + "\">" + "\n" +
+//                                "\t" + "<intent-filter>" + "\n" +
+//                                "\t\t" + "<action android:name=\"android.intent.action.VIEW\" />" + "\n" +
+//                                "\t\t" + "<category android:name=\"android.intent.category.DEFAULT\" />" + "\n" +
+//                                "\t\t" + "<category android:name=\"android.intent.category.BROWSABLE\" />" + "\n" +
+//                                "\t\t" + "<data" + "\n" +
+//                                "\t\t\t" + "android:host=\"" + redirectUri.getHost() + "\"" + "\n" +
+//                                "\t\t\t" + "android:path=\"" + redirectUri.getPath() + "\"" + "\n" +
+//                                "\t\t\t" + "android:scheme=\"" + redirectUri.getScheme() + "\" />" + "\n" +
+//                                "\t" + "</intent-filter>" + "\n" +
+//                                "</activity>" + "\n");
+                return;
             }
         }
 
@@ -736,7 +737,7 @@ public class PublicClientApplicationConfiguration {
             Logger.warn(methodTag, "The app is still using legacy MSAL redirect uri. Switch to MSAL local auth."
                     + "  For brokered auth, the redirect URI is expected to conform to 'msauth://<authority>/.*' where the authority in "
                     + "that uri is the package name of the app. This package name is listed as 'applicationId' in the build.gradle file.");
-            mUseBroker = false;
+        //    mUseBroker = false;
             return;
         }
 
