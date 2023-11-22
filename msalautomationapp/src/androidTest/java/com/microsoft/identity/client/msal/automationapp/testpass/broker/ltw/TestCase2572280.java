@@ -49,7 +49,7 @@ import java.util.List;
 // LTW has higher priority than CP
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2572280
 @LTWTests
-@RetryOnFailure
+//@RetryOnFailure
 @SupportedBrokers(brokers = {BrokerLTW.class})
 @RunWith(Parameterized.class)
 public class TestCase2572280 extends AbstractMsalBrokerTest {

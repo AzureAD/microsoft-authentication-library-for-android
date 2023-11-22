@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
+import androidx.annotation.NonNull;
+
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
@@ -36,21 +38,42 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+
+import java.util.Arrays;
+import java.util.List;
 
 // Uninstall scenario - with old Auth app new LTW
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2571565
 @LTWTests
 @RunOnAPI29Minus
-@RetryOnFailure
+@RunWith(Parameterized.class)
+//@RetryOnFailure
 public class TestCase2571565 extends AbstractMsalBrokerTest {
+
+    private final UserType mUserType;
+
+    public TestCase2571565(@NonNull UserType userType) {
+        mUserType = userType;
+    }
+
+    @Parameterized.Parameters(name = "{0}")
+    public static List<UserType> userType() {
+        return Arrays.asList(
+                UserType.MSA
+              //  UserType.CLOUD
+        );
+    }
 
     @Test
     public void test_2571565() throws Throwable {
         final String username = mLabAccount.getUsername();
-        final String password = mLabAccount.getPassword();
+        final String password = "Wipi*614";
 
         // To make sure the device is in clean slate, uninstall mBroker here.
         mBroker.uninstall();
@@ -68,6 +91,9 @@ public class TestCase2571565 extends AbstractMsalBrokerTest {
         msalTestApp.install();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
+        if (mLabAccount.getUserType() == UserType.MSA) {
+            msalTestApp.selectFromConfigFile("MSA");
+        }
 
         final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
                 .prompt(PromptParameter.SELECT_ACCOUNT)
@@ -99,6 +125,10 @@ public class TestCase2571565 extends AbstractMsalBrokerTest {
         oneAuthTestApp.install();
         oneAuthTestApp.launch();
         oneAuthTestApp.handleFirstRun();
+        if (mLabAccount.getUserType() == UserType.MSA) {
+            oneAuthTestApp.selectFromAppConfiguration("com.microsoft.OneAuthTestApp");
+            oneAuthTestApp.handleConfigureFlightsButton();
+        }
 
         // AcquireToken Interactively in OneAuthTestApp, should prompt for password
         final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
@@ -119,12 +149,14 @@ public class TestCase2571565 extends AbstractMsalBrokerTest {
 
     @Override
     public LabQuery getLabQuery() {
-        return null;
+        return LabQuery.builder()
+                .userType(mUserType)
+                .build();
     }
 
     @Override
     public TempUserType getTempUserType() {
-        return TempUserType.BASIC;
+        return null;
     }
 
     @Override

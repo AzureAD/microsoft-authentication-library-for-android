@@ -352,9 +352,13 @@ public class AcquireTokenFragment extends Fragment {
         mGetActiveBrokerPkg.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                try {
                 final String activeBrokerPkgName = mMsalWrapper.getActiveBrokerPkgName(activity);
                 final String activeBrokerPkgNameMsg = StringUtil.isNullOrEmpty(activeBrokerPkgName) ? "Could not find a valid broker" : "Active broker pkg name : " + activeBrokerPkgName;
-                AcquireTokenFragment.this.showDialog(activeBrokerPkgNameMsg);
+                AcquireTokenFragment.this.showDialog(activeBrokerPkgNameMsg);}
+                catch (Exception exception) {
+                    AcquireTokenFragment.this.showDialog(exception.getMessage());
+                }
             }
         });
 
