@@ -53,7 +53,7 @@ import java.util.List;
 @LTWTests
 @RunOnAPI29Minus
 @RunWith(Parameterized.class)
-//@RetryOnFailure
+@RetryOnFailure
 public class TestCase2571565 extends AbstractMsalBrokerTest {
 
     private final UserType mUserType;
@@ -65,15 +65,15 @@ public class TestCase2571565 extends AbstractMsalBrokerTest {
     @Parameterized.Parameters(name = "{0}")
     public static List<UserType> userType() {
         return Arrays.asList(
-                UserType.MSA
-              //  UserType.CLOUD
+                UserType.MSA,
+                UserType.CLOUD
         );
     }
 
     @Test
     public void test_2571565() throws Throwable {
         final String username = mLabAccount.getUsername();
-        final String password = "Wipi*614";
+        final String password = mLabAccount.getPassword();
 
         // To make sure the device is in clean slate, uninstall mBroker here.
         mBroker.uninstall();
@@ -94,6 +94,7 @@ public class TestCase2571565 extends AbstractMsalBrokerTest {
         if (mLabAccount.getUserType() == UserType.MSA) {
             msalTestApp.selectFromConfigFile("MSA");
         }
+        Thread.sleep(2000);
 
         final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
                 .prompt(PromptParameter.SELECT_ACCOUNT)
@@ -129,6 +130,8 @@ public class TestCase2571565 extends AbstractMsalBrokerTest {
             oneAuthTestApp.selectFromAppConfiguration("com.microsoft.OneAuthTestApp");
             oneAuthTestApp.handleConfigureFlightsButton();
         }
+
+        Thread.sleep(2000);
 
         // AcquireToken Interactively in OneAuthTestApp, should prompt for password
         final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()

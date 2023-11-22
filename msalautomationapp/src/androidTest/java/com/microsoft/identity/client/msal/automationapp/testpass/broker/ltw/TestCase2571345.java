@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
+import androidx.annotation.NonNull;
+
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
@@ -35,16 +37,37 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+
+import java.util.Arrays;
+import java.util.List;
 
 // Samsung GA Coverage
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2571345
 @LTWTests
 @RunOnAPI29Minus
+@RunWith(Parameterized.class)
 @SupportedBrokers(brokers = {BrokerLTW.class})
 public class TestCase2571345 extends AbstractMsalBrokerTest {
+
+    private final UserType mUserType;
+
+    public TestCase2571345(@NonNull UserType userType) {
+        mUserType = userType;
+    }
+
+    @Parameterized.Parameters(name = "{0}")
+    public static List<UserType> userType() {
+        return Arrays.asList(
+                UserType.MSA,
+                Ust erType.CLOUD
+        );
+    }
     @Test
     public void test_2571345() throws Throwable{
         final String username = mLabAccount.getUsername();
@@ -57,6 +80,11 @@ public class TestCase2571345 extends AbstractMsalBrokerTest {
         oneAuthTestApp.install();
         oneAuthTestApp.launch();
         oneAuthTestApp.handleFirstRun();
+
+        if (mLabAccount.getUserType() == UserType.MSA) {
+            oneAuthTestApp.selectFromAppConfiguration("com.microsoft.OneAuthTestApp");
+            oneAuthTestApp.handleConfigureFlightsButton();
+        }
 
         final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
                 .broker(mBroker)
@@ -78,6 +106,9 @@ public class TestCase2571345 extends AbstractMsalBrokerTest {
         msalTestApp.install();
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
+        if (mLabAccount.getUserType() == UserType.MSA) {
+            msalTestApp.selectFromConfigFile("MSA");
+        }
 
         final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
                 .prompt(PromptParameter.SELECT_ACCOUNT)
@@ -113,12 +144,14 @@ public class TestCase2571345 extends AbstractMsalBrokerTest {
 
     @Override
     public LabQuery getLabQuery() {
-        return null;
+        return LabQuery.builder()
+                .userType(mUserType)
+                .build();
     }
 
     @Override
     public TempUserType getTempUserType() {
-        return TempUserType.BASIC;
+        return null;
     }
 
     @Override
