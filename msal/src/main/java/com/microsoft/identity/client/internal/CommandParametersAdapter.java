@@ -739,7 +739,7 @@ public class CommandParametersAdapter {
     }
 
     /**
-     * Creates command parameter for [ResetPasswordSubmitCodeCommand] of Native Auth.
+     * Creates command parameter for [ResetPasswordSubmitNewPasswordCommandParameters] of Native Auth.
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param passwordSubmitToken password submit token
