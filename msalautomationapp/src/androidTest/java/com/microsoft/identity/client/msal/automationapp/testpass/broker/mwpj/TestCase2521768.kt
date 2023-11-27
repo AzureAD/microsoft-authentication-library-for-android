@@ -59,25 +59,25 @@ class TestCase2521768 : AbstractMsalBrokerTest() {
         // Make an interactive call with MSAL using the first account
         val msalSdk = MsalSdk()
         val authTestParamsForInteractiveRequest = MsalAuthTestParams.builder()
-                .activity(mActivity)
-                .loginHint(mLabAccount.username)
-                .scopes(listOf(*mScopes))
-                .promptParameter(Prompt.SELECT_ACCOUNT)
-                .msalConfigResourceId(configFileResourceId)
-                .build()
+            .activity(mActivity)
+            .loginHint(mLabAccount.username)
+            .scopes(listOf(*mScopes))
+            .promptParameter(Prompt.SELECT_ACCOUNT)
+            .msalConfigResourceId(configFileResourceId)
+            .build()
 
         val authResult = msalSdk.acquireTokenInteractive(
-                authTestParamsForInteractiveRequest,
-                {
-                    val promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
-                            .prompt(PromptParameter.SELECT_ACCOUNT)
-                            .loginHint(mLabAccount.username)
-                            .sessionExpected(false)
-                            .consentPageExpected(false)
-                            .build()
-                    MicrosoftStsPromptHandler(promptHandlerParameters).handlePrompt(mLabAccount.username, mLabAccount.password)
-                },
-                TokenRequestTimeout.MEDIUM
+            authTestParamsForInteractiveRequest,
+            {
+                val promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
+                    .prompt(PromptParameter.SELECT_ACCOUNT)
+                    .loginHint(mLabAccount.username)
+                    .sessionExpected(false)
+                    .consentPageExpected(false)
+                    .build()
+                MicrosoftStsPromptHandler(promptHandlerParameters).handlePrompt(mLabAccount.username, mLabAccount.password)
+            },
+            TokenRequestTimeout.MEDIUM
         )
         authResult.assertSuccess()
 
@@ -88,69 +88,34 @@ class TestCase2521768 : AbstractMsalBrokerTest() {
         // Verify that the operation was successful and there is no device id claim present.
         // First account uses BrokerLocalController because it doesn't have a PRT, and return AT from cache.
         val authTestParamsForSilentRequest = MsalAuthTestParams.builder()
-                .activity(mActivity)
-                .loginHint(mLabAccount.username)
-                .scopes(listOf(*mScopes))
-                .authority(authority)
-                .resource(mScopes[0])
-                .msalConfigResourceId(configFileResourceId)
-                .build()
+            .activity(mActivity)
+            .loginHint(mLabAccount.username)
+            .scopes(listOf(*mScopes))
+            .authority(authority)
+            .resource(mScopes[0])
+            .msalConfigResourceId(configFileResourceId)
+            .build()
         val authResult2 = msalSdk.acquireTokenSilent(authTestParamsForSilentRequest, TokenRequestTimeout.MEDIUM)
         authResult2.assertSuccess()
         val claims = JWTParserFactory.INSTANCE.jwtParser.parseJWT(authResult2.accessToken)
         Assert.assertFalse("Device id claim is present", claims.containsKey("deviceid"))
 
         // Start a silent token request for the first account with device id claims;
-        // Verify that the operation failed with error code AADSTS50187.
-        // Requires an interactive call because PkeyAuth is not triggered unless broker_msal version is 9.0 or higher
         val authTestParamsForSilentRequestWithDeviceIdClaim = MsalAuthTestParams.builder()
-                .activity(mActivity)
-                .loginHint(mLabAccount.username)
-                .scopes(listOf(*mScopes))
-                .claims(getDeviceIdClaimRequest())
-                .authority(authority)
-                .resource(mScopes[0])
-                .msalConfigResourceId(configFileResourceId)
-                .build()
+            .activity(mActivity)
+            .loginHint(mLabAccount.username)
+            .scopes(listOf(*mScopes))
+            .claims(getDeviceIdClaimRequest())
+            .authority(authority)
+            .resource(mScopes[0])
+            .msalConfigResourceId(configFileResourceId)
+            .build()
         val authResult3= msalSdk.acquireTokenSilent(authTestParamsForSilentRequestWithDeviceIdClaim, TokenRequestTimeout.MEDIUM)
-        authResult3.assertFailure()
-        Assert.assertNotNull(
-                "exception message is null" + authResult3.exception,
-                authResult3.exception.message
-        )
-        Assert.assertTrue(
-                "exception message is not as expected" + authResult3.exception.message,
-                authResult3.exception.message!!.contains("AADSTS50187")
-        )
+        authResult3.assertSuccess()
+        val claims3 = JWTParserFactory.INSTANCE.jwtParser.parseJWT(authResult3.accessToken)
+        Assert.assertTrue("Device id claim is missing", claims3.containsKey("deviceid"))
 
         // Make an interactive call with device id claim using the first account, and verify that the device id claim is present.
-
-        val authTestParamsForInteractiveRequestWithDeviceIdClaim = MsalAuthTestParams.builder()
-                .activity(mActivity)
-                .loginHint(mLabAccount.username)
-                .scopes(listOf(*mScopes))
-                .claims(getDeviceIdClaimRequest())
-                .promptParameter(Prompt.SELECT_ACCOUNT)
-                .msalConfigResourceId(configFileResourceId)
-                .build()
-
-        val authResult4 = msalSdk.acquireTokenInteractive(
-                authTestParamsForInteractiveRequestWithDeviceIdClaim,
-                {
-                    val promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
-                            .prompt(PromptParameter.WHEN_REQUIRED)
-                            .loginHint(mLabAccount.username)
-                            .consentPageExpected(false)
-                            .passwordPageExpected(false)
-                            .sessionExpected(true)
-                            .build()
-                    MicrosoftStsPromptHandler(promptHandlerParameters).handlePrompt(mLabAccount.username, mLabAccount.password)
-                },
-                TokenRequestTimeout.MEDIUM
-        )
-        authResult4.assertSuccess()
-        val claims2 = JWTParserFactory.INSTANCE.jwtParser.parseJWT(authResult4.accessToken)
-        Assert.assertTrue("Device id claim is present", claims2.containsKey("deviceid"))
     }
 
     /**
@@ -182,8 +147,8 @@ class TestCase2521768 : AbstractMsalBrokerTest() {
 
     override fun getLabQuery(): LabQuery {
         return LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .build()
+            .userType(UserType.CLOUD)
+            .build()
     }
 
     override fun getTempUserType(): TempUserType? {
@@ -194,12 +159,12 @@ class TestCase2521768 : AbstractMsalBrokerTest() {
     fun before() {
         mLabAccount2 = mLabClient.createTempAccount(TempUserType.BASIC)
         Assert.assertEquals(
-                "Lab accounts are not in the same tenant",
-                mLabAccount2.homeTenantId, mLabAccount.homeTenantId
+            "Lab accounts are not in the same tenant",
+            mLabAccount2.homeTenantId, mLabAccount.homeTenantId
         )
         Assert.assertNotEquals(
-                "Lab accounts are the same",
-                mLabAccount2.username, mLabAccount.username
+            "Lab accounts are the same",
+            mLabAccount2.username, mLabAccount.username
         )
         mBrokerHostApp = broker as BrokerHost
         mBrokerHostApp.enableMultipleWpj()
