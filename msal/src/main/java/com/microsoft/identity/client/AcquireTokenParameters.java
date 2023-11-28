@@ -168,11 +168,10 @@ public class AcquireTokenParameters extends TokenParameters {
             return self();
         }
 
-        public AcquireTokenParameters.Builder withPreferredAuthMethod(PreferredAuthMethod preferredAuthMethod) {
+        public AcquireTokenParameters.Builder withPreferredAuthMethod(final PreferredAuthMethod preferredAuthMethod) {
             mPreferredAuthMethod = preferredAuthMethod;
             return self();
         }
-
 
         public AcquireTokenParameters.Builder withPrompt(Prompt prompt) {
             mPrompt = prompt;

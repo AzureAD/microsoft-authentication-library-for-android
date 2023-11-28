@@ -93,8 +93,8 @@ abstract class MsalWrapper {
     }
 
     public void acquireTokenWithQR(@NonNull final Activity activity,
-                             @NonNull final RequestOptions requestOptions,
-                             @NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback) {
+                                   @NonNull final RequestOptions requestOptions,
+                                   @NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback) {
 
         final AcquireTokenParameters.Builder builder = getAcquireTokenParametersBuilder(activity, requestOptions, callback);
         builder.withScopes(Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")));
