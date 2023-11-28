@@ -25,6 +25,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
+import androidx.test.uiautomator.UiObjectNotFoundException;
 
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
@@ -69,7 +70,7 @@ public class TestCase2517370 extends AbstractMsalBrokerTest {
     }
 
     @Test
-    public void test_2517370() {
+    public void test_2517370() throws UiObjectNotFoundException {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
