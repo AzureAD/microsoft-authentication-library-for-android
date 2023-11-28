@@ -114,8 +114,6 @@ class TestCase2521768 : AbstractMsalBrokerTest() {
         authResult3.assertSuccess()
         val claims3 = JWTParserFactory.INSTANCE.jwtParser.parseJWT(authResult3.accessToken)
         Assert.assertTrue("Device id claim is missing", claims3.containsKey("deviceid"))
-
-        // Make an interactive call with device id claim using the first account, and verify that the device id claim is present.
     }
 
     /**
