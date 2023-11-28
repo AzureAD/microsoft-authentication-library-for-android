@@ -22,20 +22,21 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
+import androidx.test.uiautomator.UiObjectNotFoundException;
 
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
-import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
-import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
 import com.microsoft.identity.client.ui.automation.app.OneAuthTestApp;
-import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
 import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
@@ -47,17 +48,16 @@ import org.junit.runners.Parameterized;
 import java.util.Arrays;
 import java.util.List;
 
-// Samsung GA Coverage
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2571345
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2517370
 @LTWTests
+//@RetryOnFailure
 @RunOnAPI29Minus
-@SupportedBrokers(brokers = {BrokerLTW.class})
 @RunWith(Parameterized.class)
-public class TestCase2571345 extends AbstractMsalBrokerTest {
+public class TestCase2517370 extends AbstractMsalBrokerTest {
 
     private final UserType mUserType;
 
-    public TestCase2571345(@NonNull UserType userType) {
+    public TestCase2517370(@NonNull UserType userType) {
         mUserType = userType;
     }
 
@@ -68,25 +68,24 @@ public class TestCase2571345 extends AbstractMsalBrokerTest {
                 UserType.CLOUD
         );
     }
+
     @Test
-    public void test_2571345() throws Throwable{
+    public void test_2517370() throws UiObjectNotFoundException {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
-        mBroker.install();
-
-        // Install new OneAuthTestApp
-        final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
-        oneAuthTestApp.install();
-        oneAuthTestApp.launch();
-        oneAuthTestApp.handleFirstRun();
+        // Install and launch One Auth test App
+        final OneAuthTestApp oneAuthApp = new OneAuthTestApp();
+        oneAuthApp.install();
+        oneAuthApp.launch();
+        oneAuthApp.handleFirstRun();
 
         if (mLabAccount.getUserType() == UserType.MSA) {
-            oneAuthTestApp.selectFromAppConfiguration("com.microsoft.OneAuthTestApp");
-            oneAuthTestApp.handleConfigureFlightsButton();
+            oneAuthApp.selectFromAppConfiguration("com.microsoft.OneAuthTestApp");
+            oneAuthApp.handleConfigureFlightsButton();
         }
 
-        final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
+        final FirstPartyAppPromptHandlerParameters promptHandlerParameters = FirstPartyAppPromptHandlerParameters.builder()
                 .broker(mBroker)
                 .prompt(PromptParameter.LOGIN)
                 .loginHint(username)
@@ -97,46 +96,15 @@ public class TestCase2571345 extends AbstractMsalBrokerTest {
                 .expectingLoginPageAccountPicker(false)
                 .enrollPageExpected(false)
                 .build();
-        // Click on sign in button, prompted to enter username and password
-        oneAuthTestApp.addFirstAccount(username, password, promptHandlerParametersOneAuth);
-        oneAuthTestApp.confirmAccount(username);
+        oneAuthApp.addFirstAccount(username, password, promptHandlerParameters);
+        oneAuthApp.confirmAccount(username);
 
-        // Install new MsalTestApp
-        final MsalTestApp msalTestApp = new MsalTestApp();
-        msalTestApp.install();
-        msalTestApp.launch();
-        msalTestApp.handleFirstRunBasedOnUserType(mUserType);
+        // Hit back button to go on launch screen
+        oneAuthApp.handleBackButton();
 
-        final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
-                .prompt(PromptParameter.SELECT_ACCOUNT)
-                .loginHint(username)
-                .sessionExpected(false)
-                .broker(mBroker)
-                .expectingBrokerAccountChooserActivity(false)
-                .expectingProvidedAccountInBroker(false)
-                .expectingLoginPageAccountPicker(false)
-                .expectingProvidedAccountInCookie(false)
-                .consentPageExpected(false)
-                .passwordPageExpected(false)
-                .speedBumpExpected(false)
-                .registerPageExpected(false)
-                .enrollPageExpected(false)
-                .staySignedInPageExpected(false)
-                .verifyYourIdentityPageExpected(false)
-                .howWouldYouLikeToSignInExpected(false)
-                .build();
-
-        // Add login hint as the username and Click on AcquireToken button
-        // NOT prompted for credentials.
-        msalTestApp.handleUserNameInput(username);
-        final String token = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, false);
-        Assert.assertNotNull(token);
-
-        // Click on "Get Active Broker Pkg Name" button
-        //The response msg should show LTW's pkg name
-        msalTestApp.handleBackButton();
-        final String activeBroker = msalTestApp.getActiveBrokerPackageName();
-        Assert.assertEquals("Active broker pkg name : " + BrokerLTW.BROKER_LTW_APP_PACKAGE_NAME, activeBroker);
+        final String silentToken = oneAuthApp.acquireTokenSilent();
+        Assert.assertFalse(TextUtils.isEmpty(silentToken));
+        oneAuthApp.assertSuccess();
     }
 
     @Override

@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
+import androidx.annotation.NonNull;
+
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
@@ -35,16 +37,37 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+
+import java.util.Arrays;
+import java.util.List;
 
 //  Updated LTW, Updated Auth app and uninstall LTW
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2572249
 @LTWTests
 @RunOnAPI29Minus
 @SupportedBrokers(brokers = {BrokerLTW.class})
+@RunWith(Parameterized.class)
 public class TestCase2572249 extends AbstractMsalBrokerTest {
+
+    private final UserType mUserType;
+
+    public TestCase2572249(@NonNull UserType userType) {
+        mUserType = userType;
+    }
+
+    @Parameterized.Parameters(name = "{0}")
+    public static List<UserType> userType() {
+        return Arrays.asList(
+                UserType.MSA,
+                UserType.CLOUD
+        );
+    }
 
     @Test
     public void test_2572249() throws Throwable {
@@ -59,7 +82,7 @@ public class TestCase2572249 extends AbstractMsalBrokerTest {
         final MsalTestApp msalTestApp = new MsalTestApp();
         msalTestApp.install();
         msalTestApp.launch();
-        msalTestApp.handleFirstRun();
+        msalTestApp.handleFirstRunBasedOnUserType(mUserType);
 
         final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
                 .prompt(PromptParameter.SELECT_ACCOUNT)
@@ -92,6 +115,12 @@ public class TestCase2572249 extends AbstractMsalBrokerTest {
         oneAuthTestApp.launch();
         oneAuthTestApp.handleFirstRun();
 
+
+        if (mLabAccount.getUserType() == UserType.MSA) {
+            oneAuthTestApp.selectFromAppConfiguration("com.microsoft.OneAuthTestApp");
+            oneAuthTestApp.handleConfigureFlightsButton();
+        }
+
         // sign in to OneAuthTestApp
         // should not prompt for password
         oneAuthTestApp.handleUserNameInput(username);
@@ -101,12 +130,14 @@ public class TestCase2572249 extends AbstractMsalBrokerTest {
 
     @Override
     public LabQuery getLabQuery() {
-        return null;
+        return LabQuery.builder()
+                .userType(mUserType)
+                .build();
     }
 
     @Override
     public TempUserType getTempUserType() {
-        return TempUserType.BASIC;
+        return null;
     }
 
     @Override

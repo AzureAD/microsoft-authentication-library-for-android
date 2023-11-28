@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
+import androidx.annotation.NonNull;
+
 import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
@@ -42,6 +44,11 @@ import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+
+import java.util.Arrays;
+import java.util.List;
 
 // If LTW without broker is installed, updated MSAL should still get SSO
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2571508
@@ -49,7 +56,23 @@ import org.junit.Test;
 @RunOnAPI29Minus
 @RetryOnFailure
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
+@RunWith(Parameterized.class)
 public class TestCase2571508  extends AbstractMsalBrokerTest {
+
+    private final UserType mUserType;
+
+    public TestCase2571508(@NonNull UserType userType) {
+        mUserType = userType;
+    }
+
+    @Parameterized.Parameters(name = "{0}")
+    public static List<UserType> userType() {
+        return Arrays.asList(
+                UserType.MSA,
+                UserType.CLOUD
+        );
+    }
+
     @Test
     public void test_2571508() throws Throwable {
         final String username = mLabAccount.getUsername();
@@ -64,6 +87,11 @@ public class TestCase2571508  extends AbstractMsalBrokerTest {
         oneAuthTestApp.install();
         oneAuthTestApp.launch();
         oneAuthTestApp.handleFirstRun();
+
+        if (mLabAccount.getUserType() == UserType.MSA) {
+            oneAuthTestApp.selectFromAppConfiguration("com.microsoft.OneAuthTestApp");
+            oneAuthTestApp.handleConfigureFlightsButton();
+        }
 
         final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
                 .broker(mBroker)
@@ -84,7 +112,7 @@ public class TestCase2571508  extends AbstractMsalBrokerTest {
         final MsalTestApp msalTestApp = new MsalTestApp();
         msalTestApp.install();
         msalTestApp.launch();
-        msalTestApp.handleFirstRun();
+        msalTestApp.handleFirstRunBasedOnUserType(mUserType);
 
         Assert.assertTrue(mBroker instanceof BrokerMicrosoftAuthenticator);
 
