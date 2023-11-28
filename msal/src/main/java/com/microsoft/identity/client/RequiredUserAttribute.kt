@@ -41,10 +41,18 @@ data class RequiredUserAttribute(
     val options: RequiredUserAttributeOptions?
 )
 
+/**
+ * Converts a list of required user attribute API received as part of signup API to
+ * a list of [RequiredUserAttribute] object
+ */
 internal fun List<UserAttributeApiResult>.toListOfRequiredUserAttribute(): List<RequiredUserAttribute> {
     return this.map { it.toRequiredUserAttribute() }
 }
 
+/**
+ * Converts the required user attribute API received as part of signup API to
+ * [RequiredUserAttribute] object
+ */
 internal fun UserAttributeApiResult.toRequiredUserAttribute(): RequiredUserAttribute {
     return RequiredUserAttribute(
         attributeName = this.name,

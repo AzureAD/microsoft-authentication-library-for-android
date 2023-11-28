@@ -579,7 +579,7 @@ public class CommandParametersAdapter {
     }
 
     /**
-     * Creates command parameter for [SignInStartCommand] of Native Auth.
+     * Creates command parameter for [{@link com.microsoft.identity.common.internal.commands.SignInStartCommand}] of Native Auth.
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param username email address of the user
@@ -620,7 +620,7 @@ public class CommandParametersAdapter {
     }
 
     /**
-     * Creates command parameter for [SignInStartCommand] of Native Auth using username and password
+     * Creates command parameter for [{@link com.microsoft.identity.common.internal.commands.SignInStartCommand}] of Native Auth using username and password
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param username email address of the user
@@ -667,7 +667,7 @@ public class CommandParametersAdapter {
     }
 
     /**
-     * Creates command parameter for [SignInStartCommand] of Native Auth using short lived token
+     * Creates command parameter for [{@link com.microsoft.identity.common.internal.commands.SignInStartCommand}] of Native Auth using short lived token
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param signInSLT short lived token
@@ -713,7 +713,7 @@ public class CommandParametersAdapter {
     }
 
     /**
-     * Creates command parameter for [SignInSubmitCodeCommand] of Native Auth
+     * Creates command parameter for [{@link com.microsoft.identity.common.internal.commands.SignInSubmitCodeCommand}] of Native Auth
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param code Out of band code
@@ -760,7 +760,7 @@ public class CommandParametersAdapter {
     }
 
     /**
-     * Creates command parameter for [SignInResendCodeCommand] of Native Auth
+     * Creates command parameter for [{@link com.microsoft.identity.common.internal.commands.SignInResendCodeCommand}] of Native Auth
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param credentialToken credential token
@@ -796,7 +796,7 @@ public class CommandParametersAdapter {
     }
 
     /**
-     * Creates command parameter for [SignInSubmitPasswordCommand] of Native Auth
+     * Creates command parameter for [{@link com.microsoft.identity.common.internal.commands.SignInSubmitPasswordCommand}] of Native Auth
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param credentialToken credential token

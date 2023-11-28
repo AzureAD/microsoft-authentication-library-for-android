@@ -37,7 +37,7 @@ import com.microsoft.identity.client.statemachine.states.SignUpCodeRequiredState
 import com.microsoft.identity.client.statemachine.states.SignUpPasswordRequiredState
 
 /**
- * Sign up start result, produced by
+ * Sign up result, produced by
  * [com.microsoft.identity.client.INativeAuthPublicClientApplication.signUp]
  */
 sealed interface SignUpResult : Result {
