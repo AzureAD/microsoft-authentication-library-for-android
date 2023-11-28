@@ -23,6 +23,9 @@
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
 import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
@@ -34,14 +37,36 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
+
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+
+import java.util.Arrays;
+import java.util.List;
 
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2517370
 @LTWTests
-@RetryOnFailure
+//@RetryOnFailure
 @RunOnAPI29Minus
+@RunWith(Parameterized.class)
 public class TestCase2517370 extends AbstractMsalBrokerTest {
+
+    private final UserType mUserType;
+
+    public TestCase2517370(@NonNull UserType userType) {
+        mUserType = userType;
+    }
+
+    @Parameterized.Parameters(name = "{0}")
+    public static List<UserType> userType() {
+        return Arrays.asList(
+                UserType.MSA,
+                UserType.CLOUD
+        );
+    }
 
     @Test
     public void test_2517370() {
@@ -53,6 +78,11 @@ public class TestCase2517370 extends AbstractMsalBrokerTest {
         oneAuthApp.install();
         oneAuthApp.launch();
         oneAuthApp.handleFirstRun();
+
+        if (mLabAccount.getUserType() == UserType.MSA) {
+            oneAuthApp.selectFromAppConfiguration("com.microsoft.OneAuthTestApp");
+            oneAuthApp.handleConfigureFlightsButton();
+        }
 
         final FirstPartyAppPromptHandlerParameters promptHandlerParameters = FirstPartyAppPromptHandlerParameters.builder()
                 .broker(mBroker)
@@ -78,12 +108,14 @@ public class TestCase2517370 extends AbstractMsalBrokerTest {
 
     @Override
     public LabQuery getLabQuery() {
-        return null;
+        return LabQuery.builder()
+                .userType(mUserType)
+                .build();
     }
 
     @Override
     public TempUserType getTempUserType() {
-        return TempUserType.BASIC;
+        return null;
     }
 
     @Override
