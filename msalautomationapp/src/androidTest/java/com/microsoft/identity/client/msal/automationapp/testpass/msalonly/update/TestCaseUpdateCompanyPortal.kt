@@ -23,6 +23,8 @@
 package com.microsoft.identity.client.msal.automationapp.testpass.msalonly.update
 
 import com.microsoft.identity.client.Prompt
+import com.microsoft.identity.client.claims.ClaimsRequest
+import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation
 import com.microsoft.identity.client.msal.automationapp.R
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams
@@ -55,13 +57,20 @@ class TestCaseUpdateCompanyPortal : AbstractMsalCustomBrokerInstallationTest() {
 
         val mCompanyPortal: BrokerCompanyPortal = installOldCompanyPortal()
 
+        // request the deviceid claim in ID Token
+        val claimsRequest = ClaimsRequest()
+        val requestedClaimAdditionalInformation = RequestedClaimAdditionalInformation()
+        requestedClaimAdditionalInformation.essential = true
+        claimsRequest.requestClaimInIdToken("deviceid", requestedClaimAdditionalInformation)
+
         val msalSdk = MsalSdk()
         val authTestParams = MsalAuthTestParams.builder()
             .activity(mActivity)
             .loginHint(username)
-            .scopes(Arrays.asList(*mScopes))
+            .scopes(listOf(*mScopes))
             .promptParameter(Prompt.LOGIN)
             .authScheme(AuthScheme.BEARER)
+            .claims(claimsRequest)
             .msalConfigResourceId(configFileResourceId)
             .build()
 
@@ -72,6 +81,7 @@ class TestCaseUpdateCompanyPortal : AbstractMsalCustomBrokerInstallationTest() {
                 .sessionExpected(false)
                 .consentPageExpected(false)
                 .speedBumpExpected(false)
+                .registerPageExpected(true)
                 .broker(mCompanyPortal)
                 .expectingBrokerAccountChooserActivity(false)
                 .build()
@@ -92,6 +102,7 @@ class TestCaseUpdateCompanyPortal : AbstractMsalCustomBrokerInstallationTest() {
             .scopes(Arrays.asList(*mScopes))
             .authority(authority)
             .authScheme(AuthScheme.BEARER)
+            .claims(claimsRequest)
             .msalConfigResourceId(configFileResourceId)
             .build()
 
