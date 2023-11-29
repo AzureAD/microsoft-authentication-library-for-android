@@ -65,7 +65,7 @@ public class TestCase2582290 extends AbstractMsalBrokerTest {
     @Parameterized.Parameters(name = "{0}")
     public static List<UserType> userType() {
         return Arrays.asList(
-              //  UserType.MSA,
+                UserType.MSA,
                 UserType.CLOUD
         );
     }
