@@ -121,12 +121,7 @@ public class TestCase2571565 extends AbstractMsalBrokerTest {
         final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
         oneAuthTestApp.install();
         oneAuthTestApp.launch();
-        oneAuthTestApp.handleFirstRun();
-
-        if (mLabAccount.getUserType() == UserType.MSA) {
-            oneAuthTestApp.selectFromAppConfiguration("com.microsoft.OneAuthTestApp");
-            oneAuthTestApp.handleConfigureFlightsButton();
-        }
+        oneAuthTestApp.handleFirstRunBasedOnUserType(mUserType);
 
         // AcquireToken Interactively in OneAuthTestApp, should prompt for password
         final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()

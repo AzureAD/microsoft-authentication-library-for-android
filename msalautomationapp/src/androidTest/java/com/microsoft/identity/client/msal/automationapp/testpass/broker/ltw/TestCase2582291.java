@@ -81,12 +81,7 @@ public class TestCase2582291 extends AbstractMsalBrokerTest {
         final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
         oneAuthTestApp.install();
         oneAuthTestApp.launch();
-        oneAuthTestApp.handleFirstRun();
-
-        if (mLabAccount.getUserType() == UserType.MSA) {
-            oneAuthTestApp.selectFromAppConfiguration("com.microsoft.OneAuthTestApp");
-            oneAuthTestApp.handleConfigureFlightsButton();
-        }
+        oneAuthTestApp.handleFirstRunBasedOnUserType(mUserType);
 
         // Performs AcquireToken
         // User is Prompted for creds

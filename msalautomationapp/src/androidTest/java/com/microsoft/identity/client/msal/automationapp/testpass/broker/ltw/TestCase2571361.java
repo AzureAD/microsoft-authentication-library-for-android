@@ -79,13 +79,7 @@ public class TestCase2571361 extends AbstractMsalBrokerTest {
         final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
         oneAuthTestApp.install();
         oneAuthTestApp.launch();
-        oneAuthTestApp.handleFirstRun();
-
-
-        if (mLabAccount.getUserType() == UserType.MSA) {
-            oneAuthTestApp.selectFromAppConfiguration("com.microsoft.OneAuthTestApp");
-            oneAuthTestApp.handleConfigureFlightsButton();
-        }
+        oneAuthTestApp.handleFirstRunBasedOnUserType(mUserType);
 
         final FirstPartyAppPromptHandlerParameters promptHandlerParameters = FirstPartyAppPromptHandlerParameters.builder()
                 .broker(mBroker)
