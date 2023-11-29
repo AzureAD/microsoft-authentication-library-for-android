@@ -1267,6 +1267,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         return mPublicClientConfiguration.getIsSharedDevice();
     }
 
+    /**
+     * Returns whether the application supports the QR code scanning + PIN protocol.
+     *
+     * @return true if the device supports the QR code scanning + PIN protocol, false otherwise.
+     */
     @Override
     public boolean isQRPinAvailable() {
         final String methodTag = TAG + ":isQRPinAvailable";
