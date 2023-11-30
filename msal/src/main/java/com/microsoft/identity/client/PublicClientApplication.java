@@ -1281,13 +1281,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 mPublicClientConfiguration.getOAuth2TokenCache()
         );
 
-        final List<BaseController> controllers = new MSALControllerFactory(mPublicClientConfiguration)
-                .getAllControllers(mPublicClientConfiguration.getDefaultAuthority());
-
+        final BaseController controller = new MSALControllerFactory(mPublicClientConfiguration)
+                .getDefaultController(params.getAuthority());
 
         final IsQrPinAvailableCommand command = new IsQrPinAvailableCommand(
                 params,
-                controllers,
+                controller,
                 new CommandCallback<Boolean, BaseException>() {
                     @Override
                     public void onError(BaseException error) {
