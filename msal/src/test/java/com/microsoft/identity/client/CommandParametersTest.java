@@ -44,6 +44,7 @@ import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.java.exception.ClientException;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -180,110 +181,102 @@ public class CommandParametersTest {
 
     @Test
     public void testAppendToExtraQueryParametersIfWebAuthnCapable_UnsetPropertyAndNullInput() {
-        if (FidoConstants.IS_PASSKEY_SUPPORT_READY) {
-            final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
-                    null,
-                    getConfiguration(AAD_NONE_CONFIG_FILE)
-            );
-            Assert.assertNull(combinedQueryParameters);
-        }
+        Assume.assumeTrue(FidoConstants.IS_PASSKEY_SUPPORT_READY);
+        final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
+                null,
+                getConfiguration(AAD_NONE_CONFIG_FILE)
+        );
+        Assert.assertNull(combinedQueryParameters);
     }
 
     @Test
     public void testAppendToExtraQueryParametersIfWebAuthnCapable_UnsetPropertyAndNonNullInput() {
-        if (FidoConstants.IS_PASSKEY_SUPPORT_READY) {
-            final List<Map.Entry<String, String>> queryParameters = new ArrayList<>();
-            queryParameters.add(new AbstractMap.SimpleEntry<>("field1", "property1"));
-            final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
-                    queryParameters,
-                    getConfiguration(AAD_NONE_CONFIG_FILE)
-            );
-            Assert.assertNotNull(combinedQueryParameters);
-            Assert.assertEquals(combinedQueryParameters.size(), 1);
-        }
+        Assume.assumeTrue(FidoConstants.IS_PASSKEY_SUPPORT_READY);
+        final List<Map.Entry<String, String>> queryParameters = new ArrayList<>();
+        queryParameters.add(new AbstractMap.SimpleEntry<>("field1", "property1"));
+        final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
+                queryParameters,
+                getConfiguration(AAD_NONE_CONFIG_FILE)
+        );
+        Assert.assertNotNull(combinedQueryParameters);
+        Assert.assertEquals(combinedQueryParameters.size(), 1);
     }
 
     @Test
     public void testAppendToExtraQueryParametersIfWebAuthnCapable_setPropertyAndNullInput() {
-        if (FidoConstants.IS_PASSKEY_SUPPORT_READY) {
-            final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
-                    null,
-                    getConfiguration(WEBAUTHN_CAPABLE_CONFIG_FILE)
-            );
-            Assert.assertNotNull(combinedQueryParameters);
-            Assert.assertEquals(combinedQueryParameters.size(), 1);
-        }
+        Assume.assumeTrue(FidoConstants.IS_PASSKEY_SUPPORT_READY);
+        final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
+                null,
+                getConfiguration(WEBAUTHN_CAPABLE_CONFIG_FILE)
+        );
+        Assert.assertNotNull(combinedQueryParameters);
+        Assert.assertEquals(combinedQueryParameters.size(), 1);
     }
 
     @Test
     public void testAppendToExtraQueryParametersIfWebAuthnCapable_setPropertyAndNonNullInput() {
-        if (FidoConstants.IS_PASSKEY_SUPPORT_READY) {
-            final List<Map.Entry<String, String>> queryParameters = new ArrayList<>();
-            queryParameters.add(new AbstractMap.SimpleEntry<>("field1", "property1"));
-            final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
-                    queryParameters,
-                    getConfiguration(WEBAUTHN_CAPABLE_CONFIG_FILE)
-            );
-            Assert.assertNotNull(combinedQueryParameters);
-            Assert.assertEquals(combinedQueryParameters.size(), 2);
-        }
+        Assume.assumeTrue(FidoConstants.IS_PASSKEY_SUPPORT_READY);
+        final List<Map.Entry<String, String>> queryParameters = new ArrayList<>();
+        queryParameters.add(new AbstractMap.SimpleEntry<>("field1", "property1"));
+        final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
+                queryParameters,
+                getConfiguration(WEBAUTHN_CAPABLE_CONFIG_FILE)
+        );
+        Assert.assertNotNull(combinedQueryParameters);
+        Assert.assertEquals(combinedQueryParameters.size(), 2);
     }
 
     @Test
     public void testAppendToExtraQueryParametersIfWebAuthnCapable_setPropertyAndParameterAlreadyPresent() {
-        if (FidoConstants.IS_PASSKEY_SUPPORT_READY) {
-            final List<Map.Entry<String, String>> queryParameters = new ArrayList<>();
-            queryParameters.add(new AbstractMap.SimpleEntry<>(FidoConstants.WEBAUTHN_QUERY_PARAMETER_FIELD, FidoConstants.WEBAUTHN_QUERY_PARAMETER_VALUE));
-            final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
-                    queryParameters,
-                    getConfiguration(WEBAUTHN_CAPABLE_CONFIG_FILE)
-            );
-            Assert.assertNotNull(combinedQueryParameters);
-            Assert.assertEquals(combinedQueryParameters.size(), 1);
-        }
+        Assume.assumeTrue(FidoConstants.IS_PASSKEY_SUPPORT_READY);
+        final List<Map.Entry<String, String>> queryParameters = new ArrayList<>();
+        queryParameters.add(new AbstractMap.SimpleEntry<>(FidoConstants.WEBAUTHN_QUERY_PARAMETER_FIELD, FidoConstants.WEBAUTHN_QUERY_PARAMETER_VALUE));
+        final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
+                queryParameters,
+                getConfiguration(WEBAUTHN_CAPABLE_CONFIG_FILE)
+        );
+        Assert.assertNotNull(combinedQueryParameters);
+        Assert.assertEquals(combinedQueryParameters.size(), 1);
     }
 
     @Test
     public void testAppendToExtraQueryParametersIfWebAuthnCapable_setPropertyAndSingletonListInput() {
-        if (FidoConstants.IS_PASSKEY_SUPPORT_READY) {
-            final List<Map.Entry<String, String>> queryParameters = Collections.singletonList(new AbstractMap.SimpleEntry<>("field1", "property1"));
-            final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
-                    queryParameters,
-                    getConfiguration(WEBAUTHN_CAPABLE_CONFIG_FILE)
-            );
-            Assert.assertNotNull(combinedQueryParameters);
-            Assert.assertEquals(combinedQueryParameters.size(), 2);
-        }
+        Assume.assumeTrue(FidoConstants.IS_PASSKEY_SUPPORT_READY);
+        final List<Map.Entry<String, String>> queryParameters = Collections.singletonList(new AbstractMap.SimpleEntry<>("field1", "property1"));
+        final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
+                queryParameters,
+                getConfiguration(WEBAUTHN_CAPABLE_CONFIG_FILE)
+        );
+        Assert.assertNotNull(combinedQueryParameters);
+        Assert.assertEquals(combinedQueryParameters.size(), 2);
     }
 
     @Test
     public void testAppendToExtraQueryParametersIfWebAuthnCapable_setPropertyAndArraysAsListInput() {
-        if (FidoConstants.IS_PASSKEY_SUPPORT_READY) {
-            final List<Map.Entry<String, String>> queryParameters = Arrays.asList(
-                    new AbstractMap.SimpleEntry<>("field1", "property1"),
-                    new AbstractMap.SimpleEntry<>("field2", "property2"));
-            final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
-                    queryParameters,
-                    getConfiguration(WEBAUTHN_CAPABLE_CONFIG_FILE)
-            );
-            Assert.assertNotNull(combinedQueryParameters);
-            Assert.assertEquals(combinedQueryParameters.size(), 3);
-        }
+        Assume.assumeTrue(FidoConstants.IS_PASSKEY_SUPPORT_READY);
+        final List<Map.Entry<String, String>> queryParameters = Arrays.asList(
+                new AbstractMap.SimpleEntry<>("field1", "property1"),
+                new AbstractMap.SimpleEntry<>("field2", "property2"));
+        final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
+                queryParameters,
+                getConfiguration(WEBAUTHN_CAPABLE_CONFIG_FILE)
+        );
+        Assert.assertNotNull(combinedQueryParameters);
+        Assert.assertEquals(combinedQueryParameters.size(), 3);
     }
 
     @Test
     public void testAppendToExtraQueryParametersIfWebAuthnCapable_setPropertyAndParameterAlreadyPresentInImmutableList() {
-        if (FidoConstants.IS_PASSKEY_SUPPORT_READY) {
-            final List<Map.Entry<String, String>> queryParameters = Collections.singletonList(new AbstractMap.SimpleEntry<>(
-                    FidoConstants.WEBAUTHN_QUERY_PARAMETER_FIELD,
-                    FidoConstants.WEBAUTHN_QUERY_PARAMETER_VALUE));
-            final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
-                    queryParameters,
-                    getConfiguration(WEBAUTHN_CAPABLE_CONFIG_FILE)
-            );
-            Assert.assertNotNull(combinedQueryParameters);
-            Assert.assertEquals(combinedQueryParameters.size(), 1);
-        }
+        Assume.assumeTrue(FidoConstants.IS_PASSKEY_SUPPORT_READY);
+        final List<Map.Entry<String, String>> queryParameters = Collections.singletonList(new AbstractMap.SimpleEntry<>(
+                FidoConstants.WEBAUTHN_QUERY_PARAMETER_FIELD,
+                FidoConstants.WEBAUTHN_QUERY_PARAMETER_VALUE));
+        final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
+                queryParameters,
+                getConfiguration(WEBAUTHN_CAPABLE_CONFIG_FILE)
+        );
+        Assert.assertNotNull(combinedQueryParameters);
+        Assert.assertEquals(combinedQueryParameters.size(), 1);
     }
 
     private ClaimsRequest getAccessTokenClaimsRequest(@NonNull String claimName, @NonNull String claimValue) {
