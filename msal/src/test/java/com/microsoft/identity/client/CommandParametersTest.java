@@ -26,6 +26,7 @@ import android.app.Activity;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.test.core.app.ApplicationProvider;
 
 import com.microsoft.identity.client.claims.ClaimsRequest;
@@ -42,6 +43,7 @@ import com.microsoft.identity.common.java.commands.parameters.SilentTokenCommand
 import com.microsoft.identity.common.java.constants.FidoConstants;
 import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.java.exception.ClientException;
+import com.microsoft.identity.common.java.ui.PreferredAuthMethod;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -61,7 +63,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RunWith(RobolectricTestRunner.class)
-@Ignore("Passkey feature in development.")
+//@Ignore("Passkey feature in development.")
 public class CommandParametersTest {
 
     private static final String AAD_CP1_CONFIG_FILE = "src/test/res/raw/aad_capabilities_cp1.json";
@@ -140,6 +142,28 @@ public class CommandParametersTest {
         InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(getConfiguration(AAD_NONE_CONFIG_FILE), getCache(), getAcquireTokenParametersWithCorrelationId(correlationId));
         Assert.assertNotNull(commandParameters.getCorrelationId());
         Assert.assertEquals(correlationId.toString(), commandParameters.getCorrelationId());
+    }
+
+    @Test
+    public void testAcquireTokenOperationWithPreferredAuthMethod() throws ClientException {
+
+        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(
+                getConfiguration(AAD_NONE_CONFIG_FILE),
+                getCache(),
+                getAcquireTokenParametersPreferredAuthMethod(PreferredAuthMethod.QR)
+        );
+        Assert.assertEquals(PreferredAuthMethod.QR, commandParameters.getPreferredAuthMethod());
+    }
+
+    @Test
+    public void testAcquireTokenOperationWithNoPreferredAuthMethod() throws ClientException {
+
+        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(
+                getConfiguration(AAD_NONE_CONFIG_FILE),
+                getCache(),
+                getAcquireTokenParametersPreferredAuthMethod(null)
+        );
+        Assert.assertNull(commandParameters.getPreferredAuthMethod());
     }
 
     @Test
@@ -334,6 +358,17 @@ public class CommandParametersTest {
                 .build();
 
         return parameters;
+    }
+
+    private AcquireTokenParameters getAcquireTokenParametersPreferredAuthMethod(final @Nullable PreferredAuthMethod preferredAuthMethod) {
+        final AcquireTokenParameters.Builder parametersBuilder = new AcquireTokenParameters.Builder()
+                .withClaims(getAccessTokenClaimsRequest("device_id", ""))
+                .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
+                .startAuthorizationFromActivity(mActivity);
+        if (preferredAuthMethod != null) {
+            parametersBuilder.withPreferredAuthMethod(preferredAuthMethod);
+        }
+        return parametersBuilder.build();
     }
 
     private AcquireTokenParameters getAcquireTokenParametersWithoutCorrelationId() {
