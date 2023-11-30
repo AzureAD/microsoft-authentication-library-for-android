@@ -24,6 +24,7 @@ package com.microsoft.identity.client
 
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
+import com.microsoft.identity.client.statemachine.results.ResetPasswordStartResult
 import com.microsoft.identity.client.statemachine.results.SignInResult
 import com.microsoft.identity.client.statemachine.results.SignInUsingPasswordResult
 import com.microsoft.identity.client.statemachine.results.SignUpResult
@@ -151,4 +152,23 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
      * @throws MsalClientException if an account is already signed in.
      */
     fun signUpUsingPassword(username: String, password: CharArray, attributes: UserAttributes? = null, callback: NativeAuthPublicClientApplication.SignUpUsingPasswordCallback)
+
+    /**
+     * Reset password for the account starting from a username; Kotlin coroutines variant.
+     *
+     * @param username username of the account to reset password.
+     * @return [com.microsoft.identity.client.statemachine.results.ResetPasswordStartResult] see detailed possible return state under the object.
+     * @throws MsalClientException if an account is already signed in.
+     */
+    suspend fun resetPassword(username: String): ResetPasswordStartResult
+
+    /**
+     * Reset password for the account starting from a username; callback variant.
+     *
+     * @param username username of the account to reset password.
+     * @param callback [com.microsoft.identity.client.NativeAuthPublicClientApplication.ResetPasswordCallback] to receive the result.
+     * @return [com.microsoft.identity.client.statemachine.results.ResetPasswordStartResult] see detailed possible return state under the object.
+     * @throws MsalClientException if an account is already signed in.
+     */
+    fun resetPassword(username: String, callback: NativeAuthPublicClientApplication.ResetPasswordCallback)
 }

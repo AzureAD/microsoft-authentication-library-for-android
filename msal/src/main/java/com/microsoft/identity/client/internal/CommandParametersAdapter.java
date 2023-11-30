@@ -60,6 +60,10 @@ import com.microsoft.identity.common.java.commands.parameters.InteractiveTokenCo
 import com.microsoft.identity.common.java.commands.parameters.RemoveAccountCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.SilentTokenCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.nativeauth.AcquireTokenNoFixedScopesCommandParameters;
+import com.microsoft.identity.common.java.commands.parameters.nativeauth.ResetPasswordResendCodeCommandParameters;
+import com.microsoft.identity.common.java.commands.parameters.nativeauth.ResetPasswordStartCommandParameters;
+import com.microsoft.identity.common.java.commands.parameters.nativeauth.ResetPasswordSubmitCodeCommandParameters;
+import com.microsoft.identity.common.java.commands.parameters.nativeauth.ResetPasswordSubmitNewPasswordCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignInResendCodeCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignInStartCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignInStartUsingPasswordCommandParameters;
@@ -844,6 +848,155 @@ public class CommandParametersAdapter {
         return commandParameters;
     }
 
+
+    /**
+     * Creates command parameter for [ResetPasswordStartCommand] of Native Auth.
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param username username associated with password change
+     * @return Command parameter object
+     */
+    public static ResetPasswordStartCommandParameters createResetPasswordStartCommandParameters(
+            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final String username) {
+
+        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
+
+        final ResetPasswordStartCommandParameters commandParameters =
+                ResetPasswordStartCommandParameters.builder()
+                        .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
+                        .applicationName(configuration.getAppContext().getPackageName())
+                        .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                        .clientId(configuration.getClientId())
+                        .isSharedDevice(configuration.getIsSharedDevice())
+                        .redirectUri(configuration.getRedirectUri())
+                        .oAuth2TokenCache(tokenCache)
+                        .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
+                        .sdkType(SdkType.MSAL)
+                        .sdkVersion(PublicClientApplication.getSdkVersion())
+                        .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                        .authority(authority)
+                        .username(username)
+                        .challengeType(configuration.getChallengeTypes())
+                        .clientId(configuration.getClientId())
+                        .build();
+
+        return commandParameters;
+    }
+
+    /**
+     * Creates command parameter for [ResetPasswordSubmitCodeCommand] of Native Auth.
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param code out of band code
+     * @param passwordResetToken password reset token
+     * @return Command parameter object
+     */
+    public static ResetPasswordSubmitCodeCommandParameters createResetPasswordSubmitCodeCommandParameters(
+            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final String code,
+            @NonNull final String passwordResetToken) {
+
+        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
+
+        final ResetPasswordSubmitCodeCommandParameters commandParameters =
+                ResetPasswordSubmitCodeCommandParameters.builder()
+                        .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
+                        .applicationName(configuration.getAppContext().getPackageName())
+                        .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                        .clientId(configuration.getClientId())
+                        .isSharedDevice(configuration.getIsSharedDevice())
+                        .redirectUri(configuration.getRedirectUri())
+                        .oAuth2TokenCache(tokenCache)
+                        .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
+                        .sdkType(SdkType.MSAL)
+                        .sdkVersion(PublicClientApplication.getSdkVersion())
+                        .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                        .authority(authority)
+                        .code(code)
+                        .challengeType(configuration.getChallengeTypes())
+                        .passwordResetToken(passwordResetToken)
+                        .clientId(configuration.getClientId())
+                        .build();
+
+        return commandParameters;
+    }
+
+    /**
+     * Creates command parameter for [ResetPasswordResendCodeCommand] of Native Auth.
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param passwordResetToken password reset token
+     * @return Command parameter object
+     */
+    public static ResetPasswordResendCodeCommandParameters createResetPasswordResendCodeCommandParameters(
+            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final String passwordResetToken) {
+
+        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
+
+        final ResetPasswordResendCodeCommandParameters commandParameters =
+                ResetPasswordResendCodeCommandParameters.builder()
+                        .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
+                        .applicationName(configuration.getAppContext().getPackageName())
+                        .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                        .clientId(configuration.getClientId())
+                        .isSharedDevice(configuration.getIsSharedDevice())
+                        .redirectUri(configuration.getRedirectUri())
+                        .oAuth2TokenCache(tokenCache)
+                        .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
+                        .sdkType(SdkType.MSAL)
+                        .sdkVersion(PublicClientApplication.getSdkVersion())
+                        .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                        .authority(authority)
+                        .challengeType(configuration.getChallengeTypes())
+                        .passwordResetToken(passwordResetToken)
+                        .clientId(configuration.getClientId())
+                        .build();
+
+        return commandParameters;
+    }
+
+    /**
+     * Creates command parameter for [ResetPasswordSubmitNewPasswordCommandParameters] of Native Auth.
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param passwordSubmitToken password submit token
+     * @return Command parameter object
+     */
+    public static ResetPasswordSubmitNewPasswordCommandParameters createResetPasswordSubmitNewPasswordCommandParameters(
+            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final String passwordSubmitToken,
+            @NonNull final char[] password) {
+
+        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
+
+        final ResetPasswordSubmitNewPasswordCommandParameters commandParameters =
+                ResetPasswordSubmitNewPasswordCommandParameters.builder()
+                        .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
+                        .applicationName(configuration.getAppContext().getPackageName())
+                        .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                        .clientId(configuration.getClientId())
+                        .isSharedDevice(configuration.getIsSharedDevice())
+                        .redirectUri(configuration.getRedirectUri())
+                        .oAuth2TokenCache(tokenCache)
+                        .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
+                        .sdkType(SdkType.MSAL)
+                        .sdkVersion(PublicClientApplication.getSdkVersion())
+                        .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                        .authority(authority)
+                        .passwordSubmitToken(passwordSubmitToken)
+                        .challengeType(configuration.getChallengeTypes())
+                        .newPassword(password)
+                        .clientId(configuration.getClientId())
+                        .build();
+
+        return commandParameters;
+    }
 
     private static String getPackageVersion(@NonNull final Context context) {
         final String packageName = context.getPackageName();

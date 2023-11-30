@@ -35,12 +35,15 @@ import com.microsoft.identity.client.statemachine.InvalidPasswordError
 import com.microsoft.identity.client.statemachine.PasswordIncorrectError
 import com.microsoft.identity.client.statemachine.UserAlreadyExistsError
 import com.microsoft.identity.client.statemachine.UserNotFoundError
+import com.microsoft.identity.client.statemachine.results.ResetPasswordResult
+import com.microsoft.identity.client.statemachine.results.ResetPasswordStartResult
 import com.microsoft.identity.client.statemachine.results.SignInResult
 import com.microsoft.identity.client.statemachine.results.SignInUsingPasswordResult
 import com.microsoft.identity.client.statemachine.results.SignUpResult
 import com.microsoft.identity.client.statemachine.results.SignUpUsingPasswordResult
 import com.microsoft.identity.client.statemachine.states.AccountResult
 import com.microsoft.identity.client.statemachine.states.Callback
+import com.microsoft.identity.client.statemachine.states.ResetPasswordCodeRequiredState
 import com.microsoft.identity.client.statemachine.states.SignInAfterSignUpState
 import com.microsoft.identity.client.statemachine.states.SignInCodeRequiredState
 import com.microsoft.identity.client.statemachine.states.SignInPasswordRequiredState
@@ -50,6 +53,7 @@ import com.microsoft.identity.client.statemachine.states.SignUpPasswordRequiredS
 import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager
 import com.microsoft.identity.common.internal.commands.GetCurrentAccountCommand
+import com.microsoft.identity.common.internal.commands.ResetPasswordStartCommand
 import com.microsoft.identity.common.internal.commands.SignInStartCommand
 import com.microsoft.identity.common.internal.commands.SignUpStartCommand
 import com.microsoft.identity.common.internal.controllers.LocalMSALController
@@ -60,6 +64,8 @@ import com.microsoft.identity.common.java.cache.ICacheRecord
 import com.microsoft.identity.common.java.commands.CommandCallback
 import com.microsoft.identity.common.java.controllers.CommandDispatcher
 import com.microsoft.identity.common.java.controllers.results.INativeAuthCommandResult
+import com.microsoft.identity.common.java.controllers.results.ResetPasswordCommandResult
+import com.microsoft.identity.common.java.controllers.results.ResetPasswordStartCommandResult
 import com.microsoft.identity.common.java.controllers.results.SignInCommandResult
 import com.microsoft.identity.common.java.controllers.results.SignInStartCommandResult
 import com.microsoft.identity.common.java.controllers.results.SignUpCommandResult
@@ -930,8 +936,136 @@ class NativeAuthPublicClientApplication(
         }
     }
 
+    interface ResetPasswordCallback : Callback<ResetPasswordStartResult>
 
+    /**
+     * Reset password for the account starting from a username; callback variant.
+     *
+     * @param username username of the account to reset password.
+     * @param callback [com.microsoft.identity.client.NativeAuthPublicClientApplication.ResetPasswordCallback] to receive the result.
+     * @return [com.microsoft.identity.client.statemachine.results.ResetPasswordStartResult] see detailed possible return state under the object.
+     * @throws MsalClientException if an account is already signed in.
+     */
+    override fun resetPassword(username: String, callback: ResetPasswordCallback) {
+        LogSession.logMethodCall(TAG, "${TAG}.resetPassword")
+        pcaScope.launch {
+            try {
+                val result = resetPassword(username = username)
+                callback.onResult(result)
+            } catch (e: MsalException) {
+                Logger.error(TAG, "Exception thrown in resetPassword", e)
+                callback.onError(e)
+            }
+        }
+    }
 
+    /**
+     * Reset password for the account starting from a username; Kotlin coroutines variant.
+     *
+     * @param username username of the account to reset password.
+     * @return [com.microsoft.identity.client.statemachine.results.ResetPasswordStartResult] see detailed possible return state under the object.
+     * @throws MsalClientException if an account is already signed in.
+     */
+    override suspend fun resetPassword(username: String): ResetPasswordStartResult {
+        LogSession.logMethodCall(TAG, "${TAG}.resetPassword(username: String)")
+
+        return withContext(Dispatchers.IO) {
+            val doesAccountExist = checkForPersistedAccount().get()
+            if (doesAccountExist) {
+                throw MsalClientException(
+                    MsalClientException.INVALID_PARAMETER,
+                    "An account is already signed in."
+                )
+            }
+
+            val parameters = CommandParametersAdapter.createResetPasswordStartCommandParameters(
+                nativeAuthConfig,
+                nativeAuthConfig.oAuth2TokenCache,
+                username
+            )
+
+            val command = ResetPasswordStartCommand(
+                parameters,
+                NativeAuthMsalController(),
+                PublicApiId.NATIVE_AUTH_RESET_PASSWORD_START
+            )
+
+            val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
+
+            return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<ResetPasswordStartCommandResult>()) {
+                is ResetPasswordCommandResult.CodeRequired -> {
+                    ResetPasswordStartResult.CodeRequired(
+                        nextState = ResetPasswordCodeRequiredState(
+                            flowToken = result.passwordResetToken,
+                            config = nativeAuthConfig
+                        ),
+                        codeLength = result.codeLength,
+                        sentTo = result.challengeTargetLabel,
+                        channel = result.challengeChannel
+                    )
+                }
+
+                is ResetPasswordCommandResult.UserNotFound -> {
+                    ResetPasswordStartResult.UserNotFound(
+                        error = UserNotFoundError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId
+                        )
+                    )
+                }
+
+                is INativeAuthCommandResult.UnknownError -> {
+                    ResetPasswordResult.UnexpectedError(
+                        error = GeneralError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId,
+                            details = result.details,
+                            exception = result.exception
+                        )
+                    )
+                }
+
+                is INativeAuthCommandResult.Redirect -> {
+                    ResetPasswordResult.BrowserRequired(
+                        error = BrowserRequiredError(
+                            correlationId = result.correlationId
+                        )
+                    )
+                }
+
+                is ResetPasswordCommandResult.PasswordNotSet -> {
+                    Logger.warn(
+                        TAG,
+                        "Unexpected result $result",
+                    )
+                    ResetPasswordResult.UnexpectedError(
+                        error = GeneralError(
+                            errorMessage = "Unexpected state",
+                            error = "unexpected_state",
+                            correlationId = result.correlationId
+                        )
+                    )
+                }
+
+                is ResetPasswordCommandResult.EmailNotVerified -> {
+                    Logger.warn(
+                        TAG,
+                        "Unexpected result $result"
+                    )
+                    ResetPasswordResult.UnexpectedError(
+                        error = GeneralError(
+                            errorMessage = "Unexpected state",
+                            error = "unexpected_state",
+                            correlationId = result.correlationId
+                        )
+                    )
+                }
+            }
+        }
+    }
+    
     private fun verifyUserIsNotSignedIn() {
         val doesAccountExist = checkForPersistedAccount().get()
         if (doesAccountExist) {
