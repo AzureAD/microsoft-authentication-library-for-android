@@ -1282,7 +1282,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         );
 
         final BaseController controller = new MSALControllerFactory(mPublicClientConfiguration)
-                .getDefaultController(params.getAuthority());
+                .getDefaultController(CommandParametersAdapter.getRequestAuthority(mPublicClientConfiguration));
 
         final IsQrPinAvailableCommand command = new IsQrPinAvailableCommand(
                 params,
