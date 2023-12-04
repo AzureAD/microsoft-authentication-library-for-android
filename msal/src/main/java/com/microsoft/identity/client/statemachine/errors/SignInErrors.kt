@@ -1,4 +1,4 @@
-package com.microsoft.identity.client.statemachine
+package com.microsoft.identity.client.statemachine.errors
 
 import com.microsoft.identity.client.statemachine.results.SignInResult
 import com.microsoft.identity.client.statemachine.results.SignInSubmitPasswordResult

@@ -27,11 +27,11 @@ import com.microsoft.identity.client.NativeAuthPublicClientApplication
 import com.microsoft.identity.client.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
-import com.microsoft.identity.client.statemachine.ErrorTypes
-import com.microsoft.identity.client.statemachine.ResendCodeError
-import com.microsoft.identity.client.statemachine.ResetPasswordErrorTypes
-import com.microsoft.identity.client.statemachine.ResetPasswordSubmitPasswordError
-import com.microsoft.identity.client.statemachine.SubmitCodeError
+import com.microsoft.identity.client.statemachine.errors.ErrorTypes
+import com.microsoft.identity.client.statemachine.errors.ResendCodeError
+import com.microsoft.identity.client.statemachine.errors.ResetPasswordErrorTypes
+import com.microsoft.identity.client.statemachine.errors.ResetPasswordSubmitPasswordError
+import com.microsoft.identity.client.statemachine.errors.SubmitCodeError
 import com.microsoft.identity.client.statemachine.results.ResetPasswordResendCodeResult
 import com.microsoft.identity.client.statemachine.results.ResetPasswordResult
 import com.microsoft.identity.client.statemachine.results.ResetPasswordSubmitCodeResult

@@ -23,7 +23,7 @@
 
 package com.microsoft.identity.client.statemachine.results
 
-import com.microsoft.identity.client.statemachine.states.AccountResult
+import com.microsoft.identity.client.statemachine.states.AccountState
 import com.microsoft.identity.client.statemachine.states.SignInCodeRequiredState
 import com.microsoft.identity.client.statemachine.states.SignInPasswordRequiredState
 
@@ -37,9 +37,9 @@ interface SignInResult : Result {
      * Complete Result, which indicates the sign in flow is complete,
      * i.e. tokens are retrieved for the provided scopes (if any).
      *
-     * @param resultValue an [com.microsoft.identity.client.statemachine.states.AccountResult] object containing account information and account related methods.
+     * @param resultValue an [com.microsoft.identity.client.statemachine.states.AccountState] object containing account information and account related methods.
      */
-    class Complete(override val resultValue: AccountResult) :
+    class Complete(override val resultValue: AccountState) :
         Result.CompleteResult(resultValue = resultValue),
         SignInResult,
         SignInSubmitCodeResult,

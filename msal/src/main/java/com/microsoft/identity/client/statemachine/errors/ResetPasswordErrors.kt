@@ -21,7 +21,7 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 
-package com.microsoft.identity.client.statemachine
+package com.microsoft.identity.client.statemachine.errors
 
 import com.microsoft.identity.client.statemachine.results.ResetPasswordResult
 import com.microsoft.identity.client.statemachine.results.ResetPasswordStartResult

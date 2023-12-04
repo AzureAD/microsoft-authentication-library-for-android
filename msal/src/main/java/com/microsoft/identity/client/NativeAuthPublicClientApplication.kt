@@ -27,20 +27,21 @@ import android.content.Context
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
-import com.microsoft.identity.client.statemachine.ErrorTypes
-import com.microsoft.identity.client.statemachine.ResetPasswordError
-import com.microsoft.identity.client.statemachine.SignInError
-import com.microsoft.identity.client.statemachine.SignInErrorTypes
-import com.microsoft.identity.client.statemachine.SignInUsingPasswordError
-import com.microsoft.identity.client.statemachine.SignUpError
-import com.microsoft.identity.client.statemachine.SignUpErrorTypes
-import com.microsoft.identity.client.statemachine.SignUpUsingPasswordError
+import com.microsoft.identity.client.statemachine.errors.ErrorTypes
+import com.microsoft.identity.client.statemachine.errors.ResetPasswordError
+import com.microsoft.identity.client.statemachine.errors.SignInError
+import com.microsoft.identity.client.statemachine.errors.SignInErrorTypes
+import com.microsoft.identity.client.statemachine.errors.SignInUsingPasswordError
+import com.microsoft.identity.client.statemachine.errors.SignUpError
+import com.microsoft.identity.client.statemachine.errors.SignUpErrorTypes
+import com.microsoft.identity.client.statemachine.errors.SignUpUsingPasswordError
+import com.microsoft.identity.client.statemachine.results.GetAccountResult
 import com.microsoft.identity.client.statemachine.results.ResetPasswordStartResult
 import com.microsoft.identity.client.statemachine.results.SignInResult
 import com.microsoft.identity.client.statemachine.results.SignInUsingPasswordResult
 import com.microsoft.identity.client.statemachine.results.SignUpResult
 import com.microsoft.identity.client.statemachine.results.SignUpUsingPasswordResult
-import com.microsoft.identity.client.statemachine.states.AccountResult
+import com.microsoft.identity.client.statemachine.states.AccountState
 import com.microsoft.identity.client.statemachine.states.Callback
 import com.microsoft.identity.client.statemachine.states.ResetPasswordCodeRequiredState
 import com.microsoft.identity.client.statemachine.states.SignInAfterSignUpState
@@ -205,13 +206,13 @@ class NativeAuthPublicClientApplication(
         )
     }
 
-    interface GetCurrentAccountCallback : Callback<AccountResult?>
+    interface GetCurrentAccountCallback : Callback<GetAccountResult>
 
     /**
      * Retrieve the current signed in account from cache; callback variant.
      *
      * @param callback [com.microsoft.identity.client.NativeAuthPublicClientApplication.GetCurrentAccountCallback] to receive the result.
-     * @return [com.microsoft.identity.client.statemachine.states.AccountResult] if there is a signed in account, null otherwise.
+     * @return [com.microsoft.identity.client.statemachine.states.AccountState] if there is a signed in account, null otherwise.
      */
     override fun getCurrentAccount(callback: GetCurrentAccountCallback) {
         pcaScope.launch {
@@ -227,18 +228,20 @@ class NativeAuthPublicClientApplication(
     /**
      * Retrieve the current signed in account from cache; Kotlin coroutines variant.
      *
-     * @return [com.microsoft.identity.client.statemachine.states.AccountResult] if there is a signed in account, null otherwise.
+     * @return [com.microsoft.identity.client.statemachine.states.AccountState] if there is a signed in account, null otherwise.
      */
-    override suspend fun getCurrentAccount(): AccountResult? {
+    override suspend fun getCurrentAccount(): GetAccountResult {
         return withContext(Dispatchers.IO) {
             val account = getCurrentAccountInternal(nativeAuthConfig)
             return@withContext if (account != null) {
-                AccountResult.createFromAccountResult(
-                    account = account,
-                    config = nativeAuthConfig
+                GetAccountResult.AccountFound(
+                    resultValue = AccountState.createFromAccountResult(
+                        account = account,
+                        config = nativeAuthConfig
+                    )
                 )
             } else {
-                null
+                GetAccountResult.NoAccountFound
             }
         }
     }
@@ -448,7 +451,7 @@ class NativeAuthPublicClientApplication(
                             AuthenticationResultAdapter.adapt(result.authenticationResult)
 
                         SignInResult.Complete(
-                            resultValue = AccountResult.createFromAuthenticationResult(
+                            resultValue = AccountState.createFromAuthenticationResult(
                                 authenticationResult,
                                 nativeAuthConfig
                             )
@@ -1042,8 +1045,8 @@ class NativeAuthPublicClientApplication(
         LogSession.logMethodCall(TAG, "${TAG}.checkForPersistedAccount")
         val future = ResultFuture<Boolean>()
         getCurrentAccount(object : GetCurrentAccountCallback {
-            override fun onResult(result: AccountResult?) {
-                future.setResult(result != null)
+            override fun onResult(result: GetAccountResult) {
+                future.setResult(result is GetAccountResult.AccountFound)
             }
 
             override fun onError(exception: BaseException) {

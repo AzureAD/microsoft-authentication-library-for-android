@@ -24,7 +24,7 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.statemachine.results
 
-import com.microsoft.identity.client.statemachine.Error
+import com.microsoft.identity.client.statemachine.errors.Error
 import com.microsoft.identity.client.statemachine.states.State
 
 /**

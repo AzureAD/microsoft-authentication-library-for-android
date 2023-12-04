@@ -34,6 +34,9 @@ import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
+import com.microsoft.identity.client.statemachine.errors.GetAccessTokenError
+import com.microsoft.identity.client.statemachine.errors.GetAccessTokenErrorTypes
+import com.microsoft.identity.client.statemachine.results.GetAccessTokenResult
 import com.microsoft.identity.client.statemachine.results.SignOutResult
 import com.microsoft.identity.common.internal.commands.AcquireTokenNoFixedScopesCommand
 import com.microsoft.identity.common.internal.commands.RemoveCurrentAccountCommand
@@ -55,9 +58,9 @@ import kotlinx.coroutines.withContext
 import java.io.Serializable
 
 /**
- *  AcccountResult returned as part of a successful completion of sign in flow [com.microsoft.identity.client.statemachine.results.SignInResult.Complete].
+ *  SignedInState returned as part of a successful completion of sign in flow [com.microsoft.identity.client.statemachine.results.SignInResult.Complete].
  */
-class AccountResult private constructor(
+class AccountState private constructor(
     private val account: IAccount,
     private val config: NativeAuthPublicClientApplicationConfiguration
 ) : Serializable {
@@ -69,8 +72,8 @@ class AccountResult private constructor(
         fun createFromAuthenticationResult(
             authenticationResult: IAuthenticationResult,
             config: NativeAuthPublicClientApplicationConfiguration
-        ): AccountResult {
-            return AccountResult(
+        ): AccountState {
+            return AccountState(
                 account = authenticationResult.account,
                 config = config
             )
@@ -79,8 +82,8 @@ class AccountResult private constructor(
         fun createFromAccountResult(
             account: IAccount,
             config: NativeAuthPublicClientApplicationConfiguration
-        ): AccountResult {
-            return AccountResult(
+        ): AccountState {
+            return AccountState(
                 account = account,
                 config = config
             )
@@ -92,7 +95,7 @@ class AccountResult private constructor(
     /**
      * Remove the current account from the cache; callback variant.
      *
-     * @param callback [com.microsoft.identity.client.statemachine.states.AccountResult.SignOutCallback] to receive the result on.
+     * @param callback [com.microsoft.identity.client.statemachine.states.AccountState.SignOutCallback] to receive the result on.
      */
     fun signOut(callback: SignOutCallback) {
         LogSession.logMethodCall(TAG, "${TAG}.signOut")
@@ -196,7 +199,7 @@ class AccountResult private constructor(
         return account.claims
     }
 
-    interface GetAccessTokenCallback : Callback<IAuthenticationResult?>
+    interface GetAccessTokenCallback : Callback<GetAccessTokenResult>
 
     /**
      * Retrieves the access token for the currently signed in account from the cache.
@@ -225,18 +228,17 @@ class AccountResult private constructor(
      * If the access token is expired, it will be attempted to be refreshed using the refresh token that's stored in the cache;
      * Kotlin coroutines variant.
      *
-     * @return [com.microsoft.identity.client.IAuthenticationResult] If successful.
-     * @throws [MsalClientException] If the the account doesn't exist in the cache.
-     * @throws [ServiceException] If the refresh token doesn't exist in the cache/is expired, or the refreshing fails.
+     * @return [com.microsoft.identity.client.statemachine.results.GetAccessTokenResult] The result of the getAccessToken action
      */
-    suspend fun getAccessToken(forceRefresh: Boolean = false): IAuthenticationResult? {
+    suspend fun getAccessToken(forceRefresh: Boolean = false): GetAccessTokenResult {
         LogSession.logMethodCall(TAG, "${TAG}.getAccessToken(forceRefresh: Boolean)")
         return withContext(Dispatchers.IO) {
             val account =
                 NativeAuthPublicClientApplication.getCurrentAccountInternal(config) as? Account
-                    ?: throw MsalClientException(
-                        MsalClientException.NO_CURRENT_ACCOUNT,
-                        MsalClientException.NO_CURRENT_ACCOUNT_ERROR_MESSAGE
+                    ?: return@withContext GetAccessTokenError(
+                        errorType = GetAccessTokenErrorTypes.NO_ACCOUNT_FOUND,
+                        error = MsalClientException.NO_CURRENT_ACCOUNT,
+                        errorMessage = MsalClientException.NO_CURRENT_ACCOUNT_ERROR_MESSAGE
                     )
 
             val acquireTokenSilentParameters = AcquireTokenSilentParameters.Builder()
@@ -265,15 +267,21 @@ class AccountResult private constructor(
             val commandResult = CommandDispatcher.submitSilentReturningFuture(command)
                 .get().result
 
-            when (commandResult) {
+            return@withContext when (commandResult) {
                 is ServiceException -> {
-                    throw ExceptionAdapter.convertToNativeAuthException(commandResult)
+                    GetAccessTokenError(
+                        exception = ExceptionAdapter.convertToNativeAuthException(commandResult)
+                    )
                 }
                 is Exception -> {
-                    throw commandResult
+                    GetAccessTokenError(
+                        exception = commandResult
+                    )
                 }
                 else -> {
-                    return@withContext AuthenticationResultAdapter.adapt(commandResult as ILocalAuthenticationResult)
+                    GetAccessTokenResult.Complete(
+                        resultValue =  AuthenticationResultAdapter.adapt(commandResult as ILocalAuthenticationResult)
+                    )
                 }
             }
         }

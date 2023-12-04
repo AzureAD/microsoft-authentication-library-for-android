@@ -21,7 +21,7 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 
-package com.microsoft.identity.client.statemachine
+package com.microsoft.identity.client.statemachine.errors
 
 import com.microsoft.identity.client.statemachine.results.ResetPasswordResendCodeResult
 import com.microsoft.identity.client.statemachine.results.ResetPasswordSubmitCodeResult
@@ -75,7 +75,7 @@ sealed class Error(
     internal open val errorType: String? = null,
     open val error: String? = null,
     open val errorMessage: String?,
-    open val correlationId: String,
+    open val correlationId: String?,
     open var exception: Exception? = null,
     open val errorCodes: List<Int>? = null
 ) {

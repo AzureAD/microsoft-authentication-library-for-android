@@ -28,12 +28,12 @@ import com.microsoft.identity.client.NativeAuthPublicClientApplication
 import com.microsoft.identity.client.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
-import com.microsoft.identity.client.statemachine.ErrorTypes
-import com.microsoft.identity.client.statemachine.ResendCodeError
-import com.microsoft.identity.client.statemachine.SignInError
-import com.microsoft.identity.client.statemachine.SignInErrorTypes
-import com.microsoft.identity.client.statemachine.SignInSubmitPasswordError
-import com.microsoft.identity.client.statemachine.SubmitCodeError
+import com.microsoft.identity.client.statemachine.errors.ErrorTypes
+import com.microsoft.identity.client.statemachine.errors.ResendCodeError
+import com.microsoft.identity.client.statemachine.errors.SignInError
+import com.microsoft.identity.client.statemachine.errors.SignInErrorTypes
+import com.microsoft.identity.client.statemachine.errors.SignInSubmitPasswordError
+import com.microsoft.identity.client.statemachine.errors.SubmitCodeError
 import com.microsoft.identity.client.statemachine.results.SignInResendCodeResult
 import com.microsoft.identity.client.statemachine.results.SignInResult
 import com.microsoft.identity.client.statemachine.results.SignInSubmitCodeResult
@@ -141,7 +141,7 @@ class SignInCodeRequiredState internal constructor(
                         AuthenticationResultAdapter.adapt(result.authenticationResult)
 
                     SignInResult.Complete(
-                        resultValue = AccountResult.createFromAuthenticationResult(
+                        resultValue = AccountState.createFromAuthenticationResult(
                             authenticationResult = authenticationResult,
                             config = config
                         )
@@ -341,7 +341,7 @@ class SignInPasswordRequiredState(
                         val authenticationResult =
                             AuthenticationResultAdapter.adapt(result.authenticationResult)
                         SignInResult.Complete(
-                            resultValue = AccountResult.createFromAuthenticationResult(
+                            resultValue = AccountState.createFromAuthenticationResult(
                                 authenticationResult = authenticationResult,
                                 config = config
                             )
@@ -484,7 +484,7 @@ abstract class SignInAfterSignUpBaseState(
                     val authenticationResult =
                         AuthenticationResultAdapter.adapt(result.authenticationResult)
                     SignInResult.Complete(
-                        resultValue = AccountResult.createFromAuthenticationResult(
+                        resultValue = AccountState.createFromAuthenticationResult(
                             authenticationResult = authenticationResult,
                             config = config
                         )
