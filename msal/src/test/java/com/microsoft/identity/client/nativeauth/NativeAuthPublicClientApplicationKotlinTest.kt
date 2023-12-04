@@ -35,6 +35,9 @@ import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTe
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
+import com.microsoft.identity.client.statemachine.SignInError
+import com.microsoft.identity.client.statemachine.SubmitCodeError
+import com.microsoft.identity.client.statemachine.SignInUsingPasswordError
 import com.microsoft.identity.client.statemachine.results.ResetPasswordResendCodeResult
 import com.microsoft.identity.client.statemachine.results.ResetPasswordResult
 import com.microsoft.identity.client.statemachine.results.ResetPasswordStartResult
@@ -203,7 +206,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 1b. Call SDK interface
         val codeRequiredResult = application.signInUsingPassword(username, password)
         // 1a. Server returns invalid password error
-        assertTrue(codeRequiredResult is SignInResult.InvalidCredentials)
+        assertTrue(codeRequiredResult is SignInUsingPasswordError && codeRequiredResult.isInvalidCredentials())
     }
 
     /**
@@ -225,7 +228,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 1b. Call SDK interface
         val codeRequiredResult = application.signInUsingPassword(username, password)
         // 1a. Server returns invalid user error
-        assertTrue(codeRequiredResult is SignInResult.UserNotFound)
+        assertTrue(codeRequiredResult is SignInUsingPasswordError && codeRequiredResult.isUserNotFound())
     }
 
     /**
@@ -247,7 +250,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 1b. Call SDK interface
         val codeRequiredResult = application.signIn(username)
         // 1a. Server returns invalid user error
-        assertTrue(codeRequiredResult is SignInResult.UserNotFound)
+        assertTrue(codeRequiredResult is SignInError && codeRequiredResult.isUserNotFound())
     }
 
     /**
@@ -293,7 +296,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 2b. Call SDK interface
         val invalidCodeResult = nextState.submitCode(code)
         // 2a. Server returns invalid code, stays in CodeRequired state
-        assertTrue(invalidCodeResult is SignInSubmitCodeResult.CodeIncorrect)
+        assertTrue(invalidCodeResult is SubmitCodeError && invalidCodeResult.isCodeIncorrect())
 
         // 3. Submit (valid) code
         // 3a. Setup server response
@@ -391,7 +394,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val config = mock<NativeAuthPublicClientApplicationConfiguration>()
         val sltState = SignInAfterSignUpState(signInVerificationCode = null, username = username, config = config)
         val result = sltState.signIn(scopes = null)
-        assertTrue(result is SignInResult.UnexpectedError)
+        assertTrue(result is SignInError && result.errorType == null)
     }
 
     /**
@@ -417,7 +420,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         // 1b. server returns error
         val result = signInWithSLTState.signIn(scopes = null)
-        assertTrue(result is SignInResult.UnexpectedError)
+        assertTrue(result is SignInError && result.errorType == null)
     }
 
     /**
@@ -1142,7 +1145,9 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         }
         application.signInUsingPassword(username, password, null, callback)
         // 3b. Server returns BrowserRequired error
-        assertTrue(signInResult[30, TimeUnit.SECONDS] is SignInResult.BrowserRequired)
+        assertTrue(signInResult[30, TimeUnit.SECONDS] is SignInUsingPasswordError)
+        val result = signInResult.get() as SignInUsingPasswordError
+        assertTrue(result.isBrowserRequired())
     }
 
     /**
@@ -1162,7 +1167,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         )
 
         val result = application.signInUsingPassword(emptyString, password)
-        assertTrue(result is SignInResult.UnexpectedError)
+        assertTrue(result is SignInUsingPasswordError && result.errorType == null)
     }
 
     // Helper methods

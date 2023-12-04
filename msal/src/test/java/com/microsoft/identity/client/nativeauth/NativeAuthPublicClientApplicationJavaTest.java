@@ -36,6 +36,9 @@ import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTe
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.statemachine.SignInError;
+import com.microsoft.identity.client.statemachine.SignInUsingPasswordError;
+import com.microsoft.identity.client.statemachine.SubmitCodeError;
 import com.microsoft.identity.client.statemachine.results.ResetPasswordResendCodeResult;
 import com.microsoft.identity.client.statemachine.results.ResetPasswordResult;
 import com.microsoft.identity.client.statemachine.results.ResetPasswordStartResult;
@@ -258,7 +261,11 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         };
         application.signInUsingPassword(username, password, null, callback);
         // 1a. Server returns invalid password error
-        assertTrue(signInResult.get(30, TimeUnit.SECONDS) instanceof SignInResult.InvalidCredentials);
+        SignInUsingPasswordResult result = signInResult.get(30, TimeUnit.SECONDS);
+        assertTrue(result instanceof SignInUsingPasswordError);
+
+        SignInUsingPasswordError error = (SignInUsingPasswordError)result;
+        assertTrue(error.isInvalidCredentials());
     }
 
     /**
@@ -292,7 +299,11 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         };
         application.signInUsingPassword(username, password, null, callback);
         // 1a. Server returns invalid user error
-        assertTrue(signInResult.get(30, TimeUnit.SECONDS) instanceof SignInResult.UserNotFound);
+        SignInUsingPasswordResult result = signInResult.get(30, TimeUnit.SECONDS);
+        assertTrue(result instanceof SignInUsingPasswordError);
+
+        SignInUsingPasswordError error = (SignInUsingPasswordError)result;
+        assertTrue(error.isUserNotFound());
     }
 
     /**
@@ -326,7 +337,11 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         };
         application.signIn(username, null, callback);
         // 1a. Server returns invalid user error
-        assertTrue(signInResult.get(30, TimeUnit.SECONDS) instanceof SignInResult.UserNotFound);
+        SignInResult result = signInResult.get(30, TimeUnit.SECONDS);
+        assertTrue(result instanceof SignInError);
+
+        SignInError error = (SignInError)result;
+        assertTrue(error.isUserNotFound());
     }
 
     /**
@@ -398,7 +413,11 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         };
         nextState.submitCode(code, submitCodeCallback);
         // 2a. Server returns invalid code, stays in CodeRequired state
-        assertTrue(submitCodeResult.get(30, TimeUnit.SECONDS) instanceof SignInSubmitCodeResult.CodeIncorrect);
+        SignInSubmitCodeResult result = submitCodeResult.get(30, TimeUnit.SECONDS);
+        assertTrue(result instanceof SubmitCodeError);
+
+        SubmitCodeError error = (SubmitCodeError)result;
+        assertTrue(error.isCodeIncorrect());
 
         // 3. Submit (valid) code
         // 3a. Setup server response
@@ -517,7 +536,8 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         };
         application.signInUsingPassword(username, password, null, callback);
         // 3b. Server returns BrowserRequired error
-        assertTrue(signInResult.get(30, TimeUnit.SECONDS) instanceof SignInResult.BrowserRequired);
+        SignInUsingPasswordResult result = signInResult.get(30, TimeUnit.SECONDS);
+        assertTrue(result instanceof SignInUsingPasswordError);
     }
 
     /**
@@ -607,7 +627,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 MockApiResponseType.TOKEN_SUCCESS
         );
 
-       SignInUsingPasswordTestCallback signInUsingPasswordTestCallback = new SignInUsingPasswordTestCallback();
+        SignInUsingPasswordTestCallback signInUsingPasswordTestCallback = new SignInUsingPasswordTestCallback();
         application.signInUsingPassword(
                 username,
                 password,
@@ -919,7 +939,12 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
             }
         };
         state.signIn(null, callback);
-        assertTrue(resultFuture.get(30, TimeUnit.SECONDS) instanceof SignInResult.UnexpectedError);
+
+        SignInResult result = resultFuture.get(10, TimeUnit.SECONDS);
+        assertTrue(result instanceof SignInError);
+
+        SignInError error = (SignInError)result;
+        assertTrue(error.getErrorType() == null);
     }
 
     /**
@@ -957,7 +982,12 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
             }
         };
         signInWithSLTState.signIn(null, callback);
-        assertTrue(resultFuture.get(30, TimeUnit.SECONDS) instanceof SignInResult.UnexpectedError);
+
+        SignInResult result = resultFuture.get(10, TimeUnit.SECONDS);
+        assertTrue(result instanceof SignInError);
+
+        SignInError error = (SignInError)result;
+        assertTrue(error.getErrorType() == null);
     }
 
     /**
@@ -1000,7 +1030,11 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 signInWithPasswordResultCallback
         );
 
-        assertTrue(signInWithPasswordResult.get(10, TimeUnit.SECONDS) instanceof SignInResult.UnexpectedError);
+        SignInUsingPasswordResult result = signInWithPasswordResult.get(10, TimeUnit.SECONDS);
+        assertTrue(result instanceof SignInUsingPasswordError);
+
+        SignInUsingPasswordError error = (SignInUsingPasswordError)result;
+        assertTrue(error.getErrorType() == null);
     }
 
     /**

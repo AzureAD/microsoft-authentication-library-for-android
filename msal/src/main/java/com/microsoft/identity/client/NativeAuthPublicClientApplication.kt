@@ -28,11 +28,14 @@ import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
 import com.microsoft.identity.client.statemachine.BrowserRequiredError
+import com.microsoft.identity.client.statemachine.ErrorTypes
 import com.microsoft.identity.client.statemachine.GeneralError
 import com.microsoft.identity.client.statemachine.InvalidAttributesError
 import com.microsoft.identity.client.statemachine.InvalidEmailError
 import com.microsoft.identity.client.statemachine.InvalidPasswordError
-import com.microsoft.identity.client.statemachine.PasswordIncorrectError
+import com.microsoft.identity.client.statemachine.SignInError
+import com.microsoft.identity.client.statemachine.SignInErrorTypes
+import com.microsoft.identity.client.statemachine.SignInUsingPasswordError
 import com.microsoft.identity.client.statemachine.UserAlreadyExistsError
 import com.microsoft.identity.client.statemachine.UserNotFoundError
 import com.microsoft.identity.client.statemachine.results.ResetPasswordResult
@@ -163,8 +166,8 @@ class NativeAuthPublicClientApplication(
                 Logger.error(
                     TAG,
                     "Returned cacheRecords were adapted into empty or null IAccount list. " +
-                        "This is unexpected in native auth mode." +
-                        "Returning null.",
+                            "This is unexpected in native auth mode." +
+                            "Returning null.",
                     null
                 )
                 return null
@@ -173,8 +176,8 @@ class NativeAuthPublicClientApplication(
                 Logger.warn(
                     TAG,
                     "Returned cacheRecords were adapted into multiple IAccount. " +
-                        "This is unexpected in native auth mode." +
-                        "Returning the first adapted account."
+                            "This is unexpected in native auth mode." +
+                            "Returning the first adapted account."
                 )
             }
             return accountList[0]
@@ -312,28 +315,6 @@ class NativeAuthPublicClientApplication(
                         channel = result.challengeChannel
                     )
                 }
-                is INativeAuthCommandResult.UnknownError -> {
-                    SignInResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId,
-                            details = result.details,
-                            errorCodes = result.errorCodes,
-                            exception = result.exception
-                        )
-                    )
-                }
-                is SignInCommandResult.UserNotFound -> {
-                    SignInResult.UserNotFound(
-                        error = UserNotFoundError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId,
-                            errorCodes = result.errorCodes
-                        )
-                    )
-                }
                 is SignInCommandResult.PasswordRequired -> {
                     SignInResult.PasswordRequired(
                         nextState = SignInPasswordRequiredState(
@@ -343,38 +324,54 @@ class NativeAuthPublicClientApplication(
                         )
                     )
                 }
-                is SignInCommandResult.InvalidCredentials -> {
-                    Logger.warn(
-                        TAG,
-                        "Unexpected result $result"
-                    )
-                    SignInResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = "Unexpected state",
-                            error = "unexpected_state",
-                            correlationId = result.correlationId,
-                            errorCodes = result.errorCodes
-                        )
-                    )
-                }
                 is SignInCommandResult.Complete -> {
                     Logger.warn(
                         TAG,
                         "Unexpected result $result"
                     )
-                    SignInResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = "Unexpected state",
-                            error = "unexpected_state",
-                            correlationId = "UNSET"
-                        )
+                    SignInError(
+                        errorMessage = "unexpected state",
+                        error = "unexpected_state",
+                        correlationId = "UNSET"
+                    )
+                }
+                is SignInCommandResult.UserNotFound -> {
+                    SignInError(
+                        errorType = ErrorTypes.user_not_found,
+                        errorMessage = result.errorDescription,
+                        error = result.error,
+                        correlationId = result.correlationId,
+                        errorCodes = result.errorCodes
+                    )
+                }
+                is SignInCommandResult.InvalidCredentials -> {
+                    Logger.warn(
+                        TAG,
+                        "Unexpected result $result"
+                    )
+                    SignInError(
+                        errorMessage = "unexpected state",
+                        error = "unexpected_state",
+                        correlationId = result.correlationId,
+                        errorCodes = result.errorCodes
                     )
                 }
                 is INativeAuthCommandResult.Redirect -> {
-                    SignInResult.BrowserRequired(
-                        error = BrowserRequiredError(
-                            correlationId = result.correlationId
-                        )
+                    // TODO Remove quotes and update msal-common submodule reference when this PR is merged https://identitydivision.visualstudio.com/DefaultCollection/Engineering/_git/devexdub-android-msal-common-native-auth-private-clone/pullrequest/10635
+                    SignInError(
+                        errorType = ErrorTypes.browser_required,
+                        errorMessage = "result.errorDescription",
+                        error = "result.error",
+                        correlationId = result.correlationId
+                    )
+                }
+                is INativeAuthCommandResult.UnknownError -> {
+                    SignInError(
+                        errorMessage = result.errorDescription,
+                        error = result.error,
+                        correlationId = result.correlationId,
+                        errorCodes = result.errorCodes,
+                        exception = result.exception
                     )
                 }
             }
@@ -480,59 +477,51 @@ class NativeAuthPublicClientApplication(
                             channel = result.challengeChannel
                         )
                     }
-                    is SignInCommandResult.UserNotFound -> {
-                        SignInResult.UserNotFound(
-                            error = UserNotFoundError(
-                                errorMessage = result.errorDescription,
-                                error = result.error,
-                                correlationId = result.correlationId,
-                                errorCodes = result.errorCodes
-                            )
-                        )
-                    }
-
-                    is SignInCommandResult.InvalidCredentials -> {
-                        SignInResult.InvalidCredentials(
-                            error = PasswordIncorrectError(
-                                errorMessage = result.errorDescription,
-                                error = result.error,
-                                correlationId = result.correlationId,
-                                errorCodes = result.errorCodes
-                            )
-                        )
-                    }
-
-                    is INativeAuthCommandResult.Redirect -> {
-                        SignInResult.BrowserRequired(
-                            error = BrowserRequiredError(
-                                correlationId = result.correlationId
-                            )
-                        )
-                    }
-
-                    is INativeAuthCommandResult.UnknownError -> {
-                        SignInResult.UnexpectedError(
-                            error = GeneralError(
-                                errorMessage = result.errorDescription,
-                                error = result.error,
-                                correlationId = result.correlationId,
-                                details = result.details,
-                                errorCodes = result.errorCodes,
-                                exception = result.exception
-                            )
-                        )
-                    }
                     is SignInCommandResult.PasswordRequired -> {
                         Logger.warn(
                             TAG,
                             "Unexpected result $result"
                         )
-                        SignInResult.UnexpectedError(
-                            error = GeneralError(
-                                errorMessage = "Unexpected state",
-                                error = "unexpected_state",
-                                correlationId = "UNSET"
-                            )
+                        SignInUsingPasswordError(
+                            errorMessage = "unexpected state",
+                            error = "unexpected_state",
+                            correlationId = "UNSET"
+                        )
+                    }
+                    is SignInCommandResult.UserNotFound -> {
+                        SignInUsingPasswordError(
+                            errorType = ErrorTypes.user_not_found,
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes
+                        )
+                    }
+                    is SignInCommandResult.InvalidCredentials -> {
+                        SignInUsingPasswordError(
+                            errorType = SignInErrorTypes.invalid_credentials,
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes
+                        )
+                    }
+                    is INativeAuthCommandResult.Redirect -> {
+                        // TODO Remove quotes and update msal-common submodule reference when this PR is merged https://identitydivision.visualstudio.com/DefaultCollection/Engineering/_git/devexdub-android-msal-common-native-auth-private-clone/pullrequest/10635
+                        SignInUsingPasswordError(
+                            errorType = ErrorTypes.browser_required,
+                            errorMessage = "result.errorDescription",
+                            error = "result.error",
+                            correlationId = result.correlationId
+                        )
+                    }
+                    is INativeAuthCommandResult.UnknownError -> {
+                        SignInUsingPasswordError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes,
+                            exception = result.exception
                         )
                     }
                 }
@@ -1065,7 +1054,7 @@ class NativeAuthPublicClientApplication(
             }
         }
     }
-    
+
     private fun verifyUserIsNotSignedIn() {
         val doesAccountExist = checkForPersistedAccount().get()
         if (doesAccountExist) {

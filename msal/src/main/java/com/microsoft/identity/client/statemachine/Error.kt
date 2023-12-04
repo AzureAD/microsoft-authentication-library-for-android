@@ -23,20 +23,60 @@
 
 package com.microsoft.identity.client.statemachine
 
+import com.microsoft.identity.client.statemachine.results.ResetPasswordResendCodeResult
+import com.microsoft.identity.client.statemachine.results.ResetPasswordSubmitCodeResult
+import com.microsoft.identity.client.statemachine.results.SignInResendCodeResult
+import com.microsoft.identity.client.statemachine.results.SignInSubmitCodeResult
+import com.microsoft.identity.client.statemachine.results.SignUpResendCodeResult
+import com.microsoft.identity.client.statemachine.results.SignUpSubmitCodeResult
+
+class ErrorTypes () {
+    companion object {
+        const val browser_required = "browser_required"
+        const val code_incorrect = "code_incorrect"
+        const val user_not_found = "user_not_found"
+    }
+}
+
 /**
  * Error is a base class for all errors present in the Native Auth.
  * This file will be refactored as part of https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2730354
  */
 sealed class Error(
+    open val errorType: String? = null,
     open val error: String? = null,
     open val errorMessage: String?,
     open val correlationId: String,
     open var exception: Exception? = null,
     open val errorCodes: List<Int>? = null
-)
+) {
+    fun isBrowserRequired(): Boolean = this.errorType == ErrorTypes.browser_required
+}
+
+class SubmitCodeError(
+    override val errorType: String? = null,
+    override val error: String? = null,
+    override val errorMessage: String?,
+    override val correlationId: String,
+    override  val errorCodes: List<Int>? = null,
+    override var exception: Exception? = null
+): SignInSubmitCodeResult, SignUpSubmitCodeResult, ResetPasswordSubmitCodeResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception)
+{
+    fun isCodeIncorrect(): Boolean = this.errorType == ErrorTypes.code_incorrect
+}
+
+class ResendCodeError(
+    override val errorType: String? = null,
+    override val error: String? = null,
+    override val errorMessage: String?,
+    override val correlationId: String,
+    override  val errorCodes: List<Int>? = null,
+    override var exception: Exception? = null
+): SignInResendCodeResult, SignUpResendCodeResult, ResetPasswordResendCodeResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception)
+
 
 /**
- * GeneralError represents general errors in NativeAuth
+ * GeneralError is a base class for all errors present in the Native Auth.
  */
 class GeneralError(
     override var error: String? = null,
@@ -76,16 +116,6 @@ class UserNotFoundError(
     override val errorMessage: String,
     override val correlationId: String,
     override val errorCodes: List<Int>? = null
-) : Error(errorMessage = errorMessage, error = error, correlationId = correlationId, errorCodes = errorCodes)
-
-/**
- * PasswordIncorrectError occurs when the user has provided incorrect password for signin.
- */
-class PasswordIncorrectError(
-    override var error: String? = null,
-    override val errorMessage: String,
-    override val correlationId: String,
-    override val errorCodes: List<Int>
 ) : Error(errorMessage = errorMessage, error = error, correlationId = correlationId, errorCodes = errorCodes)
 
 /**

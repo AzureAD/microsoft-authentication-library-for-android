@@ -28,10 +28,12 @@ import com.microsoft.identity.client.NativeAuthPublicClientApplication
 import com.microsoft.identity.client.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
-import com.microsoft.identity.client.statemachine.BrowserRequiredError
-import com.microsoft.identity.client.statemachine.GeneralError
-import com.microsoft.identity.client.statemachine.IncorrectCodeError
-import com.microsoft.identity.client.statemachine.PasswordIncorrectError
+import com.microsoft.identity.client.statemachine.ErrorTypes
+import com.microsoft.identity.client.statemachine.ResendCodeError
+import com.microsoft.identity.client.statemachine.SignInError
+import com.microsoft.identity.client.statemachine.SignInErrorTypes
+import com.microsoft.identity.client.statemachine.SignInSubmitPasswordError
+import com.microsoft.identity.client.statemachine.SubmitCodeError
 import com.microsoft.identity.client.statemachine.results.SignInResendCodeResult
 import com.microsoft.identity.client.statemachine.results.SignInResult
 import com.microsoft.identity.client.statemachine.results.SignInSubmitCodeResult
@@ -125,13 +127,12 @@ class SignInCodeRequiredState internal constructor(
 
             return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<SignInSubmitCodeCommandResult>()) {
                 is SignInCommandResult.IncorrectCode -> {
-                    SignInSubmitCodeResult.CodeIncorrect(
-                        error = IncorrectCodeError(
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            errorCodes = result.errorCodes
-                        )
+                    SubmitCodeError(
+                        errorType = ErrorTypes.code_incorrect,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId,
+                        errorCodes = result.errorCodes
                     )
                 }
 
@@ -148,27 +149,25 @@ class SignInCodeRequiredState internal constructor(
                 }
 
                 is INativeAuthCommandResult.Redirect -> {
-                    SignInResult.BrowserRequired(
-                        error = BrowserRequiredError(
-                            correlationId = result.correlationId
-                        )
+                    // TODO Remove quotes and update msal-common submodule reference when this PR is merged https://identitydivision.visualstudio.com/DefaultCollection/Engineering/_git/devexdub-android-msal-common-native-auth-private-clone/pullrequest/10635
+                    SubmitCodeError(
+                        errorType = ErrorTypes.browser_required,
+                        error = "result.error",
+                        errorMessage = "result.errorDescription",
+                        correlationId = result.correlationId
                     )
                 }
-
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
                         "Unexpected result: $result"
                     )
-                    SignInResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId,
-                            details = result.details,
-                            errorCodes = result.errorCodes,
-                            exception = result.exception
-                        )
+                    SubmitCodeError(
+                        errorMessage = result.errorDescription,
+                        error = result.error,
+                        correlationId = result.correlationId,
+                        errorCodes = result.errorCodes,
+                        exception = result.exception
                     )
                 }
             }
@@ -236,27 +235,25 @@ class SignInCodeRequiredState internal constructor(
                 }
 
                 is INativeAuthCommandResult.Redirect -> {
-                    SignInResult.BrowserRequired(
-                        error = BrowserRequiredError(
-                            correlationId = result.correlationId
-                        )
+                    // TODO Remove quotes and update msal-common submodule reference when this PR is merged https://identitydivision.visualstudio.com/DefaultCollection/Engineering/_git/devexdub-android-msal-common-native-auth-private-clone/pullrequest/10635
+                    ResendCodeError(
+                        errorType = ErrorTypes.browser_required,
+                        error = "result.error",
+                        errorMessage = "result.errorDescription",
+                        correlationId = result.correlationId
                     )
                 }
-
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
                         "Unexpected result: $result"
                     )
-                    SignInResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId,
-                            details = result.details,
-                            errorCodes = result.errorCodes,
-                            exception = result.exception
-                        )
+                    ResendCodeError(
+                        errorMessage = result.errorDescription,
+                        error = result.error,
+                        correlationId = result.correlationId,
+                        errorCodes = result.errorCodes,
+                        exception = result.exception
                     )
                 }
             }
@@ -335,13 +332,11 @@ class SignInPasswordRequiredState(
                 return@withContext when (val result =
                     rawCommandResult.checkAndWrapCommandResultType<SignInSubmitPasswordCommandResult>()) {
                     is SignInCommandResult.InvalidCredentials -> {
-                        SignInResult.InvalidCredentials(
-                            error = PasswordIncorrectError(
-                                error = result.error,
-                                errorMessage = result.errorDescription,
-                                correlationId = result.correlationId,
-                                errorCodes = result.errorCodes
-                            )
+                        SignInSubmitPasswordError(
+                            errorType = SignInErrorTypes.invalid_credentials,
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId
                         )
                     }
                     is SignInCommandResult.Complete -> {
@@ -355,10 +350,12 @@ class SignInPasswordRequiredState(
                         )
                     }
                     is INativeAuthCommandResult.Redirect -> {
-                        SignInResult.BrowserRequired(
-                            error = BrowserRequiredError(
-                                correlationId = result.correlationId
-                            )
+                        // TODO Remove quotes and update msal-common submodule reference when this PR is merged https://identitydivision.visualstudio.com/DefaultCollection/Engineering/_git/devexdub-android-msal-common-native-auth-private-clone/pullrequest/10635
+                        SignInSubmitPasswordError(
+                            errorType = ErrorTypes.browser_required,
+                            error = "result.error",
+                            errorMessage = "result.errorDescription",
+                            correlationId = result.correlationId
                         )
                     }
                     is INativeAuthCommandResult.UnknownError -> {
@@ -366,15 +363,12 @@ class SignInPasswordRequiredState(
                             TAG,
                             "Unexpected result: $result"
                         )
-                        SignInResult.UnexpectedError(
-                            error = GeneralError(
-                                errorMessage = result.errorDescription,
-                                error = result.error,
-                                correlationId = result.correlationId,
-                                details = result.details,
-                                errorCodes = result.errorCodes,
-                                exception = result.exception
-                            )
+                        SignInSubmitPasswordError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes,
+                            exception = result.exception
                         )
                     }
                 }
@@ -444,12 +438,10 @@ abstract class SignInAfterSignUpBaseState(
                     TAG,
                     "Unexpected result: signInSLT was null"
                 )
-                return@withContext SignInResult.UnexpectedError(
-                    error = GeneralError(
-                        errorMessage = "Sign In is not available through this state, please use the standalone sign in methods (signInWithCode or signInWithPassword).",
-                        error = "invalid_state",
-                        correlationId = "UNSET"
-                    )
+                return@withContext SignInError(
+                    errorMessage = "Sign In is not available through this state, please use the standalone sign in methods (signInWithCode or signInWithPassword).",
+                    error = "invalid_state",
+                    correlationId = "UNSET",
                 )
             }
 
@@ -502,10 +494,12 @@ abstract class SignInAfterSignUpBaseState(
                     )
                 }
                 is INativeAuthCommandResult.Redirect -> {
-                    SignInResult.BrowserRequired(
-                        error = BrowserRequiredError(
-                            correlationId = result.correlationId
-                        )
+                    // TODO Remove quotes and update msal-common submodule reference when this PR is merged https://identitydivision.visualstudio.com/DefaultCollection/Engineering/_git/devexdub-android-msal-common-native-auth-private-clone/pullrequest/10635
+                    SignInError(
+                        errorType = ErrorTypes.browser_required,
+                        error = "result.error",
+                        errorMessage = "result.errorDescription",
+                        correlationId = result.correlationId
                     )
                 }
                 is INativeAuthCommandResult.UnknownError -> {
@@ -513,15 +507,12 @@ abstract class SignInAfterSignUpBaseState(
                         TAG,
                         "Unexpected result: $result"
                     )
-                    SignInResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId,
-                            details = result.details,
-                            errorCodes = result.errorCodes,
-                            exception = result.exception
-                        )
+                    SignInError(
+                        errorMessage = result.errorDescription,
+                        error = result.error,
+                        correlationId = result.correlationId,
+                        errorCodes = result.errorCodes,
+                        exception = result.exception
                     )
                 }
             }

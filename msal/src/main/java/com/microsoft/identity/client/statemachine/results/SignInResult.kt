@@ -23,11 +23,6 @@
 
 package com.microsoft.identity.client.statemachine.results
 
-import com.microsoft.identity.client.statemachine.BrowserRequiredError
-import com.microsoft.identity.client.statemachine.Error
-import com.microsoft.identity.client.statemachine.IncorrectCodeError
-import com.microsoft.identity.client.statemachine.PasswordIncorrectError
-import com.microsoft.identity.client.statemachine.UserNotFoundError
 import com.microsoft.identity.client.statemachine.states.AccountResult
 import com.microsoft.identity.client.statemachine.states.SignInCodeRequiredState
 import com.microsoft.identity.client.statemachine.states.SignInPasswordRequiredState
@@ -52,34 +47,6 @@ interface SignInResult : Result {
         SignInSubmitPasswordResult
 
     /**
-     * BrowserRequired ErrorResult, which indicates that the server requires more/different authentication mechanisms than the client is configured to provide.
-     * The flow should be restarted with a browser, by calling [com.microsoft.identity.client.IPublicClientApplication.acquireToken]
-     *
-     * @param error [com.microsoft.identity.client.statemachine.BrowserRequiredError].
-     */
-    class BrowserRequired(override val error: BrowserRequiredError) :
-        Result.ErrorResult(error = error),
-        SignInResult,
-        SignInUsingPasswordResult,
-        SignInSubmitCodeResult,
-        SignInResendCodeResult,
-        SignInSubmitPasswordResult
-
-    /**
-     * UnexpectedError ErrorResult is a general error wrapper which indicates an unexpected error occurred during the flow.
-     * If this occurs, the flow should be restarted.
-     *
-     * @param error [com.microsoft.identity.client.statemachine.Error].
-     */
-    class UnexpectedError(override val error: Error) :
-        Result.ErrorResult(error = error),
-        SignInResult,
-        SignInUsingPasswordResult,
-        SignInResendCodeResult,
-        SignInSubmitCodeResult,
-        SignInSubmitPasswordResult
-
-    /**
      * CodeRequired Result, which indicates a verification code is required from the user to continue.
      *
      * @param nextState [com.microsoft.identity.client.statemachine.states.SignInCodeRequiredState] the current state of the flow with follow-on methods.
@@ -93,26 +60,6 @@ interface SignInResult : Result {
         val sentTo: String,
         val channel: String,
     ) : Result.SuccessResult(nextState = nextState), SignInResult, SignInUsingPasswordResult, SignInSubmitPasswordResult
-
-    /**
-     * InvalidCredentials ErrorResult, which indicates credentials provided by the users are not acceptable to the server.
-     * The flow should be restarted or the password should be re-submitted, as appropriate.
-     *
-     * @param error [com.microsoft.identity.client.statemachine.PasswordIncorrectError].
-     */
-    class InvalidCredentials(
-        override val error: PasswordIncorrectError
-    ) : Result.ErrorResult(error = error), SignInUsingPasswordResult, SignInSubmitPasswordResult
-
-    /**
-     * UserNotFound ErrorResult, which indicates there was no account found with the provided email.
-     * The flow should be restarted.
-     *
-     * @param error [com.microsoft.identity.client.statemachine.UserNotFoundError].
-     */
-    class UserNotFound(
-        override val error: UserNotFoundError
-    ) : SignInResult, SignInUsingPasswordResult, Result.ErrorResult(error = error)
 
     /**
      * PasswordRequired Result, which indicates that the valid password is required from the user to continue.
@@ -134,17 +81,7 @@ interface SignInUsingPasswordResult : Result
  * Sign in submit code result, produced by
  * [com.microsoft.identity.client.statemachine.states.SignInCodeRequiredState.submitCode]
  */
-interface SignInSubmitCodeResult : Result {
-    /**
-     * CodeIncorrect ErrorResult, which indicates the verification code provided by user is incorrect.
-     * The code should be re-submitted.
-     *
-     * @param error [com.microsoft.identity.client.statemachine.IncorrectCodeError].
-     */
-    class CodeIncorrect(
-        override val error: IncorrectCodeError
-    ) : SignInSubmitCodeResult, Result.ErrorResult(error = error)
-}
+interface SignInSubmitCodeResult : Result
 
 /**
  * Sign in submit password result, produced by
