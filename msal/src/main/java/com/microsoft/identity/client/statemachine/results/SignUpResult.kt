@@ -40,7 +40,7 @@ import com.microsoft.identity.client.statemachine.states.SignUpPasswordRequiredS
  * Sign up result, produced by
  * [com.microsoft.identity.client.INativeAuthPublicClientApplication.signUp]
  */
-sealed interface SignUpResult : Result {
+interface SignUpResult : Result {
     /**
      * CompleteResult which indicates the sign up flow is complete,
      * i.e. the user account is created and can now be used to sign in with.
@@ -169,7 +169,7 @@ sealed interface SignUpResult : Result {
 /**
  * Sign up with password result, produced by [com.microsoft.identity.client.INativeAuthPublicClientApplication.signUpUsingPassword]
  */
-sealed interface SignUpUsingPasswordResult : Result {
+interface SignUpUsingPasswordResult : Result {
     /**
      * AuthNotSupported ErrorResult, which indicates the server does not support password authentication.
      * Check your challenge type configuration in the client with the user flow configuration in the tenant.
@@ -186,7 +186,7 @@ sealed interface SignUpUsingPasswordResult : Result {
  * Sign in submit code result, produced by
  * [com.microsoft.identity.client.statemachine.states.SignUpCodeRequiredState.submitCode]
  */
-sealed interface SignUpSubmitCodeResult : Result {
+interface SignUpSubmitCodeResult : Result {
     /**
      * CodeIncorrect ErrorResult, which indicates the verification code provided by user is incorrect.
      * The code should be re-submitted.
@@ -202,7 +202,7 @@ sealed interface SignUpSubmitCodeResult : Result {
  * Sign in resend code result, produced by
  * [com.microsoft.identity.client.statemachine.states.SignUpCodeRequiredState.resendCode]
  */
-sealed interface SignUpResendCodeResult : Result {
+interface SignUpResendCodeResult : Result {
     /**
      * Success Result,  which indicates a new verification code was successfully resent.
      *
@@ -222,12 +222,12 @@ sealed interface SignUpResendCodeResult : Result {
  * Sign in submit code result, produced by
  * [com.microsoft.identity.client.statemachine.states.SignUpPasswordRequiredState.submitPassword]
  */
-sealed interface SignUpSubmitPasswordResult :
+interface SignUpSubmitPasswordResult :
     SignUpResult
 
 /**
  * Sign in submit code result, produced by
  * [com.microsoft.identity.client.statemachine.states.SignUpAttributesRequiredState.submitAttributes]
  */
-sealed interface SignUpSubmitAttributesResult :
+interface SignUpSubmitAttributesResult :
     SignUpResult

@@ -36,7 +36,7 @@ import com.microsoft.identity.client.statemachine.states.SignInPasswordRequiredS
  * Sign in result, produced by
  * [com.microsoft.identity.client.INativeAuthPublicClientApplication.signIn]
  */
-sealed interface SignInResult : Result {
+interface SignInResult : Result {
 
     /**
      * Complete Result, which indicates the sign in flow is complete,
@@ -128,13 +128,13 @@ sealed interface SignInResult : Result {
  * Sign in with password result, produced by
  * [com.microsoft.identity.client.INativeAuthPublicClientApplication.signInUsingPassword]
  */
-sealed interface SignInUsingPasswordResult : Result
+interface SignInUsingPasswordResult : Result
 
 /**
  * Sign in submit code result, produced by
  * [com.microsoft.identity.client.statemachine.states.SignInCodeRequiredState.submitCode]
  */
-sealed interface SignInSubmitCodeResult : Result {
+interface SignInSubmitCodeResult : Result {
     /**
      * CodeIncorrect ErrorResult, which indicates the verification code provided by user is incorrect.
      * The code should be re-submitted.
@@ -150,13 +150,13 @@ sealed interface SignInSubmitCodeResult : Result {
  * Sign in submit password result, produced by
  * [com.microsoft.identity.client.statemachine.states.SignInPasswordRequiredState.submitPassword]
  */
-sealed interface SignInSubmitPasswordResult : Result
+interface SignInSubmitPasswordResult : Result
 
 /**
  * Sign in resend code result, produced by
  * [com.microsoft.identity.client.statemachine.states.SignInCodeRequiredState.resendCode]
  */
-sealed interface SignInResendCodeResult : Result {
+interface SignInResendCodeResult : Result {
     /**
      * Success Result, which indicates a new verification code was successfully resent.
      *

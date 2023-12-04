@@ -23,7 +23,7 @@
 
 package com.microsoft.identity.client.statemachine.states
 
-sealed interface State
+interface State
 
 /**
  * BaseState is the base class for various states in the Native Auth state machine.

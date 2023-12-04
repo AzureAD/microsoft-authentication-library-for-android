@@ -71,7 +71,7 @@ interface Result {
 /**
  * Sign out: removes account from cache. Does not perform single sign-out.
  */
-sealed interface SignOutResult : Result {
+interface SignOutResult : Result {
     /**
      * CompleteResult Result, which indicates the sign out flow completed successfully.
      * i.e. the user account has been removed from persistence.

@@ -34,7 +34,7 @@ import com.microsoft.identity.client.statemachine.states.ResetPasswordPasswordRe
 /**
  * Self-service password reset.
  */
-sealed interface ResetPasswordResult : Result {
+interface ResetPasswordResult : Result {
     /**
      * Complete Result, which indicates the reset password flow completed successfully.
      * i.e. the password is successfully reset.
@@ -80,7 +80,7 @@ sealed interface ResetPasswordResult : Result {
  * SSPR start result, produced by
  * [com.microsoft.identity.client.INativeAuthPublicClientApplication.resetPassword]
  */
-sealed interface ResetPasswordStartResult : Result {
+interface ResetPasswordStartResult : Result {
     /**
      * CodeRequired Result, which indicates a verification code is required from the user to continue.
      *
@@ -111,7 +111,7 @@ sealed interface ResetPasswordStartResult : Result {
  * SSPR submit code result, produced by
  * [com.microsoft.identity.client.statemachine.states.ResetPasswordCodeRequiredState.submitCode]
  */
-sealed interface ResetPasswordSubmitCodeResult : Result {
+interface ResetPasswordSubmitCodeResult : Result {
     /**
      * PasswordRequired Result, which indicates that a valid new password is required from the user to continue.
      *
@@ -136,7 +136,7 @@ sealed interface ResetPasswordSubmitCodeResult : Result {
  * Sign in resend code result, produced by
  * [com.microsoft.identity.client.statemachine.states.ResetPasswordCodeRequiredState.resendCode]
  */
-sealed interface ResetPasswordResendCodeResult : Result {
+interface ResetPasswordResendCodeResult : Result {
     /**
      * Success Result, which indicates a new verification code was successfully resent.
      *
@@ -157,7 +157,7 @@ sealed interface ResetPasswordResendCodeResult : Result {
  * SSPR submit password result, produced by
  * [com.microsoft.identity.client.statemachine.states.ResetPasswordPasswordRequiredState.submitPassword]
  */
-sealed interface ResetPasswordSubmitPasswordResult : Result {
+interface ResetPasswordSubmitPasswordResult : Result {
     /**
      * InvalidPassword ErrorResult, which indicates the new password provided by the user is not acceptable to the server.
      * The password should be re-submitted.
