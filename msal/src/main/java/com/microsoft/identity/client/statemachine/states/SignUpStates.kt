@@ -27,11 +27,12 @@ import com.microsoft.identity.client.NativeAuthPublicClientApplicationConfigurat
 import com.microsoft.identity.client.UserAttributes
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
-import com.microsoft.identity.client.statemachine.BrowserRequiredError
-import com.microsoft.identity.client.statemachine.GeneralError
-import com.microsoft.identity.client.statemachine.IncorrectCodeError
-import com.microsoft.identity.client.statemachine.InvalidAttributesError
-import com.microsoft.identity.client.statemachine.InvalidPasswordError
+import com.microsoft.identity.client.statemachine.ErrorTypes
+import com.microsoft.identity.client.statemachine.ResendCodeError
+import com.microsoft.identity.client.statemachine.SignUpErrorTypes
+import com.microsoft.identity.client.statemachine.SignUpSubmitAttributesError
+import com.microsoft.identity.client.statemachine.SignUpSubmitPasswordError
+import com.microsoft.identity.client.statemachine.SubmitCodeError
 import com.microsoft.identity.client.statemachine.results.SignInResult
 import com.microsoft.identity.client.statemachine.results.SignUpResendCodeResult
 import com.microsoft.identity.client.statemachine.results.SignUpResult
@@ -62,14 +63,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.Serializable
 
-/**
- * Native Auth uses a state machine to denote state and transitions for a user.
- * SignUpCodeRequiredState class represents a state where the user has to provide a code to progress
- * in the signup flow.
- * @property flowToken: Flow token to be passed in the next request
- * @property username: Email address of the user
- * @property config Configuration used by Native Auth
- */
 class SignUpCodeRequiredState internal constructor(
     override val flowToken: String,
     private val username: String,
@@ -126,16 +119,6 @@ class SignUpCodeRequiredState internal constructor(
             val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
 
             return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<SignUpSubmitCodeCommandResult>()) {
-                is SignUpCommandResult.InvalidCode -> {
-                    SignUpSubmitCodeResult.CodeIncorrect(
-                        IncorrectCodeError(
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId
-                        )
-                    )
-                }
-
                 is SignUpCommandResult.PasswordRequired -> {
                     SignUpResult.PasswordRequired(
                         nextState = SignUpPasswordRequiredState(
@@ -167,11 +150,21 @@ class SignUpCodeRequiredState internal constructor(
                     )
                 }
 
+                is SignUpCommandResult.InvalidCode -> {
+                    SubmitCodeError(
+                        errorType = ErrorTypes.INVALID_CODE,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId
+                    )
+                }
+
                 is INativeAuthCommandResult.Redirect -> {
-                    SignUpResult.BrowserRequired(
-                        error = BrowserRequiredError(
-                            correlationId = result.correlationId
-                        )
+                    SubmitCodeError(
+                        errorType = ErrorTypes.BROWSER_REQUIRED,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId
                     )
                 }
 
@@ -181,12 +174,10 @@ class SignUpCodeRequiredState internal constructor(
                         TAG,
                         "Unexpected result: $result"
                     )
-                    SignUpResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId
-                        )
+                    SubmitCodeError(
+                        errorMessage = result.errorDescription,
+                        error = result.error,
+                        correlationId = result.correlationId
                     )
                 }
 
@@ -195,14 +186,11 @@ class SignUpCodeRequiredState internal constructor(
                         TAG,
                         "Unexpected result: $result"
                     )
-                    SignUpResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId,
-                            details = result.details,
-                            exception = result.exception
-                        )
+                    SubmitCodeError(
+                        errorMessage = result.errorDescription,
+                        error = result.error,
+                        correlationId = result.correlationId,
+                        exception = result.exception
                     )
                 }
             }
@@ -268,10 +256,11 @@ class SignUpCodeRequiredState internal constructor(
                 }
 
                 is INativeAuthCommandResult.Redirect -> {
-                    SignUpResult.BrowserRequired(
-                        error = BrowserRequiredError(
-                            correlationId = result.correlationId
-                        )
+                    ResendCodeError(
+                        errorType = ErrorTypes.BROWSER_REQUIRED,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId
                     )
                 }
 
@@ -280,14 +269,11 @@ class SignUpCodeRequiredState internal constructor(
                         TAG,
                         "Unexpected result: $result"
                     )
-                    SignUpResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId,
-                            details = result.details,
-                            exception = result.exception
-                        )
+                    ResendCodeError(
+                        errorMessage = result.errorDescription,
+                        error = result.error,
+                        correlationId = result.correlationId,
+                        exception = result.exception
                     )
                 }
             }
@@ -295,14 +281,6 @@ class SignUpCodeRequiredState internal constructor(
     }
 }
 
-/**
- * Native Auth uses a state machine to denote state and transitions for a user.
- * SignUpPasswordRequiredState class represents a state where the user has to provide a password
- * to progress in the signup flow.
- * @property flowToken: Flow token to be passed in the next request
- * @property username: Email address of the user
- * @property config Configuration used by Native Auth
- */
 class SignUpPasswordRequiredState internal constructor(
     override val flowToken: String,
     private val username: String,
@@ -362,12 +340,12 @@ class SignUpPasswordRequiredState internal constructor(
 
                 return@withContext when (val result =
                     rawCommandResult.checkAndWrapCommandResultType<SignUpSubmitPasswordCommandResult>()) {
-                    is SignUpCommandResult.InvalidPassword -> {
-                        SignUpResult.InvalidPassword(
-                            InvalidPasswordError(
-                                error = result.error,
-                                errorMessage = result.errorDescription,
-                                correlationId = result.correlationId
+                    is SignUpCommandResult.Complete -> {
+                        SignUpResult.Complete(
+                            nextState = SignInAfterSignUpState(
+                                signInVerificationCode = result.signInSLT,
+                                username = username,
+                                config = config
                             )
                         )
                     }
@@ -383,21 +361,21 @@ class SignUpPasswordRequiredState internal constructor(
                         )
                     }
 
-                    is SignUpCommandResult.Complete -> {
-                        SignUpResult.Complete(
-                            nextState = SignInAfterSignUpState(
-                                signInVerificationCode = result.signInSLT,
-                                username = username,
-                                config = config
-                            )
+                    is SignUpCommandResult.InvalidPassword -> {
+                        SignUpSubmitPasswordError(
+                            errorType = ErrorTypes.INVALID_PASSWORD,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
                         )
                     }
 
                     is INativeAuthCommandResult.Redirect -> {
-                        SignUpResult.BrowserRequired(
-                            error = BrowserRequiredError(
-                                correlationId = result.correlationId
-                            )
+                        SignUpSubmitPasswordError(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
                         )
                     }
 
@@ -407,12 +385,10 @@ class SignUpPasswordRequiredState internal constructor(
                             TAG,
                             "Unexpected result: $result"
                         )
-                        SignUpResult.UnexpectedError(
-                            error = GeneralError(
-                                errorMessage = result.errorDescription,
-                                error = result.error,
-                                correlationId = result.correlationId
-                            )
+                        SignUpSubmitPasswordError(
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
                         )
                     }
 
@@ -422,12 +398,10 @@ class SignUpPasswordRequiredState internal constructor(
                             TAG,
                             "Unexpected result: $result"
                         )
-                        SignUpResult.UnexpectedError(
-                            error = GeneralError(
-                                errorMessage = result.errorDescription,
-                                error = result.error,
-                                correlationId = result.correlationId
-                            )
+                        SignUpSubmitPasswordError(
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
                         )
                     }
 
@@ -436,14 +410,11 @@ class SignUpPasswordRequiredState internal constructor(
                             TAG,
                             "Unexpected result: $result"
                         )
-                        SignUpResult.UnexpectedError(
-                            error = GeneralError(
-                                errorMessage = result.errorDescription,
-                                error = result.error,
-                                correlationId = result.correlationId,
-                                details = result.details,
-                                exception = result.exception
-                            )
+                        SignUpSubmitPasswordError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId,
+                            exception = result.exception
                         )
                     }
                 }
@@ -454,14 +425,6 @@ class SignUpPasswordRequiredState internal constructor(
     }
 }
 
-/**
- * Native Auth uses a state machine to denote state and transitions for a user.
- * SignUpAttributesRequiredState class represents a state where the user has to provide signup
- * attributes to progress in the signup flow.
- * @property flowToken: Flow token to be passed in the next request
- * @property username: Email address of the user
- * @property config Configuration used by Native Auth
- */
 class SignUpAttributesRequiredState internal constructor(
     override val flowToken: String,
     private val username: String,
@@ -521,16 +484,6 @@ class SignUpAttributesRequiredState internal constructor(
             val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
 
             return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<SignUpSubmitUserAttributesCommandResult>()) {
-                is SignUpCommandResult.InvalidAttributes -> {
-                    SignUpResult.InvalidAttributes(
-                        error = InvalidAttributesError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId
-                        ),
-                        invalidAttributes = result.invalidAttributes
-                    )
-                }
                 is SignUpCommandResult.AttributesRequired -> {
                     SignUpResult.AttributesRequired(
                         nextState = SignUpAttributesRequiredState(
@@ -550,11 +503,20 @@ class SignUpAttributesRequiredState internal constructor(
                         )
                     )
                 }
+                is SignUpCommandResult.InvalidAttributes -> {
+                    SignUpSubmitAttributesError(
+                        errorType = SignUpErrorTypes.INVALID_ATTRIBUTES,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId
+                    )
+                }
                 is INativeAuthCommandResult.Redirect -> {
-                    SignUpResult.BrowserRequired(
-                        error = BrowserRequiredError(
-                            correlationId = result.correlationId
-                        )
+                    SignUpSubmitAttributesError(
+                        errorType = ErrorTypes.BROWSER_REQUIRED,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId
                     )
                 }
                 // This should be caught earlier in the flow, so throwing UnexpectedError
@@ -563,12 +525,10 @@ class SignUpAttributesRequiredState internal constructor(
                         TAG,
                         "Unexpected result: $result"
                     )
-                    SignUpResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId
-                        )
+                    SignUpSubmitAttributesError(
+                        errorMessage = result.errorDescription,
+                        error = result.error,
+                        correlationId = result.correlationId
                     )
                 }
                 is INativeAuthCommandResult.UnknownError -> {
@@ -576,14 +536,11 @@ class SignUpAttributesRequiredState internal constructor(
                         TAG,
                         "Unexpected result: $result"
                     )
-                    SignUpResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId,
-                            details = result.details,
-                            exception = result.exception
-                        )
+                    SignUpSubmitAttributesError(
+                        errorMessage = result.errorDescription,
+                        error = result.error,
+                        correlationId = result.correlationId,
+                        exception = result.exception
                     )
                 }
             }
@@ -591,14 +548,6 @@ class SignUpAttributesRequiredState internal constructor(
     }
 }
 
-/**
- * Native Auth uses a state machine to denote state and transitions for a user.
- * SignInAfterSignUpState class represents a state where the user must signin after successful
- * signup flow.
- * @property signInVerificationCode: Token to be passed in the next request
- * @property username: Email address of the user
- * @property config Configuration used by Native Auth
- */
 class SignInAfterSignUpState internal constructor(
     override val signInVerificationCode: String?,
     override val username: String,

@@ -27,18 +27,14 @@ import android.content.Context
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
-import com.microsoft.identity.client.statemachine.BrowserRequiredError
 import com.microsoft.identity.client.statemachine.ErrorTypes
-import com.microsoft.identity.client.statemachine.GeneralError
-import com.microsoft.identity.client.statemachine.InvalidAttributesError
-import com.microsoft.identity.client.statemachine.InvalidEmailError
-import com.microsoft.identity.client.statemachine.InvalidPasswordError
+import com.microsoft.identity.client.statemachine.ResetPasswordError
 import com.microsoft.identity.client.statemachine.SignInError
 import com.microsoft.identity.client.statemachine.SignInErrorTypes
 import com.microsoft.identity.client.statemachine.SignInUsingPasswordError
-import com.microsoft.identity.client.statemachine.UserAlreadyExistsError
-import com.microsoft.identity.client.statemachine.UserNotFoundError
-import com.microsoft.identity.client.statemachine.results.ResetPasswordResult
+import com.microsoft.identity.client.statemachine.SignUpError
+import com.microsoft.identity.client.statemachine.SignUpErrorTypes
+import com.microsoft.identity.client.statemachine.SignUpUsingPasswordError
 import com.microsoft.identity.client.statemachine.results.ResetPasswordStartResult
 import com.microsoft.identity.client.statemachine.results.SignInResult
 import com.microsoft.identity.client.statemachine.results.SignInUsingPasswordResult
@@ -337,7 +333,7 @@ class NativeAuthPublicClientApplication(
                 }
                 is SignInCommandResult.UserNotFound -> {
                     SignInError(
-                        errorType = ErrorTypes.user_not_found,
+                        errorType = ErrorTypes.USER_NOT_FOUND,
                         errorMessage = result.errorDescription,
                         error = result.error,
                         correlationId = result.correlationId,
@@ -357,11 +353,10 @@ class NativeAuthPublicClientApplication(
                     )
                 }
                 is INativeAuthCommandResult.Redirect -> {
-                    // TODO Remove quotes and update msal-common submodule reference when this PR is merged https://identitydivision.visualstudio.com/DefaultCollection/Engineering/_git/devexdub-android-msal-common-native-auth-private-clone/pullrequest/10635
                     SignInError(
-                        errorType = ErrorTypes.browser_required,
-                        errorMessage = "result.errorDescription",
-                        error = "result.error",
+                        errorType = ErrorTypes.BROWSER_REQUIRED,
+                        errorMessage = result.errorDescription,
+                        error = result.error,
                         correlationId = result.correlationId
                     )
                 }
@@ -490,7 +485,7 @@ class NativeAuthPublicClientApplication(
                     }
                     is SignInCommandResult.UserNotFound -> {
                         SignInUsingPasswordError(
-                            errorType = ErrorTypes.user_not_found,
+                            errorType = ErrorTypes.USER_NOT_FOUND,
                             errorMessage = result.errorDescription,
                             error = result.error,
                             correlationId = result.correlationId,
@@ -499,7 +494,7 @@ class NativeAuthPublicClientApplication(
                     }
                     is SignInCommandResult.InvalidCredentials -> {
                         SignInUsingPasswordError(
-                            errorType = SignInErrorTypes.invalid_credentials,
+                            errorType = SignInErrorTypes.INVALID_CREDENTIALS,
                             errorMessage = result.errorDescription,
                             error = result.error,
                             correlationId = result.correlationId,
@@ -507,11 +502,10 @@ class NativeAuthPublicClientApplication(
                         )
                     }
                     is INativeAuthCommandResult.Redirect -> {
-                        // TODO Remove quotes and update msal-common submodule reference when this PR is merged https://identitydivision.visualstudio.com/DefaultCollection/Engineering/_git/devexdub-android-msal-common-native-auth-private-clone/pullrequest/10635
                         SignInUsingPasswordError(
-                            errorType = ErrorTypes.browser_required,
-                            errorMessage = "result.errorDescription",
-                            error = "result.error",
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            errorMessage = result.errorDescription,
+                            error = result.error,
                             correlationId = result.correlationId
                         )
                     }
@@ -606,22 +600,12 @@ class NativeAuthPublicClientApplication(
 
                 return@withContext when (val result =
                     rawCommandResult.checkAndWrapCommandResultType<SignUpStartCommandResult>()) {
-                    is SignUpCommandResult.AuthNotSupported -> {
-                        SignUpUsingPasswordResult.AuthNotSupported(
-                            error = GeneralError(
-                                errorMessage = result.errorDescription,
-                                error = result.error,
-                                correlationId = result.correlationId
-                            )
-                        )
-                    }
-
-                    is SignUpCommandResult.InvalidPassword -> {
-                        SignUpResult.InvalidPassword(
-                            InvalidPasswordError(
-                                error = result.error,
-                                errorMessage = result.errorDescription,
-                                correlationId = result.correlationId
+                    is SignUpCommandResult.Complete -> {
+                        SignUpResult.Complete(
+                            nextState = SignInAfterSignUpState(
+                                signInVerificationCode = result.signInSLT,
+                                username = username,
+                                config = nativeAuthConfig
                             )
                         )
                     }
@@ -650,64 +634,66 @@ class NativeAuthPublicClientApplication(
                         )
                     }
 
+                    is SignUpCommandResult.AuthNotSupported -> {
+                        SignUpUsingPasswordError(
+                            errorType = SignUpErrorTypes.AUTH_NOT_SUPPORTED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
+                        )
+                    }
+
+                    is SignUpCommandResult.InvalidPassword -> {
+                        SignUpUsingPasswordError(
+                            errorType = ErrorTypes.INVALID_PASSWORD,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
+                        )
+                    }
+
                     is SignUpCommandResult.UsernameAlreadyExists -> {
-                        SignUpResult.UserAlreadyExists(
-                            error = UserAlreadyExistsError(
-                                errorMessage = result.errorDescription,
-                                error = result.error,
-                                correlationId = result.correlationId
-                            )
+                        SignUpUsingPasswordError(
+                            errorType = SignUpErrorTypes.USER_ALREADY_EXISTS,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
                         )
                     }
 
                     is SignUpCommandResult.InvalidEmail -> {
-                        SignUpResult.InvalidEmail(
-                            error = InvalidEmailError(
-                                errorMessage = result.errorDescription,
-                                error = result.error,
-                                correlationId = result.correlationId
-                            )
+                        SignUpUsingPasswordError(
+                            errorType = SignUpErrorTypes.INVALID_USERNAME,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
                         )
                     }
 
                     is SignUpCommandResult.InvalidAttributes -> {
-                        SignUpResult.InvalidAttributes(
-                            error = InvalidAttributesError(
-                                errorMessage = result.errorDescription,
-                                error = result.error,
-                                correlationId = result.correlationId
-                            ),
-                            invalidAttributes = result.invalidAttributes
-                        )
-                    }
-
-                    is SignUpCommandResult.Complete -> {
-                        SignUpResult.Complete(
-                            nextState = SignInAfterSignUpState(
-                                signInVerificationCode = result.signInSLT,
-                                username = username,
-                                config = nativeAuthConfig
-                            )
+                        SignUpUsingPasswordError(
+                            errorType = SignUpErrorTypes.INVALID_ATTRIBUTES,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
                         )
                     }
 
                     is INativeAuthCommandResult.Redirect -> {
-                        SignUpResult.BrowserRequired(
-                            error = BrowserRequiredError(
-                                correlationId = result.correlationId
-                            )
+                        SignUpUsingPasswordError(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
                         )
                     }
 
                     is INativeAuthCommandResult.UnknownError -> {
-                        SignUpResult.UnexpectedError(
-                            error = GeneralError(
-                                errorMessage = result.errorDescription,
-                                error = result.error,
-                                correlationId = result.correlationId,
-                                details = result.details,
-                                exception = result.exception
-                            )
+                        SignUpUsingPasswordError(
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            exception = result.exception
                         )
                     }
 
@@ -716,13 +702,12 @@ class NativeAuthPublicClientApplication(
                             TAG,
                             "Unexpected result $result"
                         )
-                        SignUpResult.UnexpectedError(
-                            error = GeneralError(
-                                errorMessage = "Unexpected state",
-                                error = "unexpected_state",
-                                correlationId = "UNSET"
-                            )
+                        SignUpUsingPasswordError(
+                            errorMessage = "Unexpected state",
+                            error = "unexpected_state",
+                            correlationId = "UNSET"
                         )
+
                     }
                 }
             } finally {
@@ -799,6 +784,16 @@ class NativeAuthPublicClientApplication(
             val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
 
             return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<SignUpStartCommandResult>()) {
+                is SignUpCommandResult.Complete -> {
+                    SignUpResult.Complete(
+                        nextState = SignInAfterSignUpState(
+                            signInVerificationCode = result.signInSLT,
+                            username = username,
+                            config = nativeAuthConfig
+                        )
+                    )
+                }
+
                 is SignUpCommandResult.AttributesRequired -> {
                     SignUpResult.AttributesRequired(
                         nextState = SignUpAttributesRequiredState(
@@ -823,37 +818,6 @@ class NativeAuthPublicClientApplication(
                     )
                 }
 
-                is SignUpCommandResult.UsernameAlreadyExists -> {
-                    SignUpResult.UserAlreadyExists(
-                        error = UserAlreadyExistsError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId
-                        )
-                    )
-                }
-
-                is SignUpCommandResult.InvalidEmail -> {
-                    SignUpResult.InvalidEmail(
-                        error = InvalidEmailError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId
-                        )
-                    )
-                }
-
-                is SignUpCommandResult.InvalidAttributes -> {
-                    SignUpResult.InvalidAttributes(
-                        error = InvalidAttributesError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId
-                        ),
-                        invalidAttributes = result.invalidAttributes
-                    )
-                }
-
                 is SignUpCommandResult.PasswordRequired -> {
                     SignUpResult.PasswordRequired(
                         nextState = SignUpPasswordRequiredState(
@@ -864,33 +828,48 @@ class NativeAuthPublicClientApplication(
                     )
                 }
 
-                is SignUpCommandResult.Complete -> {
-                    SignUpResult.Complete(
-                        nextState = SignInAfterSignUpState(
-                            signInVerificationCode = result.signInSLT,
-                            username = username,
-                            config = nativeAuthConfig
-                        )
+                is SignUpCommandResult.UsernameAlreadyExists -> {
+                    SignUpError(
+                        errorType = SignUpErrorTypes.USER_ALREADY_EXISTS,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId
+                    )
+                }
+
+                is SignUpCommandResult.InvalidEmail -> {
+                    SignUpError(
+                        errorType = SignUpErrorTypes.INVALID_USERNAME,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId
+                    )
+                }
+
+                is SignUpCommandResult.InvalidAttributes -> {
+                    SignUpError(
+                        errorType = SignUpErrorTypes.INVALID_ATTRIBUTES,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId
                     )
                 }
 
                 is INativeAuthCommandResult.Redirect -> {
-                    SignUpResult.BrowserRequired(
-                        error = BrowserRequiredError(
-                            correlationId = result.correlationId
-                        )
+                    SignUpError(
+                        errorType = ErrorTypes.BROWSER_REQUIRED,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId
                     )
                 }
 
                 is INativeAuthCommandResult.UnknownError -> {
-                    SignUpResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId,
-                            details = result.details,
-                            exception = result.exception
-                        )
+                    SignUpError(
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId,
+                        exception = result.exception
                     )
                 }
 
@@ -899,12 +878,10 @@ class NativeAuthPublicClientApplication(
                         TAG,
                         "Unexpected result $result"
                     )
-                    SignUpResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = "Unexpected state",
-                            error = "unexpected_state",
-                            correlationId = result.correlationId
-                        )
+                    SignUpError(
+                        error = "unexpected_state",
+                        errorMessage = "Unexpected state",
+                        correlationId = result.correlationId,
                     )
                 }
 
@@ -913,12 +890,10 @@ class NativeAuthPublicClientApplication(
                         TAG,
                         "Unexpected result $result"
                     )
-                    SignUpResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = "Unexpected state",
-                            error = "unexpected_state",
-                            correlationId = result.correlationId
-                        )
+                    SignUpError(
+                        error = "unexpected_state",
+                        errorMessage = "Unexpected state",
+                        correlationId = result.correlationId,
                     )
                 }
             }
@@ -995,32 +970,29 @@ class NativeAuthPublicClientApplication(
                 }
 
                 is ResetPasswordCommandResult.UserNotFound -> {
-                    ResetPasswordStartResult.UserNotFound(
-                        error = UserNotFoundError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId
-                        )
+                    ResetPasswordError(
+                        errorType = ErrorTypes.USER_NOT_FOUND,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId
                     )
                 }
 
                 is INativeAuthCommandResult.UnknownError -> {
-                    ResetPasswordResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId,
-                            details = result.details,
-                            exception = result.exception
-                        )
+                    ResetPasswordError(
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId,
+                        exception = result.exception
                     )
                 }
 
                 is INativeAuthCommandResult.Redirect -> {
-                    ResetPasswordResult.BrowserRequired(
-                        error = BrowserRequiredError(
-                            correlationId = result.correlationId
-                        )
+                    ResetPasswordError(
+                        errorType = ErrorTypes.BROWSER_REQUIRED,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId
                     )
                 }
 
@@ -1029,12 +1001,10 @@ class NativeAuthPublicClientApplication(
                         TAG,
                         "Unexpected result $result",
                     )
-                    ResetPasswordResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = "Unexpected state",
-                            error = "unexpected_state",
-                            correlationId = result.correlationId
-                        )
+                    ResetPasswordError(
+                        error = "unexpected_state",
+                        errorMessage = "Unexpected state",
+                        correlationId = result.correlationId,
                     )
                 }
 
@@ -1043,12 +1013,10 @@ class NativeAuthPublicClientApplication(
                         TAG,
                         "Unexpected result $result"
                     )
-                    ResetPasswordResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = "Unexpected state",
-                            error = "unexpected_state",
-                            correlationId = result.correlationId
-                        )
+                    ResetPasswordError(
+                        error = "unexpected_state",
+                        errorMessage = "Unexpected state",
+                        correlationId = result.correlationId,
                     )
                 }
             }

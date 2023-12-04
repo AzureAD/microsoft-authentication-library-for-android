@@ -23,16 +23,17 @@
 
 package com.microsoft.identity.client.statemachine.results
 
-import com.microsoft.identity.client.statemachine.BrowserRequiredError
-import com.microsoft.identity.client.statemachine.GeneralError
-import com.microsoft.identity.client.statemachine.IncorrectCodeError
-import com.microsoft.identity.client.statemachine.InvalidPasswordError
-import com.microsoft.identity.client.statemachine.UserNotFoundError
 import com.microsoft.identity.client.statemachine.states.ResetPasswordCodeRequiredState
 import com.microsoft.identity.client.statemachine.states.ResetPasswordPasswordRequiredState
 
 /**
+ * Results for native Self-service password reset flows.
+ * TODO add documentation & links to learn.microsoft.com
+ */
+
+/**
  * Self-service password reset.
+ * Documentation: https://github.com/microsoft/entra-previews-internal/blob/main/PP4/docs/Native-Auth/Developer-guides/0-Android-Kotlin/3-additional-scenarios/4-self-service-password-reset.md
  */
 interface ResetPasswordResult : Result {
     /**
@@ -45,35 +46,6 @@ interface ResetPasswordResult : Result {
         Result.CompleteResult(resultValue = null),
         ResetPasswordResult,
         ResetPasswordSubmitPasswordResult
-
-    /**
-     * BrowserRequired ErrorResult, which indicates that the server requires more/different authentication mechanisms than the client is configured or able to provide.
-     * The flow should be restarted with a browser, by calling [com.microsoft.identity.client.IPublicClientApplication.acquireToken]
-     *
-     * @param error [com.microsoft.identity.client.statemachine.BrowserRequiredError]
-     */
-    class BrowserRequired(
-        override val error: BrowserRequiredError
-    ) : Result.ErrorResult(error = error),
-        ResetPasswordResult,
-        ResetPasswordStartResult,
-        ResetPasswordSubmitCodeResult,
-        ResetPasswordSubmitPasswordResult,
-        ResetPasswordResendCodeResult
-
-    /**
-     * UnexpectedError ErrorResult is a general error wrapper which indicates an unexpected error occurred during the flow.
-     * If this occurs, the flow should be restarted.
-     *
-     * @param error [com.microsoft.identity.client.statemachine.Error]
-     */
-    class UnexpectedError(override val error: com.microsoft.identity.client.statemachine.Error) :
-        Result.ErrorResult(error = error),
-        ResetPasswordResult,
-        ResetPasswordStartResult,
-        ResetPasswordSubmitCodeResult,
-        ResetPasswordSubmitPasswordResult,
-        ResetPasswordResendCodeResult
 }
 
 /**
@@ -95,16 +67,6 @@ interface ResetPasswordStartResult : Result {
         val sentTo: String,
         val channel: String,
     ) : ResetPasswordStartResult, Result.SuccessResult(nextState = nextState)
-
-    /**
-     * UserNotFound ErrorResult, which indicates there was no account found with the provided email.
-     * The flow should be restarted.
-     *
-     * @param error [com.microsoft.identity.client.statemachine.UserNotFoundError] the current state of the flow with follow-on methods.
-     */
-    class UserNotFound(
-        override val error: UserNotFoundError
-    ) : ResetPasswordStartResult, Result.ErrorResult(error = error)
 }
 
 /**
@@ -120,16 +82,6 @@ interface ResetPasswordSubmitCodeResult : Result {
     class PasswordRequired(
         override val nextState: ResetPasswordPasswordRequiredState
     ) : ResetPasswordSubmitCodeResult, Result.SuccessResult(nextState = nextState)
-
-    /**
-     * CodeIncorrect ErrorResult, which indicates the verification code provided by user is incorrect.
-     * The code should be re-submitted.
-     *
-     * @param error [com.microsoft.identity.client.statemachine.IncorrectCodeError]
-     */
-    class CodeIncorrect(
-        override val error: IncorrectCodeError
-    ) : ResetPasswordSubmitCodeResult, Result.ErrorResult(error = error)
 }
 
 /**
@@ -158,21 +110,4 @@ interface ResetPasswordResendCodeResult : Result {
  * [com.microsoft.identity.client.statemachine.states.ResetPasswordPasswordRequiredState.submitPassword]
  */
 interface ResetPasswordSubmitPasswordResult : Result {
-    /**
-     * InvalidPassword ErrorResult, which indicates the new password provided by the user is not acceptable to the server.
-     * The password should be re-submitted.
-     *
-     * @param error [com.microsoft.identity.client.statemachine.InvalidPasswordError]
-     */
-    class InvalidPassword(
-        override val error: InvalidPasswordError
-    ) : ResetPasswordSubmitPasswordResult, Result.ErrorResult(error = error)
-    /**
-     * PasswordResetFailed ErrorResult, which indicates the password reset flow failed.
-     *
-     * @param error [com.microsoft.identity.client.statemachine.GeneralError]
-     */
-    class PasswordResetFailed(
-        override val error: GeneralError
-    ) : ResetPasswordSubmitPasswordResult, Result.ErrorResult(error = error)
 }

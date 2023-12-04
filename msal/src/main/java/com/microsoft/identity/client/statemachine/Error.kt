@@ -30,17 +30,46 @@ import com.microsoft.identity.client.statemachine.results.SignInSubmitCodeResult
 import com.microsoft.identity.client.statemachine.results.SignUpResendCodeResult
 import com.microsoft.identity.client.statemachine.results.SignUpSubmitCodeResult
 
-class ErrorTypes () {
+/**
+ * ErrorTypes class holds the possible error type values that are shared between the errors
+ * returned from each flow.
+ */
+internal class ErrorTypes () {
     companion object {
-        const val browser_required = "browser_required"
-        const val code_incorrect = "code_incorrect"
-        const val user_not_found = "user_not_found"
+        /*
+         * The BROWSER_REQUIRED value indicates that the server requires more/different authentication mechanisms than the client is configured to provide.
+         * The flow should be restarted with a browser, by calling [com.microsoft.identity.client.IPublicClientApplication.acquireToken]
+         */
+        const val BROWSER_REQUIRED = "browser_required"
+
+        /*
+         * The INVALID_CODE value indicates the verification code provided by user is incorrect.
+         * The code should be re-submitted.
+         */
+        const val INVALID_CODE = "invalid_code"
+
+        /*
+         * The USER_NOT_FOUND value indicates there was no account found with the provided email.
+         * The flow should be restarted.
+         */
+        const val USER_NOT_FOUND = "user_not_found"
+
+        /*
+         * The INVALID_PASSWORD value indicates the new password provided by the user was not accepted by the server.
+         * The password should be re-submitted.
+         */
+        const val INVALID_PASSWORD = "invalid_password"
     }
 }
 
 /**
  * Error is a base class for all errors present in the Native Auth.
- * This file will be refactored as part of https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2730354
+ * @param errorType the error type value of the error that occurred
+ * @param error the error returned by the authentication server.
+ * @param errorMessage the error message returned by the authentication server.
+ * @param correlationId a unique identifier for the request that can help in diagnostics.
+ * @param errorCodes a list of specific error codes returned by the authentication server.
+ * @param exception an internal unexpected exception that happened.
  */
 sealed class Error(
     open val errorType: String? = null,
@@ -50,110 +79,55 @@ sealed class Error(
     open var exception: Exception? = null,
     open val errorCodes: List<Int>? = null
 ) {
-    fun isBrowserRequired(): Boolean = this.errorType == ErrorTypes.browser_required
+    internal fun setErrorType(errorType: String) = this.errorType == errorType
+    fun isBrowserRequired(): Boolean = this.errorType == ErrorTypes.BROWSER_REQUIRED
 }
 
+/**
+ * SubmitCodeError Error, which indicates that an error occurred when the verification code
+ * was submitted by the user. The user should use the utility methods of this class
+ * to identify and handle the error. This error is produced by
+ * [com.microsoft.identity.client.statemachine.states.SignInCodeRequiredState.submitCode],
+ * [com.microsoft.identity.client.statemachine.states.SignUpCodeRequiredState.submitCode],
+ * [com.microsoft.identity.client.statemachine.states.ResetPasswordCodeRequiredState.submitCode]
+ * @param errorType the error type value of the error that occurred
+ * @param error the error returned by the authentication server.
+ * @param errorMessage the error message returned by the authentication server.
+ * @param correlationId a unique identifier for the request that can help in diagnostics.
+ * @param errorCodes a list of specific error codes returned by the authentication server.
+ * @param exception an internal unexpected exception that happened.
+ */
 class SubmitCodeError(
     override val errorType: String? = null,
     override val error: String? = null,
     override val errorMessage: String?,
     override val correlationId: String,
-    override  val errorCodes: List<Int>? = null,
+    override val errorCodes: List<Int>? = null,
     override var exception: Exception? = null
 ): SignInSubmitCodeResult, SignUpSubmitCodeResult, ResetPasswordSubmitCodeResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception)
 {
-    fun isCodeIncorrect(): Boolean = this.errorType == ErrorTypes.code_incorrect
+    fun isInvalidCode(): Boolean = this.errorType == ErrorTypes.INVALID_CODE
 }
 
+/**
+ * ResendCodeError Error, which indicates that an error occurred when a new verification code
+ * was requested by the user. The user should use the utility methods of this class
+ * to identify and handle the error. This error is produced by
+ * [com.microsoft.identity.client.statemachine.states.SignInCodeRequiredState.resendCode],
+ * [com.microsoft.identity.client.statemachine.states.SignUpCodeRequiredState.resendCode],
+ * [com.microsoft.identity.client.statemachine.states.ResetPasswordCodeRequiredState.resendCode]
+ * @param errorType the error type value of the error that occurred
+ * @param error the error returned by the authentication server.
+ * @param errorMessage the error message returned by the authentication server.
+ * @param correlationId a unique identifier for the request that can help in diagnostics.
+ * @param errorCodes a list of specific error codes returned by the authentication server.
+ * @param exception an internal unexpected exception that happened.
+ */
 class ResendCodeError(
     override val errorType: String? = null,
     override val error: String? = null,
     override val errorMessage: String?,
     override val correlationId: String,
-    override  val errorCodes: List<Int>? = null,
-    override var exception: Exception? = null
-): SignInResendCodeResult, SignUpResendCodeResult, ResetPasswordResendCodeResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception)
-
-
-/**
- * GeneralError is a base class for all errors present in the Native Auth.
- */
-class GeneralError(
-    override var error: String? = null,
-    override val errorMessage: String? = "An unexpected error happened",
-    override val correlationId: String,
-    val details: List<Map<String, String>>? = null,
     override val errorCodes: List<Int>? = null,
     override var exception: Exception? = null
-) : Error(errorMessage = errorMessage, error = error, correlationId = correlationId, exception = exception)
-
-/**
- * BrowserRequiredError occurs when authentication cannot be performed via means of Native Auth and
- * a redirect via browser is required.
- */
-class BrowserRequiredError(
-    override var error: String? = null,
-    override val errorMessage: String = "The client's authentication capabilities are insufficient. Please redirect to the browser to complete authentication",
-    override val correlationId: String
-) : Error(errorMessage = errorMessage, error = error, correlationId = correlationId)
-
-/**
- * IncorrectCodeError occurs when the user has provided incorrect code for out of band authentication.
- */
-class IncorrectCodeError(
-    override var error: String? = null,
-    override val errorMessage: String,
-    override val correlationId: String,
-    override val errorCodes: List<Int>? = null
-) : Error(errorMessage = errorMessage, error = error, correlationId = correlationId, errorCodes = errorCodes)
-
-/**
- * UserNotFoundError occurs when the user could not be located in the given the username. The authentication
- * using signin and password reset APIs will throw this error.
- */
-class UserNotFoundError(
-    override var error: String? = null,
-    override val errorMessage: String,
-    override val correlationId: String,
-    override val errorCodes: List<Int>? = null
-) : Error(errorMessage = errorMessage, error = error, correlationId = correlationId, errorCodes = errorCodes)
-
-/**
- * UserAlreadyExistsError has used a username to create an exists for which there is a pre-existing
- * account.
- */
-class UserAlreadyExistsError(
-    override var error: String? = null,
-    override val errorMessage: String,
-    override val correlationId: String
-) : Error(errorMessage = errorMessage, error = error, correlationId = correlationId)
-
-/**
- * InvalidPasswordError is seen in Signup process when a user provides a password that does not
- * match policies set by the server.
- */
-class InvalidPasswordError(
-    override var error: String? = null,
-    override val errorMessage: String,
-    override val correlationId: String
-) : Error(errorMessage = errorMessage, error = error, correlationId = correlationId)
-
-/**
- * InvalidPasswordError is seen in Signup process when a user provides a email address that is not
- * acceptable by the server.
- */
-class InvalidEmailError(
-    override var error: String? = null,
-    override val errorMessage: String,
-    override val correlationId: String
-) : Error(errorMessage = errorMessage, error = error, correlationId = correlationId)
-
-/**
- * InvalidAttributesError is seen in Signup process when a user provides attributes that are not
- * acceptable by the server.
- */
-class InvalidAttributesError(
-    override var error: String? = null,
-    override val errorMessage: String,
-    override val correlationId: String
-) : Error(errorMessage = errorMessage, error = error, correlationId = correlationId)
+): SignInResendCodeResult, SignUpResendCodeResult, ResetPasswordResendCodeResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception)

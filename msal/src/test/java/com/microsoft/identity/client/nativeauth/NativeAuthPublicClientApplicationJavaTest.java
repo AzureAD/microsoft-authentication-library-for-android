@@ -36,8 +36,13 @@ import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTe
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.statemachine.ResetPasswordError;
+import com.microsoft.identity.client.statemachine.ResetPasswordSubmitPasswordError;
 import com.microsoft.identity.client.statemachine.SignInError;
 import com.microsoft.identity.client.statemachine.SignInUsingPasswordError;
+import com.microsoft.identity.client.statemachine.SignUpError;
+import com.microsoft.identity.client.statemachine.SignUpSubmitAttributesError;
+import com.microsoft.identity.client.statemachine.SignUpUsingPasswordError;
 import com.microsoft.identity.client.statemachine.SubmitCodeError;
 import com.microsoft.identity.client.statemachine.results.ResetPasswordResendCodeResult;
 import com.microsoft.identity.client.statemachine.results.ResetPasswordResult;
@@ -417,7 +422,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         assertTrue(result instanceof SubmitCodeError);
 
         SubmitCodeError error = (SubmitCodeError)result;
-        assertTrue(error.isCodeIncorrect());
+        assertTrue(error.isInvalidCode());
 
         // 3. Submit (valid) code
         // 3a. Setup server response
@@ -1180,7 +1185,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         SubmitCodeNextState.submitPassword(password, submitPasswordCallback1);
         // 3b. Transform /submit(success) +/poll_completion(success) to Result(Complete).
         ResetPasswordSubmitPasswordResult submitPasswordResult1 = submitPasswordCallback1.get();
-        assertTrue(submitPasswordResult1 instanceof ResetPasswordSubmitPasswordResult.InvalidPassword);
+        assertTrue(submitPasswordResult1 instanceof ResetPasswordSubmitPasswordError && ((ResetPasswordSubmitPasswordError) submitPasswordResult1).isInvalidPassword());
 
         // 4. Submit valid password
         // 4_mock_api. Setup server response - endpoint: resetpassword/submit - Server returns Success
@@ -1320,7 +1325,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         application.resetPassword(username, resetPasswordCallback);
         // 1b. Transform /start(error) to Result(UserNotFound)
         ResetPasswordStartResult resetPasswordResult = resetPasswordCallback.get();
-        assertTrue(resetPasswordResult instanceof ResetPasswordStartResult.UserNotFound);
+        assertTrue(resetPasswordResult instanceof ResetPasswordError && ((ResetPasswordError) resetPasswordResult).isUserNotFound());
     }
 
     /**
@@ -1344,7 +1349,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         application.resetPassword(username, resetPasswordCallback);
         // 1b. Transform /start(error) to Result(UserNotFound)
         ResetPasswordStartResult resetPasswordResult = resetPasswordCallback.get();
-        assertTrue(resetPasswordResult instanceof ResetPasswordResult.BrowserRequired);
+        assertTrue(resetPasswordResult instanceof ResetPasswordError && ((ResetPasswordError) resetPasswordResult).isBrowserRequired());
     }
 
     /**
@@ -1367,7 +1372,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         application.resetPassword(username, resetPasswordCallback);
         // 1b. Transform /start(error) to Result(UserNotFound)
         ResetPasswordStartResult resetPasswordResult = resetPasswordCallback.get();
-        assertTrue(resetPasswordResult instanceof ResetPasswordResult.UnexpectedError);
+        assertTrue(resetPasswordResult instanceof ResetPasswordError && ((ResetPasswordError) resetPasswordResult).getErrorType() == null);
     }
 
     /**
@@ -1420,7 +1425,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         nextState.submitCode(code, submitCodeCallback1);
         // 2b. Transform /continue(success) to Result(PasswordRequired).
         ResetPasswordSubmitCodeResult submitCodeResult = submitCodeCallback1.get();
-        assertTrue(submitCodeResult instanceof ResetPasswordSubmitCodeResult.CodeIncorrect);
+        assertTrue(submitCodeResult instanceof SubmitCodeError && ((SubmitCodeError) submitCodeResult).isInvalidCode());
 
         // 3. Submit valid code
         // 3_mock_api. Setup server response - endpoint: resetpassowrd/continue - Server returns Success
@@ -1486,7 +1491,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         application.resetPassword(emptyString, resetPasswordStartTestCallback);
         ResetPasswordStartResult resetPasswordResult = resetPasswordStartTestCallback.get();
 
-        assertTrue(resetPasswordResult instanceof ResetPasswordResult.UnexpectedError);
+        assertTrue(resetPasswordResult instanceof ResetPasswordError && ((ResetPasswordError) resetPasswordResult).getErrorType() == null);
     }
 
     // Helper methods
@@ -1698,7 +1703,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         final SignUpCodeRequiredTestCallback codeRequiredCallback = new SignUpCodeRequiredTestCallback();
 
         codeRequiredState.submitCode(code, codeRequiredCallback);
-        assertTrue(codeRequiredCallback.get() instanceof SignUpResult.UnexpectedError);
+        assertTrue(codeRequiredCallback.get() instanceof SubmitCodeError && ((SubmitCodeError) codeRequiredCallback.get()).getErrorType() == null);
     }
 
     /**
@@ -1720,7 +1725,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         SignUpUsingPasswordTestCallback signUpUsingPasswordTestCallback = new SignUpUsingPasswordTestCallback();
         application.signUpUsingPassword(username, password, null, signUpUsingPasswordTestCallback);
 
-        assertTrue(signUpUsingPasswordTestCallback.get() instanceof SignUpResult.BrowserRequired);
+        assertTrue(signUpUsingPasswordTestCallback.get() instanceof SignUpUsingPasswordError && ((SignUpUsingPasswordError) signUpUsingPasswordTestCallback.get()).isBrowserRequired());
     }
 
     /**
@@ -1742,7 +1747,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         SignUpUsingPasswordTestCallback signUpUsingPasswordTestCallback = new SignUpUsingPasswordTestCallback();
         application.signUpUsingPassword(username, password, null, signUpUsingPasswordTestCallback);
 
-        assertTrue(signUpUsingPasswordTestCallback.get() instanceof SignUpUsingPasswordResult.AuthNotSupported);
+        assertTrue(signUpUsingPasswordTestCallback.get() instanceof SignUpUsingPasswordError && ((SignUpUsingPasswordError) signUpUsingPasswordTestCallback.get()).isAuthNotSupported());
     }
 
     /**
@@ -1817,7 +1822,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         attributesRequiredState.submitAttributes(invalidAttributes, failedUserAttributesCallback);
         SignUpSubmitAttributesResult attributesFailedResult = failedUserAttributesCallback.get();
 
-        assertTrue(attributesFailedResult instanceof SignUpResult.InvalidAttributes);
+        assertTrue(attributesFailedResult instanceof SignUpSubmitAttributesError && ((SignUpSubmitAttributesError) attributesFailedResult).isInvalidAttributes());
 
         //4. Submit invalid attributes
         //4a. setup server response
@@ -1860,7 +1865,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         application.signUpUsingPassword(username, password, invalidAttributes, signUpUsingPasswordTestCallback);
         SignUpUsingPasswordResult signUpResult = signUpUsingPasswordTestCallback.get();
 
-        assertTrue(signUpResult instanceof SignUpResult.InvalidAttributes);
+        assertTrue(signUpResult instanceof SignUpUsingPasswordError && ((SignUpUsingPasswordError) signUpResult).isInvalidAttributes());
 
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpStart,
@@ -2390,7 +2395,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         application.signUp(username, null, signUpTestCallback);
         SignUpResult signUpResult = signUpTestCallback.get();
 
-        assertTrue(signUpResult instanceof SignUpResult.BrowserRequired);
+        assertTrue(signUpResult instanceof SignUpError && ((SignUpError) signUpResult).isBrowserRequired());
     }
 
     /**
@@ -2416,7 +2421,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         application.signUp(emptyString, null, signUpTestCallback);
         SignUpResult signUpResult = signUpTestCallback.get();
 
-        assertTrue(signUpResult instanceof SignUpResult.UnexpectedError);
+        assertTrue(signUpResult instanceof SignUpError && ((SignUpError) signUpResult).getErrorType() == null);
     }
 
     @Test
@@ -2434,7 +2439,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         SignUpUsingPasswordResult signUpResult = signUpUsingPasswordTestCallback.get();
 
-        assertTrue(signUpResult instanceof SignUpResult.InvalidPassword);
+        assertTrue(signUpResult instanceof SignUpUsingPasswordError && ((SignUpUsingPasswordError) signUpResult).isInvalidPassword());
     }
 
     @Test
@@ -2452,7 +2457,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         SignUpUsingPasswordResult signUpResult = signUpUsingPasswordTestCallback.get();
 
-        assertTrue(signUpResult instanceof SignUpResult.InvalidEmail);
+        assertTrue(signUpResult instanceof SignUpUsingPasswordError && ((SignUpUsingPasswordError) signUpResult).isInvalidUsername());
     }
 
     @Test
@@ -2470,7 +2475,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         SignUpResult signUpResult = signUpTestCallback.get();
 
-        assertTrue(signUpResult instanceof SignUpResult.InvalidEmail);
+        assertTrue(signUpResult instanceof SignUpError && ((SignUpError) signUpResult).isInvalidUsername());
     }
 }
 

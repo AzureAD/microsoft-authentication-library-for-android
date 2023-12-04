@@ -128,7 +128,7 @@ class SignInCodeRequiredState internal constructor(
             return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<SignInSubmitCodeCommandResult>()) {
                 is SignInCommandResult.IncorrectCode -> {
                     SubmitCodeError(
-                        errorType = ErrorTypes.code_incorrect,
+                        errorType = ErrorTypes.INVALID_CODE,
                         error = result.error,
                         errorMessage = result.errorDescription,
                         correlationId = result.correlationId,
@@ -149,11 +149,10 @@ class SignInCodeRequiredState internal constructor(
                 }
 
                 is INativeAuthCommandResult.Redirect -> {
-                    // TODO Remove quotes and update msal-common submodule reference when this PR is merged https://identitydivision.visualstudio.com/DefaultCollection/Engineering/_git/devexdub-android-msal-common-native-auth-private-clone/pullrequest/10635
                     SubmitCodeError(
-                        errorType = ErrorTypes.browser_required,
-                        error = "result.error",
-                        errorMessage = "result.errorDescription",
+                        errorType = ErrorTypes.BROWSER_REQUIRED,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
                         correlationId = result.correlationId
                     )
                 }
@@ -235,11 +234,10 @@ class SignInCodeRequiredState internal constructor(
                 }
 
                 is INativeAuthCommandResult.Redirect -> {
-                    // TODO Remove quotes and update msal-common submodule reference when this PR is merged https://identitydivision.visualstudio.com/DefaultCollection/Engineering/_git/devexdub-android-msal-common-native-auth-private-clone/pullrequest/10635
                     ResendCodeError(
-                        errorType = ErrorTypes.browser_required,
-                        error = "result.error",
-                        errorMessage = "result.errorDescription",
+                        errorType = ErrorTypes.BROWSER_REQUIRED,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
                         correlationId = result.correlationId
                     )
                 }
@@ -333,7 +331,7 @@ class SignInPasswordRequiredState(
                     rawCommandResult.checkAndWrapCommandResultType<SignInSubmitPasswordCommandResult>()) {
                     is SignInCommandResult.InvalidCredentials -> {
                         SignInSubmitPasswordError(
-                            errorType = SignInErrorTypes.invalid_credentials,
+                            errorType = SignInErrorTypes.INVALID_CREDENTIALS,
                             errorMessage = result.errorDescription,
                             error = result.error,
                             correlationId = result.correlationId
@@ -350,11 +348,10 @@ class SignInPasswordRequiredState(
                         )
                     }
                     is INativeAuthCommandResult.Redirect -> {
-                        // TODO Remove quotes and update msal-common submodule reference when this PR is merged https://identitydivision.visualstudio.com/DefaultCollection/Engineering/_git/devexdub-android-msal-common-native-auth-private-clone/pullrequest/10635
                         SignInSubmitPasswordError(
-                            errorType = ErrorTypes.browser_required,
-                            error = "result.error",
-                            errorMessage = "result.errorDescription",
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
                             correlationId = result.correlationId
                         )
                     }
@@ -494,11 +491,10 @@ abstract class SignInAfterSignUpBaseState(
                     )
                 }
                 is INativeAuthCommandResult.Redirect -> {
-                    // TODO Remove quotes and update msal-common submodule reference when this PR is merged https://identitydivision.visualstudio.com/DefaultCollection/Engineering/_git/devexdub-android-msal-common-native-auth-private-clone/pullrequest/10635
                     SignInError(
-                        errorType = ErrorTypes.browser_required,
-                        error = "result.error",
-                        errorMessage = "result.errorDescription",
+                        errorType = ErrorTypes.BROWSER_REQUIRED,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
                         correlationId = result.correlationId
                     )
                 }

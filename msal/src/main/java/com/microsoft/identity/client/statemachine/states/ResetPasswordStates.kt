@@ -27,10 +27,11 @@ import com.microsoft.identity.client.NativeAuthPublicClientApplication
 import com.microsoft.identity.client.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
-import com.microsoft.identity.client.statemachine.BrowserRequiredError
-import com.microsoft.identity.client.statemachine.GeneralError
-import com.microsoft.identity.client.statemachine.IncorrectCodeError
-import com.microsoft.identity.client.statemachine.InvalidPasswordError
+import com.microsoft.identity.client.statemachine.ErrorTypes
+import com.microsoft.identity.client.statemachine.ResendCodeError
+import com.microsoft.identity.client.statemachine.ResetPasswordErrorTypes
+import com.microsoft.identity.client.statemachine.ResetPasswordSubmitPasswordError
+import com.microsoft.identity.client.statemachine.SubmitCodeError
 import com.microsoft.identity.client.statemachine.results.ResetPasswordResendCodeResult
 import com.microsoft.identity.client.statemachine.results.ResetPasswordResult
 import com.microsoft.identity.client.statemachine.results.ResetPasswordSubmitCodeResult
@@ -55,13 +56,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.Serializable
 
-/**
- * Native Auth uses a state machine to denote state and transitions for a user.
- * ResetPasswordCodeRequiredState class represents a state where the user has to provide a code to progress
- * in the reset password flow.
- * @property flowToken: Flow token to be passed in the next request
- * @property config Configuration used by Native Auth
- */
 class ResetPasswordCodeRequiredState internal constructor(
     override val flowToken: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
@@ -126,20 +120,20 @@ class ResetPasswordCodeRequiredState internal constructor(
                 }
 
                 is ResetPasswordCommandResult.IncorrectCode -> {
-                    ResetPasswordSubmitCodeResult.CodeIncorrect(
-                        error = IncorrectCodeError(
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId
-                        )
+                    SubmitCodeError(
+                        errorType = ErrorTypes.INVALID_CODE,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId
                     )
                 }
 
                 is INativeAuthCommandResult.Redirect -> {
-                    ResetPasswordResult.BrowserRequired(
-                        error = BrowserRequiredError(
-                            correlationId = result.correlationId
-                        )
+                    SubmitCodeError(
+                        errorType = ErrorTypes.BROWSER_REQUIRED,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId
                     )
                 }
 
@@ -148,22 +142,17 @@ class ResetPasswordCodeRequiredState internal constructor(
                         TAG,
                         "Unexpected result: $result"
                     )
-                    ResetPasswordResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId,
-                            exception = result.exception
-                        )
+                    SubmitCodeError(
+                        errorMessage = result.errorDescription,
+                        error = result.error,
+                        correlationId = result.correlationId,
+                        exception = result.exception
                     )
                 }
             }
         }
     }
 
-    /**
-     * ResendCodeCallback receives the result for submit code for Reset Password for Native Auth
-     */
     interface ResendCodeCallback : Callback<ResetPasswordResendCodeResult>
 
     /**
@@ -222,10 +211,11 @@ class ResetPasswordCodeRequiredState internal constructor(
                 }
 
                 is INativeAuthCommandResult.Redirect -> {
-                    ResetPasswordResult.BrowserRequired(
-                        error = BrowserRequiredError(
-                            correlationId = result.correlationId
-                        )
+                    ResendCodeError(
+                        errorType = ErrorTypes.BROWSER_REQUIRED,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId
                     )
                 }
 
@@ -234,14 +224,11 @@ class ResetPasswordCodeRequiredState internal constructor(
                         TAG,
                         "Unexpected result: $result"
                     )
-                    ResetPasswordResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId,
-                            details = result.details,
-                            exception = result.exception
-                        )
+                    ResendCodeError(
+                        errorMessage = result.errorDescription,
+                        error = result.error,
+                        correlationId = result.correlationId,
+                        exception = result.exception
                     )
                 }
             }
@@ -249,13 +236,6 @@ class ResetPasswordCodeRequiredState internal constructor(
     }
 }
 
-/**
- * Native Auth uses a state machine to denote state and transitions for a user.
- * ResetPasswordPasswordRequiredState class represents a state where the user has to provide a password to progress
- * in the reset password flow.
- * @property flowToken: Flow token to be passed in the next request
- * @property config Configuration used by Native Auth
- */
 class ResetPasswordPasswordRequiredState internal constructor(
     override val flowToken: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
@@ -317,22 +297,20 @@ class ResetPasswordPasswordRequiredState internal constructor(
                     }
 
                     is ResetPasswordCommandResult.PasswordNotAccepted -> {
-                        ResetPasswordSubmitPasswordResult.InvalidPassword(
-                            error = InvalidPasswordError(
-                                error = result.error,
-                                errorMessage = result.errorDescription,
-                                correlationId = result.correlationId
-                            )
+                        ResetPasswordSubmitPasswordError(
+                            errorType = ErrorTypes.INVALID_PASSWORD,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
                         )
                     }
 
                     is ResetPasswordCommandResult.PasswordResetFailed -> {
-                        ResetPasswordSubmitPasswordResult.PasswordResetFailed(
-                            error = GeneralError(
-                                error = result.error,
-                                errorMessage = result.errorDescription,
-                                correlationId = result.correlationId
-                            )
+                        ResetPasswordSubmitPasswordError(
+                            errorType = ResetPasswordErrorTypes.PASSWORD_RESET_FAILED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
                         )
                     }
 
@@ -341,12 +319,10 @@ class ResetPasswordPasswordRequiredState internal constructor(
                             TAG,
                             "Unexpected result: $result"
                         )
-                        ResetPasswordResult.UnexpectedError(
-                            error = GeneralError(
-                                errorMessage = result.errorDescription,
-                                error = result.error,
-                                correlationId = result.correlationId
-                            )
+                        ResetPasswordSubmitPasswordError(
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
                         )
                     }
 
@@ -355,14 +331,11 @@ class ResetPasswordPasswordRequiredState internal constructor(
                             TAG,
                             "Unexpected result: $result"
                         )
-                        ResetPasswordResult.UnexpectedError(
-                            error = GeneralError(
-                                errorMessage = result.errorDescription,
-                                error = result.error,
-                                correlationId = result.correlationId,
-                                details = result.details,
-                                exception = result.exception
-                            )
+                        ResetPasswordSubmitPasswordError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId,
+                            exception = result.exception
                         )
                     }
                 }
