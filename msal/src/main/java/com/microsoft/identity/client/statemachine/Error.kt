@@ -72,14 +72,13 @@ internal class ErrorTypes () {
  * @param exception an internal unexpected exception that happened.
  */
 sealed class Error(
-    open val errorType: String? = null,
+    internal open val errorType: String? = null,
     open val error: String? = null,
     open val errorMessage: String?,
     open val correlationId: String,
     open var exception: Exception? = null,
     open val errorCodes: List<Int>? = null
 ) {
-    internal fun setErrorType(errorType: String) = this.errorType == errorType
     fun isBrowserRequired(): Boolean = this.errorType == ErrorTypes.BROWSER_REQUIRED
 }
 

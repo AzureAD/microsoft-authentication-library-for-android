@@ -97,6 +97,7 @@ import androidx.annotation.NonNull;
 import androidx.test.core.app.ApplicationProvider;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -949,7 +950,9 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         assertTrue(result instanceof SignInError);
 
         SignInError error = (SignInError)result;
-        assertTrue(error.getErrorType() == null);
+
+        assertFalse(error.isUserNotFound());
+        assertFalse(error.isBrowserRequired());
     }
 
     /**
@@ -992,7 +995,9 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         assertTrue(result instanceof SignInError);
 
         SignInError error = (SignInError)result;
-        assertTrue(error.getErrorType() == null);
+
+        assertFalse(error.isBrowserRequired());
+        assertFalse(error.isUserNotFound());
     }
 
     /**
@@ -1039,7 +1044,10 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         assertTrue(result instanceof SignInUsingPasswordError);
 
         SignInUsingPasswordError error = (SignInUsingPasswordError)result;
-        assertTrue(error.getErrorType() == null);
+
+        assertFalse(error.isBrowserRequired());
+        assertFalse(error.isUserNotFound());
+        assertFalse(error.isInvalidCredentials());
     }
 
     /**
@@ -1372,7 +1380,10 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         application.resetPassword(username, resetPasswordCallback);
         // 1b. Transform /start(error) to Result(UserNotFound)
         ResetPasswordStartResult resetPasswordResult = resetPasswordCallback.get();
-        assertTrue(resetPasswordResult instanceof ResetPasswordError && ((ResetPasswordError) resetPasswordResult).getErrorType() == null);
+
+        assertTrue(resetPasswordResult instanceof ResetPasswordError);
+        assertFalse(((ResetPasswordError) resetPasswordResult).isBrowserRequired());
+        assertFalse(((ResetPasswordError) resetPasswordResult).isUserNotFound());
     }
 
     /**
@@ -1491,7 +1502,9 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         application.resetPassword(emptyString, resetPasswordStartTestCallback);
         ResetPasswordStartResult resetPasswordResult = resetPasswordStartTestCallback.get();
 
-        assertTrue(resetPasswordResult instanceof ResetPasswordError && ((ResetPasswordError) resetPasswordResult).getErrorType() == null);
+        assertTrue(resetPasswordResult instanceof ResetPasswordError);
+        assertFalse(((ResetPasswordError) resetPasswordResult).isBrowserRequired());
+        assertFalse(((ResetPasswordError) resetPasswordResult).isUserNotFound());
     }
 
     // Helper methods
@@ -1703,7 +1716,10 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         final SignUpCodeRequiredTestCallback codeRequiredCallback = new SignUpCodeRequiredTestCallback();
 
         codeRequiredState.submitCode(code, codeRequiredCallback);
-        assertTrue(codeRequiredCallback.get() instanceof SubmitCodeError && ((SubmitCodeError) codeRequiredCallback.get()).getErrorType() == null);
+
+        assertTrue(codeRequiredCallback.get() instanceof SubmitCodeError);
+        assertFalse(((SubmitCodeError) codeRequiredCallback.get()).isInvalidCode());
+        assertFalse(((SubmitCodeError) codeRequiredCallback.get()).isBrowserRequired());
     }
 
     /**
@@ -2421,7 +2437,12 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         application.signUp(emptyString, null, signUpTestCallback);
         SignUpResult signUpResult = signUpTestCallback.get();
 
-        assertTrue(signUpResult instanceof SignUpError && ((SignUpError) signUpResult).getErrorType() == null);
+        assertTrue(signUpResult instanceof SignUpError);
+        assertFalse(((SignUpError) signUpResult).isBrowserRequired());
+        assertFalse(((SignUpError) signUpResult).isInvalidPassword());
+        assertFalse(((SignUpError) signUpResult).isInvalidUsername());
+        assertFalse(((SignUpError) signUpResult).isInvalidAttributes());
+        assertFalse(((SignUpError) signUpResult).isUserAlreadyExists());
     }
 
     @Test

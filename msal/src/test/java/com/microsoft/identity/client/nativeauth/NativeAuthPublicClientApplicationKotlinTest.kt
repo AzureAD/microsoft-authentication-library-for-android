@@ -1504,7 +1504,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val invalidAttributes = UserAttributes.Builder.customAttribute("attribute", "invalid_attribute").build()
         val invalidAttributesResult = application.signUpUsingPassword(username, password, invalidAttributes)
 
-        assertTrue(invalidAttributesResult is SignUpUsingPasswordError && invalidAttributesResult.errorType == SignUpErrorTypes.INVALID_ATTRIBUTES)
+        assertTrue(invalidAttributesResult is SignUpUsingPasswordError && invalidAttributesResult.isInvalidAttributes())
 
         configureMockApi(
             endpointType = MockApiEndpoint.SignUpStart,
