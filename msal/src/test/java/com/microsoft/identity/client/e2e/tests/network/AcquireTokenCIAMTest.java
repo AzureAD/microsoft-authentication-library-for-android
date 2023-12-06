@@ -25,7 +25,7 @@ package com.microsoft.identity.client.e2e.tests.network;
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.CIAM_NO_PATH_CONFIG_FILE_PATH;
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.CIAM_TENANT_DOMAIN_CONFIG_FILE_PATH;
 import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.CIAM_TENANT_GUID_CONFIG_FILE_PATH;
-import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.SUBSTRATE_USER_READ_SCOPE;
+import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
 
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
@@ -40,7 +40,7 @@ public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
 
     @Override
     public String[] getScopes() {
-        return SUBSTRATE_USER_READ_SCOPE;
+        return USER_READ_SCOPE;
     }
 
     @Override
