@@ -36,7 +36,6 @@ import org.junit.Ignore;
 /**
  * Run all tests in the {@link AcquireTokenNetworkTest} class using CIAM
  */
-@Ignore
 public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
 
     @Override
@@ -56,7 +55,6 @@ public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
         return query;
     }
 
-    @Ignore //Disabling temporary due to tenant bug
     public static class CiamTenantGUID extends AcquireTokenCIAMTest {
         @Override
         public String getConfigFilePath() {
@@ -64,7 +62,6 @@ public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
         }
     }
 
-    @Ignore //Disabling temporary due to tenant bug
     public static class CiamTenantDomain extends AcquireTokenCIAMTest {
         @Override
         public String getConfigFilePath() {
@@ -72,7 +69,6 @@ public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
         }
     }
 
-    @Ignore //Disabling temporary due to tenant bug
     public static class CiamTenantNoPath extends AcquireTokenCIAMTest {
         @Override
         public String getConfigFilePath() {
