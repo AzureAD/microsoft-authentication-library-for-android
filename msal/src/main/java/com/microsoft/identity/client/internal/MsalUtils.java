@@ -36,14 +36,11 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Base64;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.browser.customtabs.CustomTabsService;
-
 import com.microsoft.identity.client.BrowserTabActivity;
 import com.microsoft.identity.client.CurrentTaskBrowserTabActivity;
 import com.microsoft.identity.client.exception.MsalArgumentException;
 import com.microsoft.identity.common.java.configuration.LibraryConfiguration;
+import com.microsoft.identity.common.java.exception.BaseException;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -67,6 +64,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.concurrent.TimeUnit;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.browser.customtabs.CustomTabsService;
 
 import static com.microsoft.identity.common.internal.util.StringUtil.convertSetToString;
 
@@ -132,7 +133,8 @@ public final class MsalUtils {
                                           @NonNull final String argName) throws MsalArgumentException {
         if (null == o
                 || (o instanceof CharSequence) && TextUtils.isEmpty((CharSequence) o)
-                || (o instanceof List) && ((List) o).isEmpty()) {
+                || (o instanceof List) && ((List) o).isEmpty()
+                || (o instanceof Map) && ((Map) o).isEmpty()) {
             throw new MsalArgumentException(argName, argName + " cannot be null or empty");
         }
     }
@@ -498,11 +500,23 @@ public final class MsalUtils {
     }
 
     /**
+     * throwOnMainThread throws an [IllegalStateException] exception if it's called from the main
+     * thread. This prevents a developer calling background functions from UI (main) thread.
      * @param methodName
      */
     public static void throwOnMainThread(final String methodName) {
         if (Looper.myLooper() == Looper.getMainLooper()) {
             throw new IllegalStateException("method: " + methodName + " may not be called from main thread.");
+        }
+    }
+
+    /**
+     * throwOnMainThread throws an [IllegalStateException] exception if it's called from the main
+     * thread. This prevents a developer calling background functions from UI (main) thread.
+     */
+    public static void throwOnMainThread(final BaseException exception) {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            throw new IllegalStateException(exception);
         }
     }
 }

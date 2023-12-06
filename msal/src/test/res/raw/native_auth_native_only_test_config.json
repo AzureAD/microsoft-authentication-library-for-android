@@ -1,0 +1,10 @@
+{
+  "client_id" : "0e565df2-c350-47f2-9cd4-c6c7a464b8bf",
+  "authorities" : [
+    {
+      "type": "CIAM",
+      "authority_url": "https://ciamtestandroid.ciamlogin.com/ciamtestandroid.onmicrosoft.com"
+    }
+  ],
+  "challenge_types" : ["oob", "password"]
+}
