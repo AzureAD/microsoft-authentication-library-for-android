@@ -62,7 +62,6 @@ import java.util.Map;
 import java.util.UUID;
 
 @RunWith(RobolectricTestRunner.class)
-@Ignore("Passkey feature in development.")
 public class CommandParametersTest {
 
     private static final String AAD_CP1_CONFIG_FILE = "src/test/res/raw/aad_capabilities_cp1.json";
