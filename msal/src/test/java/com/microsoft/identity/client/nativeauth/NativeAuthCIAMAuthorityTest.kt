@@ -27,7 +27,6 @@ import com.microsoft.identity.common.java.exception.ClientException
 import com.microsoft.identity.common.java.providers.oauth2.OAuth2StrategyParameters
 import junit.framework.Assert.assertEquals
 import org.junit.Assert
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
