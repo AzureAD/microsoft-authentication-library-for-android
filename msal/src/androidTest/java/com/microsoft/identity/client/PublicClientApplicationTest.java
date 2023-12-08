@@ -34,6 +34,7 @@ import android.content.pm.ResolveInfo;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
@@ -47,16 +48,15 @@ import com.microsoft.identity.msal.test.R;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 
-import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.crypto.SecretKey;
@@ -67,7 +67,6 @@ import javax.crypto.spec.SecretKeySpec;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;
 
-
 /**
  * Tests for {@link PublicClientApplication}.
  */
@@ -76,7 +75,9 @@ public final class PublicClientApplicationTest {
     private Context mAppContext;
     private static final String CLIENT_ID = "client-id";
     private static final String[] SCOPE = {"scope1", "scope2"};
+    private static final String CIAM_AUTHORITY = "https://msidlabciam1.ciamlogin.com/msidlabciam1.onmicrosoft.com";
     public static final String TEST_REDIRECT_URI = "msauth://com.microsoft.identity.client.sample.local/signature";
+    private final List<String> CHALLENGE_TYPES = Arrays.asList("oob", "password");
 
     @Before
     public void setUp() {
@@ -271,6 +272,69 @@ public final class PublicClientApplicationTest {
             Assert.fail(e.getMessage());
         } catch (MsalException e) {
             Assert.fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void testNativeAuthConstructor() {
+        final Context context = new PublicClientApplicationTest.MockContext(mAppContext);
+        mockPackageManagerWithDefaultFlag(context);
+        mockHasCustomTabRedirect(context);
+
+        try {
+            final INativeAuthPublicClientApplication app = PublicClientApplication.createNativeAuthPublicClientApplication(
+                    context,
+                    R.raw.test_msal_config_native_auth
+            );
+            Assert.assertNotNull(app);
+        } catch (InterruptedException e) {
+            Assert.fail(e.getMessage());
+        } catch (MsalException e) {
+            Assert.fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void testNativeAuthConstructorNoMetadata() {
+        final Context context = new PublicClientApplicationTest.MockContext(mAppContext);
+        mockPackageManagerWithDefaultFlag(context);
+        mockHasCustomTabRedirect(context);
+
+        try {
+            final INativeAuthPublicClientApplication app = PublicClientApplication.createNativeAuthPublicClientApplication(
+                    context,
+                    CLIENT_ID,
+                    CIAM_AUTHORITY,
+                    null,
+                    CHALLENGE_TYPES
+            );
+            Assert.assertNotNull(app);
+        } catch (InterruptedException e) {
+            Assert.fail(e.getMessage());
+        } catch (MsalException e) {
+            Assert.fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void testFailingNativeAuthConstructor() {
+        final Context context = new PublicClientApplicationTest.MockContext(mAppContext);
+        mockPackageManagerWithDefaultFlag(context);
+        mockHasCustomTabRedirect(context);
+
+        // Should fail, as we are attempting to create a multiple account application
+        try {
+            final INativeAuthPublicClientApplication app = PublicClientApplication.createNativeAuthPublicClientApplication(
+                    context,
+                    R.raw.test_msal_config_multiple_account
+            );
+            Assert.fail("Unintentionally created app");
+        } catch (InterruptedException e) {
+            Assert.fail(e.getMessage());
+        } catch (MsalException e) {
+            Assert.assertEquals("Expecting error.",
+                    e.getErrorCode(),
+                    MsalClientException.NATIVE_AUTH_INVALID_ACCOUNT_MODE_CONFIG_ERROR_CODE);
         }
     }
 
