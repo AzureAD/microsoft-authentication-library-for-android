@@ -29,6 +29,8 @@ import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.LayoutInflater;
@@ -56,9 +58,11 @@ import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory;
 import com.microsoft.identity.common.internal.activebrokerdiscovery.BrokerDiscoveryClientFactory;
+import com.microsoft.identity.common.internal.broker.BrokerActivity;
 import com.microsoft.identity.common.internal.broker.BrokerData;
 import com.microsoft.identity.common.internal.cache.ClientActiveBrokerCache;
 import com.microsoft.identity.common.internal.cache.IClientActiveBrokerCache;
+import com.microsoft.identity.common.internal.providers.oauth2.AuthorizationActivity;
 import com.microsoft.identity.common.java.opentelemetry.OTelUtility;
 import com.microsoft.identity.common.java.opentelemetry.SpanExtension;
 import com.microsoft.identity.common.java.util.StringUtil;
@@ -345,7 +349,22 @@ public class AcquireTokenFragment extends Fragment {
         mBrokerHelper.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                PublicClientApplication.showExpectedMsalRedirectUriInfo(activity);
+//                PublicClientApplication.showExpectedMsalRedirectUriInfo(activity);
+
+                final Uri uri = Uri.parse("msauth://com.microsoft.identity.testuserapp/broker/resume");
+                final Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+//                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+//                intent.setPackage("com.microsoft.identity.testuserapp");
+//                intent.setClassName(
+//                        "com.microsoft.identity.testuserapp",
+//                        "com.microsoft.identity.common.internal.providers.oauth2.BrokerAuthorizationActivity"
+//                );
+//                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+//                intent.setAction(Intent.ACTION_VIEW);
+//                intent.addCategory(Intent.CATEGORY_LAUNCHER);
+                com.microsoft.identity.common.logging.Logger.info("TestTag", "Returning the intent for launching interactive request from MicrosoftAuthService.");
+                startActivity(intent);
             }
         });
 

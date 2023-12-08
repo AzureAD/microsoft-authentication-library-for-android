@@ -156,9 +156,9 @@ public class MainActivity extends AppCompatActivity
             onNavigationItemSelected(navigationView.getMenu().getItem(0));
         }
 
-        if (!StringUtil.isNullOrEmpty(BuildConfig.otelAriaToken)) {
-            initOpenTelemetry(getApplicationContext());
-        }
+//        if (!StringUtil.isNullOrEmpty(BuildConfig.otelAriaToken)) {
+//            initOpenTelemetry(getApplicationContext());
+//        }
     }
 
     /**
