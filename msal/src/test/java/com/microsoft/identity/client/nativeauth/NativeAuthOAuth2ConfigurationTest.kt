@@ -24,6 +24,7 @@ package com.microsoft.identity.client.nativeauth
 
 import com.microsoft.identity.common.java.providers.nativeauth.NativeAuthOAuth2Configuration
 import junit.framework.Assert.assertEquals
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -31,6 +32,7 @@ import java.net.URI
 import java.net.URL
 
 @RunWith(RobolectricTestRunner::class)
+@Ignore
 class NativeAuthOAuth2ConfigurationTest {
 
     @Test

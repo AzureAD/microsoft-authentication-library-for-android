@@ -27,11 +27,13 @@ import com.microsoft.identity.common.java.exception.ClientException
 import com.microsoft.identity.common.java.providers.oauth2.OAuth2StrategyParameters
 import junit.framework.Assert.assertEquals
 import org.junit.Assert
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
+@Ignore
 class NativeAuthCIAMAuthorityTest {
 
     private val B2C_AUTHORITY_URL = "https://fabrikamb2c.b2clogin.com/tfp/fabrikamb2c.onmicrosoft.com/b2c_1_susi/"

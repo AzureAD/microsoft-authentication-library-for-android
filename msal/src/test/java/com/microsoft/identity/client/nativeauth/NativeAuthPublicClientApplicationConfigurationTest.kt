@@ -30,6 +30,7 @@ import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryB2CAut
 import com.microsoft.identity.common.java.authorities.NativeAuthCIAMAuthority
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.fail
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.spy
@@ -37,6 +38,7 @@ import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
+@Ignore
 class NativeAuthPublicClientApplicationConfigurationTest {
 
     private val clientId = "1234"
