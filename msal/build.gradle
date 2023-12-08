@@ -234,11 +234,6 @@ dependencies {
     }
 
     testImplementation "io.mockk:mockk:$rootProject.ext.mockkVersion"
-    
-    testImplementation "org.powermock:powermock-module-junit4:$rootProject.ext.powerMockVersion"
-    testImplementation "org.powermock:powermock-module-junit4-rule:$rootProject.ext.powerMockVersion"
-    testImplementation "org.powermock:powermock-api-mockito2:$rootProject.ext.powerMockVersion"
-    testImplementation "org.powermock:powermock-classloading-xstream:$rootProject.ext.powerMockVersion"
 
     // instrumentation test dependencies
     androidTestImplementation "androidx.test.ext:junit:$rootProject.ext.androidxJunitVersion"
