@@ -32,7 +32,6 @@ import java.net.URI
 import java.net.URL
 
 @RunWith(RobolectricTestRunner::class)
-@Ignore
 class NativeAuthOAuth2ConfigurationTest {
 
     @Test
