@@ -20,7 +20,7 @@ msal/src/main/java/com/microsoft/identity/client/RequiredUserAttributeOptions.kt
 msal/src/main/java/com/microsoft/identity/client/UserAttributes.kt @AzureAD/NativeAuthTeam
 msal/src/main/java/com/microsoft/identity/client/statemachine/ @AzureAD/NativeAuthTeam
 msal/src/test/java/com/microsoft/identity/client/nativeauth/ @AzureAD/NativeAuthTeam
-
+msal/src/androidTest/java/com/microsoft/identity/client/NativeAuthPublicApplicationKotlinTest.kt
 
 # If you are interested in reviewing or getting notified of changes in a particular area
 # Please add your alias against that specific path below
