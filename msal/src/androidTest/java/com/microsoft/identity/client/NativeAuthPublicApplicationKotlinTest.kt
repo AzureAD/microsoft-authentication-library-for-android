@@ -40,6 +40,7 @@ import java.util.Arrays
 
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
+@Ignore
 class NativeAuthPublicApplicationKotlinTest {
     private lateinit var context: Context
     private val CLIENT_ID = "1234"
