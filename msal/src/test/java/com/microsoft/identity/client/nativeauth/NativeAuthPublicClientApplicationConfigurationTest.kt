@@ -38,7 +38,6 @@ import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
-@Ignore
 class NativeAuthPublicClientApplicationConfigurationTest {
 
     private val clientId = "1234"
