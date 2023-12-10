@@ -62,7 +62,13 @@ jobs:
   - task: Gradle@2
     displayName: Run Unit tests
     inputs:
-      tasks: msal:testLocalDebugUnitTest -Plabtest -PuseMockApiForNativeAuth=true -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} 
+      tasks: msal:testLocalDebugUnitTest -Plabtest -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} --tests *com.microsoft.identity.client*
+      javaHomeSelection: $(BuildParameters.javaHomeSelection)
+      jdkVersion: 1.11
+  - task: Gradle@2
+    displayName: Run NativeAuth Unit tests
+    inputs:
+      tasks: msal:testLocalDebugUnitTest -PuseMockApiForNativeAuth=true -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} --tests *com.microsoft.identity.nativeauth*
       javaHomeSelection: $(BuildParameters.javaHomeSelection)
       jdkVersion: 1.11
 - job: spotbugs
