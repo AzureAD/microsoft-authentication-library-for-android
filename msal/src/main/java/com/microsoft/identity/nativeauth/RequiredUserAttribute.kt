@@ -22,7 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.nativeauth
 
-import com.microsoft.identity.common.nativeauth.providers.responses.UserAttributeApiResult
+import com.microsoft.identity.common.nativeauth.java.providers.responses.UserAttributeApiResult
 
 /**
  * RequiredUserAttribute represents details about the account attributes required by the server.

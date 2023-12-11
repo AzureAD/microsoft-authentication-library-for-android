@@ -22,7 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.nativeauth
 
-import com.microsoft.identity.common.nativeauth.providers.NativeAuthOAuth2Configuration
+import com.microsoft.identity.common.nativeauth.java.providers.NativeAuthOAuth2Configuration
 import junit.framework.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
