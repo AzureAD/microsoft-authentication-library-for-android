@@ -23,7 +23,7 @@
 
 package com.microsoft.identity.client;
 
-import static com.microsoft.identity.client.NativeAuthPublicClientApplicationConfigurationFactory.Companion;
+import static com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfigurationFactory.Companion;
 import static com.microsoft.identity.client.PublicClientApplicationConfigurationFactory.initializeConfiguration;
 import static com.microsoft.identity.client.exception.MsalClientException.NATIVE_AUTH_APPLICATION_CREATION_UNKNOWN_ERROR_MESSAGE;
 import static com.microsoft.identity.client.exception.MsalClientException.SAPCA_USE_WITH_MULTI_POLICY_B2C;
@@ -136,6 +136,9 @@ import com.microsoft.identity.common.java.util.ResultFuture;
 import com.microsoft.identity.common.java.util.SchemaUtil;
 import com.microsoft.identity.common.logging.Logger;
 import com.microsoft.identity.msal.BuildConfig;
+import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication;
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication;
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -1120,10 +1123,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     private static NativeAuthPublicClientApplication createNativeAuthApplication(@NonNull final NativeAuthPublicClientApplicationConfiguration config,
-                                                    @Nullable final String clientId,
-                                                    @Nullable final String authority,
-                                                    @Nullable final String redirectUri,
-                                                    @Nullable final List<String> challengeTypes) throws BaseException {
+                                                                                 @Nullable final String clientId,
+                                                                                 @Nullable final String authority,
+                                                                                 @Nullable final String redirectUri,
+                                                                                 @Nullable final List<String> challengeTypes) throws BaseException {
         if (clientId != null) {
             config.setClientId(clientId);
         }

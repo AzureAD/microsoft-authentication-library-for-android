@@ -20,14 +20,13 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.nativeauth
+package com.microsoft.identity.nativeauth
 
-import com.microsoft.identity.client.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.client.PublicClientApplicationConfiguration.INVALID_REDIRECT_MSG
 import com.microsoft.identity.client.configuration.AccountMode
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryB2CAuthority
-import com.microsoft.identity.common.java.authorities.NativeAuthCIAMAuthority
+import com.microsoft.identity.common.nativeauth.authorities.NativeAuthCIAMAuthority
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.fail
 import org.junit.Test

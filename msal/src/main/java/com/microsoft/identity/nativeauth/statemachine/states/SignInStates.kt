@@ -21,38 +21,38 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 
-package com.microsoft.identity.client.statemachine.states
+package com.microsoft.identity.nativeauth.statemachine.states
 
 import com.microsoft.identity.client.AuthenticationResultAdapter
-import com.microsoft.identity.client.NativeAuthPublicClientApplication
-import com.microsoft.identity.client.NativeAuthPublicClientApplicationConfiguration
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
-import com.microsoft.identity.client.statemachine.BrowserRequiredError
-import com.microsoft.identity.client.statemachine.GeneralError
-import com.microsoft.identity.client.statemachine.IncorrectCodeError
-import com.microsoft.identity.client.statemachine.PasswordIncorrectError
-import com.microsoft.identity.client.statemachine.results.SignInResendCodeResult
-import com.microsoft.identity.client.statemachine.results.SignInResult
-import com.microsoft.identity.client.statemachine.results.SignInSubmitCodeResult
-import com.microsoft.identity.client.statemachine.results.SignInSubmitPasswordResult
-import com.microsoft.identity.common.internal.commands.SignInResendCodeCommand
-import com.microsoft.identity.common.internal.commands.SignInSubmitCodeCommand
-import com.microsoft.identity.common.internal.commands.SignInSubmitPasswordCommand
-import com.microsoft.identity.common.internal.commands.SignInWithSLTCommand
-import com.microsoft.identity.common.internal.controllers.NativeAuthMsalController
+import com.microsoft.identity.nativeauth.statemachine.BrowserRequiredError
+import com.microsoft.identity.nativeauth.statemachine.GeneralError
+import com.microsoft.identity.nativeauth.statemachine.IncorrectCodeError
+import com.microsoft.identity.nativeauth.statemachine.PasswordIncorrectError
+import com.microsoft.identity.nativeauth.statemachine.results.SignInResendCodeResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignInSubmitCodeResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignInSubmitPasswordResult
+import com.microsoft.identity.common.nativeauth.internal.commands.SignInResendCodeCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.SignInSubmitCodeCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.SignInSubmitPasswordCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.SignInWithSLTCommand
+import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.common.java.controllers.CommandDispatcher
-import com.microsoft.identity.common.java.controllers.results.INativeAuthCommandResult
-import com.microsoft.identity.common.java.controllers.results.SignInCommandResult
-import com.microsoft.identity.common.java.controllers.results.SignInResendCodeCommandResult
-import com.microsoft.identity.common.java.controllers.results.SignInSubmitCodeCommandResult
-import com.microsoft.identity.common.java.controllers.results.SignInSubmitPasswordCommandResult
-import com.microsoft.identity.common.java.controllers.results.SignInWithSLTCommandResult
+import com.microsoft.identity.common.nativeauth.controllers.results.INativeAuthCommandResult
+import com.microsoft.identity.common.nativeauth.controllers.results.SignInCommandResult
+import com.microsoft.identity.common.nativeauth.controllers.results.SignInResendCodeCommandResult
+import com.microsoft.identity.common.nativeauth.controllers.results.SignInSubmitCodeCommandResult
+import com.microsoft.identity.common.nativeauth.controllers.results.SignInSubmitPasswordCommandResult
+import com.microsoft.identity.common.nativeauth.controllers.results.SignInWithSLTCommandResult
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.util.StringUtil
-import com.microsoft.identity.common.java.util.checkAndWrapCommandResultType
+import com.microsoft.identity.common.nativeauth.util.checkAndWrapCommandResultType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -82,7 +82,7 @@ class SignInCodeRequiredState internal constructor(
      * Submits the verification code received to the server; callback variant.
      *
      * @param code The code to submit.
-     * @param callback [com.microsoft.identity.client.statemachine.states.SignInCodeRequiredState.SubmitCodeCallback] to receive the result on.
+     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState.SubmitCodeCallback] to receive the result on.
      * @return The results of the submit code action.
      */
     fun submitCode(code: String, callback: SubmitCodeCallback) {
@@ -183,7 +183,7 @@ class SignInCodeRequiredState internal constructor(
     /**
      * Resends a new verification code to the user; callback variant.
      *
-     * @param callback [com.microsoft.identity.client.statemachine.states.SignInCodeRequiredState.ResendCodeCallback] to receive the result on.
+     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState.ResendCodeCallback] to receive the result on.
      * @return The results of the resend code action.
      */
     fun resendCode(callback: ResendCodeCallback) {
@@ -288,7 +288,7 @@ class SignInPasswordRequiredState(
      * Submits the password of the account to the server; callback variant.
      *
      * @param password the password to submit.
-     * @param callback [com.microsoft.identity.client.statemachine.states.SignInPasswordRequiredState.SubmitPasswordCallback] to receive the result on.
+     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.SignInPasswordRequiredState.SubmitPasswordCallback] to receive the result on.
      * @return The results of the submit password action.
      */
     fun submitPassword(password: CharArray, callback: SubmitPasswordCallback) {
@@ -410,7 +410,7 @@ abstract class SignInAfterSignUpBaseState(
      * Submits the sign-in-after-sign-up verification code to the server; callback variant.
      *
      * @param scopes (Optional) The scopes to request.
-     * @param callback [com.microsoft.identity.client.statemachine.states.SignInAfterSignUpBaseState.SignInAfterSignUpCallback] to receive the result on.
+     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpBaseState.SignInAfterSignUpCallback] to receive the result on.
      * @return The results of the sign-in-after-sign-up action.
      */
     fun signInAfterSignUp(scopes: List<String>? = null, callback: SignInAfterSignUpCallback) {

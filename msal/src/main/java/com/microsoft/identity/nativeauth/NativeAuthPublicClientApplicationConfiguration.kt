@@ -20,17 +20,18 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client
+package com.microsoft.identity.nativeauth
 
 import android.text.TextUtils
 import com.google.gson.annotations.SerializedName
+import com.microsoft.identity.client.PublicClientApplicationConfiguration
 import com.microsoft.identity.client.configuration.AccountMode
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.common.java.authorities.CIAMAuthority
-import com.microsoft.identity.common.java.authorities.NativeAuthCIAMAuthority
+import com.microsoft.identity.common.nativeauth.authorities.NativeAuthCIAMAuthority
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
-import com.microsoft.identity.common.java.providers.nativeauth.NativeAuthConstants
+import com.microsoft.identity.common.nativeauth.providers.NativeAuthConstants
 import lombok.Getter
 import lombok.experimental.Accessors
 import java.io.Serializable
@@ -41,7 +42,7 @@ import java.io.Serializable
  */
 @Accessors(prefix = ["m"])
 @Getter
-class NativeAuthPublicClientApplicationConfiguration :
+public class NativeAuthPublicClientApplicationConfiguration :
     PublicClientApplicationConfiguration(),
     Serializable {
     companion object {
@@ -101,7 +102,7 @@ class NativeAuthPublicClientApplicationConfiguration :
      * Had to make this function public as companion object in
      * [NativeAuthPublicClientApplicationConfigurationFactory] cannot access it otherwise
      */
-    public override fun validateConfiguration() {
+    override fun validateConfiguration() {
         // Check that a client id was passed
         if (TextUtils.isEmpty(clientId)) {
             throw MsalClientException(

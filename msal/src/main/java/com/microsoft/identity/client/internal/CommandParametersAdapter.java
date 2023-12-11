@@ -35,7 +35,7 @@ import com.microsoft.identity.client.DeviceCodeFlowParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.ITenantProfile;
 import com.microsoft.identity.client.MultiTenantAccount;
-import com.microsoft.identity.client.NativeAuthPublicClientApplicationConfiguration;
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.PoPAuthenticationScheme;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
@@ -48,7 +48,6 @@ import com.microsoft.identity.common.java.constants.FidoConstants;
 import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryB2CAuthority;
-import com.microsoft.identity.common.java.authorities.NativeAuthCIAMAuthority;
 import com.microsoft.identity.common.java.authscheme.AbstractAuthenticationScheme;
 import com.microsoft.identity.common.java.authscheme.AuthenticationSchemeFactory;
 import com.microsoft.identity.common.java.authscheme.BearerAuthenticationSchemeInternal;
@@ -59,32 +58,32 @@ import com.microsoft.identity.common.java.commands.parameters.GenerateShrCommand
 import com.microsoft.identity.common.java.commands.parameters.InteractiveTokenCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.RemoveAccountCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.SilentTokenCommandParameters;
-import com.microsoft.identity.common.java.commands.parameters.nativeauth.AcquireTokenNoFixedScopesCommandParameters;
-import com.microsoft.identity.common.java.commands.parameters.nativeauth.ResetPasswordResendCodeCommandParameters;
-import com.microsoft.identity.common.java.commands.parameters.nativeauth.ResetPasswordStartCommandParameters;
-import com.microsoft.identity.common.java.commands.parameters.nativeauth.ResetPasswordSubmitCodeCommandParameters;
-import com.microsoft.identity.common.java.commands.parameters.nativeauth.ResetPasswordSubmitNewPasswordCommandParameters;
-import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignInResendCodeCommandParameters;
-import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignInStartCommandParameters;
-import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignInStartUsingPasswordCommandParameters;
-import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignInSubmitCodeCommandParameters;
-import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignInSubmitPasswordCommandParameters;
-import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignInWithSLTCommandParameters;
-import com.microsoft.identity.common.java.constants.FidoConstants;
-import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignUpResendCodeCommandParameters;
-import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignUpStartCommandParameters;
-import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignUpStartUsingPasswordCommandParameters;
-import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignUpSubmitCodeCommandParameters;
-import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignUpSubmitPasswordCommandParameters;
-import com.microsoft.identity.common.java.commands.parameters.nativeauth.SignUpSubmitUserAttributesCommandParameters;
 import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.java.providers.oauth2.OpenIdConnectPromptParameter;
 import com.microsoft.identity.common.java.request.SdkType;
 import com.microsoft.identity.common.java.ui.AuthorizationAgent;
-import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.common.logging.Logger;
+import com.microsoft.identity.common.nativeauth.authorities.NativeAuthCIAMAuthority;
+import com.microsoft.identity.common.nativeauth.commands.parameters.AcquireTokenNoFixedScopesCommandParameters;
+import com.microsoft.identity.common.nativeauth.commands.parameters.ResetPasswordResendCodeCommandParameters;
+import com.microsoft.identity.common.nativeauth.commands.parameters.ResetPasswordStartCommandParameters;
+import com.microsoft.identity.common.nativeauth.commands.parameters.ResetPasswordSubmitCodeCommandParameters;
+import com.microsoft.identity.common.nativeauth.commands.parameters.ResetPasswordSubmitNewPasswordCommandParameters;
+import com.microsoft.identity.common.nativeauth.commands.parameters.SignInResendCodeCommandParameters;
+import com.microsoft.identity.common.nativeauth.commands.parameters.SignInStartCommandParameters;
+import com.microsoft.identity.common.nativeauth.commands.parameters.SignInStartUsingPasswordCommandParameters;
+import com.microsoft.identity.common.nativeauth.commands.parameters.SignInSubmitCodeCommandParameters;
+import com.microsoft.identity.common.nativeauth.commands.parameters.SignInSubmitPasswordCommandParameters;
+import com.microsoft.identity.common.nativeauth.commands.parameters.SignInWithSLTCommandParameters;
+import com.microsoft.identity.common.nativeauth.commands.parameters.SignUpResendCodeCommandParameters;
+import com.microsoft.identity.common.nativeauth.commands.parameters.SignUpStartCommandParameters;
+import com.microsoft.identity.common.nativeauth.commands.parameters.SignUpStartUsingPasswordCommandParameters;
+import com.microsoft.identity.common.nativeauth.commands.parameters.SignUpSubmitCodeCommandParameters;
+import com.microsoft.identity.common.nativeauth.commands.parameters.SignUpSubmitPasswordCommandParameters;
+import com.microsoft.identity.common.nativeauth.commands.parameters.SignUpSubmitUserAttributesCommandParameters;
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -298,7 +297,7 @@ public class CommandParametersAdapter {
     }
 
     /**
-     * Creates command parameter for [AcquireTokenNoFixedScopesCommand] of Native Auth.
+     * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.AcquireTokenNoFixedScopesCommand}] of Native Auth.
      *
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
@@ -370,7 +369,7 @@ public class CommandParametersAdapter {
     }
 
     /**
-     * Creates command parameter for [SignUpStartCommand] of Native Auth.
+     * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.SignUpStartCommand}] of Native Auth.
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param username email address of the user
@@ -405,7 +404,7 @@ public class CommandParametersAdapter {
     }
 
     /**
-     * Creates command parameter for [SignUpStartCommand] of Native Auth when password is provided
+     * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.SignUpStartCommand}] of Native Auth when password is provided
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param username email address of the user
@@ -443,7 +442,7 @@ public class CommandParametersAdapter {
     }
 
     /**
-     * Creates command parameter for [{@link com.microsoft.identity.common.internal.commands.SignUpSubmitCodeCommand}] of Native Auth.
+     * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.SignUpSubmitCodeCommand}] of Native Auth.
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param code Out of band code
@@ -479,7 +478,7 @@ public class CommandParametersAdapter {
     }
 
     /**
-     * Creates command parameter for [{@link com.microsoft.identity.common.internal.commands.SignUpResendCodeCommand}] of Native Auth.
+     * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.SignUpResendCodeCommand}] of Native Auth.
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param signupToken Signup token received from the start command
@@ -512,7 +511,7 @@ public class CommandParametersAdapter {
     }
 
     /**
-     * Creates command parameter for [{@link com.microsoft.identity.common.internal.commands.SignUpSubmitUserAttributesCommand}] of Native Auth.
+     * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.SignUpSubmitUserAttributesCommand}] of Native Auth.
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param signupToken Signup token received from the start command
@@ -548,7 +547,7 @@ public class CommandParametersAdapter {
     }
 
     /**
-     * Creates command parameter for [{@link com.microsoft.identity.common.internal.commands.SignUpSubmitPasswordCommand}] of Native Auth.
+     * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.SignUpSubmitPasswordCommand}] of Native Auth.
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param signupToken email address of the user
@@ -584,7 +583,7 @@ public class CommandParametersAdapter {
     }
 
     /**
-     * Creates command parameter for [{@link com.microsoft.identity.common.internal.commands.SignInStartCommand}] of Native Auth.
+     * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.SignInStartCommand}] of Native Auth.
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param username email address of the user
@@ -625,7 +624,7 @@ public class CommandParametersAdapter {
     }
 
     /**
-     * Creates command parameter for [{@link com.microsoft.identity.common.internal.commands.SignInStartCommand}] of Native Auth using username and password
+     * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.SignInStartCommand}] of Native Auth using username and password
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param username email address of the user
@@ -672,7 +671,7 @@ public class CommandParametersAdapter {
     }
 
     /**
-     * Creates command parameter for [{@link com.microsoft.identity.common.internal.commands.SignInStartCommand}] of Native Auth using short lived token
+     * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.SignInStartCommand}] of Native Auth using short lived token
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param signInSLT short lived token
@@ -718,7 +717,7 @@ public class CommandParametersAdapter {
     }
 
     /**
-     * Creates command parameter for [{@link com.microsoft.identity.common.internal.commands.SignInSubmitCodeCommand}] of Native Auth
+     * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.SignInSubmitCodeCommand}] of Native Auth
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param code Out of band code
@@ -765,7 +764,7 @@ public class CommandParametersAdapter {
     }
 
     /**
-     * Creates command parameter for [{@link com.microsoft.identity.common.internal.commands.SignInResendCodeCommand}] of Native Auth
+     * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.SignInResendCodeCommand}] of Native Auth
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param credentialToken credential token
@@ -801,7 +800,7 @@ public class CommandParametersAdapter {
     }
 
     /**
-     * Creates command parameter for [{@link com.microsoft.identity.common.internal.commands.SignInSubmitPasswordCommand}] of Native Auth
+     * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.SignInSubmitPasswordCommand}] of Native Auth
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param credentialToken credential token
