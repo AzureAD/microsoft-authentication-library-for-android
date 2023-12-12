@@ -196,9 +196,9 @@ dependencies {
 
     def mockito_version = 'latest.release'
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
-    testImplementation "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
-    androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$rootProject.ext.kotlinVersion"
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib:$rootProject.ext.kotlinVersion"
+    androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib:$rootProject.ext.kotlinVersion"
 
     implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
     implementation "androidx.browser:browser:$rootProject.ext.browserVersion"
@@ -208,8 +208,10 @@ dependencies {
     }
     implementation "cz.msebera.android:httpclient:$rootProject.ext.mseberaApacheHttpClientVersion"
     implementation "androidx.constraintlayout:constraintlayout:$rootProject.ext.constraintLayoutVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$rootProject.ext.kotlinXCoroutinesVersion"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$rootProject.ext.kotlinXCoroutinesVersion"
 
-    compileOnly 'com.github.spotbugs:spotbugs-annotations:4.3.0'
+    compileOnly "com.github.spotbugs:spotbugs-annotations:$rootProject.ext.spotBugsAnnotationVersion"
 
     compileOnly "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
     annotationProcessor "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
@@ -220,12 +222,19 @@ dependencies {
     //see: https://javadoc.io/static/org.mockito/mockito-core/3.6.28/org/mockito/Mockito.html#0.1
     testImplementation "org.mockito:mockito-inline:$rootProject.ext.mockitoCoreVersion"
     testImplementation ("org.robolectric:robolectric:$rootProject.ext.robolectricVersion")
-    testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"
+    testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"    
     testLocalImplementation project(':testutils')
     testDistImplementation("com.microsoft.identity:testutils:0.0+") {
         exclude module: 'common'
         exclude group: 'com.microsoft.identity', module: 'LabApiUtilities'
     }
+    testImplementation project(':testutils')
+    testImplementation("org.mockito.kotlin:mockito-kotlin:$rootProject.ext.mockitoKotlinVersion") {
+        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib'
+    }
+
+    testImplementation "io.mockk:mockk:$rootProject.ext.mockkVersion"
+
     // instrumentation test dependencies
     androidTestImplementation "androidx.test.ext:junit:$rootProject.ext.androidxJunitVersion"
     // Set this dependency to use JUnit 4 rules
@@ -246,8 +255,8 @@ dependencies {
     String common4jVersion = project.hasProperty("distCommon4jVersion") ? project.distCommon4jVersion : "1.0.+"
     testDistImplementation(testFixtures("com.microsoft.identity:common4j:${common4jVersion}"))
 
-    implementation platform("io.opentelemetry:opentelemetry-bom:1.18.0")
-    implementation('io.opentelemetry:opentelemetry-api:1.18.0')
+    implementation platform("io.opentelemetry:opentelemetry-bom:$rootProject.ext.openTelemetryVersion")
+    implementation "io.opentelemetry:opentelemetry-api:$rootProject.ext.openTelemetryVersion"
 }
 
 def configDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')
