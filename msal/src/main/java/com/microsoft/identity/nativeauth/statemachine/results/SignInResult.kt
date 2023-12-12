@@ -21,16 +21,16 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 
-package com.microsoft.identity.client.statemachine.results
+package com.microsoft.identity.nativeauth.statemachine.results
 
-import com.microsoft.identity.client.statemachine.BrowserRequiredError
-import com.microsoft.identity.client.statemachine.Error
-import com.microsoft.identity.client.statemachine.IncorrectCodeError
-import com.microsoft.identity.client.statemachine.PasswordIncorrectError
-import com.microsoft.identity.client.statemachine.UserNotFoundError
-import com.microsoft.identity.client.statemachine.states.AccountResult
-import com.microsoft.identity.client.statemachine.states.SignInCodeRequiredState
-import com.microsoft.identity.client.statemachine.states.SignInPasswordRequiredState
+import com.microsoft.identity.nativeauth.statemachine.BrowserRequiredError
+import com.microsoft.identity.nativeauth.statemachine.Error
+import com.microsoft.identity.nativeauth.statemachine.IncorrectCodeError
+import com.microsoft.identity.nativeauth.statemachine.PasswordIncorrectError
+import com.microsoft.identity.nativeauth.statemachine.UserNotFoundError
+import com.microsoft.identity.nativeauth.statemachine.states.AccountResult
+import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState
+import com.microsoft.identity.nativeauth.statemachine.states.SignInPasswordRequiredState
 
 /**
  * Sign in result, produced by
@@ -42,7 +42,7 @@ sealed interface SignInResult : Result {
      * Complete Result, which indicates the sign in flow is complete,
      * i.e. tokens are retrieved for the provided scopes (if any).
      *
-     * @param resultValue an [com.microsoft.identity.client.statemachine.states.AccountResult] object containing account information and account related methods.
+     * @param resultValue an [com.microsoft.identity.nativeauth.statemachine.states.AccountResult] object containing account information and account related methods.
      */
     class Complete(override val resultValue: AccountResult) :
         Result.CompleteResult(resultValue = resultValue),
@@ -55,7 +55,7 @@ sealed interface SignInResult : Result {
      * BrowserRequired ErrorResult, which indicates that the server requires more/different authentication mechanisms than the client is configured to provide.
      * The flow should be restarted with a browser, by calling [com.microsoft.identity.client.IPublicClientApplication.acquireToken]
      *
-     * @param error [com.microsoft.identity.client.statemachine.BrowserRequiredError].
+     * @param error [com.microsoft.identity.nativeauth.statemachine.BrowserRequiredError].
      */
     class BrowserRequired(override val error: BrowserRequiredError) :
         Result.ErrorResult(error = error),
@@ -69,7 +69,7 @@ sealed interface SignInResult : Result {
      * UnexpectedError ErrorResult is a general error wrapper which indicates an unexpected error occurred during the flow.
      * If this occurs, the flow should be restarted.
      *
-     * @param error [com.microsoft.identity.client.statemachine.Error].
+     * @param error [com.microsoft.identity.nativeauth.statemachine.Error].
      */
     class UnexpectedError(override val error: Error) :
         Result.ErrorResult(error = error),
@@ -82,7 +82,7 @@ sealed interface SignInResult : Result {
     /**
      * CodeRequired Result, which indicates a verification code is required from the user to continue.
      *
-     * @param nextState [com.microsoft.identity.client.statemachine.states.SignInCodeRequiredState] the current state of the flow with follow-on methods.
+     * @param nextState [com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState] the current state of the flow with follow-on methods.
      * @param codeLength the length of the code required by the server.
      * @param sentTo the email/phone number the code was sent to.
      * @param channel the channel(email/phone) the code was sent through.
@@ -98,7 +98,7 @@ sealed interface SignInResult : Result {
      * InvalidCredentials ErrorResult, which indicates credentials provided by the users are not acceptable to the server.
      * The flow should be restarted or the password should be re-submitted, as appropriate.
      *
-     * @param error [com.microsoft.identity.client.statemachine.PasswordIncorrectError].
+     * @param error [com.microsoft.identity.nativeauth.statemachine.PasswordIncorrectError].
      */
     class InvalidCredentials(
         override val error: PasswordIncorrectError
@@ -108,7 +108,7 @@ sealed interface SignInResult : Result {
      * UserNotFound ErrorResult, which indicates there was no account found with the provided email.
      * The flow should be restarted.
      *
-     * @param error [com.microsoft.identity.client.statemachine.UserNotFoundError].
+     * @param error [com.microsoft.identity.nativeauth.statemachine.UserNotFoundError].
      */
     class UserNotFound(
         override val error: UserNotFoundError
@@ -117,7 +117,7 @@ sealed interface SignInResult : Result {
     /**
      * PasswordRequired Result, which indicates that the valid password is required from the user to continue.
      *
-     * @param nextState [com.microsoft.identity.client.statemachine.states.SignInPasswordRequiredState] the current state of the flow with follow-on methods.
+     * @param nextState [com.microsoft.identity.nativeauth.statemachine.states.SignInPasswordRequiredState] the current state of the flow with follow-on methods.
      */
     class PasswordRequired(
         override val nextState: SignInPasswordRequiredState
@@ -132,14 +132,14 @@ sealed interface SignInUsingPasswordResult : Result
 
 /**
  * Sign in submit code result, produced by
- * [com.microsoft.identity.client.statemachine.states.SignInCodeRequiredState.submitCode]
+ * [com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState.submitCode]
  */
 sealed interface SignInSubmitCodeResult : Result {
     /**
      * CodeIncorrect ErrorResult, which indicates the verification code provided by user is incorrect.
      * The code should be re-submitted.
      *
-     * @param error [com.microsoft.identity.client.statemachine.IncorrectCodeError].
+     * @param error [com.microsoft.identity.nativeauth.statemachine.IncorrectCodeError].
      */
     class CodeIncorrect(
         override val error: IncorrectCodeError
@@ -148,13 +148,13 @@ sealed interface SignInSubmitCodeResult : Result {
 
 /**
  * Sign in submit password result, produced by
- * [com.microsoft.identity.client.statemachine.states.SignInPasswordRequiredState.submitPassword]
+ * [com.microsoft.identity.nativeauth.statemachine.states.SignInPasswordRequiredState.submitPassword]
  */
 sealed interface SignInSubmitPasswordResult : Result
 
 /**
  * Sign in resend code result, produced by
- * [com.microsoft.identity.client.statemachine.states.SignInCodeRequiredState.resendCode]
+ * [com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState.resendCode]
  */
 sealed interface SignInResendCodeResult : Result {
     /**

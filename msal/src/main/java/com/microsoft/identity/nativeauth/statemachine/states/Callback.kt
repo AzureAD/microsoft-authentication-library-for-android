@@ -20,23 +20,26 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client
 
-import com.microsoft.identity.common.java.providers.nativeauth.responses.UserAttributeOptionsApiResult
+package com.microsoft.identity.nativeauth.statemachine.states
+
+import com.microsoft.identity.common.java.exception.BaseException
 
 /**
- * RequiredUserAttributeOptions contains the regular expression that the attribute value must match.
+ * Callback<T> class is used when the Native Auth features like SignUp, SignIn and SSPR are
+ * called from java code using callback variant.
  */
-data class RequiredUserAttributeOptions(
-    val regex: String?
-)
+interface Callback <T> {
 
-internal fun List<UserAttributeOptionsApiResult>.toListOfRequiredUserAttributeOptions(): List<RequiredUserAttributeOptions> {
-    return this.map { it.toListOfRequiredUserAttributeOptions() }
-}
+    /**
+     * onResult callback is made when the Native Auth API call is successful.
+     * @param result: Result of the successful Native Auth API.
+     */
+    fun onResult(result: T)
 
-fun UserAttributeOptionsApiResult.toListOfRequiredUserAttributeOptions(): RequiredUserAttributeOptions {
-    return RequiredUserAttributeOptions(
-        regex = regex
-    )
+    /**
+     * onError callback is made when the Native Auth API call fails.
+     * @param exception: This object captures the exception encountered during the failure.
+     */
+    fun onError(exception: BaseException)
 }

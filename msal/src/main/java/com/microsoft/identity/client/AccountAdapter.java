@@ -38,7 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-class AccountAdapter {
+public class AccountAdapter {
 
     private static final String TAG = AccountAdapter.class.getSimpleName();
 
@@ -151,7 +151,7 @@ class AccountAdapter {
      * @return
      */
     @NonNull
-    static List<IAccount> adapt(@NonNull final List<ICacheRecord> allCacheRecords) {
+    public static List<IAccount> adapt(@NonNull final List<ICacheRecord> allCacheRecords) {
         // First, get all of the ICacheRecords for home accounts...
         final List<ICacheRecord> homeCacheRecords = filterCacheRecords(
                 allCacheRecords,

@@ -374,7 +374,7 @@ public class PublicClientApplicationConfiguration {
         return mAppContext;
     }
 
-    void setAppContext(Context applicationContext) {
+    public void setAppContext(Context applicationContext) {
         mAppContext = applicationContext;
     }
 
@@ -382,7 +382,7 @@ public class PublicClientApplicationConfiguration {
         return mOAuth2TokenCache;
     }
 
-    void setOAuth2TokenCache(OAuth2TokenCache tokenCache) {
+    public void setOAuth2TokenCache(OAuth2TokenCache tokenCache) {
         mOAuth2TokenCache = tokenCache;
     }
 
@@ -390,7 +390,7 @@ public class PublicClientApplicationConfiguration {
         return mIsSharedDevice;
     }
 
-    void setIsSharedDevice(boolean isSharedDevice) {
+    public void setIsSharedDevice(boolean isSharedDevice) {
         mIsSharedDevice = isSharedDevice;
     }
 
@@ -487,7 +487,7 @@ public class PublicClientApplicationConfiguration {
         }
     }
 
-    void mergeConfiguration(PublicClientApplicationConfiguration config) {
+    public void mergeConfiguration(PublicClientApplicationConfiguration config) {
         this.mClientId = config.mClientId == null ? this.mClientId : config.mClientId;
         this.mRedirectUri = config.mRedirectUri == null ? this.mRedirectUri : config.mRedirectUri;
         this.mAuthorities = config.mAuthorities == null ? this.mAuthorities : config.mAuthorities;
@@ -517,7 +517,7 @@ public class PublicClientApplicationConfiguration {
         this.webauthnCapable = config.webauthnCapable == null ? this.webauthnCapable : config.webauthnCapable;
     }
 
-    void validateConfiguration() {
+    public void validateConfiguration() {
         validateRedirectUri(mRedirectUri);
         nullConfigurationCheck(CLIENT_ID, mClientId);
         checkDefaultAuthoritySpecified();
