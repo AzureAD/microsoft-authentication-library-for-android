@@ -417,7 +417,7 @@ public class AcquireTokenFragment extends Fragment {
         });
 
         mIsQrPinAvailable.setOnClickListener(v -> AcquireTokenFragment.this.showMessage(
-                String.valueOf(mMsalWrapper.isQrPinAvailable())
+            mMsalWrapper.isQrPinAvailable()
         ));
 
         return view;

@@ -30,6 +30,7 @@ import androidx.annotation.WorkerThread;
 
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.common.java.exception.BaseException;
 import com.microsoft.identity.common.java.util.TaskCompletedCallbackWithError;
 
 import java.util.Date;
@@ -148,8 +149,9 @@ public interface IPublicClientApplication {
      * Returns whether the application can support the QR code scanning + PIN protocol.
      *
      * @return true if the device supports the QR code scanning + PIN protocol, false otherwise.
+     * @throws BaseException if the broker is required but not installed.
      */
-    boolean isQRPinAvailable();
+    boolean isQRPinAvailable() throws BaseException;
 
     /**
      * Signs the provided {@link PoPAuthenticationScheme} parameters into a JWT on behalf of the

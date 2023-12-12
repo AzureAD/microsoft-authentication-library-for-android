@@ -25,6 +25,7 @@ import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
+import com.microsoft.identity.common.java.exception.BaseException;
 import com.microsoft.identity.common.java.util.StringUtil;
 
 import java.net.MalformedURLException;
@@ -339,7 +340,11 @@ abstract class MsalWrapper {
                                                            @NonNull final INotifyOperationResultCallback<String> generateShrCallback
     );
 
-    public boolean isQrPinAvailable() {
-        return getApp().isQRPinAvailable();
+    public String isQrPinAvailable() {
+        try {
+            return String.valueOf(getApp().isQRPinAvailable());
+        } catch (BaseException e) {
+            return e.getMessage();
+        }
     }
 }

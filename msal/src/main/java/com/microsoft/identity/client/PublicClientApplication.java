@@ -1273,7 +1273,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      * @return true if the device supports the QR code scanning + PIN protocol, false otherwise.
      */
     @Override
-    public boolean isQRPinAvailable() {
+    public boolean isQRPinAvailable() throws BaseException {
         final String methodTag = TAG + ":isQRPinAvailable";
 
         final CommandParameters params = CommandParametersAdapter.createCommandParameters(
@@ -1313,8 +1313,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     Logger.info(methodTag, "is QR + PIN available? " + commandResult.getResult());
                     return (Boolean) commandResult.getResult();
                 case ERROR:
-                    Logger.error(methodTag, "Unexpected error on isQRPinAvailable", (Throwable) commandResult.getResult());
-                    return false;
+                    final BaseException exception = (BaseException) commandResult.getResult();
+                    Logger.error(methodTag, "Unexpected error on isQRPinAvailable", exception);
+                    throw exception;
                 case CANCEL:
                     Logger.warn(methodTag, "isQRPinAvailable was cancelled");
                     return false;
