@@ -26,7 +26,7 @@ import com.microsoft.identity.client.PublicClientApplicationConfiguration.INVALI
 import com.microsoft.identity.client.configuration.AccountMode
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryB2CAuthority
-import com.microsoft.identity.common.nativeauth.java.authorities.NativeAuthCIAMAuthority
+import com.microsoft.identity.common.java.nativeauth.authorities.NativeAuthCIAMAuthority
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.fail
 import org.junit.Test

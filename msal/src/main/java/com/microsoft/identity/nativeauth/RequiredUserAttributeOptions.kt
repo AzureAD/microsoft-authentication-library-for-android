@@ -22,7 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.nativeauth
 
-import com.microsoft.identity.common.nativeauth.java.providers.responses.UserAttributeOptionsApiResult
+import com.microsoft.identity.common.java.nativeauth.providers.responses.UserAttributeOptionsApiResult
 
 /**
  * RequiredUserAttributeOptions contains the regular expression that the attribute value must match.

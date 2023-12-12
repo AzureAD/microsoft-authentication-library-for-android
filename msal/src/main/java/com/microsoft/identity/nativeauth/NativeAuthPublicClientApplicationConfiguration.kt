@@ -28,10 +28,10 @@ import com.microsoft.identity.client.PublicClientApplicationConfiguration
 import com.microsoft.identity.client.configuration.AccountMode
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.common.java.authorities.CIAMAuthority
-import com.microsoft.identity.common.nativeauth.java.authorities.NativeAuthCIAMAuthority
+import com.microsoft.identity.common.java.nativeauth.authorities.NativeAuthCIAMAuthority
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
-import com.microsoft.identity.common.nativeauth.java.providers.NativeAuthConstants
+import com.microsoft.identity.common.java.nativeauth.providers.NativeAuthConstants
 import lombok.Getter
 import lombok.experimental.Accessors
 import java.io.Serializable
