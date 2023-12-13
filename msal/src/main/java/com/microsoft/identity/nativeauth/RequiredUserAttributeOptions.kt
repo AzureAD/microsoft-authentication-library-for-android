@@ -20,12 +20,23 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
+package com.microsoft.identity.nativeauth
 
-package com.microsoft.identity.client.statemachine.states
-
-sealed interface State
+import com.microsoft.identity.common.java.nativeauth.providers.responses.UserAttributeOptionsApiResult
 
 /**
- * BaseState is the base class for various states in the Native Auth state machine.
+ * RequiredUserAttributeOptions contains the regular expression that the attribute value must match.
  */
-abstract class BaseState(internal open val flowToken: String?)
+data class RequiredUserAttributeOptions(
+    val regex: String?
+)
+
+internal fun List<UserAttributeOptionsApiResult>.toListOfRequiredUserAttributeOptions(): List<RequiredUserAttributeOptions> {
+    return this.map { it.toListOfRequiredUserAttributeOptions() }
+}
+
+fun UserAttributeOptionsApiResult.toListOfRequiredUserAttributeOptions(): RequiredUserAttributeOptions {
+    return RequiredUserAttributeOptions(
+        regex = regex
+    )
+}

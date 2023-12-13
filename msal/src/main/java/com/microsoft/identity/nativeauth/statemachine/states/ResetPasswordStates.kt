@@ -21,35 +21,35 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 
-package com.microsoft.identity.client.statemachine.states
+package com.microsoft.identity.nativeauth.statemachine.states
 
-import com.microsoft.identity.client.NativeAuthPublicClientApplication
-import com.microsoft.identity.client.NativeAuthPublicClientApplicationConfiguration
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
-import com.microsoft.identity.client.statemachine.BrowserRequiredError
-import com.microsoft.identity.client.statemachine.GeneralError
-import com.microsoft.identity.client.statemachine.IncorrectCodeError
-import com.microsoft.identity.client.statemachine.InvalidPasswordError
-import com.microsoft.identity.client.statemachine.results.ResetPasswordResendCodeResult
-import com.microsoft.identity.client.statemachine.results.ResetPasswordResult
-import com.microsoft.identity.client.statemachine.results.ResetPasswordSubmitCodeResult
-import com.microsoft.identity.client.statemachine.results.ResetPasswordSubmitPasswordResult
-import com.microsoft.identity.common.internal.commands.ResetPasswordResendCodeCommand
-import com.microsoft.identity.common.internal.commands.ResetPasswordSubmitCodeCommand
-import com.microsoft.identity.common.internal.commands.ResetPasswordSubmitNewPasswordCommand
-import com.microsoft.identity.common.internal.controllers.NativeAuthMsalController
+import com.microsoft.identity.nativeauth.statemachine.BrowserRequiredError
+import com.microsoft.identity.nativeauth.statemachine.GeneralError
+import com.microsoft.identity.nativeauth.statemachine.IncorrectCodeError
+import com.microsoft.identity.nativeauth.statemachine.InvalidPasswordError
+import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResendCodeResult
+import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResult
+import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitCodeResult
+import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitPasswordResult
+import com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordResendCodeCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordSubmitCodeCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordSubmitNewPasswordCommand
+import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.common.java.controllers.CommandDispatcher
-import com.microsoft.identity.common.java.controllers.results.INativeAuthCommandResult
-import com.microsoft.identity.common.java.controllers.results.ResetPasswordCommandResult
-import com.microsoft.identity.common.java.controllers.results.ResetPasswordResendCodeCommandResult
-import com.microsoft.identity.common.java.controllers.results.ResetPasswordSubmitCodeCommandResult
-import com.microsoft.identity.common.java.controllers.results.ResetPasswordSubmitNewPasswordCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.ResetPasswordCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.ResetPasswordResendCodeCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.ResetPasswordSubmitCodeCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.ResetPasswordSubmitNewPasswordCommandResult
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.util.StringUtil
-import com.microsoft.identity.common.java.util.checkAndWrapCommandResultType
+import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -74,7 +74,7 @@ class ResetPasswordCodeRequiredState internal constructor(
      * Submits the verification code received to the server; callback variant.
      *
      * @param code The code to submit.
-     * @param callback [com.microsoft.identity.client.statemachine.states.ResetPasswordPasswordRequiredState.SubmitPasswordCallback] to receive the result on.
+     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordPasswordRequiredState.SubmitPasswordCallback] to receive the result on.
      * @return The results of the submit code action.
      */
     fun submitCode(code: String, callback: SubmitCodeCallback) {
@@ -169,7 +169,7 @@ class ResetPasswordCodeRequiredState internal constructor(
     /**
      * Resends a new verification code to the user; callback variant.
      *
-     * @param callback [com.microsoft.identity.client.statemachine.states.ResetPasswordCodeRequiredState.ResendCodeCallback] to receive the result on.
+     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordCodeRequiredState.ResendCodeCallback] to receive the result on.
      * @return The results of the resend code action.
      */
     fun resendCode(callback: ResendCodeCallback) {
@@ -268,7 +268,7 @@ class ResetPasswordPasswordRequiredState internal constructor(
      * Submits a new password to the server; callback variant.
      *
      * @param password The password to submit.
-     * @param callback [com.microsoft.identity.client.statemachine.states.ResetPasswordPasswordRequiredState.SubmitPasswordCallback] to receive the result on.
+     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordPasswordRequiredState.SubmitPasswordCallback] to receive the result on.
      * @return The results of the submit password action.
      */
     fun submitPassword(password: CharArray, callback: SubmitPasswordCallback) {

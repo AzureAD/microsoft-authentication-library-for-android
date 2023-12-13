@@ -22,10 +22,10 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package com.microsoft.identity.client.statemachine.results
+package com.microsoft.identity.nativeauth.statemachine.results
 
-import com.microsoft.identity.client.statemachine.Error
-import com.microsoft.identity.client.statemachine.states.State
+import com.microsoft.identity.nativeauth.statemachine.Error
+import com.microsoft.identity.nativeauth.statemachine.states.State
 
 /**
  * Result is the base class for all Result classes used in Native Auth.
@@ -83,7 +83,7 @@ sealed interface SignOutResult : Result {
     /**
      * UnexpectedError ErrorResult, which indicates that an unexpected error occurred during sign out.
      *
-     * @param error [com.microsoft.identity.client.statemachine.Error]
+     * @param error [com.microsoft.identity.nativeauth.statemachine.Error]
      */
     class UnexpectedError(override val error: Error) :
         Result.ErrorResult(error = error),

@@ -113,7 +113,7 @@ public class PublicClientApplicationConfigurationFactory {
 
     @VisibleForTesting
     @WorkerThread
-    static PublicClientApplicationConfiguration loadConfiguration(@NonNull final Context context,
+    public static PublicClientApplicationConfiguration loadConfiguration(@NonNull final Context context,
                                                                   final int configResourceId) {
         final InputStream configStream = context.getResources().openRawResource(configResourceId);
         boolean useDefaultConfigResourceId = configResourceId == R.raw.msal_default_config;
