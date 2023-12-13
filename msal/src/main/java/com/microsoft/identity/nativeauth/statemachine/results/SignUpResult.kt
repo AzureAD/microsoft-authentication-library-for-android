@@ -23,14 +23,6 @@
 package com.microsoft.identity.nativeauth.statemachine.results
 
 import com.microsoft.identity.nativeauth.RequiredUserAttribute
-import com.microsoft.identity.nativeauth.statemachine.BrowserRequiredError
-import com.microsoft.identity.nativeauth.statemachine.Error
-import com.microsoft.identity.nativeauth.statemachine.GeneralError
-import com.microsoft.identity.nativeauth.statemachine.IncorrectCodeError
-import com.microsoft.identity.nativeauth.statemachine.InvalidAttributesError
-import com.microsoft.identity.nativeauth.statemachine.InvalidEmailError
-import com.microsoft.identity.nativeauth.statemachine.InvalidPasswordError
-import com.microsoft.identity.nativeauth.statemachine.UserAlreadyExistsError
 import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState
@@ -38,9 +30,9 @@ import com.microsoft.identity.nativeauth.statemachine.states.SignUpPasswordRequi
 
 /**
  * Sign up result, produced by
- * [com.microsoft.identity.client.INativeAuthPublicClientApplication.signUp]
+ * [com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication.signUp]
  */
-sealed interface SignUpResult : Result {
+interface SignUpResult : Result {
     /**
      * CompleteResult which indicates the sign up flow is complete,
      * i.e. the user account is created and can now be used to sign in with.
@@ -54,36 +46,6 @@ sealed interface SignUpResult : Result {
         SignUpSubmitCodeResult,
         SignUpSubmitPasswordResult,
         SignUpSubmitAttributesResult,
-        SignUpUsingPasswordResult
-
-    /**
-     * BrowserRequired ErrorResult, which indicates that the server requires more/different authentication mechanisms than the client is configured to provide.
-     * The flow should be restarted with a browser, by calling [com.microsoft.identity.client.IPublicClientApplication.acquireToken]
-     *
-     * @param error  error [com.microsoft.identity.nativeauth.statemachine.BrowserRequiredError].
-     */
-    class BrowserRequired(override val error: BrowserRequiredError) :
-        Result.ErrorResult(error = error),
-        SignUpResult,
-        SignUpSubmitCodeResult,
-        SignUpSubmitPasswordResult,
-        SignUpSubmitAttributesResult,
-        SignUpResendCodeResult,
-        SignUpUsingPasswordResult
-
-    /**
-     * UnexpectedError ErrorResult is a general error wrapper which indicates an unexpected error occurred during the flow.
-     * If this occurs, the flow should be restarted.
-     *
-     * @param error [com.microsoft.identity.nativeauth.statemachine.GeneralError].
-     */
-    class UnexpectedError(override val error: Error) :
-        Result.ErrorResult(error = error),
-        SignUpResult,
-        SignUpSubmitCodeResult,
-        SignUpSubmitPasswordResult,
-        SignUpSubmitAttributesResult,
-        SignUpResendCodeResult,
         SignUpUsingPasswordResult
 
     /**
@@ -118,91 +80,32 @@ sealed interface SignUpResult : Result {
         SignUpSubmitPasswordResult
 
     /**
-     * UserAlreadyExists ErrorResult, which indicates there is already an account with the same email.
-     * If this occurs, the flow should be restarted.
-     *
-     * @param error [com.microsoft.identity.nativeauth.statemachine.UserAlreadyExistsError]
-     */
-    class UserAlreadyExists(
-        override val error: UserAlreadyExistsError
-    ) : SignUpResult, Result.ErrorResult(error = error), SignUpUsingPasswordResult
-
-    /**
-     * InvalidEmail ErrorResult, which indicates the email provided by the user is not acceptable to the server.
-     * If this occurs, the flow should be restarted.
-     */
-    class InvalidEmail(
-        override val error: InvalidEmailError
-    ) : SignUpResult, Result.ErrorResult(error = error), SignUpUsingPasswordResult
-
-    /**
-     * InvalidAttributes ErrorResult, which indicates one or more attributes that were sent failed input validation.
-     * The attributes should be resubmitted.
-     *
-     * @param invalidAttributes a list of attributes that failed input validation
-     */
-    class InvalidAttributes(
-        override val error: InvalidAttributesError,
-        val invalidAttributes: List<String>,
-    ) : SignUpResult, Result.ErrorResult(error = error), SignUpUsingPasswordResult, SignUpSubmitAttributesResult
-
-    /**
      * PasswordRequired Result, which indicates that the valid password is required from the user to continue.
      *
      * @param nextState [com.microsoft.identity.nativeauth.statemachine.states.SignUpPasswordRequiredState] the current state of the flow with follow-on methods.
      */
     class PasswordRequired(
         override val nextState: SignUpPasswordRequiredState,
-    ) : SignUpResult, Result.SuccessResult(nextState = nextState), SignUpSubmitCodeResult
-
-    /**
-     * InvalidPassword ErrorResult, which indicates the new password provided by the user was not accepted by the server.
-     * The password should be re-submitted.
-     *
-     * @param error [com.microsoft.identity.nativeauth.statemachine.InvalidPasswordError].
-     */
-    class InvalidPassword(
-        override val error: InvalidPasswordError
-    ) : SignUpSubmitPasswordResult, SignUpUsingPasswordResult, Result.ErrorResult(error = error)
+    ) : SignUpResult, Result.SuccessResult(nextState = nextState),
+        SignUpSubmitCodeResult
 }
 
 /**
  * Sign up with password result, produced by [com.microsoft.identity.client.INativeAuthPublicClientApplication.signUpUsingPassword]
  */
-sealed interface SignUpUsingPasswordResult : Result {
-    /**
-     * AuthNotSupported ErrorResult, which indicates the server does not support password authentication.
-     * Check your challenge type configuration in the client with the user flow configuration in the tenant.
-     * The flow should be restarted.
-     *
-     * @param error [com.microsoft.identity.nativeauth.statemachine.GeneralError].
-     */
-    class AuthNotSupported(
-        override val error: GeneralError
-    ) : SignUpUsingPasswordResult, Result.ErrorResult(error = error)
-}
+interface SignUpUsingPasswordResult : Result
 
 /**
  * Sign in submit code result, produced by
  * [com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState.submitCode]
  */
-sealed interface SignUpSubmitCodeResult : Result {
-    /**
-     * CodeIncorrect ErrorResult, which indicates the verification code provided by user is incorrect.
-     * The code should be re-submitted.
-     *
-     * @param error [com.microsoft.identity.nativeauth.statemachine.IncorrectCodeError].
-     */
-    class CodeIncorrect(
-        override val error: IncorrectCodeError
-    ) : SignUpSubmitCodeResult, Result.ErrorResult(error = error)
-}
+interface SignUpSubmitCodeResult : Result
 
 /**
  * Sign in resend code result, produced by
  * [com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState.resendCode]
  */
-sealed interface SignUpResendCodeResult : Result {
+interface SignUpResendCodeResult : Result {
     /**
      * Success Result,  which indicates a new verification code was successfully resent.
      *
@@ -222,12 +125,12 @@ sealed interface SignUpResendCodeResult : Result {
  * Sign in submit code result, produced by
  * [com.microsoft.identity.nativeauth.statemachine.states.SignUpPasswordRequiredState.submitPassword]
  */
-sealed interface SignUpSubmitPasswordResult :
+interface SignUpSubmitPasswordResult :
     SignUpResult
 
 /**
  * Sign in submit code result, produced by
  * [com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesRequiredState.submitAttributes]
  */
-sealed interface SignUpSubmitAttributesResult :
+interface SignUpSubmitAttributesResult :
     SignUpResult

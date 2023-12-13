@@ -21,11 +21,23 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 
-package com.microsoft.identity.nativeauth.statemachine.states
+package com.microsoft.identity.nativeauth.statemachine.errors
 
-interface State
+import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
 
-/**
- * BaseState is the base class for various states in the Native Auth state machine.
- */
-abstract class BaseState(internal open val flowToken: String?)
+internal class GetAccessTokenErrorTypes {
+    companion object {
+        const val NO_ACCOUNT_FOUND = "no_account_found"
+    }
+}
+
+class GetAccessTokenError(
+    override val errorType: String? = null,
+    override val error: String? = null,
+    override val errorMessage: String? = null,
+    override val correlationId: String? = null,
+    override val errorCodes: List<Int>? = null,
+    override var exception: Exception? = null
+): GetAccessTokenResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
+    fun isNoAccountFound() : Boolean = this.errorType == GetAccessTokenErrorTypes.NO_ACCOUNT_FOUND
+}

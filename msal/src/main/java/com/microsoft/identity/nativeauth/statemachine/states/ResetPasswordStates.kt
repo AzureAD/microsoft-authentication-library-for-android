@@ -27,10 +27,6 @@ import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
-import com.microsoft.identity.nativeauth.statemachine.BrowserRequiredError
-import com.microsoft.identity.nativeauth.statemachine.GeneralError
-import com.microsoft.identity.nativeauth.statemachine.IncorrectCodeError
-import com.microsoft.identity.nativeauth.statemachine.InvalidPasswordError
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResendCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitCodeResult
@@ -50,6 +46,11 @@ import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.util.StringUtil
 import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
+import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
+import com.microsoft.identity.nativeauth.statemachine.errors.ResendCodeError
+import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordErrorTypes
+import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordSubmitPasswordError
+import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -126,20 +127,20 @@ class ResetPasswordCodeRequiredState internal constructor(
                 }
 
                 is ResetPasswordCommandResult.IncorrectCode -> {
-                    ResetPasswordSubmitCodeResult.CodeIncorrect(
-                        error = IncorrectCodeError(
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId
-                        )
+                    SubmitCodeError(
+                        errorType = ErrorTypes.INVALID_CODE,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId
                     )
                 }
 
                 is INativeAuthCommandResult.Redirect -> {
-                    ResetPasswordResult.BrowserRequired(
-                        error = BrowserRequiredError(
-                            correlationId = result.correlationId
-                        )
+                    SubmitCodeError(
+                        errorType = ErrorTypes.BROWSER_REQUIRED,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId
                     )
                 }
 
@@ -148,13 +149,11 @@ class ResetPasswordCodeRequiredState internal constructor(
                         TAG,
                         "Unexpected result: $result"
                     )
-                    ResetPasswordResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId,
-                            exception = result.exception
-                        )
+                    SubmitCodeError(
+                        errorMessage = result.errorDescription,
+                        error = result.error,
+                        correlationId = result.correlationId,
+                        exception = result.exception
                     )
                 }
             }
@@ -222,10 +221,11 @@ class ResetPasswordCodeRequiredState internal constructor(
                 }
 
                 is INativeAuthCommandResult.Redirect -> {
-                    ResetPasswordResult.BrowserRequired(
-                        error = BrowserRequiredError(
-                            correlationId = result.correlationId
-                        )
+                    ResendCodeError(
+                        errorType = ErrorTypes.BROWSER_REQUIRED,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId
                     )
                 }
 
@@ -234,14 +234,11 @@ class ResetPasswordCodeRequiredState internal constructor(
                         TAG,
                         "Unexpected result: $result"
                     )
-                    ResetPasswordResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId,
-                            details = result.details,
-                            exception = result.exception
-                        )
+                    ResendCodeError(
+                        errorMessage = result.errorDescription,
+                        error = result.error,
+                        correlationId = result.correlationId,
+                        exception = result.exception
                     )
                 }
             }
@@ -317,22 +314,20 @@ class ResetPasswordPasswordRequiredState internal constructor(
                     }
 
                     is ResetPasswordCommandResult.PasswordNotAccepted -> {
-                        ResetPasswordSubmitPasswordResult.InvalidPassword(
-                            error = InvalidPasswordError(
-                                error = result.error,
-                                errorMessage = result.errorDescription,
-                                correlationId = result.correlationId
-                            )
+                        ResetPasswordSubmitPasswordError(
+                            errorType = ErrorTypes.INVALID_PASSWORD,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
                         )
                     }
 
                     is ResetPasswordCommandResult.PasswordResetFailed -> {
-                        ResetPasswordSubmitPasswordResult.PasswordResetFailed(
-                            error = GeneralError(
-                                error = result.error,
-                                errorMessage = result.errorDescription,
-                                correlationId = result.correlationId
-                            )
+                        ResetPasswordSubmitPasswordError(
+                            errorType = ResetPasswordErrorTypes.PASSWORD_RESET_FAILED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
                         )
                     }
 
@@ -341,12 +336,10 @@ class ResetPasswordPasswordRequiredState internal constructor(
                             TAG,
                             "Unexpected result: $result"
                         )
-                        ResetPasswordResult.UnexpectedError(
-                            error = GeneralError(
-                                errorMessage = result.errorDescription,
-                                error = result.error,
-                                correlationId = result.correlationId
-                            )
+                        ResetPasswordSubmitPasswordError(
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
                         )
                     }
 
@@ -355,14 +348,11 @@ class ResetPasswordPasswordRequiredState internal constructor(
                             TAG,
                             "Unexpected result: $result"
                         )
-                        ResetPasswordResult.UnexpectedError(
-                            error = GeneralError(
-                                errorMessage = result.errorDescription,
-                                error = result.error,
-                                correlationId = result.correlationId,
-                                details = result.details,
-                                exception = result.exception
-                            )
+                        ResetPasswordSubmitPasswordError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId,
+                            exception = result.exception
                         )
                     }
                 }

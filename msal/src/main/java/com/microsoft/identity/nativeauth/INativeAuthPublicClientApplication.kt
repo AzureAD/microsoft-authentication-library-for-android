@@ -25,12 +25,13 @@ package com.microsoft.identity.nativeauth
 import com.microsoft.identity.client.IPublicClientApplication
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
+import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInUsingPasswordResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpUsingPasswordResult
-import com.microsoft.identity.nativeauth.statemachine.states.AccountResult
+
 
 /**
  * INativeAuthPublicClientApplication provides top level interface that is used by app developers
@@ -55,14 +56,14 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
     /**
      * Retrieve the current signed in account from cache; Kotlin coroutines variant.
      *
-     * @return [com.microsoft.identity.nativeauth.statemachine.states.AccountResult] if there is a signed in account, null otherwise.
+     * @return [com.microsoft.identity.nativeauth.statemachine.states.AccountState] if there is a signed in account, null otherwise.
      */
-    suspend fun getCurrentAccount(): AccountResult?
+    suspend fun getCurrentAccount(): GetAccountResult
 
     /**
      * Retrieve the current signed in account from cache; Kotlin coroutines variant.
      *
-     * @return [com.microsoft.identity.nativeauth.statemachine.states.AccountResult] if there is a signed in account, null otherwise.
+     * @return [com.microsoft.identity.nativeauth.statemachine.states.AccountState] if there is a signed in account, null otherwise.
      */
     fun getCurrentAccount(callback: NativeAuthPublicClientApplication.GetCurrentAccountCallback)
 

@@ -32,13 +32,13 @@ import com.microsoft.identity.common.java.exception.BaseException
 interface Callback <T> {
 
     /**
-     * onResult callback is made when the Native Auth API call is successful.
+     * onResult callback is called when the action was successful.
      * @param result: Result of the successful Native Auth API.
      */
     fun onResult(result: T)
 
     /**
-     * onError callback is made when the Native Auth API call fails.
+     * onError callback is called when the action failed.
      * @param exception: This object captures the exception encountered during the failure.
      */
     fun onError(exception: BaseException)
