@@ -21,15 +21,15 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 
-package com.microsoft.identity.client.statemachine.results
+package com.microsoft.identity.nativeauth.statemachine.results
 
-import com.microsoft.identity.client.statemachine.BrowserRequiredError
-import com.microsoft.identity.client.statemachine.GeneralError
-import com.microsoft.identity.client.statemachine.IncorrectCodeError
-import com.microsoft.identity.client.statemachine.InvalidPasswordError
-import com.microsoft.identity.client.statemachine.UserNotFoundError
-import com.microsoft.identity.client.statemachine.states.ResetPasswordCodeRequiredState
-import com.microsoft.identity.client.statemachine.states.ResetPasswordPasswordRequiredState
+import com.microsoft.identity.nativeauth.statemachine.BrowserRequiredError
+import com.microsoft.identity.nativeauth.statemachine.GeneralError
+import com.microsoft.identity.nativeauth.statemachine.IncorrectCodeError
+import com.microsoft.identity.nativeauth.statemachine.InvalidPasswordError
+import com.microsoft.identity.nativeauth.statemachine.UserNotFoundError
+import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordCodeRequiredState
+import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordPasswordRequiredState
 
 /**
  * Self-service password reset.
@@ -50,7 +50,7 @@ sealed interface ResetPasswordResult : Result {
      * BrowserRequired ErrorResult, which indicates that the server requires more/different authentication mechanisms than the client is configured or able to provide.
      * The flow should be restarted with a browser, by calling [com.microsoft.identity.client.IPublicClientApplication.acquireToken]
      *
-     * @param error [com.microsoft.identity.client.statemachine.BrowserRequiredError]
+     * @param error [com.microsoft.identity.nativeauth.statemachine.BrowserRequiredError]
      */
     class BrowserRequired(
         override val error: BrowserRequiredError
@@ -65,9 +65,9 @@ sealed interface ResetPasswordResult : Result {
      * UnexpectedError ErrorResult is a general error wrapper which indicates an unexpected error occurred during the flow.
      * If this occurs, the flow should be restarted.
      *
-     * @param error [com.microsoft.identity.client.statemachine.Error]
+     * @param error [com.microsoft.identity.nativeauth.statemachine.Error]
      */
-    class UnexpectedError(override val error: com.microsoft.identity.client.statemachine.Error) :
+    class UnexpectedError(override val error: com.microsoft.identity.nativeauth.statemachine.Error) :
         Result.ErrorResult(error = error),
         ResetPasswordResult,
         ResetPasswordStartResult,
@@ -84,7 +84,7 @@ sealed interface ResetPasswordStartResult : Result {
     /**
      * CodeRequired Result, which indicates a verification code is required from the user to continue.
      *
-     * @param nextState [com.microsoft.identity.client.statemachine.states.ResetPasswordCodeRequiredState] the current state of the flow with follow-on methods.
+     * @param nextState [com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordCodeRequiredState] the current state of the flow with follow-on methods.
      * @param codeLength the length of the code required by the server.
      * @param sentTo the email/phone number the code was sent to.
      * @param channel the channel(email/phone) the code was sent through.
@@ -100,7 +100,7 @@ sealed interface ResetPasswordStartResult : Result {
      * UserNotFound ErrorResult, which indicates there was no account found with the provided email.
      * The flow should be restarted.
      *
-     * @param error [com.microsoft.identity.client.statemachine.UserNotFoundError] the current state of the flow with follow-on methods.
+     * @param error [com.microsoft.identity.nativeauth.statemachine.UserNotFoundError] the current state of the flow with follow-on methods.
      */
     class UserNotFound(
         override val error: UserNotFoundError
@@ -109,13 +109,13 @@ sealed interface ResetPasswordStartResult : Result {
 
 /**
  * SSPR submit code result, produced by
- * [com.microsoft.identity.client.statemachine.states.ResetPasswordCodeRequiredState.submitCode]
+ * [com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordCodeRequiredState.submitCode]
  */
 sealed interface ResetPasswordSubmitCodeResult : Result {
     /**
      * PasswordRequired Result, which indicates that a valid new password is required from the user to continue.
      *
-     * @param nextState [com.microsoft.identity.client.statemachine.states.ResetPasswordPasswordRequiredState] the current state of the flow with follow-on methods.
+     * @param nextState [com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordPasswordRequiredState] the current state of the flow with follow-on methods.
      */
     class PasswordRequired(
         override val nextState: ResetPasswordPasswordRequiredState
@@ -125,7 +125,7 @@ sealed interface ResetPasswordSubmitCodeResult : Result {
      * CodeIncorrect ErrorResult, which indicates the verification code provided by user is incorrect.
      * The code should be re-submitted.
      *
-     * @param error [com.microsoft.identity.client.statemachine.IncorrectCodeError]
+     * @param error [com.microsoft.identity.nativeauth.statemachine.IncorrectCodeError]
      */
     class CodeIncorrect(
         override val error: IncorrectCodeError
@@ -134,13 +134,13 @@ sealed interface ResetPasswordSubmitCodeResult : Result {
 
 /**
  * Sign in resend code result, produced by
- * [com.microsoft.identity.client.statemachine.states.ResetPasswordCodeRequiredState.resendCode]
+ * [com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordCodeRequiredState.resendCode]
  */
 sealed interface ResetPasswordResendCodeResult : Result {
     /**
      * Success Result, which indicates a new verification code was successfully resent.
      *
-     * @param nextState [com.microsoft.identity.client.statemachine.states.ResetPasswordCodeRequiredState] the current state of the flow with follow-on methods.
+     * @param nextState [com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordCodeRequiredState] the current state of the flow with follow-on methods.
      * @param codeLength the length of the code required by the server.
      * @param sentTo the email/phone number the code was sent to.
      * @param channel channel(email/phone) the code was sent through.
@@ -155,14 +155,14 @@ sealed interface ResetPasswordResendCodeResult : Result {
 
 /**
  * SSPR submit password result, produced by
- * [com.microsoft.identity.client.statemachine.states.ResetPasswordPasswordRequiredState.submitPassword]
+ * [com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordPasswordRequiredState.submitPassword]
  */
 sealed interface ResetPasswordSubmitPasswordResult : Result {
     /**
      * InvalidPassword ErrorResult, which indicates the new password provided by the user is not acceptable to the server.
      * The password should be re-submitted.
      *
-     * @param error [com.microsoft.identity.client.statemachine.InvalidPasswordError]
+     * @param error [com.microsoft.identity.nativeauth.statemachine.InvalidPasswordError]
      */
     class InvalidPassword(
         override val error: InvalidPasswordError
@@ -170,7 +170,7 @@ sealed interface ResetPasswordSubmitPasswordResult : Result {
     /**
      * PasswordResetFailed ErrorResult, which indicates the password reset flow failed.
      *
-     * @param error [com.microsoft.identity.client.statemachine.GeneralError]
+     * @param error [com.microsoft.identity.nativeauth.statemachine.GeneralError]
      */
     class PasswordResetFailed(
         override val error: GeneralError

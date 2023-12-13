@@ -21,24 +21,24 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 
-package com.microsoft.identity.client.statemachine.states
+package com.microsoft.identity.nativeauth.statemachine.states
 
 import com.microsoft.identity.client.Account
 import com.microsoft.identity.client.AcquireTokenSilentParameters
 import com.microsoft.identity.client.AuthenticationResultAdapter
 import com.microsoft.identity.client.IAccount
 import com.microsoft.identity.client.IAuthenticationResult
-import com.microsoft.identity.client.NativeAuthPublicClientApplication
-import com.microsoft.identity.client.NativeAuthPublicClientApplicationConfiguration
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
-import com.microsoft.identity.client.statemachine.results.SignOutResult
-import com.microsoft.identity.common.internal.commands.AcquireTokenNoFixedScopesCommand
+import com.microsoft.identity.nativeauth.statemachine.results.SignOutResult
+import com.microsoft.identity.common.nativeauth.internal.commands.AcquireTokenNoFixedScopesCommand
 import com.microsoft.identity.common.internal.commands.RemoveCurrentAccountCommand
 import com.microsoft.identity.common.internal.controllers.LocalMSALController
-import com.microsoft.identity.common.internal.controllers.NativeAuthMsalController
+import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.common.java.commands.CommandCallback
 import com.microsoft.identity.common.java.controllers.CommandDispatcher
 import com.microsoft.identity.common.java.controllers.ExceptionAdapter
@@ -55,7 +55,7 @@ import kotlinx.coroutines.withContext
 import java.io.Serializable
 
 /**
- *  AcccountResult returned as part of a successful completion of sign in flow [com.microsoft.identity.client.statemachine.results.SignInResult.Complete].
+ *  AcccountResult returned as part of a successful completion of sign in flow [com.microsoft.identity.nativeauth.statemachine.results.SignInResult.Complete].
  */
 class AccountResult private constructor(
     private val account: IAccount,
@@ -92,7 +92,7 @@ class AccountResult private constructor(
     /**
      * Remove the current account from the cache; callback variant.
      *
-     * @param callback [com.microsoft.identity.client.statemachine.states.AccountResult.SignOutCallback] to receive the result on.
+     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.AccountResult.SignOutCallback] to receive the result on.
      */
     fun signOut(callback: SignOutCallback) {
         LogSession.logMethodCall(TAG, "${TAG}.signOut")

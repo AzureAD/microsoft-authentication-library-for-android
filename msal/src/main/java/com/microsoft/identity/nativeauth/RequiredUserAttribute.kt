@@ -20,9 +20,9 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client
+package com.microsoft.identity.nativeauth
 
-import com.microsoft.identity.common.java.providers.nativeauth.responses.UserAttributeApiResult
+import com.microsoft.identity.common.java.nativeauth.providers.responses.UserAttributeApiResult
 
 /**
  * RequiredUserAttribute represents details about the account attributes required by the server.

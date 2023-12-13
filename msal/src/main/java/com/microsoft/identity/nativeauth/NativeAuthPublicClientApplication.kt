@@ -21,55 +21,59 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package com.microsoft.identity.client
+package com.microsoft.identity.nativeauth
 
 import android.content.Context
+import com.microsoft.identity.client.AccountAdapter
+import com.microsoft.identity.client.AuthenticationResultAdapter
+import com.microsoft.identity.client.IAccount
+import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
-import com.microsoft.identity.client.statemachine.BrowserRequiredError
-import com.microsoft.identity.client.statemachine.GeneralError
-import com.microsoft.identity.client.statemachine.InvalidAttributesError
-import com.microsoft.identity.client.statemachine.InvalidEmailError
-import com.microsoft.identity.client.statemachine.InvalidPasswordError
-import com.microsoft.identity.client.statemachine.PasswordIncorrectError
-import com.microsoft.identity.client.statemachine.UserAlreadyExistsError
-import com.microsoft.identity.client.statemachine.UserNotFoundError
-import com.microsoft.identity.client.statemachine.results.ResetPasswordResult
-import com.microsoft.identity.client.statemachine.results.ResetPasswordStartResult
-import com.microsoft.identity.client.statemachine.results.SignInResult
-import com.microsoft.identity.client.statemachine.results.SignInUsingPasswordResult
-import com.microsoft.identity.client.statemachine.results.SignUpResult
-import com.microsoft.identity.client.statemachine.results.SignUpUsingPasswordResult
-import com.microsoft.identity.client.statemachine.states.AccountResult
-import com.microsoft.identity.client.statemachine.states.Callback
-import com.microsoft.identity.client.statemachine.states.ResetPasswordCodeRequiredState
-import com.microsoft.identity.client.statemachine.states.SignInAfterSignUpState
-import com.microsoft.identity.client.statemachine.states.SignInCodeRequiredState
-import com.microsoft.identity.client.statemachine.states.SignInPasswordRequiredState
-import com.microsoft.identity.client.statemachine.states.SignUpAttributesRequiredState
-import com.microsoft.identity.client.statemachine.states.SignUpCodeRequiredState
-import com.microsoft.identity.client.statemachine.states.SignUpPasswordRequiredState
+import com.microsoft.identity.nativeauth.statemachine.BrowserRequiredError
+import com.microsoft.identity.nativeauth.statemachine.GeneralError
+import com.microsoft.identity.nativeauth.statemachine.InvalidAttributesError
+import com.microsoft.identity.nativeauth.statemachine.InvalidEmailError
+import com.microsoft.identity.nativeauth.statemachine.InvalidPasswordError
+import com.microsoft.identity.nativeauth.statemachine.PasswordIncorrectError
+import com.microsoft.identity.nativeauth.statemachine.UserAlreadyExistsError
+import com.microsoft.identity.nativeauth.statemachine.UserNotFoundError
+import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResult
+import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignInUsingPasswordResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignUpUsingPasswordResult
+import com.microsoft.identity.nativeauth.statemachine.states.AccountResult
+import com.microsoft.identity.nativeauth.statemachine.states.Callback
+import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordCodeRequiredState
+import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpState
+import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState
+import com.microsoft.identity.nativeauth.statemachine.states.SignInPasswordRequiredState
+import com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesRequiredState
+import com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState
+import com.microsoft.identity.nativeauth.statemachine.states.SignUpPasswordRequiredState
 import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager
 import com.microsoft.identity.common.internal.commands.GetCurrentAccountCommand
-import com.microsoft.identity.common.internal.commands.ResetPasswordStartCommand
-import com.microsoft.identity.common.internal.commands.SignInStartCommand
-import com.microsoft.identity.common.internal.commands.SignUpStartCommand
 import com.microsoft.identity.common.internal.controllers.LocalMSALController
-import com.microsoft.identity.common.internal.controllers.NativeAuthMsalController
+import com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordStartCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.SignInStartCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.SignUpStartCommand
+import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.common.internal.net.cache.HttpCache
 import com.microsoft.identity.common.java.authorities.Authority
 import com.microsoft.identity.common.java.cache.ICacheRecord
 import com.microsoft.identity.common.java.commands.CommandCallback
 import com.microsoft.identity.common.java.controllers.CommandDispatcher
-import com.microsoft.identity.common.java.controllers.results.INativeAuthCommandResult
-import com.microsoft.identity.common.java.controllers.results.ResetPasswordCommandResult
-import com.microsoft.identity.common.java.controllers.results.ResetPasswordStartCommandResult
-import com.microsoft.identity.common.java.controllers.results.SignInCommandResult
-import com.microsoft.identity.common.java.controllers.results.SignInStartCommandResult
-import com.microsoft.identity.common.java.controllers.results.SignUpCommandResult
-import com.microsoft.identity.common.java.controllers.results.SignUpStartCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.ResetPasswordCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.ResetPasswordStartCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.SignInCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.SignInStartCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.SignUpCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.SignUpStartCommandResult
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.logging.LogSession
@@ -77,7 +81,7 @@ import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory
 import com.microsoft.identity.common.java.util.ResultFuture
 import com.microsoft.identity.common.java.util.StringUtil
-import com.microsoft.identity.common.java.util.checkAndWrapCommandResultType
+import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -212,7 +216,7 @@ class NativeAuthPublicClientApplication(
      * Retrieve the current signed in account from cache; callback variant.
      *
      * @param callback [com.microsoft.identity.client.NativeAuthPublicClientApplication.GetCurrentAccountCallback] to receive the result.
-     * @return [com.microsoft.identity.client.statemachine.states.AccountResult] if there is a signed in account, null otherwise.
+     * @return [com.microsoft.identity.nativeauth.statemachine.states.AccountResult] if there is a signed in account, null otherwise.
      */
     override fun getCurrentAccount(callback: GetCurrentAccountCallback) {
         pcaScope.launch {
@@ -228,7 +232,7 @@ class NativeAuthPublicClientApplication(
     /**
      * Retrieve the current signed in account from cache; Kotlin coroutines variant.
      *
-     * @return [com.microsoft.identity.client.statemachine.states.AccountResult] if there is a signed in account, null otherwise.
+     * @return [com.microsoft.identity.nativeauth.statemachine.states.AccountResult] if there is a signed in account, null otherwise.
      */
     override suspend fun getCurrentAccount(): AccountResult? {
         return withContext(Dispatchers.IO) {
@@ -252,7 +256,7 @@ class NativeAuthPublicClientApplication(
      * @param username username of the account to sign in.
      * @param scopes (Optional) scopes to request during the sign in.
      * @param callback [com.microsoft.identity.client.NativeAuthPublicClientApplication.SignInCallback] to receive the result.
-     * @return [com.microsoft.identity.client.statemachine.results.SignInResult] see detailed possible return state under the object.
+     * @return [com.microsoft.identity.nativeauth.statemachine.results.SignInResult] see detailed possible return state under the object.
      * @throws [MsalException] if an account is already signed in.
      */
     override fun signIn(username: String, scopes: List<String>?, callback: SignInCallback) {
@@ -273,7 +277,7 @@ class NativeAuthPublicClientApplication(
      *
      * @param username username of the account to sign in.
      * @param scopes (Optional) scopes to request during the sign in.
-     * @return [com.microsoft.identity.client.statemachine.results.SignInResult] see detailed possible return state under the object.
+     * @return [com.microsoft.identity.nativeauth.statemachine.results.SignInResult] see detailed possible return state under the object.
      * @throws [MsalException] if an account is already signed in.
      */
     override suspend fun signIn(
@@ -390,7 +394,7 @@ class NativeAuthPublicClientApplication(
      * @param password password of the account to sign in.
      * @param scopes (Optional) list of scopes to request.
      * @param callback [com.microsoft.identity.client.NativeAuthPublicClientApplication.SignInUsingPasswordCallback] to receive the result.
-     * @return [com.microsoft.identity.client.statemachine.results.SignInUsingPasswordResult] see detailed possible return state under the object.
+     * @return [com.microsoft.identity.nativeauth.statemachine.results.SignInUsingPasswordResult] see detailed possible return state under the object.
      * @throws MsalClientException if an account is already signed in.
      */
     override fun signInUsingPassword(
@@ -417,7 +421,7 @@ class NativeAuthPublicClientApplication(
      * @param username username of the account to sign in.
      * @param password password of the account to sign in.
      * @param scopes (Optional) list of scopes to request.
-     * @return [com.microsoft.identity.client.statemachine.results.SignInUsingPasswordResult] see detailed possible return state under the object.
+     * @return [com.microsoft.identity.nativeauth.statemachine.results.SignInUsingPasswordResult] see detailed possible return state under the object.
      * @throws MsalClientException if an account is already signed in.
      */
     override suspend fun signInUsingPassword(
@@ -551,7 +555,7 @@ class NativeAuthPublicClientApplication(
      * @param password password of the account to sign up.
      * @param attributes (Optional) user attributes to be used during account creation
      * @param callback [com.microsoft.identity.client.NativeAuthPublicClientApplication.SignUpUsingPasswordCallback] to receive the result.
-     * @return [com.microsoft.identity.client.statemachine.results.SignUpUsingPasswordResult] see detailed possible return state under the object.
+     * @return [com.microsoft.identity.nativeauth.statemachine.results.SignUpUsingPasswordResult] see detailed possible return state under the object.
      * @throws MsalClientException if an account is already signed in.
      */
     override fun signUpUsingPassword(
@@ -578,7 +582,7 @@ class NativeAuthPublicClientApplication(
      * @param username username of the account to sign up.
      * @param password password of the account to sign up.
      * @param attributes (Optional) user attributes to be used during account creation
-     * @return [com.microsoft.identity.client.statemachine.results.SignUpUsingPasswordResult] see detailed possible return state under the object.
+     * @return [com.microsoft.identity.nativeauth.statemachine.results.SignUpUsingPasswordResult] see detailed possible return state under the object.
      * @throws MsalClientException if an account is already signed in.
      */
     override suspend fun signUpUsingPassword(
@@ -750,7 +754,7 @@ class NativeAuthPublicClientApplication(
      * @param username username of the account to sign up.
      * @param attributes (Optional) user attributes to be used during account creation.
      * @param callback [com.microsoft.identity.client.NativeAuthPublicClientApplication.SignUpCallback] to receive the result.
-     * @return [com.microsoft.identity.client.statemachine.results.SignUpResult] see detailed possible return state under the object.
+     * @return [com.microsoft.identity.nativeauth.statemachine.results.SignUpResult] see detailed possible return state under the object.
      * @throws MsalClientException if an account is already signed in.
      */
     override fun signUp(
@@ -776,7 +780,7 @@ class NativeAuthPublicClientApplication(
      *
      * @param username username of the account to sign up.
      * @param attributes (Optional) user attributes to be used during account creation.
-     * @return [com.microsoft.identity.client.statemachine.results.SignUpResult] see detailed possible return state under the object.
+     * @return [com.microsoft.identity.nativeauth.statemachine.results.SignUpResult] see detailed possible return state under the object.
      * @throws MsalClientException if an account is already signed in.
      */
     override suspend fun signUp(
@@ -943,7 +947,7 @@ class NativeAuthPublicClientApplication(
      *
      * @param username username of the account to reset password.
      * @param callback [com.microsoft.identity.client.NativeAuthPublicClientApplication.ResetPasswordCallback] to receive the result.
-     * @return [com.microsoft.identity.client.statemachine.results.ResetPasswordStartResult] see detailed possible return state under the object.
+     * @return [com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult] see detailed possible return state under the object.
      * @throws MsalClientException if an account is already signed in.
      */
     override fun resetPassword(username: String, callback: ResetPasswordCallback) {
@@ -963,7 +967,7 @@ class NativeAuthPublicClientApplication(
      * Reset password for the account starting from a username; Kotlin coroutines variant.
      *
      * @param username username of the account to reset password.
-     * @return [com.microsoft.identity.client.statemachine.results.ResetPasswordStartResult] see detailed possible return state under the object.
+     * @return [com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult] see detailed possible return state under the object.
      * @throws MsalClientException if an account is already signed in.
      */
     override suspend fun resetPassword(username: String): ResetPasswordStartResult {
