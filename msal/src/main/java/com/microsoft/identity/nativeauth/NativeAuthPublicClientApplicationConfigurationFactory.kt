@@ -20,12 +20,14 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client
+package com.microsoft.identity.nativeauth
 
 import android.content.Context
 import androidx.annotation.WorkerThread
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.microsoft.identity.client.PublicClientApplicationConfiguration
+import com.microsoft.identity.client.PublicClientApplicationConfigurationFactory
 import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudienceDeserializer

@@ -10,6 +10,10 @@
 # Area Owners
 #---------------------
 
+# @AzureAD/NativeAuthTeam owns any files related to CIAM native authentication.
+msal/src/main/java/com/microsoft/identity/nativeauth/ @AzureAD/NativeAuthTeam
+msal/src/test/java/com/microsoft/identity/nativeauth/ @AzureAD/NativeAuthTeam
+
 # If you are interested in reviewing or getting notified of changes in a particular area
 # Please add your alias against that specific path below
 # Example:
