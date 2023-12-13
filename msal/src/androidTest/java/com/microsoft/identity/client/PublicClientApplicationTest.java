@@ -76,9 +76,7 @@ public final class PublicClientApplicationTest {
     private Context mAppContext;
     private static final String CLIENT_ID = "client-id";
     private static final String[] SCOPE = {"scope1", "scope2"};
-    private static final String CIAM_AUTHORITY = "https://msidlabciam1.ciamlogin.com/msidlabciam1.onmicrosoft.com";
     public static final String TEST_REDIRECT_URI = "msauth://com.microsoft.identity.client.sample.local/signature";
-    private final List<String> CHALLENGE_TYPES = Arrays.asList("oob", "password");
 
     @Before
     public void setUp() {
@@ -111,7 +109,7 @@ public final class PublicClientApplicationTest {
     @Test(expected = IllegalArgumentException.class)
     public void testConfigValidationFailsOnEmptyRedirect() throws MsalException, InterruptedException {
         final Context context = new PublicClientApplicationTest.MockContext(mAppContext);
-        mockPackageManagerWithDefaultFlag(context);
+        mockPackageManagerWithDefaultFlag(context, mAppContext);
         mockHasCustomTabRedirect(context);
 
         final IMultipleAccountPublicClientApplication app = PublicClientApplication.createMultipleAccountPublicClientApplication(
@@ -123,7 +121,7 @@ public final class PublicClientApplicationTest {
     @Test(expected = IllegalArgumentException.class)
     public void testConfigValidationFailsOnEmptyClientId() throws MsalException, InterruptedException {
         final Context context = new PublicClientApplicationTest.MockContext(mAppContext);
-        mockPackageManagerWithDefaultFlag(context);
+        mockPackageManagerWithDefaultFlag(context, mAppContext);
         mockHasCustomTabRedirect(context);
 
         final IMultipleAccountPublicClientApplication app = PublicClientApplication.createMultipleAccountPublicClientApplication(
@@ -135,7 +133,7 @@ public final class PublicClientApplicationTest {
     @Test
     public void testSingleAccountConstructor() {
         final Context context = new PublicClientApplicationTest.MockContext(mAppContext);
-        mockPackageManagerWithDefaultFlag(context);
+        mockPackageManagerWithDefaultFlag(context, mAppContext);
         mockHasCustomTabRedirect(context);
 
         try {
@@ -154,7 +152,7 @@ public final class PublicClientApplicationTest {
     @Test
     public void testMultipleAccountConstructor() {
         final Context context = new PublicClientApplicationTest.MockContext(mAppContext);
-        mockPackageManagerWithDefaultFlag(context);
+        mockPackageManagerWithDefaultFlag(context, mAppContext);
         mockHasCustomTabRedirect(context);
 
         try {
@@ -173,7 +171,7 @@ public final class PublicClientApplicationTest {
     @Test
     public void testMultipleAccountAsyncConstructor() {
         final Context context = new PublicClientApplicationTest.MockContext(mAppContext);
-        mockPackageManagerWithDefaultFlag(context);
+        mockPackageManagerWithDefaultFlag(context, mAppContext);
         mockHasCustomTabRedirect(context);
 
         PublicClientApplication.createMultipleAccountPublicClientApplication(
@@ -195,7 +193,7 @@ public final class PublicClientApplicationTest {
     @Test
     public void testFailingMultipleAccountAsyncConstructor() {
         final Context context = new PublicClientApplicationTest.MockContext(mAppContext);
-        mockPackageManagerWithDefaultFlag(context);
+        mockPackageManagerWithDefaultFlag(context, mAppContext);
         mockHasCustomTabRedirect(context);
 
         PublicClientApplication.createMultipleAccountPublicClientApplication(
@@ -217,7 +215,7 @@ public final class PublicClientApplicationTest {
     @Test
     public void testSingleAccountAsyncConstructor() {
         final Context context = new PublicClientApplicationTest.MockContext(mAppContext);
-        mockPackageManagerWithDefaultFlag(context);
+        mockPackageManagerWithDefaultFlag(context, mAppContext);
         mockHasCustomTabRedirect(context);
 
         PublicClientApplication.createSingleAccountPublicClientApplication(
@@ -238,7 +236,7 @@ public final class PublicClientApplicationTest {
     @Test
     public void testFailingSingleAccountAsyncConstructor() {
         final Context context = new PublicClientApplicationTest.MockContext(mAppContext);
-        mockPackageManagerWithDefaultFlag(context);
+        mockPackageManagerWithDefaultFlag(context, mAppContext);
         mockHasCustomTabRedirect(context);
 
         PublicClientApplication.createSingleAccountPublicClientApplication(
@@ -260,7 +258,7 @@ public final class PublicClientApplicationTest {
     @Test
     public void testMultipleAccountCIAMAuthorityAsyncConstructor() {
         final Context context = new PublicClientApplicationTest.MockContext(mAppContext);
-        mockPackageManagerWithDefaultFlag(context);
+        mockPackageManagerWithDefaultFlag(context, mAppContext);
         mockHasCustomTabRedirect(context);
 
         try {
@@ -276,69 +274,6 @@ public final class PublicClientApplicationTest {
         }
     }
 
-    @Test
-    public void testNativeAuthConstructor() {
-        final Context context = new PublicClientApplicationTest.MockContext(mAppContext);
-        mockPackageManagerWithDefaultFlag(context);
-        mockHasCustomTabRedirect(context);
-
-        try {
-            final INativeAuthPublicClientApplication app = PublicClientApplication.createNativeAuthPublicClientApplication(
-                    context,
-                    R.raw.test_msal_config_native_auth
-            );
-            Assert.assertNotNull(app);
-        } catch (InterruptedException e) {
-            Assert.fail(e.getMessage());
-        } catch (MsalException e) {
-            Assert.fail(e.getMessage());
-        }
-    }
-
-    @Test
-    public void testNativeAuthConstructorNoMetadata() {
-        final Context context = new PublicClientApplicationTest.MockContext(mAppContext);
-        mockPackageManagerWithDefaultFlag(context);
-        mockHasCustomTabRedirect(context);
-
-        try {
-            final INativeAuthPublicClientApplication app = PublicClientApplication.createNativeAuthPublicClientApplication(
-                    context,
-                    CLIENT_ID,
-                    CIAM_AUTHORITY,
-                    null,
-                    CHALLENGE_TYPES
-            );
-            Assert.assertNotNull(app);
-        } catch (InterruptedException e) {
-            Assert.fail(e.getMessage());
-        } catch (MsalException e) {
-            Assert.fail(e.getMessage());
-        }
-    }
-
-    @Test
-    public void testFailingNativeAuthConstructor() {
-        final Context context = new PublicClientApplicationTest.MockContext(mAppContext);
-        mockPackageManagerWithDefaultFlag(context);
-        mockHasCustomTabRedirect(context);
-
-        // Should fail, as we are attempting to create a multiple account application
-        try {
-            final INativeAuthPublicClientApplication app = PublicClientApplication.createNativeAuthPublicClientApplication(
-                    context,
-                    R.raw.test_msal_config_multiple_account
-            );
-            Assert.fail("Unintentionally created app");
-        } catch (InterruptedException e) {
-            Assert.fail(e.getMessage());
-        } catch (MsalException e) {
-            Assert.assertEquals("Expecting error.",
-                    e.getErrorCode(),
-                    MsalClientException.NATIVE_AUTH_INVALID_ACCOUNT_MODE_CONFIG_ERROR_CODE);
-        }
-    }
-
     /**
      * Verify correct exception is thrown if callback is not provided.
      */
@@ -347,7 +282,7 @@ public final class PublicClientApplicationTest {
         final Context context = new MockContext(mAppContext);
         mockPackageManagerWithClientId(context, null, CLIENT_ID);
         mockHasCustomTabRedirect(context);
-        mockPackageManagerWithDefaultFlag(context);
+        mockPackageManagerWithDefaultFlag(context, mAppContext);
 
         final PublicClientApplicationConfiguration config = PublicClientApplicationConfigurationFactory.initializeConfiguration(context);
         config.setRedirectUri(TEST_REDIRECT_URI);
@@ -362,7 +297,7 @@ public final class PublicClientApplicationTest {
         final PackageManager packageManager = context.getPackageManager();
         mockPackageManagerWithClientId(context, null, CLIENT_ID);
         mockHasCustomTabRedirect(context);
-        mockPackageManagerWithDefaultFlag(context);
+        mockPackageManagerWithDefaultFlag(context, mAppContext);
 
         Mockito.when(packageManager.checkPermission(Mockito.refEq("android.permission.INTERNET"),
                 Mockito.refEq(mAppContext.getPackageName()))).thenReturn(PackageManager.PERMISSION_DENIED);
@@ -379,7 +314,7 @@ public final class PublicClientApplicationTest {
     public void testSecretKeysAreSet() throws NoSuchAlgorithmException, InvalidKeySpecException, MsalClientException {
         final Context context = new MockContext(mAppContext);
         mockHasCustomTabRedirect(context);
-        mockPackageManagerWithDefaultFlag(context);
+        mockPackageManagerWithDefaultFlag(context, mAppContext);
 
         final PublicClientApplicationConfiguration config = PublicClientApplicationConfigurationFactory.initializeConfiguration(context);
         config.setRedirectUri(TEST_REDIRECT_URI);
@@ -432,15 +367,15 @@ public final class PublicClientApplicationTest {
         Mockito.when(mockedPackageManager.getPackageInfo(Mockito.anyString(), Mockito.anyInt())).thenReturn(mockedPackageInfo);
     }
 
-    private void mockPackageManagerWithDefaultFlag(final Context context) {
+    public static void mockPackageManagerWithDefaultFlag(final Context context, final Context appContext) {
         // This is to bypass telemetry initialization code.
         try {
             final ApplicationInfo applicationInfo = Mockito.mock(ApplicationInfo.class);
-            Mockito.when(context.getPackageManager().getApplicationInfo(mAppContext.getPackageName(), 0))
+            Mockito.when(context.getPackageManager().getApplicationInfo(appContext.getPackageName(), 0))
                     .thenReturn(applicationInfo);
 
             final PackageInfo packageInfo = Mockito.mock(PackageInfo.class);
-            Mockito.when(context.getPackageManager().getPackageInfo(mAppContext.getPackageName(), 0))
+            Mockito.when(context.getPackageManager().getPackageInfo(appContext.getPackageName(), 0))
                     .thenReturn(packageInfo);
 
         } catch (Exception e) {
@@ -448,7 +383,7 @@ public final class PublicClientApplicationTest {
         }
     }
 
-    private void mockHasCustomTabRedirect(final Context context) {
+    public static void mockHasCustomTabRedirect(final Context context) {
         final PackageManager packageManager = context.getPackageManager();
 
         final List<ResolveInfo> resolveInfos = new ArrayList<>();
@@ -463,7 +398,7 @@ public final class PublicClientApplicationTest {
         resolveInfos.add(mockedResolveInfo1);
     }
 
-    private Activity getActivity(final Context context) {
+    public static  Activity getActivity(final Context context) {
         final Activity mockedActivity = Mockito.mock(Activity.class);
         Mockito.when(mockedActivity.getApplicationContext()).thenReturn(context);
 
@@ -474,7 +409,7 @@ public final class PublicClientApplicationTest {
         private final PackageManager mPackageManager;
         private final ConnectivityManager mConnectivityManager;
 
-        MockContext(final Context context) {
+        public MockContext(final Context context) {
             super(context);
             mPackageManager = Mockito.mock(PackageManager.class);
             mConnectivityManager = Mockito.mock(ConnectivityManager.class);

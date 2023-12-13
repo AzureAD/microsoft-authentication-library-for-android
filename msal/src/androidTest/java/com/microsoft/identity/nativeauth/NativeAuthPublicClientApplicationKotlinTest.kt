@@ -20,12 +20,14 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client
+package com.microsoft.identity.nativeauth
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.microsoft.identity.client.AndroidTestUtil
+import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.common.java.net.HttpUrlConnectionFactory
@@ -40,7 +42,7 @@ import java.util.Arrays
 
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
-class NativeAuthPublicApplicationKotlinTest {
+class NativeAuthPublicClientApplicationKotlinTest {
     private lateinit var context: Context
     private val CLIENT_ID = "1234"
     // The general format is https://<tenant>.ciamlogin.com/<tenant>.onmicrosoft.com
