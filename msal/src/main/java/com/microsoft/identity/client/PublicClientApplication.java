@@ -842,6 +842,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     null,
                     null
             );
+        }  catch (MsalException e) {
+            throw e;
         } catch (BaseException e) {
             throw new MsalClientException(
                     UNKNOWN_ERROR,

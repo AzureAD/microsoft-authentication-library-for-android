@@ -44,6 +44,7 @@ import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
 import com.microsoft.identity.common.java.net.HttpUrlConnectionFactory;
 import com.microsoft.identity.msal.test.R;
+import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication;
 
 import org.junit.After;
 import org.junit.Assert;
