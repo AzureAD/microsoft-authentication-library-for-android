@@ -842,6 +842,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     null,
                     null
             );
+        }  catch (MsalException e) {
+            throw e;
         } catch (BaseException e) {
             throw new MsalClientException(
                     UNKNOWN_ERROR,
@@ -1150,7 +1152,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         // Check whether account mode is set to SINGLE
         validateAccountModeConfiguration(config);
 
-        // TODO check with MSAL team
         // Native auth is always operating in non-shared device mode, as there are no interactions with the broker.
         config.setIsSharedDevice(false);
 
