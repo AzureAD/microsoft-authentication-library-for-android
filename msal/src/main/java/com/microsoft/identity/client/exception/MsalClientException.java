@@ -209,6 +209,77 @@ public final class MsalClientException extends MsalException {
      */
     public static final String SAPCA_USE_WITH_MULTI_POLICY_B2C = "SingleAccountPublicClientApplication cannot be used with multiple B2C policies.";
 
+    /**
+     * Configuration error. Native auth apps configuration must contain a client ID.
+     */
+    public static final String NATIVE_AUTH_USE_WITHOUT_CLIENT_ID_ERROR_CODE = "native_auth_use_without_client_id";
+    public static final String NATIVE_AUTH_USE_WITHOUT_CLIENT_ID_ERROR_MESSAGE = "NativeAuthPublicClientApplication cannot be used without a client ID";
+
+    /**
+     * Configuration error. Native auth apps configuration must contain a client ID.
+     */
+    public static final String NATIVE_AUTH_APPLICATION_CREATION_UNKNOWN_ERROR_MESSAGE = "Unexpected error while initializing PCA.";
+
+    /**
+     * Configuration error. Native auth apps configuration passed with invalid or empty redirect uri
+     */
+    public static final String NATIVE_AUTH_USE_WITH_BAD_REDIRECT_URI_ERROR_CODE = "native_auth_use_with_bad_redirect_uri";
+    public static final String NATIVE_AUTH_USE_WITH_BAD_REDIRECT_URI_ERROR_MESSAGE = "NativeAuthPublicClientApplication was given an empty or invalid redirect uri";
+
+    /**
+     * Configuration error. Native auth apps configuration must contain a tenant
+     */
+    public static final String NATIVE_AUTH_USE_WITHOUT_TENANT_ERROR_CODE = "native_auth_use_without_tenant";
+    public static final String NATIVE_AUTH_USE_WITHOUT_TENANT_ERROR_MESSAGE = "NativeAuthPublicClientApplication cannot be used without a tenant";
+
+    /**
+     * Configuration error. Native auth apps cannot be used with anything other than SINGLE account mode.
+     */
+    public static final String NATIVE_AUTH_INVALID_ACCOUNT_MODE_CONFIG_ERROR_CODE = "native_auth_invalid_account_mode_config";
+    public static final String NATIVE_AUTH_INVALID_ACCOUNT_MODE_CONFIG_ERROR_MESSAGE = "NativeAuthPublicClientApplication Native auth apps cannot be used with anything other than SINGLE account mode";
+
+    /**
+     * Configuration error. Native auth app is trying to use broker.
+     */
+    public static final String NATIVE_AUTH_ATTEMPTING_TO_USE_BROKER_ERROR_CODE = "native_auth_attempting_to_use_broker";
+    public static final String NATIVE_AUTH_ATTEMPTING_TO_USE_BROKER_ERROR_MESSAGE = "NativeAuthPublicClientApplication cannot use broker";
+
+    /**
+     * Configuration error. Native auth app is set up in shared device mode.
+     */
+    public static final String NATIVE_AUTH_SHARED_DEVICE_MODE_ERROR_CODE = "native_auth_shared_device_mode";
+    public static final String NATIVE_AUTH_SHARED_DEVICE_MODE_ERROR_MESSAGE = "NativeAuthPublicClientApplication cannot be used in shared device mode";
+
+    /**
+     * Configuration error. Native auth apps can only be used with a valid CIAM Authority.
+     */
+    public static final String NATIVE_AUTH_INVALID_CIAM_AUTHORITY_ERROR_CODE = "native_auth_invalid_ciam_authority";
+    public static final String NATIVE_AUTH_INVALID_CIAM_AUTHORITY_ERROR_MESSAGE = "NativeAuthPublicClientApplication can only be used with a valid CIAM Authority";
+
+    /**
+     * Configuration error. Native auth apps can't be passed with no authority.
+     */
+    public static final String NATIVE_AUTH_USE_WITH_NO_AUTHORITY_ERROR_CODE = "native_auth_use_with_no_authority";
+    public static final String NATIVE_AUTH_USE_WITH_NO_AUTHORITY_ERROR_MESSAGE = "NativeAuthPublicClientApplication can't be used with no authority.";
+
+    /**
+     * Configuration error. Native auth apps can't be passed with multiple authorities.
+     */
+    public static final String NATIVE_AUTH_USE_WITH_MULTI_AUTHORITY_ERROR_CODE = "native_auth_use_with_multi_authority";
+    public static final String NATIVE_AUTH_USE_WITH_MULTI_AUTHORITY_ERROR_MESSAGE = "NativeAuthPublicClientApplication can't be used with multiple authorities";
+
+    /**
+     * Configuration error. Native Auth app must be passed with challenge types
+     */
+    public static final String NATIVE_AUTH_EMPTY_CHALLENGE_TYPE_ERROR_CODE = "native_auth_empty_challenge_type";
+    public static final String NATIVE_AUTH_EMPTY_CHALLENGE_TYPE_ERROR_MESSAGE = "NativeAuthPublicClientApplication can't be used without challenge types";
+
+    /**
+     * Configuration error. Native auth app passed with an invalid challenge type.
+     */
+    public static final String NATIVE_AUTH_INVALID_CHALLENGE_TYPE_ERROR_CODE = "native_auth_invalid_challenge_type";
+    public static final String NATIVE_AUTH_INVALID_CHALLENGE_TYPE_ERROR_MESSAGE = "NativeAuthPublicClientApplication detected invalid challenge type.";
+
     public MsalClientException(final String errorCode) {
         super(errorCode);
     }
