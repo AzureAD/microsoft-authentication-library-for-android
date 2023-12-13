@@ -287,7 +287,7 @@ class NativeAuthPublicClientApplication(
         return withContext(Dispatchers.IO) {
             LogSession.logMethodCall(TAG, "${TAG}.signIn")
 
-            verifyUserIsNotSignedIn()
+            verifyNoUserIsSignedIn()
 
             val params = CommandParametersAdapter.createSignInStartCommandParameters(
                 nativeAuthConfig,
@@ -433,7 +433,7 @@ class NativeAuthPublicClientApplication(
         return withContext(Dispatchers.IO) {
             LogSession.logMethodCall(TAG, "${TAG}.signInUsingPassword.withContext")
 
-            verifyUserIsNotSignedIn()
+            verifyNoUserIsSignedIn()
 
             val params =
                 CommandParametersAdapter.createSignInStartUsingPasswordCommandParameters(
@@ -1070,7 +1070,7 @@ class NativeAuthPublicClientApplication(
         }
     }
     
-    private fun verifyUserIsNotSignedIn() {
+    private fun verifyNoUserIsSignedIn() {
         val doesAccountExist = checkForPersistedAccount().get()
         if (doesAccountExist) {
             Logger.error(

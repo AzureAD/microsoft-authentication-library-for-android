@@ -56,7 +56,7 @@ import kotlinx.coroutines.withContext
 import java.io.Serializable
 
 /**
- * Native Auth uses a state machine to denote state and transitions for a user.
+ * Native Auth uses a state machine to denote state of and transitions within a flow.
  * ResetPasswordCodeRequiredState class represents a state where the user has to provide a code to progress
  * in the reset password flow.
  * @property flowToken: Flow token to be passed in the next request
@@ -250,7 +250,7 @@ class ResetPasswordCodeRequiredState internal constructor(
 }
 
 /**
- * Native Auth uses a state machine to denote state and transitions for a user.
+ * Native Auth uses a state machine to denote state of and transitions within a flow.
  * ResetPasswordPasswordRequiredState class represents a state where the user has to provide a password to progress
  * in the reset password flow.
  * @property flowToken: Flow token to be passed in the next request

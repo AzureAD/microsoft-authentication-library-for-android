@@ -27,18 +27,18 @@ import com.microsoft.identity.common.java.exception.BaseException
 
 /**
  * Callback<T> class is used when the Native Auth features like SignUp, SignIn and SSPR are
- * called from java code using callback variant.
+ * called from Java code using callback variant.
  */
 interface Callback <T> {
 
     /**
-     * onResult callback is made when the Native Auth API call is successful.
-     * @param result: Result of the successful Native Auth API.
+     * onResult callback is made when the Native Auth action is successful.
+     * @param result: Result of the successful Native Auth action.
      */
     fun onResult(result: T)
 
     /**
-     * onError callback is made when the Native Auth API call fails.
+     * onError callback is made when the Native Auth action fails.
      * @param exception: This object captures the exception encountered during the failure.
      */
     fun onError(exception: BaseException)
