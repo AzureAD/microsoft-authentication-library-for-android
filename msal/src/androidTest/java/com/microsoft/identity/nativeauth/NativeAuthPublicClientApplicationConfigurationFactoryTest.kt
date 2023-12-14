@@ -6,7 +6,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.microsoft.identity.client.AndroidTestUtil
 import com.microsoft.identity.client.exception.MsalException
-import com.microsoft.identity.common.java.BuildValues
+import com.microsoft.identity.common.java.nativeauth.BuildValues
 import com.microsoft.identity.common.java.net.HttpUrlConnectionFactory
 import com.microsoft.identity.msal.test.R
 import kotlinx.coroutines.ExperimentalCoroutinesApi
