@@ -24,7 +24,7 @@
 // THE SOFTWARE.
 package com.microsoft.identity.nativeauth.statemachine.results
 
-import com.microsoft.identity.nativeauth.statemachine.Error
+import com.microsoft.identity.nativeauth.statemachine.errors.Error
 import com.microsoft.identity.nativeauth.statemachine.states.State
 
 /**
@@ -71,7 +71,7 @@ interface Result {
 /**
  * Sign out: removes account from cache. Does not perform single sign-out.
  */
-sealed interface SignOutResult : Result {
+interface SignOutResult : Result {
     /**
      * CompleteResult Result, which indicates the sign out flow completed successfully.
      * i.e. the user account has been removed from persistence.
@@ -83,7 +83,7 @@ sealed interface SignOutResult : Result {
     /**
      * UnexpectedError ErrorResult, which indicates that an unexpected error occurred during sign out.
      *
-     * @param error [com.microsoft.identity.nativeauth.statemachine.Error]
+     * @param error [com.microsoft.identity.nativeauth.statemachine.errors.Error]
      */
     class UnexpectedError(override val error: Error) :
         Result.ErrorResult(error = error),
