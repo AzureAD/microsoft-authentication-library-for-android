@@ -44,7 +44,6 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class NativeAuthPublicClientApplicationConfigurationFactoryTest {
     private lateinit var context: Context
-    private var cachedUseMockApi: Boolean = false
 
     @Before
     fun setup() {
@@ -66,12 +65,10 @@ class NativeAuthPublicClientApplicationConfigurationFactoryTest {
         )
 
         context = InstrumentationRegistry.getInstrumentation().context.applicationContext
-        cachedUseMockApi = BuildValues.shouldUseMockApiForNativeAuth()
     }
 
     @After
     fun tearDown() {
-        BuildValues.setUseMockApiForNativeAuth(cachedUseMockApi)
         HttpUrlConnectionFactory.clearMockedConnectionQueue()
         AndroidTestUtil.removeAllTokens(context)
     }
@@ -84,7 +81,7 @@ class NativeAuthPublicClientApplicationConfigurationFactoryTest {
                     context, R.raw.test_native_auth_use_mock_api_true)
 
                 Assert.assertEquals(true, config.useMockAuthority)
-                Assert.assertEquals(true, BuildValues.shouldUseMockApiForNativeAuth())
+                Assert.assertTrue(BuildValues.shouldUseMockApiForNativeAuth())
             } catch (exception: MsalException) {
                 Assert.fail(exception.message)
             }
@@ -99,7 +96,7 @@ class NativeAuthPublicClientApplicationConfigurationFactoryTest {
                     context, R.raw.test_native_auth_use_mock_api_false)
 
                 Assert.assertEquals(false, config.useMockAuthority)
-                Assert.assertEquals(false, BuildValues.shouldUseMockApiForNativeAuth())
+                Assert.assertFalse(BuildValues.shouldUseMockApiForNativeAuth())
             } catch (exception: MsalException) {
                 Assert.fail(exception.message)
             }
