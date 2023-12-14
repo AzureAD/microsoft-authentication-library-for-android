@@ -330,7 +330,7 @@ class NativeAuthPublicClientApplication(
                 is SignInCommandResult.Complete -> {
                     Logger.warn(
                         TAG,
-                        "Unexpected result $result"
+                        "Sign in received unexpected result $result"
                     )
                     SignInError(
                         errorMessage = "unexpected state",
@@ -350,7 +350,7 @@ class NativeAuthPublicClientApplication(
                 is SignInCommandResult.InvalidCredentials -> {
                     Logger.warn(
                         TAG,
-                        "Unexpected result $result"
+                        "Sign in received Unexpected result $result"
                     )
                     SignInError(
                         errorMessage = "unexpected state",
@@ -482,7 +482,7 @@ class NativeAuthPublicClientApplication(
                     is SignInCommandResult.PasswordRequired -> {
                         Logger.warn(
                             TAG,
-                            "Unexpected result $result"
+                            "Sign in using password received unexpected result $result"
                         )
                         SignInUsingPasswordError(
                             errorMessage = "unexpected state",
@@ -706,7 +706,7 @@ class NativeAuthPublicClientApplication(
                     is SignUpCommandResult.PasswordRequired -> {
                         Logger.warn(
                             TAG,
-                            "Unexpected result $result"
+                            "Sign up using password received unexpected result $result"
                         )
                         SignUpUsingPasswordError(
                             errorMessage = "Unexpected state",
@@ -881,7 +881,7 @@ class NativeAuthPublicClientApplication(
                 is SignUpCommandResult.InvalidPassword -> {
                     Logger.warn(
                         TAG,
-                        "Unexpected result $result"
+                        "Sign up received unexpected result $result"
                     )
                     SignUpError(
                         error = "unexpected_state",
@@ -893,7 +893,7 @@ class NativeAuthPublicClientApplication(
                 is SignUpCommandResult.AuthNotSupported -> {
                     Logger.warn(
                         TAG,
-                        "Unexpected result $result"
+                        "Sign up received unexpected result $result"
                     )
                     SignUpError(
                         error = "unexpected_state",
@@ -1004,7 +1004,7 @@ class NativeAuthPublicClientApplication(
                 is ResetPasswordCommandResult.PasswordNotSet -> {
                     Logger.warn(
                         TAG,
-                        "Unexpected result $result",
+                        "Reset password received unexpected result $result",
                     )
                     ResetPasswordError(
                         error = "unexpected_state",
@@ -1016,7 +1016,7 @@ class NativeAuthPublicClientApplication(
                 is ResetPasswordCommandResult.EmailNotVerified -> {
                     Logger.warn(
                         TAG,
-                        "Unexpected result $result"
+                        "Reset password received unexpected result $result"
                     )
                     ResetPasswordError(
                         error = "unexpected_state",

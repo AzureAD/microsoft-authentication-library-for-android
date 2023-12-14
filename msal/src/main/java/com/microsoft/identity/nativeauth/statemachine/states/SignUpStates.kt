@@ -181,7 +181,7 @@ class SignUpCodeRequiredState internal constructor(
                 is SignUpCommandResult.UsernameAlreadyExists -> {
                     Logger.warn(
                         TAG,
-                        "Unexpected result: $result"
+                        "Submit code received unexpected result: $result"
                     )
                     SubmitCodeError(
                         errorMessage = result.errorDescription,
@@ -193,7 +193,7 @@ class SignUpCodeRequiredState internal constructor(
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
-                        "Unexpected result: $result"
+                        "Submit code received unexpected result: $result"
                     )
                     SubmitCodeError(
                         errorMessage = result.errorDescription,
@@ -276,7 +276,7 @@ class SignUpCodeRequiredState internal constructor(
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
-                        "Unexpected result: $result"
+                        "Resend code received unexpected result: $result"
                     )
                     ResendCodeError(
                         errorMessage = result.errorDescription,
@@ -400,7 +400,7 @@ class SignUpPasswordRequiredState internal constructor(
                     is SignUpCommandResult.UsernameAlreadyExists -> {
                         Logger.warn(
                             TAG,
-                            "Unexpected result: $result"
+                            "Submit password received unexpected result: $result"
                         )
                         SignUpSubmitPasswordError(
                             error = result.error,
@@ -413,7 +413,7 @@ class SignUpPasswordRequiredState internal constructor(
                     is SignUpCommandResult.InvalidEmail -> {
                         Logger.warn(
                             TAG,
-                            "Unexpected result: $result"
+                            "Submit password received unexpected result: $result"
                         )
                         SignUpSubmitPasswordError(
                             error = result.error,
@@ -425,7 +425,7 @@ class SignUpPasswordRequiredState internal constructor(
                     is INativeAuthCommandResult.UnknownError -> {
                         Logger.warn(
                             TAG,
-                            "Unexpected result: $result"
+                            "Submit password received unexpected result: $result"
                         )
                         SignUpSubmitPasswordError(
                             errorMessage = result.errorDescription,
@@ -548,7 +548,7 @@ class SignUpAttributesRequiredState internal constructor(
                 is SignUpCommandResult.UsernameAlreadyExists -> {
                     Logger.warn(
                         TAG,
-                        "Unexpected result: $result"
+                        "Submit attributes received unexpected result: $result"
                     )
                     SignUpSubmitAttributesError(
                         errorMessage = result.errorDescription,
@@ -559,7 +559,7 @@ class SignUpAttributesRequiredState internal constructor(
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
-                        "Unexpected result: $result"
+                        "Submit attributes received unexpected result: $result"
                     )
                     SignUpSubmitAttributesError(
                         errorMessage = result.errorDescription,

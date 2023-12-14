@@ -161,7 +161,7 @@ class SignInCodeRequiredState internal constructor(
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
-                        "Unexpected result: $result"
+                        "Submit code received unexpected result: $result"
                     )
                     SubmitCodeError(
                         errorMessage = result.errorDescription,
@@ -247,7 +247,7 @@ class SignInCodeRequiredState internal constructor(
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
-                        "Unexpected result: $result"
+                        "Resend code received unexpected result: $result"
                     )
                     ResendCodeError(
                         errorMessage = result.errorDescription,
@@ -361,7 +361,7 @@ class SignInPasswordRequiredState(
                     is INativeAuthCommandResult.UnknownError -> {
                         Logger.warn(
                             TAG,
-                            "Unexpected result: $result"
+                            "Submit password received unexpected result: $result"
                         )
                         SignInSubmitPasswordError(
                             errorMessage = result.errorDescription,
@@ -436,7 +436,7 @@ abstract class SignInAfterSignUpBaseState(
             if (signInVerificationCode.isNullOrEmpty()) {
                 Logger.warn(
                     TAG,
-                    "Unexpected result: signInSLT was null"
+                    "Sign in after sign up received unexpected result: signInSLT was null"
                 )
                 return@withContext SignInError(
                     errorMessage = "Sign In is not available through this state, please use the standalone sign in methods (signInWithCode or signInWithPassword).",
@@ -504,7 +504,7 @@ abstract class SignInAfterSignUpBaseState(
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
-                        "Unexpected result: $result"
+                        "Sign in after sign up received unexpected result: $result"
                     )
                     SignInError(
                         errorMessage = result.errorDescription,

@@ -147,7 +147,7 @@ class ResetPasswordCodeRequiredState internal constructor(
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
-                        "Unexpected result: $result"
+                        "Submit code received unexpected result: $result"
                     )
                     SubmitCodeError(
                         errorMessage = result.errorDescription,
@@ -232,7 +232,7 @@ class ResetPasswordCodeRequiredState internal constructor(
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
-                        "Unexpected result: $result"
+                        "Resend code received unexpected result: $result"
                     )
                     ResendCodeError(
                         errorMessage = result.errorDescription,
@@ -334,7 +334,7 @@ class ResetPasswordPasswordRequiredState internal constructor(
                     is ResetPasswordCommandResult.UserNotFound -> {
                         Logger.warn(
                             TAG,
-                            "Unexpected result: $result"
+                            "Submit password received unexpected result: $result"
                         )
                         ResetPasswordSubmitPasswordError(
                             error = result.error,
@@ -346,7 +346,7 @@ class ResetPasswordPasswordRequiredState internal constructor(
                     is INativeAuthCommandResult.UnknownError -> {
                         Logger.warn(
                             TAG,
-                            "Unexpected result: $result"
+                            "Submit password received unexpected result: $result"
                         )
                         ResetPasswordSubmitPasswordError(
                             errorMessage = result.errorDescription,
