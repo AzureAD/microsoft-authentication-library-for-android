@@ -21,25 +21,23 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 
-package com.microsoft.identity.nativeauth.statemachine.states
+package com.microsoft.identity.nativeauth.statemachine.errors
 
-import com.microsoft.identity.common.java.exception.BaseException
+import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
 
-/**
- * Callback<T> class is used when the Native Auth features like SignUp, SignIn and SSPR are
- * called from java code using callback variant.
- */
-interface Callback <T> {
+internal class GetAccessTokenErrorTypes {
+    companion object {
+        const val NO_ACCOUNT_FOUND = "no_account_found"
+    }
+}
 
-    /**
-     * onResult callback is invoked when the action was successful.
-     * @param result: Result of the successful Native Auth API.
-     */
-    fun onResult(result: T)
-
-    /**
-     * onError callback is invoked when the action failed.
-     * @param exception: This object captures the exception encountered during the failure.
-     */
-    fun onError(exception: BaseException)
+class GetAccessTokenError(
+    override val errorType: String? = null,
+    override val error: String? = null,
+    override val errorMessage: String? = null,
+    override val correlationId: String? = null,
+    override val errorCodes: List<Int>? = null,
+    override var exception: Exception? = null
+): GetAccessTokenResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
+    fun isNoAccountFound() : Boolean = this.errorType == GetAccessTokenErrorTypes.NO_ACCOUNT_FOUND
 }
