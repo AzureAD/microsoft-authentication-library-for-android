@@ -20,16 +20,13 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.nativeauth
+package com.microsoft.identity.nativeauth
 
 import android.app.Activity
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import com.microsoft.identity.client.INativeAuthPublicClientApplication
 import com.microsoft.identity.client.NativeAuthPublicClientApplication.SignInUsingPasswordCallback
-import com.microsoft.identity.client.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.client.PublicClientApplication
-import com.microsoft.identity.client.UserAttributes
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager
 import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper
@@ -65,6 +62,8 @@ import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.interfaces.IPlatformComponents
 import com.microsoft.identity.common.java.util.ResultFuture
 import com.microsoft.identity.internal.testutils.TestUtils
+import com.microsoft.identity.nativeauth.statemachine.errors.SignInUsingPasswordError
+import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
@@ -1488,7 +1487,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         )
 
         val attributesRequiredState = (attributesRequiredResult as SignUpResult.AttributesRequired).nextState
-        val invalidAttributes = UserAttributes.Builder.customAttribute("attribute", "invalid_attribute").build()
+        val invalidAttributes = UserAttributes.build()
         val attributesFailedResult = attributesRequiredState.submitAttributes(invalidAttributes)
 
         assertTrue(attributesFailedResult is SignUpSubmitAttributesError)
@@ -1502,7 +1501,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
             responseType = MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
         )
 
-        val validAttributes = UserAttributes.Builder.customAttribute("attribute", "valid_attribute").build()
+        val validAttributes = UserAttributes.build()
         val successResult = attributesRequiredState.submitAttributes(validAttributes)
 
         // 4b. Server accepts password, returns tokens
@@ -1527,7 +1526,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         )
 
         // 1b. Call SDK interface
-        val invalidAttributes = UserAttributes.Builder.customAttribute("attribute", "invalid_attribute").build()
+        val invalidAttributes = UserAttributes.build()
         val invalidAttributesResult = application.signUpUsingPassword(username, password, invalidAttributes)
 
         assertTrue(invalidAttributesResult is SignUpUsingPasswordError)
@@ -1546,7 +1545,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         )
 
         // 2b. Call SDK interface again
-        val validAttributes = UserAttributes.Builder.customAttribute("attribute", "valid_attribute").build()
+        val validAttributes = UserAttributes.build()
         val result = application.signUpUsingPassword(username, password, validAttributes)
         assertTrue(result is SignUpResult.CodeRequired)
     }
@@ -1874,7 +1873,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         val attributesRequiredState = (attributesRequiredResult as SignUpResult.AttributesRequired).nextState
 
-        val attributes = UserAttributes.Builder.customAttribute("attribute", "attribute").build()
+        val attributes = UserAttributes.build()
         val successResult = attributesRequiredState.submitAttributes(attributes)
 
         // 4b. Server accepts attributes, returns tokens
@@ -1938,7 +1937,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         )
 
         val attributesRequiredState = (attributesRequiredResult).nextState
-        val incompleteAttributes = UserAttributes.Builder.customAttribute("attribute", "incomplete_attribute").build()
+        val incompleteAttributes = UserAttributes.build()
         val additionalAttributesRequiredResult = attributesRequiredState.submitAttributes(incompleteAttributes)
 
         assertTrue(additionalAttributesRequiredResult is SignUpResult.AttributesRequired)
@@ -1953,7 +1952,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         val additionalAttributesRequiredState = (additionalAttributesRequiredResult as SignUpResult.AttributesRequired).nextState
 
-        val attributes = UserAttributes.Builder.customAttribute("attribute", "attribute").build()
+        val attributes = UserAttributes.build()
         val successResult = additionalAttributesRequiredState.submitAttributes(attributes)
 
         // 4b. Server accepts password, returns tokens
