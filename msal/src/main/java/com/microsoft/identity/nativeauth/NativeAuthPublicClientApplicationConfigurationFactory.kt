@@ -133,14 +133,14 @@ class NativeAuthPublicClientApplicationConfigurationFactory :
 
         private fun initializeBuildValues(developerConfig: NativeAuthPublicClientApplicationConfiguration?) {
             val dc = developerConfig?.dc
-            val useRealAuthority = developerConfig?.useRealAuthority
+            val useMockAuthority = developerConfig?.useMockAuthority
 
             if (dc != null) {
                 BuildValues.setDC(dc)
             }
 
-            if (useRealAuthority != null) {
-                BuildValues.setUseRealAuthority(useRealAuthority)
+            if (useMockAuthority != null) {
+                BuildValues.setUseMockApiForNativeAuth(useMockAuthority)
             }
         }
 
