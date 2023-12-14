@@ -58,7 +58,7 @@ import kotlinx.coroutines.withContext
 import java.io.Serializable
 
 /**
- *  SignedInState returned as part of a successful completion of sign in flow [com.microsoft.identity.client.statemachine.results.SignInResult.Complete].
+ *  SignedInState returned as part of a successful completion of sign in flow [com.microsoft.identity.nativeauth.statemachine.results.SignInResult.Complete].
  */
 class AccountState private constructor(
     private val account: IAccount,
@@ -95,7 +95,7 @@ class AccountState private constructor(
     /**
      * Remove the current account from the cache; callback variant.
      *
-     * @param callback [com.microsoft.identity.client.statemachine.states.AccountState.SignOutCallback] to receive the result on.
+     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.AccountState.SignOutCallback] to receive the result on.
      */
     fun signOut(callback: SignOutCallback) {
         LogSession.logMethodCall(TAG, "$TAG.signOut")
@@ -228,7 +228,7 @@ class AccountState private constructor(
      * If the access token is expired, it will be attempted to be refreshed using the refresh token that's stored in the cache;
      * Kotlin coroutines variant.
      *
-     * @return [com.microsoft.identity.client.statemachine.results.GetAccessTokenResult] The result of the getAccessToken action
+     * @return [com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult] The result of the getAccessToken action
      */
     suspend fun getAccessToken(forceRefresh: Boolean = false): GetAccessTokenResult {
         LogSession.logMethodCall(TAG, "$TAG.getAccessToken(forceRefresh: Boolean)")

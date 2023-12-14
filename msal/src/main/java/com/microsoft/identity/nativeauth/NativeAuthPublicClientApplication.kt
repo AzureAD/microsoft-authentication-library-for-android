@@ -257,7 +257,7 @@ class NativeAuthPublicClientApplication(
      *
      * @param username username of the account to sign in.
      * @param scopes (Optional) scopes to request during the sign in.
-     * @param callback [com.microsoft.identity.client.NativeAuthPublicClientApplication.SignInCallback] to receive the result.
+     * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.SignInCallback] to receive the result.
      * @return [com.microsoft.identity.nativeauth.statemachine.results.SignInResult] see detailed possible return state under the object.
      * @throws [MsalException] if an account is already signed in.
      */
@@ -388,7 +388,7 @@ class NativeAuthPublicClientApplication(
      * @param username username of the account to sign in.
      * @param password password of the account to sign in.
      * @param scopes (Optional) list of scopes to request.
-     * @param callback [com.microsoft.identity.client.NativeAuthPublicClientApplication.SignInUsingPasswordCallback] to receive the result.
+     * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.SignInUsingPasswordCallback] to receive the result.
      * @return [com.microsoft.identity.nativeauth.statemachine.results.SignInUsingPasswordResult] see detailed possible return state under the object.
      * @throws MsalClientException if an account is already signed in.
      */
@@ -540,7 +540,7 @@ class NativeAuthPublicClientApplication(
      * @param username username of the account to sign up.
      * @param password password of the account to sign up.
      * @param attributes (Optional) user attributes to be used during account creation
-     * @param callback [com.microsoft.identity.client.NativeAuthPublicClientApplication.SignUpUsingPasswordCallback] to receive the result.
+     * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.SignUpUsingPasswordCallback] to receive the result.
      * @return [com.microsoft.identity.nativeauth.statemachine.results.SignUpUsingPasswordResult] see detailed possible return state under the object.
      * @throws MsalClientException if an account is already signed in.
      */
@@ -728,7 +728,7 @@ class NativeAuthPublicClientApplication(
      *
      * @param username username of the account to sign up.
      * @param attributes (Optional) user attributes to be used during account creation.
-     * @param callback [com.microsoft.identity.client.NativeAuthPublicClientApplication.SignUpCallback] to receive the result.
+     * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.SignUpCallback] to receive the result.
      * @return [com.microsoft.identity.nativeauth.statemachine.results.SignUpResult] see detailed possible return state under the object.
      * @throws MsalClientException if an account is already signed in.
      */
@@ -911,7 +911,7 @@ class NativeAuthPublicClientApplication(
      * Reset password for the account starting from a username; callback variant.
      *
      * @param username username of the account to reset password.
-     * @param callback [com.microsoft.identity.client.NativeAuthPublicClientApplication.ResetPasswordCallback] to receive the result.
+     * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.ResetPasswordCallback] to receive the result.
      * @return [com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult] see detailed possible return state under the object.
      * @throws MsalClientException if an account is already signed in.
      */

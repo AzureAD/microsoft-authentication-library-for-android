@@ -29,7 +29,7 @@ import com.microsoft.identity.nativeauth.statemachine.states.SignInPasswordRequi
 
 /**
  * Sign in result, produced by
- * [com.microsoft.identity.client.INativeAuthPublicClientApplication.signIn]
+ * [com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication.signIn]
  */
 interface SignInResult : Result {
 
@@ -37,7 +37,7 @@ interface SignInResult : Result {
      * Complete Result, which indicates the sign in flow is complete,
      * i.e. tokens are retrieved for the provided scopes (if any).
      *
-     * @param resultValue an [com.microsoft.identity.client.statemachine.states.AccountState] object containing account information and account related methods.
+     * @param resultValue an [com.microsoft.identity.nativeauth.statemachine.states.AccountState] object containing account information and account related methods.
      */
     class Complete(override val resultValue: AccountState) :
         Result.CompleteResult(resultValue = resultValue),

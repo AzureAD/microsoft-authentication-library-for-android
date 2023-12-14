@@ -21,7 +21,7 @@ internal class SignInErrorTypes {
 /**
  * Sign in error. The user should use the utility methods of this class
  * to identify and handle the error. This error is produced by
- * [com.microsoft.identity.client.INativeAuthPublicClientApplication.signIn]
+ * [com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication.signIn]
  * @param errorType the error type value of the error that occurred
  * @param error the error returned by the authentication server.
  * @param errorMessage the error message returned by the authentication server.
@@ -42,7 +42,7 @@ open class SignInError(
 /**
  * Sign in with password error. The user should use the utility methods of this class
  * to identify and handle the error. This error is produced by
- * [com.microsoft.identity.client.INativeAuthPublicClientApplication.signInUsingPassword]
+ * [com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication.signInUsingPassword]
  * @param errorType the error type value of the error that occurred
  * @param error the error returned by the authentication server.
  * @param errorMessage the error message returned by the authentication server.
@@ -65,7 +65,7 @@ class SignInUsingPasswordError(
 /**
  * Sign in submit password result. The user should use the utility methods of this class
  * to identify and handle the error. This error is produced by
- * [com.microsoft.identity.client.statemachine.states.SignInPasswordRequiredState.submitPassword]
+ * [com.microsoft.identity.nativeauth.statemachine.states.SignInPasswordRequiredState.submitPassword]
  * @param errorType the error type value of the error that occurred
  * @param error the error returned by the authentication server.
  * @param errorMessage the error message returned by the authentication server.

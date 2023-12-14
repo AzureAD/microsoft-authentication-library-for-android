@@ -43,7 +43,7 @@ internal class ResetPasswordErrorTypes {
 /**
  * Reset password error. The user should use the utility methods of this class
  * to identify and handle the error. This error is produced by
- * [com.microsoft.identity.client.INativeAuthPublicClientApplication.resetPassword]
+ * [com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication.resetPassword]
  * @param errorType the error type value of the error that occurred.
  * @param error the error returned by the authentication server.
  * @param errorMessage the error message returned by the authentication server.
@@ -65,7 +65,7 @@ class ResetPasswordError(
 /**
  * SSPR submit password error. The user should use the utility methods of this class
  * to identify and handle the error. This error is produced by
- * [com.microsoft.identity.client.statemachine.states.ResetPasswordPasswordRequiredState.submitPassword]
+ * [com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordPasswordRequiredState.submitPassword]
  * @param errorType the error type value of the error that occurred
  * @param error the error returned by the authentication server.
  * @param errorMessage the error message returned by the authentication server.

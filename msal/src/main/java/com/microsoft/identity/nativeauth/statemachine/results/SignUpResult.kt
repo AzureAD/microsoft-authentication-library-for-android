@@ -67,7 +67,7 @@ interface SignUpResult : Result {
      * AttributesRequired Result, which indicates the server requires one or more attributes to be sent, before the account can be created.
      *
      * @param nextState [com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesRequiredState] the current state of the flow with follow-on methods.
-     * @param requiredAttributes a list of [com.microsoft.identity.common.java.providers.nativeauth.responses.RequiredUserAttributeApiResult.RequiredUserAttribute] objects with details about the account attributes required by the server.
+     * @param requiredAttributes a list of [com.microsoft.identity.nativeauth.RequiredUserAttribute] objects with details about the account attributes required by the server.
      */
     class AttributesRequired(
         override val nextState: SignUpAttributesRequiredState,
@@ -91,7 +91,7 @@ interface SignUpResult : Result {
 }
 
 /**
- * Sign up with password result, produced by [com.microsoft.identity.client.INativeAuthPublicClientApplication.signUpUsingPassword]
+ * Sign up with password result, produced by [com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication.signUpUsingPassword]
  */
 interface SignUpUsingPasswordResult : Result
 

@@ -83,7 +83,7 @@ interface SignOutResult : Result {
     /**
      * UnexpectedError ErrorResult, which indicates that an unexpected error occurred during sign out.
      *
-     * @param error [com.microsoft.identity.nativeauth.statemachine.Error]
+     * @param error [com.microsoft.identity.nativeauth.statemachine.errors.Error]
      */
     class UnexpectedError(override val error: Error) :
         Result.ErrorResult(error = error),

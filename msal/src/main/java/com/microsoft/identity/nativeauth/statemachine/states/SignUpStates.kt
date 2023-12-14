@@ -462,7 +462,7 @@ class SignUpAttributesRequiredState internal constructor(
     /**
      * Submits the user attributes required to the server; callback variant.
      *
-     * @param attributes mandatory attributes set in the tenant configuration. Should use [com.microsoft.identity.client.UserAttributes] to convert to a map.
+     * @param attributes mandatory attributes set in the tenant configuration. Should use [com.microsoft.identity.nativeauth.UserAttributes] to convert to a map.
      * @param callback [com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesRequiredState.SignUpSubmitUserAttributesCallback] to receive the result on.
      * @return The results of the submit user attributes action.
      */
@@ -485,7 +485,7 @@ class SignUpAttributesRequiredState internal constructor(
     /**
      * Submits the user attributes required to the server; Kotlin coroutines variant.
      *
-     * @param attributes mandatory attributes set in the tenant configuration. Should use [com.microsoft.identity.client.UserAttributes] to convert to a map.
+     * @param attributes mandatory attributes set in the tenant configuration. Should use [com.microsoft.identity.nativeauth.UserAttributes] to convert to a map.
      * @return The results of the submit user attributes action.
      */
     suspend fun submitAttributes(attributes: UserAttributes): SignUpSubmitAttributesResult {

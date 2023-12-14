@@ -45,7 +45,7 @@ interface ResetPasswordResult : Result {
 
 /**
  * SSPR start result, produced by
- * [com.microsoft.identity.client.INativeAuthPublicClientApplication.resetPassword]
+ * [com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication.resetPassword]
  */
 interface ResetPasswordStartResult : Result {
     /**

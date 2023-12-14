@@ -86,9 +86,9 @@ open class Error(
  * SubmitCodeError Error, which indicates that an error occurred when the verification code
  * was submitted by the user. The user should use the utility methods of this class
  * to identify and handle the error. This error is produced by
- * [com.microsoft.identity.client.statemachine.states.SignInCodeRequiredState.submitCode],
- * [com.microsoft.identity.client.statemachine.states.SignUpCodeRequiredState.submitCode],
- * [com.microsoft.identity.client.statemachine.states.ResetPasswordCodeRequiredState.submitCode]
+ * [com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState.submitCode],
+ * [com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState.submitCode],
+ * [com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordCodeRequiredState.submitCode]
  * @param errorType the error type value of the error that occurred
  * @param error the error returned by the authentication server.
  * @param errorMessage the error message returned by the authentication server.
@@ -112,9 +112,9 @@ class SubmitCodeError(
  * ResendCodeError Error, which indicates that an error occurred when a new verification code
  * was requested by the user. The user should use the utility methods of this class
  * to identify and handle the error. This error is produced by
- * [com.microsoft.identity.client.statemachine.states.SignInCodeRequiredState.resendCode],
- * [com.microsoft.identity.client.statemachine.states.SignUpCodeRequiredState.resendCode],
- * [com.microsoft.identity.client.statemachine.states.ResetPasswordCodeRequiredState.resendCode]
+ * [com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState.resendCode],
+ * [com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState.resendCode],
+ * [com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordCodeRequiredState.resendCode]
  * @param errorType the error type value of the error that occurred
  * @param error the error returned by the authentication server.
  * @param errorMessage the error message returned by the authentication server.

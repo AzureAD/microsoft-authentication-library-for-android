@@ -62,7 +62,7 @@ internal class SignUpErrorTypes {
 /**
  * Sign up start error. The user should use the utility methods of this class
  * to identify and handle the error. This error is produced by
- * [com.microsoft.identity.client.INativeAuthPublicClientApplication.signUp]
+ * [com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication.signUp]
  * @param errorType the error type value of the error that occurred
  * @param error the error returned by the authentication server.
  * @param errorMessage the error message returned by the authentication server.
@@ -91,7 +91,7 @@ open class SignUpError (
 /**
  * Sign up with password error. The user should use the utility methods of this class
  * to identify and handle the error. This error is produced by
- * [com.microsoft.identity.client.INativeAuthPublicClientApplication.signUpUsingPassword]
+ * [com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication.signUpUsingPassword]
  * @param errorType the error type value of the error that occurred
  * @param error the error returned by the authentication server.
  * @param errorMessage the error message returned by the authentication server.
@@ -114,7 +114,7 @@ class SignUpUsingPasswordError (
 /**
  * Sign in submit password error. The user should use the utility methods of this class
  * to identify and handle the error. This error is produced by
- * [com.microsoft.identity.client.statemachine.states.SignUpPasswordRequiredState.submitPassword]
+ * [com.microsoft.identity.nativeauth.statemachine.states.SignUpPasswordRequiredState.submitPassword]
  * @param errorType the error type value of the error that occurred
  * @param error the error returned by the authentication server.
  * @param errorMessage the error message returned by the authentication server.
@@ -137,7 +137,7 @@ class SignUpSubmitPasswordError (
 /**
  * Sign in submit attributes error. The user should use the utility methods of this class
  * to identify and handle the error. This error is produced by
- * [com.microsoft.identity.client.statemachine.states.SignUpAttributesRequiredState.submitAttributes]
+ * [com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesRequiredState.submitAttributes]
  * @param errorType the error type value of the error that occurred
  * @param error the error returned by the authentication server.
  * @param errorMessage the error message returned by the authentication server.
