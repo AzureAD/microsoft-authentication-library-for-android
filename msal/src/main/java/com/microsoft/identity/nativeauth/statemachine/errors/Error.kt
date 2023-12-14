@@ -71,7 +71,7 @@ internal class ErrorTypes () {
  * @param errorCodes a list of specific error codes returned by the authentication server.
  * @param exception an internal unexpected exception that happened.
  */
-sealed class Error(
+open class Error(
     internal open val errorType: String? = null,
     open val error: String? = null,
     open val errorMessage: String?,
