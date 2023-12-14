@@ -69,7 +69,7 @@ import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper;
 import com.microsoft.identity.common.nativeauth.MockApiEndpoint;
 import com.microsoft.identity.common.nativeauth.MockApiResponseType;
-import com.microsoft.identity.common.nativeauth.utils.MockApiUtils;
+import com.microsoft.identity.common.nativeauth.MockApiUtils;
 import com.microsoft.identity.common.java.exception.BaseException;
 import com.microsoft.identity.common.java.interfaces.IPlatformComponents;
 import com.microsoft.identity.common.java.util.ResultFuture;

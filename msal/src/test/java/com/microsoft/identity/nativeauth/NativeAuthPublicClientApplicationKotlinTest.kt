@@ -20,50 +20,51 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.nativeauth
+package com.microsoft.identity.client.nativeauth
 
 import android.app.Activity
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import com.microsoft.identity.client.NativeAuthPublicClientApplication.SignInUsingPasswordCallback
+import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.SignInUsingPasswordCallback
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.client.PublicClientApplication
+import com.microsoft.identity.nativeauth.UserAttributes
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager
 import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
-import com.microsoft.identity.client.statemachine.errors.GetAccessTokenError
-import com.microsoft.identity.client.statemachine.errors.ResetPasswordError
-import com.microsoft.identity.client.statemachine.errors.ResetPasswordSubmitPasswordError
-import com.microsoft.identity.client.statemachine.errors.SignInError
-import com.microsoft.identity.client.statemachine.errors.SignInUsingPasswordError
-import com.microsoft.identity.client.statemachine.errors.SignUpError
-import com.microsoft.identity.client.statemachine.errors.SignUpSubmitAttributesError
-import com.microsoft.identity.client.statemachine.errors.SignUpUsingPasswordError
-import com.microsoft.identity.client.statemachine.errors.SubmitCodeError
-import com.microsoft.identity.client.statemachine.results.GetAccessTokenResult
-import com.microsoft.identity.client.statemachine.results.GetAccountResult
-import com.microsoft.identity.client.statemachine.results.ResetPasswordResendCodeResult
-import com.microsoft.identity.client.statemachine.results.ResetPasswordResult
-import com.microsoft.identity.client.statemachine.results.ResetPasswordStartResult
-import com.microsoft.identity.client.statemachine.results.ResetPasswordSubmitCodeResult
-import com.microsoft.identity.client.statemachine.results.SignInResult
-import com.microsoft.identity.client.statemachine.results.SignInUsingPasswordResult
-import com.microsoft.identity.client.statemachine.results.SignOutResult
-import com.microsoft.identity.client.statemachine.results.SignUpResendCodeResult
-import com.microsoft.identity.client.statemachine.results.SignUpResult
-import com.microsoft.identity.client.statemachine.states.SignInAfterSignUpState
+import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenError
+import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
+import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordSubmitPasswordError
+import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
+import com.microsoft.identity.nativeauth.statemachine.errors.SignInUsingPasswordError
+import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError
+import com.microsoft.identity.nativeauth.statemachine.errors.SignUpSubmitAttributesError
+import com.microsoft.identity.nativeauth.statemachine.errors.SignUpUsingPasswordError
+import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
+import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
+import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
+import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResendCodeResult
+import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResult
+import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult
+import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitCodeResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignInUsingPasswordResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignOutResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignUpResendCodeResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
+import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpState
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper
-import com.microsoft.identity.common.internal.providers.microsoft.nativeauth.utils.MockApiEndpoint
-import com.microsoft.identity.common.internal.providers.microsoft.nativeauth.utils.MockApiResponseType
-import com.microsoft.identity.common.internal.providers.microsoft.nativeauth.utils.MockApiUtils.Companion.configureMockApi
+import com.microsoft.identity.common.nativeauth.MockApiEndpoint
+import com.microsoft.identity.common.nativeauth.MockApiResponseType
+import com.microsoft.identity.common.nativeauth.MockApiUtils.Companion.configureMockApi
 import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.interfaces.IPlatformComponents
 import com.microsoft.identity.common.java.util.ResultFuture
 import com.microsoft.identity.internal.testutils.TestUtils
-import com.microsoft.identity.nativeauth.statemachine.errors.SignInUsingPasswordError
-import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
@@ -1487,7 +1488,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         )
 
         val attributesRequiredState = (attributesRequiredResult as SignUpResult.AttributesRequired).nextState
-        val invalidAttributes = UserAttributes.build()
+        val invalidAttributes = UserAttributes.Builder.customAttribute("attribute", "invalid_attribute").build()
         val attributesFailedResult = attributesRequiredState.submitAttributes(invalidAttributes)
 
         assertTrue(attributesFailedResult is SignUpSubmitAttributesError)
@@ -1501,7 +1502,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
             responseType = MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
         )
 
-        val validAttributes = UserAttributes.build()
+        val validAttributes = UserAttributes.Builder.customAttribute("attribute", "valid_attribute").build()
         val successResult = attributesRequiredState.submitAttributes(validAttributes)
 
         // 4b. Server accepts password, returns tokens
@@ -1526,7 +1527,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         )
 
         // 1b. Call SDK interface
-        val invalidAttributes = UserAttributes.build()
+        val invalidAttributes = UserAttributes.Builder.customAttribute("attribute", "invalid_attribute").build()
         val invalidAttributesResult = application.signUpUsingPassword(username, password, invalidAttributes)
 
         assertTrue(invalidAttributesResult is SignUpUsingPasswordError)
@@ -1545,7 +1546,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         )
 
         // 2b. Call SDK interface again
-        val validAttributes = UserAttributes.build()
+        val validAttributes = UserAttributes.Builder.customAttribute("attribute", "valid_attribute").build()
         val result = application.signUpUsingPassword(username, password, validAttributes)
         assertTrue(result is SignUpResult.CodeRequired)
     }
@@ -1873,7 +1874,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         val attributesRequiredState = (attributesRequiredResult as SignUpResult.AttributesRequired).nextState
 
-        val attributes = UserAttributes.build()
+        val attributes = UserAttributes.Builder.customAttribute("attribute", "attribute").build()
         val successResult = attributesRequiredState.submitAttributes(attributes)
 
         // 4b. Server accepts attributes, returns tokens
@@ -1937,7 +1938,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         )
 
         val attributesRequiredState = (attributesRequiredResult).nextState
-        val incompleteAttributes = UserAttributes.build()
+        val incompleteAttributes = UserAttributes.Builder.customAttribute("attribute", "incomplete_attribute").build()
         val additionalAttributesRequiredResult = attributesRequiredState.submitAttributes(incompleteAttributes)
 
         assertTrue(additionalAttributesRequiredResult is SignUpResult.AttributesRequired)
@@ -1952,7 +1953,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         val additionalAttributesRequiredState = (additionalAttributesRequiredResult as SignUpResult.AttributesRequired).nextState
 
-        val attributes = UserAttributes.build()
+        val attributes = UserAttributes.Builder.customAttribute("attribute", "attribute").build()
         val successResult = additionalAttributesRequiredState.submitAttributes(attributes)
 
         // 4b. Server accepts password, returns tokens
