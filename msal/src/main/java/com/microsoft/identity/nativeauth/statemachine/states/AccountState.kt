@@ -58,7 +58,7 @@ import kotlinx.coroutines.withContext
 import java.io.Serializable
 
 /**
- *  SignedInState returned as part of a successful completion of sign in flow [com.microsoft.identity.nativeauth.statemachine.results.SignInResult.Complete].
+ *  AccountState returned as part of a successful completion of sign in flow [com.microsoft.identity.nativeauth.statemachine.results.SignInResult.Complete].
  */
 class AccountState private constructor(
     private val account: IAccount,
