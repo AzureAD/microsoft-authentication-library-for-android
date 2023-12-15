@@ -28,4 +28,4 @@ sealed interface State
 /**
  * BaseState is the base class for various states in the Native Auth state machine.
  */
-abstract class BaseState(internal open val flowToken: String?)
+abstract class BaseState(internal open val continuationToken: String?)

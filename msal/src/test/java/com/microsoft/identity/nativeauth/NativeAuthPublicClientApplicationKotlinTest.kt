@@ -89,7 +89,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
     private val invalidUsername = "invalidUsername"
     private val password = "verySafePassword".toCharArray()
     private val code = "1234"
-    private val signInSLT = "12345"
     private val emptyString = ""
 
     override fun getConfigFilePath() = "src/test/res/raw/native_auth_native_only_test_config.json"
@@ -345,18 +344,18 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
     }
 
     /**
-     * Test sign in with SLT scenario 1:
-     * 1a -> sign in with (valid) SLT
+     * Test sign in with continuation token scenario 1:
+     * 1a -> sign in with (valid) continuation token
      * 1b <- server returns token
      */
     @Test
-    fun testSignInWithSLT() = runTest {
-        // Setup - sign up the user, so that we don't have to construct the SLT state manually
+    fun testSignInWithContinuationToken() = runTest {
+        // Setup - sign up the user, so that we don't have to construct the ContinuationToken state manually
         // as this doesn't allow for the NativeAuthPublicClientApplicationConfiguration to be set
         // up, meaning it would need to be mocked (which we don't want in these tests).
-        val signInWithSLTState = signUpUser()
+        val signInWithContinuationTokenState = signUpUser()
 
-        // 1a. sign in with (valid) SLT
+        // 1a. sign in with (valid) continuation token
         val correlationId = UUID.randomUUID().toString()
         configureMockApi(
             endpointType = MockApiEndpoint.SignInToken,
@@ -365,18 +364,18 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         )
 
         // 1b. server returns token
-        val result = signInWithSLTState.signIn(scopes = null)
+        val result = signInWithContinuationTokenState.signIn(scopes = null)
         assertTrue(result is SignInResult.Complete)
     }
 
     /**
-     * Test sign in with SLT scenario 2:
-     * 1a -> sign in with (null) SLT
+     * Test sign in with continuation token scenario 2:
+     * 1a -> sign in with (null) continuation token
      * 1b <- client returns error right away
      */
     @Test
-    fun testSignInWithSLTNullSLT() = runTest {
-        // 1a. sign in with (null) SLT
+    fun testSignInWithContinuationTokenNullContinuationToken() = runTest {
+        // 1a. sign in with (null) continuation token
         val correlationId = UUID.randomUUID().toString()
         configureMockApi(
             endpointType = MockApiEndpoint.SignInToken,
@@ -386,23 +385,23 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         // 1b. client returns error
         val config = mock<NativeAuthPublicClientApplicationConfiguration>()
-        val sltState = SignInAfterSignUpState(signInVerificationCode = null, username = username, config = config)
-        val result = sltState.signIn(scopes = null)
+        val continuationTokenState = SignInAfterSignUpState(continuationToken = null, username = username, config = config)
+        val result = continuationTokenState.signIn(scopes = null)
         assertTrue(result is SignInResult.UnexpectedError)
     }
 
     /**
-     * Test sign in with SLT scenario 2:
-     * 1a -> sign in with (expired) SLT
+     * Test sign in with continuation token scenario 2:
+     * 1a -> sign in with (expired) continuation token
      * 1b <- server returns error
      */
-    @Ignore("Waiting for SLT Mock API Integration (Out of scope?)")
+    @Ignore("Waiting for continuation token Mock API Integration (Out of scope?)")
     @Test
     fun testSignInWithExpiredSLT() = runTest {
-        // Setup - sign up the user, so that we don't have to construct the SLT state manually
+        // Setup - sign up the user, so that we don't have to construct the continuation token state manually
         // as this doesn't allow for the NativeAuthPublicClientApplicationConfiguration to be set
         // up, meaning it would need to be mocked (which we don't want in these tests).
-        val signInWithSLTState = signUpUser()
+        val signInWithContinuationTokenState = signUpUser()
 
         // 1a. sign in with (expired) SLT
         val correlationId = UUID.randomUUID().toString()
@@ -413,7 +412,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         )
 
         // 1b. server returns error
-        val result = signInWithSLTState.signIn(scopes = null)
+        val result = signInWithContinuationTokenState.signIn(scopes = null)
         assertTrue(result is SignInResult.UnexpectedError)
     }
 
@@ -607,7 +606,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val submitPasswordResult = nextState.submitPassword(password = password)
         // 3b. Transform /submit(success) +/poll_completion(success) to Result(Complete).
         assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
-        // 3c. Respond to Result(Complete): shifting from ResetPasswordPasswordRequired to end. SLT as resultValue will be returned after private preview.
+        // 3c. Respond to Result(Complete): shifting from ResetPasswordPasswordRequired to end. Continuation token as resultValue will be returned after private preview.
         val resultValue = (submitPasswordResult as ResetPasswordResult.Complete).resultValue
     }
 
@@ -689,7 +688,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         submitPasswordResult = nextState.submitPassword(password = password)
         // 4b. Transform /submit(error) + /resetpassword/poll_completion(success) to Result(Complete).
         assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
-        // 4c. Respond to Result(Complete): shifting from ResetPasswordPasswordRequired to end. SLT as resultValue will be returned after private preview.
+        // 4c. Respond to Result(Complete): shifting from ResetPasswordPasswordRequired to end. Continuation token as resultValue will be returned after private preview.
         val resultValue = (submitPasswordResult as ResetPasswordResult.Complete).resultValue
     }
 
@@ -772,7 +771,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val submitPasswordResult = nextState.submitPassword(password = password)
         // 4b. Transform /submit(success) +/poll_completion(success) to Result(Complete).
         assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
-        // 4c. Respond to Result(Complete): shifting from ResetPasswordPasswordRequired to end. SLT as resultValue will be returned after private preview.
+        // 4c. Respond to Result(Complete): shifting from ResetPasswordPasswordRequired to end. Continuation token as resultValue will be returned after private preview.
         val resultValue = (submitPasswordResult as ResetPasswordResult.Complete).resultValue
     }
 
@@ -790,7 +789,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         configureMockApi(
             endpointType = MockApiEndpoint.SSPRStart,
             correlationId = correlationId,
-            responseType = MockApiResponseType.EXPLICIT_USER_NOT_FOUND
+            responseType = MockApiResponseType.USER_NOT_FOUND
         )
         // 1a. Call SDK interface - resetPassword(ResetPasswordStart)
         val resetPasswordResult = application.resetPassword(username = username)
@@ -882,7 +881,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         configureMockApi(
             endpointType = MockApiEndpoint.SSPRContinue,
             correlationId = correlationId,
-            responseType = MockApiResponseType.EXPLICIT_INVALID_OOB_VALUE
+            responseType = MockApiResponseType.INVALID_OOB_VALUE
         )
         // 2a. Call SDK interface - submitCode()
         var submitCodeResult = nextState.submitCode(code = code)
@@ -920,7 +919,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val submitPasswordResult = nextState.submitPassword(password = password)
         // 4b. Transform /submit(success) +/poll_completion(success) to Result(Complete).
         assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
-        // 4c. Respond to Result(Complete): shifting from ResetPasswordPasswordRequired to end. SLT as resultValue will be returned after private preview.
+        // 4c. Respond to Result(Complete): shifting from ResetPasswordPasswordRequired to end. Continuation token as resultValue will be returned after private preview.
         val resultValue = (submitPasswordResult as ResetPasswordResult.Complete).resultValue
     }
 
@@ -1176,7 +1175,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         configureMockApi(
             MockApiEndpoint.SignUpStart,
             correlationId,
-            MockApiResponseType.VERIFICATION_REQUIRED
+            MockApiResponseType.SIGNUP_START_SUCCESS
         )
         configureMockApi(
             MockApiEndpoint.SignUpChallenge,
@@ -1218,7 +1217,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         configureMockApi(
             endpointType = MockApiEndpoint.SignUpStart,
             correlationId = correlationId,
-            responseType = MockApiResponseType.VERIFICATION_REQUIRED
+            responseType = MockApiResponseType.SIGNUP_START_SUCCESS
         )
 
         configureMockApi(
@@ -1265,7 +1264,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         configureMockApi(
             endpointType = MockApiEndpoint.SignUpStart,
             correlationId = correlationId,
-            responseType = MockApiResponseType.VERIFICATION_REQUIRED
+            responseType = MockApiResponseType.SIGNUP_START_SUCCESS
         )
 
         configureMockApi(
@@ -1323,7 +1322,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         configureMockApi(
             endpointType = MockApiEndpoint.SignUpStart,
             correlationId = correlationId,
-            responseType = MockApiResponseType.VERIFICATION_REQUIRED
+            responseType = MockApiResponseType.SIGNUP_START_SUCCESS
         )
 
         configureMockApi(
@@ -1415,7 +1414,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         configureMockApi(
             endpointType = MockApiEndpoint.SignUpStart,
             correlationId = correlationId,
-            responseType = MockApiResponseType.VERIFICATION_REQUIRED
+            responseType = MockApiResponseType.SIGNUP_START_SUCCESS
         )
 
         configureMockApi(
@@ -1497,7 +1496,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         configureMockApi(
             endpointType = MockApiEndpoint.SignUpStart,
             correlationId = correlationId,
-            responseType = MockApiResponseType.VERIFICATION_REQUIRED
+            responseType = MockApiResponseType.SIGNUP_START_SUCCESS
         )
 
         configureMockApi(
@@ -1528,7 +1527,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         configureMockApi(
             endpointType = MockApiEndpoint.SignUpStart,
             correlationId = correlationId,
-            responseType = MockApiResponseType.VERIFICATION_REQUIRED
+            responseType = MockApiResponseType.SIGNUP_START_SUCCESS
         )
 
         configureMockApi(
@@ -1574,7 +1573,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         configureMockApi(
             endpointType = MockApiEndpoint.SignUpStart,
             correlationId = correlationId,
-            responseType = MockApiResponseType.VERIFICATION_REQUIRED
+            responseType = MockApiResponseType.SIGNUP_START_SUCCESS
         )
 
         configureMockApi(
@@ -1633,7 +1632,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         configureMockApi(
             endpointType = MockApiEndpoint.SignUpStart,
             correlationId = correlationId,
-            responseType = MockApiResponseType.VERIFICATION_REQUIRED
+            responseType = MockApiResponseType.SIGNUP_START_SUCCESS
         )
 
         configureMockApi(
@@ -1700,7 +1699,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         configureMockApi(
             endpointType = MockApiEndpoint.SignUpStart,
             correlationId = correlationId,
-            responseType = MockApiResponseType.VERIFICATION_REQUIRED
+            responseType = MockApiResponseType.SIGNUP_START_SUCCESS
         )
 
         configureMockApi(
@@ -1780,7 +1779,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         configureMockApi(
             endpointType = MockApiEndpoint.SignUpStart,
             correlationId = correlationId,
-            responseType = MockApiResponseType.VERIFICATION_REQUIRED
+            responseType = MockApiResponseType.SIGNUP_START_SUCCESS
         )
 
         configureMockApi(
@@ -1862,7 +1861,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         configureMockApi(
             endpointType = MockApiEndpoint.SignUpStart,
             correlationId = correlationId,
-            responseType = MockApiResponseType.VERIFICATION_REQUIRED
+            responseType = MockApiResponseType.SIGNUP_START_SUCCESS
         )
 
         configureMockApi(

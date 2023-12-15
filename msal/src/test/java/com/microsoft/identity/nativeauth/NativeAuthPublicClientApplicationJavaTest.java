@@ -103,7 +103,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     private final String invalidUsername = "invalidUsername";
     private final char[] password = "verySafePassword".toCharArray();
     private final String code = "1234";
-    private final String signInSLT = "12345";
     private final String emptyString = "";
 
 
@@ -1274,7 +1273,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SSPRStart,
                 correlationId,
-                MockApiResponseType.EXPLICIT_USER_NOT_FOUND
+                MockApiResponseType.USER_NOT_FOUND
         );
 
         ResetPasswordStartTestCallback resetPasswordCallback = new ResetPasswordStartTestCallback();
@@ -1374,7 +1373,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SSPRContinue,
                 correlationId,
-                MockApiResponseType.EXPLICIT_INVALID_OOB_VALUE
+                MockApiResponseType.INVALID_OOB_VALUE
         );
 
         ResetPasswordSubmitCodeTestCallback submitCodeCallback1 = new ResetPasswordSubmitCodeTestCallback();
@@ -1461,7 +1460,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
-                MockApiResponseType.VERIFICATION_REQUIRED
+                MockApiResponseType.SIGNUP_START_SUCCESS
         );
 
         MockApiUtils.configureMockApi(
@@ -1512,7 +1511,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
-                MockApiResponseType.VERIFICATION_REQUIRED
+                MockApiResponseType.SIGNUP_START_SUCCESS
         );
 
         MockApiUtils.configureMockApi(
@@ -1563,7 +1562,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
-                MockApiResponseType.VERIFICATION_REQUIRED
+                MockApiResponseType.SIGNUP_START_SUCCESS
         );
 
         MockApiUtils.configureMockApi(
@@ -1630,7 +1629,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
-                MockApiResponseType.VERIFICATION_REQUIRED
+                MockApiResponseType.SIGNUP_START_SUCCESS
         );
 
         MockApiUtils.configureMockApi(
@@ -1729,7 +1728,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
-                MockApiResponseType.VERIFICATION_REQUIRED
+                MockApiResponseType.SIGNUP_START_SUCCESS
         );
 
         MockApiUtils.configureMockApi(
@@ -1827,7 +1826,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
-                MockApiResponseType.VERIFICATION_REQUIRED
+                MockApiResponseType.SIGNUP_START_SUCCESS
         );
 
         MockApiUtils.configureMockApi(
@@ -1863,7 +1862,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
-                MockApiResponseType.VERIFICATION_REQUIRED
+                MockApiResponseType.SIGNUP_START_SUCCESS
         );
 
         MockApiUtils.configureMockApi(
@@ -1916,7 +1915,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
-                MockApiResponseType.VERIFICATION_REQUIRED
+                MockApiResponseType.SIGNUP_START_SUCCESS
         );
 
         MockApiUtils.configureMockApi(
@@ -1987,7 +1986,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
-                MockApiResponseType.VERIFICATION_REQUIRED
+                MockApiResponseType.SIGNUP_START_SUCCESS
         );
 
         MockApiUtils.configureMockApi(
@@ -2066,7 +2065,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
-                MockApiResponseType.VERIFICATION_REQUIRED
+                MockApiResponseType.SIGNUP_START_SUCCESS
         );
 
         MockApiUtils.configureMockApi(
@@ -2162,7 +2161,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
-                MockApiResponseType.VERIFICATION_REQUIRED
+                MockApiResponseType.SIGNUP_START_SUCCESS
         );
 
         MockApiUtils.configureMockApi(
@@ -2259,7 +2258,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
-                MockApiResponseType.VERIFICATION_REQUIRED
+                MockApiResponseType.SIGNUP_START_SUCCESS
         );
 
         MockApiUtils.configureMockApi(

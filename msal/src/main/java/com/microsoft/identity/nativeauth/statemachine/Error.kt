@@ -64,7 +64,8 @@ class IncorrectCodeError(
     override var error: String? = null,
     override val errorMessage: String,
     override val correlationId: String,
-    override val errorCodes: List<Int>? = null
+    override val errorCodes: List<Int>? = null,
+    val subError: String? = null
 ) : Error(errorMessage = errorMessage, error = error, correlationId = correlationId, errorCodes = errorCodes)
 
 /**
@@ -105,7 +106,8 @@ class UserAlreadyExistsError(
 class InvalidPasswordError(
     override var error: String? = null,
     override val errorMessage: String,
-    override val correlationId: String
+    override val correlationId: String,
+    val subError: String? = null
 ) : Error(errorMessage = errorMessage, error = error, correlationId = correlationId)
 
 /**
