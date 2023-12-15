@@ -61,6 +61,7 @@ import com.microsoft.identity.common.nativeauth.MockApiResponseType
 import com.microsoft.identity.common.nativeauth.MockApiUtils.Companion.configureMockApi
 import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.interfaces.IPlatformComponents
+import com.microsoft.identity.common.java.nativeauth.BuildValues
 import com.microsoft.identity.common.java.util.ResultFuture
 import com.microsoft.identity.internal.testutils.TestUtils
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -109,13 +110,13 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         @BeforeClass
         @JvmStatic
         fun setupClass() {
-            BuildValues.setUseRealAuthority(true)
+            BuildValues.setUseMockApiForNativeAuth(true)
         }
 
         @AfterClass
         @JvmStatic
         fun tearDownClass() {
-            BuildValues.setUseRealAuthority(false)
+            BuildValues.setUseMockApiForNativeAuth(false)
         }
     }
 

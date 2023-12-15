@@ -33,6 +33,7 @@ import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.java.BuildValues;
+import com.microsoft.identity.common.java.nativeauth.BuildValues;
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenError;
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError;
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordSubmitPasswordError;
@@ -129,12 +130,12 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
     @BeforeClass
     public static void setupClass() {
-        BuildValues.setUseRealAuthority(true);
+        BuildValues.setUseMockApiForNativeAuth(true);
     }
 
     @AfterClass
     public static void tearDownClass() {
-        BuildValues.setUseRealAuthority(false);
+        BuildValues.setUseMockApiForNativeAuth(false);
     }
 
     @Before
