@@ -55,6 +55,7 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpState
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper
+import com.microsoft.identity.common.java.BuildValues
 import com.microsoft.identity.common.nativeauth.MockApiEndpoint
 import com.microsoft.identity.common.nativeauth.MockApiResponseType
 import com.microsoft.identity.common.nativeauth.MockApiUtils.Companion.configureMockApi
@@ -66,11 +67,13 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.After
+import org.junit.AfterClass
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
+import org.junit.BeforeClass
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -101,6 +104,20 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
     private val emptyString = ""
 
     override fun getConfigFilePath() = "src/test/res/raw/native_auth_native_only_test_config.json"
+
+    companion object {
+        @BeforeClass
+        @JvmStatic
+        fun setupClass() {
+            BuildValues.setUseRealAuthority(true)
+        }
+
+        @AfterClass
+        @JvmStatic
+        fun tearDownClass() {
+            BuildValues.setUseRealAuthority(false)
+        }
+    }
 
     @Before
     override fun setup() {
