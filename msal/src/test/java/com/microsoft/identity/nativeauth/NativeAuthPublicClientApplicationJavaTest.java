@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.nativeauth;
 
+import static com.microsoft.identity.common.java.nativeauth.BuildValues.*;
+
 import android.app.Activity;
 import android.content.Context;
 
@@ -32,7 +34,6 @@ import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTe
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.common.java.BuildValues;
 import com.microsoft.identity.common.java.nativeauth.BuildValues;
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenError;
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError;
@@ -130,12 +131,12 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
     @BeforeClass
     public static void setupClass() {
-        BuildValues.setUseMockApiForNativeAuth(true);
+        setUseMockApiForNativeAuth(true);
     }
 
     @AfterClass
     public static void tearDownClass() {
-        BuildValues.setUseMockApiForNativeAuth(false);
+        setUseMockApiForNativeAuth(false);
     }
 
     @Before
