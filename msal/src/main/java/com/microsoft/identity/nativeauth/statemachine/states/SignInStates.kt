@@ -61,7 +61,7 @@ import kotlinx.coroutines.withContext
 import java.io.Serializable
 
 /**
- * Native Auth uses a state machine to denote state and transitions for a user.
+ * Native Auth uses a state machine to denote state of and transitions within a flow.
  * SignInCodeRequiredState class represents a state where the user has to provide a code to progress
  * in the signin flow.
  * @property flowToken: Flow token to be passed in the next request
@@ -263,7 +263,7 @@ class SignInCodeRequiredState internal constructor(
 }
 
 /**
- * Native Auth uses a state machine to denote state and transitions for a user.
+ * Native Auth uses a state machine to denote state of and transitions within a flow.
  * SignInPasswordRequiredState class represents a state where the user has to provide a password to progress
  * in the signin flow.
  * @property flowToken: Flow token to be passed in the next request
@@ -380,7 +380,7 @@ class SignInPasswordRequiredState(
 }
 
 /**
- * Native Auth uses a state machine to denote state and transitions for a user.
+ * Native Auth uses a state machine to denote state of and transitions within a flow.
  * SignInAfterSignUpBaseState class is an abstract class to represent signin state after
  * successfull signup
  * in the signin flow.

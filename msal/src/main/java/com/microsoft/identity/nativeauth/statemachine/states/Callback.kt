@@ -27,7 +27,7 @@ import com.microsoft.identity.common.java.exception.BaseException
 
 /**
  * Callback<T> class is used when the Native Auth features like SignUp, SignIn and SSPR are
- * called from java code using callback variant.
+ * called from Java code using callback variant.
  */
 interface Callback <T> {
 
