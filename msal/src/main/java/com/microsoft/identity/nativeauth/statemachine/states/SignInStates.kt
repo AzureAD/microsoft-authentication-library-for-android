@@ -28,10 +28,6 @@ import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
-import com.microsoft.identity.nativeauth.statemachine.BrowserRequiredError
-import com.microsoft.identity.nativeauth.statemachine.GeneralError
-import com.microsoft.identity.nativeauth.statemachine.IncorrectCodeError
-import com.microsoft.identity.nativeauth.statemachine.PasswordIncorrectError
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResendCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInSubmitCodeResult
@@ -53,13 +49,19 @@ import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.util.StringUtil
 import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
+import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
+import com.microsoft.identity.nativeauth.statemachine.errors.ResendCodeError
+import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
+import com.microsoft.identity.nativeauth.statemachine.errors.SignInErrorTypes
+import com.microsoft.identity.nativeauth.statemachine.errors.SignInSubmitPasswordError
+import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.Serializable
 
 /**
- * Native Auth uses a state machine to denote state and transitions for a user.
+ * Native Auth uses a state machine to denote state of and transitions within a flow.
  * SignInCodeRequiredState class represents a state where the user has to provide a code to progress
  * in the signin flow.
  * @property flowToken: Flow token to be passed in the next request
@@ -125,14 +127,14 @@ class SignInCodeRequiredState internal constructor(
 
             return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<SignInSubmitCodeCommandResult>()) {
                 is SignInCommandResult.IncorrectCode -> {
-                    SignInSubmitCodeResult.CodeIncorrect(
-                        error = IncorrectCodeError(
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            errorCodes = result.errorCodes
-                        )
+                    SubmitCodeError(
+                        errorType = ErrorTypes.INVALID_CODE,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId,
+                        errorCodes = result.errorCodes
                     )
+
                 }
 
                 is SignInCommandResult.Complete -> {
@@ -140,7 +142,7 @@ class SignInCodeRequiredState internal constructor(
                         AuthenticationResultAdapter.adapt(result.authenticationResult)
 
                     SignInResult.Complete(
-                        resultValue = AccountResult.createFromAuthenticationResult(
+                        resultValue = AccountState.createFromAuthenticationResult(
                             authenticationResult = authenticationResult,
                             config = config
                         )
@@ -148,27 +150,25 @@ class SignInCodeRequiredState internal constructor(
                 }
 
                 is INativeAuthCommandResult.Redirect -> {
-                    SignInResult.BrowserRequired(
-                        error = BrowserRequiredError(
-                            correlationId = result.correlationId
-                        )
+                    SubmitCodeError(
+                        errorType = ErrorTypes.BROWSER_REQUIRED,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId
                     )
                 }
 
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
-                        "Unexpected result: $result"
+                        "Submit code received unexpected result: $result"
                     )
-                    SignInResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId,
-                            details = result.details,
-                            errorCodes = result.errorCodes,
-                            exception = result.exception
-                        )
+                    SubmitCodeError(
+                        errorMessage = result.errorDescription,
+                        error = result.error,
+                        correlationId = result.correlationId,
+                        errorCodes = result.errorCodes,
+                        exception = result.exception
                     )
                 }
             }
@@ -176,7 +176,7 @@ class SignInCodeRequiredState internal constructor(
     }
 
     /**
-     * SubmitCodeCallback receives the result for resend code for SignIn for Native Auth
+     * ResendCodeCallback receives the result for resend code for SignIn for Native Auth
      */
     interface ResendCodeCallback : Callback<SignInResendCodeResult>
 
@@ -236,27 +236,25 @@ class SignInCodeRequiredState internal constructor(
                 }
 
                 is INativeAuthCommandResult.Redirect -> {
-                    SignInResult.BrowserRequired(
-                        error = BrowserRequiredError(
-                            correlationId = result.correlationId
-                        )
+                    ResendCodeError(
+                        errorType = ErrorTypes.BROWSER_REQUIRED,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId
                     )
                 }
 
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
-                        "Unexpected result: $result"
+                        "Resend code received unexpected result: $result"
                     )
-                    SignInResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId,
-                            details = result.details,
-                            errorCodes = result.errorCodes,
-                            exception = result.exception
-                        )
+                    ResendCodeError(
+                        errorMessage = result.errorDescription,
+                        error = result.error,
+                        correlationId = result.correlationId,
+                        errorCodes = result.errorCodes,
+                        exception = result.exception
                     )
                 }
             }
@@ -265,7 +263,7 @@ class SignInCodeRequiredState internal constructor(
 }
 
 /**
- * Native Auth uses a state machine to denote state and transitions for a user.
+ * Native Auth uses a state machine to denote state of and transitions within a flow.
  * SignInPasswordRequiredState class represents a state where the user has to provide a password to progress
  * in the signin flow.
  * @property flowToken: Flow token to be passed in the next request
@@ -280,7 +278,7 @@ class SignInPasswordRequiredState(
     private val TAG: String = SignInPasswordRequiredState::class.java.simpleName
 
     /**
-     * SubmitCodeCallback receives the result for submit password for SignIn for Native Auth
+     * SubmitPasswordCallback receives the result for submit password for SignIn for Native Auth
      */
     interface SubmitPasswordCallback : Callback<SignInSubmitPasswordResult>
 
@@ -335,46 +333,42 @@ class SignInPasswordRequiredState(
                 return@withContext when (val result =
                     rawCommandResult.checkAndWrapCommandResultType<SignInSubmitPasswordCommandResult>()) {
                     is SignInCommandResult.InvalidCredentials -> {
-                        SignInResult.InvalidCredentials(
-                            error = PasswordIncorrectError(
-                                error = result.error,
-                                errorMessage = result.errorDescription,
-                                correlationId = result.correlationId,
-                                errorCodes = result.errorCodes
-                            )
+                        SignInSubmitPasswordError(
+                            errorType = SignInErrorTypes.INVALID_CREDENTIALS,
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId
                         )
                     }
                     is SignInCommandResult.Complete -> {
                         val authenticationResult =
                             AuthenticationResultAdapter.adapt(result.authenticationResult)
                         SignInResult.Complete(
-                            resultValue = AccountResult.createFromAuthenticationResult(
+                            resultValue = AccountState.createFromAuthenticationResult(
                                 authenticationResult = authenticationResult,
                                 config = config
                             )
                         )
                     }
                     is INativeAuthCommandResult.Redirect -> {
-                        SignInResult.BrowserRequired(
-                            error = BrowserRequiredError(
-                                correlationId = result.correlationId
-                            )
+                        SignInSubmitPasswordError(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
                         )
                     }
                     is INativeAuthCommandResult.UnknownError -> {
                         Logger.warn(
                             TAG,
-                            "Unexpected result: $result"
+                            "Submit password received unexpected result: $result"
                         )
-                        SignInResult.UnexpectedError(
-                            error = GeneralError(
-                                errorMessage = result.errorDescription,
-                                error = result.error,
-                                correlationId = result.correlationId,
-                                details = result.details,
-                                errorCodes = result.errorCodes,
-                                exception = result.exception
-                            )
+                        SignInSubmitPasswordError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes,
+                            exception = result.exception
                         )
                     }
                 }
@@ -386,7 +380,7 @@ class SignInPasswordRequiredState(
 }
 
 /**
- * Native Auth uses a state machine to denote state and transitions for a user.
+ * Native Auth uses a state machine to denote state of and transitions within a flow.
  * SignInAfterSignUpBaseState class is an abstract class to represent signin state after
  * successfull signup
  * in the signin flow.
@@ -402,7 +396,7 @@ abstract class SignInAfterSignUpBaseState(
     private val TAG: String = SignInAfterSignUpBaseState::class.java.simpleName
 
     /**
-     * SubmitCodeCallback receives the result for sign in after signup for Native Auth
+     * SignInAfterSignUpCallback receives the result for sign in after signup for Native Auth
      */
     interface SignInAfterSignUpCallback : Callback<SignInResult>
 
@@ -442,14 +436,12 @@ abstract class SignInAfterSignUpBaseState(
             if (signInVerificationCode.isNullOrEmpty()) {
                 Logger.warn(
                     TAG,
-                    "Unexpected result: signInSLT was null"
+                    "Sign in after sign up received unexpected result: signInSLT was null"
                 )
-                return@withContext SignInResult.UnexpectedError(
-                    error = GeneralError(
-                        errorMessage = "Sign In is not available through this state, please use the standalone sign in methods (signInWithCode or signInWithPassword).",
-                        error = "invalid_state",
-                        correlationId = "UNSET"
-                    )
+                return@withContext SignInError(
+                    errorMessage = "Sign In is not available through this state, please use the standalone sign in methods (signInWithCode or signInWithPassword).",
+                    error = "invalid_state",
+                    correlationId = "UNSET",
                 )
             }
 
@@ -495,33 +487,31 @@ abstract class SignInAfterSignUpBaseState(
                     val authenticationResult =
                         AuthenticationResultAdapter.adapt(result.authenticationResult)
                     SignInResult.Complete(
-                        resultValue = AccountResult.createFromAuthenticationResult(
+                        resultValue = AccountState.createFromAuthenticationResult(
                             authenticationResult = authenticationResult,
                             config = config
                         )
                     )
                 }
                 is INativeAuthCommandResult.Redirect -> {
-                    SignInResult.BrowserRequired(
-                        error = BrowserRequiredError(
-                            correlationId = result.correlationId
-                        )
+                    SignInError(
+                        errorType = ErrorTypes.BROWSER_REQUIRED,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId
                     )
                 }
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
-                        "Unexpected result: $result"
+                        "Sign in after sign up received unexpected result: $result"
                     )
-                    SignInResult.UnexpectedError(
-                        error = GeneralError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId,
-                            details = result.details,
-                            errorCodes = result.errorCodes,
-                            exception = result.exception
-                        )
+                    SignInError(
+                        errorMessage = result.errorDescription,
+                        error = result.error,
+                        correlationId = result.correlationId,
+                        errorCodes = result.errorCodes,
+                        exception = result.exception
                     )
                 }
             }

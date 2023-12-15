@@ -24,7 +24,7 @@
 // THE SOFTWARE.
 package com.microsoft.identity.nativeauth.statemachine.results
 
-import com.microsoft.identity.nativeauth.statemachine.Error
+import com.microsoft.identity.nativeauth.statemachine.errors.Error
 import com.microsoft.identity.nativeauth.statemachine.states.State
 
 /**
@@ -32,12 +32,12 @@ import com.microsoft.identity.nativeauth.statemachine.states.State
  */
 interface Result {
     /**
-     * SuccessResult which indicates the API call succeeded.
+     * SuccessResult which indicates the action succeeded.
      */
     open class SuccessResult(open val nextState: State) : Result
 
     /**
-     * ErrorResult, which indicates that the flow failed.
+     * ErrorResult, which indicates that the action failed.
      */
     open class ErrorResult(open val error: Error) : Result
 
@@ -53,12 +53,12 @@ interface Result {
     open class CompleteWithNextStateResult(override val resultValue: Any? = null, open val nextState: State?) : CompleteResult(resultValue = resultValue)
 
     /**
-     * Returns true if the current API call succeeded
+     * Returns true if the current action succeeded
      */
     fun isSuccess(): Boolean = this is SuccessResult
 
     /**
-     * Returns true if the API call failed
+     * Returns true if the current action failed
      */
     fun isError(): Boolean = this is ErrorResult
 
@@ -71,7 +71,7 @@ interface Result {
 /**
  * Sign out: removes account from cache. Does not perform single sign-out.
  */
-sealed interface SignOutResult : Result {
+interface SignOutResult : Result {
     /**
      * CompleteResult Result, which indicates the sign out flow completed successfully.
      * i.e. the user account has been removed from persistence.
@@ -83,7 +83,7 @@ sealed interface SignOutResult : Result {
     /**
      * UnexpectedError ErrorResult, which indicates that an unexpected error occurred during sign out.
      *
-     * @param error [com.microsoft.identity.nativeauth.statemachine.Error]
+     * @param error [com.microsoft.identity.nativeauth.statemachine.errors.Error]
      */
     class UnexpectedError(override val error: Error) :
         Result.ErrorResult(error = error),
