@@ -31,7 +31,7 @@ import com.microsoft.identity.client.PublicClientApplicationConfigurationFactory
 import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudienceDeserializer
-import com.microsoft.identity.common.java.BuildValues
+import com.microsoft.identity.common.java.nativeauth.BuildValues
 import com.microsoft.identity.common.java.authorities.Authority
 import com.microsoft.identity.common.java.authorities.AuthorityDeserializer
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudience
@@ -133,14 +133,14 @@ class NativeAuthPublicClientApplicationConfigurationFactory :
 
         private fun initializeBuildValues(developerConfig: NativeAuthPublicClientApplicationConfiguration?) {
             val dc = developerConfig?.dc
-            val useRealAuthority = developerConfig?.useRealAuthority
+            val useMockAuthority = developerConfig?.useMockAuthority
 
             if (dc != null) {
                 BuildValues.setDC(dc)
             }
 
-            if (useRealAuthority != null) {
-                BuildValues.setUseRealAuthority(useRealAuthority)
+            if (useMockAuthority != null) {
+                BuildValues.setUseMockApiForNativeAuth(useMockAuthority)
             }
         }
 
