@@ -610,7 +610,7 @@ class NativeAuthPublicClientApplication(
                     is SignUpCommandResult.Complete -> {
                         SignUpResult.Complete(
                             nextState = SignInAfterSignUpState(
-                                signInVerificationCode = result.signInSLT,
+                                continuationToken = result.continuationToken,
                                 username = username,
                                 config = nativeAuthConfig
                             )
@@ -792,7 +792,7 @@ class NativeAuthPublicClientApplication(
                 is SignUpCommandResult.Complete -> {
                     SignUpResult.Complete(
                         nextState = SignInAfterSignUpState(
-                            signInVerificationCode = result.signInSLT,
+                            continuationToken = result.continuationToken,
                             username = username,
                             config = nativeAuthConfig
                         )
@@ -826,7 +826,7 @@ class NativeAuthPublicClientApplication(
                 is SignUpCommandResult.PasswordRequired -> {
                     SignUpResult.PasswordRequired(
                         nextState = SignUpPasswordRequiredState(
-                            continuationToken = result.signupToken,
+                            continuationToken = result.continuationToken,
                             username = username,
                             config = nativeAuthConfig
                         )

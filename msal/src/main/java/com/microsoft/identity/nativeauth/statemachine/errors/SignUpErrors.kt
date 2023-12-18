@@ -97,6 +97,7 @@ open class SignUpError (
  * @param errorMessage the error message returned by the authentication server.
  * @param correlationId a unique identifier for the request that can help in diagnostics.
  * @param errorCodes a list of specific error codes returned by the authentication server.
+ * @param subError the sub error returned by the authentication server.
  * @param exception an internal unexpected exception that happened.
  */
 class SignUpUsingPasswordError (
@@ -105,6 +106,7 @@ class SignUpUsingPasswordError (
     override val errorMessage: String?,
     override val correlationId: String,
     override val errorCodes: List<Int>? = null,
+    val subError: String? = null,
     override var exception: Exception? = null
 ): SignUpUsingPasswordResult, SignUpError(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
 
@@ -120,6 +122,7 @@ class SignUpUsingPasswordError (
  * @param errorMessage the error message returned by the authentication server.
  * @param correlationId a unique identifier for the request that can help in diagnostics.
  * @param errorCodes a list of specific error codes returned by the authentication server.
+ * @param subError the sub error returned by the authentication server.
  * @param exception an internal unexpected exception that happened.
  */
 class SignUpSubmitPasswordError (
@@ -128,6 +131,7 @@ class SignUpSubmitPasswordError (
     override val errorMessage: String?,
     override val correlationId: String,
     override val errorCodes: List<Int>? = null,
+    val subError: String? = null,
     override var exception: Exception? = null
 ): SignUpSubmitPasswordResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
 
