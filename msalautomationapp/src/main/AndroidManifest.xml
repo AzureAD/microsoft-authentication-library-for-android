@@ -35,7 +35,7 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:scheme="msauth"
-                    android:host="com.msft.identity.client.sample.local"
+                    android:host="com.msft.identity.client.msal.automationapp.local"
                     android:path="/1wIqXSqBj7w+h11ZifsnqwgyKrY="/>
             </intent-filter>
         </activity>
