@@ -47,7 +47,10 @@
         <package android:name="com.microsoft.office.outlook" />
         <package android:name="com.microsoft.office.word" />
         <package android:name="com.microsoft.teams" />
-        <package android:name="com.azuresamples.msalandroidapp" />
+        <package android:name="com.azuresamples.msalandroidapp"
+        <package android:name="com.msft.oneauth.testapp" />
+        <package android:name="com.microsoft.identity.client.testapp" />
+        <package android:name="com.msft.identity.client.sample.local" />
     </queries>
 
 </manifest>
