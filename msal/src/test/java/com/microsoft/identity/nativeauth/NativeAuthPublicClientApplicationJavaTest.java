@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.nativeauth;
 
+import static com.microsoft.identity.common.java.nativeauth.BuildValues.*;
+
 import android.app.Activity;
 import android.content.Context;
 
@@ -32,6 +34,7 @@ import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTe
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.common.java.nativeauth.BuildValues;
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenError;
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError;
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordSubmitPasswordError;
@@ -77,7 +80,9 @@ import com.microsoft.identity.internal.testutils.TestUtils;
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpPasswordRequiredState;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -122,6 +127,16 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     @Override
     public String getConfigFilePath() {
         return "src/test/res/raw/native_auth_native_only_test_config.json";
+    }
+
+    @BeforeClass
+    public static void setupClass() {
+        setUseMockApiForNativeAuth(true);
+    }
+
+    @AfterClass
+    public static void tearDownClass() {
+        setUseMockApiForNativeAuth(false);
     }
 
     @Before

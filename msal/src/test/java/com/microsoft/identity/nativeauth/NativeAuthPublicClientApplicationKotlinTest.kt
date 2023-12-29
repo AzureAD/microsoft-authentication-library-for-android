@@ -60,17 +60,20 @@ import com.microsoft.identity.common.nativeauth.MockApiResponseType
 import com.microsoft.identity.common.nativeauth.MockApiUtils.Companion.configureMockApi
 import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.interfaces.IPlatformComponents
+import com.microsoft.identity.common.java.nativeauth.BuildValues
 import com.microsoft.identity.common.java.util.ResultFuture
 import com.microsoft.identity.internal.testutils.TestUtils
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.After
+import org.junit.AfterClass
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
+import org.junit.BeforeClass
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -101,6 +104,20 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
     private val emptyString = ""
 
     override fun getConfigFilePath() = "src/test/res/raw/native_auth_native_only_test_config.json"
+
+    companion object {
+        @BeforeClass
+        @JvmStatic
+        fun setupClass() {
+            BuildValues.setUseMockApiForNativeAuth(true)
+        }
+
+        @AfterClass
+        @JvmStatic
+        fun tearDownClass() {
+            BuildValues.setUseMockApiForNativeAuth(false)
+        }
+    }
 
     @Before
     override fun setup() {
