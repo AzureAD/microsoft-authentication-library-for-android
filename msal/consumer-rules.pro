@@ -17,7 +17,7 @@
 #}
 
 ##---------------Begin: proguard configuration for MSAL  --------
--keep class com.microsoft.identity.** { *; }
+-keep class !com.microsoft.identity.nativeauth.**, com.microsoft.identity.** { *; }
 -keep class com.microsoft.device.display.** { *; }
 
 ##---------------Begin: proguard configuration for Nimbus  ----------
