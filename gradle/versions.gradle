@@ -78,6 +78,7 @@ ext {
     openTelemetryVersion = "1.18.0"
     jetpackDataStoreVersion = "1.0.0"
     lifecycleKtxVersion="2.5.1"
+    AndroidCredentialsVersion="1.2.0"
 
     // microsoft-diagnostics-uploader app versions
     powerliftVersion = "0.14.7"

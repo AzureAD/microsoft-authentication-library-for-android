@@ -1,6 +1,7 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 vNext
 ----------
+- [MAJOR] Consuming Credential Manager from common (brings minCompileSdk 34) (#1987)
 
 Version 4.10.0
 ----------
