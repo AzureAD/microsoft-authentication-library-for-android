@@ -22,13 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.network;
 
-import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
-import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.CIAM_NO_PATH_CONFIG_FILE_PATH;
-import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.CIAM_TENANT_DOMAIN_CONFIG_FILE_PATH;
-import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.CIAM_TENANT_GUID_CONFIG_FILE_PATH;
-import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.SUBSTRATE_USER_READ_SCOPE;
-import static junit.framework.Assert.fail;
-
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.IAuthenticationResult;
@@ -44,6 +37,13 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
+import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.CIAM_NO_PATH_CONFIG_FILE_PATH;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.CIAM_TENANT_DOMAIN_CONFIG_FILE_PATH;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.CIAM_TENANT_GUID_CONFIG_FILE_PATH;
+import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.GRAPH_DEFAULT;
+import static junit.framework.Assert.fail;
+
 /**
  * Run all tests in the {@link AcquireTokenNetworkTest} class using CIAM
  */
@@ -51,7 +51,9 @@ public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
 
     @Override
     public String[] getScopes() {
-        return SUBSTRATE_USER_READ_SCOPE;
+        // TODO this should be updated to use the scopes defined in the Labs configuration, rather
+        // than hardcoded values
+        return GRAPH_DEFAULT;
     }
 
     @Override
@@ -97,7 +99,7 @@ public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
                 Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
 
                 String idTokenIssuer = (String) authenticationResult.getAccount().getClaims().get("iss");
-                Assert.assertEquals("iss", idTokenIssuer);
+                Assert.assertTrue(idTokenIssuer.contains("ciamlogin.com"));
             }
 
             @Override
@@ -117,7 +119,7 @@ public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
     public static class CiamTenantVerifyIssuer extends AcquireTokenCIAMTest {
         @Override
         public String getConfigFilePath() {
-            return CIAM_TENANT_GUID_CONFIG_FILE_PATH;
+            return CIAM_TENANT_DOMAIN_CONFIG_FILE_PATH;
         }
 
         @Test
