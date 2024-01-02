@@ -38,7 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-class AccountAdapter {
+public class AccountAdapter {
 
     private static final String TAG = AccountAdapter.class.getSimpleName();
 
@@ -82,7 +82,10 @@ class AccountAdapter {
             for (final ICacheRecord cacheRecord : records) {
                 final String acctHomeAccountId = cacheRecord.getAccount().getHomeAccountId();
                 final String acctLocalAccountId = cacheRecord.getAccount().getLocalAccountId();
-                if (acctHomeAccountId.contains(acctLocalAccountId)) {
+
+                // TODO: check the logic on broker side to make sure this value is NOT null.
+                if (acctLocalAccountId != null &&
+                        acctHomeAccountId.contains(acctLocalAccountId)) {
                     result.add(cacheRecord);
                 }
             }
@@ -148,7 +151,7 @@ class AccountAdapter {
      * @return
      */
     @NonNull
-    static List<IAccount> adapt(@NonNull final List<ICacheRecord> allCacheRecords) {
+    public static List<IAccount> adapt(@NonNull final List<ICacheRecord> allCacheRecords) {
         // First, get all of the ICacheRecords for home accounts...
         final List<ICacheRecord> homeCacheRecords = filterCacheRecords(
                 allCacheRecords,

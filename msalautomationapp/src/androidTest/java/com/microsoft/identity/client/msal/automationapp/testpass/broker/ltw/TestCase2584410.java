@@ -82,10 +82,7 @@ public class TestCase2584410 extends AbstractMsalBrokerTest {
         final MsalTestApp msalTestApp = new MsalTestApp();
         msalTestApp.install();
         msalTestApp.launch();
-        msalTestApp.handleFirstRun();
-        if (mLabAccount.getUserType() == UserType.MSA) {
-            msalTestApp.selectFromConfigFile("MSA");
-        }
+        msalTestApp.handleFirstRunBasedOnUserType(mUserType);
 
         final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
                 .prompt(PromptParameter.SELECT_ACCOUNT)

@@ -259,7 +259,7 @@ public final class AndroidTestUtil {
         return expiredTime.getTime();
     }
 
-    static void removeAllTokens(final Context appContext) {
+    public static void removeAllTokens(final Context appContext) {
         final SharedPreferences accessTokenSharedPreference = getAccessTokenSharedPreference(appContext);
         final SharedPreferences.Editor accessTokenSharedPreferenceEditor = accessTokenSharedPreference.edit();
         accessTokenSharedPreferenceEditor.clear();

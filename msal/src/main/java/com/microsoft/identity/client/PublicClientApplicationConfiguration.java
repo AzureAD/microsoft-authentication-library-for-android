@@ -22,47 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import android.Manifest;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.ActivityInfo;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
-import android.content.pm.Signature;
-import android.net.Uri;
-import android.text.TextUtils;
-import android.util.Base64;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.VisibleForTesting;
-
-import com.google.gson.annotations.SerializedName;
-import com.microsoft.identity.client.configuration.AccountMode;
-import com.microsoft.identity.client.configuration.HttpConfiguration;
-import com.microsoft.identity.client.configuration.LoggerConfiguration;
-import com.microsoft.identity.client.exception.MsalClientException;
-import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
-import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
-import com.microsoft.identity.common.java.authorities.Authority;
-import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthority;
-import com.microsoft.identity.common.java.authorities.Environment;
-import com.microsoft.identity.common.internal.authorities.UnknownAudience;
-import com.microsoft.identity.common.java.authorities.UnknownAuthority;
-import com.microsoft.identity.common.internal.broker.PackageHelper;
-import com.microsoft.identity.common.java.configuration.LibraryConfiguration;
-import com.microsoft.identity.common.internal.logging.Logger;
-import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
-import com.microsoft.identity.common.internal.telemetry.TelemetryConfiguration;
-import com.microsoft.identity.common.java.ui.AuthorizationAgent;
-import com.microsoft.identity.common.java.ui.BrowserDescriptor;
-
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.List;
-
-import javax.crypto.SecretKey;
-
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.ACCOUNT_MODE;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORITIES;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.AUTHORIZATION_IN_CURRENT_TASK;
@@ -85,6 +44,47 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEB_VIEW_ZOOM_CONTROLS_ENABLED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEB_VIEW_ZOOM_ENABLED;
 import static com.microsoft.identity.client.exception.MsalClientException.APP_MANIFEST_VALIDATION_ERROR;
+
+import android.Manifest;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.content.pm.Signature;
+import android.net.Uri;
+import android.text.TextUtils;
+import android.util.Base64;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
+
+import com.google.gson.annotations.SerializedName;
+import com.microsoft.identity.client.configuration.AccountMode;
+import com.microsoft.identity.client.configuration.HttpConfiguration;
+import com.microsoft.identity.client.configuration.LoggerConfiguration;
+import com.microsoft.identity.client.exception.MsalClientException;
+import com.microsoft.identity.common.adal.internal.AuthenticationConstants;
+import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
+import com.microsoft.identity.common.internal.authorities.UnknownAudience;
+import com.microsoft.identity.common.internal.broker.PackageHelper;
+import com.microsoft.identity.common.internal.logging.Logger;
+import com.microsoft.identity.common.internal.telemetry.TelemetryConfiguration;
+import com.microsoft.identity.common.java.authorities.Authority;
+import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthority;
+import com.microsoft.identity.common.java.authorities.Environment;
+import com.microsoft.identity.common.java.authorities.UnknownAuthority;
+import com.microsoft.identity.common.java.configuration.LibraryConfiguration;
+import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
+import com.microsoft.identity.common.java.ui.AuthorizationAgent;
+import com.microsoft.identity.common.java.ui.BrowserDescriptor;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.List;
+
+import javax.crypto.SecretKey;
 
 public class PublicClientApplicationConfiguration {
     private static final String TAG = PublicClientApplicationConfiguration.class.getSimpleName();
@@ -344,6 +344,15 @@ public class PublicClientApplicationConfiguration {
     }
 
     /**
+     * Sets the account mode for the PublicClientApplication.
+     *
+     * @param accountMode the account mode.
+     */
+    public void setAccountMode(final AccountMode accountMode) {
+        this.mAccountMode = accountMode;
+    }
+
+    /**
      * Gets the currently configured capabilities for the PublicClientApplication.
      *
      * @return The capabilities supported by this application.
@@ -365,15 +374,15 @@ public class PublicClientApplicationConfiguration {
         return mAppContext;
     }
 
-    void setAppContext(Context applicationContext) {
+    public void setAppContext(Context applicationContext) {
         mAppContext = applicationContext;
     }
 
-    OAuth2TokenCache getOAuth2TokenCache() {
+    public OAuth2TokenCache getOAuth2TokenCache() {
         return mOAuth2TokenCache;
     }
 
-    void setOAuth2TokenCache(OAuth2TokenCache tokenCache) {
+    public void setOAuth2TokenCache(OAuth2TokenCache tokenCache) {
         mOAuth2TokenCache = tokenCache;
     }
 
@@ -381,7 +390,7 @@ public class PublicClientApplicationConfiguration {
         return mIsSharedDevice;
     }
 
-    void setIsSharedDevice(boolean isSharedDevice) {
+    public void setIsSharedDevice(boolean isSharedDevice) {
         mIsSharedDevice = isSharedDevice;
     }
 
@@ -478,7 +487,7 @@ public class PublicClientApplicationConfiguration {
         }
     }
 
-    void mergeConfiguration(PublicClientApplicationConfiguration config) {
+    public void mergeConfiguration(PublicClientApplicationConfiguration config) {
         this.mClientId = config.mClientId == null ? this.mClientId : config.mClientId;
         this.mRedirectUri = config.mRedirectUri == null ? this.mRedirectUri : config.mRedirectUri;
         this.mAuthorities = config.mAuthorities == null ? this.mAuthorities : config.mAuthorities;
@@ -496,7 +505,7 @@ public class PublicClientApplicationConfiguration {
             this.mBrowserSafeList.addAll(config.mBrowserSafeList);
         }
         // Multiple is the default mode.
-        this.mAccountMode = config.mAccountMode != AccountMode.MULTIPLE ? config.mAccountMode : this.mAccountMode;
+        this.mAccountMode = config.mAccountMode != AccountMode.MULTIPLE && config.mAccountMode != null ? config.mAccountMode : this.mAccountMode;
         this.mClientCapabilities = config.mClientCapabilities == null ? this.mClientCapabilities : config.mClientCapabilities;
         this.mIsSharedDevice = config.mIsSharedDevice == true ? this.mIsSharedDevice : config.mIsSharedDevice;
         this.mLoggerConfiguration = config.mLoggerConfiguration == null ? this.mLoggerConfiguration : config.mLoggerConfiguration;
@@ -508,7 +517,7 @@ public class PublicClientApplicationConfiguration {
         this.webauthnCapable = config.webauthnCapable == null ? this.webauthnCapable : config.webauthnCapable;
     }
 
-    void validateConfiguration() {
+    public void validateConfiguration() {
         validateRedirectUri(mRedirectUri);
         nullConfigurationCheck(CLIENT_ID, mClientId);
         checkDefaultAuthoritySpecified();
@@ -761,7 +770,7 @@ public class PublicClientApplicationConfiguration {
                 final String sha512_signingCertThumbprint = Base64.encodeToString(md_sha512.digest(), Base64.NO_WRAP);
 
                 if (AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_RELEASE_SIGNATURE_SHA512.equalsIgnoreCase(sha512_signingCertThumbprint)
-                    || AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_DEBUG_SIGNATURE_SHA512.equalsIgnoreCase(sha512_signingCertThumbprint)) {
+                        || AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_DEBUG_SIGNATURE_SHA512.equalsIgnoreCase(sha512_signingCertThumbprint)) {
 
                     // MSAL still uses SHA-1 format in redirect url.
                     final MessageDigest md_sha1 = MessageDigest.getInstance("SHA");
