@@ -256,7 +256,7 @@ dependencies {
     }
 
     testLocalImplementation(testFixtures(project(":common4j")))
-    String common4jVersion = project.hasProperty("distCommon4jVersion") ? project.distCommon4jVersion : "1.0.+"
+    String common4jVersion = project.hasProperty("distCommon4jVersion") ? project.distCommon4jVersion : "17.0.0-RC1"
     testDistImplementation(testFixtures("com.microsoft.identity:common4j:${common4jVersion}"))
 
     implementation platform("io.opentelemetry:opentelemetry-bom:$rootProject.ext.openTelemetryVersion")
