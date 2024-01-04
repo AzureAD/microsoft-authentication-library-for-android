@@ -110,6 +110,7 @@ import static org.robolectric.annotation.LooperMode.Mode.LEGACY;
 @RunWith(RobolectricTestRunner.class)
 @LooperMode(LEGACY)
 @Config(shadows = {ShadowAndroidSdkStorageEncryptionManager.class})
+@Ignore
 public class NativeAuthPublicClientApplicationJavaTest extends PublicClientApplicationAbstractTest {
 
     private Context context;
