@@ -22,38 +22,37 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.network;
 
-import static com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper.successfulInteractiveCallback;
-import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
-import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.CIAM_NO_PATH_CONFIG_FILE_PATH;
-import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.CIAM_TENANT_DOMAIN_CONFIG_FILE_PATH;
-import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.CIAM_TENANT_GUID_CONFIG_FILE_PATH;
-import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.USER_READ_SCOPE;
-import static junit.framework.Assert.fail;
-
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.internal.util.StringUtil;
-import com.microsoft.identity.common.java.providers.oauth2.IDToken;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
+
+import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.CIAM_NO_PATH_CONFIG_FILE_PATH;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.CIAM_TENANT_DOMAIN_CONFIG_FILE_PATH;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.CIAM_TENANT_GUID_CONFIG_FILE_PATH;
+import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.GRAPH_DEFAULT;
+import static junit.framework.Assert.fail;
 
 /**
  * Run all tests in the {@link AcquireTokenNetworkTest} class using CIAM
  */
 public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
 
+    private static final String CIAM_ISSUER = "ciamlogin.com";
+
     @Override
     public String[] getScopes() {
-        return USER_READ_SCOPE;
+        return GRAPH_DEFAULT;
     }
 
     @Override
@@ -69,13 +68,15 @@ public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
     }
 
     public static AuthenticationCallback successfulVerifyIssuerCallback() {
-        AuthenticationCallback callback = new AuthenticationCallback() {
+        return new AuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
-                Assert.assertTrue(!StringUtil.isEmpty(authenticationResult.getAccessToken()));
+                Assert.assertFalse(StringUtil.isEmpty(authenticationResult.getAccessToken()));
 
+                Assert.assertNotNull(authenticationResult.getAccount().getClaims());
                 String idTokenIssuer = (String) authenticationResult.getAccount().getClaims().get("iss");
-                Assert.assertEquals("iss", idTokenIssuer);
+                Assert.assertNotNull(idTokenIssuer);
+                Assert.assertTrue(idTokenIssuer.contains(CIAM_ISSUER));
             }
 
             @Override
@@ -88,8 +89,6 @@ public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
                 fail("User cancelled flow");
             }
         };
-
-        return callback;
     }
 
     public static class CiamTenantGUID extends AcquireTokenCIAMTest {
@@ -118,12 +117,40 @@ public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
         public String getConfigFilePath() {
             return CIAM_TENANT_DOMAIN_CONFIG_FILE_PATH;
         }
+
+        @Test
+        public void testAcquireTokenSuccessVerifyIssuer() {
+            final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                    .startAuthorizationFromActivity(mActivity)
+                    .withLoginHint(mUsername)
+                    .withScopes(Arrays.asList(mScopes))
+                    .withCallback(successfulVerifyIssuerCallback())
+                    .build();
+
+
+            mApplication.acquireToken(parameters);
+            flushScheduler();
+        }
     }
 
     public static class CiamTenantNoPath extends AcquireTokenCIAMTest {
         @Override
         public String getConfigFilePath() {
             return CIAM_NO_PATH_CONFIG_FILE_PATH;
+        }
+
+        @Test
+        public void testAcquireTokenSuccessVerifyIssuer() {
+            final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                    .startAuthorizationFromActivity(mActivity)
+                    .withLoginHint(mUsername)
+                    .withScopes(Arrays.asList(mScopes))
+                    .withCallback(successfulVerifyIssuerCallback())
+                    .build();
+
+
+            mApplication.acquireToken(parameters);
+            flushScheduler();
         }
     }
 }
