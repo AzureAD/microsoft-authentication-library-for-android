@@ -44,6 +44,8 @@ public class BrokerTestHelper {
                 return new BrokerMicrosoftAuthenticator();
             case BuildConfig.BrokerCompanyPortal:
                 return new BrokerCompanyPortal();
+            case BuildConfig.BrokerLTW:
+                return new BrokerLTW();
             case BuildConfig.AutoBroker: {
                 if (supportedBrokersAnnotation == null) {
                     return new BrokerMicrosoftAuthenticator();
