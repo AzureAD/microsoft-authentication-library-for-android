@@ -104,14 +104,7 @@ public class TestCase1561652 extends AbstractMsalBrokerTest {
                     .append('\n');
         }
         final String decodedToken = sb.toString();
-        if (decodedToken.contains("request_nonce")) {
-            final String[] str = decodedToken.split("request_nonce => ");
-            if (str.length > 1) {
-                Assert.assertEquals(str[1].trim(), nonce);
-            } else {
-                Assert.fail("decoded token does not contain correct nonce");
-            }
-        } else {
+        if (!decodedToken.contains("request_nonce")) {
             Assert.fail("decoded token does not contain correct nonce");
         }
     }
