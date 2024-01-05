@@ -101,6 +101,7 @@ class NativeAuthPublicClientApplication(
     init {
         initializeApplication()
         initializeSharedPreferenceFileManager(nativeAuthConfig.appContext)
+        applicationConfig = nativeAuthConfig
     }
 
     companion object {
@@ -116,6 +117,8 @@ class NativeAuthPublicClientApplication(
         //  To avoid duplicating the code, callback methods are routed through their
         //  coroutine-equivalent through this CoroutineScope.
         val pcaScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+        var applicationConfig:NativeAuthPublicClientApplicationConfiguration = NativeAuthPublicClientApplicationConfiguration()
 
         fun getCurrentAccountInternal(config: NativeAuthPublicClientApplicationConfiguration): IAccount? {
             LogSession.logMethodCall(TAG, "${TAG}.getCurrentAccountInternal")

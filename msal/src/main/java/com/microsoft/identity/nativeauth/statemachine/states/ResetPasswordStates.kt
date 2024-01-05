@@ -23,6 +23,8 @@
 
 package com.microsoft.identity.nativeauth.statemachine.states
 
+import android.os.Parcel
+import android.os.Parcelable
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.client.exception.MsalException
@@ -54,7 +56,6 @@ import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.Serializable
 
 /**
  * Native Auth uses a state machine to denote state of and transitions within a flow.
@@ -65,9 +66,14 @@ import java.io.Serializable
  */
 class ResetPasswordCodeRequiredState internal constructor(
     override val flowToken: String,
-    private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(flowToken), State, Serializable {
+    private val config: NativeAuthPublicClientApplicationConfiguration = NativeAuthPublicClientApplication.applicationConfig
+) : BaseState(flowToken), State, Parcelable {
     private val TAG: String = ResetPasswordCodeRequiredState::class.java.simpleName
+
+    constructor(parcel: Parcel) : this(
+        parcel.readString()!!
+    ) {
+    }
 
     interface SubmitCodeCallback : Callback<ResetPasswordSubmitCodeResult>
 
@@ -244,6 +250,24 @@ class ResetPasswordCodeRequiredState internal constructor(
             }
         }
     }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(flowToken)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<ResetPasswordCodeRequiredState> {
+        override fun createFromParcel(parcel: Parcel): ResetPasswordCodeRequiredState {
+            return ResetPasswordCodeRequiredState(parcel)
+        }
+
+        override fun newArray(size: Int): Array<ResetPasswordCodeRequiredState?> {
+            return arrayOfNulls(size)
+        }
+    }
 }
 
 /**
@@ -256,8 +280,14 @@ class ResetPasswordCodeRequiredState internal constructor(
 class ResetPasswordPasswordRequiredState internal constructor(
     override val flowToken: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(flowToken), State, Serializable {
+) : BaseState(flowToken), State, Parcelable {
     private val TAG: String = ResetPasswordPasswordRequiredState::class.java.simpleName
+
+    constructor(parcel: Parcel) : this(
+        parcel.readString()!!,
+        parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
+    ) {
+    }
 
     interface SubmitPasswordCallback : Callback<ResetPasswordSubmitPasswordResult>
 
@@ -359,6 +389,24 @@ class ResetPasswordPasswordRequiredState internal constructor(
             } finally {
                 StringUtil.overwriteWithNull(parameters.newPassword)
             }
+        }
+    }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(flowToken)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<ResetPasswordPasswordRequiredState> {
+        override fun createFromParcel(parcel: Parcel): ResetPasswordPasswordRequiredState {
+            return ResetPasswordPasswordRequiredState(parcel)
+        }
+
+        override fun newArray(size: Int): Array<ResetPasswordPasswordRequiredState?> {
+            return arrayOfNulls(size)
         }
     }
 }
