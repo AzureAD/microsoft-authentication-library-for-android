@@ -108,13 +108,13 @@ public class NestedAppHelper {
                 BrokerData.getDebugBrokerHost().getPackageName()
         );
 
-        String clientId = null;
+        final String hubAppClientId;
         if (labAccount.getUserType() == UserType.MSA) {
             mAuthorityUrl = "https://login.microsoftonline.com/consumers";
-            clientId = HUB_APP_CLIENT_ID_MSA;
+            hubAppClientId = HUB_APP_CLIENT_ID_MSA;
         } else {
             mAuthorityUrl = "https://login.microsoftonline.com/common";
-            clientId = HUB_APP_CLIENT_ID_AAD;
+            hubAppClientId = HUB_APP_CLIENT_ID_AAD;
         }
         mInteractiveParameters = AndroidActivityInteractiveTokenCommandParameters
                 .builder()
@@ -128,7 +128,7 @@ public class NestedAppHelper {
                 .authority(Authority.getAuthorityFromAuthorityUrl(mAuthorityUrl))
                 .scopes(Collections.singleton(GRAPH_SCOPE))
                 .redirectUri(HUB_APP_REDIRECT_URI)
-                .clientId(clientId)
+                .clientId(hubAppClientId)
                 .requiredBrokerProtocolVersion(REQUIRED_PROTOCOL_VERSION_FIFTEEN)
                 .loginHint(labAccount.getUsername())
                 .authenticationScheme(new BearerAuthenticationSchemeInternal())
