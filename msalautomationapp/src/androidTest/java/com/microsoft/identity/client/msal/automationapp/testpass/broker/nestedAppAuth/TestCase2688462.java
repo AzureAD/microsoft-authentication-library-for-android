@@ -44,8 +44,6 @@ import java.util.List;
 // Nested app's fresh AT interactive succeeds but silent request fails
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2688462
 @RunWith(Parameterized.class)
-@LocalBrokerHostDebugUiTest
-@SupportedBrokers(brokers = {BrokerHost.class})
 public class TestCase2688462 extends AbstractMsalBrokerTest {
     private final UserType mUserType;
 
@@ -56,15 +54,11 @@ public class TestCase2688462 extends AbstractMsalBrokerTest {
     @Parameterized.Parameters(name = "{0}")
     public static List<UserType> userType() {
         return Arrays.asList(
-                //UserType.MSA,
+                UserType.MSA,
                 UserType.CLOUD
         );
     }
 
-    @Before
-    public void before() {
-        ((BrokerHost) mBroker).enablePrtV3();
-    }
     @Test
     public void test_2688462() {
         NestedAppHelper nestedAppHelper = new NestedAppHelper(mActivity, mLabAccount);

@@ -71,9 +71,11 @@ public class NestedAppHelper {
 
     private final String mAuthorityUrl;
 
-    private static final String HUB_APP_CLIENT_ID = "1fec8e78-bce4-4aaf-ab1b-5451cc387264";
+    private static final String HUB_APP_CLIENT_ID_MSA = "8ec6bc83-69c8-4392-8f08-b3c986009232";
 
-    private static final String NESTED_APP_CLIENT_ID = "4b0db8c2-9f26-4417-8bde-3f0e3656f8e0";
+    private static final String HUB_APP_CLIENT_ID_AAD = "1fec8e78-bce4-4aaf-ab1b-5451cc387264";
+
+    private static final String NESTED_APP_CLIENT_ID = "9668f2bd-6103-4292-9024-84fa2d1b6fb2";
 
     private static final String NESTED_APP_US_GOV_CLIENT_ID = "cb7faed4-b8c0-49ee-b421-f5ed16894c83";
 
@@ -106,7 +108,14 @@ public class NestedAppHelper {
                 BrokerData.getDebugBrokerHost().getPackageName()
         );
 
-       mAuthorityUrl = "https://login.microsoftonline.com/common";
+        String clientId = null;
+        if (labAccount.getUserType() == UserType.MSA) {
+            mAuthorityUrl = "https://login.microsoftonline.com/consumers";
+            clientId = HUB_APP_CLIENT_ID_MSA;
+        } else {
+            mAuthorityUrl = "https://login.microsoftonline.com/common";
+            clientId = HUB_APP_CLIENT_ID_AAD;
+        }
         mInteractiveParameters = AndroidActivityInteractiveTokenCommandParameters
                 .builder()
                 .platformComponents(mPlatformComponents)
@@ -119,7 +128,7 @@ public class NestedAppHelper {
                 .authority(Authority.getAuthorityFromAuthorityUrl(mAuthorityUrl))
                 .scopes(Collections.singleton(GRAPH_SCOPE))
                 .redirectUri(HUB_APP_REDIRECT_URI)
-                .clientId(HUB_APP_CLIENT_ID)
+                .clientId(clientId)
                 .requiredBrokerProtocolVersion(REQUIRED_PROTOCOL_VERSION_FIFTEEN)
                 .loginHint(labAccount.getUsername())
                 .authenticationScheme(new BearerAuthenticationSchemeInternal())
@@ -142,17 +151,18 @@ public class NestedAppHelper {
             final AcquireTokenResult tokenResult = acquireTokenFuture.get();
             Assert.assertNotNull(tokenResult);
             Assert.assertTrue(tokenResult.getSucceeded());
-            final String appId =
-                    (String) IDToken.parseJWT(tokenResult.getLocalAuthenticationResult().getAccessToken()).get(APP_ID);
-            Assert.assertEquals(HUB_APP_CLIENT_ID, appId);
+            if (mLabAccount.getUserType() == UserType.CLOUD) {
+                final String appId =
+                        (String) IDToken.parseJWT(tokenResult.getLocalAuthenticationResult().getAccessToken()).get(APP_ID);
+                Assert.assertEquals(HUB_APP_CLIENT_ID_AAD, appId);
+            }
 
-        } catch (InterruptedException | ExecutionException | TimeoutException |
-                 ServiceException e) {
+        } catch (InterruptedException | ExecutionException | TimeoutException | ServiceException e) {
             throw new AssertionError(e);
         }
     }
 
-    protected void  performATForHubAppInUSGovCloud() {
+    protected void performATForHubAppInUSGovCloud() {
         mInteractiveParameters = AndroidActivityInteractiveTokenCommandParameters
                 .builder()
                 .platformComponents(mPlatformComponents)
@@ -165,7 +175,7 @@ public class NestedAppHelper {
                 .authority(Authority.getAuthorityFromAuthorityUrl(US_GOV_AUTHORITY))
                 .scopes(Collections.singleton(GRAPH_SCOPE))
                 .redirectUri(HUB_APP_US_GOV_REDIRECT_URI)
-                .clientId(HUB_APP_CLIENT_ID)
+                .clientId(HUB_APP_CLIENT_ID_AAD)
                 .requiredBrokerProtocolVersion(REQUIRED_PROTOCOL_VERSION_FIFTEEN)
                 .loginHint(mLabAccount.getUsername())
                 .authenticationScheme(new BearerAuthenticationSchemeInternal())
@@ -181,6 +191,7 @@ public class NestedAppHelper {
         if (shouldAddDeviceIdClaim) {
             claimsJsonString = DEVICE_ID_CLAIM;
         }
+        final String hubAppClientId = mLabAccount.getUserType() == UserType.CLOUD ? HUB_APP_CLIENT_ID_AAD : HUB_APP_CLIENT_ID_MSA;
         final SilentTokenCommandParameters mSilentTokenCommandParameters =
                 SilentTokenCommandParameters
                         .builder()
@@ -195,7 +206,7 @@ public class NestedAppHelper {
                         .forceRefresh(true)
                         .scopes(Collections.singleton(GRAPH_SCOPE))
                         .redirectUri(HUB_APP_REDIRECT_URI)
-                        .clientId(HUB_APP_CLIENT_ID)
+                        .clientId(hubAppClientId)
                         .childRedirectUri(NESTED_APP_REDIRECT_URI)
                         .childClientId(NESTED_APP_CLIENT_ID)
                         .authenticationScheme(new BearerAuthenticationSchemeInternal())
@@ -218,6 +229,7 @@ public class NestedAppHelper {
     }
 
     protected void performATSilentForNestedAppInUSGovCloud(AccountRecord accountRecord) throws BaseException {
+        final String hubAppClientId = mLabAccount.getUserType() == UserType.CLOUD ? HUB_APP_CLIENT_ID_AAD : HUB_APP_CLIENT_ID_MSA;
         final SilentTokenCommandParameters mSilentTokenCommandParameters =
                 SilentTokenCommandParameters
                         .builder()
@@ -232,7 +244,7 @@ public class NestedAppHelper {
                         .forceRefresh(true)
                         .scopes(Collections.singleton(GRAPH_SCOPE))
                         .redirectUri(HUB_APP_US_GOV_REDIRECT_URI)
-                        .clientId(HUB_APP_CLIENT_ID)
+                        .clientId(hubAppClientId)
                         .childRedirectUri(NESTED_APP_REDIRECT_URI)
                         .childClientId(NESTED_APP_US_GOV_CLIENT_ID)
                         .authenticationScheme(new BearerAuthenticationSchemeInternal())
@@ -258,6 +270,8 @@ public class NestedAppHelper {
         if (shouldAddDeviceIdClaim) {
             claimsJsonString = DEVICE_ID_CLAIM;
         }
+        final String hubAppClientId = mLabAccount.getUserType() == UserType.CLOUD ? HUB_APP_CLIENT_ID_AAD : HUB_APP_CLIENT_ID_MSA;
+
         mInteractiveParameters = AndroidActivityInteractiveTokenCommandParameters
                 .builder()
                 .platformComponents(mPlatformComponents)
@@ -270,7 +284,7 @@ public class NestedAppHelper {
                 .authority(Authority.getAuthorityFromAuthorityUrl(mAuthorityUrl))
                 .scopes(Collections.singleton(GRAPH_SCOPE))
                 .redirectUri(HUB_APP_REDIRECT_URI)
-                .clientId(HUB_APP_CLIENT_ID)
+                .clientId(hubAppClientId)
                 .requiredBrokerProtocolVersion(REQUIRED_PROTOCOL_VERSION_FIFTEEN)
                 .loginHint(mLabAccount.getUsername())
                 .authenticationScheme(new BearerAuthenticationSchemeInternal())
@@ -291,7 +305,7 @@ public class NestedAppHelper {
 
         try {
             if (shouldAddDeviceIdClaim) {
-                CompletableFuture<Void>  handleRegisterPromptFuture = CompletableFuture.runAsync(() -> {
+                CompletableFuture<Void> handleRegisterPromptFuture = CompletableFuture.runAsync(() -> {
                     handlePromptAsync(this::handleRegistration);
                 });
                 CompletableFuture.allOf(handlePromptFuture, handleRegisterPromptFuture, acquireTokenFuture).get(TIME_OUT_IN_SECONDS, TimeUnit.SECONDS);
@@ -301,9 +315,11 @@ public class NestedAppHelper {
             final AcquireTokenResult tokenResult = acquireTokenFuture.get();
             Assert.assertNotNull(tokenResult);
             Assert.assertTrue(tokenResult.getSucceeded());
-            final String appId =
-                    (String) IDToken.parseJWT(tokenResult.getLocalAuthenticationResult().getAccessToken()).get(APP_ID);
-            Assert.assertEquals(NESTED_APP_CLIENT_ID, appId);
+            if (hubAppClientId == HUB_APP_CLIENT_ID_AAD) {
+                final String appId =
+                        (String) IDToken.parseJWT(tokenResult.getLocalAuthenticationResult().getAccessToken()).get(APP_ID);
+                Assert.assertEquals(NESTED_APP_CLIENT_ID, appId);
+            }
 
         } catch (InterruptedException | ExecutionException | TimeoutException |
                  ServiceException e) {

@@ -22,11 +22,9 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.nestedAppAuth;
 
-import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
-import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.common.java.dto.AccountRecord;
@@ -36,38 +34,17 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-
-import java.util.Arrays;
-import java.util.List;
 
 // Nested app passes deviceId claim - silent call fails
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2690048
-@RunWith(Parameterized.class)
-@LocalBrokerHostDebugUiTest
 @SupportedBrokers(brokers = {BrokerHost.class})
 public class TestCase2690048 extends AbstractMsalBrokerTest {
-    private final UserType mUserType;
 
-    public TestCase2690048(@NonNull UserType userType) {
-        mUserType = userType;
-    }
-
-    @Parameterized.Parameters(name = "{0}")
-    public static List<UserType> userType() {
-        return Arrays.asList(
-                //    UserType.MSA,
-                UserType.CLOUD
-        );
-    }
-
-    @Before
-    public void before() {
-        ((BrokerHost) mBroker).enablePrtV3();
-    }
+//    @Before
+//    public void before() {
+//        ((BrokerHost) mBroker).enablePrtV3();
+//    }
 
     @Test
     public void test_2690048() {
@@ -96,7 +73,7 @@ public class TestCase2690048 extends AbstractMsalBrokerTest {
     @Override
     public LabQuery getLabQuery() {
         return LabQuery.builder()
-                .userType(mUserType)
+                .userType(UserType.CLOUD)
                 .build();
     }
 

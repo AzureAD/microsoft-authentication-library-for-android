@@ -26,14 +26,10 @@ import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
-import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest;
-import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
-import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -44,8 +40,6 @@ import java.util.List;
 // Nested app interactive request after hub does an interactive request
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2688460
 @RunWith(Parameterized.class)
-@LocalBrokerHostDebugUiTest
-@SupportedBrokers(brokers = {BrokerHost.class})
 public class TestCase2688460 extends AbstractMsalBrokerTest {
     private final UserType mUserType;
 
@@ -56,14 +50,9 @@ public class TestCase2688460 extends AbstractMsalBrokerTest {
     @Parameterized.Parameters(name = "{0}")
     public static List<UserType> userType() {
         return Arrays.asList(
-                //UserType.MSA,
+                UserType.MSA,
                 UserType.CLOUD
         );
-    }
-
-    @Before
-    public void before() {
-        ((BrokerHost) mBroker).enablePrtV3();
     }
 
     @Test
