@@ -91,7 +91,6 @@ import java.util.concurrent.TimeoutException
 @ExperimentalCoroutinesApi
 @RunWith(RobolectricTestRunner::class)
 @Config(shadows = [ShadowAndroidSdkStorageEncryptionManager::class])
-@Ignore
 class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstractTest() {
     private lateinit var context: Context
     private lateinit var components: IPlatformComponents
