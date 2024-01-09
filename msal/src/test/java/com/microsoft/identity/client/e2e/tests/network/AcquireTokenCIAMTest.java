@@ -70,11 +70,11 @@ public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
     public static AuthenticationCallback successfulVerifyIssuerCallback() {
         return new AuthenticationCallback() {
             @Override
-            public void onSuccess(IAuthenticationResult authenticationResult) {
+            public void onSuccess(final IAuthenticationResult authenticationResult) {
                 Assert.assertFalse(StringUtil.isEmpty(authenticationResult.getAccessToken()));
 
                 Assert.assertNotNull(authenticationResult.getAccount().getClaims());
-                String idTokenIssuer = (String) authenticationResult.getAccount().getClaims().get("iss");
+                final String idTokenIssuer = (String) authenticationResult.getAccount().getClaims().get("iss");
                 Assert.assertNotNull(idTokenIssuer);
                 Assert.assertTrue(idTokenIssuer.contains(CIAM_ISSUER));
             }
