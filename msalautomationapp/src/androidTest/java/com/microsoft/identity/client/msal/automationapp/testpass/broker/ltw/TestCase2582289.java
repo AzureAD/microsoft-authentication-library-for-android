@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
+import androidx.annotation.NonNull;
+
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
@@ -35,16 +37,38 @@ import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppProm
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+
+import java.util.Arrays;
+import java.util.List;
 
 // If LTW is the active broker, and request is made through CP from OneAuth, nothing should break
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2582289
 @LTWTests
 @RunOnAPI29Minus("OneAuth test app dependency")
 @SupportedBrokers(brokers = {BrokerLTW.class})
+@RunWith(Parameterized.class)
 public class TestCase2582289 extends AbstractMsalBrokerTest {
+
+    private final UserType mUserType;
+
+    public TestCase2582289(@NonNull UserType userType) {
+        mUserType = userType;
+    }
+
+    @Parameterized.Parameters(name = "{0}")
+    public static List<UserType> userType() {
+        return Arrays.asList(
+                UserType.MSA,
+                UserType.CLOUD
+        );
+    }
+
     @Test
     public void test_2582289() throws Throwable {
         final String username = mLabAccount.getUsername();
@@ -57,7 +81,7 @@ public class TestCase2582289 extends AbstractMsalBrokerTest {
         final MsalTestApp msalTestApp = new MsalTestApp();
         msalTestApp.install();
         msalTestApp.launch();
-        msalTestApp.handleFirstRun();
+        msalTestApp.handleFirstRunBasedOnUserType(mUserType);
 
         // AcquireToken Interactively in MsalTestApp
         final FirstPartyAppPromptHandlerParameters promptHandlerParameters = FirstPartyAppPromptHandlerParameters.builder()
@@ -83,7 +107,7 @@ public class TestCase2582289 extends AbstractMsalBrokerTest {
         final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
         oneAuthTestApp.installOldApk();
         oneAuthTestApp.launch();
-        oneAuthTestApp.handleFirstRun();
+        oneAuthTestApp.handleFirstRunBasedOnUserType(mUserType);
 
         // Enter username in AccountName textbox
         oneAuthTestApp.handleUserNameInput(username);
@@ -95,12 +119,14 @@ public class TestCase2582289 extends AbstractMsalBrokerTest {
 
     @Override
     public LabQuery getLabQuery() {
-        return null;
+        return LabQuery.builder()
+                .userType(mUserType)
+                .build();
     }
 
     @Override
     public TempUserType getTempUserType() {
-        return TempUserType.BASIC;
+        return null;
     }
 
     @Override
