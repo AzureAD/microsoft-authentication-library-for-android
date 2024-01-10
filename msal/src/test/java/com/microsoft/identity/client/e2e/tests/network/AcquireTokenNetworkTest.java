@@ -55,7 +55,7 @@ import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushSchedul
 @Config(shadows = {ShadowAndroidSdkStorageEncryptionManager.class, ShadowAuthority.class, ShadowPublicClientApplicationConfiguration.class})
 public abstract class AcquireTokenNetworkTest extends AcquireTokenAbstractTest implements IAcquireTokenNetworkTest {
 
-    private String mUsername;
+    protected String mUsername;
 
     @Rule
     public TestRule rule = NetworkTestsRuleChain.getRule();
