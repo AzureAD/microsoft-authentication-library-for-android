@@ -63,13 +63,14 @@ import kotlinx.coroutines.withContext
  */
 class AccountState private constructor(
     private val account: IAccount,
-    private val config: NativeAuthPublicClientApplicationConfiguration = NativeAuthPublicClientApplication.applicationConfig
+    private val config: NativeAuthPublicClientApplicationConfiguration
 ) : Parcelable {
 
     interface SignOutCallback : Callback<SignOutResult>
 
     constructor(parcel: Parcel) : this(
-        parcel.readSerializable() as IAccount
+        parcel.readSerializable() as IAccount,
+        parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
     ) {
     }
 

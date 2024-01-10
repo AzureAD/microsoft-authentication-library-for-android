@@ -66,12 +66,13 @@ import kotlinx.coroutines.withContext
  */
 class ResetPasswordCodeRequiredState internal constructor(
     override val flowToken: String,
-    private val config: NativeAuthPublicClientApplicationConfiguration = NativeAuthPublicClientApplication.applicationConfig
+    private val config: NativeAuthPublicClientApplicationConfiguration
 ) : BaseState(flowToken), State, Parcelable {
     private val TAG: String = ResetPasswordCodeRequiredState::class.java.simpleName
 
     constructor(parcel: Parcel) : this(
-        parcel.readString()!!
+        parcel.readString()!!,
+        parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
     ) {
     }
 

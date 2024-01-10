@@ -43,7 +43,8 @@ import java.io.Serializable
 @Accessors(prefix = ["m"])
 @Getter
 public class NativeAuthPublicClientApplicationConfiguration :
-    PublicClientApplicationConfiguration() {
+    PublicClientApplicationConfiguration(),
+    Serializable {
     companion object {
         private val TAG = NativeAuthPublicClientApplicationConfiguration::class.java.simpleName
         private val VALID_CHALLENGE_TYPES = listOf(NativeAuthConstants.ChallengeType.PASSWORD,

@@ -79,7 +79,7 @@ class SignInCodeRequiredState internal constructor(
     constructor(parcel: Parcel) : this(
         parcel.readString()!!,
         parcel.createStringArrayList(),
-        NativeAuthPublicClientApplication.applicationConfig
+        parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
     ) {
     }
 
@@ -272,6 +272,7 @@ class SignInCodeRequiredState internal constructor(
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(flowToken)
         parcel.writeStringList(scopes)
+        parcel.writeSerializable(config)
     }
 
     override fun describeContents(): Int {
@@ -425,7 +426,7 @@ abstract class SignInAfterSignUpBaseState(
     constructor(parcel: Parcel) : this(
         parcel.readString(),
         parcel.readString()!!,
-        NativeAuthPublicClientApplication.applicationConfig
+        parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
     ) {
     }
 
@@ -555,6 +556,7 @@ abstract class SignInAfterSignUpBaseState(
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(signInVerificationCode)
         parcel.writeString(username)
+        parcel.writeSerializable(config)
     }
 
     override fun describeContents(): Int {
