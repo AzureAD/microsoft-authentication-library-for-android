@@ -25,6 +25,10 @@
 
 apply plugin: 'com.android.application'
 
+apply plugin: 'kotlin-android'
+
+apply plugin: 'kotlin-android-extensions'
+
 def msalVersion = "4.+"
 
 if (project.hasProperty("distMsalVersion")) {
@@ -83,6 +87,9 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    buildFeatures {
+        viewBinding true
+    }
     lintOptions {
         abortOnError false
     }
@@ -111,6 +118,9 @@ dependencies {
     localImplementation project(':msal')
     distImplementation "com.microsoft.identity.client:msal:${msalVersion}"
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
+    implementation "androidx.constraintlayout:constraintlayout:$rootProject.ext.constraintLayoutVersion"
+    implementation "androidx.core:core-ktx:$rootProject.ext.coreKtxVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$rootProject.ext.kotlinXCoroutinesVersion"
     implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
     implementation "androidx.legacy:legacy-support-v4:$rootProject.ext.legacySupportV4Version"
     implementation "com.google.android.material:material:$rootProject.ext.materialVersion"

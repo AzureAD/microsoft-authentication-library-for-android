@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/email_oob_sisu"
+        android:icon="@drawable/ic_baseline_email_24"
+        android:title="OOB" />
+    <item
+        android:id="@+id/email_password_sisu"
+        android:icon="@drawable/ic_baseline_remove_red_eye_24"
+        android:title="Password" />
+    <item
+        android:id="@+id/email_attribute_sisu"
+        android:icon="@drawable/ic_baseline_text_snippet_24"
+        android:title="Attribute" />
+    <item
+        android:id="@+id/email_oob_sspr"
+        android:icon="@drawable/ic_baseline_lock_reset_24"
+        android:title=" SSPR" />
+
+</menu>
