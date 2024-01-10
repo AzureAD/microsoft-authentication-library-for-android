@@ -7,3 +7,4 @@ updates:
       interval: "weekly"
     pull-request-branch-name:
       separator: "/"
+    open-pull-requests-limit: 50
