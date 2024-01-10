@@ -22,26 +22,37 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.e2e.tests.network;
 
-import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.CIAM_NO_PATH_CONFIG_FILE_PATH;
-import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.CIAM_TENANT_DOMAIN_CONFIG_FILE_PATH;
-import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.CIAM_TENANT_GUID_CONFIG_FILE_PATH;
-import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.SUBSTRATE_USER_READ_SCOPE;
-
+import com.microsoft.identity.client.AcquireTokenParameters;
+import com.microsoft.identity.client.AuthenticationCallback;
+import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
+import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
-import org.junit.Ignore;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.util.Arrays;
+
+import static com.microsoft.identity.client.e2e.utils.RoboTestUtils.flushScheduler;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.CIAM_NO_PATH_CONFIG_FILE_PATH;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.CIAM_TENANT_DOMAIN_CONFIG_FILE_PATH;
+import static com.microsoft.identity.internal.testutils.TestConstants.Configurations.CIAM_TENANT_GUID_CONFIG_FILE_PATH;
+import static com.microsoft.identity.internal.testutils.TestConstants.Scopes.GRAPH_DEFAULT;
+import static junit.framework.Assert.fail;
 
 /**
  * Run all tests in the {@link AcquireTokenNetworkTest} class using CIAM
  */
-@Ignore
 public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
+
+    private static final String CIAM_ISSUER = "ciamlogin.com";
 
     @Override
     public String[] getScopes() {
-        return SUBSTRATE_USER_READ_SCOPE;
+        return GRAPH_DEFAULT;
     }
 
     @Override
@@ -56,27 +67,90 @@ public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
         return query;
     }
 
-    @Ignore //Disabling temporary due to tenant bug
+    public static AuthenticationCallback successfulVerifyIssuerCallback() {
+        return new AuthenticationCallback() {
+            @Override
+            public void onSuccess(final IAuthenticationResult authenticationResult) {
+                Assert.assertFalse(StringUtil.isEmpty(authenticationResult.getAccessToken()));
+
+                Assert.assertNotNull(authenticationResult.getAccount().getClaims());
+                final String idTokenIssuer = (String) authenticationResult.getAccount().getClaims().get("iss");
+                Assert.assertNotNull(idTokenIssuer);
+                Assert.assertTrue(idTokenIssuer.contains(CIAM_ISSUER));
+            }
+
+            @Override
+            public void onError(MsalException exception) {
+                throw new AssertionError(exception);
+            }
+
+            @Override
+            public void onCancel() {
+                fail("User cancelled flow");
+            }
+        };
+    }
+
     public static class CiamTenantGUID extends AcquireTokenCIAMTest {
         @Override
         public String getConfigFilePath() {
             return CIAM_TENANT_GUID_CONFIG_FILE_PATH;
         }
+
+        @Test
+        public void testAcquireTokenSuccessVerifyIssuer() {
+            final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                    .startAuthorizationFromActivity(mActivity)
+                    .withLoginHint(mUsername)
+                    .withScopes(Arrays.asList(mScopes))
+                    .withCallback(successfulVerifyIssuerCallback())
+                    .build();
+
+
+            mApplication.acquireToken(parameters);
+            flushScheduler();
+        }
     }
 
-    @Ignore //Disabling temporary due to tenant bug
     public static class CiamTenantDomain extends AcquireTokenCIAMTest {
         @Override
         public String getConfigFilePath() {
             return CIAM_TENANT_DOMAIN_CONFIG_FILE_PATH;
         }
+
+        @Test
+        public void testAcquireTokenSuccessVerifyIssuer() {
+            final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                    .startAuthorizationFromActivity(mActivity)
+                    .withLoginHint(mUsername)
+                    .withScopes(Arrays.asList(mScopes))
+                    .withCallback(successfulVerifyIssuerCallback())
+                    .build();
+
+
+            mApplication.acquireToken(parameters);
+            flushScheduler();
+        }
     }
 
-    @Ignore //Disabling temporary due to tenant bug
     public static class CiamTenantNoPath extends AcquireTokenCIAMTest {
         @Override
         public String getConfigFilePath() {
             return CIAM_NO_PATH_CONFIG_FILE_PATH;
+        }
+
+        @Test
+        public void testAcquireTokenSuccessVerifyIssuer() {
+            final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                    .startAuthorizationFromActivity(mActivity)
+                    .withLoginHint(mUsername)
+                    .withScopes(Arrays.asList(mScopes))
+                    .withCallback(successfulVerifyIssuerCallback())
+                    .build();
+
+
+            mApplication.acquireToken(parameters);
+            flushScheduler();
         }
     }
 }
