@@ -24,6 +24,9 @@ import kotlinx.coroutines.launch
 
 class SignUpCodeFragment : Fragment() {
     private lateinit var currentState: SignUpCodeRequiredState
+    private var codeLength: Int? = null
+    private var sentTo: String? = null
+    private var channel: String? = null
     private var _binding: FragmentCodeBinding? = null
     private val binding get() = _binding!!
 
@@ -36,6 +39,9 @@ class SignUpCodeFragment : Fragment() {
 
         val bundle = this.arguments
         currentState = bundle!!.getSerializable(Constants.STATE) as SignUpCodeRequiredState
+        codeLength = bundle.getInt(Constants.CODE_LENGTH)
+        sentTo = bundle.getString(Constants.SENT_TO)
+        channel = bundle.getString(Constants.CHANNEL)
 
         init()
 
@@ -44,6 +50,7 @@ class SignUpCodeFragment : Fragment() {
 
     private fun init() {
         initializeButtonListeners()
+        binding.codeHint.text = "Code sent to ${sentTo}, by ${channel}, with length ${codeLength}}"
     }
 
     private fun initializeButtonListeners() {

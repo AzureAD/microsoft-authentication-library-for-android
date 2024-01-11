@@ -46,7 +46,7 @@ class SignUpAttributesFragment : Fragment() {
     }
 
     private fun initializeButtonListeners() {
-        binding.create.setOnClickListener {
+        binding.submitAttributes.setOnClickListener {
             create()
         }
     }
@@ -54,15 +54,23 @@ class SignUpAttributesFragment : Fragment() {
     private fun create() {
         CoroutineScope(Dispatchers.Main).launch {
             try {
-                val country = binding.countryText.text.toString()
-                val city = binding.cityText.text.toString()
-
                 val attributes = UserAttributes.Builder
-                    .country(country)
-                    .city(city)
-                    .build()
 
-                val actionResult = currentState.submitAttributes(attributes)
+                val attr1Key = binding.attr1KeyText.text.toString()
+                if (attr1Key.isNotBlank()) {
+                    val attr1Value = binding.attr1ValueText.toString()
+                    attributes
+                        .customAttribute(attr1Key, attr1Value)
+                }
+
+                val attr2Key = binding.attr2KeyText.text.toString()
+                if (attr2Key.isNotBlank()) {
+                    val attr2Value = binding.attr2ValueText.toString()
+                    attributes
+                        .customAttribute(attr2Key, attr2Value)
+                }
+
+                val actionResult = currentState.submitAttributes(attributes.build())
 
                 when (actionResult) {
                     is SignUpResult.Complete -> {
@@ -72,6 +80,11 @@ class SignUpAttributesFragment : Fragment() {
                             Toast.LENGTH_SHORT
                         ).show()
                         signInAfterSignUp(actionResult.nextState)
+                    }
+                    is SignUpResult.AttributesRequired -> {
+                        navigateToAttributes(
+                            nextState = actionResult.nextState
+                        )
                     }
                     else -> {
                         displayDialog(getString(R.string.msal_exception_title),"Unexpected result: $actionResult")
@@ -90,6 +103,20 @@ class SignUpAttributesFragment : Fragment() {
             .setMessage(message)
         val alertDialog = builder.create()
         alertDialog.show()
+    }
+
+    private fun navigateToAttributes(nextState: SignUpAttributesRequiredState) {
+        val bundle = Bundle()
+        bundle.putSerializable(Constants.STATE, nextState)
+        val fragment = SignUpAttributesFragment()
+        fragment.arguments = bundle
+
+        requireActivity().supportFragmentManager
+            .beginTransaction()
+            .setReorderingAllowed(true)
+            .addToBackStack(fragment::class.java.name)
+            .replace(R.id.scenario_fragment, fragment)
+            .commit()
     }
     private suspend fun signInAfterSignUp(nextState: SignInAfterSignUpState) {
         val currentState = nextState

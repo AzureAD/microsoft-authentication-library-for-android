@@ -68,27 +68,26 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
-
         <TextView
-            android:id="@+id/country_hint"
+            android:id="@+id/attr1_key_hint"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/attribute_country"
+            android:text="@string/attribute_attr1_key"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/password_layout"
             style="@style/TextViewStyle" />
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/country_layout"
+            android:id="@+id/attr1_key_input"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/country_hint"
+            app:layout_constraintTop_toBottomOf="@+id/attr1_key_hint"
             style="@style/TextInputLayoutStyle">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/country_text"
+                android:id="@+id/attr1_key_text"
                 android:layout_width="match_parent"
                 android:inputType="textPersonName"
                 tools:ignore="SpeakableTextPresentCheck"
@@ -96,25 +95,77 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <TextView
-            android:id="@+id/city_hint"
+            android:id="@+id/attr1_value_hint"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/attribute_city"
+            android:text="@string/attribute_attr1_value"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/country_layout"
+            app:layout_constraintTop_toBottomOf="@+id/attr1_key_input"
             style="@style/TextViewStyle" />
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/city_layout"
+            android:id="@+id/attr1_value_input"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/city_hint"
+            app:layout_constraintTop_toBottomOf="@+id/attr1_value_hint"
             style="@style/TextInputLayoutStyle">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/city_text"
+                android:id="@+id/attr1_value_text"
+                android:layout_width="match_parent"
+                android:inputType="textPersonName"
+                tools:ignore="SpeakableTextPresentCheck"
+                style="@style/TextInputEditTextStyle" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:id="@+id/attr2_key_hint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/attribute_attr2_key"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/attr1_value_input"
+            style="@style/TextViewStyle" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/attr2_key_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/attr2_key_hint"
+            style="@style/TextInputLayoutStyle">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/attr2_key_text"
+                android:layout_width="match_parent"
+                android:inputType="textPersonName"
+                tools:ignore="SpeakableTextPresentCheck"
+                style="@style/TextInputEditTextStyle" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:id="@+id/attr2_value_hint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/attribute_attr2_value"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/attr2_key_input"
+            style="@style/TextViewStyle" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/attr2_value_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/attr2_value_hint"
+            style="@style/TextInputLayoutStyle">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/attr2_value_text"
                 android:layout_width="match_parent"
                 android:inputType="textPersonName"
                 tools:ignore="SpeakableTextPresentCheck"
@@ -127,7 +178,7 @@
             android:layout_marginTop="@dimen/dimens_15dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/city_layout"
+            app:layout_constraintTop_toBottomOf="@+id/attr2_value_input"
             style="@style/ActionButtonStyle" />
 
         <Button

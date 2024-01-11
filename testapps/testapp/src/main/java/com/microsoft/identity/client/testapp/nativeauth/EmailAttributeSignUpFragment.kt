@@ -90,18 +90,27 @@ class EmailAttributeSignUpFragment : Fragment() {
                 val email = binding.emailText.text.toString()
                 val password = CharArray(binding.passwordText.length());
                 binding.passwordText.text?.getChars(0, binding.passwordText.length(), password, 0);
-                val country = binding.countryText.text.toString()
-                val city = binding.cityText.text.toString()
 
                 val attributes = UserAttributes.Builder
-                    .country(country)
-                    .city(city)
-                    .build()
+
+                val attr1Key = binding.attr1KeyText.text.toString()
+                if (attr1Key.isNotBlank()) {
+                    val attr1Value = binding.attr1ValueText.toString()
+                    attributes
+                        .customAttribute(attr1Key, attr1Value)
+                }
+
+                val attr2Key = binding.attr2KeyText.text.toString()
+                if (attr2Key.isNotBlank()) {
+                    val attr2Value = binding.attr2ValueText.toString()
+                    attributes
+                        .customAttribute(attr2Key, attr2Value)
+                }
 
                 val actionResult = authClient.signUpUsingPassword(
                     username = email,
                     password = password,
-                    attributes = attributes
+                    attributes = attributes.build()
                 )
 
                 password.fill('0');
@@ -109,7 +118,10 @@ class EmailAttributeSignUpFragment : Fragment() {
                 when (actionResult) {
                     is SignUpResult.CodeRequired -> {
                         navigateToSignUp(
-                            nextState = actionResult.nextState
+                            nextState = actionResult.nextState,
+                            codeLength =  actionResult.codeLength,
+                            sentTo = actionResult.sentTo,
+                            channel = actionResult.channel
                         )
                     }
                     is SignUpResult.Complete -> {
@@ -195,8 +207,10 @@ class EmailAttributeSignUpFragment : Fragment() {
     private fun emptyFields() {
         binding.emailText.setText("")
         binding.passwordText.setText("")
-        binding.countryText.setText("")
-        binding.cityText.setText("")
+        binding.attr1KeyText.setText("")
+        binding.attr1ValueText.setText("")
+        binding.attr2KeyText.setText("")
+        binding.attr2ValueText.setText("")
     }
 
     private fun emptyResults() {
@@ -240,9 +254,17 @@ class EmailAttributeSignUpFragment : Fragment() {
         val alertDialog = builder.create()
         alertDialog.show()
     }
-    private fun navigateToSignUp(nextState: SignUpCodeRequiredState) {
+    private fun navigateToSignUp(
+        nextState: SignUpCodeRequiredState,
+        codeLength: Int,
+        sentTo: String,
+        channel: String
+    ) {
         val bundle = Bundle()
         bundle.putSerializable(Constants.STATE, nextState)
+        bundle.putInt(Constants.CODE_LENGTH, codeLength)
+        bundle.putString(Constants.SENT_TO, sentTo)
+        bundle.putString(Constants.CHANNEL, channel)
         val fragment = SignUpCodeFragment()
         fragment.arguments = bundle
 

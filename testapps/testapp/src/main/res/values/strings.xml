@@ -78,7 +78,7 @@
     <string name="title_more">More</string>
     <string name="title_web_fallback">Web Fallback</string>
 
-    <!-- Native Auth General -->
+    <!-- Native Auth -->
     <string name="sign_in">"Sign In"</string>
     <string name="sign_up">"Sign Up"</string>
     <string name="sign_out">"Sign Out"</string>
@@ -86,6 +86,8 @@
     <string name="submit_attribute">"Submit"</string>
     <string name="submit_password">"Submit"</string>
     <string name="create">"Create new user"</string>
+    <string name="attributes_intro">Attributes are required. Check logs for details.</string>
+    <string name="submit_attributes">Submit attributes</string>
     <string name="verify_email">"Send"</string>
     <string name="verify_code">"Next"</string>
     <string name="resend_code_text">"Resend Passcode"</string>
@@ -103,8 +105,10 @@
     <!-- Native Auth Fields -->
     <string name="attribute_email">Email <font color='@android:color/red'>*</font></string>
     <string name="attribute_password">Password <font color='@android:color/red'>*</font></string>
-    <string name="attribute_country">"Country"</string>
-    <string name="attribute_city">"City"</string>
+    <string name="attribute_attr1_key">Attribute 1 - Key</string>
+    <string name="attribute_attr1_value">Attribute 1 - Value</string>
+    <string name="attribute_attr2_key">Attribute 2 - Key</string>
+    <string name="attribute_attr2_value">Attribute 2 - Value</string>
     <string name="attribute_given">"Given name"</string>
     <string name="attribute_surname">"Surname"</string>
     <string name="attribute_otp">"Code"</string>

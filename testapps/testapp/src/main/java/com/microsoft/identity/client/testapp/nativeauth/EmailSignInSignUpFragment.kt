@@ -93,7 +93,10 @@ class EmailSignInSignUpFragment : Fragment() {
                 when (actionResult) {
                     is SignInResult.CodeRequired -> {
                         navigateToSignIn(
-                            signInstate = actionResult.nextState
+                            signInstate = actionResult.nextState,
+                            codeLength =  actionResult.codeLength,
+                            sentTo = actionResult.sentTo,
+                            channel = actionResult.channel
                         )
                     }
                     else -> {
@@ -118,7 +121,10 @@ class EmailSignInSignUpFragment : Fragment() {
                 when (actionResult) {
                     is SignUpResult.CodeRequired -> {
                         navigateToSignUp(
-                            nextState = actionResult.nextState
+                            nextState = actionResult.nextState,
+                            codeLength =  actionResult.codeLength,
+                            sentTo = actionResult.sentTo,
+                            channel = actionResult.channel
                         )
                     }
                     is SignUpResult.Complete -> {
@@ -233,9 +239,17 @@ class EmailSignInSignUpFragment : Fragment() {
         alertDialog.show()
     }
 
-    private fun navigateToSignIn(signInstate: SignInCodeRequiredState) {
+    private fun navigateToSignIn(
+        signInstate: SignInCodeRequiredState,
+        codeLength: Int,
+        sentTo: String,
+        channel: String
+    ) {
         val bundle = Bundle()
         bundle.putSerializable(Constants.STATE, signInstate)
+        bundle.putInt(Constants.CODE_LENGTH, codeLength)
+        bundle.putString(Constants.SENT_TO, sentTo)
+        bundle.putString(Constants.CHANNEL, channel)
         val fragment = SignInCodeFragment()
         fragment.arguments = bundle
 
@@ -247,9 +261,17 @@ class EmailSignInSignUpFragment : Fragment() {
             .commit()
     }
 
-    private fun navigateToSignUp(nextState: SignUpCodeRequiredState) {
+    private fun navigateToSignUp(
+        nextState: SignUpCodeRequiredState,
+        codeLength: Int,
+        sentTo: String,
+        channel: String
+    ) {
         val bundle = Bundle()
         bundle.putSerializable(Constants.STATE, nextState)
+        bundle.putInt(Constants.CODE_LENGTH, codeLength)
+        bundle.putString(Constants.SENT_TO, sentTo)
+        bundle.putString(Constants.CHANNEL, channel)
         val fragment = SignUpCodeFragment()
         fragment.arguments = bundle
 

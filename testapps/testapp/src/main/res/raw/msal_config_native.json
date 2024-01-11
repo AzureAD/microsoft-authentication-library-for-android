@@ -1,12 +1,12 @@
 {
-  "client_id": "a91e4274-5e9c-421c-a0a8-55c617b26830",
-  "authorities": [
+  "client_id" : "4e83ed2e-e043-490b-b6e5-f30c82c52b48",
+  "authorities" : [
     {
       "type": "CIAM",
-      "authority_url": "https://nativeauthasampleapp.ciamlogin.com/nativeauthasampleapp.onmicrosoft.com"
+      "authority_url": "https://nativeauthasampleapp.ciamlogin.com/4710d5e4-43bb-4ff9-89af-30ed8fe31c6d"
     }
   ],
-  "challenge_types": ["oob", "password"],
+  "challenge_types" : ["oob", "password"],
   "logging": {
     "pii_enabled": false,
     "log_level": "INFO",
