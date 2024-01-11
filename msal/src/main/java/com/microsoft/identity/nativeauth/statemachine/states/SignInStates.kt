@@ -77,7 +77,7 @@ class SignInCodeRequiredState internal constructor(
     private val TAG: String = SignInCodeRequiredState::class.java.simpleName
 
     constructor(parcel: Parcel) : this(
-        parcel.readString()!!,
+        parcel.readString()  ?: "",
         parcel.createStringArrayList(),
         parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
     ) {
@@ -425,7 +425,7 @@ abstract class SignInAfterSignUpBaseState(
 
     constructor(parcel: Parcel) : this(
         parcel.readString(),
-        parcel.readString()!!,
+        parcel.readString() ?: "",
         parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
     ) {
     }

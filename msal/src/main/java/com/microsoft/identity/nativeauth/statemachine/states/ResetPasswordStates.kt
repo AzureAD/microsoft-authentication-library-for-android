@@ -71,7 +71,7 @@ class ResetPasswordCodeRequiredState internal constructor(
     private val TAG: String = ResetPasswordCodeRequiredState::class.java.simpleName
 
     constructor(parcel: Parcel) : this(
-        parcel.readString()!!,
+        parcel.readString() ?: "",
         parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
     ) {
     }
@@ -254,6 +254,7 @@ class ResetPasswordCodeRequiredState internal constructor(
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(flowToken)
+        parcel.writeSerializable(config)
     }
 
     override fun describeContents(): Int {
@@ -285,7 +286,7 @@ class ResetPasswordPasswordRequiredState internal constructor(
     private val TAG: String = ResetPasswordPasswordRequiredState::class.java.simpleName
 
     constructor(parcel: Parcel) : this(
-        parcel.readString()!!,
+        parcel.readString() ?: "",
         parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
     ) {
     }
@@ -395,6 +396,7 @@ class ResetPasswordPasswordRequiredState internal constructor(
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(flowToken)
+        parcel.writeSerializable(config)
     }
 
     override fun describeContents(): Int {

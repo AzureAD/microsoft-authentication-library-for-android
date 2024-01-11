@@ -271,6 +271,7 @@ class AccountState private constructor(
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeSerializable(account)
+        parcel.writeSerializable(config)
     }
 
     override fun describeContents(): Int {

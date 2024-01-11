@@ -80,8 +80,8 @@ class SignUpCodeRequiredState internal constructor(
     private val TAG: String = SignUpCodeRequiredState::class.java.simpleName
 
     constructor(parcel: Parcel) : this(
-        parcel.readString()!!,
-        parcel.readString()!!,
+        parcel.readString()  ?: "",
+        parcel.readString() ?: "",
         parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
     ) {
     }
@@ -334,8 +334,8 @@ class SignUpPasswordRequiredState internal constructor(
     private val TAG: String = SignUpPasswordRequiredState::class.java.simpleName
 
     constructor(parcel: Parcel) : this(
-        parcel.readString()!!,
-        parcel.readString()!!,
+        parcel.readString()  ?: "",
+        parcel.readString()  ?: "",
         parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
     ) {
     }
@@ -513,8 +513,8 @@ class SignUpAttributesRequiredState internal constructor(
     private val TAG: String = SignUpAttributesRequiredState::class.java.simpleName
 
     constructor(parcel: Parcel) : this(
-        parcel.readString()!!,
-        parcel.readString()!!,
+        parcel.readString()  ?: "",
+        parcel.readString()  ?: "",
         parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
     ) {
     }
@@ -670,7 +670,7 @@ class SignInAfterSignUpState internal constructor(
 
     constructor(parcel: Parcel) : this(
         parcel.readString(),
-        parcel.readString()!!,
+        parcel.readString()  ?: "",
         parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
     ) {
     }
