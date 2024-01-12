@@ -1,6 +1,13 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
+
 vNext
 ----------
+
+Version 5.0.0
+----------
+- [MINOR] Update common @17.0.0
+- [MINOR] Add consumer rule to remove native auth from msal by default (#1986)
+- [MAJOR] Consuming Credential Manager from common (brings minCompileSdk 34) (#1987)
 
 Version 4.10.0
 ----------
