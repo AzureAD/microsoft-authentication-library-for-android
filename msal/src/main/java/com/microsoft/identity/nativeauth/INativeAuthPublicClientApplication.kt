@@ -28,9 +28,7 @@ import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
-import com.microsoft.identity.nativeauth.statemachine.results.SignInUsingPasswordResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
-import com.microsoft.identity.nativeauth.statemachine.results.SignUpUsingPasswordResult
 
 
 /**
@@ -71,89 +69,47 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
      * Sign in a user with a given username; Kotlin coroutines variant.
      *
      * @param username username of the account to sign in.
+     * @param password password of the account to sign in.
      * @param scopes (Optional) scopes to request during the sign in.
      * @return [com.microsoft.identity.nativeauth.statemachine.results.SignInResult] see detailed possible return state under the object.
      * @throws [MsalException] if an account is already signed in.
      */
-    suspend fun signIn(username: String, scopes: List<String>? = null): SignInResult
+    suspend fun signIn(username: String, password: CharArray? = null,  scopes: List<String>? = null): SignInResult
 
     /**
      * Sign in a user with a given username; callback variant.
      *
      * @param username username of the account to sign in.
+     * @param password password of the account to sign in.
      * @param scopes (Optional) scopes to request during the sign in.
      * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.SignInCallback] to receive the result.
      * @return [com.microsoft.identity.nativeauth.statemachine.results.SignInResult] see detailed possible return state under the object.
      * @throws [MsalException] if an account is already signed in.
      */
-    fun signIn(username: String, scopes: List<String>? = null, callback: NativeAuthPublicClientApplication.SignInCallback)
-
-    /**
-     * Sign in the account using username and password; Kotlin coroutines variant.
-     *
-     * @param username username of the account to sign in.
-     * @param password password of the account to sign in.
-     * @param scopes (Optional) list of scopes to request.
-     * @return [com.microsoft.identity.nativeauth.statemachine.results.SignInUsingPasswordResult] see detailed possible return state under the object.
-     * @throws MsalClientException if an account is already signed in.
-     */
-    suspend fun signInUsingPassword(username: String, password: CharArray, scopes: List<String>? = null): SignInUsingPasswordResult
-
-    /**
-     * Sign in the account using username and password; callback variant.
-     *
-     * @param username username of the account to sign in.
-     * @param password password of the account to sign in.
-     * @param scopes (Optional) list of scopes to request.
-     * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.SignInUsingPasswordCallback] to receive the result.
-     * @return [com.microsoft.identity.nativeauth.statemachine.results.SignInUsingPasswordResult] see detailed possible return state under the object.
-     * @throws MsalClientException if an account is already signed in.
-     */
-    fun signInUsingPassword(username: String, password: CharArray, scopes: List<String>? = null, callback: NativeAuthPublicClientApplication.SignInUsingPasswordCallback)
+    fun signIn(username: String, password: CharArray? = null, scopes: List<String>? = null, callback: NativeAuthPublicClientApplication.SignInCallback)
 
     /**
      * Sign up the account starting from a username; Kotlin coroutines variant.
      *
      * @param username username of the account to sign up.
+     * @param password password of the account to sign up.
      * @param attributes (Optional) user attributes to be used during account creation.
      * @return [com.microsoft.identity.nativeauth.statemachine.results.SignUpResult] see detailed possible return state under the object.
      * @throws MsalClientException if an account is already signed in.
      */
-    suspend fun signUp(username: String, attributes: UserAttributes? = null): SignUpResult
+    suspend fun signUp(username: String, password: CharArray? = null, attributes: UserAttributes? = null): SignUpResult
 
     /**
      * Sign up the account starting from a username; callback variant.
      *
      * @param username username of the account to sign up.
+     * @param password password of the account to sign up.
      * @param attributes (Optional) user attributes to be used during account creation.
      * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.SignUpCallback] to receive the result.
      * @return [com.microsoft.identity.nativeauth.statemachine.results.SignUpResult] see detailed possible return state under the object.
      * @throws MsalClientException if an account is already signed in.
      */
-    fun signUp(username: String, attributes: UserAttributes? = null, callback: NativeAuthPublicClientApplication.SignUpCallback)
-
-    /**
-     * Sign up the account using username and password. Kotlin coroutines variant.
-     *
-     * @param username username of the account to sign up.
-     * @param password password of the account to sign up.
-     * @param attributes (Optional) user attributes to be used during account creation
-     * @return [com.microsoft.identity.nativeauth.statemachine.results.SignUpUsingPasswordResult] see detailed possible return state under the object.
-     * @throws MsalClientException if an account is already signed in.
-     */
-    suspend fun signUpUsingPassword(username: String, password: CharArray, attributes: UserAttributes? = null): SignUpUsingPasswordResult
-
-    /**
-     * Sign up the account using username and password; callback variant.
-     *
-     * @param username username of the account to sign up.
-     * @param password password of the account to sign up.
-     * @param attributes (Optional) user attributes to be used during account creation
-     * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.SignUpUsingPasswordCallback] to receive the result.
-     * @return [com.microsoft.identity.nativeauth.statemachine.results.SignUpUsingPasswordResult] see detailed possible return state under the object.
-     * @throws MsalClientException if an account is already signed in.
-     */
-    fun signUpUsingPassword(username: String, password: CharArray, attributes: UserAttributes? = null, callback: NativeAuthPublicClientApplication.SignUpUsingPasswordCallback)
+    fun signUp(username: String, password: CharArray? = null, attributes: UserAttributes? = null, callback: NativeAuthPublicClientApplication.SignUpCallback)
 
     /**
      * Reset password for the account starting from a username; Kotlin coroutines variant.
