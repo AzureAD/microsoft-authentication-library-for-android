@@ -65,6 +65,7 @@ import java.io.Serializable
  */
 class ResetPasswordCodeRequiredState internal constructor(
     override val continuationToken: String,
+    private val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
 ) : BaseState(continuationToken), State, Serializable {
     private val TAG: String = ResetPasswordCodeRequiredState::class.java.simpleName
@@ -121,6 +122,7 @@ class ResetPasswordCodeRequiredState internal constructor(
                     ResetPasswordSubmitCodeResult.PasswordRequired(
                         nextState = ResetPasswordPasswordRequiredState(
                             continuationToken = result.continuationToken,
+                            username = username,
                             config = config
                         )
                     )
@@ -213,6 +215,7 @@ class ResetPasswordCodeRequiredState internal constructor(
                     ResetPasswordResendCodeResult.Success(
                         nextState = ResetPasswordCodeRequiredState(
                             continuationToken = result.continuationToken,
+                            username = username,
                             config = config
                         ),
                         codeLength = result.codeLength,
@@ -256,6 +259,7 @@ class ResetPasswordCodeRequiredState internal constructor(
  */
 class ResetPasswordPasswordRequiredState internal constructor(
     override val continuationToken: String,
+    private val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
 ) : BaseState(continuationToken), State, Serializable {
     private val TAG: String = ResetPasswordPasswordRequiredState::class.java.simpleName
@@ -311,7 +315,13 @@ class ResetPasswordPasswordRequiredState internal constructor(
                 return@withContext when (val result =
                     rawCommandResult.checkAndWrapCommandResultType<ResetPasswordSubmitNewPasswordCommandResult>()) {
                     is ResetPasswordCommandResult.Complete -> {
-                        ResetPasswordResult.Complete
+                        ResetPasswordResult.Complete(
+                            nextState = SignInAfterSignUpState(
+                                continuationToken = result.continuationToken,
+                                username = username,
+                                config = config
+                            )
+                        )
                     }
 
                     is ResetPasswordCommandResult.PasswordNotAccepted -> {

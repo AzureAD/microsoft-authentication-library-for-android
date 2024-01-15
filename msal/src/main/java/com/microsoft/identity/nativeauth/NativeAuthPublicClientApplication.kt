@@ -966,6 +966,7 @@ class NativeAuthPublicClientApplication(
                     ResetPasswordStartResult.CodeRequired(
                         nextState = ResetPasswordCodeRequiredState(
                             continuationToken = result.continuationToken,
+                            username = username,
                             config = nativeAuthConfig
                         ),
                         codeLength = result.codeLength,
