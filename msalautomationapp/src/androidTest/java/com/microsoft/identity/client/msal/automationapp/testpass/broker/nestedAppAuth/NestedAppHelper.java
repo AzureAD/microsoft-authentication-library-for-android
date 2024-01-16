@@ -151,11 +151,7 @@ public class NestedAppHelper {
             final AcquireTokenResult tokenResult = acquireTokenFuture.get();
             Assert.assertNotNull(tokenResult);
             Assert.assertTrue(tokenResult.getSucceeded());
-            if (mLabAccount.getUserType() == UserType.CLOUD) {
-                final String appId =
-                        (String) IDToken.parseJWT(tokenResult.getLocalAuthenticationResult().getAccessToken()).get(APP_ID);
-                Assert.assertEquals(HUB_APP_CLIENT_ID_AAD, appId);
-            }
+            validateAppIdIfRequired(tokenResult, HUB_APP_CLIENT_ID_AAD);
 
         } catch (InterruptedException | ExecutionException | TimeoutException | ServiceException e) {
             throw new AssertionError(e);
@@ -221,10 +217,15 @@ public class NestedAppHelper {
         Assert.assertTrue(acquireTokenSilentResult.getSucceeded());
         // NAA requests must not be serviced from cache
         Assert.assertFalse(acquireTokenSilentResult.getLocalAuthenticationResult().isServicedFromCache());
+
+        validateAppIdIfRequired(acquireTokenSilentResult, NESTED_APP_CLIENT_ID);
+    }
+
+    private void validateAppIdIfRequired(final AcquireTokenResult acquireTokenResult, final String expectedClientId) throws ServiceException {
         // cannot parse jwt for MSA
         if (mLabAccount.getUserType() != UserType.MSA) {
-            final String appId = (String) IDToken.parseJWT(acquireTokenSilentResult.getLocalAuthenticationResult().getAccessToken()).get(APP_ID);
-            Assert.assertEquals(NESTED_APP_CLIENT_ID, appId);
+            final String appId = (String) IDToken.parseJWT(acquireTokenResult.getLocalAuthenticationResult().getAccessToken()).get(APP_ID);
+            Assert.assertEquals(expectedClientId, appId);
         }
     }
 
@@ -258,11 +259,7 @@ public class NestedAppHelper {
         Assert.assertTrue(acquireTokenSilentResult.getSucceeded());
         // NAA requests must not be serviced from cache
         Assert.assertFalse(acquireTokenSilentResult.getLocalAuthenticationResult().isServicedFromCache());
-        // cannot parse jwt for MSA
-        if (mLabAccount.getUserType() != UserType.MSA) {
-            final String appId = (String) IDToken.parseJWT(acquireTokenSilentResult.getLocalAuthenticationResult().getAccessToken()).get(APP_ID);
-            Assert.assertEquals(NESTED_APP_US_GOV_CLIENT_ID, appId);
-        }
+        validateAppIdIfRequired(acquireTokenSilentResult, NESTED_APP_US_GOV_CLIENT_ID);
     }
 
     protected void performInteractiveATForNestedApp(boolean shouldAddDeviceIdClaim) {
@@ -315,11 +312,7 @@ public class NestedAppHelper {
             final AcquireTokenResult tokenResult = acquireTokenFuture.get();
             Assert.assertNotNull(tokenResult);
             Assert.assertTrue(tokenResult.getSucceeded());
-            if (hubAppClientId == HUB_APP_CLIENT_ID_AAD) {
-                final String appId =
-                        (String) IDToken.parseJWT(tokenResult.getLocalAuthenticationResult().getAccessToken()).get(APP_ID);
-                Assert.assertEquals(NESTED_APP_CLIENT_ID, appId);
-            }
+            validateAppIdIfRequired(tokenResult, NESTED_APP_CLIENT_ID);
 
         } catch (InterruptedException | ExecutionException | TimeoutException |
                  ServiceException e) {
