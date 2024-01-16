@@ -63,9 +63,8 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignUpUsingPasswor
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState;
 import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordCodeRequiredState;
 import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordPasswordRequiredState;
-import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterPasswordResetState;
-import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpState;
 import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState;
+import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState;
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesRequiredState;
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState;
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory;
@@ -1010,7 +1009,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // Setup - sign up the user, so that we don't have to construct the SLT state manually
         // as this doesn't allow for the NativeAuthPublicClientApplicationConfiguration to be set
         // up, meaning it would need to be mocked (which we don't want in these tests).
-        SignInAfterSignUpState signInWithSLTState = signUpUser();
+        SignInContinuationState signInWithSLTState = signUpUser();
 
         // 1a. sign in with (valid) SLT
         String correlationId = UUID.randomUUID().toString();
@@ -1022,7 +1021,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 1b. server returns token
         final ResultFuture<SignInResult> resultFuture = new ResultFuture<>();
-        SignInAfterSignUpState.SignInAfterSignUpCallback callback = new SignInAfterSignUpState.SignInAfterSignUpCallback() {
+        SignInContinuationState.SignInContinuationCallback callback = new SignInContinuationState.SignInContinuationCallback() {
             @Override
             public void onResult(SignInResult result) {
                 resultFuture.setResult(result);
@@ -1054,9 +1053,9 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 1b. client returns error
         final NativeAuthPublicClientApplicationConfiguration config = Mockito.mock(NativeAuthPublicClientApplicationConfiguration.class);
-        final SignInAfterSignUpState state = new SignInAfterSignUpState(null, username, config);
+        final SignInContinuationState state = new SignInContinuationState(null, username, config);
         final ResultFuture<SignInResult> resultFuture = new ResultFuture<>();
-        SignInAfterSignUpState.SignInAfterSignUpCallback callback = new SignInAfterSignUpState.SignInAfterSignUpCallback() {
+        SignInContinuationState.SignInContinuationCallback callback = new SignInContinuationState.SignInContinuationCallback() {
             @Override
             public void onResult(SignInResult result) {
                 resultFuture.setResult(result);
@@ -1089,7 +1088,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // Setup - sign up the user, so that we don't have to construct the SLT state manually
         // as this doesn't allow for the NativeAuthPublicClientApplicationConfiguration to be set
         // up, meaning it would need to be mocked (which we don't want in these tests).
-        SignInAfterSignUpState signInWithSLTState = signUpUser();
+        SignInContinuationState signInWithSLTState = signUpUser();
 
         // 1a. sign in with (expired) SLT
         String correlationId = UUID.randomUUID().toString();
@@ -1101,7 +1100,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 1b. server returns error
         final ResultFuture<SignInResult> resultFuture = new ResultFuture<>();
-        SignInAfterSignUpState.SignInAfterSignUpCallback callback = new SignInAfterSignUpState.SignInAfterSignUpCallback() {
+        SignInContinuationState.SignInContinuationCallback callback = new SignInContinuationState.SignInContinuationCallback() {
             @Override
             public void onResult(SignInResult result) {
                 resultFuture.setResult(result);
@@ -1322,7 +1321,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         ResetPasswordSubmitPasswordResult submitPasswordResult = submitPasswordCallback.get();
         assertTrue(submitPasswordResult instanceof ResetPasswordResult.Complete);
         // 3c. Respond to Result(Complete): shifting from ResetPasswordPasswordRequired to end
-        SignInAfterPasswordResetState signInState = ((ResetPasswordResult.Complete) submitPasswordResult).getNextState();
+        SignInContinuationState signInState = ((ResetPasswordResult.Complete) submitPasswordResult).getNextState();
 
         // 4a. Sign in with (valid) continuation token
         MockApiUtils.configureMockApi(
@@ -1331,7 +1330,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 MockApiResponseType.TOKEN_SUCCESS
         );
 
-        SignInAfterPasswordResetTestCallback signInCallback = new SignInAfterPasswordResetTestCallback();
+        SignInContinuationTestCallback signInCallback = new SignInContinuationTestCallback();
         signInState.signIn(null, signInCallback);
 
         SignInResult signInResult = signInCallback.get();
@@ -1725,7 +1724,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
     // Helper methods
     // TODO update this after sign up SDK tests PR
-    private SignInAfterSignUpState signUpUser() throws ExecutionException, InterruptedException, TimeoutException {
+    private SignInContinuationState signUpUser() throws ExecutionException, InterruptedException, TimeoutException {
         // 1. sign up with password
         // 1a. Setup server response
         String correlationId = UUID.randomUUID().toString();
@@ -2832,7 +2831,7 @@ class SignUpSubmitPasswordTestCallback extends TestCallback<SignUpSubmitPassword
     }
 }
 
-class SignInAfterPasswordResetTestCallback extends TestCallback<SignInResult> implements SignInAfterPasswordResetState.SignInAfterPasswordResetCallback {
+class SignInContinuationTestCallback extends TestCallback<SignInResult> implements SignInContinuationState.SignInContinuationCallback {
 
     @Override
     public void onResult(SignInResult result) {

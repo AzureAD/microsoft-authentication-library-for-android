@@ -1,5 +1,6 @@
 {
   "client_id" : "0e565df2-c350-47f2-9cd4-c6c7a464b8bf",
+  "use_mock_api_for_native_auth": "true",
   "authorities" : [
     {
       "type": "CIAM",

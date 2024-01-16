@@ -317,7 +317,7 @@ class ResetPasswordPasswordRequiredState internal constructor(
                     rawCommandResult.checkAndWrapCommandResultType<ResetPasswordSubmitNewPasswordCommandResult>()) {
                     is ResetPasswordCommandResult.Complete -> {
                         ResetPasswordResult.Complete(
-                            nextState = SignInAfterPasswordResetState(
+                            nextState = SignInContinuationState(
                                 continuationToken = result.continuationToken,
                                 username = username,
                                 config = config
@@ -373,45 +373,5 @@ class ResetPasswordPasswordRequiredState internal constructor(
                 StringUtil.overwriteWithNull(parameters.newPassword)
             }
         }
-    }
-}
-
-/**
- * Native Auth uses a state machine to denote state of and transitions within a flow.
- * SignInAfterPasswordResetState class represents a state where the user must sign in after a successful
- * password reset flow.
- * @property continuationToken: Token to be passed in the next request
- * @property username: Email address of the user
- * @property config Configuration used by Native Auth
- */
-class SignInAfterPasswordResetState internal constructor(
-    override val continuationToken: String?,
-    override val username: String,
-    private val config: NativeAuthPublicClientApplicationConfiguration
-) : SignInAfterFlowCompletionBaseState(continuationToken, username, config) {
-    private val TAG: String = SignInAfterSignUpState::class.java.simpleName
-    interface SignInAfterPasswordResetCallback : SignInAfterFlowCompletionCallback
-
-    /**
-     * Signs in with the sign-in-after-reset-password verification code; callback variant.
-     *
-     * @param scopes (Optional) the scopes to request.
-     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpState.SignInAfterSignUpCallback] to receive the result on.
-     * @return The results of the sign-in-after-reset-password action.
-     */
-    fun signIn(scopes: List<String>? = null, callback: SignInAfterPasswordResetCallback) {
-        LogSession.logMethodCall(TAG, "${TAG}.signIn")
-        return signInAfterFlowCompletion(scopes = scopes, callback = callback)
-    }
-
-    /**
-     * Signs in with the sign-in-after-reset-password verification code; Kotlin coroutines variant.
-     *
-     * @param scopes (Optional) the scopes to request.
-     * @return The results of the sign-in-after-reset-password action.
-     */
-    suspend fun signIn(scopes: List<String>? = null): SignInResult {
-        LogSession.logMethodCall(TAG, "${TAG}.signIn(scopes: List<String>)")
-        return signInAfterFlowCompletion(scopes = scopes)
     }
 }

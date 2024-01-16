@@ -52,7 +52,6 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignInUsingPasswor
 import com.microsoft.identity.nativeauth.statemachine.results.SignOutResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResendCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
-import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpState
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper
 import com.microsoft.identity.common.nativeauth.MockApiEndpoint
@@ -63,6 +62,7 @@ import com.microsoft.identity.common.java.interfaces.IPlatformComponents
 import com.microsoft.identity.common.java.nativeauth.BuildValues
 import com.microsoft.identity.common.java.util.ResultFuture
 import com.microsoft.identity.internal.testutils.TestUtils
+import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
@@ -414,7 +414,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         // 1b. client returns error
         val config = mock<NativeAuthPublicClientApplicationConfiguration>()
-        val continuationTokenState = SignInAfterSignUpState(continuationToken = null, username = username, config = config)
+        val continuationTokenState = SignInContinuationState(continuationToken = null, username = username, config = config)
         val result = continuationTokenState.signIn(scopes = null)
         assertTrue(result is SignInError)
         assertTrue((result as SignInError).errorType == null)
@@ -1290,7 +1290,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         InterruptedException::class,
         TimeoutException::class
     )
-    private suspend fun signUpUser(): SignInAfterSignUpState {
+    private suspend fun signUpUser(): SignInContinuationState {
         // 1. sign up with password
         // 1a. Setup server response
         val correlationId = UUID.randomUUID().toString()
