@@ -577,7 +577,7 @@ class SignUpAttributesRequiredState internal constructor(
 
 /**
  * Native Auth uses a state machine to denote state of and transitions within a flow.
- * SignInAfterSignUpState class represents a state where the user must signin after successful
+ * SignInAfterSignUpState class represents a state where the user must sign in after a successful
  * signup flow.
  * @property continuationToken: Token to be passed in the next request
  * @property username: Email address of the user
@@ -587,9 +587,9 @@ class SignInAfterSignUpState internal constructor(
     override val continuationToken: String?,
     override val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : SignInAfterSignUpBaseState(continuationToken, username, config) {
+) : SignInAfterFlowCompletionBaseState(continuationToken, username, config) {
     private val TAG: String = SignInAfterSignUpState::class.java.simpleName
-    interface SignInAfterSignUpCallback : SignInAfterSignUpBaseState.SignInAfterSignUpCallback
+    interface SignInAfterSignUpCallback : SignInAfterFlowCompletionCallback
 
     /**
      * Signs in with the sign-in-after-sign-up verification code; callback variant.
@@ -600,7 +600,7 @@ class SignInAfterSignUpState internal constructor(
      */
     fun signIn(scopes: List<String>? = null, callback: SignInAfterSignUpCallback) {
         LogSession.logMethodCall(TAG, "${TAG}.signIn")
-        return signInAfterSignUp(scopes = scopes, callback = callback)
+        return signInAfterFlowCompletion(scopes = scopes, callback = callback)
     }
 
     /**
@@ -611,6 +611,6 @@ class SignInAfterSignUpState internal constructor(
      */
     suspend fun signIn(scopes: List<String>? = null): SignInResult {
         LogSession.logMethodCall(TAG, "${TAG}.signIn(scopes: List<String>)")
-        return signInAfterSignUp(scopes = scopes)
+        return signInAfterFlowCompletion(scopes = scopes)
     }
 }

@@ -382,55 +382,54 @@ class SignInPasswordRequiredState(
 
 /**
  * Native Auth uses a state machine to denote state of and transitions within a flow.
- * SignInAfterSignUpBaseState class is an abstract class to represent signin state after
- * successfull signup
- * in the signin flow.
+ * SignInAfterFlowCompletionBaseState class is an abstract class to represent a sign in state after
+ * a successful signup or password reset.
  * @property continuationToken: Continuation token from signup APIS
  * @property username: Username of the user
  * @property config Configuration used by Native Auth
  */
-abstract class SignInAfterSignUpBaseState(
+abstract class SignInAfterFlowCompletionBaseState(
     override val continuationToken: String?,
     internal open val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
 ) : BaseState(continuationToken), State, Serializable {
-    private val TAG: String = SignInAfterSignUpBaseState::class.java.simpleName
+    private val TAG: String = SignInAfterFlowCompletionBaseState::class.java.simpleName
 
     /**
-     * SignInAfterSignUpCallback receives the result for sign in after signup for Native Auth
+     * SignInAfterFlowCompletionCallback receives the result for sign in after flow completion for Native Auth
      */
-    interface SignInAfterSignUpCallback : Callback<SignInResult>
+    interface SignInAfterFlowCompletionCallback : Callback<SignInResult>
 
     /**
-     * Submits the sign-in-after-sign-up verification code to the server; callback variant.
+     * Submits the sign-in-after-flow-completion verification code to the server; callback variant.
      *
      * @param scopes (Optional) The scopes to request.
-     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpBaseState.SignInAfterSignUpCallback] to receive the result on.
+     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.SignInAfterFlowCompletionBaseState.SignInAfterFlowCompletionCallback] to receive the result on.
      * @return The results of the sign-in-after-sign-up action.
      */
-    fun signInAfterSignUp(scopes: List<String>? = null, callback: SignInAfterSignUpCallback) {
-        LogSession.logMethodCall(TAG, "${TAG}.signInAfterSignUp")
+    fun signInAfterFlowCompletion(scopes: List<String>? = null, callback: SignInAfterFlowCompletionCallback) {
+        LogSession.logMethodCall(TAG, "${TAG}.signInAfterFlowCompletion")
 
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
-                val result = signInAfterSignUp(scopes)
+                val result = signInAfterFlowCompletion(scopes)
                 callback.onResult(result)
             } catch (e: MsalException) {
-                Logger.error(TAG, "Exception thrown in signInAfterSignUp", e)
+                Logger.error(TAG, "Exception thrown in signInAfterFlowCompletion", e)
                 callback.onError(e)
             }
         }
     }
 
     /**
-     * Submits the sign-in-after-sign-up verification code to the server; Kotlin coroutines variant.
+     * Submits the sign-in-after-flow-completion verification code to the server; Kotlin coroutines variant.
      *
      * @param scopes (Optional) The scopes to request.
      * @return The results of the sign-in-after-sign-up action.
      */
-    suspend fun signInAfterSignUp(scopes: List<String>? = null): SignInResult {
+    suspend fun signInAfterFlowCompletion(scopes: List<String>? = null): SignInResult {
         return withContext(Dispatchers.IO) {
-            LogSession.logMethodCall(TAG, "${TAG}.signInAfterSignUp(scopes: List<String>)")
+            LogSession.logMethodCall(TAG, "${TAG}.signInAfterFlowCompletion(scopes: List<String>)")
 
             // Check if verification code was passed. If not, return an UnknownError with instructions to call the other
             // sign in flows (code or password).

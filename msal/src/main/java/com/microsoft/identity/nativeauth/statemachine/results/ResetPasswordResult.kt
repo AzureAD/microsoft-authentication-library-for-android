@@ -25,7 +25,7 @@ package com.microsoft.identity.nativeauth.statemachine.results
 
 import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordCodeRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordPasswordRequiredState
-import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpState
+import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterPasswordResetState
 
 /**
  * Self-service password reset.
@@ -39,7 +39,7 @@ interface ResetPasswordResult : Result {
      * @param nextState [com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpState] the current state of the flow with follow-on methods.
      */
     class Complete(
-        override val nextState: SignInAfterSignUpState
+        override val nextState: SignInAfterPasswordResetState
     ) : Result.CompleteWithNextStateResult(resultValue = null, nextState = nextState),
         ResetPasswordResult,
         ResetPasswordSubmitPasswordResult

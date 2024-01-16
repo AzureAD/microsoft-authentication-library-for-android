@@ -34,7 +34,6 @@ import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTe
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.common.java.nativeauth.BuildValues;
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenError;
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError;
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordSubmitPasswordError;
@@ -64,6 +63,7 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignUpUsingPasswor
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState;
 import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordCodeRequiredState;
 import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordPasswordRequiredState;
+import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterPasswordResetState;
 import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpState;
 import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState;
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesRequiredState;
@@ -1322,7 +1322,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         ResetPasswordSubmitPasswordResult submitPasswordResult = submitPasswordCallback.get();
         assertTrue(submitPasswordResult instanceof ResetPasswordResult.Complete);
         // 3c. Respond to Result(Complete): shifting from ResetPasswordPasswordRequired to end
-        SignInAfterSignUpState signInState = ((ResetPasswordResult.Complete) submitPasswordResult).getNextState();
+        SignInAfterPasswordResetState signInState = ((ResetPasswordResult.Complete) submitPasswordResult).getNextState();
 
         // 4a. Sign in with (valid) continuation token
         MockApiUtils.configureMockApi(
@@ -1331,7 +1331,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 MockApiResponseType.TOKEN_SUCCESS
         );
 
-        SignInAfterSignUpTestCallback signInCallback = new SignInAfterSignUpTestCallback();
+        SignInAfterPasswordResetTestCallback signInCallback = new SignInAfterPasswordResetTestCallback();
         signInState.signIn(null, signInCallback);
 
         SignInResult signInResult = signInCallback.get();
@@ -2832,7 +2832,7 @@ class SignUpSubmitPasswordTestCallback extends TestCallback<SignUpSubmitPassword
     }
 }
 
-class SignInAfterSignUpTestCallback extends TestCallback<SignInResult> implements SignInAfterSignUpState.SignInAfterSignUpCallback {
+class SignInAfterPasswordResetTestCallback extends TestCallback<SignInResult> implements SignInAfterPasswordResetState.SignInAfterPasswordResetCallback {
 
     @Override
     public void onResult(SignInResult result) {
