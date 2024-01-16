@@ -35,6 +35,7 @@ import com.microsoft.identity.client.DeviceCodeFlowParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.ITenantProfile;
 import com.microsoft.identity.client.MultiTenantAccount;
+import com.microsoft.identity.common.java.logging.DiagnosticContext;
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.PoPAuthenticationScheme;
 import com.microsoft.identity.client.PublicClientApplication;
@@ -400,6 +401,9 @@ public class CommandParametersAdapter {
                 .challengeType(configuration.getChallengeTypes())
                 .clientId(configuration.getClientId())
                 .userAttributes(userAttributes)
+                // Start of the flow, so there is no correlation ID to use from a previous API response.
+                // Set it to a default value.
+                .correlationId(null)
                 .build();
     }
 
@@ -438,6 +442,9 @@ public class CommandParametersAdapter {
                 .password(password)
                 .challengeType(configuration.getChallengeTypes())
                 .userAttributes(userAttributes)
+                // Start of the flow, so there is no correlation ID to use from a previous API response.
+                // Set it to a default value.
+                .correlationId(null)
                 .build();
     }
 
@@ -454,7 +461,9 @@ public class CommandParametersAdapter {
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String code,
-            @NonNull final String continuationToken) {
+            @NonNull final String continuationToken,
+            @Nullable final String correlationId
+    ) {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
@@ -474,6 +483,7 @@ public class CommandParametersAdapter {
                 .challengeType(configuration.getChallengeTypes())
                 .continuationToken(continuationToken)
                 .code(code)
+                .correlationId(correlationId)
                 .build();
     }
 
@@ -482,12 +492,14 @@ public class CommandParametersAdapter {
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param continuationToken Continuation token received from the start command
+     * @param correlationId correlation ID to use in the API request, taken from the previous API response in the flow
      * @return Command parameter object
      * @throws ClientException
      */
     public static SignUpResendCodeCommandParameters createSignUpResendCodeCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
+            @Nullable final String correlationId,
             @NonNull final String continuationToken) {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
@@ -507,6 +519,7 @@ public class CommandParametersAdapter {
                 .challengeType(configuration.getChallengeTypes())
                 .authority(authority)
                 .continuationToken(continuationToken)
+                .correlationId(correlationId)
                 .build();
     }
 
@@ -514,6 +527,7 @@ public class CommandParametersAdapter {
      * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.SignUpSubmitUserAttributesCommand}] of Native Auth.
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
+     * @param correlationId correlation ID to use in the API request, taken from the previous API response in the flow
      * @param continuationToken Continuation token received from the start command
      * @return Command parameter object
      * @throws ClientException
@@ -522,6 +536,7 @@ public class CommandParametersAdapter {
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String continuationToken,
+            @Nullable final String correlationId,
             final Map<String, String> userAttributes) {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
@@ -543,6 +558,7 @@ public class CommandParametersAdapter {
                 .challengeType(configuration.getChallengeTypes())
                 .continuationToken(continuationToken)
                 .userAttributes(userAttributes)
+                .correlationId(correlationId)
                 .build();
     }
 
@@ -551,6 +567,7 @@ public class CommandParametersAdapter {
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param continuationToken Continuation token received from the start command
+     * @param correlationId correlation ID to use in the API request, taken from the previous API response in the flow
      * @param password password for the user
      * @return Command parameter object
      * @throws ClientException
@@ -559,6 +576,7 @@ public class CommandParametersAdapter {
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String continuationToken,
+            @Nullable final String correlationId,
             @NonNull final char[] password) {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
@@ -579,6 +597,7 @@ public class CommandParametersAdapter {
                 .challengeType(configuration.getChallengeTypes())
                 .continuationToken(continuationToken)
                 .password(password)
+                .correlationId(correlationId)
                 .build();
     }
 
@@ -618,6 +637,9 @@ public class CommandParametersAdapter {
                 .authenticationScheme(authenticationScheme)
                 .clientId(configuration.getClientId())
                 .challengeType(configuration.getChallengeTypes())
+                // Start of the flow, so there is no correlation ID to use from a previous API response.
+                // Set it to a default value.
+                .correlationId(null)
                 .build();
 
         return commandParameters;
@@ -665,6 +687,9 @@ public class CommandParametersAdapter {
                 .clientId(configuration.getClientId())
                 .challengeType(configuration.getChallengeTypes())
                 .scopes(scopes)
+                // Start of the flow, so there is no correlation ID to use from a previous API response.
+                // Set it to a default value.
+                .correlationId(DiagnosticContext.INSTANCE.getThreadCorrelationId())
                 .build();
 
         return commandParameters;
@@ -676,7 +701,8 @@ public class CommandParametersAdapter {
      * @param tokenCache token cache for storing results
      * @param continuationToken continuation token
      * @param username email address of the user
-     * @param scopes
+     * @param correlationId correlation ID to use in the API request, taken from the previous API response in the flow
+     * @param scopes scopes requested during sign in flow
      * @return Command parameter object
      * @throws ClientException
      */
@@ -685,6 +711,7 @@ public class CommandParametersAdapter {
             @NonNull final OAuth2TokenCache tokenCache,
             @Nullable final String continuationToken,
             @Nullable final String username,
+            @Nullable final String correlationId,
             final List<String> scopes) throws ClientException {
         final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
                 AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
@@ -711,6 +738,7 @@ public class CommandParametersAdapter {
                 .challengeType(configuration.getChallengeTypes())
                 .authenticationScheme(authenticationScheme)
                 .scopes(scopes)
+                .correlationId(correlationId)
                 .build();
 
         return commandParameters;
@@ -722,7 +750,8 @@ public class CommandParametersAdapter {
      * @param tokenCache token cache for storing results
      * @param code Out of band code
      * @param continuationToken continuation token
-     * @param scopes
+     * @param correlationId correlation ID to use in the API request, taken from the previous request in the flow
+     * @param scopes scopes requested during sign in flow
      * @return Command parameter object
      * @throws ClientException
      */
@@ -731,6 +760,7 @@ public class CommandParametersAdapter {
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String code,
             @NonNull final String continuationToken,
+            @Nullable final String correlationId,
             final List<String> scopes) throws ClientException {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
@@ -758,6 +788,7 @@ public class CommandParametersAdapter {
                 .challengeType(configuration.getChallengeTypes())
                 .code(code)
                 .scopes(scopes)
+                .correlationId(correlationId)
                 .build();
 
         return commandParameters;
@@ -767,6 +798,7 @@ public class CommandParametersAdapter {
      * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.SignInResendCodeCommand}] of Native Auth
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
+     * @param correlationId correlation ID to use in the API request, taken from the previous request in the flow
      * @param continuationToken continuation token
      * @return Command parameter object
      * @throws ClientException
@@ -774,6 +806,7 @@ public class CommandParametersAdapter {
     public static SignInResendCodeCommandParameters createSignInResendCodeCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
+            @Nullable final String correlationId,
             @NonNull final String continuationToken) {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
@@ -794,6 +827,7 @@ public class CommandParametersAdapter {
                 .challengeType(configuration.getChallengeTypes())
                 .continuationToken(continuationToken)
                 .challengeType(configuration.getChallengeTypes())
+                .correlationId(correlationId)
                 .build();
 
         return commandParameters;
@@ -803,6 +837,7 @@ public class CommandParametersAdapter {
      * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.SignInSubmitPasswordCommand}] of Native Auth
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
+     * @param correlationId correlation ID to use in the API request, taken from the previous request in the flow
      * @param continuationToken continuation token
      * @param password  password of the user
      * @param scopes
@@ -814,6 +849,7 @@ public class CommandParametersAdapter {
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String continuationToken,
             @NonNull final char[] password,
+            @Nullable final String correlationId,
             final List<String> scopes) throws ClientException {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
@@ -842,6 +878,7 @@ public class CommandParametersAdapter {
                         .password(password)
                         .scopes(scopes)
                         .challengeType(configuration.getChallengeTypes())
+                        .correlationId(correlationId)
                         .build();
 
         return commandParameters;
@@ -879,6 +916,9 @@ public class CommandParametersAdapter {
                         .username(username)
                         .challengeType(configuration.getChallengeTypes())
                         .clientId(configuration.getClientId())
+                        // Start of the flow, so there is no correlation ID to use from a previous API response.
+                        // Set it to a default value.
+                        .correlationId(null)
                         .build();
 
         return commandParameters;
@@ -889,6 +929,7 @@ public class CommandParametersAdapter {
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param code out of band code
+     * @param correlationId correlation ID to use in the API request, taken from the previous request in the flow
      * @param continuationToken Continuation token
      * @return Command parameter object
      */
@@ -896,6 +937,7 @@ public class CommandParametersAdapter {
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String code,
+            @Nullable final String correlationId,
             @NonNull final String continuationToken) {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
@@ -918,6 +960,7 @@ public class CommandParametersAdapter {
                         .challengeType(configuration.getChallengeTypes())
                         .continuationToken(continuationToken)
                         .clientId(configuration.getClientId())
+                        .correlationId(correlationId)
                         .build();
 
         return commandParameters;
@@ -927,12 +970,14 @@ public class CommandParametersAdapter {
      * Creates command parameter for [ResetPasswordResendCodeCommand] of Native Auth.
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
+     * @param correlationId correlation ID to use in the API request, taken from the previous request in the flow
      * @param continuationToken Continuation token
      * @return Command parameter object
      */
     public static ResetPasswordResendCodeCommandParameters createResetPasswordResendCodeCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
+            @Nullable final String correlationId,
             @NonNull final String continuationToken) {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
@@ -954,6 +999,7 @@ public class CommandParametersAdapter {
                         .challengeType(configuration.getChallengeTypes())
                         .continuationToken(continuationToken)
                         .clientId(configuration.getClientId())
+                        .correlationId(correlationId)
                         .build();
 
         return commandParameters;
@@ -963,13 +1009,15 @@ public class CommandParametersAdapter {
      * Creates command parameter for [ResetPasswordSubmitNewPasswordCommandParameters] of Native Auth.
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
-     * @param passwordSubmitToken password submit token
+     * @param correlationId correlation ID to use in the API request, taken from the previous request in the flow
+     * @param continuationToken password submit token
      * @return Command parameter object
      */
     public static ResetPasswordSubmitNewPasswordCommandParameters createResetPasswordSubmitNewPasswordCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String continuationToken,
+            @Nullable final String correlationId,
             @NonNull final char[] password) {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
@@ -992,6 +1040,7 @@ public class CommandParametersAdapter {
                         .challengeType(configuration.getChallengeTypes())
                         .newPassword(password)
                         .clientId(configuration.getClientId())
+                        .correlationId(correlationId)
                         .build();
 
         return commandParameters;

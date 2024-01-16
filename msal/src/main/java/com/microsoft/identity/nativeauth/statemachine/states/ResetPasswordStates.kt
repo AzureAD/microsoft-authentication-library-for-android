@@ -61,12 +61,14 @@ import java.io.Serializable
  * ResetPasswordCodeRequiredState class represents a state where the user has to provide a code to progress
  * in the reset password flow.
  * @property continuationToken: Continuation token to be passed in the next request
+ * @property correlationId: Correlation ID taken from the previous API response and passed to the next request
  * @property config Configuration used by Native Auth
  */
 class ResetPasswordCodeRequiredState internal constructor(
     override val continuationToken: String,
+    override val correlationId: String?,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(continuationToken), State, Serializable {
+) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Serializable {
     private val TAG: String = ResetPasswordCodeRequiredState::class.java.simpleName
 
     interface SubmitCodeCallback : Callback<ResetPasswordSubmitCodeResult>
@@ -105,6 +107,7 @@ class ResetPasswordCodeRequiredState internal constructor(
                     config,
                     config.oAuth2TokenCache,
                     code,
+                    correlationId,
                     continuationToken
                 )
 
@@ -121,6 +124,7 @@ class ResetPasswordCodeRequiredState internal constructor(
                     ResetPasswordSubmitCodeResult.PasswordRequired(
                         nextState = ResetPasswordPasswordRequiredState(
                             continuationToken = result.continuationToken,
+                            correlationId = result.correlationId,
                             config = config
                         )
                     )
@@ -197,6 +201,7 @@ class ResetPasswordCodeRequiredState internal constructor(
                 CommandParametersAdapter.createResetPasswordResendCodeCommandParameters(
                     config,
                     config.oAuth2TokenCache,
+                    correlationId,
                     continuationToken
                 )
 
@@ -213,6 +218,7 @@ class ResetPasswordCodeRequiredState internal constructor(
                     ResetPasswordResendCodeResult.Success(
                         nextState = ResetPasswordCodeRequiredState(
                             continuationToken = result.continuationToken,
+                            correlationId = result.correlationId,
                             config = config
                         ),
                         codeLength = result.codeLength,
@@ -252,12 +258,14 @@ class ResetPasswordCodeRequiredState internal constructor(
  * ResetPasswordPasswordRequiredState class represents a state where the user has to provide a password to progress
  * in the reset password flow.
  * @property continuationToken: Continuation token to be passed in the next request
+ * @property correlationId: Correlation ID taken from the previous API response and passed to the next request
  * @property config Configuration used by Native Auth
  */
 class ResetPasswordPasswordRequiredState internal constructor(
     override val continuationToken: String,
+    override val correlationId: String?,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(continuationToken), State, Serializable {
+) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Serializable {
     private val TAG: String = ResetPasswordPasswordRequiredState::class.java.simpleName
 
     interface SubmitPasswordCallback : Callback<ResetPasswordSubmitPasswordResult>
@@ -296,6 +304,7 @@ class ResetPasswordPasswordRequiredState internal constructor(
                     config,
                     config.oAuth2TokenCache,
                     continuationToken,
+                    correlationId,
                     password
                 )
 

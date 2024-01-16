@@ -74,7 +74,7 @@ open class SignUpError (
     override val errorType: String? = null,
     override val error: String? = null,
     override val errorMessage: String?,
-    override val correlationId: String,
+    override val correlationId: String?,
     override val errorCodes: List<Int>? = null,
     override var exception: Exception? = null
 ): SignUpResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
@@ -104,7 +104,7 @@ class SignUpUsingPasswordError (
     override val errorType: String? = null,
     override val error: String? = null,
     override val errorMessage: String?,
-    override val correlationId: String,
+    override val correlationId: String?,
     override val errorCodes: List<Int>? = null,
     val subError: String? = null,
     override var exception: Exception? = null
@@ -129,7 +129,7 @@ class SignUpSubmitPasswordError (
     override val errorType: String? = null,
     override val error: String? = null,
     override val errorMessage: String?,
-    override val correlationId: String,
+    override val correlationId: String?,
     override val errorCodes: List<Int>? = null,
     val subError: String? = null,
     override var exception: Exception? = null
@@ -153,7 +153,7 @@ class SignUpSubmitAttributesError (
     override val errorType: String? = null,
     override val error: String? = null,
     override val errorMessage: String?,
-    override val correlationId: String,
+    override val correlationId: String?,
     override val errorCodes: List<Int>? = null,
     override var exception: Exception? = null
 ): SignUpSubmitAttributesResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {

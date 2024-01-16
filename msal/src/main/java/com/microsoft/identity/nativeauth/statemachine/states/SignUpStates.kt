@@ -68,14 +68,16 @@ import java.io.Serializable
  * SignUpCodeRequiredState class represents a state where the user has to provide a code to progress
  * in the signup flow.
  * @property continuationToken: Continuation token to be passed in the next request
+ * @property correlationId: Correlation ID taken from the previous API response and passed to the next request
  * @property username: Email address of the user
  * @property config Configuration used by Native Auth
  */
 class SignUpCodeRequiredState internal constructor(
     override val continuationToken: String,
+    override val correlationId: String?,
     private val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(continuationToken), State, Serializable {
+) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Serializable {
     private val TAG: String = SignUpCodeRequiredState::class.java.simpleName
 
     interface SubmitCodeCallback : Callback<SignUpSubmitCodeResult>
@@ -116,7 +118,8 @@ class SignUpCodeRequiredState internal constructor(
                     config,
                     config.oAuth2TokenCache,
                     code,
-                    continuationToken
+                    continuationToken,
+                    correlationId
                 )
 
             val command = SignUpSubmitCodeCommand(
@@ -131,6 +134,7 @@ class SignUpCodeRequiredState internal constructor(
                     SignUpResult.PasswordRequired(
                         nextState = SignUpPasswordRequiredState(
                             continuationToken = result.continuationToken,
+                            correlationId = result.correlationId,
                             username = username,
                             config = config
                         )
@@ -141,6 +145,7 @@ class SignUpCodeRequiredState internal constructor(
                     SignUpResult.AttributesRequired(
                         nextState = SignUpAttributesRequiredState(
                             continuationToken = result.continuationToken,
+                            correlationId = result.correlationId,
                             username = username,
                             config = config
                         ),
@@ -152,6 +157,7 @@ class SignUpCodeRequiredState internal constructor(
                     SignUpResult.Complete(
                         nextState = SignInAfterSignUpState(
                             continuationToken = result.continuationToken,
+                            correlationId = result.correlationId,
                             username = username,
                             config = config
                         )
@@ -242,6 +248,7 @@ class SignUpCodeRequiredState internal constructor(
                 CommandParametersAdapter.createSignUpResendCodeCommandParameters(
                     config,
                     config.oAuth2TokenCache,
+                    correlationId,
                     continuationToken
                 )
             val command = SignUpResendCodeCommand(
@@ -256,6 +263,7 @@ class SignUpCodeRequiredState internal constructor(
                     SignUpResendCodeResult.Success(
                         nextState = SignUpCodeRequiredState(
                             continuationToken = result.continuationToken,
+                            correlationId = result.correlationId,
                             username = username,
                             config = config
                         ),
@@ -296,14 +304,16 @@ class SignUpCodeRequiredState internal constructor(
  * SignUpPasswordRequiredState class represents a state where the user has to provide a password
  * to progress in the signup flow.
  * @property continuationToken: Continuation token to be passed in the next request
+ * @property correlationId: Correlation ID taken from the previous API response and passed to the next request
  * @property username: Email address of the user
  * @property config Configuration used by Native Auth
  */
 class SignUpPasswordRequiredState internal constructor(
     override val continuationToken: String,
+    override val correlationId: String?,
     private val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(continuationToken), State, Serializable {
+) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Serializable {
     private val TAG: String = SignUpPasswordRequiredState::class.java.simpleName
 
     interface SignUpSubmitPasswordCallback : Callback<SignUpSubmitPasswordResult>
@@ -345,6 +355,7 @@ class SignUpPasswordRequiredState internal constructor(
                     config,
                     config.oAuth2TokenCache,
                     continuationToken,
+                    correlationId,
                     password
                 )
             val command = SignUpSubmitPasswordCommand(
@@ -362,6 +373,7 @@ class SignUpPasswordRequiredState internal constructor(
                         SignUpResult.Complete(
                             nextState = SignInAfterSignUpState(
                                 continuationToken = result.continuationToken,
+                                correlationId = result.correlationId,
                                 username = username,
                                 config = config
                             )
@@ -372,6 +384,7 @@ class SignUpPasswordRequiredState internal constructor(
                         SignUpResult.AttributesRequired(
                             nextState = SignUpAttributesRequiredState(
                                 continuationToken = result.continuationToken,
+                                correlationId = result.correlationId,
                                 username = username,
                                 config = config
                             ),
@@ -449,14 +462,16 @@ class SignUpPasswordRequiredState internal constructor(
  * SignUpAttributesRequiredState class represents a state where the user has to provide signup
  * attributes to progress in the signup flow.
  * @property continuationToken: Continuation token to be passed in the next request
+ * @property correlationId: Correlation ID taken from the previous API response and passed to the next request
  * @property username: Email address of the user
  * @property config Configuration used by Native Auth
  */
 class SignUpAttributesRequiredState internal constructor(
     override val continuationToken: String,
+    override val correlationId: String?,
     private val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(continuationToken), State, Serializable {
+) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Serializable {
     private val TAG: String = SignUpAttributesRequiredState::class.java.simpleName
 
     interface SignUpSubmitUserAttributesCallback : Callback<SignUpSubmitAttributesResult>
@@ -499,6 +514,7 @@ class SignUpAttributesRequiredState internal constructor(
                     config,
                     config.oAuth2TokenCache,
                     continuationToken,
+                    correlationId,
                     attributes.toMap()
                 )
 
@@ -515,6 +531,7 @@ class SignUpAttributesRequiredState internal constructor(
                     SignUpResult.AttributesRequired(
                         nextState = SignUpAttributesRequiredState(
                             continuationToken = result.continuationToken,
+                            correlationId = result.correlationId,
                             username = username,
                             config = config
                         ),
@@ -525,6 +542,7 @@ class SignUpAttributesRequiredState internal constructor(
                     SignUpResult.Complete(
                         nextState = SignInAfterSignUpState(
                             continuationToken = result.continuationToken,
+                            correlationId = result.correlationId,
                             username = username,
                             config = config
                         )
@@ -585,9 +603,15 @@ class SignUpAttributesRequiredState internal constructor(
  */
 class SignInAfterSignUpState internal constructor(
     override val continuationToken: String?,
+    override val correlationId: String?,
     override val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : SignInAfterSignUpBaseState(continuationToken, username, config) {
+) : SignInAfterSignUpBaseState(
+    continuationToken = continuationToken,
+    correlationId = correlationId,
+    username = username,
+    config = config
+) {
     private val TAG: String = SignInAfterSignUpState::class.java.simpleName
     interface SignInAfterSignUpCallback : SignInAfterSignUpBaseState.SignInAfterSignUpCallback
 

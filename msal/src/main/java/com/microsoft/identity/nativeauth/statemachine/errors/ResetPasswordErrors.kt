@@ -55,7 +55,7 @@ class ResetPasswordError(
     override val errorType: String? = null,
     override val error: String? = null,
     override val errorMessage: String?,
-    override val correlationId: String,
+    override val correlationId: String?,
     override val errorCodes: List<Int>? = null,
     override var exception: Exception? = null
 ): ResetPasswordResult, ResetPasswordStartResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
@@ -78,7 +78,7 @@ class ResetPasswordSubmitPasswordError(
     override val errorType: String? = null,
     override val error: String? = null,
     override val errorMessage: String?,
-    override val correlationId: String,
+    override val correlationId: String?,
     override val errorCodes: List<Int>? = null,
     val subError: String? = null,
     override var exception: Exception? = null

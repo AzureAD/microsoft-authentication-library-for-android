@@ -65,14 +65,16 @@ import java.io.Serializable
  * SignInCodeRequiredState class represents a state where the user has to provide a code to progress
  * in the signin flow.
  * @property continuationToken: Continuation token to be passed in the next request
+ * @property correlationId: Correlation ID taken from the previous API response and passed to the next request
  * @property scopes: List of scopes
  * @property config Configuration used by Native Auth
  */
 class SignInCodeRequiredState internal constructor(
     override val continuationToken: String,
+    override val correlationId: String?,
     private val scopes: List<String>?,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(continuationToken), State, Serializable {
+) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Serializable {
     private val TAG: String = SignInCodeRequiredState::class.java.simpleName
 
     /**
@@ -114,6 +116,7 @@ class SignInCodeRequiredState internal constructor(
                 config.oAuth2TokenCache,
                 code,
                 continuationToken,
+                correlationId,
                 scopes
             )
 
@@ -211,6 +214,7 @@ class SignInCodeRequiredState internal constructor(
             val params = CommandParametersAdapter.createSignInResendCodeCommandParameters(
                 config,
                 config.oAuth2TokenCache,
+                correlationId,
                 continuationToken
             )
 
@@ -227,6 +231,7 @@ class SignInCodeRequiredState internal constructor(
                     SignInResendCodeResult.Success(
                         nextState = SignInCodeRequiredState(
                             continuationToken = result.continuationToken,
+                            correlationId = result.correlationId,
                             scopes = scopes,
                             config = config
                         ),
@@ -268,14 +273,16 @@ class SignInCodeRequiredState internal constructor(
  * SignInPasswordRequiredState class represents a state where the user has to provide a password to progress
  * in the signin flow.
  * @property continuationToken: Continuation token to be passed in the next request
+ * @property correlationId: Correlation ID taken from the previous API response and passed to the next request
  * @property scopes: List of scopes
  * @property config Configuration used by Native Auth
  */
 class SignInPasswordRequiredState(
     override val continuationToken: String,
+    override val correlationId: String?,
     private val scopes: List<String>?,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(continuationToken), State {
+) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State {
     private val TAG: String = SignInPasswordRequiredState::class.java.simpleName
 
     /**
@@ -317,6 +324,7 @@ class SignInPasswordRequiredState(
                 config.oAuth2TokenCache,
                 continuationToken,
                 password,
+                correlationId,
                 scopes
             )
 
@@ -385,15 +393,17 @@ class SignInPasswordRequiredState(
  * SignInAfterSignUpBaseState class is an abstract class to represent signin state after
  * successfull signup
  * in the signin flow.
- * @property continuationToken: Continuation token from signup APIS
+ * @property continuationToken: Continuation token from signup APIs
+ * @property correlationId: Correlation ID taken from the previous API response and passed to the next request
  * @property username: Username of the user
  * @property config Configuration used by Native Auth
  */
 abstract class SignInAfterSignUpBaseState(
     override val continuationToken: String?,
+    override val correlationId: String?,
     internal open val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(continuationToken), State, Serializable {
+) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Serializable {
     private val TAG: String = SignInAfterSignUpBaseState::class.java.simpleName
 
     /**
@@ -451,6 +461,7 @@ abstract class SignInAfterSignUpBaseState(
                 config.oAuth2TokenCache,
                 continuationToken,
                 username,
+                correlationId,
                 scopes
             )
 
@@ -467,6 +478,7 @@ abstract class SignInAfterSignUpBaseState(
                     SignInResult.CodeRequired(
                         nextState = SignInCodeRequiredState(
                             continuationToken = result.continuationToken,
+                            correlationId = result.correlationId,
                             scopes = scopes,
                             config = config
                         ),
@@ -479,6 +491,7 @@ abstract class SignInAfterSignUpBaseState(
                     SignInResult.PasswordRequired(
                         nextState = SignInPasswordRequiredState(
                             continuationToken = result.continuationToken,
+                            correlationId = result.correlationId,
                             scopes = scopes,
                             config = config
                         )
