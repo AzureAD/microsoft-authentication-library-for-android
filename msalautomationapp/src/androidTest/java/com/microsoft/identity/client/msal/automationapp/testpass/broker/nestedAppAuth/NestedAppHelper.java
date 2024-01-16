@@ -221,8 +221,8 @@ public class NestedAppHelper {
         validateAppIdIfRequired(acquireTokenSilentResult, NESTED_APP_CLIENT_ID);
     }
 
-    private void validateAppIdIfRequired(final AcquireTokenResult acquireTokenResult, final String expectedClientId) throws ServiceException {
-        // cannot parse jwt for MSA
+    private void validateAppIdIfRequired(@NonNull final AcquireTokenResult acquireTokenResult, @NonNull final String expectedClientId) throws ServiceException {
+        // Cannot parse jwt for MSA, so no validation for MSA
         if (mLabAccount.getUserType() != UserType.MSA) {
             final String appId = (String) IDToken.parseJWT(acquireTokenResult.getLocalAuthenticationResult().getAccessToken()).get(APP_ID);
             Assert.assertEquals(expectedClientId, appId);
