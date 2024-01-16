@@ -61,9 +61,6 @@ public class TestCase2688460 extends AbstractMsalBrokerTest {
         // perform AT interactive request for hub app
         nestedAppHelper.performATForHubApp();
 
-        mBroker.forceStop();
-        mBroker.launch();
-
         // just verify that getAccounts does not fail
         nestedAppHelper.getAccountRecordAfterHubAppAT();
         nestedAppHelper.performInteractiveATForNestedApp(false);

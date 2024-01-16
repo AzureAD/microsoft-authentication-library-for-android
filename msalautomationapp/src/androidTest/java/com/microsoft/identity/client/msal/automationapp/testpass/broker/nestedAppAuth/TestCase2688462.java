@@ -66,9 +66,6 @@ public class TestCase2688462 extends AbstractMsalBrokerTest {
         nestedAppHelper.performInteractiveATForNestedApp(false);
         // verify getAccounts gives 0 records
         nestedAppHelper.getAccountRecordAfterNestedAppAT();
-
-        mBroker.forceStop();
-        mBroker.launch();
     }
 
     @Override

@@ -53,9 +53,6 @@ public class TestCase2703171 extends AbstractMsalBrokerTest {
         // perform AT interactive request for hub app
         nestedAppHelper.performATForHubAppInUSGovCloud();
 
-        mBroker.forceStop();
-        mBroker.launch();
-
         AccountRecord accountRecord = nestedAppHelper.getAccountRecordAfterHubAppAT();
 
         try {
