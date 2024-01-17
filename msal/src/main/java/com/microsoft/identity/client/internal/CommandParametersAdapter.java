@@ -203,6 +203,7 @@ public class CommandParametersAdapter {
                 .handleNullTaskAffinity(configuration.isHandleNullTaskAffinityEnabled())
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .correlationId(parameters.getCorrelationId())
+                .preferredAuthMethod(parameters.getPreferredAuthMethod())
                 .build();
 
         return commandParameters;
@@ -1057,7 +1058,7 @@ public class CommandParametersAdapter {
         return null;
     }
 
-    private static Authority getRequestAuthority(
+    public static Authority getRequestAuthority(
             @NonNull final PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
 
         String requestAuthority = null;
