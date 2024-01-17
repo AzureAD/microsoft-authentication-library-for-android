@@ -25,7 +25,6 @@
   -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.microsoft.identity.client.testapp"
           xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -81,6 +80,14 @@
                 <data android:scheme="msauth"
                     android:host="${applicationId}"
                     android:path="/1wIqXSqBj7w+h11ZifsnqwgyKrY="/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="msauth"
+                    android:host="microsoft.aad.brokerplugin"/>
             </intent-filter>
         </activity>
     </application>

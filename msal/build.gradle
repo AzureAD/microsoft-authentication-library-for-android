@@ -57,6 +57,7 @@ android {
     compileSdk rootProject.ext.compileSdkVersion
 
     defaultConfig {
+        namespace = "com.microsoft.identity.msal"
         multiDexEnabled true
         minSdkVersion rootProject.ext.minSdkVersion
         if(project.getProperties().get("robolectricSdkVersion")){
@@ -86,6 +87,8 @@ android {
             buildConfigField("String", "VERSION_NAME", "\"${project.version}\"")
         }
     }
+
+    android.buildFeatures.buildConfig true
 
     publishNonDefault true
 
@@ -176,13 +179,13 @@ task javadoc(type: Javadoc) {
 // Task to generate javadoc.jar
 task javadocJar(type: Jar, dependsOn: javadoc) {
     from javadoc.destinationDir
-    classifier 'javadoc'
+    archiveClassifier.set("javadoc")
     destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
 }
 
 task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
-    classifier 'sources'
+    archiveClassifier.set("sources")
     destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
 }
 
@@ -280,11 +283,11 @@ task pmd(type: Pmd) {
 
     ruleSets = ["java-basic", "java-braces", "java-strings", "java-unusedcode"]
     source = fileTree('src/main/java')
-
-    reports {
-        xml.enabled = false
-        html.enabled = true
-    }
+//
+//    reports {
+//        xml.setEnabled(false)
+//        html.setEnabled(true)
+//    }
 }
 
 afterEvaluate {

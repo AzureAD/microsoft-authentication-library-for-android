@@ -166,6 +166,8 @@ android {
     }
 }
 
+android.buildFeatures.buildConfig true
+
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
 

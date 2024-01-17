@@ -1,8 +1,7 @@
 {
-  "client_id" : "29d9ed98-a469-4536-ade2-f981bc1d605e",
-  "authorization_user_agent" : "BROWSER",
-  "redirect_uri" : "msauth://Microsoft.AAD.BrokerPlugin",
-  "broker_redirect_uri_registered": true,
+  "client_id" : "9668f2bd-6103-4292-9024-84fa2d1b6fb2",
+  "authorization_user_agent" : "DEFAULT",
+  "redirect_uri" : "msauth://com.msft.identity.client.sample.local/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D",
   "authorities" : [
     {
       "type": "AAD",
@@ -13,5 +12,5 @@
       "type": "AAD",
       "authority_url": "https://login.windows-ppe.net"
     }
-  ]
+]
 }

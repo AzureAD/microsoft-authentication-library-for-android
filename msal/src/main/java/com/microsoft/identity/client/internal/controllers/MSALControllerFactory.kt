@@ -134,18 +134,18 @@ class MSALControllerFactory(
         val methodTag = "$TAG:brokerEligible"
         val logBrokerEligibleFalse = "Eligible to call broker? [false]. "
 
-        //If app has not asked for Broker or if the authority is not AAD return false
-        if (!applicationConfiguration.useBroker || authority !is AzureActiveDirectoryAuthority) {
-            Logger.verbose(
-                methodTag, logBrokerEligibleFalse +
-                        "App does not ask for Broker or the authority is not AAD authority."
-            )
-            return false
-        }
-
-        if (powerOptimizationEnabled()) {
-            Logger.verbose(methodTag, "Is the power optimization enabled? [true]")
-        }
+//        //If app has not asked for Broker or if the authority is not AAD return false
+//        if (!applicationConfiguration.useBroker || authority !is AzureActiveDirectoryAuthority) {
+//            Logger.verbose(
+//                methodTag, logBrokerEligibleFalse +
+//                        "App does not ask for Broker or the authority is not AAD authority."
+//            )
+//            return false
+//        }
+//
+//        if (powerOptimizationEnabled()) {
+//            Logger.verbose(methodTag, "Is the power optimization enabled? [true]")
+//        }
         return true
     }
 
