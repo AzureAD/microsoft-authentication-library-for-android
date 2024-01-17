@@ -25,6 +25,7 @@ import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
+import com.microsoft.identity.common.java.ui.PreferredAuthMethod;
 import com.microsoft.identity.common.java.util.StringUtil;
 
 import java.net.MalformedURLException;
@@ -78,6 +79,26 @@ abstract class MsalWrapper {
 
         final AcquireTokenParameters.Builder builder = getAcquireTokenParametersBuilder(activity, requestOptions, callback);
         builder.withScopes(Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")));
+        builder.withOtherScopesToAuthorize(
+                Arrays.asList(
+                        requestOptions
+                                .getExtraScope()
+                                .toLowerCase()
+                                .split(" ")
+                )
+        );
+
+        final AcquireTokenParameters parameters = builder.build();
+        acquireTokenAsyncInternal(parameters);
+    }
+
+    public void acquireTokenWithQR(@NonNull final Activity activity,
+                                   @NonNull final RequestOptions requestOptions,
+                                   @NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback) {
+
+        final AcquireTokenParameters.Builder builder = getAcquireTokenParametersBuilder(activity, requestOptions, callback);
+        builder.withScopes(Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")));
+        builder.withPreferredAuthMethod(PreferredAuthMethod.QR);
         builder.withOtherScopesToAuthorize(
                 Arrays.asList(
                         requestOptions
