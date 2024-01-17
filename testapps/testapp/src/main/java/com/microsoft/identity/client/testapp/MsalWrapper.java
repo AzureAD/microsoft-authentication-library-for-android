@@ -25,6 +25,7 @@ import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
+import com.microsoft.identity.common.java.exception.BaseException;
 import com.microsoft.identity.common.java.ui.PreferredAuthMethod;
 import com.microsoft.identity.common.java.util.StringUtil;
 
@@ -67,6 +68,8 @@ abstract class MsalWrapper {
     public abstract String getDefaultBrowser();
 
     public abstract String getMode();
+
+    public abstract IPublicClientApplication getApp();
 
     public abstract void loadAccounts(@NonNull final INotifyOperationResultCallback<List<IAccount>> callback);
 
@@ -357,4 +360,12 @@ abstract class MsalWrapper {
                                                            @NonNull final PoPAuthenticationScheme params,
                                                            @NonNull final INotifyOperationResultCallback<String> generateShrCallback
     );
+
+    public String isQrPinAvailable() {
+        try {
+            return String.valueOf(getApp().isQRPinAvailable());
+        } catch (BaseException e) {
+            return e.getMessage();
+        }
+    }
 }

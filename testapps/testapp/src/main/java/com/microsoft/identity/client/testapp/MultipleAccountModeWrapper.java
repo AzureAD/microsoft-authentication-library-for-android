@@ -58,6 +58,11 @@ public class MultipleAccountModeWrapper extends MsalWrapper {
     }
 
     @Override
+    public IPublicClientApplication getApp() {
+        return mApp;
+    }
+
+    @Override
     public String getDefaultBrowser() {
         try {
             return BrowserSelector.select(mApp.getConfiguration().getAppContext(),

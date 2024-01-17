@@ -114,6 +114,7 @@ public class AcquireTokenFragment extends Fragment {
     private LinearLayout mPopSection;
     private LinearLayout mLoginHintSection;
     private ToggleButton mDebugBrokers;
+    private Button mIsQrPinAvailable;
     private OnFragmentInteractionListener mOnFragmentInteractionListener;
     private MsalWrapper mMsalWrapper;
     private List<IAccount> mLoadedAccounts = new ArrayList<>();
@@ -168,6 +169,7 @@ public class AcquireTokenFragment extends Fragment {
         mBrokerHelper = view.findViewById(R.id.btnBrokerHelper);
         mGetActiveBrokerPkg = view.findViewById(R.id.btnGetActiveBroker);
         mGenerateSHR = view.findViewById(R.id.btn_generate_shr);
+        mIsQrPinAvailable = view.findViewById(R.id.btnIsQrPinAvailable);
         mConfigFileSpinner = view.findViewById(R.id.configFile);
         mAuthScheme = view.findViewById(R.id.authentication_scheme);
         mPublicApplicationMode = view.findViewById(R.id.public_application_mode);
@@ -422,6 +424,10 @@ public class AcquireTokenFragment extends Fragment {
                 BrokerData.setShouldTrustDebugBrokers(debugBrokers);
             }
         });
+
+        mIsQrPinAvailable.setOnClickListener(v -> AcquireTokenFragment.this.showMessage(
+            mMsalWrapper.isQrPinAvailable()
+        ));
 
         return view;
     }
