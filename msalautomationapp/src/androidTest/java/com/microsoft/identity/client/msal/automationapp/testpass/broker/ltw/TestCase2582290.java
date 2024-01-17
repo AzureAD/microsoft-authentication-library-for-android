@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
+import androidx.annotation.NonNull;
+
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
@@ -36,10 +38,14 @@ import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
+import java.util.Arrays;
 import java.util.List;
 
 // If LTW is the active broker, and request is made through Authenticator from MSAL in non-shared device mode, nothing should break
@@ -47,7 +53,22 @@ import java.util.List;
 @LTWTests
 @RunOnAPI29Minus
 @SupportedBrokers(brokers = {BrokerLTW.class})
+@RunWith(Parameterized.class)
 public class TestCase2582290 extends AbstractMsalBrokerTest {
+
+    private final UserType mUserType;
+
+    public TestCase2582290(@NonNull UserType userType) {
+        mUserType = userType;
+    }
+
+    @Parameterized.Parameters(name = "{0}")
+    public static List<UserType> userType() {
+        return Arrays.asList(
+                UserType.MSA,
+                UserType.CLOUD
+        );
+    }
 
     @Test
     public void test_2582290() throws Throwable{
@@ -61,7 +82,7 @@ public class TestCase2582290 extends AbstractMsalBrokerTest {
         final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
         oneAuthTestApp.install();
         oneAuthTestApp.launch();
-        oneAuthTestApp.handleFirstRun();
+        oneAuthTestApp.handleFirstRunBasedOnUserType(mUserType);
 
         // Performs AcquireToken
         // User is Prompted for creds
@@ -87,7 +108,7 @@ public class TestCase2582290 extends AbstractMsalBrokerTest {
         final MsalTestApp msalTestApp = new MsalTestApp();
         msalTestApp.installOldApk();
         msalTestApp.launch();
-        msalTestApp.handleFirstRun();
+        msalTestApp.handleFirstRunBasedOnUserType(mUserType);
 
         // Click on "AcquireToken" button
         // User is Prompted for creds
@@ -147,13 +168,16 @@ public class TestCase2582290 extends AbstractMsalBrokerTest {
 
     @Override
     public LabQuery getLabQuery() {
-        return null;
+        return LabQuery.builder()
+                .userType(UserType.CLOUD)
+                .build();
     }
 
     @Override
     public TempUserType getTempUserType() {
-        return TempUserType.BASIC;
+        return null;
     }
+
 
     @Override
     public String[] getScopes() {
