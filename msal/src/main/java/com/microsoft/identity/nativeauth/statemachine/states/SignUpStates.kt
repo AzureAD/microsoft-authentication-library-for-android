@@ -67,15 +67,15 @@ import java.io.Serializable
  * Native Auth uses a state machine to denote state of and transitions within a flow.
  * SignUpCodeRequiredState class represents a state where the user has to provide a code to progress
  * in the signup flow.
- * @property flowToken: Flow token to be passed in the next request
+ * @property continuationToken: Continuation token to be passed in the next request
  * @property username: Email address of the user
  * @property config Configuration used by Native Auth
  */
 class SignUpCodeRequiredState internal constructor(
-    override val flowToken: String,
+    override val continuationToken: String,
     private val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(flowToken), State, Serializable {
+) : BaseState(continuationToken), State, Serializable {
     private val TAG: String = SignUpCodeRequiredState::class.java.simpleName
 
     interface SubmitCodeCallback : Callback<SignUpSubmitCodeResult>
@@ -116,7 +116,7 @@ class SignUpCodeRequiredState internal constructor(
                     config,
                     config.oAuth2TokenCache,
                     code,
-                    flowToken
+                    continuationToken
                 )
 
             val command = SignUpSubmitCodeCommand(
@@ -130,7 +130,7 @@ class SignUpCodeRequiredState internal constructor(
                 is SignUpCommandResult.PasswordRequired -> {
                     SignUpResult.PasswordRequired(
                         nextState = SignUpPasswordRequiredState(
-                            flowToken = result.signupToken,
+                            continuationToken = result.continuationToken,
                             username = username,
                             config = config
                         )
@@ -140,7 +140,7 @@ class SignUpCodeRequiredState internal constructor(
                 is SignUpCommandResult.AttributesRequired -> {
                     SignUpResult.AttributesRequired(
                         nextState = SignUpAttributesRequiredState(
-                            flowToken = result.signupToken,
+                            continuationToken = result.continuationToken,
                             username = username,
                             config = config
                         ),
@@ -151,7 +151,7 @@ class SignUpCodeRequiredState internal constructor(
                 is SignUpCommandResult.Complete -> {
                     SignUpResult.Complete(
                         nextState = SignInAfterSignUpState(
-                            signInVerificationCode = result.signInSLT,
+                            continuationToken = result.continuationToken,
                             username = username,
                             config = config
                         )
@@ -163,7 +163,8 @@ class SignUpCodeRequiredState internal constructor(
                         errorType = ErrorTypes.BROWSER_REQUIRED,
                         error = result.error,
                         errorMessage = result.errorDescription,
-                        correlationId = result.correlationId
+                        correlationId = result.correlationId,
+                        subError = result.subError
                     )
                 }
 
@@ -241,7 +242,7 @@ class SignUpCodeRequiredState internal constructor(
                 CommandParametersAdapter.createSignUpResendCodeCommandParameters(
                     config,
                     config.oAuth2TokenCache,
-                    flowToken
+                    continuationToken
                 )
             val command = SignUpResendCodeCommand(
                 commandParameters,
@@ -254,7 +255,7 @@ class SignUpCodeRequiredState internal constructor(
                 is SignUpCommandResult.CodeRequired -> {
                     SignUpResendCodeResult.Success(
                         nextState = SignUpCodeRequiredState(
-                            flowToken = result.signupToken,
+                            continuationToken = result.continuationToken,
                             username = username,
                             config = config
                         ),
@@ -294,15 +295,15 @@ class SignUpCodeRequiredState internal constructor(
  * Native Auth uses a state machine to denote state of and transitions within a flow.
  * SignUpPasswordRequiredState class represents a state where the user has to provide a password
  * to progress in the signup flow.
- * @property flowToken: Flow token to be passed in the next request
+ * @property continuationToken: Continuation token to be passed in the next request
  * @property username: Email address of the user
  * @property config Configuration used by Native Auth
  */
 class SignUpPasswordRequiredState internal constructor(
-    override val flowToken: String,
+    override val continuationToken: String,
     private val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(flowToken), State, Serializable {
+) : BaseState(continuationToken), State, Serializable {
     private val TAG: String = SignUpPasswordRequiredState::class.java.simpleName
 
     interface SignUpSubmitPasswordCallback : Callback<SignUpSubmitPasswordResult>
@@ -343,7 +344,7 @@ class SignUpPasswordRequiredState internal constructor(
                 CommandParametersAdapter.createSignUpSubmitPasswordCommandParameters(
                     config,
                     config.oAuth2TokenCache,
-                    flowToken,
+                    continuationToken,
                     password
                 )
             val command = SignUpSubmitPasswordCommand(
@@ -360,7 +361,7 @@ class SignUpPasswordRequiredState internal constructor(
                     is SignUpCommandResult.Complete -> {
                         SignUpResult.Complete(
                             nextState = SignInAfterSignUpState(
-                                signInVerificationCode = result.signInSLT,
+                                continuationToken = result.continuationToken,
                                 username = username,
                                 config = config
                             )
@@ -370,7 +371,7 @@ class SignUpPasswordRequiredState internal constructor(
                     is SignUpCommandResult.AttributesRequired -> {
                         SignUpResult.AttributesRequired(
                             nextState = SignUpAttributesRequiredState(
-                                flowToken = result.signupToken,
+                                continuationToken = result.continuationToken,
                                 username = username,
                                 config = config
                             ),
@@ -383,7 +384,8 @@ class SignUpPasswordRequiredState internal constructor(
                             errorType = ErrorTypes.INVALID_PASSWORD,
                             error = result.error,
                             errorMessage = result.errorDescription,
-                            correlationId = result.correlationId
+                            correlationId = result.correlationId,
+                            subError = result.subError
                         )
                     }
 
@@ -446,15 +448,15 @@ class SignUpPasswordRequiredState internal constructor(
  * Native Auth uses a state machine to denote state of and transitions within a flow.
  * SignUpAttributesRequiredState class represents a state where the user has to provide signup
  * attributes to progress in the signup flow.
- * @property flowToken: Flow token to be passed in the next request
+ * @property continuationToken: Continuation token to be passed in the next request
  * @property username: Email address of the user
  * @property config Configuration used by Native Auth
  */
 class SignUpAttributesRequiredState internal constructor(
-    override val flowToken: String,
+    override val continuationToken: String,
     private val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(flowToken), State, Serializable {
+) : BaseState(continuationToken), State, Serializable {
     private val TAG: String = SignUpAttributesRequiredState::class.java.simpleName
 
     interface SignUpSubmitUserAttributesCallback : Callback<SignUpSubmitAttributesResult>
@@ -496,7 +498,7 @@ class SignUpAttributesRequiredState internal constructor(
                 CommandParametersAdapter.createSignUpStarSubmitUserAttributesCommandParameters(
                     config,
                     config.oAuth2TokenCache,
-                    flowToken,
+                    continuationToken,
                     attributes.toMap()
                 )
 
@@ -512,7 +514,7 @@ class SignUpAttributesRequiredState internal constructor(
                 is SignUpCommandResult.AttributesRequired -> {
                     SignUpResult.AttributesRequired(
                         nextState = SignUpAttributesRequiredState(
-                            flowToken = result.signupToken,
+                            continuationToken = result.continuationToken,
                             username = username,
                             config = config
                         ),
@@ -522,7 +524,7 @@ class SignUpAttributesRequiredState internal constructor(
                 is SignUpCommandResult.Complete -> {
                     SignUpResult.Complete(
                         nextState = SignInAfterSignUpState(
-                            signInVerificationCode = result.signInSLT,
+                            continuationToken = result.continuationToken,
                             username = username,
                             config = config
                         )
@@ -577,15 +579,15 @@ class SignUpAttributesRequiredState internal constructor(
  * Native Auth uses a state machine to denote state of and transitions within a flow.
  * SignInAfterSignUpState class represents a state where the user must signin after successful
  * signup flow.
- * @property signInVerificationCode: Token to be passed in the next request
+ * @property continuationToken: Token to be passed in the next request
  * @property username: Email address of the user
  * @property config Configuration used by Native Auth
  */
 class SignInAfterSignUpState internal constructor(
-    override val signInVerificationCode: String?,
+    override val continuationToken: String?,
     override val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : SignInAfterSignUpBaseState(signInVerificationCode, username, config) {
+) : SignInAfterSignUpBaseState(continuationToken, username, config) {
     private val TAG: String = SignInAfterSignUpState::class.java.simpleName
     interface SignInAfterSignUpCallback : SignInAfterSignUpBaseState.SignInAfterSignUpCallback
 

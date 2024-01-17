@@ -70,4 +70,5 @@
     <string name="clear_active_broker_cache">Clear Active Broker Cache</string>
     <string name="current_cached_active_broker">Cached Active Broker</string>
     <string name="none">None</string>
+    <string name="at_with_qr_pin">AT with QR + PIN</string>
 </resources>
