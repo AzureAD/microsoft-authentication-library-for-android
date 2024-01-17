@@ -404,7 +404,7 @@ public class CommandParametersAdapter {
                 .userAttributes(userAttributes)
                 // Start of the flow, so there is no correlation ID to use from a previous API response.
                 // Set it to a default value.
-                .correlationId(null)
+                .correlationId(DiagnosticContext.INSTANCE.getThreadCorrelationId())
                 .build();
     }
 
@@ -445,7 +445,7 @@ public class CommandParametersAdapter {
                 .userAttributes(userAttributes)
                 // Start of the flow, so there is no correlation ID to use from a previous API response.
                 // Set it to a default value.
-                .correlationId(null)
+                .correlationId(DiagnosticContext.INSTANCE.getThreadCorrelationId())
                 .build();
     }
 
@@ -640,7 +640,7 @@ public class CommandParametersAdapter {
                 .challengeType(configuration.getChallengeTypes())
                 // Start of the flow, so there is no correlation ID to use from a previous API response.
                 // Set it to a default value.
-                .correlationId(null)
+                .correlationId(DiagnosticContext.INSTANCE.getThreadCorrelationId())
                 .build();
 
         return commandParameters;
@@ -919,7 +919,7 @@ public class CommandParametersAdapter {
                         .clientId(configuration.getClientId())
                         // Start of the flow, so there is no correlation ID to use from a previous API response.
                         // Set it to a default value.
-                        .correlationId(null)
+                        .correlationId(DiagnosticContext.INSTANCE.getThreadCorrelationId())
                         .build();
 
         return commandParameters;
