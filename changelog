@@ -4,6 +4,7 @@ vNext
 ----------
 - [MINOR] Add isQRPinAvailable API to MSAL IPublicClientApplication (#1931)
 - [MINOR] Add PreferredAuthMethod to interactive token flow (#1964)
+- [PATCH] Move locking methods in PCA initialization to a background thread (#2008)
 
 Version 5.0.0
 ----------
