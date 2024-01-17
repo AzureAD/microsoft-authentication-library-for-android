@@ -19,6 +19,7 @@ import com.microsoft.identity.client.ui.automation.device.settings.GoogleSetting
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Test;
 
@@ -26,8 +27,8 @@ public class testcase extends AbstractMsalBrokerTest {
 
     @Test
     public void test_case() throws Throwable {
-        final String username = "someusername";
-        final String password = "somepassword";
+        final String username = "passkeytest3@authapp2112.onmicrosoft.com";
+        final String password = "Mikasa987!";
 
         //Enable Authenticator as a passkey provider.
         final GoogleSettings settings = new GoogleSettings();
@@ -51,6 +52,15 @@ public class testcase extends AbstractMsalBrokerTest {
         UiAutomatorUtils.handleInput("i0118", password);
         //UiAutomatorUtils.handleButtonClickForObjectWithText("Sign in");
         UiAutomatorUtils.handleButtonClick("idSIButton9");
+
+        UiAutomatorUtils.handleButtonClick("com.google.android.gms:id/more_options_button");
+        UiAutomatorUtils.handleButtonClick("com.google.android.gms:id/transport_selection_cancel_button");
+        UiAutomatorUtils.obtainUiObjectWithUiSelector(new UiSelector().descriptionContains("Other ways to sign in").resourceId("idA_PWD_SwitchToCredPicker"), FIND_UI_ELEMENT_TIMEOUT).click();
+
+        //UiAutomatorUtils.obtainUiObjectWithDescription("Other ways to sign in").click();
+
+        UiAutomatorUtils.handleButtonClickForObjectWithText("Add sign-in method");
+        UiAutomatorUtils.handleButtonClick("Dropdown65");
         //UiAutomatorUtils.pressBack();
         //UiObject clickable = UiAutomatorUtils.obtainClickableUiObjects("hello");
         //clickable.click();
@@ -71,12 +81,14 @@ public class testcase extends AbstractMsalBrokerTest {
 
     @Override
     public LabQuery getLabQuery() {
-        return null;
+        return LabQuery.builder()
+                .userType(UserType.CLOUD)
+                .build();
     }
 
     @Override
     public TempUserType getTempUserType() {
-        return TempUserType.BASIC;
+        return null;
     }
 
     @Override
