@@ -2,6 +2,7 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+- [MINOR] Add PreferredAuthMethod to interactive token flow (#1964)
 
 Version 5.0.0
 ----------
