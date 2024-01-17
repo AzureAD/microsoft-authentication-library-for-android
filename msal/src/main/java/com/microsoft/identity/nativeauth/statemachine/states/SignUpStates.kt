@@ -299,7 +299,7 @@ class SignUpCodeRequiredState internal constructor(
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeString(flowToken)
+        parcel.writeString(continuationToken)
         parcel.writeString(username)
         parcel.writeSerializable(config)
     }
@@ -479,7 +479,7 @@ class SignUpPasswordRequiredState internal constructor(
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeString(flowToken)
+        parcel.writeString(continuationToken)
         parcel.writeString(username)
         parcel.writeSerializable(config)
     }
@@ -636,7 +636,7 @@ class SignUpAttributesRequiredState internal constructor(
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeString(flowToken)
+        parcel.writeString(continuationToken)
         parcel.writeString(username)
         parcel.writeSerializable(config)
     }
@@ -667,7 +667,7 @@ class SignUpAttributesRequiredState internal constructor(
 class SignInAfterSignUpState internal constructor(
     override val continuationToken: String?,
     override val username: String,
-    override val config: NativeAuthPublicClientApplicationConfiguration
+    val config: NativeAuthPublicClientApplicationConfiguration
 ) : SignInAfterSignUpBaseState(continuationToken, username, config) {
 
     constructor(parcel: Parcel) : this(
@@ -704,7 +704,7 @@ class SignInAfterSignUpState internal constructor(
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeString(flowToken)
+        parcel.writeString(continuationToken)
         parcel.writeString(username)
         parcel.writeSerializable(config)
     }

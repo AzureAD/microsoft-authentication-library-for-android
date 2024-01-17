@@ -271,7 +271,7 @@ class SignInCodeRequiredState internal constructor(
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeString(flowToken)
+        parcel.writeString(continuationToken)
         parcel.writeStringList(scopes)
         parcel.writeSerializable(config)
     }
@@ -555,7 +555,7 @@ abstract class SignInAfterSignUpBaseState(
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeString(signInVerificationCode)
+        parcel.writeString(continuationToken)
         parcel.writeString(username)
         parcel.writeSerializable(config)
     }

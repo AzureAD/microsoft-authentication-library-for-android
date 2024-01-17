@@ -254,7 +254,7 @@ class ResetPasswordCodeRequiredState internal constructor(
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeString(flowToken)
+        parcel.writeString(continuationToken)
         parcel.writeSerializable(config)
     }
 
@@ -397,7 +397,7 @@ class ResetPasswordPasswordRequiredState internal constructor(
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeString(flowToken)
+        parcel.writeString(continuationToken)
         parcel.writeSerializable(config)
     }
 
