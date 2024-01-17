@@ -22,8 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
-import androidx.annotation.NonNull;
-
 import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.common.java.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.logging.Logger;
@@ -35,11 +33,17 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-class AuthenticationResultAdapter {
+import androidx.annotation.NonNull;
+
+/**
+ * AuthenticationResultAdapter is an adapter class that converts results in the form of
+ * [ILocalAuthenticationResult] objects to [IAuthenticationResult] objects.
+ */
+public class AuthenticationResultAdapter {
 
     private static final String TAG = AuthenticationResultAdapter.class.getName();
 
-    static IAuthenticationResult adapt(@NonNull final ILocalAuthenticationResult localAuthenticationResult) {
+    public static IAuthenticationResult adapt(@NonNull final ILocalAuthenticationResult localAuthenticationResult) {
         final IAuthenticationResult authenticationResult = new AuthenticationResult(
                 localAuthenticationResult.getCacheRecordWithTenantProfileData(),
                 localAuthenticationResult.getCorrelationId()

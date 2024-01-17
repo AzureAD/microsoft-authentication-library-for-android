@@ -26,6 +26,7 @@ import android.app.Activity;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.test.core.app.ApplicationProvider;
 
 import com.microsoft.identity.client.claims.ClaimsRequest;
@@ -42,8 +43,10 @@ import com.microsoft.identity.common.java.commands.parameters.SilentTokenCommand
 import com.microsoft.identity.common.java.constants.FidoConstants;
 import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.java.exception.ClientException;
+import com.microsoft.identity.common.java.ui.PreferredAuthMethod;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -61,7 +64,6 @@ import java.util.Map;
 import java.util.UUID;
 
 @RunWith(RobolectricTestRunner.class)
-@Ignore("Passkey feature in development.")
 public class CommandParametersTest {
 
     private static final String AAD_CP1_CONFIG_FILE = "src/test/res/raw/aad_capabilities_cp1.json";
@@ -143,6 +145,28 @@ public class CommandParametersTest {
     }
 
     @Test
+    public void testAcquireTokenOperationWithPreferredAuthMethod() throws ClientException {
+
+        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(
+                getConfiguration(AAD_NONE_CONFIG_FILE),
+                getCache(),
+                getAcquireTokenParametersPreferredAuthMethod(PreferredAuthMethod.QR)
+        );
+        Assert.assertEquals(PreferredAuthMethod.QR, commandParameters.getPreferredAuthMethod());
+    }
+
+    @Test
+    public void testAcquireTokenOperationWithNoPreferredAuthMethod() throws ClientException {
+
+        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter.createInteractiveTokenCommandParameters(
+                getConfiguration(AAD_NONE_CONFIG_FILE),
+                getCache(),
+                getAcquireTokenParametersPreferredAuthMethod(null)
+        );
+        Assert.assertNull(commandParameters.getPreferredAuthMethod());
+    }
+
+    @Test
     public void testAcquireTokenSilentOperationWithoutCorrelationId() throws ClientException {
         SilentTokenCommandParameters commandParameters = CommandParametersAdapter.createSilentTokenCommandParameters(getConfiguration(AAD_CP1_CONFIG_FILE), getCache(), getAcquireTokenSilentParametersWithoutCorrelationId());
         Assert.assertNull(commandParameters.getCorrelationId());
@@ -181,6 +205,7 @@ public class CommandParametersTest {
 
     @Test
     public void testAppendToExtraQueryParametersIfWebAuthnCapable_UnsetPropertyAndNullInput() {
+        Assume.assumeTrue(FidoConstants.IS_PASSKEY_SUPPORT_READY);
         final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
                 null,
                 getConfiguration(AAD_NONE_CONFIG_FILE)
@@ -190,6 +215,7 @@ public class CommandParametersTest {
 
     @Test
     public void testAppendToExtraQueryParametersIfWebAuthnCapable_UnsetPropertyAndNonNullInput() {
+        Assume.assumeTrue(FidoConstants.IS_PASSKEY_SUPPORT_READY);
         final List<Map.Entry<String, String>> queryParameters = new ArrayList<>();
         queryParameters.add(new AbstractMap.SimpleEntry<>("field1", "property1"));
         final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
@@ -202,6 +228,7 @@ public class CommandParametersTest {
 
     @Test
     public void testAppendToExtraQueryParametersIfWebAuthnCapable_setPropertyAndNullInput() {
+        Assume.assumeTrue(FidoConstants.IS_PASSKEY_SUPPORT_READY);
         final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
                 null,
                 getConfiguration(WEBAUTHN_CAPABLE_CONFIG_FILE)
@@ -212,6 +239,7 @@ public class CommandParametersTest {
 
     @Test
     public void testAppendToExtraQueryParametersIfWebAuthnCapable_setPropertyAndNonNullInput() {
+        Assume.assumeTrue(FidoConstants.IS_PASSKEY_SUPPORT_READY);
         final List<Map.Entry<String, String>> queryParameters = new ArrayList<>();
         queryParameters.add(new AbstractMap.SimpleEntry<>("field1", "property1"));
         final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
@@ -224,6 +252,7 @@ public class CommandParametersTest {
 
     @Test
     public void testAppendToExtraQueryParametersIfWebAuthnCapable_setPropertyAndParameterAlreadyPresent() {
+        Assume.assumeTrue(FidoConstants.IS_PASSKEY_SUPPORT_READY);
         final List<Map.Entry<String, String>> queryParameters = new ArrayList<>();
         queryParameters.add(new AbstractMap.SimpleEntry<>(FidoConstants.WEBAUTHN_QUERY_PARAMETER_FIELD, FidoConstants.WEBAUTHN_QUERY_PARAMETER_VALUE));
         final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
@@ -236,6 +265,7 @@ public class CommandParametersTest {
 
     @Test
     public void testAppendToExtraQueryParametersIfWebAuthnCapable_setPropertyAndSingletonListInput() {
+        Assume.assumeTrue(FidoConstants.IS_PASSKEY_SUPPORT_READY);
         final List<Map.Entry<String, String>> queryParameters = Collections.singletonList(new AbstractMap.SimpleEntry<>("field1", "property1"));
         final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
                 queryParameters,
@@ -247,6 +277,7 @@ public class CommandParametersTest {
 
     @Test
     public void testAppendToExtraQueryParametersIfWebAuthnCapable_setPropertyAndArraysAsListInput() {
+        Assume.assumeTrue(FidoConstants.IS_PASSKEY_SUPPORT_READY);
         final List<Map.Entry<String, String>> queryParameters = Arrays.asList(
                 new AbstractMap.SimpleEntry<>("field1", "property1"),
                 new AbstractMap.SimpleEntry<>("field2", "property2"));
@@ -260,6 +291,7 @@ public class CommandParametersTest {
 
     @Test
     public void testAppendToExtraQueryParametersIfWebAuthnCapable_setPropertyAndParameterAlreadyPresentInImmutableList() {
+        Assume.assumeTrue(FidoConstants.IS_PASSKEY_SUPPORT_READY);
         final List<Map.Entry<String, String>> queryParameters = Collections.singletonList(new AbstractMap.SimpleEntry<>(
                 FidoConstants.WEBAUTHN_QUERY_PARAMETER_FIELD,
                 FidoConstants.WEBAUTHN_QUERY_PARAMETER_VALUE));
@@ -334,6 +366,17 @@ public class CommandParametersTest {
                 .build();
 
         return parameters;
+    }
+
+    private AcquireTokenParameters getAcquireTokenParametersPreferredAuthMethod(final @Nullable PreferredAuthMethod preferredAuthMethod) {
+        final AcquireTokenParameters.Builder parametersBuilder = new AcquireTokenParameters.Builder()
+                .withClaims(getAccessTokenClaimsRequest("device_id", ""))
+                .withScopes(new ArrayList<String>(Arrays.asList("User.Read")))
+                .startAuthorizationFromActivity(mActivity);
+        if (preferredAuthMethod != null) {
+            parametersBuilder.withPreferredAuthMethod(preferredAuthMethod);
+        }
+        return parametersBuilder.build();
     }
 
     private AcquireTokenParameters getAcquireTokenParametersWithoutCorrelationId() {

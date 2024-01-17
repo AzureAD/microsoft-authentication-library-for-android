@@ -23,7 +23,9 @@
 
 package com.microsoft.identity.client;
 
+import static com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfigurationFactory.Companion;
 import static com.microsoft.identity.client.PublicClientApplicationConfigurationFactory.initializeConfiguration;
+import static com.microsoft.identity.client.exception.MsalClientException.NATIVE_AUTH_APPLICATION_CREATION_UNKNOWN_ERROR_MESSAGE;
 import static com.microsoft.identity.client.exception.MsalClientException.SAPCA_USE_WITH_MULTI_POLICY_B2C;
 import static com.microsoft.identity.client.exception.MsalClientException.UNKNOWN_ERROR;
 import static com.microsoft.identity.client.internal.CommandParametersAdapter.createGenerateShrCommandParameters;
@@ -86,11 +88,13 @@ import com.microsoft.identity.common.internal.broker.PackageHelper;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.commands.GenerateShrCommand;
 import com.microsoft.identity.common.internal.commands.GetDeviceModeCommand;
+import com.microsoft.identity.common.internal.commands.IsQrPinAvailableCommand;
 import com.microsoft.identity.common.internal.controllers.LocalMSALController;
 import com.microsoft.identity.common.internal.migration.AdalMigrationAdapter;
 import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
 import com.microsoft.identity.common.internal.migration.TokenMigrationUtility;
 import com.microsoft.identity.common.internal.net.cache.HttpCache;
+import com.microsoft.identity.common.java.nativeauth.BuildValues;
 import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryB2CAuthority;
@@ -102,6 +106,7 @@ import com.microsoft.identity.common.java.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.java.commands.CommandCallback;
 import com.microsoft.identity.common.java.commands.DeviceCodeFlowCommand;
 import com.microsoft.identity.common.java.commands.DeviceCodeFlowCommandCallback;
+import com.microsoft.identity.common.java.commands.ICommandResult;
 import com.microsoft.identity.common.java.commands.InteractiveTokenCommand;
 import com.microsoft.identity.common.java.commands.SilentTokenCommand;
 import com.microsoft.identity.common.java.commands.parameters.CommandParameters;
@@ -109,7 +114,9 @@ import com.microsoft.identity.common.java.commands.parameters.DeviceCodeFlowComm
 import com.microsoft.identity.common.java.commands.parameters.GenerateShrCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.InteractiveTokenCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.SilentTokenCommandParameters;
+import com.microsoft.identity.common.java.controllers.BaseController;
 import com.microsoft.identity.common.java.controllers.CommandDispatcher;
+import com.microsoft.identity.common.java.controllers.CommandResult;
 import com.microsoft.identity.common.java.controllers.ExceptionAdapter;
 import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId;
@@ -117,6 +124,7 @@ import com.microsoft.identity.common.java.exception.BaseException;
 import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.exception.ErrorStrings;
 import com.microsoft.identity.common.java.exception.ServiceException;
+import com.microsoft.identity.common.java.exception.UserCancelException;
 import com.microsoft.identity.common.java.opentelemetry.AttributeName;
 import com.microsoft.identity.common.java.opentelemetry.OTelUtility;
 import com.microsoft.identity.common.java.opentelemetry.OtelContextExtension;
@@ -126,6 +134,7 @@ import com.microsoft.identity.common.java.providers.microsoft.MicrosoftAccount;
 import com.microsoft.identity.common.java.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
+import com.microsoft.identity.common.java.result.FinalizableResultFuture;
 import com.microsoft.identity.common.java.result.GenerateShrResult;
 import com.microsoft.identity.common.java.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.java.result.LocalAuthenticationResult;
@@ -133,6 +142,9 @@ import com.microsoft.identity.common.java.util.ResultFuture;
 import com.microsoft.identity.common.java.util.SchemaUtil;
 import com.microsoft.identity.common.logging.Logger;
 import com.microsoft.identity.msal.BuildConfig;
+import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication;
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication;
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -229,6 +241,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         static final String SCOPES = "scopes";
         static final String ACCOUNT = "account";
         static final String NULL_ERROR_SUFFIX = " cannot be null or empty";
+        static final String CHALLENGE_TYPES = "challenge_types";
     }
 
     /**
@@ -339,7 +352,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     /**
-     * {@link PublicClientApplication#create(Context, String, String, ApplicationCreatedListener)}
+     * {@link PublicClientApplication#create(Context, String, String, String, ApplicationCreatedListener)}
      * allows the client id and authority to be passed instead of providing them through metadata.
      *
      * @param context     Application's {@link Context}. The sdk requires the application context to
@@ -660,7 +673,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     /**
-     * {@link PublicClientApplication#createSingleAccountPublicClientApplication(Context, int, ISingleAccountApplicationCreatedListener)}
+     * {@link PublicClientApplication#createSingleAccountPublicClientApplication(Context, File, ISingleAccountApplicationCreatedListener)}
      * will read the client id and other configuration settings from the file included in your
      * application resources.
      *
@@ -751,7 +764,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     /**
-     * {@link PublicClientApplication#createSingleAccountPublicClientApplication(Context, int)}
+     * {@link PublicClientApplication#createSingleAccountPublicClientApplication(Context, File)}
      * will read the client id and other configuration settings from the file included in your
      * applications resources.
      *
@@ -791,6 +804,160 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 initializeConfiguration(context, configFile)
         );
     }
+
+    //endregion
+
+    //region Native Auth PCA factory methods.
+
+    /**
+     * {@link PublicClientApplication#createNativeAuthPublicClientApplication(Context, int)}
+     * will read the client id and other configuration settings from the file included in your
+     * applications resources.
+     *
+     * <p><p>This function will pass back an {@link MsalClientException} object if it is unable
+     * to return {@link INativeAuthPublicClientApplication}. For example, AccountMode
+     * in configuration is not set to single. </p></p>
+     *
+     * @param context              Application's {@link Context}. The sdk requires the application context
+     *                             to be passed in {@link PublicClientApplication}. Cannot be null.
+     *                             <p>
+     *                             Note: The {@link Context} should be the application context instead of the
+     *                             running activity's context, which could potentially make the sdk hold a
+     *                             strong reference to the activity, thus preventing correct garbage
+     *                             collection and causing bugs.
+     *                             </p>
+     * @param configFileResourceId The resource ID of the raw file containing the JSON configuration
+     *                             for the PublicClientApplication.
+     *                             <p>
+     *                             For more information on the schema of the MSAL config json,
+     *                             please see <a href="https://developer.android.com/guide/topics/resources/providing-resources">Android app resource overview</a>
+     *                             and <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
+     *                             </p>
+     * @return An instance of INativeAuthPublicClientApplication.
+     */
+    public static INativeAuthPublicClientApplication createNativeAuthPublicClientApplication(
+            @NonNull final Context context,
+            final int configFileResourceId) throws InterruptedException, MsalException {
+        validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
+
+        try {
+            return createNativeAuthApplication(
+                    Companion.initializeNativeAuthConfiguration(context, configFileResourceId),
+                    null,
+                    null,
+                    null,
+                    null
+            );
+        }  catch (MsalException e) {
+            throw e;
+        } catch (BaseException e) {
+            throw new MsalClientException(
+                    UNKNOWN_ERROR,
+                    NATIVE_AUTH_APPLICATION_CREATION_UNKNOWN_ERROR_MESSAGE,
+                    e
+            );
+        }
+    }
+
+    /**
+     * {@link PublicClientApplication#createNativeAuthPublicClientApplication(Context, File)}
+     * will read the client id and other configuration settings from the file included in your
+     * applications resources.
+     *
+     * <p><p>This function will pass back an {@link MsalClientException} object if it is unable
+     * to return {@link INativeAuthPublicClientApplication}. For example, AccountMode
+     * in configuration is not set to single. </p></p>
+     *
+     * @param context    Application's {@link Context}. The sdk requires the application context
+     *                   to be passed in {@link PublicClientApplication}. Cannot be null.
+     *                   <p>
+     *                   Note: The {@link Context} should be the application context instead of
+     *                   the running activity's context, which could potentially make the sdk hold a
+     *                   strong reference to the activity, thus preventing correct garbage
+     *                   collection and causing bugs.
+     *                   </p>
+     * @param configFile The file containing the JSON configuration for the PublicClientApplication.
+     *                   Cannot be null.
+     *                   <p>
+     *                   For more information on the schema of the MSAL configuration file,
+     *                   please see <a href="https://developer.android.com/guide/topics/resources/providing-resources">Android app resource overview</a>
+     *                   and <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>
+     *                   </p>
+     * @return An instance of INativeAuthPublicClientApplication.
+     */
+    public static INativeAuthPublicClientApplication createNativeAuthPublicClientApplication(
+            @NonNull final Context context,
+            @NonNull final File configFile) throws InterruptedException, MsalException {
+        validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
+        validateNonNullArgument(configFile, NONNULL_CONSTANTS.CONFIG_FILE);
+
+        try {
+            return createNativeAuthApplication(
+                    Companion.initializeNativeAuthConfiguration(context, configFile),
+                    null,
+                    null,
+                    null,
+                    null
+            );
+        } catch (BaseException e) {
+            throw new MsalClientException(
+                    UNKNOWN_ERROR,
+                    NATIVE_AUTH_APPLICATION_CREATION_UNKNOWN_ERROR_MESSAGE,
+                    e
+            );
+        }
+    }
+
+    /**
+     * {@link PublicClientApplication#createNativeAuthPublicClientApplication(Context, String, String, String, List<String>)}
+     * will read the client id and other configuration settings from the file included in your
+     * applications resources.
+     *
+     * <p><p>This function will pass back an {@link MsalClientException} object if it is unable
+     * to return {@link INativeAuthPublicClientApplication} through the listener. For example, AccountMode
+     * in configuration is not set to single. </p></p>
+     *
+     * @param context     Application's {@link Context}. The sdk requires the application context
+     *                    to be passed in {@link PublicClientApplication}. Cannot be null.
+     *                    <p>
+     *                    Note: The {@link Context} should be the application context instead of
+     *                    the running activity's context, which could potentially make the sdk hold a
+     *                    strong reference to the activity, thus preventing correct garbage
+     *                    collection and causing bugs.
+     *                    </p>
+     * @param clientId    The application client id. Cannot be null.
+     * @param authority   The default authority to be used for the authority. If this is null, the default authority will be used.
+     * @param redirectUri The redirect URI of the application.
+     * @return An instance of INativeAuthPublicClientApplication.
+     */
+    public static INativeAuthPublicClientApplication createNativeAuthPublicClientApplication(
+            @NonNull final Context context,
+            @NonNull final String clientId,
+            @NonNull final String authority,
+            @Nullable final String redirectUri,
+            @NonNull final List<String> challengeTypes) throws InterruptedException, MsalException {
+        validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
+        validateNonNullArgument(clientId, NONNULL_CONSTANTS.CLIENT_ID);
+        validateNonNullArgument(authority, NONNULL_CONSTANTS.AUTHORITY);
+        validateNonNullArgument(challengeTypes, NONNULL_CONSTANTS.CHALLENGE_TYPES);
+
+        try {
+            return createNativeAuthApplication(
+                    Companion.initializeNativeAuthConfiguration(context),
+                    clientId,
+                    authority,
+                    redirectUri,
+                    challengeTypes
+            );
+        } catch (BaseException e) {
+            throw new MsalClientException(
+                    UNKNOWN_ERROR,
+                    NATIVE_AUTH_APPLICATION_CREATION_UNKNOWN_ERROR_MESSAGE,
+                    e
+            );
+        }
+    }
+
     //endregion
 
     //region internal factory methods.
@@ -835,7 +1002,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             // Shouldn't be thrown.
             throw new MsalClientException(
                     UNKNOWN_ERROR,
-                    "Unexpected error while initializing PCA.",
+                    NATIVE_AUTH_APPLICATION_CREATION_UNKNOWN_ERROR_MESSAGE,
                     e
             );
         }
@@ -938,7 +1105,11 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                         config.setIsSharedDevice(isSharedDevice);
 
                         try {
-                            if (config.getAccountMode() == AccountMode.SINGLE || isSharedDevice) {
+                            if (config instanceof NativeAuthPublicClientApplicationConfiguration
+                                    && config.getAccountMode() == AccountMode.SINGLE) {
+                                config.validateConfiguration();
+                                listener.onCreated(new NativeAuthPublicClientApplication((NativeAuthPublicClientApplicationConfiguration) config));
+                            } else if (config.getAccountMode() == AccountMode.SINGLE || isSharedDevice) {
                                 listener.onCreated(new SingleAccountPublicClientApplication(config));
                             } else {
                                 listener.onCreated(new MultipleAccountPublicClientApplication(config));
@@ -957,6 +1128,42 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         );
 
         CommandDispatcher.submitSilent(command);
+    }
+
+    private static NativeAuthPublicClientApplication createNativeAuthApplication(@NonNull final NativeAuthPublicClientApplicationConfiguration config,
+                                                                                 @Nullable final String clientId,
+                                                                                 @Nullable final String authority,
+                                                                                 @Nullable final String redirectUri,
+                                                                                 @Nullable final List<String> challengeTypes) throws BaseException {
+        if (clientId != null) {
+            config.setClientId(clientId);
+        }
+
+        if (authority != null) {
+            config.getAuthorities().clear();
+
+            final Authority authorityObject = Authority.getAuthorityFromAuthorityUrl(authority);
+            authorityObject.setDefault(true);
+            config.getAuthorities().add(authorityObject);
+        }
+
+        if (redirectUri != null) {
+            config.setRedirectUri(redirectUri);
+        }
+
+        if (challengeTypes != null) {
+            config.setChallengeTypes(challengeTypes);
+        }
+
+        // Check whether account mode is set to SINGLE
+        validateAccountModeConfiguration(config);
+
+        // Native auth is always operating in non-shared device mode, as there are no interactions with the broker.
+        config.setIsSharedDevice(false);
+
+        // Check whether account mode is SINGLE
+        config.validateConfiguration();
+        return new NativeAuthPublicClientApplication(config);
     }
 
     private static void validateAccountModeConfiguration(@NonNull final PublicClientApplicationConfiguration config) throws MsalClientException {
@@ -1055,6 +1262,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 }
         );
     }
+
     //endregion
 
     protected PublicClientApplication(@NonNull final PublicClientApplicationConfiguration configFile) throws MsalClientException {
@@ -1080,7 +1288,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         // Since network request is sent from the sdk, if calling app doesn't declare the internet
         // permission in the manifest, we cannot make the network call.
-        checkInternetPermission();
+        checkInternetPermission(mPublicClientConfiguration);
 
         // Init HTTP cache
         HttpCache.initialize(context.getCacheDir());
@@ -1088,7 +1296,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         Logger.info(methodTag, "Create new public client application.");
     }
 
-    private void initializeLoggerSettings(@Nullable final LoggerConfiguration loggerConfig) {
+    protected static void initializeLoggerSettings(@Nullable final LoggerConfiguration loggerConfig) {
         if (null != loggerConfig) {
             final com.microsoft.identity.client.Logger.LogLevel configLogLevel = loggerConfig.getLogLevel();
             final boolean configPiiState = loggerConfig.isPiiEnabled();
@@ -1117,8 +1325,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         }
     }
 
-    private void setupTelemetry(@NonNull final Context context,
-                                @NonNull final PublicClientApplicationConfiguration developerConfig) {
+    private static void setupTelemetry(@NonNull final Context context,
+                                         @NonNull final PublicClientApplicationConfiguration developerConfig) {
         final String methodTag = TAG + ":setupTelemetry";
         if (null != developerConfig.getTelemetryConfiguration()) {
             Logger.verbose(methodTag, "Telemetry configuration is set. Telemetry is enabled.");
@@ -1260,6 +1468,68 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     @Override
     public boolean isSharedDevice() {
         return mPublicClientConfiguration.getIsSharedDevice();
+    }
+
+    /**
+     * Returns whether the application supports the QR code scanning + PIN protocol.
+     *
+     * @return true if the device supports the QR code scanning + PIN protocol, false otherwise.
+     */
+    @Override
+    public boolean isQRPinAvailable() throws BaseException {
+        final String methodTag = TAG + ":isQRPinAvailable";
+
+        final CommandParameters params = CommandParametersAdapter.createCommandParameters(
+                mPublicClientConfiguration,
+                mPublicClientConfiguration.getOAuth2TokenCache()
+        );
+
+        final BaseController controller = new MSALControllerFactory(mPublicClientConfiguration)
+                .getDefaultController(CommandParametersAdapter.getRequestAuthority(mPublicClientConfiguration));
+
+        final IsQrPinAvailableCommand command = new IsQrPinAvailableCommand(
+                params,
+                controller,
+                new CommandCallback<Boolean, BaseException>() {
+                    @Override
+                    public void onError(BaseException error) {
+                        Logger.error(methodTag, "Unexpected error on isQRPinAvailable", error);
+                    }
+                    @Override
+                    public void onTaskCompleted(Boolean isQrPinAvailable) {
+                        Logger.info(methodTag, "is QR + PIN available? " + isQrPinAvailable );
+                    }
+                    @Override
+                    public void onCancel() {
+                        // Should not be reached.
+                    }
+                },
+                PublicApiId.PCA_IS_QR_PIN_AVAILABLE
+        );
+
+        final ResultFuture<CommandResult> future = CommandDispatcher.submitSilentReturningFuture(command);
+
+        try {
+            final CommandResult commandResult = future.get();
+            switch (commandResult.getStatus()) {
+                case COMPLETED:
+                    Logger.info(methodTag, "is QR + PIN available? " + commandResult.getResult());
+                    return (Boolean) commandResult.getResult();
+                case ERROR:
+                    final BaseException exception = (BaseException) commandResult.getResult();
+                    Logger.error(methodTag, "Unexpected error on isQRPinAvailable", exception);
+                    throw exception;
+                case CANCEL:
+                    Logger.warn(methodTag, "isQRPinAvailable was cancelled");
+                    return false;
+                default:
+                    Logger.warn(methodTag, "Unexpected status on isQRPinAvailable: " + commandResult.getStatus());
+                    return false;
+            }
+        } catch (final InterruptedException | ExecutionException e) {
+            Logger.error(methodTag, "Unexpected error on isQRPinAvailable", e);
+            return false;
+        }
     }
 
     @Override
@@ -1655,7 +1925,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
 
-    private AccountRecord selectAccountRecordForTokenRequest(
+    public static AccountRecord selectAccountRecordForTokenRequest(
             @NonNull final PublicClientApplicationConfiguration pcaConfig,
             @NonNull final TokenParameters tokenParameters)
             throws ServiceException, ClientException {
@@ -1679,14 +1949,21 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         final IAccount rootAccount = tokenParameters.getAccount();
         final MultiTenantAccount multiTenantAccount = (MultiTenantAccount) rootAccount;
         final String requestAuthority = tokenParameters.getAuthority();
-        final Authority authority = Authority.getAuthorityFromAuthorityUrl(requestAuthority);
+
+        final Authority authority;
+
+        if (BuildValues.shouldUseMockApiForNativeAuth()) {
+            authority = new CIAMAuthority(requestAuthority);
+        } else {
+            authority = Authority.getAuthorityFromAuthorityUrl(requestAuthority);
+        }
 
         if (authority instanceof AzureActiveDirectoryB2CAuthority || authority instanceof CIAMAuthority) {
             // use home account - b2c and CIAM are not compatible with broker, so no need to construct
             // the account used in the request...
             return AccountAdapter.getAccountInternal(
-                    mPublicClientConfiguration.getClientId(),
-                    mPublicClientConfiguration.getOAuth2TokenCache(),
+                    pcaConfig.getClientId(),
+                    pcaConfig.getOAuth2TokenCache(),
                     multiTenantAccount.getHomeAccountId(),
                     multiTenantAccount.getTenantId()
             );
@@ -1941,12 +2218,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         CommandDispatcher.submitSilent(deviceCodeFlowCommand);
     }
 
-    private void checkInternetPermission() {
-        final PackageManager packageManager = mPublicClientConfiguration.getAppContext().getPackageManager();
+    protected static void checkInternetPermission(@NonNull final PublicClientApplicationConfiguration developerConfig) {
+        final PackageManager packageManager = developerConfig.getAppContext().getPackageManager();
 
-        if (packageManager.checkPermission(INTERNET_PERMISSION, mPublicClientConfiguration.getAppContext().getPackageName())
+        if (packageManager.checkPermission(INTERNET_PERMISSION, developerConfig.getAppContext().getPackageName())
                 != PackageManager.PERMISSION_GRANTED
-                || packageManager.checkPermission(ACCESS_NETWORK_STATE_PERMISSION, mPublicClientConfiguration.getAppContext().getPackageName())
+                || packageManager.checkPermission(ACCESS_NETWORK_STATE_PERMISSION, developerConfig.getAppContext().getPackageName())
                 != PackageManager.PERMISSION_GRANTED) {
             throw new IllegalStateException("android.permission.Internet or android.permission.ACCESS_NETWORK_STATE is missing");
         }
