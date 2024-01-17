@@ -44,7 +44,11 @@ public class Constants {
         MSA_ONLY,
         NO_ADMIN_CONSENT,
         CIAM,
-        PKEY_AUTH_SILENT
+        PKEY_AUTH_SILENT,
+
+        BROWSER_SKIP_BROKER,
+
+        WEBVIEW_SKIP_BROKER
 
     }
 
@@ -94,6 +98,12 @@ public class Constants {
 
             case PKEY_AUTH_SILENT:
                 return R.raw.msal_config_pkey_auth_silent;
+
+            case BROWSER_SKIP_BROKER:
+                return R.raw.msal_config_browser_skip_broker;
+
+            case WEBVIEW_SKIP_BROKER:
+                return R.raw.msal_config_webview_skip_broker;
         }
 
         return R.raw.msal_config_default;

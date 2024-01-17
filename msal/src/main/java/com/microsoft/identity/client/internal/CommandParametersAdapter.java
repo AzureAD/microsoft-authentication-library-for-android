@@ -66,6 +66,7 @@ import com.microsoft.identity.common.java.request.SdkType;
 import com.microsoft.identity.common.java.ui.AuthorizationAgent;
 import com.microsoft.identity.common.logging.Logger;
 import com.microsoft.identity.common.java.nativeauth.authorities.NativeAuthCIAMAuthority;
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInWithContinuationTokenCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.AcquireTokenNoFixedScopesCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.ResetPasswordResendCodeCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.ResetPasswordStartCommandParameters;
@@ -76,7 +77,6 @@ import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInS
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInStartUsingPasswordCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInSubmitCodeCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInSubmitPasswordCommandParameters;
-import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInWithSLTCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpResendCodeCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpStartCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpStartUsingPasswordCommandParameters;
@@ -202,6 +202,7 @@ public class CommandParametersAdapter {
                 .handleNullTaskAffinity(configuration.isHandleNullTaskAffinityEnabled())
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .correlationId(parameters.getCorrelationId())
+                .preferredAuthMethod(parameters.getPreferredAuthMethod())
                 .build();
 
         return commandParameters;
@@ -446,7 +447,7 @@ public class CommandParametersAdapter {
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param code Out of band code
-     * @param signupToken Signup token received from the start command
+     * @param continuationToken Continuation token received from the start command
      * @return Command parameter object
      * @throws ClientException
      */
@@ -454,7 +455,7 @@ public class CommandParametersAdapter {
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String code,
-            @NonNull final String signupToken) {
+            @NonNull final String continuationToken) {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
@@ -472,7 +473,7 @@ public class CommandParametersAdapter {
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .authority(authority)
                 .challengeType(configuration.getChallengeTypes())
-                .signupToken(signupToken)
+                .continuationToken(continuationToken)
                 .code(code)
                 .build();
     }
@@ -481,14 +482,14 @@ public class CommandParametersAdapter {
      * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.SignUpResendCodeCommand}] of Native Auth.
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
-     * @param signupToken Signup token received from the start command
+     * @param continuationToken Continuation token received from the start command
      * @return Command parameter object
      * @throws ClientException
      */
     public static SignUpResendCodeCommandParameters createSignUpResendCodeCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
-            @NonNull final String signupToken) {
+            @NonNull final String continuationToken) {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
@@ -506,7 +507,7 @@ public class CommandParametersAdapter {
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .challengeType(configuration.getChallengeTypes())
                 .authority(authority)
-                .signupToken(signupToken)
+                .continuationToken(continuationToken)
                 .build();
     }
 
@@ -514,14 +515,14 @@ public class CommandParametersAdapter {
      * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.SignUpSubmitUserAttributesCommand}] of Native Auth.
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
-     * @param signupToken Signup token received from the start command
+     * @param continuationToken Continuation token received from the start command
      * @return Command parameter object
      * @throws ClientException
      */
     public static SignUpSubmitUserAttributesCommandParameters createSignUpStarSubmitUserAttributesCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
-            @NonNull final String signupToken,
+            @NonNull final String continuationToken,
             final Map<String, String> userAttributes) {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
@@ -541,7 +542,7 @@ public class CommandParametersAdapter {
                 .authority(authority)
                 .clientId(configuration.getClientId())
                 .challengeType(configuration.getChallengeTypes())
-                .signupToken(signupToken)
+                .continuationToken(continuationToken)
                 .userAttributes(userAttributes)
                 .build();
     }
@@ -550,7 +551,7 @@ public class CommandParametersAdapter {
      * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.SignUpSubmitPasswordCommand}] of Native Auth.
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
-     * @param signupToken email address of the user
+     * @param continuationToken Continuation token received from the start command
      * @param password password for the user
      * @return Command parameter object
      * @throws ClientException
@@ -558,7 +559,7 @@ public class CommandParametersAdapter {
     public static SignUpSubmitPasswordCommandParameters createSignUpSubmitPasswordCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
-            @NonNull final String signupToken,
+            @NonNull final String continuationToken,
             @NonNull final char[] password) {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
@@ -577,7 +578,7 @@ public class CommandParametersAdapter {
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .authority(authority)
                 .challengeType(configuration.getChallengeTypes())
-                .signupToken(signupToken)
+                .continuationToken(continuationToken)
                 .password(password)
                 .build();
     }
@@ -671,19 +672,19 @@ public class CommandParametersAdapter {
     }
 
     /**
-     * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.SignInStartCommand}] of Native Auth using short lived token
+     * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.SignInStartCommand}] of Native Auth using continuation token
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
-     * @param signInSLT short lived token
+     * @param continuationToken continuation token
      * @param username email address of the user
      * @param scopes
      * @return Command parameter object
      * @throws ClientException
      */
-    public static SignInWithSLTCommandParameters createSignInWithSLTCommandParameters(
+    public static SignInWithContinuationTokenCommandParameters createSignInWithContinuationTokenCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
-            @Nullable final String signInSLT,
+            @Nullable final String continuationToken,
             @Nullable final String username,
             final List<String> scopes) throws ClientException {
         final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
@@ -693,7 +694,7 @@ public class CommandParametersAdapter {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
-        final SignInWithSLTCommandParameters commandParameters = SignInWithSLTCommandParameters.builder()
+        final SignInWithContinuationTokenCommandParameters commandParameters = SignInWithContinuationTokenCommandParameters.builder()
                 .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
                 .applicationName(configuration.getAppContext().getPackageName())
                 .applicationVersion(getPackageVersion(configuration.getAppContext()))
@@ -706,7 +707,7 @@ public class CommandParametersAdapter {
                 .sdkVersion(PublicClientApplication.getSdkVersion())
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .authority(authority)
-                .signInSLT(signInSLT)
+                .continuationToken(continuationToken)
                 .username(username)
                 .challengeType(configuration.getChallengeTypes())
                 .authenticationScheme(authenticationScheme)
@@ -721,7 +722,7 @@ public class CommandParametersAdapter {
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param code Out of band code
-     * @param credentialToken credential token
+     * @param continuationToken continuation token
      * @param scopes
      * @return Command parameter object
      * @throws ClientException
@@ -730,7 +731,7 @@ public class CommandParametersAdapter {
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String code,
-            @NonNull final String credentialToken,
+            @NonNull final String continuationToken,
             final List<String> scopes) throws ClientException {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
@@ -753,7 +754,7 @@ public class CommandParametersAdapter {
                 .sdkVersion(PublicClientApplication.getSdkVersion())
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .authority(authority)
-                .credentialToken(credentialToken)
+                .continuationToken(continuationToken)
                 .authenticationScheme(authenticationScheme)
                 .challengeType(configuration.getChallengeTypes())
                 .code(code)
@@ -767,14 +768,14 @@ public class CommandParametersAdapter {
      * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.SignInResendCodeCommand}] of Native Auth
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
-     * @param credentialToken credential token
+     * @param continuationToken continuation token
      * @return Command parameter object
      * @throws ClientException
      */
     public static SignInResendCodeCommandParameters createSignInResendCodeCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
-            @NonNull final String credentialToken) {
+            @NonNull final String continuationToken) {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
@@ -792,7 +793,7 @@ public class CommandParametersAdapter {
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .authority(authority)
                 .challengeType(configuration.getChallengeTypes())
-                .credentialToken(credentialToken)
+                .continuationToken(continuationToken)
                 .challengeType(configuration.getChallengeTypes())
                 .build();
 
@@ -803,7 +804,7 @@ public class CommandParametersAdapter {
      * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.SignInSubmitPasswordCommand}] of Native Auth
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
-     * @param credentialToken credential token
+     * @param continuationToken continuation token
      * @param password  password of the user
      * @param scopes
      * @return Command parameter object
@@ -812,7 +813,7 @@ public class CommandParametersAdapter {
     public static SignInSubmitPasswordCommandParameters createSignInSubmitPasswordCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
-            @NonNull final String credentialToken,
+            @NonNull final String continuationToken,
             @NonNull final char[] password,
             final List<String> scopes) throws ClientException {
 
@@ -838,7 +839,7 @@ public class CommandParametersAdapter {
                         .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                         .authority(authority)
                         .authenticationScheme(authenticationScheme)
-                        .credentialToken(credentialToken)
+                        .continuationToken(continuationToken)
                         .password(password)
                         .scopes(scopes)
                         .challengeType(configuration.getChallengeTypes())
@@ -889,14 +890,14 @@ public class CommandParametersAdapter {
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param code out of band code
-     * @param passwordResetToken password reset token
+     * @param continuationToken Continuation token
      * @return Command parameter object
      */
     public static ResetPasswordSubmitCodeCommandParameters createResetPasswordSubmitCodeCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String code,
-            @NonNull final String passwordResetToken) {
+            @NonNull final String continuationToken) {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
@@ -916,7 +917,7 @@ public class CommandParametersAdapter {
                         .authority(authority)
                         .code(code)
                         .challengeType(configuration.getChallengeTypes())
-                        .passwordResetToken(passwordResetToken)
+                        .continuationToken(continuationToken)
                         .clientId(configuration.getClientId())
                         .build();
 
@@ -927,13 +928,13 @@ public class CommandParametersAdapter {
      * Creates command parameter for [ResetPasswordResendCodeCommand] of Native Auth.
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
-     * @param passwordResetToken password reset token
+     * @param continuationToken Continuation token
      * @return Command parameter object
      */
     public static ResetPasswordResendCodeCommandParameters createResetPasswordResendCodeCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
-            @NonNull final String passwordResetToken) {
+            @NonNull final String continuationToken) {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
@@ -952,7 +953,7 @@ public class CommandParametersAdapter {
                         .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                         .authority(authority)
                         .challengeType(configuration.getChallengeTypes())
-                        .passwordResetToken(passwordResetToken)
+                        .continuationToken(continuationToken)
                         .clientId(configuration.getClientId())
                         .build();
 
@@ -969,7 +970,7 @@ public class CommandParametersAdapter {
     public static ResetPasswordSubmitNewPasswordCommandParameters createResetPasswordSubmitNewPasswordCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
-            @NonNull final String passwordSubmitToken,
+            @NonNull final String continuationToken,
             @NonNull final char[] password) {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
@@ -988,7 +989,7 @@ public class CommandParametersAdapter {
                         .sdkVersion(PublicClientApplication.getSdkVersion())
                         .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                         .authority(authority)
-                        .passwordSubmitToken(passwordSubmitToken)
+                        .continuationToken(continuationToken)
                         .challengeType(configuration.getChallengeTypes())
                         .newPassword(password)
                         .clientId(configuration.getClientId())
@@ -1008,7 +1009,7 @@ public class CommandParametersAdapter {
         return null;
     }
 
-    private static Authority getRequestAuthority(
+    public static Authority getRequestAuthority(
             @NonNull final PublicClientApplicationConfiguration publicClientApplicationConfiguration) {
 
         String requestAuthority = null;

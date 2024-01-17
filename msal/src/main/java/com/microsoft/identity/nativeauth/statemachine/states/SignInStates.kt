@@ -37,7 +37,7 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignInSubmitPasswo
 import com.microsoft.identity.common.nativeauth.internal.commands.SignInResendCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.SignInSubmitCodeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.SignInSubmitPasswordCommand
-import com.microsoft.identity.common.nativeauth.internal.commands.SignInWithSLTCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.SignInWithContinuationTokenCommand
 import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.common.java.controllers.CommandDispatcher
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
@@ -45,7 +45,7 @@ import com.microsoft.identity.common.java.nativeauth.controllers.results.SignInC
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignInResendCodeCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignInSubmitCodeCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignInSubmitPasswordCommandResult
-import com.microsoft.identity.common.java.nativeauth.controllers.results.SignInWithSLTCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.SignInWithContinuationTokenCommandResult
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
@@ -65,15 +65,15 @@ import kotlinx.coroutines.withContext
  * Native Auth uses a state machine to denote state of and transitions within a flow.
  * SignInCodeRequiredState class represents a state where the user has to provide a code to progress
  * in the signin flow.
- * @property flowToken: Flow token to be passed in the next request
+ * @property continuationToken: Continuation token to be passed in the next request
  * @property scopes: List of scopes
  * @property config Configuration used by Native Auth
  */
 class SignInCodeRequiredState internal constructor(
-    override val flowToken: String,
+    override val continuationToken: String,
     private val scopes: List<String>?,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(flowToken), State, Parcelable {
+) : BaseState(continuationToken), State, Parcelable {
     private val TAG: String = SignInCodeRequiredState::class.java.simpleName
 
     constructor(parcel: Parcel) : this(
@@ -121,7 +121,7 @@ class SignInCodeRequiredState internal constructor(
                 config,
                 config.oAuth2TokenCache,
                 code,
-                flowToken,
+                continuationToken,
                 scopes
             )
 
@@ -140,7 +140,8 @@ class SignInCodeRequiredState internal constructor(
                         error = result.error,
                         errorMessage = result.errorDescription,
                         correlationId = result.correlationId,
-                        errorCodes = result.errorCodes
+                        errorCodes = result.errorCodes,
+                        subError = result.subError
                     )
 
                 }
@@ -218,7 +219,7 @@ class SignInCodeRequiredState internal constructor(
             val params = CommandParametersAdapter.createSignInResendCodeCommandParameters(
                 config,
                 config.oAuth2TokenCache,
-                flowToken
+                continuationToken
             )
 
             val signInResendCodeCommand = SignInResendCodeCommand(
@@ -233,7 +234,7 @@ class SignInCodeRequiredState internal constructor(
                 is SignInCommandResult.CodeRequired -> {
                     SignInResendCodeResult.Success(
                         nextState = SignInCodeRequiredState(
-                            flowToken = result.credentialToken,
+                            continuationToken = result.continuationToken,
                             scopes = scopes,
                             config = config
                         ),
@@ -294,15 +295,15 @@ class SignInCodeRequiredState internal constructor(
  * Native Auth uses a state machine to denote state of and transitions within a flow.
  * SignInPasswordRequiredState class represents a state where the user has to provide a password to progress
  * in the signin flow.
- * @property flowToken: Flow token to be passed in the next request
+ * @property continuationToken: Continuation token to be passed in the next request
  * @property scopes: List of scopes
  * @property config Configuration used by Native Auth
  */
 class SignInPasswordRequiredState(
-    override val flowToken: String,
+    override val continuationToken: String,
     private val scopes: List<String>?,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(flowToken), State {
+) : BaseState(continuationToken), State {
     private val TAG: String = SignInPasswordRequiredState::class.java.simpleName
 
     /**
@@ -342,7 +343,7 @@ class SignInPasswordRequiredState(
             val params = CommandParametersAdapter.createSignInSubmitPasswordCommandParameters(
                 config,
                 config.oAuth2TokenCache,
-                flowToken,
+                continuationToken,
                 password,
                 scopes
             )
@@ -412,15 +413,15 @@ class SignInPasswordRequiredState(
  * SignInAfterSignUpBaseState class is an abstract class to represent signin state after
  * successfull signup
  * in the signin flow.
- * @property signInVerificationCode: Short lived token from signup APIS
+ * @property continuationToken: Continuation token from signup APIS
  * @property username: Username of the user
  * @property config Configuration used by Native Auth
  */
 abstract class SignInAfterSignUpBaseState(
-    internal open val signInVerificationCode: String?,
+    override val continuationToken: String?,
     internal open val username: String,
-    internal open val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(signInVerificationCode), State, Parcelable {
+    private val config: NativeAuthPublicClientApplicationConfiguration
+) : BaseState(continuationToken), State, Parcelable {
     private val TAG: String = SignInAfterSignUpBaseState::class.java.simpleName
 
     constructor(parcel: Parcel) : this(
@@ -468,10 +469,10 @@ abstract class SignInAfterSignUpBaseState(
 
             // Check if verification code was passed. If not, return an UnknownError with instructions to call the other
             // sign in flows (code or password).
-            if (signInVerificationCode.isNullOrEmpty()) {
+            if (continuationToken.isNullOrEmpty()) {
                 Logger.warn(
                     TAG,
-                    "Sign in after sign up received unexpected result: signInSLT was null"
+                    "Sign in after sign up received unexpected result: continuationToken was null"
                 )
                 return@withContext SignInError(
                     errorMessage = "Sign In is not available through this state, please use the standalone sign in methods (signInWithCode or signInWithPassword).",
@@ -480,15 +481,15 @@ abstract class SignInAfterSignUpBaseState(
                 )
             }
 
-            val commandParameters = CommandParametersAdapter.createSignInWithSLTCommandParameters(
+            val commandParameters = CommandParametersAdapter.createSignInWithContinuationTokenCommandParameters(
                 config,
                 config.oAuth2TokenCache,
-                signInVerificationCode,
+                continuationToken,
                 username,
                 scopes
             )
 
-            val command = SignInWithSLTCommand(
+            val command = SignInWithContinuationTokenCommand(
                 commandParameters,
                 NativeAuthMsalController(),
                 PublicApiId.NATIVE_AUTH_SIGN_IN_WITH_SLT
@@ -496,11 +497,11 @@ abstract class SignInAfterSignUpBaseState(
 
             val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
 
-            return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<SignInWithSLTCommandResult>()) {
+            return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<SignInWithContinuationTokenCommandResult>()) {
                 is SignInCommandResult.CodeRequired -> {
                     SignInResult.CodeRequired(
                         nextState = SignInCodeRequiredState(
-                            flowToken = result.credentialToken,
+                            continuationToken = result.continuationToken,
                             scopes = scopes,
                             config = config
                         ),
@@ -512,7 +513,7 @@ abstract class SignInAfterSignUpBaseState(
                 is SignInCommandResult.PasswordRequired -> {
                     SignInResult.PasswordRequired(
                         nextState = SignInPasswordRequiredState(
-                            flowToken = result.credentialToken,
+                            continuationToken = result.continuationToken,
                             scopes = scopes,
                             config = config
                         )
