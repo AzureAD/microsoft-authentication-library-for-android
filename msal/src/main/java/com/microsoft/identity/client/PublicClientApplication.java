@@ -1270,8 +1270,15 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         final Context context = mPublicClientConfiguration.getAppContext();
         setupTelemetry(context, mPublicClientConfiguration);
 
-        AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getEnvironment());
-        Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
+        // Currently, PCA initialization happens on the main thread, both of the methods below use locks and
+        // shouldn't be ran on the main thread. Running them on a background thread instead.
+        runOnBackground(new Runnable() {
+            @Override
+            public void run() {
+                AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getEnvironment());
+                Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
+            }
+        });
 
         initializeLoggerSettings(mPublicClientConfiguration.getLoggerConfiguration());
 
