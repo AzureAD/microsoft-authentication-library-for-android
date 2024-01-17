@@ -98,7 +98,11 @@ class AccountState private constructor(
      * @param callback [com.microsoft.identity.nativeauth.statemachine.states.AccountState.SignOutCallback] to receive the result on.
      */
     fun signOut(callback: SignOutCallback) {
-        LogSession.logMethodCall(TAG, "$TAG.signOut")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "$TAG.signOut"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = signOut()
@@ -115,7 +119,11 @@ class AccountState private constructor(
      */
     suspend fun signOut(): SignOutResult {
         return withContext(Dispatchers.IO) {
-            LogSession.logMethodCall(TAG, "$TAG.signOut.withContext")
+            LogSession.logMethodCall(
+                tag = TAG,
+                correlationId = null,
+                methodName = "$TAG.signOut.withContext"
+            )
 
             val account: IAccount =
                 NativeAuthPublicClientApplication.getCurrentAccountInternal(config)
@@ -211,7 +219,11 @@ class AccountState private constructor(
      * @throws [ServiceException] If the refresh token doesn't exist in the cache/is expired, or the refreshing fails.
      */
     fun getAccessToken(forceRefresh: Boolean = false, callback: GetAccessTokenCallback) {
-        LogSession.logMethodCall(TAG, "$TAG.getAccessToken")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "$TAG.getAccessToken"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = getAccessToken(forceRefresh)
@@ -231,7 +243,11 @@ class AccountState private constructor(
      * @return [com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult] The result of the getAccessToken action
      */
     suspend fun getAccessToken(forceRefresh: Boolean = false): GetAccessTokenResult {
-        LogSession.logMethodCall(TAG, "$TAG.getAccessToken(forceRefresh: Boolean)")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "$TAG.getAccessToken(forceRefresh: Boolean)"
+        )
         return withContext(Dispatchers.IO) {
             val account =
                 NativeAuthPublicClientApplication.getCurrentAccountInternal(config) as? Account

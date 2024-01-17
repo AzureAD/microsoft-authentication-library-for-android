@@ -90,7 +90,11 @@ class SignInCodeRequiredState internal constructor(
      * @return The results of the submit code action.
      */
     fun submitCode(code: String, callback: SubmitCodeCallback) {
-        LogSession.logMethodCall(TAG, "${TAG}.submitCode")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitCode"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = submitCode(code)
@@ -109,7 +113,11 @@ class SignInCodeRequiredState internal constructor(
      * @return The results of the submit code action.
      */
     suspend fun submitCode(code: String): SignInSubmitCodeResult {
-        LogSession.logMethodCall(TAG, "${TAG}.submitCode(code: String)")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitCode(code: String)"
+        )
         return withContext(Dispatchers.IO) {
             val params = CommandParametersAdapter.createSignInSubmitCodeCommandParameters(
                 config,
@@ -165,6 +173,7 @@ class SignInCodeRequiredState internal constructor(
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
+                        result.correlationId,
                         "Submit code received unexpected result: $result"
                     )
                     SubmitCodeError(
@@ -191,7 +200,11 @@ class SignInCodeRequiredState internal constructor(
      * @return The results of the resend code action.
      */
     fun resendCode(callback: ResendCodeCallback) {
-        LogSession.logMethodCall(TAG, "${TAG}.resendCode")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.resendCode"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = resendCode()
@@ -209,7 +222,11 @@ class SignInCodeRequiredState internal constructor(
      * @return The results of the resend code action.
      */
     suspend fun resendCode(): SignInResendCodeResult {
-        LogSession.logMethodCall(TAG, "${TAG}.resendCode()")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.resendCode()"
+        )
         return withContext(Dispatchers.IO) {
             val params = CommandParametersAdapter.createSignInResendCodeCommandParameters(
                 config,
@@ -253,6 +270,7 @@ class SignInCodeRequiredState internal constructor(
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
+                        result.correlationId,
                         "Resend code received unexpected result: $result"
                     )
                     ResendCodeError(
@@ -298,7 +316,11 @@ class SignInPasswordRequiredState(
      * @return The results of the submit password action.
      */
     fun submitPassword(password: CharArray, callback: SubmitPasswordCallback) {
-        LogSession.logMethodCall(TAG, "${TAG}.submitPassword")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitPassword"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = submitPassword(password)
@@ -317,7 +339,11 @@ class SignInPasswordRequiredState(
      * @return The results of the submit password action.
      */
     suspend fun submitPassword(password: CharArray): SignInSubmitPasswordResult {
-        LogSession.logMethodCall(TAG, "${TAG}.submitPassword(password: String)")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitPassword(password: String)"
+        )
         return withContext(Dispatchers.IO) {
             val params = CommandParametersAdapter.createSignInSubmitPasswordCommandParameters(
                 config,
@@ -370,6 +396,7 @@ class SignInPasswordRequiredState(
                     is INativeAuthCommandResult.UnknownError -> {
                         Logger.warn(
                             TAG,
+                            result.correlationId,
                             "Submit password received unexpected result: $result"
                         )
                         SignInSubmitPasswordError(
@@ -419,7 +446,11 @@ abstract class SignInAfterSignUpBaseState(
      * @return The results of the sign-in-after-sign-up action.
      */
     fun signInAfterSignUp(scopes: List<String>? = null, callback: SignInAfterSignUpCallback) {
-        LogSession.logMethodCall(TAG, "${TAG}.signInAfterSignUp")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.signInAfterSignUp"
+        )
 
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
@@ -440,7 +471,11 @@ abstract class SignInAfterSignUpBaseState(
      */
     suspend fun signInAfterSignUp(scopes: List<String>? = null): SignInResult {
         return withContext(Dispatchers.IO) {
-            LogSession.logMethodCall(TAG, "${TAG}.signInAfterSignUp(scopes: List<String>)")
+            LogSession.logMethodCall(
+                tag = TAG,
+                correlationId = correlationId,
+                methodName = "${TAG}.signInAfterSignUp(scopes: List<String>)"
+            )
 
             // Check if verification code was passed. If not, return an UnknownError with instructions to call the other
             // sign in flows (code or password).
@@ -518,6 +553,7 @@ abstract class SignInAfterSignUpBaseState(
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
+                        result.correlationId,
                         "Sign in after sign up received unexpected result: $result"
                     )
                     SignInError(

@@ -81,7 +81,11 @@ class ResetPasswordCodeRequiredState internal constructor(
      * @return The results of the submit code action.
      */
     fun submitCode(code: String, callback: SubmitCodeCallback) {
-        LogSession.logMethodCall(TAG, "${TAG}.submitCode")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitCode"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = submitCode(code = code)
@@ -100,7 +104,11 @@ class ResetPasswordCodeRequiredState internal constructor(
      * @return The results of the submit code action.
      */
     suspend fun submitCode(code: String): ResetPasswordSubmitCodeResult {
-        LogSession.logMethodCall(TAG, "${TAG}.submitCode(code: String)")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitCode(code: String)"
+        )
         return withContext(Dispatchers.IO) {
             val parameters =
                 CommandParametersAdapter.createResetPasswordSubmitCodeCommandParameters(
@@ -152,6 +160,7 @@ class ResetPasswordCodeRequiredState internal constructor(
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
+                        result.correlationId,
                         "Submit code received unexpected result: $result"
                     )
                     SubmitCodeError(
@@ -177,7 +186,11 @@ class ResetPasswordCodeRequiredState internal constructor(
      * @return The results of the resend code action.
      */
     fun resendCode(callback: ResendCodeCallback) {
-        LogSession.logMethodCall(TAG, "${TAG}.resendCode(callback: ResendCodeCallback)")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.resendCode(callback: ResendCodeCallback)"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = resendCode()
@@ -195,7 +208,11 @@ class ResetPasswordCodeRequiredState internal constructor(
      * @return The results of the resend code action.
      */
     suspend fun resendCode(): ResetPasswordResendCodeResult {
-        LogSession.logMethodCall(TAG, "${TAG}.resendCode")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.resendCode"
+        )
         return withContext(Dispatchers.IO) {
             val parameters =
                 CommandParametersAdapter.createResetPasswordResendCodeCommandParameters(
@@ -239,6 +256,7 @@ class ResetPasswordCodeRequiredState internal constructor(
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
+                        result.correlationId,
                         "Resend code received unexpected result: $result"
                     )
                     ResendCodeError(
@@ -278,7 +296,11 @@ class ResetPasswordPasswordRequiredState internal constructor(
      * @return The results of the submit password action.
      */
     fun submitPassword(password: CharArray, callback: SubmitPasswordCallback) {
-        LogSession.logMethodCall(TAG, "${TAG}.submitPassword")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitPassword"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = submitPassword(password = password)
@@ -297,7 +319,11 @@ class ResetPasswordPasswordRequiredState internal constructor(
      * @return The results of the submit password action.
      */
     suspend fun submitPassword(password: CharArray): ResetPasswordSubmitPasswordResult {
-        LogSession.logMethodCall(TAG, "${TAG}.submitPassword(password: String)")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitPassword(password: String)"
+        )
         return withContext(Dispatchers.IO) {
             val parameters =
                 CommandParametersAdapter.createResetPasswordSubmitNewPasswordCommandParameters(
@@ -345,6 +371,7 @@ class ResetPasswordPasswordRequiredState internal constructor(
                     is ResetPasswordCommandResult.UserNotFound -> {
                         Logger.warn(
                             TAG,
+                            result.correlationId,
                             "Submit password received unexpected result: $result"
                         )
                         ResetPasswordSubmitPasswordError(
@@ -357,6 +384,7 @@ class ResetPasswordPasswordRequiredState internal constructor(
                     is INativeAuthCommandResult.UnknownError -> {
                         Logger.warn(
                             TAG,
+                            result.correlationId,
                             "Submit password received unexpected result: $result"
                         )
                         ResetPasswordSubmitPasswordError(

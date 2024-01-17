@@ -118,7 +118,11 @@ class NativeAuthPublicClientApplication(
         val pcaScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
         fun getCurrentAccountInternal(config: NativeAuthPublicClientApplicationConfiguration): IAccount? {
-            LogSession.logMethodCall(TAG, "${TAG}.getCurrentAccountInternal")
+            LogSession.logMethodCall(
+                tag = TAG,
+                correlationId = null,
+                methodName = "${TAG}.getCurrentAccountInternal"
+            )
 
             val params = CommandParametersAdapter.createCommandParameters(
                 config,
@@ -158,7 +162,11 @@ class NativeAuthPublicClientApplication(
          * If the list can be converted to multiple accounts, only the first one will be returned.
          */
         private fun getAccountFromICacheRecordsList(cacheRecords: List<ICacheRecord?>?): IAccount? {
-            LogSession.logMethodCall(TAG, "${TAG}.getAccountFromICacheRecordsList")
+            LogSession.logMethodCall(
+                tag = TAG,
+                correlationId = null,
+                methodName = "${TAG}.getAccountFromICacheRecordsList"
+            )
             if (cacheRecords.isNullOrEmpty()) {
                 return null
             }
@@ -199,7 +207,11 @@ class NativeAuthPublicClientApplication(
 
         // Init HTTP cache
         HttpCache.initialize(context.cacheDir)
-        LogSession.logMethodCall(TAG, "${TAG}.initializeApplication")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.initializeApplication"
+        )
     }
 
     private fun initializeSharedPreferenceFileManager(context: Context) {
@@ -262,7 +274,11 @@ class NativeAuthPublicClientApplication(
      * @throws [MsalException] if an account is already signed in.
      */
     override fun signIn(username: String, scopes: List<String>?, callback: SignInCallback) {
-        LogSession.logMethodCall(TAG, "${TAG}.signIn(username: String, scopes: List<String>?, callback: SignInCallback)")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.signIn(username: String, scopes: List<String>?, callback: SignInCallback)"
+        )
         pcaScope.launch {
             try {
                 val result = signIn(username, scopes)
@@ -287,7 +303,11 @@ class NativeAuthPublicClientApplication(
         scopes: List<String>?
     ): SignInResult {
         return withContext(Dispatchers.IO) {
-            LogSession.logMethodCall(TAG, "${TAG}.signIn")
+            LogSession.logMethodCall(
+                tag = TAG,
+                correlationId = null,
+                methodName = "${TAG}.signIn"
+            )
 
             verifyNoUserIsSignedIn()
 
@@ -332,6 +352,7 @@ class NativeAuthPublicClientApplication(
                 is SignInCommandResult.Complete -> {
                     Logger.warn(
                         TAG,
+                        result.correlationId,
                         "Sign in received unexpected result $result"
                     )
                     SignInError(
@@ -352,6 +373,7 @@ class NativeAuthPublicClientApplication(
                 is SignInCommandResult.InvalidCredentials -> {
                     Logger.warn(
                         TAG,
+                        result.correlationId,
                         "Sign in received Unexpected result $result"
                     )
                     SignInError(
@@ -400,7 +422,11 @@ class NativeAuthPublicClientApplication(
         scopes: List<String>?,
         callback: SignInUsingPasswordCallback
     ) {
-        LogSession.logMethodCall(TAG, "${TAG}.signIn(username: String, password: String, scopes: List<String>?, callback: SignInUsingPasswordCallback)")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.signIn(username: String, password: String, scopes: List<String>?, callback: SignInUsingPasswordCallback)"
+        )
         pcaScope.launch {
             try {
                 val result = signInUsingPassword(username, password, scopes)
@@ -426,9 +452,12 @@ class NativeAuthPublicClientApplication(
         password: CharArray,
         scopes: List<String>?
     ): SignInUsingPasswordResult {
-        LogSession.logMethodCall(TAG, "${TAG}.signInUsingPassword")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.signInUsingPassword"
+        )
         return withContext(Dispatchers.IO) {
-            LogSession.logMethodCall(TAG, "${TAG}.signInUsingPassword.withContext")
 
             verifyNoUserIsSignedIn()
 
@@ -466,6 +495,7 @@ class NativeAuthPublicClientApplication(
                     is SignInCommandResult.CodeRequired -> {
                         Logger.warn(
                             TAG,
+                            result.correlationId,
                             "Sign in with password flow was started, but server requires" +
                                     "a code. Password was not sent to the API; switching to code " +
                                     "authentication."
@@ -485,6 +515,7 @@ class NativeAuthPublicClientApplication(
                     is SignInCommandResult.PasswordRequired -> {
                         Logger.warn(
                             TAG,
+                            result.correlationId,
                             "Sign in using password received unexpected result $result"
                         )
                         SignInUsingPasswordError(
@@ -553,7 +584,11 @@ class NativeAuthPublicClientApplication(
         attributes: UserAttributes?,
         callback: SignUpUsingPasswordCallback
     ) {
-        LogSession.logMethodCall(TAG, "${TAG}.signUpUsingPassword")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.signUpUsingPassword"
+        )
         pcaScope.launch {
             try {
                 val result = signUpUsingPassword(username, password, attributes)
@@ -579,7 +614,11 @@ class NativeAuthPublicClientApplication(
         password: CharArray,
         attributes: UserAttributes?
     ): SignUpUsingPasswordResult {
-        LogSession.logMethodCall(TAG, "${TAG}.signUpUsingPassword(username: String, password: String, attributes: UserAttributes?)")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.signUpUsingPassword(username: String, password: String, attributes: UserAttributes?)"
+        )
 
         return withContext(Dispatchers.IO) {
             val doesAccountExist = checkForPersistedAccount().get()
@@ -712,6 +751,7 @@ class NativeAuthPublicClientApplication(
                     is SignUpCommandResult.PasswordRequired -> {
                         Logger.warn(
                             TAG,
+                            result.correlationId,
                             "Sign up using password received unexpected result $result"
                         )
                         SignUpUsingPasswordError(
@@ -743,7 +783,11 @@ class NativeAuthPublicClientApplication(
         attributes: UserAttributes?,
         callback: SignUpCallback
     ) {
-        LogSession.logMethodCall(TAG, "${TAG}.signUp")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.signUp"
+        )
 
         pcaScope.launch {
             try {
@@ -768,7 +812,11 @@ class NativeAuthPublicClientApplication(
         username: String,
         attributes: UserAttributes?
     ): SignUpResult {
-        LogSession.logMethodCall(TAG, "${TAG}.signUp(username: String, attributes: UserAttributes?)")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.signUp(username: String, attributes: UserAttributes?)"
+        )
 
         return withContext(Dispatchers.IO) {
             val doesAccountExist = checkForPersistedAccount().get()
@@ -891,6 +939,7 @@ class NativeAuthPublicClientApplication(
                 is SignUpCommandResult.InvalidPassword -> {
                     Logger.warn(
                         TAG,
+                        result.correlationId,
                         "Sign up received unexpected result $result"
                     )
                     SignUpError(
@@ -903,6 +952,7 @@ class NativeAuthPublicClientApplication(
                 is SignUpCommandResult.AuthNotSupported -> {
                     Logger.warn(
                         TAG,
+                        result.correlationId,
                         "Sign up received unexpected result $result"
                     )
                     SignUpError(
@@ -926,7 +976,11 @@ class NativeAuthPublicClientApplication(
      * @throws MsalClientException if an account is already signed in.
      */
     override fun resetPassword(username: String, callback: ResetPasswordCallback) {
-        LogSession.logMethodCall(TAG, "${TAG}.resetPassword")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.resetPassword"
+        )
         pcaScope.launch {
             try {
                 val result = resetPassword(username = username)
@@ -946,7 +1000,11 @@ class NativeAuthPublicClientApplication(
      * @throws MsalClientException if an account is already signed in.
      */
     override suspend fun resetPassword(username: String): ResetPasswordStartResult {
-        LogSession.logMethodCall(TAG, "${TAG}.resetPassword(username: String)")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.resetPassword(username: String)"
+        )
 
         return withContext(Dispatchers.IO) {
             val doesAccountExist = checkForPersistedAccount().get()
@@ -1015,6 +1073,7 @@ class NativeAuthPublicClientApplication(
                 is ResetPasswordCommandResult.PasswordNotSet -> {
                     Logger.warn(
                         TAG,
+                        result.correlationId,
                         "Reset password received unexpected result $result",
                     )
                     ResetPasswordError(
@@ -1027,6 +1086,7 @@ class NativeAuthPublicClientApplication(
                 is ResetPasswordCommandResult.EmailNotVerified -> {
                     Logger.warn(
                         TAG,
+                        result.correlationId,
                         "Reset password received unexpected result $result"
                     )
                     ResetPasswordError(
@@ -1055,7 +1115,11 @@ class NativeAuthPublicClientApplication(
     }
 
     private fun checkForPersistedAccount(): ResultFuture<Boolean> {
-        LogSession.logMethodCall(TAG, "${TAG}.checkForPersistedAccount")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.checkForPersistedAccount"
+        )
         val future = ResultFuture<Boolean>()
         getCurrentAccount(object : GetCurrentAccountCallback {
             override fun onResult(result: GetAccountResult) {

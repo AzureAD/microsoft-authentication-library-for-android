@@ -90,7 +90,12 @@ class SignUpCodeRequiredState internal constructor(
      * @return The results of the submit code action.
      */
     fun submitCode(code: String, callback: SubmitCodeCallback) {
-        LogSession.logMethodCall(TAG, "${TAG}.submitCode")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitCode"
+        )
+
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = submitCode(code)
@@ -111,7 +116,11 @@ class SignUpCodeRequiredState internal constructor(
     suspend fun submitCode(
         code: String,
     ): SignUpSubmitCodeResult {
-        LogSession.logMethodCall(TAG, "${TAG}.submitCode(code: String)")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitCode(code: String)"
+        )
         return withContext(Dispatchers.IO) {
             val commandParameters =
                 CommandParametersAdapter.createSignUpSubmitCodeCommandParameters(
@@ -188,6 +197,7 @@ class SignUpCodeRequiredState internal constructor(
                 is SignUpCommandResult.UsernameAlreadyExists -> {
                     Logger.warn(
                         TAG,
+                        result.correlationId,
                         "Submit code received unexpected result: $result"
                     )
                     SubmitCodeError(
@@ -200,6 +210,7 @@ class SignUpCodeRequiredState internal constructor(
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
+                        result.correlationId,
                         "Submit code received unexpected result: $result"
                     )
                     SubmitCodeError(
@@ -224,7 +235,11 @@ class SignUpCodeRequiredState internal constructor(
     fun resendCode(
         callback: SignUpWithResendCodeCallback
     ) {
-        LogSession.logMethodCall(TAG, "${TAG}.resendCode")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.resendCode"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = resendCode()
@@ -242,7 +257,11 @@ class SignUpCodeRequiredState internal constructor(
      * @return The results of the resend code action.
      */
     suspend fun resendCode(): SignUpResendCodeResult {
-        LogSession.logMethodCall(TAG, "${TAG}.resendCode()")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.resendCode()"
+        )
         return withContext(Dispatchers.IO) {
             val commandParameters =
                 CommandParametersAdapter.createSignUpResendCodeCommandParameters(
@@ -285,6 +304,7 @@ class SignUpCodeRequiredState internal constructor(
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
+                        result.correlationId,
                         "Resend code received unexpected result: $result"
                     )
                     ResendCodeError(
@@ -329,7 +349,11 @@ class SignUpPasswordRequiredState internal constructor(
         password: CharArray,
         callback: SignUpSubmitPasswordCallback
     ) {
-        LogSession.logMethodCall(TAG, "${TAG}.submitPassword")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitPassword"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = submitPassword(password)
@@ -348,7 +372,11 @@ class SignUpPasswordRequiredState internal constructor(
      * @return The results of the submit password action.
      */
     suspend fun submitPassword(password: CharArray): SignUpSubmitPasswordResult {
-        LogSession.logMethodCall(TAG, "${TAG}.submitPassword(password: String)")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitPassword(password: String)"
+        )
         return withContext(Dispatchers.IO) {
             val commandParameters =
                 CommandParametersAdapter.createSignUpSubmitPasswordCommandParameters(
@@ -415,6 +443,7 @@ class SignUpPasswordRequiredState internal constructor(
                     is SignUpCommandResult.UsernameAlreadyExists -> {
                         Logger.warn(
                             TAG,
+                            result.correlationId,
                             "Submit password received unexpected result: $result"
                         )
                         SignUpSubmitPasswordError(
@@ -428,6 +457,7 @@ class SignUpPasswordRequiredState internal constructor(
                     is SignUpCommandResult.InvalidEmail -> {
                         Logger.warn(
                             TAG,
+                            result.correlationId,
                             "Submit password received unexpected result: $result"
                         )
                         SignUpSubmitPasswordError(
@@ -440,6 +470,7 @@ class SignUpPasswordRequiredState internal constructor(
                     is INativeAuthCommandResult.UnknownError -> {
                         Logger.warn(
                             TAG,
+                            result.correlationId,
                             "Submit password received unexpected result: $result"
                         )
                         SignUpSubmitPasswordError(
@@ -487,7 +518,11 @@ class SignUpAttributesRequiredState internal constructor(
         attributes: UserAttributes,
         callback: SignUpSubmitUserAttributesCallback
     ) {
-        LogSession.logMethodCall(TAG, "${TAG}.submitAttributes")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitAttributes"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = submitAttributes(attributes)
@@ -506,7 +541,11 @@ class SignUpAttributesRequiredState internal constructor(
      * @return The results of the submit user attributes action.
      */
     suspend fun submitAttributes(attributes: UserAttributes): SignUpSubmitAttributesResult {
-        LogSession.logMethodCall(TAG, "${TAG}.submitAttributes(attributes: UserAttributes)")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitAttributes(attributes: UserAttributes)"
+        )
         return withContext(Dispatchers.IO) {
 
             val commandParameters =
@@ -568,6 +607,7 @@ class SignUpAttributesRequiredState internal constructor(
                 is SignUpCommandResult.UsernameAlreadyExists -> {
                     Logger.warn(
                         TAG,
+                        result.correlationId,
                         "Submit attributes received unexpected result: $result"
                     )
                     SignUpSubmitAttributesError(
@@ -579,6 +619,7 @@ class SignUpAttributesRequiredState internal constructor(
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
+                        result.correlationId,
                         "Submit attributes received unexpected result: $result"
                     )
                     SignUpSubmitAttributesError(
@@ -623,7 +664,11 @@ class SignInAfterSignUpState internal constructor(
      * @return The results of the sign-in-after-sign-up action.
      */
     fun signIn(scopes: List<String>? = null, callback: SignInAfterSignUpCallback) {
-        LogSession.logMethodCall(TAG, "${TAG}.signIn")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.signIn"
+        )
         return signInAfterSignUp(scopes = scopes, callback = callback)
     }
 
@@ -634,7 +679,11 @@ class SignInAfterSignUpState internal constructor(
      * @return The results of the sign-in-after-sign-up action.
      */
     suspend fun signIn(scopes: List<String>? = null): SignInResult {
-        LogSession.logMethodCall(TAG, "${TAG}.signIn(scopes: List<String>)")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.signIn(scopes: List<String>)"
+        )
         return signInAfterSignUp(scopes = scopes)
     }
 }
