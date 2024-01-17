@@ -637,13 +637,13 @@
                 android:text="AT with Device Code Flow" />
 
             <Button
-                android:id="@+id/btnBrokerHelper"
+                android:id="@+id/btn_acquiretokenWithQR"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:layout_weight="5"
                 android:gravity="center"
-                android:text="Broker Helper" />
+                android:text="@string/at_with_qr_pin" />
 
         </LinearLayout>
 
@@ -670,6 +670,14 @@
             android:layout_height="match_parent"
             android:orientation="horizontal">
             <Button
+                android:id="@+id/btnBrokerHelper"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_weight="5"
+                android:gravity="center"
+                android:text="Broker Helper" />
+            <Button
                 android:id="@+id/btnGetActiveBroker"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -685,6 +693,20 @@
                 android:gravity="center"
                 android:layout_gravity="center_vertical"
                 android:text="@string/trust_debug_broker" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+            <Button
+                android:id="@+id/btnIsQrPinAvailable"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_weight="5"
+                android:gravity="center"
+                android:text="@string/is_qr_pin_available" />
         </LinearLayout>
 
     </LinearLayout>
