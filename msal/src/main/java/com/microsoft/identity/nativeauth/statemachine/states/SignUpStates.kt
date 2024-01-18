@@ -158,7 +158,7 @@ class SignUpCodeRequiredState internal constructor(
 
                 is SignUpCommandResult.Complete -> {
                     SignUpResult.Complete(
-                        nextState = SignInAfterSignUpState(
+                        nextState = SignInContinuationState(
                             continuationToken = result.continuationToken,
                             username = username,
                             config = config
@@ -395,7 +395,7 @@ class SignUpPasswordRequiredState internal constructor(
                     rawCommandResult.checkAndWrapCommandResultType<SignUpSubmitPasswordCommandResult>()) {
                     is SignUpCommandResult.Complete -> {
                         SignUpResult.Complete(
-                            nextState = SignInAfterSignUpState(
+                            nextState = SignInContinuationState(
                                 continuationToken = result.continuationToken,
                                 username = username,
                                 config = config
@@ -584,7 +584,7 @@ class SignUpAttributesRequiredState internal constructor(
                 }
                 is SignUpCommandResult.Complete -> {
                     SignUpResult.Complete(
-                        nextState = SignInAfterSignUpState(
+                        nextState = SignInContinuationState(
                             continuationToken = result.continuationToken,
                             username = username,
                             config = config
@@ -651,74 +651,6 @@ class SignUpAttributesRequiredState internal constructor(
         }
 
         override fun newArray(size: Int): Array<SignUpAttributesRequiredState?> {
-            return arrayOfNulls(size)
-        }
-    }
-}
-
-/**
- * Native Auth uses a state machine to denote state of and transitions within a flow.
- * SignInAfterSignUpState class represents a state where the user must signin after successful
- * signup flow.
- * @property continuationToken: Token to be passed in the next request
- * @property username: Email address of the user
- * @property config Configuration used by Native Auth
- */
-class SignInAfterSignUpState internal constructor(
-    override val continuationToken: String?,
-    override val username: String,
-    val config: NativeAuthPublicClientApplicationConfiguration
-) : SignInAfterSignUpBaseState(continuationToken, username, config) {
-
-    constructor(parcel: Parcel) : this(
-        parcel.readString(),
-        parcel.readString()  ?: "",
-        parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
-    ) {
-    }
-
-    private val TAG: String = SignInAfterSignUpState::class.java.simpleName
-    interface SignInAfterSignUpCallback : SignInAfterSignUpBaseState.SignInAfterSignUpCallback
-
-    /**
-     * Signs in with the sign-in-after-sign-up verification code; callback variant.
-     *
-     * @param scopes (Optional) the scopes to request.
-     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpState.SignInAfterSignUpCallback] to receive the result on.
-     * @return The results of the sign-in-after-sign-up action.
-     */
-    fun signIn(scopes: List<String>? = null, callback: SignInAfterSignUpCallback) {
-        LogSession.logMethodCall(TAG, "${TAG}.signIn")
-        return signInAfterSignUp(scopes = scopes, callback = callback)
-    }
-
-    /**
-     * Signs in with the sign-in-after-sign-up verification code; Kotlin coroutines variant.
-     *
-     * @param scopes (Optional) the scopes to request.
-     * @return The results of the sign-in-after-sign-up action.
-     */
-    suspend fun signIn(scopes: List<String>? = null): SignInResult {
-        LogSession.logMethodCall(TAG, "${TAG}.signIn(scopes: List<String>)")
-        return signInAfterSignUp(scopes = scopes)
-    }
-
-    override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeString(continuationToken)
-        parcel.writeString(username)
-        parcel.writeSerializable(config)
-    }
-
-    override fun describeContents(): Int {
-        return 0
-    }
-
-    companion object CREATOR : Parcelable.Creator<SignInAfterSignUpState> {
-        override fun createFromParcel(parcel: Parcel): SignInAfterSignUpState {
-            return SignInAfterSignUpState(parcel)
-        }
-
-        override fun newArray(size: Int): Array<SignInAfterSignUpState?> {
             return arrayOfNulls(size)
         }
     }

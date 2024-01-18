@@ -53,6 +53,7 @@ import com.microsoft.identity.nativeauth.statemachine.errors.ResendCodeError
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordSubmitPasswordError
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
+import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -66,11 +67,13 @@ import kotlinx.coroutines.withContext
  */
 class ResetPasswordCodeRequiredState internal constructor(
     override val continuationToken: String,
+    private val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
 ) : BaseState(continuationToken), State, Parcelable {
     private val TAG: String = ResetPasswordCodeRequiredState::class.java.simpleName
 
     constructor(parcel: Parcel) : this(
+        parcel.readString() ?: "",
         parcel.readString() ?: "",
         parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
     ) {
@@ -128,6 +131,7 @@ class ResetPasswordCodeRequiredState internal constructor(
                     ResetPasswordSubmitCodeResult.PasswordRequired(
                         nextState = ResetPasswordPasswordRequiredState(
                             continuationToken = result.continuationToken,
+                            username = username,
                             config = config
                         )
                     )
@@ -220,6 +224,7 @@ class ResetPasswordCodeRequiredState internal constructor(
                     ResetPasswordResendCodeResult.Success(
                         nextState = ResetPasswordCodeRequiredState(
                             continuationToken = result.continuationToken,
+                            username = username,
                             config = config
                         ),
                         codeLength = result.codeLength,
@@ -255,6 +260,7 @@ class ResetPasswordCodeRequiredState internal constructor(
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(continuationToken)
+        parcel.writeString(username)
         parcel.writeSerializable(config)
     }
 
@@ -282,11 +288,13 @@ class ResetPasswordCodeRequiredState internal constructor(
  */
 class ResetPasswordPasswordRequiredState internal constructor(
     override val continuationToken: String,
+    private val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
 ) : BaseState(continuationToken), State, Parcelable {
     private val TAG: String = ResetPasswordPasswordRequiredState::class.java.simpleName
 
     constructor(parcel: Parcel) : this(
+        parcel.readString() ?: "",
         parcel.readString() ?: "",
         parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
     ) {
@@ -343,7 +351,13 @@ class ResetPasswordPasswordRequiredState internal constructor(
                 return@withContext when (val result =
                     rawCommandResult.checkAndWrapCommandResultType<ResetPasswordSubmitNewPasswordCommandResult>()) {
                     is ResetPasswordCommandResult.Complete -> {
-                        ResetPasswordResult.Complete
+                        ResetPasswordResult.Complete(
+                            nextState = SignInContinuationState(
+                                continuationToken = result.continuationToken,
+                                username = username,
+                                config = config
+                            )
+                        )
                     }
 
                     is ResetPasswordCommandResult.PasswordNotAccepted -> {
@@ -398,6 +412,7 @@ class ResetPasswordPasswordRequiredState internal constructor(
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(continuationToken)
+        parcel.writeString(username)
         parcel.writeSerializable(config)
     }
 
