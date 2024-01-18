@@ -22,6 +22,8 @@
 // THE SOFTWARE.
 package com.microsoft.identity.nativeauth.statemachine.states
 
+import android.os.Parcel
+import android.os.Parcelable
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.UserAttributes
@@ -61,7 +63,6 @@ import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.Serializable
 
 /**
  * Native Auth uses a state machine to denote state of and transitions within a flow.
@@ -75,8 +76,15 @@ class SignUpCodeRequiredState internal constructor(
     override val continuationToken: String,
     private val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(continuationToken), State, Serializable {
+) : BaseState(continuationToken), State, Parcelable {
     private val TAG: String = SignUpCodeRequiredState::class.java.simpleName
+
+    constructor(parcel: Parcel) : this(
+        parcel.readString()  ?: "",
+        parcel.readString() ?: "",
+        parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
+    ) {
+    }
 
     interface SubmitCodeCallback : Callback<SignUpSubmitCodeResult>
 
@@ -280,6 +288,26 @@ class SignUpCodeRequiredState internal constructor(
             }
         }
     }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(continuationToken)
+        parcel.writeString(username)
+        parcel.writeSerializable(config)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<SignUpCodeRequiredState> {
+        override fun createFromParcel(parcel: Parcel): SignUpCodeRequiredState {
+            return SignUpCodeRequiredState(parcel)
+        }
+
+        override fun newArray(size: Int): Array<SignUpCodeRequiredState?> {
+            return arrayOfNulls(size)
+        }
+    }
 }
 
 /**
@@ -294,8 +322,15 @@ class SignUpPasswordRequiredState internal constructor(
     override val continuationToken: String,
     private val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(continuationToken), State, Serializable {
+) : BaseState(continuationToken), State, Parcelable {
     private val TAG: String = SignUpPasswordRequiredState::class.java.simpleName
+
+    constructor(parcel: Parcel) : this(
+        parcel.readString()  ?: "",
+        parcel.readString()  ?: "",
+        parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
+    ) {
+    }
 
     interface SignUpSubmitPasswordCallback : Callback<SignUpSubmitPasswordResult>
 
@@ -433,6 +468,26 @@ class SignUpPasswordRequiredState internal constructor(
             }
         }
     }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(continuationToken)
+        parcel.writeString(username)
+        parcel.writeSerializable(config)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<SignUpPasswordRequiredState> {
+        override fun createFromParcel(parcel: Parcel): SignUpPasswordRequiredState {
+            return SignUpPasswordRequiredState(parcel)
+        }
+
+        override fun newArray(size: Int): Array<SignUpPasswordRequiredState?> {
+            return arrayOfNulls(size)
+        }
+    }
 }
 
 /**
@@ -447,8 +502,15 @@ class SignUpAttributesRequiredState internal constructor(
     override val continuationToken: String,
     private val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(continuationToken), State, Serializable {
+) : BaseState(continuationToken), State, Parcelable {
     private val TAG: String = SignUpAttributesRequiredState::class.java.simpleName
+
+    constructor(parcel: Parcel) : this(
+        parcel.readString()  ?: "",
+        parcel.readString()  ?: "",
+        parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
+    ) {
+    }
 
     interface SignUpSubmitUserAttributesCallback : Callback<SignUpSubmitAttributesResult>
 
@@ -484,7 +546,6 @@ class SignUpAttributesRequiredState internal constructor(
     suspend fun submitAttributes(attributes: UserAttributes): SignUpSubmitAttributesResult {
         LogSession.logMethodCall(TAG, "${TAG}.submitAttributes(attributes: UserAttributes)")
         return withContext(Dispatchers.IO) {
-
             val commandParameters =
                 CommandParametersAdapter.createSignUpStarSubmitUserAttributesCommandParameters(
                     config,
@@ -564,6 +625,26 @@ class SignUpAttributesRequiredState internal constructor(
             }
         }
     }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(continuationToken)
+        parcel.writeString(username)
+        parcel.writeSerializable(config)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<SignUpAttributesRequiredState> {
+        override fun createFromParcel(parcel: Parcel): SignUpAttributesRequiredState {
+            return SignUpAttributesRequiredState(parcel)
+        }
+
+        override fun newArray(size: Int): Array<SignUpAttributesRequiredState?> {
+            return arrayOfNulls(size)
+        }
+    }
 }
 
 /**
@@ -577,8 +658,16 @@ class SignUpAttributesRequiredState internal constructor(
 class SignInAfterSignUpState internal constructor(
     override val continuationToken: String?,
     override val username: String,
-    private val config: NativeAuthPublicClientApplicationConfiguration
+    val config: NativeAuthPublicClientApplicationConfiguration
 ) : SignInAfterSignUpBaseState(continuationToken, username, config) {
+
+    constructor(parcel: Parcel) : this(
+        parcel.readString(),
+        parcel.readString()  ?: "",
+        parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
+    ) {
+    }
+
     private val TAG: String = SignInAfterSignUpState::class.java.simpleName
     interface SignInAfterSignUpCallback : SignInAfterSignUpBaseState.SignInAfterSignUpCallback
 
@@ -603,5 +692,25 @@ class SignInAfterSignUpState internal constructor(
     suspend fun signIn(scopes: List<String>? = null): SignInResult {
         LogSession.logMethodCall(TAG, "${TAG}.signIn(scopes: List<String>)")
         return signInAfterSignUp(scopes = scopes)
+    }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(continuationToken)
+        parcel.writeString(username)
+        parcel.writeSerializable(config)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<SignInAfterSignUpState> {
+        override fun createFromParcel(parcel: Parcel): SignInAfterSignUpState {
+            return SignInAfterSignUpState(parcel)
+        }
+
+        override fun newArray(size: Int): Array<SignInAfterSignUpState?> {
+            return arrayOfNulls(size)
+        }
     }
 }
