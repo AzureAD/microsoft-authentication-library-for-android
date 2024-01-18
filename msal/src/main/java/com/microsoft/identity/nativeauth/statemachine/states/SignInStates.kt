@@ -512,25 +512,18 @@ class SignInContinuationState(
                         )
                     )
                 }
-                is INativeAuthCommandResult.Redirect -> {
-                    SignInContinuationError(
-                        errorMessage = result.errorDescription,
-                        error = result.error,
-                        correlationId = result.correlationId,
-                        errorCodes = result.errorCodes,
-                    )
-                }
+                is INativeAuthCommandResult.Redirect,
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
                         "Sign in after sign up received unexpected result: $result"
                     )
                     SignInContinuationError(
-                        errorMessage = result.errorDescription,
-                        error = result.error,
-                        correlationId = result.correlationId,
-                        errorCodes = result.errorCodes,
-                        exception = result.exception
+                        errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
+                        error = (result as INativeAuthCommandResult.Error).error,
+                        correlationId = (result as INativeAuthCommandResult.Error).correlationId,
+                        errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
+                        exception = (result as INativeAuthCommandResult.UnknownError).exception
                     )
                 }
             }
