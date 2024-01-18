@@ -700,13 +700,13 @@
             android:layout_height="match_parent"
             android:orientation="horizontal">
             <Button
-                android:id="@+id/btnIsQrPinAvailable"
+                android:id="@+id/btnGetPreferredAuthMethod"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:layout_weight="5"
                 android:gravity="center"
-                android:text="@string/is_qr_pin_available" />
+                android:text="@string/get_preferred_auth_method" />
         </LinearLayout>
 
     </LinearLayout>

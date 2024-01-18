@@ -114,7 +114,7 @@ public class AcquireTokenFragment extends Fragment {
     private LinearLayout mPopSection;
     private LinearLayout mLoginHintSection;
     private ToggleButton mDebugBrokers;
-    private Button mIsQrPinAvailable;
+    private Button mPreferredAuthMethod;
     private OnFragmentInteractionListener mOnFragmentInteractionListener;
     private MsalWrapper mMsalWrapper;
     private List<IAccount> mLoadedAccounts = new ArrayList<>();
@@ -169,7 +169,7 @@ public class AcquireTokenFragment extends Fragment {
         mBrokerHelper = view.findViewById(R.id.btnBrokerHelper);
         mGetActiveBrokerPkg = view.findViewById(R.id.btnGetActiveBroker);
         mGenerateSHR = view.findViewById(R.id.btn_generate_shr);
-        mIsQrPinAvailable = view.findViewById(R.id.btnIsQrPinAvailable);
+        mPreferredAuthMethod = view.findViewById(R.id.btnGetPreferredAuthMethod);
         mConfigFileSpinner = view.findViewById(R.id.configFile);
         mAuthScheme = view.findViewById(R.id.authentication_scheme);
         mPublicApplicationMode = view.findViewById(R.id.public_application_mode);
@@ -425,8 +425,8 @@ public class AcquireTokenFragment extends Fragment {
             }
         });
 
-        mIsQrPinAvailable.setOnClickListener(v -> AcquireTokenFragment.this.showMessage(
-            mMsalWrapper.isQrPinAvailable()
+        mPreferredAuthMethod.setOnClickListener(v -> AcquireTokenFragment.this.showMessage(
+            mMsalWrapper.getPreferredAuthMethod()
         ));
 
         return view;

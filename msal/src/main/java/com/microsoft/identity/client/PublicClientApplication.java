@@ -88,7 +88,7 @@ import com.microsoft.identity.common.internal.broker.PackageHelper;
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager;
 import com.microsoft.identity.common.internal.commands.GenerateShrCommand;
 import com.microsoft.identity.common.internal.commands.GetDeviceModeCommand;
-import com.microsoft.identity.common.internal.commands.IsQrPinAvailableCommand;
+import com.microsoft.identity.common.internal.commands.GetPreferredAuthMethodFromAuthenticator;
 import com.microsoft.identity.common.internal.controllers.LocalMSALController;
 import com.microsoft.identity.common.internal.migration.AdalMigrationAdapter;
 import com.microsoft.identity.common.internal.migration.TokenMigrationCallback;
@@ -106,7 +106,6 @@ import com.microsoft.identity.common.java.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.java.commands.CommandCallback;
 import com.microsoft.identity.common.java.commands.DeviceCodeFlowCommand;
 import com.microsoft.identity.common.java.commands.DeviceCodeFlowCommandCallback;
-import com.microsoft.identity.common.java.commands.ICommandResult;
 import com.microsoft.identity.common.java.commands.InteractiveTokenCommand;
 import com.microsoft.identity.common.java.commands.SilentTokenCommand;
 import com.microsoft.identity.common.java.commands.parameters.CommandParameters;
@@ -124,7 +123,6 @@ import com.microsoft.identity.common.java.exception.BaseException;
 import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.exception.ErrorStrings;
 import com.microsoft.identity.common.java.exception.ServiceException;
-import com.microsoft.identity.common.java.exception.UserCancelException;
 import com.microsoft.identity.common.java.opentelemetry.AttributeName;
 import com.microsoft.identity.common.java.opentelemetry.OTelUtility;
 import com.microsoft.identity.common.java.opentelemetry.OtelContextExtension;
@@ -134,10 +132,10 @@ import com.microsoft.identity.common.java.providers.microsoft.MicrosoftAccount;
 import com.microsoft.identity.common.java.providers.microsoft.MicrosoftRefreshToken;
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory;
 import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
-import com.microsoft.identity.common.java.result.FinalizableResultFuture;
 import com.microsoft.identity.common.java.result.GenerateShrResult;
 import com.microsoft.identity.common.java.result.ILocalAuthenticationResult;
 import com.microsoft.identity.common.java.result.LocalAuthenticationResult;
+import com.microsoft.identity.common.java.ui.PreferredAuthMethod;
 import com.microsoft.identity.common.java.util.ResultFuture;
 import com.microsoft.identity.common.java.util.SchemaUtil;
 import com.microsoft.identity.common.logging.Logger;
@@ -1470,13 +1468,16 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     /**
-     * Returns whether the application supports the QR code scanning + PIN protocol.
+     * Reads the preferred authentication method from Authenticator app Restriction Manager.
+     * If the Authenticator app is not installed, or not authentication method is preferred,
+     * this method will return {@link PreferredAuthMethod#NONE}.
      *
-     * @return true if the device supports the QR code scanning + PIN protocol, false otherwise.
+     * @return The preferred auth method to use.
+     * @throws BaseException  If the broker is not installed, this method will throw an exception.
      */
     @Override
-    public boolean isQRPinAvailable() throws BaseException {
-        final String methodTag = TAG + ":isQRPinAvailable";
+    public PreferredAuthMethod getPreferredAuthConfiguration() throws BaseException {
+        final String methodTag = TAG + ":getPreferredAuthConfiguration";
 
         final CommandParameters params = CommandParametersAdapter.createCommandParameters(
                 mPublicClientConfiguration,
@@ -1486,17 +1487,17 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         final BaseController controller = new MSALControllerFactory(mPublicClientConfiguration)
                 .getDefaultController(CommandParametersAdapter.getRequestAuthority(mPublicClientConfiguration));
 
-        final IsQrPinAvailableCommand command = new IsQrPinAvailableCommand(
+        final GetPreferredAuthMethodFromAuthenticator command = new GetPreferredAuthMethodFromAuthenticator(
                 params,
                 controller,
-                new CommandCallback<Boolean, BaseException>() {
+                new CommandCallback<PreferredAuthMethod, BaseException>() {
                     @Override
                     public void onError(BaseException error) {
-                        Logger.error(methodTag, "Unexpected error on isQRPinAvailable", error);
+                        Logger.error(methodTag, "Unexpected error on GetPreferredAuthMethodFromAuthenticator", error);
                     }
                     @Override
-                    public void onTaskCompleted(Boolean isQrPinAvailable) {
-                        Logger.info(methodTag, "is QR + PIN available? " + isQrPinAvailable );
+                    public void onTaskCompleted(PreferredAuthMethod preferredAuthMethod) {
+                        Logger.info(methodTag, "Preferred AuthMethod: " + preferredAuthMethod.name() );
                     }
                     @Override
                     public void onCancel() {
@@ -1512,22 +1513,22 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             final CommandResult commandResult = future.get();
             switch (commandResult.getStatus()) {
                 case COMPLETED:
-                    Logger.info(methodTag, "is QR + PIN available? " + commandResult.getResult());
-                    return (Boolean) commandResult.getResult();
+                    Logger.info(methodTag, "Preferred AuthMethod: " + commandResult.getResult());
+                    return (PreferredAuthMethod) commandResult.getResult();
                 case ERROR:
                     final BaseException exception = (BaseException) commandResult.getResult();
-                    Logger.error(methodTag, "Unexpected error on isQRPinAvailable", exception);
+                    Logger.error(methodTag, "Unexpected error on GetPreferredAuthMethodFromAuthenticator", exception);
                     throw exception;
                 case CANCEL:
-                    Logger.warn(methodTag, "isQRPinAvailable was cancelled");
-                    return false;
+                    Logger.warn(methodTag, "GetPreferredAuthMethodFromAuthenticator was cancelled");
+                    return PreferredAuthMethod.NONE;
                 default:
-                    Logger.warn(methodTag, "Unexpected status on isQRPinAvailable: " + commandResult.getStatus());
-                    return false;
+                    Logger.warn(methodTag, "Unexpected status on GetPreferredAuthMethodFromAuthenticator: " + commandResult.getStatus());
+                    return PreferredAuthMethod.NONE;
             }
         } catch (final InterruptedException | ExecutionException e) {
-            Logger.error(methodTag, "Unexpected error on isQRPinAvailable", e);
-            return false;
+            Logger.error(methodTag, "Unexpected error on GetPreferredAuthMethodFromAuthenticator", e);
+            return PreferredAuthMethod.NONE;
         }
     }
 
