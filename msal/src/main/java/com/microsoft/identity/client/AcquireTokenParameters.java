@@ -25,7 +25,10 @@ package com.microsoft.identity.client;
 
 import android.app.Activity;
 
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+
+import com.microsoft.identity.common.java.ui.PreferredAuthMethod;
 
 import java.util.List;
 import java.util.Map;
@@ -43,11 +46,14 @@ public class AcquireTokenParameters extends TokenParameters {
     private List<Map.Entry<String, String>> mExtraQueryStringParameters;
     private AuthenticationCallback mCallback;
 
+    private PreferredAuthMethod mPreferredAuthMethod;
+
     public AcquireTokenParameters(AcquireTokenParameters.Builder builder) {
         super(builder);
         mActivity = builder.mActivity;
         mFragment = builder.mFragment;
         mLoginHint = builder.mLoginHint;
+        mPreferredAuthMethod = builder.mPreferredAuthMethod;
         mPrompt = builder.mPrompt;
         mExtraScopesToConsent = builder.mExtraScopesToConsent;
         mExtraQueryStringParameters = builder.mExtraQueryStringParameters;
@@ -84,6 +90,15 @@ public class AcquireTokenParameters extends TokenParameters {
      */
     void setLoginHint(String loginHint) {
         this.mLoginHint = loginHint;
+    }
+
+    /**
+     * Gets the preferred authentication method sent along with the authorization request.
+     * @return The preferred authentication method or null if not set.
+     */
+    @Nullable
+    public PreferredAuthMethod getPreferredAuthMethod() {
+        return mPreferredAuthMethod;
     }
 
     /**
@@ -137,6 +152,8 @@ public class AcquireTokenParameters extends TokenParameters {
         private Activity mActivity;
         private Fragment mFragment;
         private String mLoginHint;
+
+        private PreferredAuthMethod mPreferredAuthMethod;
         private Prompt mPrompt;
         private List<String> mExtraScopesToConsent;
         private List<Map.Entry<String, String>> mExtraQueryStringParameters;
@@ -154,6 +171,12 @@ public class AcquireTokenParameters extends TokenParameters {
 
         public AcquireTokenParameters.Builder withLoginHint(String loginHint) {
             mLoginHint = loginHint;
+            return self();
+        }
+
+        @Nullable
+        public AcquireTokenParameters.Builder withPreferredAuthMethod(final PreferredAuthMethod preferredAuthMethod) {
+            mPreferredAuthMethod = preferredAuthMethod;
             return self();
         }
 
