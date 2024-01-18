@@ -77,7 +77,7 @@ open class SignUpError (
     override val correlationId: String,
     override val errorCodes: List<Int>? = null,
     override var exception: Exception? = null
-): SignUpResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
+): SignUpResult, BrowserRequiredError(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
 
     fun isUserAlreadyExists(): Boolean = this.errorType == SignUpErrorTypes.USER_ALREADY_EXISTS
 
@@ -133,7 +133,7 @@ class SignUpSubmitPasswordError (
     override val errorCodes: List<Int>? = null,
     val subError: String? = null,
     override var exception: Exception? = null
-): SignUpSubmitPasswordResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
+): SignUpSubmitPasswordResult, BrowserRequiredError(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
 
     fun isInvalidPassword(): Boolean = this.errorType == ErrorTypes.INVALID_PASSWORD
 }
@@ -156,7 +156,7 @@ class SignUpSubmitAttributesError (
     override val correlationId: String,
     override val errorCodes: List<Int>? = null,
     override var exception: Exception? = null
-): SignUpSubmitAttributesResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
+): SignUpSubmitAttributesResult, BrowserRequiredError(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
 
     fun isInvalidAttributes(): Boolean = this.errorType == SignUpErrorTypes.INVALID_ATTRIBUTES
 }

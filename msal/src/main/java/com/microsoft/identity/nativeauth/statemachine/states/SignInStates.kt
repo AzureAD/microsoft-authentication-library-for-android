@@ -51,6 +51,7 @@ import com.microsoft.identity.common.java.util.StringUtil
 import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.ResendCodeError
+import com.microsoft.identity.nativeauth.statemachine.errors.SignInContinuationError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInSubmitPasswordError
@@ -236,26 +237,17 @@ class SignInCodeRequiredState internal constructor(
                     )
                 }
 
-                is INativeAuthCommandResult.Redirect -> {
-                    ResendCodeError(
-                        errorType = ErrorTypes.BROWSER_REQUIRED,
-                        error = result.error,
-                        errorMessage = result.errorDescription,
-                        correlationId = result.correlationId
-                    )
-                }
-
-                is INativeAuthCommandResult.UnknownError -> {
+                is INativeAuthCommandResult.Redirect, is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
                         "Resend code received unexpected result: $result"
                     )
                     ResendCodeError(
-                        errorMessage = result.errorDescription,
-                        error = result.error,
-                        correlationId = result.correlationId,
-                        errorCodes = result.errorCodes,
-                        exception = result.exception
+                        errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
+                        error = (result as INativeAuthCommandResult.Error).error,
+                        correlationId = (result as INativeAuthCommandResult.Error).correlationId,
+                        errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
+                        exception = (result as INativeAuthCommandResult.UnknownError).exception
                     )
                 }
             }
@@ -351,25 +343,17 @@ class SignInPasswordRequiredState(
                             )
                         )
                     }
-                    is INativeAuthCommandResult.Redirect -> {
-                        SignInSubmitPasswordError(
-                            errorType = ErrorTypes.BROWSER_REQUIRED,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId
-                        )
-                    }
-                    is INativeAuthCommandResult.UnknownError -> {
+                    is INativeAuthCommandResult.Redirect, is INativeAuthCommandResult.UnknownError -> {
                         Logger.warn(
                             TAG,
                             "Submit password received unexpected result: $result"
                         )
                         SignInSubmitPasswordError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId,
-                            errorCodes = result.errorCodes,
-                            exception = result.exception
+                            errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
+                            error = (result as INativeAuthCommandResult.Error).error,
+                            correlationId = (result as INativeAuthCommandResult.Error).correlationId,
+                            errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
+                            exception = (result as INativeAuthCommandResult.UnknownError).exception
                         )
                     }
                 }
@@ -439,7 +423,7 @@ abstract class SignInAfterSignUpBaseState(
                     TAG,
                     "Sign in after sign up received unexpected result: continuationToken was null"
                 )
-                return@withContext SignInError(
+                return@withContext SignInContinuationError(
                     errorMessage = "Sign In is not available through this state, please use the standalone sign in methods (signInWithCode or signInWithPassword).",
                     error = "invalid_state",
                     correlationId = "UNSET",
@@ -495,11 +479,11 @@ abstract class SignInAfterSignUpBaseState(
                     )
                 }
                 is INativeAuthCommandResult.Redirect -> {
-                    SignInError(
-                        errorType = ErrorTypes.BROWSER_REQUIRED,
-                        error = result.error,
+                    SignInContinuationError(
                         errorMessage = result.errorDescription,
-                        correlationId = result.correlationId
+                        error = result.error,
+                        correlationId = result.correlationId,
+                        errorCodes = result.errorCodes,
                     )
                 }
                 is INativeAuthCommandResult.UnknownError -> {
@@ -507,7 +491,7 @@ abstract class SignInAfterSignUpBaseState(
                         TAG,
                         "Sign in after sign up received unexpected result: $result"
                     )
-                    SignInError(
+                    SignInContinuationError(
                         errorMessage = result.errorDescription,
                         error = result.error,
                         correlationId = result.correlationId,

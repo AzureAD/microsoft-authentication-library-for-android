@@ -36,7 +36,7 @@ open class SignInError(
     override val correlationId: String,
     override val errorCodes: List<Int>? = null,
     override var exception: Exception? = null
-): SignInResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
+): SignInResult, BrowserRequiredError(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
     fun isUserNotFound(): Boolean = this.errorType == ErrorTypes.USER_NOT_FOUND
 }
 /**
@@ -83,3 +83,22 @@ class SignInSubmitPasswordError(
 ): SignInSubmitPasswordResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
     fun isInvalidCredentials(): Boolean = this.errorType == SignInErrorTypes.INVALID_CREDENTIALS
 }
+
+/**
+ * Sign in continuation error. The error has no utility methods
+ * and must be treated as unexpected. This error is produced by
+ * [com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication.signIn]
+ * @param errorType the error type value of the error that occurred
+ * @param error the error returned by the authentication server.
+ * @param errorMessage the error message returned by the authentication server.
+ * @param correlationId a unique identifier for the request that can help in diagnostics.
+ * @param errorCodes a list of specific error codes returned by the authentication server.
+ * @param exception an internal unexpected exception that happened.
+ */
+open class SignInContinuationError(
+    override val error: String? = null,
+    override val errorMessage: String?,
+    override val correlationId: String,
+    override val errorCodes: List<Int>? = null,
+    override var exception: Exception? = null
+): SignInResult, Error(errorType = null, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception)

@@ -38,6 +38,7 @@ import com.microsoft.identity.common.java.nativeauth.BuildValues;
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenError;
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError;
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordSubmitPasswordError;
+import com.microsoft.identity.nativeauth.statemachine.errors.SignInContinuationError;
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError;
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInUsingPasswordError;
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError;
@@ -1070,12 +1071,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         state.signIn(null, callback);
 
         SignInResult result = resultFuture.get(10, TimeUnit.SECONDS);
-        assertTrue(result instanceof SignInError);
-
-        SignInError error = (SignInError)result;
-
-        assertFalse(error.isUserNotFound());
-        assertFalse(error.isBrowserRequired());
+        assertTrue(result instanceof SignInContinuationError);
     }
 
     /**
