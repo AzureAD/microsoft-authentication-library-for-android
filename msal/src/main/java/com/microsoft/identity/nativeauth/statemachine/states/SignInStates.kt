@@ -23,6 +23,8 @@
 
 package com.microsoft.identity.nativeauth.statemachine.states
 
+import android.os.Parcel
+import android.os.Parcelable
 import com.microsoft.identity.client.AuthenticationResultAdapter
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
@@ -58,7 +60,6 @@ import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.Serializable
 
 /**
  * Native Auth uses a state machine to denote state of and transitions within a flow.
@@ -72,8 +73,15 @@ class SignInCodeRequiredState internal constructor(
     override val continuationToken: String,
     private val scopes: List<String>?,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(continuationToken), State, Serializable {
+) : BaseState(continuationToken), State, Parcelable {
     private val TAG: String = SignInCodeRequiredState::class.java.simpleName
+
+    constructor(parcel: Parcel) : this(
+        parcel.readString()  ?: "",
+        parcel.createStringArrayList(),
+        parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
+    ) {
+    }
 
     /**
      * SubmitCodeCallback receives the result for submit code for SignIn for Native Auth
@@ -261,6 +269,26 @@ class SignInCodeRequiredState internal constructor(
             }
         }
     }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(continuationToken)
+        parcel.writeStringList(scopes)
+        parcel.writeSerializable(config)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<SignInCodeRequiredState> {
+        override fun createFromParcel(parcel: Parcel): SignInCodeRequiredState {
+            return SignInCodeRequiredState(parcel)
+        }
+
+        override fun newArray(size: Int): Array<SignInCodeRequiredState?> {
+            return arrayOfNulls(size)
+        }
+    }
 }
 
 /**
@@ -393,8 +421,15 @@ abstract class SignInAfterSignUpBaseState(
     override val continuationToken: String?,
     internal open val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(continuationToken), State, Serializable {
+) : BaseState(continuationToken), State, Parcelable {
     private val TAG: String = SignInAfterSignUpBaseState::class.java.simpleName
+
+    constructor(parcel: Parcel) : this(
+        parcel.readString(),
+        parcel.readString() ?: "",
+        parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
+    ) {
+    }
 
     /**
      * SignInAfterSignUpCallback receives the result for sign in after signup for Native Auth
@@ -517,5 +552,15 @@ abstract class SignInAfterSignUpBaseState(
                 }
             }
         }
+    }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(continuationToken)
+        parcel.writeString(username)
+        parcel.writeSerializable(config)
+    }
+
+    override fun describeContents(): Int {
+        return 0
     }
 }
