@@ -30,6 +30,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.microsoft.identity.client.exception.MsalException
+import com.microsoft.identity.client.testapp.Constants
 import com.microsoft.identity.client.testapp.R
 import com.microsoft.identity.client.testapp.databinding.FragmentEmailAttributeBinding
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
@@ -49,13 +50,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+/**
+ * Fragment used for the email, password and user attributes sign up flow.
+ */
 class EmailAttributeSignUpFragment : Fragment() {
     private lateinit var authClient: INativeAuthPublicClientApplication
     private var _binding: FragmentEmailAttributeBinding? = null
     private val binding get() = _binding!!
 
     companion object {
-        private val TAG = EmailAttributeSignUpFragment::class.java.simpleName
         private enum class STATUS { SignedIn, SignedOut }
     }
 

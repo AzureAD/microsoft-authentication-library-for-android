@@ -32,6 +32,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import com.microsoft.identity.client.exception.MsalException
+import com.microsoft.identity.client.testapp.Constants
 import com.microsoft.identity.client.testapp.R
 import com.microsoft.identity.client.testapp.databinding.FragmentAttributeBinding
 import com.microsoft.identity.nativeauth.UserAttributes
@@ -43,14 +44,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+/**
+ * Fragment used for submitting attributes in the sign up flow. This Fragment is used in a scenario
+ * where attributes are submitted after setting the code and/or password.
+ */
 class SignUpAttributesFragment : Fragment() {
     private lateinit var currentState: SignUpAttributesRequiredState
     private var _binding: FragmentAttributeBinding? = null
     private val binding get() = _binding!!
-
-    companion object {
-        private val TAG = SignUpAttributesFragment::class.java.simpleName
-    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentAttributeBinding.inflate(inflater, container, false)
@@ -118,8 +119,6 @@ class SignUpAttributesFragment : Fragment() {
         }
     }
     private fun displayDialog(error: String?, message: String?) {
-        Log.w(TAG, "$message")
-
         val builder = AlertDialog.Builder(requireContext())
         builder.setTitle(error)
             .setMessage(message)

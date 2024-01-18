@@ -16,5 +16,4 @@
         android:id="@+id/email_oob_sspr"
         android:icon="@drawable/ic_baseline_lock_reset_24"
         android:title=" SSPR" />
-
 </menu>

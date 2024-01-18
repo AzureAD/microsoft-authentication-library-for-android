@@ -35,6 +35,7 @@ import com.microsoft.identity.client.AcquireTokenParameters
 import com.microsoft.identity.client.AuthenticationCallback
 import com.microsoft.identity.client.IAuthenticationResult
 import com.microsoft.identity.client.exception.MsalException
+import com.microsoft.identity.client.testapp.Constants
 import com.microsoft.identity.client.testapp.R
 import com.microsoft.identity.client.testapp.databinding.FragmentEmailPasswordBinding
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
@@ -51,6 +52,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+/**
+ * Fragment used for the email and password sign up and sign in flow.
+ */
 class EmailPasswordSignInSignUpFragment : Fragment() {
 
     private lateinit var authClient: INativeAuthPublicClientApplication
@@ -58,7 +62,6 @@ class EmailPasswordSignInSignUpFragment : Fragment() {
     private val binding get() = _binding!!
 
     companion object {
-        private val TAG = EmailPasswordSignInSignUpFragment::class.java.simpleName
         private enum class STATUS { SignedIn, SignedOut }
     }
 
@@ -283,7 +286,6 @@ class EmailPasswordSignInSignUpFragment : Fragment() {
     }
 
     private fun displayDialog(error: String? = null, message: String?) {
-        Log.w(TAG, "$message")
         val builder = AlertDialog.Builder(requireContext())
         builder.setTitle(error)
             .setMessage(message)
@@ -301,7 +303,6 @@ class EmailPasswordSignInSignUpFragment : Fragment() {
 
             override fun onSuccess(authenticationResult: IAuthenticationResult) {
                 /* Successfully got a token, use it to call a protected resource - MSGraph */
-                Log.d(TAG, "Successfully authenticated")
 
                 val accountResult = authenticationResult.account as Account
 
@@ -317,13 +318,11 @@ class EmailPasswordSignInSignUpFragment : Fragment() {
 
             override fun onError(exception: MsalException) {
                 /* Failed to acquireToken */
-                Log.d(TAG, "Authentication failed: $exception")
                 displayDialog(getString(R.string.msal_exception_title), exception.errorCode)
             }
 
             override fun onCancel() {
                 /* User canceled the authentication */
-                Log.d(TAG, "User cancelled login.")
             }
         }
     }

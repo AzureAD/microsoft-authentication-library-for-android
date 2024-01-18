@@ -31,6 +31,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import com.microsoft.identity.client.exception.MsalException
+import com.microsoft.identity.client.testapp.Constants
 import com.microsoft.identity.client.testapp.R
 import com.microsoft.identity.client.testapp.databinding.FragmentPasswordBinding
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
@@ -42,14 +43,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+/**
+ * Fragment used for managing the password in the sign up flow.
+ */
 class SignUpPasswordFragment : Fragment() {
     private lateinit var currentState: SignUpPasswordRequiredState
     private var _binding: FragmentPasswordBinding? = null
     private val binding get() = _binding!!
-
-    companion object {
-        private val TAG = SignUpAttributesFragment::class.java.simpleName
-    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentPasswordBinding.inflate(inflater, container, false)

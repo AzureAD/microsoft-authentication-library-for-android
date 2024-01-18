@@ -32,6 +32,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import com.microsoft.identity.client.exception.MsalException
+import com.microsoft.identity.client.testapp.Constants
 import com.microsoft.identity.client.testapp.R
 import com.microsoft.identity.client.testapp.databinding.FragmentPasswordBinding
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResult
@@ -40,14 +41,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+/**
+ * Fragment used for setting the new password in the reset password flow.
+ */
 class PasswordResetNewPasswordFragment : Fragment() {
     private lateinit var currentState: ResetPasswordPasswordRequiredState
     private var _binding: FragmentPasswordBinding? = null
     private val binding get() = _binding!!
-
-    companion object {
-        private val TAG = PasswordResetNewPasswordFragment::class.java.simpleName
-    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentPasswordBinding.inflate(inflater, container, false)
@@ -101,8 +101,6 @@ class PasswordResetNewPasswordFragment : Fragment() {
     }
 
     private fun displayDialog(error: String?, message: String?) {
-        Log.w(TAG, "$message")
-
         val builder = AlertDialog.Builder(requireContext())
         builder.setTitle(error)
             .setMessage(message)

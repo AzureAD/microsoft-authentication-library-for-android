@@ -113,4 +113,9 @@ public class Constants {
         BEARER,
         POP
     }
+
+    public static final String STATE = "state";
+    public static final String CODE_LENGTH = "code_length";
+    public static final String SENT_TO = "sent_to";
+    public static final String CHANNEL = "channel";
 }
