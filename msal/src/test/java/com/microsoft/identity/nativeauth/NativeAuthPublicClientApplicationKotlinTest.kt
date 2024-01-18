@@ -52,7 +52,6 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignInUsingPasswor
 import com.microsoft.identity.nativeauth.statemachine.results.SignOutResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResendCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
-import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpState
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper
 import com.microsoft.identity.common.nativeauth.MockApiEndpoint
@@ -63,6 +62,7 @@ import com.microsoft.identity.common.java.interfaces.IPlatformComponents
 import com.microsoft.identity.common.java.nativeauth.BuildValues
 import com.microsoft.identity.common.java.util.ResultFuture
 import com.microsoft.identity.internal.testutils.TestUtils
+import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInContinuationError
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
@@ -415,7 +415,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         // 1b. client returns error
         val config = mock<NativeAuthPublicClientApplicationConfiguration>()
-        val continuationTokenState = SignInAfterSignUpState(continuationToken = null, username = username, config = config)
+        val continuationTokenState = SignInContinuationState(continuationToken = null, username = username, config = config)
         val result = continuationTokenState.signIn(scopes = null)
         assertTrue(result is SignInContinuationError)
     }
@@ -646,8 +646,88 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val submitPasswordResult = nextState.submitPassword(password = password)
         // 3b. Transform /submit(success) +/poll_completion(success) to Result(Complete).
         assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
-        // 3c. Respond to Result(Complete): shifting from ResetPasswordPasswordRequired to end. Continuation token as resultValue will be returned after private preview.
-        val resultValue = (submitPasswordResult as ResetPasswordResult.Complete).resultValue
+    }
+
+    /**
+     * Test SSPR scenario 3.2.2:
+     * 1 -> USER click resetPassword
+     * 1 <- user found, SERVER requires code verification
+     * 2 -> USER submit valid code
+     * 2 <- code valid, SERVER requires new password to be set
+     * 3 -> USER submit valid password
+     * 3 <- password reset succeeds
+     * 4 -> USER calls sign in on the provided state
+     * 4 <- SERVER returns tokens
+     */
+    @Test
+    fun testSSPRScenario3_2_2() = runTest {
+        var nextState: Any?
+        // 1. Click reset password
+        // 1_mock_api. Setup server response - endpoint: resetpassword/start - Server returns Success
+        val correlationId = UUID.randomUUID().toString()
+        configureMockApi(
+            endpointType = MockApiEndpoint.SSPRStart,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.SSPR_START_SUCCESS
+        )
+        // 1_mock_api. Setup server response - endpoint: resetpassword/challenge - Server returns Success: challenge_type = OOB
+        configureMockApi(
+            endpointType = MockApiEndpoint.SSPRChallenge,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.CHALLENGE_TYPE_OOB
+        )
+        // 1a. Call SDK interface - resetPassword(ResetPasswordStart)
+        val resetPasswordResult = application.resetPassword(username = username)
+        // 1b. Transform /start(success) +/challenge(challenge_type=OOB) to Result(CodeRequired).
+        assertTrue(resetPasswordResult is ResetPasswordStartResult.CodeRequired)
+        // 1c. Respond to Result(Code Required): shifting from start to ResetPasswordCodeRequired state.
+        nextState = (resetPasswordResult as ResetPasswordStartResult.CodeRequired).nextState
+
+        // 2. Submit valid code
+        // 2_mock_api. Setup server response - endpoint: resetpassowrd/continue - Server returns Success
+        configureMockApi(
+            endpointType = MockApiEndpoint.SSPRContinue,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.SSPR_CONTINUE_SUCCESS
+        )
+        // 2a. Call SDK interface - submitCode()
+        val submitCodeResult = nextState.submitCode(code = code)
+        // 2b. Transform /continue(success) to Result(PasswordRequired).
+        assertTrue(submitCodeResult is ResetPasswordSubmitCodeResult.PasswordRequired)
+        // 2c. Respond to Result(PasswordRequired): shifting from ResetPasswordCodeRequired to ResetPasswordPasswordRequired state.
+        nextState = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState
+
+        // 3. Submit valid password
+        // 3_mock_api. Setup server response - endpoint: resetpassword/submit - Server returns Success
+        configureMockApi(
+            endpointType = MockApiEndpoint.SSPRSubmit,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.SSPR_SUBMIT_SUCCESS
+        )
+        // 3_mock_api. Setup server response - endpoint: resetpassword/poll_completion - Server returns Success
+        configureMockApi(
+            endpointType = MockApiEndpoint.SSPRPoll,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.SSPR_POLL_SUCCESS
+        )
+        // 3a. Call SDK interface - submitPassword()
+        val submitPasswordResult = nextState.submitPassword(password = password)
+        // 3b. Transform /submit(success) +/poll_completion(success) to Result(Complete).
+        assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
+        // 3c. Respond to Result(Complete): shifting from ResetPasswordPasswordRequired to end.
+        assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
+        val signInWithContinuationTokenState = (submitPasswordResult as ResetPasswordResult.Complete).nextState
+
+        // 4a. Sign in with (valid) continuation token
+        configureMockApi(
+            endpointType = MockApiEndpoint.SignInToken,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.TOKEN_SUCCESS
+        )
+
+        // 4b. Server returns tokens
+        val result = signInWithContinuationTokenState.signIn(scopes = null)
+        assertTrue(result is SignInResult.Complete)
     }
 
     /**
@@ -729,8 +809,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         submitPasswordResult = nextState.submitPassword(password = password)
         // 4b. Transform /submit(error) + /resetpassword/poll_completion(success) to Result(Complete).
         assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
-        // 4c. Respond to Result(Complete): shifting from ResetPasswordPasswordRequired to end. Continuation token as resultValue will be returned after private preview.
-        val resultValue = (submitPasswordResult as ResetPasswordResult.Complete).resultValue
     }
 
     /**
@@ -812,8 +890,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val submitPasswordResult = nextState.submitPassword(password = password)
         // 4b. Transform /submit(success) +/poll_completion(success) to Result(Complete).
         assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
-        // 4c. Respond to Result(Complete): shifting from ResetPasswordPasswordRequired to end. Continuation token as resultValue will be returned after private preview.
-        val resultValue = (submitPasswordResult as ResetPasswordResult.Complete).resultValue
     }
 
     /**
@@ -964,8 +1040,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val submitPasswordResult = nextState.submitPassword(password = password)
         // 4b. Transform /submit(success) +/poll_completion(success) to Result(Complete).
         assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
-        // 4c. Respond to Result(Complete): shifting from ResetPasswordPasswordRequired to end. Continuation token as resultValue will be returned after private preview.
-        val resultValue = (submitPasswordResult as ResetPasswordResult.Complete).resultValue
     }
 
     /**
@@ -1216,7 +1290,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         InterruptedException::class,
         TimeoutException::class
     )
-    private suspend fun signUpUser(): SignInAfterSignUpState {
+    private suspend fun signUpUser(): SignInContinuationState {
         // 1. sign up with password
         // 1a. Setup server response
         val correlationId = UUID.randomUUID().toString()

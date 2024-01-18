@@ -34,7 +34,6 @@ import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTe
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.common.java.nativeauth.BuildValues;
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenError;
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError;
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordSubmitPasswordError;
@@ -65,8 +64,8 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignUpUsingPasswor
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState;
 import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordCodeRequiredState;
 import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordPasswordRequiredState;
-import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpState;
 import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState;
+import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState;
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesRequiredState;
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState;
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory;
@@ -1011,7 +1010,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // Setup - sign up the user, so that we don't have to construct the SLT state manually
         // as this doesn't allow for the NativeAuthPublicClientApplicationConfiguration to be set
         // up, meaning it would need to be mocked (which we don't want in these tests).
-        SignInAfterSignUpState signInWithSLTState = signUpUser();
+        SignInContinuationState signInWithSLTState = signUpUser();
 
         // 1a. sign in with (valid) SLT
         String correlationId = UUID.randomUUID().toString();
@@ -1023,7 +1022,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 1b. server returns token
         final ResultFuture<SignInResult> resultFuture = new ResultFuture<>();
-        SignInAfterSignUpState.SignInAfterSignUpCallback callback = new SignInAfterSignUpState.SignInAfterSignUpCallback() {
+        SignInContinuationState.SignInContinuationCallback callback = new SignInContinuationState.SignInContinuationCallback() {
             @Override
             public void onResult(SignInResult result) {
                 resultFuture.setResult(result);
@@ -1055,9 +1054,9 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 1b. client returns error
         final NativeAuthPublicClientApplicationConfiguration config = Mockito.mock(NativeAuthPublicClientApplicationConfiguration.class);
-        final SignInAfterSignUpState state = new SignInAfterSignUpState(null, username, config);
+        final SignInContinuationState state = new SignInContinuationState(null, username, config);
         final ResultFuture<SignInResult> resultFuture = new ResultFuture<>();
-        SignInAfterSignUpState.SignInAfterSignUpCallback callback = new SignInAfterSignUpState.SignInAfterSignUpCallback() {
+        SignInContinuationState.SignInContinuationCallback callback = new SignInContinuationState.SignInContinuationCallback() {
             @Override
             public void onResult(SignInResult result) {
                 resultFuture.setResult(result);
@@ -1085,7 +1084,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // Setup - sign up the user, so that we don't have to construct the SLT state manually
         // as this doesn't allow for the NativeAuthPublicClientApplicationConfiguration to be set
         // up, meaning it would need to be mocked (which we don't want in these tests).
-        SignInAfterSignUpState signInWithSLTState = signUpUser();
+        SignInContinuationState signInWithSLTState = signUpUser();
 
         // 1a. sign in with (expired) SLT
         String correlationId = UUID.randomUUID().toString();
@@ -1097,7 +1096,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 1b. server returns error
         final ResultFuture<SignInResult> resultFuture = new ResultFuture<>();
-        SignInAfterSignUpState.SignInAfterSignUpCallback callback = new SignInAfterSignUpState.SignInAfterSignUpCallback() {
+        SignInContinuationState.SignInContinuationCallback callback = new SignInContinuationState.SignInContinuationCallback() {
             @Override
             public void onResult(SignInResult result) {
                 resultFuture.setResult(result);
@@ -1241,8 +1240,97 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 3b. Transform /submit(success) +/poll_completion(success) to Result(Complete).
         ResetPasswordSubmitPasswordResult submitPasswordResult = submitPasswordCallback.get();
         assertTrue(submitPasswordResult instanceof ResetPasswordResult.Complete);
-        // 3c. Respond to Result(Complete): shifting from ResetPasswordPasswordRequired to end. SLT as resultValue will be returned after private preview.
-        Object resultValue = ((ResetPasswordResult.Complete) submitPasswordResult).getResultValue();
+    }
+
+    /**
+     * Test SSPR scenario 3.2.2:
+     * 1 -> USER click resetPassword
+     * 1 <- user found, SERVER requires code verification
+     * 2 -> USER submit valid code
+     * 2 <- code valid, SERVER requires new password to be set
+     * 3 -> USER submit valid password
+     * 3 <- password reset succeeds
+     * 4 -> USER calls sign in on the provided state
+     * 4 <- SERVER returns tokens
+     */
+    @Test
+    public void testSSPRScenario3_2_2() throws ExecutionException, InterruptedException, TimeoutException {
+        String correlationId = UUID.randomUUID().toString();
+        // 1. Click reset password
+        // 1_mock_api. Setup server response - endpoint: resetpassword/start - Server returns Success
+        MockApiUtils.configureMockApi(
+                MockApiEndpoint.SSPRStart,
+                correlationId,
+                MockApiResponseType.SSPR_START_SUCCESS
+        );
+        // 1_mock_api. Setup server response - endpoint: resetpassword/challenge - Server returns Success: challenge_type = OOB
+        MockApiUtils.configureMockApi(
+                MockApiEndpoint.SSPRChallenge,
+                correlationId,
+                MockApiResponseType.CHALLENGE_TYPE_OOB
+        );
+
+        ResetPasswordStartTestCallback resetPasswordCallback = new ResetPasswordStartTestCallback();
+        // 1a. Call SDK interface - resetPassword(ResetPasswordStart)
+        application.resetPassword(username, resetPasswordCallback);
+        // 1b. Transform /start(success) +/challenge(challenge_type=OOB) to Result(CodeRequired).
+        ResetPasswordStartResult resetPasswordResult = resetPasswordCallback.get();
+        assertTrue(resetPasswordResult instanceof ResetPasswordStartResult.CodeRequired);
+        // 1c. Respond to Result(Code Required): shifting from start to ResetPasswordCodeRequired state.
+        ResetPasswordCodeRequiredState nextState = ((ResetPasswordStartResult.CodeRequired) resetPasswordResult).getNextState();
+
+        // 2. Submit valid code
+        // 2_mock_api. Setup server response - endpoint: resetpassowrd/continue - Server returns Success
+        MockApiUtils.configureMockApi(
+                MockApiEndpoint.SSPRContinue,
+                correlationId,
+                MockApiResponseType.SSPR_CONTINUE_SUCCESS
+        );
+
+        ResetPasswordSubmitCodeTestCallback submitCodeCallback = new ResetPasswordSubmitCodeTestCallback();
+        // 2a. Call SDK interface - submitCode()
+        nextState.submitCode(code, submitCodeCallback);
+        // 2b. Transform /continue(success) to Result(PasswordRequired).
+        ResetPasswordSubmitCodeResult submitCodeResult = submitCodeCallback.get();
+        assertTrue(submitCodeResult instanceof ResetPasswordSubmitCodeResult.PasswordRequired);
+        // 2c. Respond to Result(PasswordRequired): shifting from ResetPasswordCodeRequired to ResetPasswordPasswordRequired state.
+        ResetPasswordPasswordRequiredState nextState_ = ((ResetPasswordSubmitCodeResult.PasswordRequired) submitCodeResult).getNextState();
+
+        // 3. Submit valid password
+        // 3_mock_api. Setup server response - endpoint: resetpassword/submit - Server returns Success
+        MockApiUtils.configureMockApi(
+                MockApiEndpoint.SSPRSubmit,
+                correlationId,
+                MockApiResponseType.SSPR_SUBMIT_SUCCESS
+        );
+        // 3_mock_api. Setup server response - endpoint: resetpassword/poll_completion - Server returns Success
+        MockApiUtils.configureMockApi(
+                MockApiEndpoint.SSPRPoll,
+                correlationId,
+                MockApiResponseType.SSPR_POLL_SUCCESS
+        );
+
+        ResetPasswordSubmitPasswordTestCallback submitPasswordCallback = new ResetPasswordSubmitPasswordTestCallback();
+        // 3a. Call SDK interface - submitPassword()
+        nextState_.submitPassword(password, submitPasswordCallback);
+        // 3b. Transform /submit(success) +/poll_completion(success) to Result(Complete).
+        ResetPasswordSubmitPasswordResult submitPasswordResult = submitPasswordCallback.get();
+        assertTrue(submitPasswordResult instanceof ResetPasswordResult.Complete);
+        // 3c. Respond to Result(Complete): shifting from ResetPasswordPasswordRequired to end
+        SignInContinuationState signInState = ((ResetPasswordResult.Complete) submitPasswordResult).getNextState();
+
+        // 4a. Sign in with (valid) continuation token
+        MockApiUtils.configureMockApi(
+                MockApiEndpoint.SignInToken,
+                correlationId,
+                MockApiResponseType.TOKEN_SUCCESS
+        );
+
+        SignInContinuationTestCallback signInCallback = new SignInContinuationTestCallback();
+        signInState.signIn(null, signInCallback);
+
+        SignInResult signInResult = signInCallback.get();
+        assertTrue(signInResult instanceof SignInResult.Complete);
     }
 
     /**
@@ -1632,7 +1720,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
     // Helper methods
     // TODO update this after sign up SDK tests PR
-    private SignInAfterSignUpState signUpUser() throws ExecutionException, InterruptedException, TimeoutException {
+    private SignInContinuationState signUpUser() throws ExecutionException, InterruptedException, TimeoutException {
         // 1. sign up with password
         // 1a. Setup server response
         String correlationId = UUID.randomUUID().toString();
@@ -2730,6 +2818,19 @@ class SignUpSubmitPasswordTestCallback extends TestCallback<SignUpSubmitPassword
 
     @Override
     public void onResult(SignUpSubmitPasswordResult result) {
+        future.setResult(result);
+    }
+
+    @Override
+    public void onError(@NonNull BaseException exception) {
+        future.setException(exception);
+    }
+}
+
+class SignInContinuationTestCallback extends TestCallback<SignInResult> implements SignInContinuationState.SignInContinuationCallback {
+
+    @Override
+    public void onResult(SignInResult result) {
         future.setResult(result);
     }
 
