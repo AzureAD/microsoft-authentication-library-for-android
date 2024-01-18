@@ -554,7 +554,7 @@ public class CommandParametersAdapter {
      * @return Command parameter object
      * @throws ClientException
      */
-    public static SignInStartCommandParameters createSignInStartUsingPasswordCommandParameters(
+    public static SignInStartCommandParameters createSignInStartCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String username,

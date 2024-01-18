@@ -1247,7 +1247,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
     /**
      * Test Sign Up scenario 1:
-     * 1a -> signUpUsingPassword
+     * 1a -> signUp
      * 1b <- server requires code verification
      * 2a -> submit valid code
      * 2b <- sign up succeeds
@@ -1292,7 +1292,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
     /**
      * Test Sign Up scenario 2:
-     * 1a -> signUpUsingPassword
+     * 1a -> signUp
      * 1b <- server requires code verification
      * 2a -> user prompts resend code, challenge endpoint is called
      * 2b <- codeRequired is returned
@@ -1352,7 +1352,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
     /**
      * Test Sign Up scenario 3:
-     * 1a -> signUpUsingPassword
+     * 1a -> signUp
      * 1b <- server requires code verification
      * 2a -> submit valid code
      * 3a <- sign up token has expired, server returns token expired error
@@ -1397,7 +1397,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
     /**
      * Test Sign Up scenario 4:
-     * 1a -> signUpUsingPassword
+     * 1a -> signUp
      * 1b <- server does not support password authentication
      */
     @Test
@@ -1419,7 +1419,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
     /**
      * Test Sign Up scenario 5:
-     * 1a -> signUpUsingPassword
+     * 1a -> signUp
      * 1b <- server does not support password authentication, returns error to use OOB instead
      */
     @Test
@@ -1441,7 +1441,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
     /**
      * Test Sign Up scenario 6:
-     * 1a -> signUpUsingPassword
+     * 1a -> signUp
      * 1b <- server requires code verification
      * 2a -> user prompts resend code, challenge endpoint is called
      * 2b <- codeRequired is returned
@@ -1520,7 +1520,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
     /**
      * Test Sign Up scenario 7:
-     * 1a -> signUpUsingPassword with invalid custom attributes
+     * 1a -> signUp with invalid custom attributes
      * 1b <- server returns invalid attribute error
      * 2a -> call signUpWithPassword with correct attributes
      * 2b <- server returns code required, flow continues
@@ -2030,7 +2030,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
     }
 
     @Test
-    fun testSignUpUsingPasswordInvalidEmailReturnsError() = runTest {
+    fun testSignUpInvalidEmailReturnsError() = runTest {
         val correlationId = UUID.randomUUID().toString()
 
         configureMockApi(

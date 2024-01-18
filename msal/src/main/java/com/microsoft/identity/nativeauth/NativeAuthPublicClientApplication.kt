@@ -255,7 +255,7 @@ class NativeAuthPublicClientApplication(
      * @param password (Optional) password of the account to sign in.
      * @param scopes (Optional) list of scopes to request.
      * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.SignInCallback] to receive the result.
-     * @return [com.microsoft.identity.nativeauth.statemachine.results.SignInUsingPasswordResult] see detailed possible return state under the object.
+     * @return [com.microsoft.identity.nativeauth.statemachine.results.SignInResult] see detailed possible return state under the object.
      * @throws MsalClientException if an account is already signed in.
      */
     override fun signIn(
@@ -264,13 +264,13 @@ class NativeAuthPublicClientApplication(
         scopes: List<String>?,
         callback: SignInCallback
     ) {
-        LogSession.logMethodCall(TAG, "${TAG}.signIn(username: String, password: String, scopes: List<String>?, callback: SignInUsingPasswordCallback)")
+        LogSession.logMethodCall(TAG, "${TAG}.signIn")
         pcaScope.launch {
             try {
                 val result = signIn(username, password, scopes)
                 callback.onResult(result)
             } catch (e: MsalException) {
-                Logger.error(TAG, "Exception thrown in signInUsingPassword", e)
+                Logger.error(TAG, "Exception thrown in signIn", e)
                 callback.onError(e)
             }
         }
@@ -290,16 +290,16 @@ class NativeAuthPublicClientApplication(
         password: CharArray?,
         scopes: List<String>?
     ): SignInResult {
-        LogSession.logMethodCall(TAG, "${TAG}.signInUsingPassword")
+        LogSession.logMethodCall(TAG, "${TAG}.signIn")
         return withContext(Dispatchers.IO) {
-            LogSession.logMethodCall(TAG, "${TAG}.signInUsingPassword.withContext")
+            LogSession.logMethodCall(TAG, "${TAG}.signIn.withContext")
 
             verifyNoUserIsSignedIn()
 
             val hasPassword = password != null && !password.isEmpty()
 
             val params =
-                CommandParametersAdapter.createSignInStartUsingPasswordCommandParameters(
+                CommandParametersAdapter.createSignInStartCommandParameters(
                     nativeAuthConfig,
                     nativeAuthConfig.oAuth2TokenCache,
                     username,
@@ -452,13 +452,13 @@ class NativeAuthPublicClientApplication(
         attributes: UserAttributes?,
         callback: SignUpCallback
     ) {
-        LogSession.logMethodCall(TAG, "${TAG}.signUpUsingPassword")
+        LogSession.logMethodCall(TAG, "${TAG}.signUp")
         pcaScope.launch {
             try {
                 val result = signUp(username, password, attributes)
                 callback.onResult(result)
             } catch (e: MsalException) {
-                Logger.error(TAG, "Exception thrown in signUpUsingPassword", e)
+                Logger.error(TAG, "Exception thrown in signUp", e)
                 callback.onError(e)
             }
         }
@@ -478,7 +478,7 @@ class NativeAuthPublicClientApplication(
         password: CharArray?,
         attributes: UserAttributes?
     ): SignUpResult {
-        LogSession.logMethodCall(TAG, "${TAG}.signUpUsingPassword(username: String, password: String, attributes: UserAttributes?)")
+        LogSession.logMethodCall(TAG, "${TAG}.signUp")
 
         var hasPassword = password != null && !password.isEmpty()
 

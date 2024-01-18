@@ -1676,7 +1676,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
     /**
      * Test Sign Up scenario 1:
-     * 1a -> signUpUsingPassword
+     * 1a -> signUp
      * 1b <- server requires code verification
      * 2a -> submit valid code
      * 2b <- sign up succeeds
@@ -1725,7 +1725,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
     /**
      * Test Sign Up scenario 2:
-     * 1a -> signUpUsingPassword
+     * 1a -> signUp
      * 1b <- server requires code verification
      * 2a -> user prompts resend code, challenge endpoint is called
      * 2b <- codeRequired is returned
@@ -1794,7 +1794,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
     /**
      * Test Sign Up scenario 3:
-     * 1a -> signUpUsingPassword
+     * 1a -> signUp
      * 1b <- server requires code verification
      * 2a -> submit valid code
      * 3a <- sign up token has expired, server returns token expired error
@@ -1846,7 +1846,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
     /**
      * Test Sign Up scenario 4:
-     * 1a -> signUpUsingPassword
+     * 1a -> signUp
      * 1b <- server does not support password authentication
      */
     @Test
@@ -1869,7 +1869,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
     /**
      * Test Sign Up scenario 5:
-     * 1a -> signUpUsingPassword
+     * 1a -> signUp
      * 1b <- server does not support password authentication, returns error to use OOB instead
      */
     @Test
@@ -1892,7 +1892,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
     /**
      * Test Sign Up scenario 6:
-     * 1a -> signUpUsingPassword
+     * 1a -> signUp
      * 1b <- server requires code verification
      * 2a -> user prompts resend code, challenge endpoint is called
      * 2b <- codeRequired is returned
@@ -1985,9 +1985,9 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
     /**
      * Test Sign Up scenario 7:
-     * 1a -> signUpUsingPassword with invalid custom attributes
+     * 1a -> signUp with invalid custom attributes
      * 1b <- server returns invalid attribute error
-     * 2a -> call signUpUsingPassword with correct attributes
+     * 2a -> call signUp with correct attributes
      * 2b <- server returns code required, flow continues
      */
     @Test
@@ -2592,7 +2592,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     }
 
     @Test
-    public void testSignUpUsingPasswordInvalidEmailReturnsError() throws ExecutionException, InterruptedException, TimeoutException {
+    public void testSignUpInvalidEmailReturnsError() throws ExecutionException, InterruptedException, TimeoutException {
         String correlationId = UUID.randomUUID().toString();
 
         MockApiUtils.configureMockApi(
