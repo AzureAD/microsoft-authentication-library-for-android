@@ -55,6 +55,7 @@
     <string name="auth_scheme_text">Auth Scheme</string>
     <string name="launch_main_activity_button">Start Task</string>
     <string name="get_active_broker">Get active broker package</string>
+    <string name="is_qr_pin_available">is QR + PIN available</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
@@ -116,4 +117,5 @@
     <!-- Results -->
     <string name="result_access_token_text">"Access token: "</string>
     <string name="result_id_token_text">"ID token: "</string>
+    <string name="at_with_qr_pin">AT with QR + PIN</string>
 </resources>
