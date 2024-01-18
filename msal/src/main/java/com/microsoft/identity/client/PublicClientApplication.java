@@ -1102,21 +1102,26 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
                     @Override
                     public void onTaskCompleted(Boolean isSharedDevice) {
-                        config.setIsSharedDevice(isSharedDevice);
+                        runOnBackground(new Runnable() {
+                            @Override
+                            public void run() {
+                                config.setIsSharedDevice(isSharedDevice);
 
-                        try {
-                            if (config instanceof NativeAuthPublicClientApplicationConfiguration
-                                    && config.getAccountMode() == AccountMode.SINGLE) {
-                                config.validateConfiguration();
-                                listener.onCreated(new NativeAuthPublicClientApplication((NativeAuthPublicClientApplicationConfiguration) config));
-                            } else if (config.getAccountMode() == AccountMode.SINGLE || isSharedDevice) {
-                                listener.onCreated(new SingleAccountPublicClientApplication(config));
-                            } else {
-                                listener.onCreated(new MultipleAccountPublicClientApplication(config));
+                                try {
+                                    if (config instanceof NativeAuthPublicClientApplicationConfiguration
+                                            && config.getAccountMode() == AccountMode.SINGLE) {
+                                        config.validateConfiguration();
+                                        listener.onCreated(new NativeAuthPublicClientApplication((NativeAuthPublicClientApplicationConfiguration) config));
+                                    } else if (config.getAccountMode() == AccountMode.SINGLE || isSharedDevice) {
+                                        listener.onCreated(new SingleAccountPublicClientApplication(config));
+                                    } else {
+                                        listener.onCreated(new MultipleAccountPublicClientApplication(config));
+                                    }
+                                } catch (final MsalClientException e) {
+                                    listener.onError(e);
+                                }
                             }
-                        } catch (final MsalClientException e) {
-                            listener.onError(e);
-                        }
+                        });
                     }
 
                     @Override
@@ -1276,16 +1281,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         final Context context = mPublicClientConfiguration.getAppContext();
         setupTelemetry(context, mPublicClientConfiguration);
 
-        // Today, this method runs on the main thread. AzureActiveDirectory.setEnvironment() and Authority.addKnownAuthorities()
-        // utilize thread locks to avoid race conditions, but locks shouldn't be used on the main thread to avoid Android Not Responding Crashes.
-        // Running them on a background thread instead.
-        runOnBackground(new Runnable() {
-            @Override
-            public void run() {
-                AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getEnvironment());
-                Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
-            }
-        });
+        AzureActiveDirectory.setEnvironment(mPublicClientConfiguration.getEnvironment());
+        Authority.addKnownAuthorities(mPublicClientConfiguration.getAuthorities());
 
         initializeLoggerSettings(mPublicClientConfiguration.getLoggerConfiguration());
 
