@@ -2592,7 +2592,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     }
 
     @Test
-    public void testSignUpInvalidEmailReturnsError() throws ExecutionException, InterruptedException, TimeoutException {
+    public void testSignUpWithPasswordInvalidEmailReturnsError() throws ExecutionException, InterruptedException, TimeoutException {
         String correlationId = UUID.randomUUID().toString();
 
         MockApiUtils.configureMockApi(

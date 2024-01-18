@@ -2030,7 +2030,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
     }
 
     @Test
-    fun testSignUpInvalidEmailReturnsError() = runTest {
+    fun testSignUpWithPasswordInvalidEmailReturnsError() = runTest {
         val correlationId = UUID.randomUUID().toString()
 
         configureMockApi(
