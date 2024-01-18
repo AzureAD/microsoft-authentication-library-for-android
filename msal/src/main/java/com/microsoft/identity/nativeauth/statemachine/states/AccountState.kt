@@ -23,6 +23,8 @@
 
 package com.microsoft.identity.nativeauth.statemachine.states
 
+import android.os.Parcel
+import android.os.Parcelable
 import com.microsoft.identity.client.Account
 import com.microsoft.identity.client.AcquireTokenSilentParameters
 import com.microsoft.identity.client.AuthenticationResultAdapter
@@ -55,7 +57,6 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignOutResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.Serializable
 
 /**
  *  AccountState returned as part of a successful completion of sign in flow [com.microsoft.identity.nativeauth.statemachine.results.SignInResult.Complete].
@@ -63,34 +64,15 @@ import java.io.Serializable
 class AccountState private constructor(
     private val account: IAccount,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : Serializable {
-
-    companion object {
-
-        private val TAG = NativeAuthPublicClientApplication::class.java.simpleName
-
-        fun createFromAuthenticationResult(
-            authenticationResult: IAuthenticationResult,
-            config: NativeAuthPublicClientApplicationConfiguration
-        ): AccountState {
-            return AccountState(
-                account = authenticationResult.account,
-                config = config
-            )
-        }
-
-        fun createFromAccountResult(
-            account: IAccount,
-            config: NativeAuthPublicClientApplicationConfiguration
-        ): AccountState {
-            return AccountState(
-                account = account,
-                config = config
-            )
-        }
-    }
+) : Parcelable {
 
     interface SignOutCallback : Callback<SignOutResult>
+
+    constructor(parcel: Parcel) : this(
+        parcel.readSerializable() as IAccount,
+        parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
+    ) {
+    }
 
     /**
      * Remove the current account from the cache; callback variant.
@@ -300,6 +282,47 @@ class AccountState private constructor(
                     )
                 }
             }
+        }
+    }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeSerializable(account)
+        parcel.writeSerializable(config)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<AccountState> {
+
+        private val TAG = NativeAuthPublicClientApplication::class.java.simpleName
+        override fun createFromParcel(parcel: Parcel): AccountState {
+            return AccountState(parcel)
+        }
+
+        override fun newArray(size: Int): Array<AccountState?> {
+            return arrayOfNulls(size)
+        }
+
+        fun createFromAuthenticationResult(
+            authenticationResult: IAuthenticationResult,
+            config: NativeAuthPublicClientApplicationConfiguration
+        ): AccountState {
+            return AccountState(
+                account = authenticationResult.account,
+                config = config
+            )
+        }
+
+        fun createFromAccountResult(
+            account: IAccount,
+            config: NativeAuthPublicClientApplicationConfiguration
+        ): AccountState {
+            return AccountState(
+                account = account,
+                config = config
+            )
         }
     }
 }
