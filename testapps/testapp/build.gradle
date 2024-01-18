@@ -101,8 +101,8 @@ android {
             resValue("string", "application_name", "msal-dist")
         }
     }
+    buildFeatures.buildConfig true
 }
-android.buildFeatures.buildConfig true
 dependencies {
 
 // Commented out becuase we haven't supported this in MSAL yet. Having this on could be misleading.

@@ -88,7 +88,7 @@ android {
         }
     }
 
-    android.buildFeatures.buildConfig true
+    buildFeatures.buildConfig true
 
     publishNonDefault true
 
