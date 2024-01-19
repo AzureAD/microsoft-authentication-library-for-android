@@ -414,7 +414,12 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         // 1b. client returns error
         val config = mock<NativeAuthPublicClientApplicationConfiguration>()
-        val continuationTokenState = SignInContinuationState(continuationToken = null, username = username, config = config)
+        val continuationTokenState = SignInContinuationState(
+            continuationToken = null,
+            correlationId = null,
+            username = username,
+            config = config
+        )
         val result = continuationTokenState.signIn(scopes = null)
         assertTrue(result is SignInError)
         assertTrue((result as SignInError).errorType == null)

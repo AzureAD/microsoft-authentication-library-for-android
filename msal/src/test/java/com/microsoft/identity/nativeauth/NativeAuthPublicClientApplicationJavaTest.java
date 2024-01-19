@@ -1053,7 +1053,12 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 1b. client returns error
         final NativeAuthPublicClientApplicationConfiguration config = Mockito.mock(NativeAuthPublicClientApplicationConfiguration.class);
-        final SignInContinuationState state = new SignInContinuationState(null, username, config);
+        final SignInContinuationState state = new SignInContinuationState(
+                null,
+                null,
+                username,
+                config
+        );
         final ResultFuture<SignInResult> resultFuture = new ResultFuture<>();
         SignInContinuationState.SignInContinuationCallback callback = new SignInContinuationState.SignInContinuationCallback() {
             @Override
