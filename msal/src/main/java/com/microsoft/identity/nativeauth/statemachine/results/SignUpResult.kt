@@ -23,7 +23,7 @@
 package com.microsoft.identity.nativeauth.statemachine.results
 
 import com.microsoft.identity.nativeauth.RequiredUserAttribute
-import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpState
+import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpPasswordRequiredState
@@ -37,10 +37,10 @@ interface SignUpResult : Result {
      * CompleteResult which indicates the sign up flow is complete,
      * i.e. the user account is created and can now be used to sign in with.
      *
-     * @param nextState [com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpState] the current state of the flow with follow-on methods.
+     * @param nextState [com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState] the current state of the flow with follow-on methods.
      */
     class Complete(
-        override val nextState: SignInAfterSignUpState
+        override val nextState: SignInContinuationState
     ) : Result.CompleteWithNextStateResult(resultValue = null, nextState = nextState),
         SignUpResult,
         SignUpSubmitCodeResult,
