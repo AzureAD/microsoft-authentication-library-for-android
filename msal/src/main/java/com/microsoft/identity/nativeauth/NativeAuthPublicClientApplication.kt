@@ -36,7 +36,7 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import com.microsoft.identity.nativeauth.statemachine.states.Callback
 import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordCodeRequiredState
-import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpState
+import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInPasswordRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesRequiredState
@@ -468,7 +468,7 @@ class NativeAuthPublicClientApplication(
      * Sign up the account using username and password. Kotlin coroutines variant.
      *
      * @param username username of the account to sign up.
-     * @param password password of the account to sign up.
+     * @param password (Optional) password of the account to sign up.
      * @param attributes (Optional) user attributes to be used during account creation
      * @return [com.microsoft.identity.nativeauth.statemachine.results.SignUpResult] see detailed possible return state under the object.
      * @throws MsalClientException if an account is already signed in.
@@ -513,7 +513,7 @@ class NativeAuthPublicClientApplication(
                     rawCommandResult.checkAndWrapCommandResultType<SignUpStartCommandResult>()) {
                     is SignUpCommandResult.Complete -> {
                         SignUpResult.Complete(
-                            nextState = SignInAfterSignUpState(
+                            nextState = SignInContinuationState(
                                 continuationToken = result.continuationToken,
                                 username = username,
                                 config = nativeAuthConfig
@@ -645,7 +645,6 @@ class NativeAuthPublicClientApplication(
         }
     }
 
-
     interface ResetPasswordCallback : Callback<ResetPasswordStartResult>
 
     /**
@@ -707,6 +706,7 @@ class NativeAuthPublicClientApplication(
                     ResetPasswordStartResult.CodeRequired(
                         nextState = ResetPasswordCodeRequiredState(
                             continuationToken = result.continuationToken,
+                            username = username,
                             config = nativeAuthConfig
                         ),
                         codeLength = result.codeLength,
