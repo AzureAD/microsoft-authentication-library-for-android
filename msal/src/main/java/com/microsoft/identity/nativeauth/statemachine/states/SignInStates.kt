@@ -476,21 +476,20 @@ class SignInPasswordRequiredState(
 
 /**
  * Native Auth uses a state machine to denote state of and transitions within a flow.
- * SignInAfterSignUpBaseState class is an abstract class to represent signin state after
- * successfull signup
- * in the signin flow.
+ * SignInContinuationState is a class to represent a sign in state after
+ * a successful signup or password reset.
  * @property continuationToken: Continuation token from signup APIs
  * @property correlationId: Correlation ID taken from the previous API response and passed to the next request
  * @property username: Username of the user
  * @property config Configuration used by Native Auth
  */
-abstract class SignInAfterSignUpBaseState(
+class SignInContinuationState(
     override val continuationToken: String?,
     override val correlationId: String?,
-    internal open val username: String,
+    internal val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
 ) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
-    private val TAG: String = SignInAfterSignUpBaseState::class.java.simpleName
+    private val TAG: String = SignInContinuationState::class.java.simpleName
 
     // TODO does this need a CREATOR?
     constructor(parcel: Parcel) : this(
@@ -502,18 +501,18 @@ abstract class SignInAfterSignUpBaseState(
     }
 
     /**
-     * SignInAfterSignUpCallback receives the result for sign in after signup for Native Auth
+     * SignInContinuationCallback receives the result for sign in after flow completion for Native Auth
      */
-    interface SignInAfterSignUpCallback : Callback<SignInResult>
+    interface SignInContinuationCallback : Callback<SignInResult>
 
     /**
-     * Submits the sign-in-after-sign-up verification code to the server; callback variant.
+     * Submits the sign-in-continuation verification code to the server; callback variant.
      *
      * @param scopes (Optional) The scopes to request.
-     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpBaseState.SignInAfterSignUpCallback] to receive the result on.
-     * @return The results of the sign-in-after-sign-up action.
+     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState.SignInContinuationCallback] to receive the result on.
+     * @return The results of the sign-in-continuation action.
      */
-    fun signInAfterSignUp(scopes: List<String>? = null, callback: SignInAfterSignUpCallback) {
+    fun signIn(scopes: List<String>? = null, callback: SignInContinuationCallback) {
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
@@ -522,29 +521,28 @@ abstract class SignInAfterSignUpBaseState(
 
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
-                val result = signInAfterSignUp(scopes)
+                val result = signIn(scopes)
                 callback.onResult(result)
             } catch (e: MsalException) {
-                Logger.error(TAG, "Exception thrown in signInAfterSignUp", e)
+                Logger.error(TAG, "Exception thrown in signIn", e)
                 callback.onError(e)
             }
         }
     }
 
     /**
-     * Submits the sign-in-after-sign-up verification code to the server; Kotlin coroutines variant.
+     * Submits the sign-in-continuation verification code to the server; Kotlin coroutines variant.
      *
      * @param scopes (Optional) The scopes to request.
      * @return The results of the sign-in-after-sign-up action.
      */
-    suspend fun signInAfterSignUp(scopes: List<String>? = null): SignInResult {
+    suspend fun signIn(scopes: List<String>? = null): SignInResult {
         return withContext(Dispatchers.IO) {
             LogSession.logMethodCall(
                 tag = TAG,
                 correlationId = correlationId,
-                methodName = "${TAG}.signInAfterSignUp(scopes: List<String>)"
+                methodName = "${TAG}.signIn(scopes: List<String>)"
             )
-
             // Check if verification code was passed. If not, return an UnknownError with instructions to call the other
             // sign in flows (code or password).
             if (continuationToken.isNullOrEmpty()) {
@@ -645,5 +643,15 @@ abstract class SignInAfterSignUpBaseState(
 
     override fun describeContents(): Int {
         return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<SignInContinuationState> {
+        override fun createFromParcel(parcel: Parcel): SignInContinuationState {
+            return SignInContinuationState(parcel)
+        }
+
+        override fun newArray(size: Int): Array<SignInContinuationState?> {
+            return arrayOfNulls(size)
+        }
     }
 }

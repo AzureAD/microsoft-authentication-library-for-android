@@ -23,42 +23,40 @@
 
 package com.microsoft.identity.nativeauth.statemachine.states
 
-import android.os.Build
 import android.os.Parcel
 import android.os.Parcelable
-import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
-import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
-import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResendCodeResult
-import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResult
-import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitCodeResult
-import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitPasswordResult
-import com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordResendCodeCommand
-import com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordSubmitCodeCommand
-import com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordSubmitNewPasswordCommand
-import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.common.java.controllers.CommandDispatcher
+import com.microsoft.identity.common.java.eststelemetry.PublicApiId
+import com.microsoft.identity.common.java.logging.LogSession
+import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.ResetPasswordCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.ResetPasswordResendCodeCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.ResetPasswordSubmitCodeCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.ResetPasswordSubmitNewPasswordCommandResult
-import com.microsoft.identity.common.java.eststelemetry.PublicApiId
-import com.microsoft.identity.common.java.logging.LogSession
-import com.microsoft.identity.common.java.logging.Logger
-import com.microsoft.identity.common.java.util.StringUtil
 import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
+import com.microsoft.identity.common.java.util.StringUtil
+import com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordResendCodeCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordSubmitCodeCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordSubmitNewPasswordCommand
+import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.ResendCodeError
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordSubmitPasswordError
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
+import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResendCodeResult
+import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResult
+import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitCodeResult
+import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitPasswordResult
 import com.microsoft.identity.nativeauth.utils.serializable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.Serializable
 
 /**
  * Native Auth uses a state machine to denote state of and transitions within a flow.
@@ -71,6 +69,7 @@ import java.io.Serializable
 class ResetPasswordCodeRequiredState internal constructor(
     override val continuationToken: String,
     override val correlationId: String?,
+    private val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
 ) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
     private val TAG: String = ResetPasswordCodeRequiredState::class.java.simpleName
@@ -78,6 +77,7 @@ class ResetPasswordCodeRequiredState internal constructor(
     constructor(parcel: Parcel) : this(
         continuationToken= parcel.readString() ?: "",
         correlationId = parcel.readString(),
+        username = parcel.readString() ?: "",
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
     )
 
@@ -143,6 +143,7 @@ class ResetPasswordCodeRequiredState internal constructor(
                         nextState = ResetPasswordPasswordRequiredState(
                             continuationToken = result.continuationToken,
                             correlationId = result.correlationId,
+                            username = username,
                             config = config
                         )
                     )
@@ -246,6 +247,7 @@ class ResetPasswordCodeRequiredState internal constructor(
                         nextState = ResetPasswordCodeRequiredState(
                             continuationToken = result.continuationToken,
                             correlationId = result.correlationId,
+                            username = username,
                             config = config
                         ),
                         codeLength = result.codeLength,
@@ -283,6 +285,7 @@ class ResetPasswordCodeRequiredState internal constructor(
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(continuationToken)
         parcel.writeString(correlationId)
+        parcel.writeString(username)
         parcel.writeSerializable(config)
     }
 
@@ -312,6 +315,7 @@ class ResetPasswordCodeRequiredState internal constructor(
 class ResetPasswordPasswordRequiredState internal constructor(
     override val continuationToken: String,
     override val correlationId: String?,
+    private val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
 ) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
     private val TAG: String = ResetPasswordPasswordRequiredState::class.java.simpleName
@@ -319,6 +323,7 @@ class ResetPasswordPasswordRequiredState internal constructor(
     constructor(parcel: Parcel) : this(
         continuationToken= parcel.readString() ?: "",
         correlationId = parcel.readString(),
+        username = parcel.readString() ?: "",
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
     )
 
@@ -382,7 +387,13 @@ class ResetPasswordPasswordRequiredState internal constructor(
                 return@withContext when (val result =
                     rawCommandResult.checkAndWrapCommandResultType<ResetPasswordSubmitNewPasswordCommandResult>()) {
                     is ResetPasswordCommandResult.Complete -> {
-                        ResetPasswordResult.Complete
+                        ResetPasswordResult.Complete(
+                            nextState = SignInContinuationState(
+                                continuationToken = result.continuationToken,
+                                username = username,
+                                config = config
+                            )
+                        )
                     }
 
                     is ResetPasswordCommandResult.PasswordNotAccepted -> {
@@ -440,6 +451,7 @@ class ResetPasswordPasswordRequiredState internal constructor(
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(continuationToken)
         parcel.writeString(correlationId)
+        parcel.writeString(username)
         parcel.writeSerializable(config)
     }
 
