@@ -253,6 +253,7 @@ class NativeAuthPublicClientApplication(
                 GetAccountResult.AccountFound(
                     resultValue = AccountState.createFromAccountResult(
                         account = account,
+                        correlationId = null,
                         config = nativeAuthConfig
                     )
                 )
@@ -487,8 +488,9 @@ class NativeAuthPublicClientApplication(
 
                         SignInResult.Complete(
                             resultValue = AccountState.createFromAuthenticationResult(
-                                authenticationResult,
-                                nativeAuthConfig
+                                authenticationResult = authenticationResult,
+                                correlationId = result.correlationId,
+                                config = nativeAuthConfig
                             )
                         )
                     }

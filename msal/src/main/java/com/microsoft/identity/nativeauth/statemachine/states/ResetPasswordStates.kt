@@ -23,6 +23,7 @@
 
 package com.microsoft.identity.nativeauth.statemachine.states
 
+import android.os.Build
 import android.os.Parcel
 import android.os.Parcelable
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
@@ -53,9 +54,11 @@ import com.microsoft.identity.nativeauth.statemachine.errors.ResendCodeError
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordSubmitPasswordError
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
+import com.microsoft.identity.nativeauth.utils.serializable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.Serializable
 
 /**
  * Native Auth uses a state machine to denote state of and transitions within a flow.
@@ -73,10 +76,10 @@ class ResetPasswordCodeRequiredState internal constructor(
     private val TAG: String = ResetPasswordCodeRequiredState::class.java.simpleName
 
     constructor(parcel: Parcel) : this(
-        parcel.readString() ?: "",
-        parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
-    ) {
-    }
+        continuationToken= parcel.readString() ?: "",
+        correlationId = parcel.readString(),
+        config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
+    )
 
     interface SubmitCodeCallback : Callback<ResetPasswordSubmitCodeResult>
 
@@ -279,6 +282,7 @@ class ResetPasswordCodeRequiredState internal constructor(
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(continuationToken)
+        parcel.writeString(correlationId)
         parcel.writeSerializable(config)
     }
 
@@ -313,10 +317,10 @@ class ResetPasswordPasswordRequiredState internal constructor(
     private val TAG: String = ResetPasswordPasswordRequiredState::class.java.simpleName
 
     constructor(parcel: Parcel) : this(
-        parcel.readString() ?: "",
-        parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
-    ) {
-    }
+        continuationToken= parcel.readString() ?: "",
+        correlationId = parcel.readString(),
+        config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
+    )
 
     interface SubmitPasswordCallback : Callback<ResetPasswordSubmitPasswordResult>
 
@@ -435,6 +439,7 @@ class ResetPasswordPasswordRequiredState internal constructor(
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(continuationToken)
+        parcel.writeString(correlationId)
         parcel.writeSerializable(config)
     }
 

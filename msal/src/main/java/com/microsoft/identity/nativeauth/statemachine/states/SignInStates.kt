@@ -57,6 +57,7 @@ import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInSubmitPasswordError
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
+import com.microsoft.identity.nativeauth.utils.serializable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -79,11 +80,11 @@ class SignInCodeRequiredState internal constructor(
     private val TAG: String = SignInCodeRequiredState::class.java.simpleName
 
     constructor(parcel: Parcel) : this(
-        parcel.readString()  ?: "",
-        parcel.createStringArrayList(),
-        parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
-    ) {
-    }
+        continuationToken = parcel.readString()  ?: "",
+        correlationId = parcel.readString(),
+        scopes = parcel.createStringArrayList(),
+        config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
+    )
 
     /**
      * SubmitCodeCallback receives the result for submit code for SignIn for Native Auth
@@ -164,6 +165,7 @@ class SignInCodeRequiredState internal constructor(
                     SignInResult.Complete(
                         resultValue = AccountState.createFromAuthenticationResult(
                             authenticationResult = authenticationResult,
+                            correlationId = result.correlationId,
                             config = config
                         )
                     )
@@ -295,6 +297,7 @@ class SignInCodeRequiredState internal constructor(
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(continuationToken)
+        parcel.writeString(correlationId)
         parcel.writeStringList(scopes)
         parcel.writeSerializable(config)
     }
@@ -328,8 +331,14 @@ class SignInPasswordRequiredState(
     override val correlationId: String?,
     private val scopes: List<String>?,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State {
+) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
     private val TAG: String = SignInPasswordRequiredState::class.java.simpleName
+    constructor(parcel: Parcel) : this(
+        continuationToken = parcel.readString()  ?: "",
+        correlationId = parcel.readString(),
+        scopes = parcel.createStringArrayList(),
+        config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
+    )
 
     /**
      * SubmitPasswordCallback receives the result for submit password for SignIn for Native Auth
@@ -409,6 +418,7 @@ class SignInPasswordRequiredState(
                         SignInResult.Complete(
                             resultValue = AccountState.createFromAuthenticationResult(
                                 authenticationResult = authenticationResult,
+                                correlationId = result.correlationId,
                                 config = config
                             )
                         )
@@ -441,6 +451,27 @@ class SignInPasswordRequiredState(
             }
         }
     }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(continuationToken)
+        parcel.writeString(correlationId)
+        parcel.writeStringList(scopes)
+        parcel.writeSerializable(config)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<SignInPasswordRequiredState> {
+        override fun createFromParcel(parcel: Parcel): SignInPasswordRequiredState {
+            return SignInPasswordRequiredState(parcel)
+        }
+
+        override fun newArray(size: Int): Array<SignInPasswordRequiredState?> {
+            return arrayOfNulls(size)
+        }
+    }
 }
 
 /**
@@ -461,10 +492,12 @@ abstract class SignInAfterSignUpBaseState(
 ) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
     private val TAG: String = SignInAfterSignUpBaseState::class.java.simpleName
 
+    // TODO does this need a CREATOR?
     constructor(parcel: Parcel) : this(
-        parcel.readString(),
-        parcel.readString() ?: "",
-        parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
+        continuationToken= parcel.readString(),
+        correlationId = parcel.readString(),
+        username = parcel.readString() ?: "",
+        config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
     ) {
     }
 
@@ -573,6 +606,7 @@ abstract class SignInAfterSignUpBaseState(
                     SignInResult.Complete(
                         resultValue = AccountState.createFromAuthenticationResult(
                             authenticationResult = authenticationResult,
+                            correlationId = result.correlationId,
                             config = config
                         )
                     )

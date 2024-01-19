@@ -305,6 +305,7 @@ public class CommandParametersAdapter {
      * @param tokenCache token cache for storing results
      * @param accountRecord accountRecord object containing account information
      * @param forceRefresh boolean parameter to denote if refresh should be forced
+     * @param correlationId correlation ID to use in the API request, taken from the previous API response in the flow
      * @return Command parameter object
      * @throws ClientException
      */
@@ -312,7 +313,8 @@ public class CommandParametersAdapter {
             @NonNull final PublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final AccountRecord accountRecord,
-            @NonNull final Boolean forceRefresh) throws ClientException {
+            @NonNull final Boolean forceRefresh,
+            @Nullable final String correlationId) throws ClientException {
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
         final AbstractAuthenticationScheme authenticationScheme = new BearerAuthenticationSchemeInternal();
@@ -455,6 +457,7 @@ public class CommandParametersAdapter {
      * @param tokenCache token cache for storing results
      * @param code Out of band code
      * @param continuationToken Continuation token received from the start command
+     * @param correlationId correlation ID to use in the API request, taken from the previous API response in the flow
      * @return Command parameter object
      * @throws ClientException
      */
@@ -530,6 +533,7 @@ public class CommandParametersAdapter {
      * @param tokenCache token cache for storing results
      * @param correlationId correlation ID to use in the API request, taken from the previous API response in the flow
      * @param continuationToken Continuation token received from the start command
+     * @param correlationId correlation ID to use in the API request, taken from the previous API response in the flow
      * @return Command parameter object
      * @throws ClientException
      */
