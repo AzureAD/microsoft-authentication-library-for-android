@@ -59,6 +59,8 @@ internal class ErrorTypes () {
          * The password should be re-submitted.
          */
         const val INVALID_PASSWORD = "invalid_password"
+
+        const val INVALID_USERNAME = "invalid_username"
     }
 }
 

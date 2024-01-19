@@ -37,6 +37,7 @@ internal class ResetPasswordErrorTypes {
          * The PASSWORD_RESET_FAILED value indicates that the password reset flow failed.
          */
         const val PASSWORD_RESET_FAILED = "password_reset_failed"
+        const val INVALID_USERNAME = "invalid_username"
     }
 }
 
@@ -60,6 +61,7 @@ class ResetPasswordError(
     override var exception: Exception? = null
 ): ResetPasswordResult, ResetPasswordStartResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
     fun isUserNotFound() : Boolean = this.errorType == ErrorTypes.USER_NOT_FOUND
+    fun isInvalidUsername() : Boolean = this.errorType == ResetPasswordErrorTypes.INVALID_USERNAME
 }
 
 /**

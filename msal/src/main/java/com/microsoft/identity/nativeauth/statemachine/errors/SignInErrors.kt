@@ -15,6 +15,7 @@ internal class SignInErrorTypes {
          * The flow should be restarted or the password should be re-submitted, as appropriate.
          */
         const val INVALID_CREDENTIALS = "invalid_credentials"
+        const val INVALID_USERNAME = "invalid_username"
     }
 }
 
@@ -38,6 +39,7 @@ open class SignInError(
     override var exception: Exception? = null
 ): SignInResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
     fun isUserNotFound(): Boolean = this.errorType == ErrorTypes.USER_NOT_FOUND
+    fun isInvalidUsername(): Boolean = this.errorType == ErrorTypes.INVALID_USERNAME
 }
 /**
  * Sign in with password error. The user should use the utility methods of this class

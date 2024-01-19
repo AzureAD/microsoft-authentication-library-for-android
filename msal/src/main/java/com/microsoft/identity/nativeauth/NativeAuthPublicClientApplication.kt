@@ -66,6 +66,8 @@ import com.microsoft.identity.common.java.nativeauth.controllers.results.SignUpC
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignUpStartCommandResult
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.exception.BaseException
+import com.microsoft.identity.common.java.exception.ClientException
+import com.microsoft.identity.common.java.exception.ErrorStrings
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory
@@ -74,6 +76,7 @@ import com.microsoft.identity.common.java.util.StringUtil
 import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
+import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInUsingPasswordError
@@ -367,6 +370,14 @@ class NativeAuthPublicClientApplication(
                         correlationId = result.correlationId
                     )
                 }
+                is INativeAuthCommandResult.InvalidUsername -> {
+                    SignInError(
+                        errorType = ErrorTypes.INVALID_USERNAME,
+                        errorMessage = result.errorDescription,
+                        error = result.error,
+                        correlationId = result.correlationId
+                    )
+                }
                 is INativeAuthCommandResult.UnknownError -> {
                     SignInError(
                         errorMessage = result.errorDescription,
@@ -525,6 +536,15 @@ class NativeAuthPublicClientApplication(
                             exception = result.exception
                         )
                     }
+                    is INativeAuthCommandResult.InvalidUsername -> {
+                        SignInUsingPasswordError(
+                            errorType = SignInErrorTypes.INVALID_USERNAME,
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes
+                        )
+                    }
                 }
             } finally {
                 StringUtil.overwriteWithNull(params.password)
@@ -680,6 +700,15 @@ class NativeAuthPublicClientApplication(
                     is SignUpCommandResult.InvalidAttributes -> {
                         SignUpUsingPasswordError(
                             errorType = SignUpErrorTypes.INVALID_ATTRIBUTES,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
+                        )
+                    }
+
+                    is INativeAuthCommandResult.InvalidUsername -> {
+                        SignUpUsingPasswordError(
+                            errorType = ErrorTypes.INVALID_USERNAME,
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId
@@ -869,6 +898,15 @@ class NativeAuthPublicClientApplication(
                     )
                 }
 
+                is INativeAuthCommandResult.InvalidUsername -> {
+                    SignUpError(
+                        errorType = SignUpErrorTypes.INVALID_USERNAME,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId
+                    )
+                }
+
                 is INativeAuthCommandResult.UnknownError -> {
                     SignUpError(
                         error = result.error,
@@ -977,6 +1015,15 @@ class NativeAuthPublicClientApplication(
                 is ResetPasswordCommandResult.UserNotFound -> {
                     ResetPasswordError(
                         errorType = ErrorTypes.USER_NOT_FOUND,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId
+                    )
+                }
+
+                is INativeAuthCommandResult.InvalidUsername -> {
+                    ResetPasswordError(
+                        errorType = ResetPasswordErrorTypes.INVALID_USERNAME,
                         error = result.error,
                         errorMessage = result.errorDescription,
                         correlationId = result.correlationId
