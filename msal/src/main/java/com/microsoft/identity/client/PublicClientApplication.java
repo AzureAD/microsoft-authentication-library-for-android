@@ -154,9 +154,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
@@ -1065,6 +1067,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                @Nullable final String authority,
                                @Nullable final String redirectUri,
                                @NonNull final ApplicationCreatedListener listener) {
+        final String methodTag = TAG + ":create";
+
         if (clientId != null) {
             config.setClientId(clientId);
         }
@@ -1097,31 +1101,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 new CommandCallback<Boolean, BaseException>() {
                     @Override
                     public void onError(BaseException error) {
-                        listener.onError(MsalExceptionAdapter.msalExceptionFromBaseException(error));
+                        Logger.error(methodTag, "Unexpected error in getDeviceMode (during PCA creation): ", error);
                     }
 
                     @Override
                     public void onTaskCompleted(Boolean isSharedDevice) {
-                        runOnBackground(new Runnable() {
-                            @Override
-                            public void run() {
-                                config.setIsSharedDevice(isSharedDevice);
-
-                                try {
-                                    if (config instanceof NativeAuthPublicClientApplicationConfiguration
-                                            && config.getAccountMode() == AccountMode.SINGLE) {
-                                        config.validateConfiguration();
-                                        listener.onCreated(new NativeAuthPublicClientApplication((NativeAuthPublicClientApplicationConfiguration) config));
-                                    } else if (config.getAccountMode() == AccountMode.SINGLE || isSharedDevice) {
-                                        listener.onCreated(new SingleAccountPublicClientApplication(config));
-                                    } else {
-                                        listener.onCreated(new MultipleAccountPublicClientApplication(config));
-                                    }
-                                } catch (final MsalClientException e) {
-                                    listener.onError(e);
-                                }
-                            }
-                        });
+                        Logger.info(methodTag, "Is shared device: " + isSharedDevice);
                     }
 
                     @Override
@@ -1132,7 +1117,44 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 PublicApiId.PCA_GET_DEVICE_MODE
         );
 
-        CommandDispatcher.submitSilent(command);
+        final ResultFuture<CommandResult> future = CommandDispatcher.submitSilentReturningFuture(command);
+
+        try {
+            final CommandResult commandResult = future.get();
+            switch (commandResult.getStatus()) {
+                case COMPLETED:
+                    final Boolean result = (Boolean) commandResult.getResult();
+                    config.setIsSharedDevice(result);
+
+                    try {
+                        if (config instanceof NativeAuthPublicClientApplicationConfiguration
+                                && config.getAccountMode() == AccountMode.SINGLE) {
+                            config.validateConfiguration();
+                            listener.onCreated(new NativeAuthPublicClientApplication((NativeAuthPublicClientApplicationConfiguration) config));
+                        } else if (config.getAccountMode() == AccountMode.SINGLE || result) {
+                            listener.onCreated(new SingleAccountPublicClientApplication(config));
+                        } else {
+                            listener.onCreated(new MultipleAccountPublicClientApplication(config));
+                        }
+                    } catch (final MsalClientException e) {
+                        listener.onError(e);
+                    }
+                case ERROR:
+                    final BaseException exception = (BaseException) commandResult.getResult();
+                    listener.onError(MsalExceptionAdapter.msalExceptionFromBaseException(exception));
+                case CANCEL:
+                    Logger.warn(methodTag, "getDeviceMode (during PCA Creation) was cancelled");
+                    final MsalClientException cancelError = new MsalClientException("Unexpected cancellation when getting device mode during PCA creation.");
+                    listener.onError(cancelError);
+                default:
+                    Logger.warn(methodTag, "Unexpected status on getDeviceMode (during PCA Creation): " + commandResult.getStatus());
+                    final MsalClientException unknownError = new MsalClientException("Unexpected status when getting device mode during PCA creation.");
+                    listener.onError(unknownError);
+            }
+        } catch (final InterruptedException | ExecutionException e) {
+            Logger.error(methodTag, "Unexpected error on getDeviceMode (during PCA Creation)", e);
+            listener.onError(new MsalClientException(e.getMessage()));
+        }
     }
 
     private static NativeAuthPublicClientApplication createNativeAuthApplication(@NonNull final NativeAuthPublicClientApplicationConfiguration config,
