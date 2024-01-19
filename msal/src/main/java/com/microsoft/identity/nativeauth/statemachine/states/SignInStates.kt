@@ -491,14 +491,12 @@ class SignInContinuationState(
 ) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
     private val TAG: String = SignInContinuationState::class.java.simpleName
 
-    // TODO does this need a CREATOR?
     constructor(parcel: Parcel) : this(
         continuationToken= parcel.readString(),
         correlationId = parcel.readString(),
         username = parcel.readString() ?: "",
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
-    ) {
-    }
+    )
 
     /**
      * SignInContinuationCallback receives the result for sign in after flow completion for Native Auth
@@ -637,6 +635,7 @@ class SignInContinuationState(
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(continuationToken)
+        parcel.writeString(correlationId)
         parcel.writeString(username)
         parcel.writeSerializable(config)
     }

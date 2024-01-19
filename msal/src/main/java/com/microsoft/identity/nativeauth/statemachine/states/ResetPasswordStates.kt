@@ -391,6 +391,7 @@ class ResetPasswordPasswordRequiredState internal constructor(
                             nextState = SignInContinuationState(
                                 continuationToken = result.continuationToken,
                                 username = username,
+                                correlationId = result.correlationId,
                                 config = config
                             )
                         )

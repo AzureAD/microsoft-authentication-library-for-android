@@ -258,7 +258,6 @@ class AccountState private constructor(
                 forceRefresh,
                 correlationId
             )
-            // TODO add correlation ID
 
             val command = AcquireTokenNoFixedScopesCommand(
                 params,
