@@ -497,7 +497,7 @@ class NativeAuthPublicClientApplication(
                     nativeAuthConfig.oAuth2TokenCache,
                     username,
                     password,
-                    attributes?.userAttributes
+                    attributes?.toMap()
                 )
 
             val command = SignUpStartCommand(
