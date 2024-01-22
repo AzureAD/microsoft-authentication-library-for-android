@@ -2672,7 +2672,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         );
 
         SignUpTestCallback signUpTestCallback = new SignUpTestCallback();
-        application.signUp(username, password, UserAttributes.Builder.customAttribute("password", password.toString()).build(), signUpTestCallback);
+        application.signUp(username, password, null, signUpTestCallback);
 
         SignUpResult signUpResult = signUpTestCallback.get();
 
@@ -2691,7 +2691,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         );
 
         SignUpTestCallback signUpTestCallback = new SignUpTestCallback();
-        application.signUp(invalidUsername, password, UserAttributes.Builder.customAttribute("password", password.toString()).build(), signUpTestCallback);
+        application.signUp(invalidUsername, password, null, signUpTestCallback);
 
         SignUpResult signUpResult = signUpTestCallback.get();
 
@@ -2710,7 +2710,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         );
 
         SignUpTestCallback signUpTestCallback = new SignUpTestCallback();
-        application.signUp(invalidUsername, null, UserAttributes.Builder.customAttribute("password", password.toString()).build(), signUpTestCallback);
+        application.signUp(invalidUsername, null, null, signUpTestCallback);
 
         SignUpResult signUpResult = signUpTestCallback.get();
 

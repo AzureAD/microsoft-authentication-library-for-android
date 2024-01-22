@@ -296,7 +296,7 @@ class NativeAuthPublicClientApplication(
 
             verifyNoUserIsSignedIn()
 
-            val hasPassword = password != null && !password.isEmpty()
+            val hasPassword = password?.isNotEmpty() == true
 
             val params =
                 CommandParametersAdapter.createSignInStartCommandParameters(
@@ -480,7 +480,7 @@ class NativeAuthPublicClientApplication(
     ): SignUpResult {
         LogSession.logMethodCall(TAG, "${TAG}.signUp")
 
-        var hasPassword = password != null && !password.isEmpty()
+        var hasPassword = password?.isNotEmpty() == true
 
         return withContext(Dispatchers.IO) {
             val doesAccountExist = checkForPersistedAccount().get()
