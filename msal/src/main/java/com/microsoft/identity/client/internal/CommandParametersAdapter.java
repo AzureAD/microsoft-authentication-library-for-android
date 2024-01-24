@@ -75,17 +75,13 @@ import com.microsoft.identity.common.java.nativeauth.commands.parameters.ResetPa
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.ResetPasswordSubmitNewPasswordCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInResendCodeCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInStartCommandParameters;
-import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInStartUsingPasswordCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInSubmitCodeCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInSubmitPasswordCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpResendCodeCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpStartCommandParameters;
-import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpStartUsingPasswordCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpSubmitCodeCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpSubmitPasswordCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpSubmitUserAttributesCommandParameters;
-import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration;
-
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -373,44 +369,6 @@ public class CommandParametersAdapter {
     }
 
     /**
-     * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.SignUpStartCommand}] of Native Auth.
-     * @param configuration PCA configuration
-     * @param tokenCache token cache for storing results
-     * @param username email address of the user
-     * @return Command parameter object
-     * @throws ClientException
-     */
-    public static SignUpStartCommandParameters createSignUpStartCommandParameters(
-            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
-            @NonNull final OAuth2TokenCache tokenCache,
-            @NonNull final String username,
-            final Map<String, String> userAttributes) {
-        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
-
-        return SignUpStartCommandParameters.builder()
-                .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
-                .applicationName(configuration.getAppContext().getPackageName())
-                .applicationVersion(getPackageVersion(configuration.getAppContext()))
-                .clientId(configuration.getClientId())
-                .isSharedDevice(configuration.getIsSharedDevice())
-                .redirectUri(configuration.getRedirectUri())
-                .oAuth2TokenCache(tokenCache)
-                .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
-                .sdkType(SdkType.MSAL)
-                .sdkVersion(PublicClientApplication.getSdkVersion())
-                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
-                .authority(authority)
-                .username(username)
-                .challengeType(configuration.getChallengeTypes())
-                .clientId(configuration.getClientId())
-                .userAttributes(userAttributes)
-                // Start of the flow, so there is no correlation ID to use from a previous API response.
-                // Set it to a default value.
-                .correlationId(DiagnosticContext.INSTANCE.getThreadCorrelationId())
-                .build();
-    }
-
-    /**
      * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.SignUpStartCommand}] of Native Auth when password is provided
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
@@ -419,16 +377,16 @@ public class CommandParametersAdapter {
      * @return Command parameter object
      * @throws ClientException
      */
-    public static SignUpStartUsingPasswordCommandParameters createSignUpStartUsingPasswordCommandParameters(
+    public static SignUpStartCommandParameters createSignUpStartCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String username,
-            @NonNull final char[] password,
+            @Nullable final char[] password,
             final Map<String, String> userAttributes) {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
-        return SignUpStartUsingPasswordCommandParameters.builder()
+        return SignUpStartCommandParameters.builder()
                 .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
                 .applicationName(configuration.getAppContext().getPackageName())
                 .applicationVersion(getPackageVersion(configuration.getAppContext()))
@@ -607,50 +565,6 @@ public class CommandParametersAdapter {
     }
 
     /**
-     * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.SignInStartCommand}] of Native Auth.
-     * @param configuration PCA configuration
-     * @param tokenCache token cache for storing results
-     * @param username email address of the user
-     * @return Command parameter object
-     * @throws ClientException
-     */
-    public static SignInStartCommandParameters createSignInStartCommandParameters(
-            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
-            @NonNull final OAuth2TokenCache tokenCache,
-            @NonNull final String username) throws ClientException {
-        final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
-                AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
-                null
-        );
-
-        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
-
-        final SignInStartCommandParameters commandParameters = SignInStartCommandParameters.builder()
-                .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
-                .applicationName(configuration.getAppContext().getPackageName())
-                .applicationVersion(getPackageVersion(configuration.getAppContext()))
-                .clientId(configuration.getClientId())
-                .isSharedDevice(configuration.getIsSharedDevice())
-                .redirectUri(configuration.getRedirectUri())
-                .oAuth2TokenCache(tokenCache)
-                .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
-                .sdkType(SdkType.MSAL)
-                .sdkVersion(PublicClientApplication.getSdkVersion())
-                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
-                .authority(authority)
-                .username(username)
-                .authenticationScheme(authenticationScheme)
-                .clientId(configuration.getClientId())
-                .challengeType(configuration.getChallengeTypes())
-                // Start of the flow, so there is no correlation ID to use from a previous API response.
-                // Set it to a default value.
-                .correlationId(DiagnosticContext.INSTANCE.getThreadCorrelationId())
-                .build();
-
-        return commandParameters;
-    }
-
-    /**
      * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.SignInStartCommand}] of Native Auth using username and password
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
@@ -660,11 +574,11 @@ public class CommandParametersAdapter {
      * @return Command parameter object
      * @throws ClientException
      */
-    public static SignInStartUsingPasswordCommandParameters createSignInStartUsingPasswordCommandParameters(
+    public static SignInStartCommandParameters createSignInStartCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String username,
-            @NonNull final char[] password,
+            @Nullable final char[] password,
             final List<String> scopes) throws ClientException {
         final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
                 AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
@@ -673,7 +587,7 @@ public class CommandParametersAdapter {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
-        final SignInStartUsingPasswordCommandParameters commandParameters = SignInStartUsingPasswordCommandParameters.builder()
+        final SignInStartCommandParameters commandParameters = SignInStartCommandParameters.builder()
                 .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
                 .applicationName(configuration.getAppContext().getPackageName())
                 .applicationVersion(getPackageVersion(configuration.getAppContext()))
