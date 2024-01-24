@@ -379,7 +379,7 @@ class SignInPasswordRequiredState(
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
-            methodName = "${TAG}.submitPassword(password: String)"
+            methodName = "${TAG}.submitPassword(password: CharArray)"
         )
         return withContext(Dispatchers.IO) {
             val params = CommandParametersAdapter.createSignInSubmitPasswordCommandParameters(
@@ -514,7 +514,7 @@ class SignInContinuationState(
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
-            methodName = "${TAG}.signInAfterSignUp"
+            methodName = "${TAG}.signIn"
         )
 
         NativeAuthPublicClientApplication.pcaScope.launch {

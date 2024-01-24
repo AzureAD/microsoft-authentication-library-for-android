@@ -489,7 +489,6 @@ public class CommandParametersAdapter {
      * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.SignUpSubmitUserAttributesCommand}] of Native Auth.
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
-     * @param correlationId correlation ID to use in the API request, taken from the previous API response in the flow
      * @param continuationToken Continuation token received from the start command
      * @param correlationId correlation ID to use in the API request, taken from the previous API response in the flow
      * @return Command parameter object

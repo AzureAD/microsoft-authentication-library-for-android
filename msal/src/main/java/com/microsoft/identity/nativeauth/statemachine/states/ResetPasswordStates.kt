@@ -363,7 +363,7 @@ class ResetPasswordPasswordRequiredState internal constructor(
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
-            methodName = "${TAG}.submitPassword(password: String)"
+            methodName = "${TAG}.submitPassword(password: CharArray)"
         )
         return withContext(Dispatchers.IO) {
             val parameters =
