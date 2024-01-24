@@ -45,8 +45,7 @@ interface SignUpResult : Result {
         SignUpResult,
         SignUpSubmitCodeResult,
         SignUpSubmitPasswordResult,
-        SignUpSubmitAttributesResult,
-        SignUpUsingPasswordResult
+        SignUpSubmitAttributesResult
 
     /**
      * CodeRequired Result, which indicates a verification code is required from the user to continue.
@@ -61,7 +60,7 @@ interface SignUpResult : Result {
         val codeLength: Int,
         val sentTo: String,
         val channel: String
-    ) : SignUpResult, Result.SuccessResult(nextState = nextState), SignUpUsingPasswordResult
+    ) : SignUpResult, Result.SuccessResult(nextState = nextState)
 
     /**
      * AttributesRequired Result, which indicates the server requires one or more attributes to be sent, before the account can be created.
@@ -74,7 +73,6 @@ interface SignUpResult : Result {
         val requiredAttributes: List<RequiredUserAttribute>,
     ) : SignUpResult,
         Result.SuccessResult(nextState = nextState),
-        SignUpUsingPasswordResult,
         SignUpSubmitCodeResult,
         SignUpSubmitAttributesResult,
         SignUpSubmitPasswordResult
@@ -89,11 +87,6 @@ interface SignUpResult : Result {
     ) : SignUpResult, Result.SuccessResult(nextState = nextState),
         SignUpSubmitCodeResult
 }
-
-/**
- * Sign up with password result, produced by [com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication.signUpUsingPassword]
- */
-interface SignUpUsingPasswordResult : Result
 
 /**
  * Sign in submit code result, produced by
