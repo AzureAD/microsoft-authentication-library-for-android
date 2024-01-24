@@ -36,7 +36,7 @@ import com.microsoft.identity.client.testapp.R
 import com.microsoft.identity.client.testapp.databinding.FragmentPasswordBinding
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
-import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpState
+import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpPasswordRequiredState
 import kotlinx.coroutines.CoroutineScope
@@ -114,7 +114,7 @@ class SignUpPasswordFragment : Fragment() {
         alertDialog.show()
     }
 
-    private suspend fun signInAfterSignUp(nextState: SignInAfterSignUpState) {
+    private suspend fun signInAfterSignUp(nextState: SignInContinuationState) {
         val currentState = nextState
         val actionResult = currentState.signIn(null)
         when (actionResult) {
@@ -140,7 +140,7 @@ class SignUpPasswordFragment : Fragment() {
 
     private fun navigateToAttributes(nextState: SignUpAttributesRequiredState) {
         val bundle = Bundle()
-        bundle.putSerializable(Constants.STATE, nextState)
+        bundle.putParcelable(Constants.STATE, nextState)
         val fragment = SignUpAttributesFragment()
         fragment.arguments = bundle
 

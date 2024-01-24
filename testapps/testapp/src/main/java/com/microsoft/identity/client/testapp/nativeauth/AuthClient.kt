@@ -29,7 +29,7 @@ import com.microsoft.identity.client.testapp.R
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 
 /**
- * Utility for managing MSAL SDK instance INativeAuthPublicClientApplication
+ * Utility for managing MSAL SDK instance INativeAuthPublicClientApplication.
   */
 object AuthClient : Application() {
     private lateinit var authClient: INativeAuthPublicClientApplication

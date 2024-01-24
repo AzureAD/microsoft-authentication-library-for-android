@@ -41,8 +41,8 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignOutResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState
-import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState
+import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -172,7 +172,7 @@ class EmailSignInSignUpFragment : Fragment() {
         }
     }
 
-    private suspend fun signInAfterSignUp(nextState: SignInAfterSignUpState) {
+    private suspend fun signInAfterSignUp(nextState: SignInContinuationState) {
         val currentState = nextState
         val actionResult = currentState.signIn()
         when (actionResult) {
@@ -270,7 +270,7 @@ class EmailSignInSignUpFragment : Fragment() {
         channel: String
     ) {
         val bundle = Bundle()
-        bundle.putSerializable(Constants.STATE, signInstate)
+        bundle.putParcelable(Constants.STATE, signInstate)
         bundle.putInt(Constants.CODE_LENGTH, codeLength)
         bundle.putString(Constants.SENT_TO, sentTo)
         bundle.putString(Constants.CHANNEL, channel)
@@ -292,7 +292,7 @@ class EmailSignInSignUpFragment : Fragment() {
         channel: String
     ) {
         val bundle = Bundle()
-        bundle.putSerializable(Constants.STATE, nextState)
+        bundle.putParcelable(Constants.STATE, nextState)
         bundle.putInt(Constants.CODE_LENGTH, codeLength)
         bundle.putString(Constants.SENT_TO, sentTo)
         bundle.putString(Constants.CHANNEL, channel)

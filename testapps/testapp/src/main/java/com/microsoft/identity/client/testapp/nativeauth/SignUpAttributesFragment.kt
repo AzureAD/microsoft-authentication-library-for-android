@@ -38,7 +38,7 @@ import com.microsoft.identity.client.testapp.databinding.FragmentAttributeBindin
 import com.microsoft.identity.nativeauth.UserAttributes
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
-import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpState
+import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesRequiredState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -128,7 +128,7 @@ class SignUpAttributesFragment : Fragment() {
 
     private fun navigateToAttributes(nextState: SignUpAttributesRequiredState) {
         val bundle = Bundle()
-        bundle.putSerializable(Constants.STATE, nextState)
+        bundle.putParcelable(Constants.STATE, nextState)
         val fragment = SignUpAttributesFragment()
         fragment.arguments = bundle
 
@@ -139,7 +139,7 @@ class SignUpAttributesFragment : Fragment() {
             .replace(R.id.scenario_fragment, fragment)
             .commit()
     }
-    private suspend fun signInAfterSignUp(nextState: SignInAfterSignUpState) {
+    private suspend fun signInAfterSignUp(nextState: SignInContinuationState) {
         val currentState = nextState
         val actionResult = currentState.signIn(null)
         when (actionResult) {

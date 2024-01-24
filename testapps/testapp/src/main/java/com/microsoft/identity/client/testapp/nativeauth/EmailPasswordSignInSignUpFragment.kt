@@ -46,7 +46,7 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignOutResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState
-import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpState
+import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -118,7 +118,7 @@ class EmailPasswordSignInSignUpFragment : Fragment() {
                 val password = CharArray(binding.passwordText.length());
                 binding.passwordText.text?.getChars(0, binding.passwordText.length(), password, 0);
 
-                val actionResult = authClient.signInUsingPassword(
+                val actionResult = authClient.signIn(
                     username = email,
                     password = password
                 )
@@ -165,7 +165,7 @@ class EmailPasswordSignInSignUpFragment : Fragment() {
                 val password = CharArray(binding.passwordText.length());
                 binding.passwordText.text?.getChars(0, binding.passwordText.length(), password, 0);
 
-                val actionResult = authClient.signUpUsingPassword(
+                val actionResult = authClient.signUp(
                     username = email,
                     password = password
                 )
@@ -201,7 +201,7 @@ class EmailPasswordSignInSignUpFragment : Fragment() {
         }
     }
 
-    private suspend fun signInAfterSignUp(nextState: SignInAfterSignUpState) {
+    private suspend fun signInAfterSignUp(nextState: SignInContinuationState) {
         val currentState = nextState
         val actionResult = currentState.signIn()
         when (actionResult) {
@@ -333,7 +333,7 @@ class EmailPasswordSignInSignUpFragment : Fragment() {
         channel: String
     ) {
         val bundle = Bundle()
-        bundle.putSerializable(Constants.STATE, nextState)
+        bundle.putParcelable(Constants.STATE, nextState)
         bundle.putInt(Constants.CODE_LENGTH, codeLength)
         bundle.putString(Constants.SENT_TO, sentTo)
         bundle.putString(Constants.CHANNEL, channel)

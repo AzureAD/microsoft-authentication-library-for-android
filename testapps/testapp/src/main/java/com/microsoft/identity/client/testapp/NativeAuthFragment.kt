@@ -35,6 +35,9 @@ import com.microsoft.identity.client.testapp.nativeauth.EmailPasswordSignInSignU
 import com.microsoft.identity.client.testapp.nativeauth.EmailSignInSignUpFragment
 import com.microsoft.identity.client.testapp.nativeauth.PasswordResetFragment
 
+/**
+ * Fragment used for starting various native auth flows.
+ */
 class NativeAuthFragment : Fragment() {
     companion object {
         private val TAG = MainActivity::class.java.simpleName

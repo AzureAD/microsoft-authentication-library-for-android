@@ -36,15 +36,13 @@ import com.microsoft.identity.client.testapp.databinding.FragmentEmailAttributeB
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.UserAttributes
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenError
-import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
-import com.microsoft.identity.nativeauth.statemachine.errors.SignUpUsingPasswordError
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignOutResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState
-import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpState
+import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -132,7 +130,7 @@ class EmailAttributeSignUpFragment : Fragment() {
                         .customAttribute(attr2Key, attr2Value)
                 }
 
-                val actionResult = authClient.signUpUsingPassword(
+                val actionResult = authClient.signUp(
                     username = email,
                     password = password,
                     attributes = attributes.build()
@@ -169,7 +167,7 @@ class EmailAttributeSignUpFragment : Fragment() {
         }
     }
 
-    private suspend fun signInAfterSignUp(nextState: SignInAfterSignUpState) {
+    private suspend fun signInAfterSignUp(nextState: SignInContinuationState) {
         val currentState = nextState
         val actionResult = currentState.signIn()
         when (actionResult) {
@@ -286,7 +284,7 @@ class EmailAttributeSignUpFragment : Fragment() {
         channel: String
     ) {
         val bundle = Bundle()
-        bundle.putSerializable(Constants.STATE, nextState)
+        bundle.putParcelable(Constants.STATE, nextState)
         bundle.putInt(Constants.CODE_LENGTH, codeLength)
         bundle.putString(Constants.SENT_TO, sentTo)
         bundle.putString(Constants.CHANNEL, channel)

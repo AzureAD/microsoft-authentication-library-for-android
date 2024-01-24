@@ -130,7 +130,7 @@ class PasswordResetCodeFragment : Fragment() {
 
     private fun navigateToResetPasswordPasswordFragment(nextState: ResetPasswordPasswordRequiredState) {
         val bundle = Bundle()
-        bundle.putSerializable(Constants.STATE, nextState)
+        bundle.putParcelable(Constants.STATE, nextState)
         val fragment = PasswordResetNewPasswordFragment()
         fragment.arguments = bundle
 

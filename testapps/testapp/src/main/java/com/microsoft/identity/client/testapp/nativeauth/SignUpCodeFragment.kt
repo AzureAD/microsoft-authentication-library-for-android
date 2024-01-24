@@ -37,7 +37,7 @@ import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResendCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
-import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpState
+import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpPasswordRequiredState
@@ -131,7 +131,7 @@ class SignUpCodeFragment : Fragment() {
         }
     }
 
-    private suspend fun signInAfterSignUp(nextState: SignInAfterSignUpState) {
+    private suspend fun signInAfterSignUp(nextState: SignInContinuationState) {
         val currentState = nextState
         val actionResult = currentState.signIn(null)
         when (actionResult) {
@@ -189,7 +189,7 @@ class SignUpCodeFragment : Fragment() {
 
     private fun navigateToAttributes(nextState: SignUpAttributesRequiredState) {
         val bundle = Bundle()
-        bundle.putSerializable(Constants.STATE, nextState)
+        bundle.putParcelable(Constants.STATE, nextState)
         val fragment = SignUpAttributesFragment()
         fragment.arguments = bundle
 
@@ -203,7 +203,7 @@ class SignUpCodeFragment : Fragment() {
 
     private fun navigateToPassword(nextState: SignUpPasswordRequiredState) {
         val bundle = Bundle()
-        bundle.putSerializable(Constants.STATE, nextState)
+        bundle.putParcelable(Constants.STATE, nextState)
         val fragment = SignUpPasswordFragment()
         fragment.arguments = bundle
 
