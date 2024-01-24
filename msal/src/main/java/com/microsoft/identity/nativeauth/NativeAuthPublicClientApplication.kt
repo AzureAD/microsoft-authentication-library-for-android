@@ -358,7 +358,7 @@ class NativeAuthPublicClientApplication(
                             SignInError(
                                 errorMessage = "unexpected state",
                                 error = "unexpected_state",
-                                correlationId = "UNSET"
+                                correlationId = result.correlationId
                             )
                         }
                     }
@@ -395,6 +395,7 @@ class NativeAuthPublicClientApplication(
                             SignInResult.PasswordRequired(
                                 nextState = SignInPasswordRequiredState(
                                     continuationToken = result.continuationToken,
+                                    correlationId = result.correlationId,
                                     scopes = scopes,
                                     config = nativeAuthConfig
                                 )
@@ -510,6 +511,7 @@ class NativeAuthPublicClientApplication(
             correlationId = null,
             methodName = "${TAG}.signUp"
         )
+        var hasPassword = password?.isNotEmpty() == true
 
         return withContext(Dispatchers.IO) {
             val doesAccountExist = checkForPersistedAccount().get()
@@ -584,12 +586,13 @@ class NativeAuthPublicClientApplication(
                             SignUpError(
                                 errorMessage = "Unexpected state",
                                 error = "unexpected_state",
-                                correlationId = "UNSET"
+                                correlationId = result.correlationId
                             )
                         } else {
                             SignUpResult.PasswordRequired(
                                 nextState = SignUpPasswordRequiredState(
                                     continuationToken = result.continuationToken,
+                                    correlationId = result.correlationId,
                                     username = username,
                                     config = nativeAuthConfig
                                 )
