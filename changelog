@@ -3,6 +3,7 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 Version 5.0.1
 ----------
 - [PATCH] Update robolectricVersion 4.11.1 (#2015)
+- [PATCH] Update common @17.0.1
 
 Version 5.0.0
 ----------
