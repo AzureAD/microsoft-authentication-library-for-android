@@ -187,7 +187,8 @@ public class NestedAppHelper {
         if (shouldAddDeviceIdClaim) {
             claimsJsonString = DEVICE_ID_CLAIM;
         }
-        final String hubAppClientId = mLabAccount.getUserType() == UserType.CLOUD ? HUB_APP_CLIENT_ID_AAD : HUB_APP_CLIENT_ID_MSA;
+
+        final String hubAppClientId = mLabAccount.getUserType() == UserType.MSA ? HUB_APP_CLIENT_ID_MSA : HUB_APP_CLIENT_ID_AAD;
         final SilentTokenCommandParameters mSilentTokenCommandParameters =
                 SilentTokenCommandParameters
                         .builder()
@@ -230,7 +231,7 @@ public class NestedAppHelper {
     }
 
     protected void performATSilentForNestedAppInUSGovCloud(AccountRecord accountRecord) throws BaseException {
-        final String hubAppClientId = mLabAccount.getUserType() == UserType.CLOUD ? HUB_APP_CLIENT_ID_AAD : HUB_APP_CLIENT_ID_MSA;
+        final String hubAppClientId = mLabAccount.getUserType() == UserType.MSA ? HUB_APP_CLIENT_ID_MSA : HUB_APP_CLIENT_ID_AAD;
         final SilentTokenCommandParameters mSilentTokenCommandParameters =
                 SilentTokenCommandParameters
                         .builder()
@@ -267,7 +268,7 @@ public class NestedAppHelper {
         if (shouldAddDeviceIdClaim) {
             claimsJsonString = DEVICE_ID_CLAIM;
         }
-        final String hubAppClientId = mLabAccount.getUserType() == UserType.CLOUD ? HUB_APP_CLIENT_ID_AAD : HUB_APP_CLIENT_ID_MSA;
+        final String hubAppClientId = mLabAccount.getUserType() == UserType.MSA ? HUB_APP_CLIENT_ID_MSA : HUB_APP_CLIENT_ID_AAD;
 
         mInteractiveParameters = AndroidActivityInteractiveTokenCommandParameters
                 .builder()
