@@ -1,5 +1,9 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
+Version 5.0.1
+----------
+- [PATCH] Update robolectricVersion 4.11.1 (#2015)
+
 Version 5.0.0
 ----------
 - [MINOR] Update common @17.0.0
