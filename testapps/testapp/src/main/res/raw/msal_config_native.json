@@ -1,0 +1,15 @@
+{
+  "client_id" : "4e83ed2e-e043-490b-b6e5-f30c82c52b48",
+  "authorities" : [
+    {
+      "type": "CIAM",
+      "authority_url": "https://nativeauthasampleapp.ciamlogin.com/4710d5e4-43bb-4ff9-89af-30ed8fe31c6d"
+    }
+  ],
+  "challenge_types" : ["oob", "password"],
+  "logging": {
+    "pii_enabled": false,
+    "log_level": "INFO",
+    "logcat_enabled": true
+  }
+}
