@@ -481,27 +481,6 @@ class SignInContinuationState(
             val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
 
             return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<SignInWithContinuationTokenCommandResult>()) {
-                is SignInCommandResult.CodeRequired -> {
-                    SignInResult.CodeRequired(
-                        nextState = SignInCodeRequiredState(
-                            continuationToken = result.continuationToken,
-                            scopes = scopes,
-                            config = config
-                        ),
-                        codeLength = result.codeLength,
-                        sentTo = result.challengeTargetLabel,
-                        channel = result.challengeChannel
-                    )
-                }
-                is SignInCommandResult.PasswordRequired -> {
-                    SignInResult.PasswordRequired(
-                        nextState = SignInPasswordRequiredState(
-                            continuationToken = result.continuationToken,
-                            scopes = scopes,
-                            config = config
-                        )
-                    )
-                }
                 is SignInCommandResult.Complete -> {
                     val authenticationResult =
                         AuthenticationResultAdapter.adapt(result.authenticationResult)
