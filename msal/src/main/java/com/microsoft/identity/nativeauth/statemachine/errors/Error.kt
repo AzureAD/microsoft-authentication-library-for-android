@@ -94,6 +94,7 @@ open class Error(
  * @param errorMessage the error message returned by the authentication server.
  * @param correlationId a unique identifier for the request that can help in diagnostics.
  * @param errorCodes a list of specific error codes returned by the authentication server.
+ * @param subError the sub error returned by the authentication server.
  * @param exception an internal unexpected exception that happened.
  */
 class SubmitCodeError(
@@ -102,6 +103,7 @@ class SubmitCodeError(
     override val errorMessage: String?,
     override val correlationId: String,
     override val errorCodes: List<Int>? = null,
+    val subError: String? = null,
     override var exception: Exception? = null
 ): SignInSubmitCodeResult, SignUpSubmitCodeResult, ResetPasswordSubmitCodeResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception)
 {

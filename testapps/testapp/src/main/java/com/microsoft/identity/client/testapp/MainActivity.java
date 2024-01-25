@@ -208,6 +208,11 @@ public class MainActivity extends AppCompatActivity
                 return false;
             }
             fragment = new AcquireTokenFragment();
+        } else  if ( menuItemId == R.id.nav_native) {
+            if (getCurrentFragment() instanceof NativeAuthFragment){
+                return false;
+            }
+            fragment = new NativeAuthFragment();
         } else if (menuItemId == R.id.nav_result) {
             if (getCurrentFragment() instanceof ResultFragment){
                 return false;

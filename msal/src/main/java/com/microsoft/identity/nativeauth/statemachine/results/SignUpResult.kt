@@ -23,7 +23,7 @@
 package com.microsoft.identity.nativeauth.statemachine.results
 
 import com.microsoft.identity.nativeauth.RequiredUserAttribute
-import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpState
+import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpPasswordRequiredState
@@ -37,16 +37,15 @@ interface SignUpResult : Result {
      * CompleteResult which indicates the sign up flow is complete,
      * i.e. the user account is created and can now be used to sign in with.
      *
-     * @param nextState [com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpState] the current state of the flow with follow-on methods.
+     * @param nextState [com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState] the current state of the flow with follow-on methods.
      */
     class Complete(
-        override val nextState: SignInAfterSignUpState
+        override val nextState: SignInContinuationState
     ) : Result.CompleteWithNextStateResult(resultValue = null, nextState = nextState),
         SignUpResult,
         SignUpSubmitCodeResult,
         SignUpSubmitPasswordResult,
-        SignUpSubmitAttributesResult,
-        SignUpUsingPasswordResult
+        SignUpSubmitAttributesResult
 
     /**
      * CodeRequired Result, which indicates a verification code is required from the user to continue.
@@ -61,7 +60,7 @@ interface SignUpResult : Result {
         val codeLength: Int,
         val sentTo: String,
         val channel: String
-    ) : SignUpResult, Result.SuccessResult(nextState = nextState), SignUpUsingPasswordResult
+    ) : SignUpResult, Result.SuccessResult(nextState = nextState)
 
     /**
      * AttributesRequired Result, which indicates the server requires one or more attributes to be sent, before the account can be created.
@@ -74,7 +73,6 @@ interface SignUpResult : Result {
         val requiredAttributes: List<RequiredUserAttribute>,
     ) : SignUpResult,
         Result.SuccessResult(nextState = nextState),
-        SignUpUsingPasswordResult,
         SignUpSubmitCodeResult,
         SignUpSubmitAttributesResult,
         SignUpSubmitPasswordResult
@@ -89,11 +87,6 @@ interface SignUpResult : Result {
     ) : SignUpResult, Result.SuccessResult(nextState = nextState),
         SignUpSubmitCodeResult
 }
-
-/**
- * Sign up with password result, produced by [com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication.signUpUsingPassword]
- */
-interface SignUpUsingPasswordResult : Result
 
 /**
  * Sign in submit code result, produced by

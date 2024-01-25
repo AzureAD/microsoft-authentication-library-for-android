@@ -26,7 +26,6 @@ package com.microsoft.identity.nativeauth.statemachine.errors
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpSubmitAttributesResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpSubmitPasswordResult
-import com.microsoft.identity.nativeauth.statemachine.results.SignUpUsingPasswordResult
 
 /**
  * SignUpErrorTypes class holds the specific error type values that can be returned
@@ -86,27 +85,6 @@ open class SignUpError (
     fun isInvalidAttributes(): Boolean = this.errorType == SignUpErrorTypes.INVALID_ATTRIBUTES
 
     fun isInvalidPassword(): Boolean = this.errorType == ErrorTypes.INVALID_PASSWORD
-}
-
-/**
- * Sign up with password error. The user should use the utility methods of this class
- * to identify and handle the error. This error is produced by
- * [com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication.signUpUsingPassword]
- * @param errorType the error type value of the error that occurred
- * @param error the error returned by the authentication server.
- * @param errorMessage the error message returned by the authentication server.
- * @param correlationId a unique identifier for the request that can help in diagnostics.
- * @param errorCodes a list of specific error codes returned by the authentication server.
- * @param exception an internal unexpected exception that happened.
- */
-class SignUpUsingPasswordError (
-    override val errorType: String? = null,
-    override val error: String? = null,
-    override val errorMessage: String?,
-    override val correlationId: String,
-    override val errorCodes: List<Int>? = null,
-    override var exception: Exception? = null
-): SignUpUsingPasswordResult, SignUpError(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
 
     fun isAuthNotSupported(): Boolean = this.errorType == SignUpErrorTypes.AUTH_NOT_SUPPORTED
 }
@@ -120,6 +98,7 @@ class SignUpUsingPasswordError (
  * @param errorMessage the error message returned by the authentication server.
  * @param correlationId a unique identifier for the request that can help in diagnostics.
  * @param errorCodes a list of specific error codes returned by the authentication server.
+ * @param subError the sub error returned by the authentication server.
  * @param exception an internal unexpected exception that happened.
  */
 class SignUpSubmitPasswordError (
@@ -128,6 +107,7 @@ class SignUpSubmitPasswordError (
     override val errorMessage: String?,
     override val correlationId: String,
     override val errorCodes: List<Int>? = null,
+    val subError: String? = null,
     override var exception: Exception? = null
 ): SignUpSubmitPasswordResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
 

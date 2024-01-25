@@ -23,6 +23,8 @@
 
 package com.microsoft.identity.nativeauth.statemachine.states
 
+import android.os.Parcel
+import android.os.Parcelable
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.client.exception.MsalException
@@ -51,23 +53,31 @@ import com.microsoft.identity.nativeauth.statemachine.errors.ResendCodeError
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordSubmitPasswordError
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
+import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.Serializable
 
 /**
  * Native Auth uses a state machine to denote state of and transitions within a flow.
  * ResetPasswordCodeRequiredState class represents a state where the user has to provide a code to progress
  * in the reset password flow.
- * @property flowToken: Flow token to be passed in the next request
+ * @property continuationToken: Continuation token to be passed in the next request
  * @property config Configuration used by Native Auth
  */
 class ResetPasswordCodeRequiredState internal constructor(
-    override val flowToken: String,
+    override val continuationToken: String,
+    private val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(flowToken), State, Serializable {
+) : BaseState(continuationToken), State, Parcelable {
     private val TAG: String = ResetPasswordCodeRequiredState::class.java.simpleName
+
+    constructor(parcel: Parcel) : this(
+        parcel.readString() ?: "",
+        parcel.readString() ?: "",
+        parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
+    ) {
+    }
 
     interface SubmitCodeCallback : Callback<ResetPasswordSubmitCodeResult>
 
@@ -105,7 +115,7 @@ class ResetPasswordCodeRequiredState internal constructor(
                     config,
                     config.oAuth2TokenCache,
                     code,
-                    flowToken
+                    continuationToken
                 )
 
             val command = ResetPasswordSubmitCodeCommand(
@@ -120,7 +130,8 @@ class ResetPasswordCodeRequiredState internal constructor(
                 is ResetPasswordCommandResult.PasswordRequired -> {
                     ResetPasswordSubmitCodeResult.PasswordRequired(
                         nextState = ResetPasswordPasswordRequiredState(
-                            flowToken = result.passwordSubmitToken,
+                            continuationToken = result.continuationToken,
+                            username = username,
                             config = config
                         )
                     )
@@ -131,7 +142,8 @@ class ResetPasswordCodeRequiredState internal constructor(
                         errorType = ErrorTypes.INVALID_CODE,
                         error = result.error,
                         errorMessage = result.errorDescription,
-                        correlationId = result.correlationId
+                        correlationId = result.correlationId,
+                        subError = result.subError
                     )
                 }
 
@@ -196,7 +208,7 @@ class ResetPasswordCodeRequiredState internal constructor(
                 CommandParametersAdapter.createResetPasswordResendCodeCommandParameters(
                     config,
                     config.oAuth2TokenCache,
-                    flowToken
+                    continuationToken
                 )
 
             val command = ResetPasswordResendCodeCommand(
@@ -211,7 +223,8 @@ class ResetPasswordCodeRequiredState internal constructor(
                 is ResetPasswordCommandResult.CodeRequired -> {
                     ResetPasswordResendCodeResult.Success(
                         nextState = ResetPasswordCodeRequiredState(
-                            flowToken = result.passwordResetToken,
+                            continuationToken = result.continuationToken,
+                            username = username,
                             config = config
                         ),
                         codeLength = result.codeLength,
@@ -244,20 +257,48 @@ class ResetPasswordCodeRequiredState internal constructor(
             }
         }
     }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(continuationToken)
+        parcel.writeString(username)
+        parcel.writeSerializable(config)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<ResetPasswordCodeRequiredState> {
+        override fun createFromParcel(parcel: Parcel): ResetPasswordCodeRequiredState {
+            return ResetPasswordCodeRequiredState(parcel)
+        }
+
+        override fun newArray(size: Int): Array<ResetPasswordCodeRequiredState?> {
+            return arrayOfNulls(size)
+        }
+    }
 }
 
 /**
  * Native Auth uses a state machine to denote state of and transitions within a flow.
  * ResetPasswordPasswordRequiredState class represents a state where the user has to provide a password to progress
  * in the reset password flow.
- * @property flowToken: Flow token to be passed in the next request
+ * @property continuationToken: Continuation token to be passed in the next request
  * @property config Configuration used by Native Auth
  */
 class ResetPasswordPasswordRequiredState internal constructor(
-    override val flowToken: String,
+    override val continuationToken: String,
+    private val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(flowToken), State, Serializable {
+) : BaseState(continuationToken), State, Parcelable {
     private val TAG: String = ResetPasswordPasswordRequiredState::class.java.simpleName
+
+    constructor(parcel: Parcel) : this(
+        parcel.readString() ?: "",
+        parcel.readString() ?: "",
+        parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
+    ) {
+    }
 
     interface SubmitPasswordCallback : Callback<ResetPasswordSubmitPasswordResult>
 
@@ -294,7 +335,7 @@ class ResetPasswordPasswordRequiredState internal constructor(
                 CommandParametersAdapter.createResetPasswordSubmitNewPasswordCommandParameters(
                     config,
                     config.oAuth2TokenCache,
-                    flowToken,
+                    continuationToken,
                     password
                 )
 
@@ -310,7 +351,13 @@ class ResetPasswordPasswordRequiredState internal constructor(
                 return@withContext when (val result =
                     rawCommandResult.checkAndWrapCommandResultType<ResetPasswordSubmitNewPasswordCommandResult>()) {
                     is ResetPasswordCommandResult.Complete -> {
-                        ResetPasswordResult.Complete
+                        ResetPasswordResult.Complete(
+                            nextState = SignInContinuationState(
+                                continuationToken = result.continuationToken,
+                                username = username,
+                                config = config
+                            )
+                        )
                     }
 
                     is ResetPasswordCommandResult.PasswordNotAccepted -> {
@@ -318,7 +365,8 @@ class ResetPasswordPasswordRequiredState internal constructor(
                             errorType = ErrorTypes.INVALID_PASSWORD,
                             error = result.error,
                             errorMessage = result.errorDescription,
-                            correlationId = result.correlationId
+                            correlationId = result.correlationId,
+                            subError = result.subError
                         )
                     }
 
@@ -359,6 +407,26 @@ class ResetPasswordPasswordRequiredState internal constructor(
             } finally {
                 StringUtil.overwriteWithNull(parameters.newPassword)
             }
+        }
+    }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(continuationToken)
+        parcel.writeString(username)
+        parcel.writeSerializable(config)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<ResetPasswordPasswordRequiredState> {
+        override fun createFromParcel(parcel: Parcel): ResetPasswordPasswordRequiredState {
+            return ResetPasswordPasswordRequiredState(parcel)
+        }
+
+        override fun newArray(size: Int): Array<ResetPasswordPasswordRequiredState?> {
+            return arrayOfNulls(size)
         }
     }
 }
