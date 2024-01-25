@@ -135,6 +135,5 @@ dependencies {
     }
 
     distImplementation "com.microsoft.identity.client:opentelemetry.exporter:1.+"
-    implementation platform("io.opentelemetry:opentelemetry-bom:1.18.0")
     implementation("io.opentelemetry:opentelemetry-sdk:1.18.0")
 }
