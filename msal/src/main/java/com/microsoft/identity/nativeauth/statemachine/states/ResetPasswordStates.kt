@@ -233,25 +233,17 @@ class ResetPasswordCodeRequiredState internal constructor(
                     )
                 }
 
-                is INativeAuthCommandResult.Redirect -> {
-                    ResendCodeError(
-                        errorType = ErrorTypes.BROWSER_REQUIRED,
-                        error = result.error,
-                        errorMessage = result.errorDescription,
-                        correlationId = result.correlationId
-                    )
-                }
-
+                is INativeAuthCommandResult.Redirect,
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
                         "Resend code received unexpected result: $result"
                     )
                     ResendCodeError(
-                        errorMessage = result.errorDescription,
-                        error = result.error,
-                        correlationId = result.correlationId,
-                        exception = result.exception
+                        errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
+                        error = (result as INativeAuthCommandResult.Error).error,
+                        correlationId = (result as INativeAuthCommandResult.Error).correlationId,
+                        exception = (result as INativeAuthCommandResult.UnknownError).exception
                     )
                 }
             }
