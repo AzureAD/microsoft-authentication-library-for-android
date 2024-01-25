@@ -2,6 +2,7 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+- [PATCH] Fix MSAL Issue #1864 (#2003)
 - [MINOR] Add isQRPinAvailable API to MSAL IPublicClientApplication (#1931)
 - [MINOR] Add PreferredAuthMethod to interactive token flow (#1964)
 
