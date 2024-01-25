@@ -310,7 +310,7 @@ public class CommandParametersAdapter {
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final AccountRecord accountRecord,
             @NonNull final Boolean forceRefresh,
-            @Nullable final String correlationId) throws ClientException {
+            @NonNull final String correlationId) throws ClientException {
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
         final AbstractAuthenticationScheme authenticationScheme = new BearerAuthenticationSchemeInternal();
@@ -331,6 +331,7 @@ public class CommandParametersAdapter {
                 .authenticationScheme(authenticationScheme)
                 .forceRefresh(forceRefresh)
                 .account(accountRecord)
+                .correlationId(correlationId)
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .build();
 
@@ -424,7 +425,7 @@ public class CommandParametersAdapter {
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String code,
             @NonNull final String continuationToken,
-            @Nullable final String correlationId
+            @NonNull final String correlationId
     ) {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
@@ -461,7 +462,7 @@ public class CommandParametersAdapter {
     public static SignUpResendCodeCommandParameters createSignUpResendCodeCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
-            @Nullable final String correlationId,
+            @NonNull final String correlationId,
             @NonNull final String continuationToken) {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
@@ -498,7 +499,7 @@ public class CommandParametersAdapter {
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String continuationToken,
-            @Nullable final String correlationId,
+            @NonNull final String correlationId,
             final Map<String, String> userAttributes) {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
@@ -538,7 +539,7 @@ public class CommandParametersAdapter {
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String continuationToken,
-            @Nullable final String correlationId,
+            @NonNull final String correlationId,
             @NonNull final char[] password) {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
@@ -629,7 +630,7 @@ public class CommandParametersAdapter {
             @NonNull final OAuth2TokenCache tokenCache,
             @Nullable final String continuationToken,
             @Nullable final String username,
-            @Nullable final String correlationId,
+            @NonNull final String correlationId,
             final List<String> scopes) throws ClientException {
         final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
                 AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
@@ -678,7 +679,7 @@ public class CommandParametersAdapter {
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String code,
             @NonNull final String continuationToken,
-            @Nullable final String correlationId,
+            @NonNull final String correlationId,
             final List<String> scopes) throws ClientException {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
@@ -724,7 +725,7 @@ public class CommandParametersAdapter {
     public static SignInResendCodeCommandParameters createSignInResendCodeCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
-            @Nullable final String correlationId,
+            @NonNull final String correlationId,
             @NonNull final String continuationToken) {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
@@ -767,7 +768,7 @@ public class CommandParametersAdapter {
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String continuationToken,
             @NonNull final char[] password,
-            @Nullable final String correlationId,
+            @NonNull final String correlationId,
             final List<String> scopes) throws ClientException {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
@@ -855,7 +856,7 @@ public class CommandParametersAdapter {
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String code,
-            @Nullable final String correlationId,
+            @NonNull final String correlationId,
             @NonNull final String continuationToken) {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
@@ -895,7 +896,7 @@ public class CommandParametersAdapter {
     public static ResetPasswordResendCodeCommandParameters createResetPasswordResendCodeCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
-            @Nullable final String correlationId,
+            @NonNull final String correlationId,
             @NonNull final String continuationToken) {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
@@ -935,7 +936,7 @@ public class CommandParametersAdapter {
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String continuationToken,
-            @Nullable final String correlationId,
+            @NonNull final String correlationId,
             @NonNull final char[] password) {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());

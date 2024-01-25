@@ -68,7 +68,7 @@ import kotlinx.coroutines.withContext
  */
 class ResetPasswordCodeRequiredState internal constructor(
     override val continuationToken: String,
-    override val correlationId: String?,
+    override val correlationId: String,
     private val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
 ) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
@@ -76,7 +76,7 @@ class ResetPasswordCodeRequiredState internal constructor(
 
     constructor(parcel: Parcel) : this(
         continuationToken= parcel.readString() ?: "",
-        correlationId = parcel.readString(),
+        correlationId = parcel.readString() ?: "UNSET",
         username = parcel.readString() ?: "",
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
     )
@@ -314,7 +314,7 @@ class ResetPasswordCodeRequiredState internal constructor(
  */
 class ResetPasswordPasswordRequiredState internal constructor(
     override val continuationToken: String,
-    override val correlationId: String?,
+    override val correlationId: String,
     private val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
 ) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
@@ -322,7 +322,7 @@ class ResetPasswordPasswordRequiredState internal constructor(
 
     constructor(parcel: Parcel) : this(
         continuationToken= parcel.readString() ?: "",
-        correlationId = parcel.readString(),
+        correlationId = parcel.readString() ?: "UNSET",
         username = parcel.readString() ?: "",
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
     )

@@ -65,14 +65,14 @@ import kotlinx.coroutines.withContext
 class AccountState private constructor(
     private val account: IAccount,
     private val config: NativeAuthPublicClientApplicationConfiguration,
-    val correlationId: String?
+    val correlationId: String
 ) : Parcelable {
 
     interface SignOutCallback : Callback<SignOutResult>
 
     constructor(parcel: Parcel) : this(
         account = parcel.serializable<IAccount>() as IAccount,
-        correlationId = parcel.readString(),
+        correlationId = parcel.readString() ?: "UNSET",
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
     )
 
@@ -311,7 +311,7 @@ class AccountState private constructor(
 
         fun createFromAuthenticationResult(
             authenticationResult: IAuthenticationResult,
-            correlationId: String?,
+            correlationId: String,
             config: NativeAuthPublicClientApplicationConfiguration
         ): AccountState {
             return AccountState(
@@ -323,7 +323,7 @@ class AccountState private constructor(
 
         fun createFromAccountResult(
             account: IAccount,
-            correlationId: String?,
+            correlationId: String,
             config: NativeAuthPublicClientApplicationConfiguration
         ): AccountState {
             return AccountState(

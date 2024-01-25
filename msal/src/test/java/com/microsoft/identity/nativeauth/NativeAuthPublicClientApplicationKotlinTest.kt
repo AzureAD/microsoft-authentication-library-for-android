@@ -416,7 +416,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val config = mock<NativeAuthPublicClientApplicationConfiguration>()
         val continuationTokenState = SignInContinuationState(
             continuationToken = null,
-            correlationId = null,
+            correlationId = correlationId,
             username = username,
             config = config
         )

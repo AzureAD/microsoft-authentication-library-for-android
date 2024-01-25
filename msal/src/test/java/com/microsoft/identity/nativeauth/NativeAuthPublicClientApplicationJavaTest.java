@@ -1060,7 +1060,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         final NativeAuthPublicClientApplicationConfiguration config = Mockito.mock(NativeAuthPublicClientApplicationConfiguration.class);
         final SignInContinuationState state = new SignInContinuationState(
                 null,
-                null,
+                correlationId,
                 username,
                 config
         );

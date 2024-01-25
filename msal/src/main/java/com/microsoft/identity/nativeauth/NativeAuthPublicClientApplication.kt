@@ -31,30 +31,20 @@ import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
-import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult
-import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
-import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
-import com.microsoft.identity.nativeauth.statemachine.states.Callback
-import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordCodeRequiredState
-import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
-import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState
-import com.microsoft.identity.nativeauth.statemachine.states.SignInPasswordRequiredState
-import com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesRequiredState
-import com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState
-import com.microsoft.identity.nativeauth.statemachine.states.SignUpPasswordRequiredState
 import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager
 import com.microsoft.identity.common.internal.commands.GetCurrentAccountCommand
 import com.microsoft.identity.common.internal.controllers.LocalMSALController
-import com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordStartCommand
-import com.microsoft.identity.common.nativeauth.internal.commands.SignInStartCommand
-import com.microsoft.identity.common.nativeauth.internal.commands.SignUpStartCommand
-import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.common.internal.net.cache.HttpCache
 import com.microsoft.identity.common.java.authorities.Authority
 import com.microsoft.identity.common.java.cache.ICacheRecord
 import com.microsoft.identity.common.java.commands.CommandCallback
 import com.microsoft.identity.common.java.controllers.CommandDispatcher
+import com.microsoft.identity.common.java.eststelemetry.PublicApiId
+import com.microsoft.identity.common.java.exception.BaseException
+import com.microsoft.identity.common.java.logging.DiagnosticContext
+import com.microsoft.identity.common.java.logging.LogSession
+import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.ResetPasswordCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.ResetPasswordStartCommandResult
@@ -62,14 +52,14 @@ import com.microsoft.identity.common.java.nativeauth.controllers.results.SignInC
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignInStartCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignUpCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignUpStartCommandResult
-import com.microsoft.identity.common.java.eststelemetry.PublicApiId
-import com.microsoft.identity.common.java.exception.BaseException
-import com.microsoft.identity.common.java.logging.LogSession
-import com.microsoft.identity.common.java.logging.Logger
+import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory
 import com.microsoft.identity.common.java.util.ResultFuture
 import com.microsoft.identity.common.java.util.StringUtil
-import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
+import com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordStartCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.SignInStartCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.SignUpStartCommand
+import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
@@ -77,7 +67,18 @@ import com.microsoft.identity.nativeauth.statemachine.errors.SignInErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
+import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState
+import com.microsoft.identity.nativeauth.statemachine.states.Callback
+import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordCodeRequiredState
+import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState
+import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
+import com.microsoft.identity.nativeauth.statemachine.states.SignInPasswordRequiredState
+import com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesRequiredState
+import com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState
+import com.microsoft.identity.nativeauth.statemachine.states.SignUpPasswordRequiredState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -249,7 +250,7 @@ class NativeAuthPublicClientApplication(
                 GetAccountResult.AccountFound(
                     resultValue = AccountState.createFromAccountResult(
                         account = account,
-                        correlationId = null,
+                        correlationId = DiagnosticContext.INSTANCE.threadCorrelationId,
                         config = nativeAuthConfig
                     )
                 )

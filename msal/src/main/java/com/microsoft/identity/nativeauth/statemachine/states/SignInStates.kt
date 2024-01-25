@@ -73,7 +73,7 @@ import kotlinx.coroutines.withContext
  */
 class SignInCodeRequiredState internal constructor(
     override val continuationToken: String,
-    override val correlationId: String?,
+    override val correlationId: String,
     private val scopes: List<String>?,
     private val config: NativeAuthPublicClientApplicationConfiguration
 ) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
@@ -81,7 +81,7 @@ class SignInCodeRequiredState internal constructor(
 
     constructor(parcel: Parcel) : this(
         continuationToken = parcel.readString()  ?: "",
-        correlationId = parcel.readString(),
+        correlationId = parcel.readString() ?: "UNSET",
         scopes = parcel.createStringArrayList(),
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
     )
@@ -328,14 +328,14 @@ class SignInCodeRequiredState internal constructor(
  */
 class SignInPasswordRequiredState(
     override val continuationToken: String,
-    override val correlationId: String?,
+    override val correlationId: String,
     private val scopes: List<String>?,
     private val config: NativeAuthPublicClientApplicationConfiguration
 ) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
     private val TAG: String = SignInPasswordRequiredState::class.java.simpleName
     constructor(parcel: Parcel) : this(
         continuationToken = parcel.readString()  ?: "",
-        correlationId = parcel.readString(),
+        correlationId = parcel.readString() ?: "UNSET",
         scopes = parcel.createStringArrayList(),
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
     )
@@ -485,7 +485,7 @@ class SignInPasswordRequiredState(
  */
 class SignInContinuationState(
     override val continuationToken: String?,
-    override val correlationId: String?,
+    override val correlationId: String,
     internal val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
 ) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
@@ -493,7 +493,7 @@ class SignInContinuationState(
 
     constructor(parcel: Parcel) : this(
         continuationToken= parcel.readString(),
-        correlationId = parcel.readString(),
+        correlationId = parcel.readString() ?: "UNSET",
         username = parcel.readString() ?: "",
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
     )

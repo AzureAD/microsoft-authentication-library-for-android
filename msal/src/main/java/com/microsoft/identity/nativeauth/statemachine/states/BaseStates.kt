@@ -30,5 +30,5 @@ interface State
  */
 abstract class BaseState(
     internal open val continuationToken: String?,
-    internal open val correlationId: String?
+    internal open val correlationId: String
 )
