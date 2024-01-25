@@ -88,7 +88,7 @@ open class Error(
 }
 
 /**
- * BrowserRequiredError error is an interface for all errors that could required a browser redirection in Native Auth.
+ * BrowserRequiredError error is an interface for all errors that could require a browser redirection in Native Auth.
  * All error classes that can potentially return a browser redirection must implement this interface.
  */
 interface BrowserRequiredError {
