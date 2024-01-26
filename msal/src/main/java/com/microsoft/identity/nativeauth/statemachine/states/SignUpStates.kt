@@ -29,7 +29,6 @@ import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfig
 import com.microsoft.identity.nativeauth.UserAttributes
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
-import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResendCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpSubmitAttributesResult
@@ -447,7 +446,7 @@ class SignUpPasswordRequiredState internal constructor(
                     }
 
                     // This should be caught earlier in the flow, so throwing UnexpectedError
-                    is SignUpCommandResult.InvalidEmail -> {
+                    is INativeAuthCommandResult.InvalidUsername -> {
                         Logger.warn(
                             TAG,
                             "Submit password received unexpected result: $result"

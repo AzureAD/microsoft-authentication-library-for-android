@@ -599,16 +599,6 @@ class NativeAuthPublicClientApplication(
                         )
                     }
 
-                    is INativeAuthCommandResult.InvalidUsername -> {
-                        SignUpError(
-                            errorType = ErrorTypes.INVALID_USERNAME,
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId,
-                            errorCodes = result.errorCodes
-                        )
-                    }
-
                     is SignUpCommandResult.InvalidPassword -> {
                         if (hasPassword) {
                             SignUpError(
@@ -639,7 +629,7 @@ class NativeAuthPublicClientApplication(
                         )
                     }
 
-                    is SignUpCommandResult.InvalidEmail -> {
+                    is INativeAuthCommandResult.InvalidUsername -> {
                         SignUpError(
                             errorType = ErrorTypes.INVALID_USERNAME,
                             error = result.error,
