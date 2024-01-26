@@ -60,6 +60,7 @@ import com.microsoft.identity.common.java.util.ResultFuture
 import com.microsoft.identity.internal.testutils.TestUtils
 import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
 import com.microsoft.identity.nativeauth.utils.mockCorrelationId
+import com.microsoft.identity.nativeauth.statemachine.errors.SignInContinuationError
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
@@ -421,8 +422,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
             config = config
         )
         val result = continuationTokenState.signIn(scopes = null)
-        assertTrue(result is SignInError)
-        assertTrue((result as SignInError).errorType == null)
+        assertTrue(result is SignInContinuationError)
     }
 
     /**
