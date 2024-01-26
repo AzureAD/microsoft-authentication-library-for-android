@@ -43,7 +43,6 @@ interface SignInResult : Result {
         Result.CompleteResult(resultValue = resultValue),
         SignInResult,
         SignInSubmitCodeResult,
-        SignInUsingPasswordResult,
         SignInSubmitPasswordResult
 
     /**
@@ -59,7 +58,7 @@ interface SignInResult : Result {
         val codeLength: Int,
         val sentTo: String,
         val channel: String,
-    ) : Result.SuccessResult(nextState = nextState), SignInResult, SignInUsingPasswordResult, SignInSubmitPasswordResult
+    ) : Result.SuccessResult(nextState = nextState), SignInResult, SignInSubmitPasswordResult
 
     /**
      * PasswordRequired Result, which indicates that the valid password is required from the user to continue.
@@ -70,12 +69,6 @@ interface SignInResult : Result {
         override val nextState: SignInPasswordRequiredState
     ) : SignInResult, Result.SuccessResult(nextState = nextState)
 }
-
-/**
- * Sign in with password result, produced by
- * [com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication.signInUsingPassword]
- */
-interface SignInUsingPasswordResult : Result
 
 /**
  * Sign in submit code result, produced by

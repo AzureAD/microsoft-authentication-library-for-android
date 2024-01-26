@@ -25,7 +25,11 @@
 
 apply plugin: 'com.android.application'
 
-def msalVersion = "5.0.0"
+apply plugin: 'kotlin-android'
+
+apply plugin: 'kotlin-android-extensions'
+
+def msalVersion = "5.+"
 
 if (project.hasProperty("distMsalVersion")) {
     msalVersion = distMsalVersion
@@ -83,6 +87,9 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    buildFeatures {
+        viewBinding true
+    }
     lintOptions {
         abortOnError false
     }
@@ -111,6 +118,8 @@ dependencies {
     localImplementation project(':msal')
     distImplementation "com.microsoft.identity.client:msal:${msalVersion}"
     implementation "com.google.code.gson:gson:$rootProject.ext.gsonVersion"
+    implementation "androidx.constraintlayout:constraintlayout:$rootProject.ext.constraintLayoutVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$rootProject.ext.kotlinXCoroutinesVersion"
     implementation "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
     implementation "androidx.legacy:legacy-support-v4:$rootProject.ext.legacySupportV4Version"
     implementation "com.google.android.material:material:$rootProject.ext.materialVersion"
@@ -126,6 +135,5 @@ dependencies {
     }
 
     distImplementation "com.microsoft.identity.client:opentelemetry.exporter:1.+"
-    implementation platform("io.opentelemetry:opentelemetry-bom:1.18.0")
     implementation("io.opentelemetry:opentelemetry-sdk:1.18.0")
 }

@@ -25,7 +25,6 @@ package com.microsoft.identity.nativeauth
 import android.app.Activity
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.SignInUsingPasswordCallback
 import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager
 import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest
@@ -36,10 +35,8 @@ import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenError
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordSubmitPasswordError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
-import com.microsoft.identity.nativeauth.statemachine.errors.SignInUsingPasswordError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpSubmitAttributesError
-import com.microsoft.identity.nativeauth.statemachine.errors.SignUpUsingPasswordError
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
@@ -48,11 +45,9 @@ import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResul
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
-import com.microsoft.identity.nativeauth.statemachine.results.SignInUsingPasswordResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignOutResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResendCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
-import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpState
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper
 import com.microsoft.identity.common.nativeauth.MockApiEndpoint
@@ -63,6 +58,8 @@ import com.microsoft.identity.common.java.interfaces.IPlatformComponents
 import com.microsoft.identity.common.java.nativeauth.BuildValues
 import com.microsoft.identity.common.java.util.ResultFuture
 import com.microsoft.identity.internal.testutils.TestUtils
+import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
+import com.microsoft.identity.nativeauth.statemachine.errors.SignInContinuationError
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
@@ -181,7 +178,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
             MockApiResponseType.TOKEN_SUCCESS
         )
 
-        val result = application.signInUsingPassword(username, password)
+        val result = application.signIn(username, password)
         assertTrue(result is SignInResult.Complete)
     }
 
@@ -222,10 +219,10 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         )
 
         // 1b. Call SDK interface
-        val codeRequiredResult = application.signInUsingPassword(username, password)
+        val codeRequiredResult = application.signIn(username, password)
         // 1a. Server returns invalid password error
-        assertTrue(codeRequiredResult is SignInUsingPasswordError)
-        assertTrue((codeRequiredResult as SignInUsingPasswordError).isInvalidCredentials())
+        assertTrue(codeRequiredResult is SignInError)
+        assertTrue((codeRequiredResult as SignInError).isInvalidCredentials())
     }
 
     /**
@@ -245,10 +242,10 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         )
 
         // 1b. Call SDK interface
-        val codeRequiredResult = application.signInUsingPassword(username, password)
+        val codeRequiredResult = application.signIn(username, password)
         // 1a. Server returns invalid user error
-        assertTrue(codeRequiredResult is SignInUsingPasswordError)
-        assertTrue((codeRequiredResult as SignInUsingPasswordError).isUserNotFound())
+        assertTrue(codeRequiredResult is SignInError)
+        assertTrue((codeRequiredResult as SignInError).isUserNotFound())
     }
 
     /**
@@ -359,11 +356,11 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
             responseType = MockApiResponseType.TOKEN_SUCCESS
         )
 
-        val result = application.signInUsingPassword(username, password)
+        val result = application.signIn(username, password)
         assertTrue(result is SignInResult.Complete)
 
         try {
-            application.signInUsingPassword(username, password)
+            application.signIn(username, password)
         } catch (exception: MsalException) {
             assertEquals(MsalClientException.INVALID_PARAMETER, exception.errorCode)
             assertEquals("An account is already signed in.", exception.message)
@@ -414,10 +411,9 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         // 1b. client returns error
         val config = mock<NativeAuthPublicClientApplicationConfiguration>()
-        val continuationTokenState = SignInAfterSignUpState(continuationToken = null, username = username, config = config)
+        val continuationTokenState = SignInContinuationState(continuationToken = null, username = username, config = config)
         val result = continuationTokenState.signIn(scopes = null)
-        assertTrue(result is SignInError)
-        assertTrue((result as SignInError).errorType == null)
+        assertTrue(result is SignInContinuationError)
     }
 
     /**
@@ -471,7 +467,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
             responseType = MockApiResponseType.TOKEN_SUCCESS
         )
 
-        val signInResult = application.signInUsingPassword(username, password)
+        val signInResult = application.signIn(username, password)
         assertTrue(signInResult is SignInResult.Complete)
 
         val signOutResult = (signInResult as SignInResult.Complete).resultValue.signOut()
@@ -495,7 +491,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
             responseType = MockApiResponseType.TOKEN_SUCCESS
         )
 
-        val secondSignInResult = application.signInUsingPassword(username, password)
+        val secondSignInResult = application.signIn(username, password)
         assertTrue(secondSignInResult is SignInResult.Complete)
     }
 
@@ -523,7 +519,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
             responseType = MockApiResponseType.TOKEN_SUCCESS
         )
 
-        val signInResult = application.signInUsingPassword(username, password)
+        val signInResult = application.signIn(username, password)
         assertTrue(signInResult is SignInResult.Complete)
 
         val accessTokenState = (signInResult as SignInResult.Complete).resultValue.getAccessToken()
@@ -568,7 +564,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
             responseType = MockApiResponseType.TOKEN_SUCCESS
         )
 
-        val signInResult = application.signInUsingPassword(username, password)
+        val signInResult = application.signIn(username, password)
         assertTrue(signInResult is SignInResult.Complete)
 
         val accountState = (signInResult as SignInResult.Complete).resultValue
@@ -646,8 +642,88 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val submitPasswordResult = nextState.submitPassword(password = password)
         // 3b. Transform /submit(success) +/poll_completion(success) to Result(Complete).
         assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
-        // 3c. Respond to Result(Complete): shifting from ResetPasswordPasswordRequired to end. Continuation token as resultValue will be returned after private preview.
-        val resultValue = (submitPasswordResult as ResetPasswordResult.Complete).resultValue
+    }
+
+    /**
+     * Test SSPR scenario 3.2.2:
+     * 1 -> USER click resetPassword
+     * 1 <- user found, SERVER requires code verification
+     * 2 -> USER submit valid code
+     * 2 <- code valid, SERVER requires new password to be set
+     * 3 -> USER submit valid password
+     * 3 <- password reset succeeds
+     * 4 -> USER calls sign in on the provided state
+     * 4 <- SERVER returns tokens
+     */
+    @Test
+    fun testSSPRScenario3_2_2() = runTest {
+        var nextState: Any?
+        // 1. Click reset password
+        // 1_mock_api. Setup server response - endpoint: resetpassword/start - Server returns Success
+        val correlationId = UUID.randomUUID().toString()
+        configureMockApi(
+            endpointType = MockApiEndpoint.SSPRStart,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.SSPR_START_SUCCESS
+        )
+        // 1_mock_api. Setup server response - endpoint: resetpassword/challenge - Server returns Success: challenge_type = OOB
+        configureMockApi(
+            endpointType = MockApiEndpoint.SSPRChallenge,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.CHALLENGE_TYPE_OOB
+        )
+        // 1a. Call SDK interface - resetPassword(ResetPasswordStart)
+        val resetPasswordResult = application.resetPassword(username = username)
+        // 1b. Transform /start(success) +/challenge(challenge_type=OOB) to Result(CodeRequired).
+        assertTrue(resetPasswordResult is ResetPasswordStartResult.CodeRequired)
+        // 1c. Respond to Result(Code Required): shifting from start to ResetPasswordCodeRequired state.
+        nextState = (resetPasswordResult as ResetPasswordStartResult.CodeRequired).nextState
+
+        // 2. Submit valid code
+        // 2_mock_api. Setup server response - endpoint: resetpassowrd/continue - Server returns Success
+        configureMockApi(
+            endpointType = MockApiEndpoint.SSPRContinue,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.SSPR_CONTINUE_SUCCESS
+        )
+        // 2a. Call SDK interface - submitCode()
+        val submitCodeResult = nextState.submitCode(code = code)
+        // 2b. Transform /continue(success) to Result(PasswordRequired).
+        assertTrue(submitCodeResult is ResetPasswordSubmitCodeResult.PasswordRequired)
+        // 2c. Respond to Result(PasswordRequired): shifting from ResetPasswordCodeRequired to ResetPasswordPasswordRequired state.
+        nextState = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState
+
+        // 3. Submit valid password
+        // 3_mock_api. Setup server response - endpoint: resetpassword/submit - Server returns Success
+        configureMockApi(
+            endpointType = MockApiEndpoint.SSPRSubmit,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.SSPR_SUBMIT_SUCCESS
+        )
+        // 3_mock_api. Setup server response - endpoint: resetpassword/poll_completion - Server returns Success
+        configureMockApi(
+            endpointType = MockApiEndpoint.SSPRPoll,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.SSPR_POLL_SUCCESS
+        )
+        // 3a. Call SDK interface - submitPassword()
+        val submitPasswordResult = nextState.submitPassword(password = password)
+        // 3b. Transform /submit(success) +/poll_completion(success) to Result(Complete).
+        assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
+        // 3c. Respond to Result(Complete): shifting from ResetPasswordPasswordRequired to end.
+        assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
+        val signInWithContinuationTokenState = (submitPasswordResult as ResetPasswordResult.Complete).nextState
+
+        // 4a. Sign in with (valid) continuation token
+        configureMockApi(
+            endpointType = MockApiEndpoint.SignInToken,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.TOKEN_SUCCESS
+        )
+
+        // 4b. Server returns tokens
+        val result = signInWithContinuationTokenState.signIn(scopes = null)
+        assertTrue(result is SignInResult.Complete)
     }
 
     /**
@@ -729,8 +805,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         submitPasswordResult = nextState.submitPassword(password = password)
         // 4b. Transform /submit(error) + /resetpassword/poll_completion(success) to Result(Complete).
         assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
-        // 4c. Respond to Result(Complete): shifting from ResetPasswordPasswordRequired to end. Continuation token as resultValue will be returned after private preview.
-        val resultValue = (submitPasswordResult as ResetPasswordResult.Complete).resultValue
     }
 
     /**
@@ -812,8 +886,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val submitPasswordResult = nextState.submitPassword(password = password)
         // 4b. Transform /submit(success) +/poll_completion(success) to Result(Complete).
         assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
-        // 4c. Respond to Result(Complete): shifting from ResetPasswordPasswordRequired to end. Continuation token as resultValue will be returned after private preview.
-        val resultValue = (submitPasswordResult as ResetPasswordResult.Complete).resultValue
     }
 
     /**
@@ -964,8 +1036,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val submitPasswordResult = nextState.submitPassword(password = password)
         // 4b. Transform /submit(success) +/poll_completion(success) to Result(Complete).
         assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
-        // 4c. Respond to Result(Complete): shifting from ResetPasswordPasswordRequired to end. Continuation token as resultValue will be returned after private preview.
-        val resultValue = (submitPasswordResult as ResetPasswordResult.Complete).resultValue
     }
 
     /**
@@ -992,11 +1062,11 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
             responseType = MockApiResponseType.TOKEN_SUCCESS
         )
 
-        val result = application.signInUsingPassword(username, password)
+        val result = application.signIn(username, password)
         assertTrue(result is SignInResult.Complete)
 
         try {
-            application.signInUsingPassword(username, password)
+            application.signIn(username, password)
         } catch (exception: MsalException) {
             assertEquals(MsalClientException.INVALID_PARAMETER, exception.errorCode)
             assertEquals("An account is already signed in.", exception.message)
@@ -1029,7 +1099,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
             responseType = MockApiResponseType.TOKEN_SUCCESS
         )
 
-        val result = application.signInUsingPassword(username, password)
+        val result = application.signIn(username, password)
         assertTrue(result is SignInResult.Complete)
 
         try {
@@ -1066,7 +1136,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
             responseType = MockApiResponseType.TOKEN_SUCCESS
         )
 
-        val result = application.signInUsingPassword(username, password)
+        val result = application.signIn(username, password)
         assertTrue(result is SignInResult.Complete)
 
         try {
@@ -1123,9 +1193,9 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         )
 
         // 3c. Call SDK interface
-        val signInResult = ResultFuture<SignInUsingPasswordResult>()
-        val callback: SignInUsingPasswordCallback = object : SignInUsingPasswordCallback {
-            override fun onResult(result: SignInUsingPasswordResult) {
+        val signInResult = ResultFuture<SignInResult>()
+        val callback: NativeAuthPublicClientApplication.SignInCallback = object : NativeAuthPublicClientApplication.SignInCallback {
+            override fun onResult(result: SignInResult) {
                 signInResult.setResult(result)
             }
 
@@ -1133,7 +1203,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
                 signInResult.setException(exception)
             }
         }
-        application.signInUsingPassword(username, password, null, callback)
+        application.signIn(username, password, null, callback)
         // 3d. Server returns InvalidAuthMethodForUser error
         assertTrue(signInResult[30, TimeUnit.SECONDS] is SignInResult.CodeRequired)
     }
@@ -1171,9 +1241,9 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         )
 
         // 3a. Call SDK interface
-        val signInResult = ResultFuture<SignInUsingPasswordResult>()
-        val callback: SignInUsingPasswordCallback = object : SignInUsingPasswordCallback {
-            override fun onResult(result: SignInUsingPasswordResult) {
+        val signInResult = ResultFuture<SignInResult>()
+        val callback: NativeAuthPublicClientApplication.SignInCallback = object : NativeAuthPublicClientApplication.SignInCallback {
+            override fun onResult(result: SignInResult) {
                 signInResult.setResult(result)
             }
 
@@ -1181,10 +1251,10 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
                 signInResult.setException(exception)
             }
         }
-        application.signInUsingPassword(username, password, null, callback)
+        application.signIn(username, password, null, callback)
         // 3b. Server returns BrowserRequired error
-        assertTrue(signInResult[30, TimeUnit.SECONDS] is SignInUsingPasswordError)
-        val result = signInResult.get() as SignInUsingPasswordError
+        assertTrue(signInResult[30, TimeUnit.SECONDS] is SignInError)
+        val result = signInResult.get() as SignInError
         assertTrue(result.isBrowserRequired())
     }
 
@@ -1204,9 +1274,9 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
             responseType = MockApiResponseType.TOKEN_SUCCESS
         )
 
-        val result = application.signInUsingPassword(emptyString, password)
-        assertTrue(result is SignInUsingPasswordError)
-        assertTrue((result as SignInUsingPasswordError).errorType == null)
+        val result = application.signIn(emptyString, password)
+        assertTrue(result is SignInError)
+        assertTrue((result as SignInError).errorType == null)
     }
 
     // Helper methods
@@ -1216,7 +1286,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         InterruptedException::class,
         TimeoutException::class
     )
-    private suspend fun signUpUser(): SignInAfterSignUpState {
+    private suspend fun signUpUser(): SignInContinuationState {
         // 1. sign up with password
         // 1a. Setup server response
         val correlationId = UUID.randomUUID().toString()
@@ -1232,7 +1302,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         )
 
         // 1b. Call SDK interface
-        val result = application.signUpUsingPassword(username, password)
+        val result = application.signUp(username, password)
         assertTrue(result is SignUpResult.CodeRequired)
 
         // 2. submit (valid) code
@@ -1251,7 +1321,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
     /**
      * Test Sign Up scenario 1:
-     * 1a -> signUpUsingPassword
+     * 1a -> signUp
      * 1b <- server requires code verification
      * 2a -> submit valid code
      * 2b <- sign up succeeds
@@ -1275,7 +1345,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         )
 
         // 1b. Call SDK interface
-        val result = application.signUpUsingPassword(username, password)
+        val result = application.signUp(username, password)
 
         assertTrue(result is SignUpResult.CodeRequired)
 
@@ -1296,7 +1366,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
     /**
      * Test Sign Up scenario 2:
-     * 1a -> signUpUsingPassword
+     * 1a -> signUp
      * 1b <- server requires code verification
      * 2a -> user prompts resend code, challenge endpoint is called
      * 2b <- codeRequired is returned
@@ -1322,7 +1392,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         )
 
         // 1b. Call SDK interface
-        val result = application.signUpUsingPassword(username, password)
+        val result = application.signUp(username, password)
 
         assertTrue(result is SignUpResult.CodeRequired)
 
@@ -1356,7 +1426,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
     /**
      * Test Sign Up scenario 3:
-     * 1a -> signUpUsingPassword
+     * 1a -> signUp
      * 1b <- server requires code verification
      * 2a -> submit valid code
      * 3a <- sign up token has expired, server returns token expired error
@@ -1380,7 +1450,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         )
 
         // 1b. Call SDK interface
-        val result = application.signUpUsingPassword(username, password)
+        val result = application.signUp(username, password)
 
         assertTrue(result is SignUpResult.CodeRequired)
 
@@ -1401,7 +1471,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
     /**
      * Test Sign Up scenario 4:
-     * 1a -> signUpUsingPassword
+     * 1a -> signUp
      * 1b <- server does not support password authentication
      */
     @Test
@@ -1415,15 +1485,15 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         )
 
         // 1b. Call SDK interface
-        val result = application.signUpUsingPassword(username, password)
+        val result = application.signUp(username, password)
 
-        assertTrue(result is SignUpUsingPasswordError)
-        assertTrue((result as SignUpUsingPasswordError).isBrowserRequired())
+        assertTrue(result is SignUpError)
+        assertTrue((result as SignUpError).isBrowserRequired())
     }
 
     /**
      * Test Sign Up scenario 5:
-     * 1a -> signUpUsingPassword
+     * 1a -> signUp
      * 1b <- server does not support password authentication, returns error to use OOB instead
      */
     @Test
@@ -1437,15 +1507,15 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         )
 
         // 1b. Call SDK interface
-        val result = application.signUpUsingPassword(username, password)
+        val result = application.signUp(username, password)
 
-        assertTrue(result is SignUpUsingPasswordError)
-        assertTrue((result as SignUpUsingPasswordError).isAuthNotSupported())
+        assertTrue(result is SignUpError)
+        assertTrue((result as SignUpError).isAuthNotSupported())
     }
 
     /**
      * Test Sign Up scenario 6:
-     * 1a -> signUpUsingPassword
+     * 1a -> signUp
      * 1b <- server requires code verification
      * 2a -> user prompts resend code, challenge endpoint is called
      * 2b <- codeRequired is returned
@@ -1475,7 +1545,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         )
 
         // 1b. Call SDK interface
-        val result = application.signUpUsingPassword(username, password)
+        val result = application.signUp(username, password)
 
         assertTrue(result is SignUpResult.CodeRequired)
 
@@ -1524,7 +1594,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
     /**
      * Test Sign Up scenario 7:
-     * 1a -> signUpUsingPassword with invalid custom attributes
+     * 1a -> signUp with invalid custom attributes
      * 1b <- server returns invalid attribute error
      * 2a -> call signUpWithPassword with correct attributes
      * 2b <- server returns code required, flow continues
@@ -1541,10 +1611,10 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         // 1b. Call SDK interface
         val invalidAttributes = UserAttributes.Builder.customAttribute("attribute", "invalid_attribute").build()
-        val invalidAttributesResult = application.signUpUsingPassword(username, password, invalidAttributes)
+        val invalidAttributesResult = application.signUp(username, password, invalidAttributes)
 
-        assertTrue(invalidAttributesResult is SignUpUsingPasswordError)
-        assertTrue((invalidAttributesResult as SignUpUsingPasswordError).isInvalidAttributes())
+        assertTrue(invalidAttributesResult is SignUpError)
+        assertTrue((invalidAttributesResult as SignUpError).isInvalidAttributes())
 
         configureMockApi(
             endpointType = MockApiEndpoint.SignUpStart,
@@ -1560,7 +1630,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         // 2b. Call SDK interface again
         val validAttributes = UserAttributes.Builder.customAttribute("attribute", "valid_attribute").build()
-        val result = application.signUpUsingPassword(username, password, validAttributes)
+        val result = application.signUp(username, password, validAttributes)
         assertTrue(result is SignUpResult.CodeRequired)
     }
 
@@ -2028,13 +2098,13 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
             responseType = MockApiResponseType.PASSWORD_TOO_WEAK
         )
 
-        val result = application.signUpUsingPassword(username, password)
-        assertTrue(result is SignUpUsingPasswordError)
-        assertTrue((result as SignUpUsingPasswordError).isInvalidPassword())
+        val result = application.signUp(username, password)
+        assertTrue(result is SignUpError)
+        assertTrue((result as SignUpError).isInvalidPassword())
     }
 
     @Test
-    fun testSignUpUsingPasswordInvalidEmailReturnsError() = runTest {
+    fun testSignUpWithPasswordInvalidEmailReturnsError() = runTest {
         val correlationId = UUID.randomUUID().toString()
 
         configureMockApi(
@@ -2043,9 +2113,9 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
             responseType = MockApiResponseType.INVALID_USERNAME
         )
 
-        val result = application.signUpUsingPassword(invalidUsername, password)
-        assertTrue(result is SignUpUsingPasswordError)
-        assertTrue((result as SignUpUsingPasswordError).isInvalidUsername())
+        val result = application.signUp(invalidUsername, password)
+        assertTrue(result is SignUpError)
+        assertTrue((result as SignUpError).isInvalidUsername())
     }
 
     @Test

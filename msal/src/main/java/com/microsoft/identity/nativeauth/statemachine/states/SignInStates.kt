@@ -23,6 +23,8 @@
 
 package com.microsoft.identity.nativeauth.statemachine.states
 
+import android.os.Parcel
+import android.os.Parcelable
 import com.microsoft.identity.client.AuthenticationResultAdapter
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
@@ -51,6 +53,7 @@ import com.microsoft.identity.common.java.util.StringUtil
 import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.ResendCodeError
+import com.microsoft.identity.nativeauth.statemachine.errors.SignInContinuationError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInSubmitPasswordError
@@ -58,7 +61,6 @@ import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.Serializable
 
 /**
  * Native Auth uses a state machine to denote state of and transitions within a flow.
@@ -72,8 +74,15 @@ class SignInCodeRequiredState internal constructor(
     override val continuationToken: String,
     private val scopes: List<String>?,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(continuationToken), State, Serializable {
+) : BaseState(continuationToken), State, Parcelable {
     private val TAG: String = SignInCodeRequiredState::class.java.simpleName
+
+    constructor(parcel: Parcel) : this(
+        parcel.readString()  ?: "",
+        parcel.createStringArrayList(),
+        parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
+    ) {
+    }
 
     /**
      * SubmitCodeCallback receives the result for submit code for SignIn for Native Auth
@@ -236,29 +245,40 @@ class SignInCodeRequiredState internal constructor(
                     )
                 }
 
-                is INativeAuthCommandResult.Redirect -> {
-                    ResendCodeError(
-                        errorType = ErrorTypes.BROWSER_REQUIRED,
-                        error = result.error,
-                        errorMessage = result.errorDescription,
-                        correlationId = result.correlationId
-                    )
-                }
-
-                is INativeAuthCommandResult.UnknownError -> {
+                is INativeAuthCommandResult.Redirect, is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
                         "Resend code received unexpected result: $result"
                     )
                     ResendCodeError(
-                        errorMessage = result.errorDescription,
-                        error = result.error,
-                        correlationId = result.correlationId,
-                        errorCodes = result.errorCodes,
-                        exception = result.exception
+                        errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
+                        error = (result as INativeAuthCommandResult.Error).error,
+                        correlationId = (result as INativeAuthCommandResult.Error).correlationId,
+                        errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
+                        exception = (result as INativeAuthCommandResult.UnknownError).exception
                     )
                 }
             }
+        }
+    }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(continuationToken)
+        parcel.writeStringList(scopes)
+        parcel.writeSerializable(config)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<SignInCodeRequiredState> {
+        override fun createFromParcel(parcel: Parcel): SignInCodeRequiredState {
+            return SignInCodeRequiredState(parcel)
+        }
+
+        override fun newArray(size: Int): Array<SignInCodeRequiredState?> {
+            return arrayOfNulls(size)
         }
     }
 }
@@ -351,25 +371,17 @@ class SignInPasswordRequiredState(
                             )
                         )
                     }
-                    is INativeAuthCommandResult.Redirect -> {
-                        SignInSubmitPasswordError(
-                            errorType = ErrorTypes.BROWSER_REQUIRED,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId
-                        )
-                    }
-                    is INativeAuthCommandResult.UnknownError -> {
+                    is INativeAuthCommandResult.Redirect, is INativeAuthCommandResult.UnknownError -> {
                         Logger.warn(
                             TAG,
                             "Submit password received unexpected result: $result"
                         )
                         SignInSubmitPasswordError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId,
-                            errorCodes = result.errorCodes,
-                            exception = result.exception
+                            errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
+                            error = (result as INativeAuthCommandResult.Error).error,
+                            correlationId = (result as INativeAuthCommandResult.Error).correlationId,
+                            errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
+                            exception = (result as INativeAuthCommandResult.UnknownError).exception
                         )
                     }
                 }
@@ -382,55 +394,61 @@ class SignInPasswordRequiredState(
 
 /**
  * Native Auth uses a state machine to denote state of and transitions within a flow.
- * SignInAfterSignUpBaseState class is an abstract class to represent signin state after
- * successfull signup
- * in the signin flow.
+ * SignInContinuationState is a class to represent a sign in state after
+ * a successful signup or password reset.
  * @property continuationToken: Continuation token from signup APIS
  * @property username: Username of the user
  * @property config Configuration used by Native Auth
  */
-abstract class SignInAfterSignUpBaseState(
+class SignInContinuationState(
     override val continuationToken: String?,
-    internal open val username: String,
+    internal val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(continuationToken), State, Serializable {
-    private val TAG: String = SignInAfterSignUpBaseState::class.java.simpleName
+) : BaseState(continuationToken), State, Parcelable {
+    private val TAG: String = SignInContinuationState::class.java.simpleName
+
+    constructor(parcel: Parcel) : this(
+        parcel.readString(),
+        parcel.readString() ?: "",
+        parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
+    ) {
+    }
 
     /**
-     * SignInAfterSignUpCallback receives the result for sign in after signup for Native Auth
+     * SignInContinuationCallback receives the result for sign in after flow completion for Native Auth
      */
-    interface SignInAfterSignUpCallback : Callback<SignInResult>
+    interface SignInContinuationCallback : Callback<SignInResult>
 
     /**
-     * Submits the sign-in-after-sign-up verification code to the server; callback variant.
+     * Submits the sign-in-continuation verification code to the server; callback variant.
      *
      * @param scopes (Optional) The scopes to request.
-     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpBaseState.SignInAfterSignUpCallback] to receive the result on.
-     * @return The results of the sign-in-after-sign-up action.
+     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState.SignInContinuationCallback] to receive the result on.
+     * @return The results of the sign-in-continuation action.
      */
-    fun signInAfterSignUp(scopes: List<String>? = null, callback: SignInAfterSignUpCallback) {
-        LogSession.logMethodCall(TAG, "${TAG}.signInAfterSignUp")
+    fun signIn(scopes: List<String>? = null, callback: SignInContinuationCallback) {
+        LogSession.logMethodCall(TAG, "${TAG}.signIn")
 
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
-                val result = signInAfterSignUp(scopes)
+                val result = signIn(scopes)
                 callback.onResult(result)
             } catch (e: MsalException) {
-                Logger.error(TAG, "Exception thrown in signInAfterSignUp", e)
+                Logger.error(TAG, "Exception thrown in signIn", e)
                 callback.onError(e)
             }
         }
     }
 
     /**
-     * Submits the sign-in-after-sign-up verification code to the server; Kotlin coroutines variant.
+     * Submits the sign-in-continuation verification code to the server; Kotlin coroutines variant.
      *
      * @param scopes (Optional) The scopes to request.
      * @return The results of the sign-in-after-sign-up action.
      */
-    suspend fun signInAfterSignUp(scopes: List<String>? = null): SignInResult {
+    suspend fun signIn(scopes: List<String>? = null): SignInResult {
         return withContext(Dispatchers.IO) {
-            LogSession.logMethodCall(TAG, "${TAG}.signInAfterSignUp(scopes: List<String>)")
+            LogSession.logMethodCall(TAG, "${TAG}.signIn(scopes: List<String>)")
 
             // Check if verification code was passed. If not, return an UnknownError with instructions to call the other
             // sign in flows (code or password).
@@ -439,7 +457,7 @@ abstract class SignInAfterSignUpBaseState(
                     TAG,
                     "Sign in after sign up received unexpected result: continuationToken was null"
                 )
-                return@withContext SignInError(
+                return@withContext SignInContinuationError(
                     errorMessage = "Sign In is not available through this state, please use the standalone sign in methods (signInWithCode or signInWithPassword).",
                     error = "invalid_state",
                     correlationId = "UNSET",
@@ -463,27 +481,6 @@ abstract class SignInAfterSignUpBaseState(
             val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
 
             return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<SignInWithContinuationTokenCommandResult>()) {
-                is SignInCommandResult.CodeRequired -> {
-                    SignInResult.CodeRequired(
-                        nextState = SignInCodeRequiredState(
-                            continuationToken = result.continuationToken,
-                            scopes = scopes,
-                            config = config
-                        ),
-                        codeLength = result.codeLength,
-                        sentTo = result.challengeTargetLabel,
-                        channel = result.challengeChannel
-                    )
-                }
-                is SignInCommandResult.PasswordRequired -> {
-                    SignInResult.PasswordRequired(
-                        nextState = SignInPasswordRequiredState(
-                            continuationToken = result.continuationToken,
-                            scopes = scopes,
-                            config = config
-                        )
-                    )
-                }
                 is SignInCommandResult.Complete -> {
                     val authenticationResult =
                         AuthenticationResultAdapter.adapt(result.authenticationResult)
@@ -494,28 +491,41 @@ abstract class SignInAfterSignUpBaseState(
                         )
                     )
                 }
-                is INativeAuthCommandResult.Redirect -> {
-                    SignInError(
-                        errorType = ErrorTypes.BROWSER_REQUIRED,
-                        error = result.error,
-                        errorMessage = result.errorDescription,
-                        correlationId = result.correlationId
-                    )
-                }
+                is INativeAuthCommandResult.Redirect,
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
                         "Sign in after sign up received unexpected result: $result"
                     )
-                    SignInError(
-                        errorMessage = result.errorDescription,
-                        error = result.error,
-                        correlationId = result.correlationId,
-                        errorCodes = result.errorCodes,
-                        exception = result.exception
+                    SignInContinuationError(
+                        errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
+                        error = (result as INativeAuthCommandResult.Error).error,
+                        correlationId = (result as INativeAuthCommandResult.Error).correlationId,
+                        errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
+                        exception = (result as INativeAuthCommandResult.UnknownError).exception
                     )
                 }
             }
+        }
+    }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(continuationToken)
+        parcel.writeString(username)
+        parcel.writeSerializable(config)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<SignInContinuationState> {
+        override fun createFromParcel(parcel: Parcel): SignInContinuationState {
+            return SignInContinuationState(parcel)
+        }
+
+        override fun newArray(size: Int): Array<SignInContinuationState?> {
+            return arrayOfNulls(size)
         }
     }
 }
