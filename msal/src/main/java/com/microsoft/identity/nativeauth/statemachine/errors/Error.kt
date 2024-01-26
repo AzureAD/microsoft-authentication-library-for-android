@@ -24,11 +24,17 @@
 package com.microsoft.identity.nativeauth.statemachine.errors
 
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResendCodeResult
+import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResult
+import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResendCodeResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInSubmitCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResendCodeResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignUpSubmitAttributesResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpSubmitCodeResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignUpSubmitPasswordResult
 
 /**
  * ErrorTypes class holds the possible error type values that are shared between the errors
@@ -85,7 +91,14 @@ open class Error(
     open var exception: Exception? = null,
     open val errorCodes: List<Int>? = null
 ) {
-    fun isBrowserRequired(): Boolean = this.errorType == ErrorTypes.BROWSER_REQUIRED
+}
+
+/**
+ * BrowserRequiredError error is an interface for all errors that could require a browser redirection in Native Auth.
+ * All error classes that can potentially return a browser redirection must implement this interface.
+ */
+interface BrowserRequiredError {
+    fun isBrowserRequired(): Boolean = (this as Error).errorType == ErrorTypes.BROWSER_REQUIRED
 }
 
 /**
@@ -111,7 +124,7 @@ class SubmitCodeError(
     override val errorCodes: List<Int>? = null,
     val subError: String? = null,
     override var exception: Exception? = null
-): SignInSubmitCodeResult, SignUpSubmitCodeResult, ResetPasswordSubmitCodeResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception)
+): BrowserRequiredError, SignInSubmitCodeResult, SignUpSubmitCodeResult, ResetPasswordSubmitCodeResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception)
 {
     fun isInvalidCode(): Boolean = this.errorType == ErrorTypes.INVALID_CODE
 }
