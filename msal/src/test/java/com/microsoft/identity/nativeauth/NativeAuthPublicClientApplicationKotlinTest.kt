@@ -1262,10 +1262,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
     /**
      * Check that we don't get a type casting exception thrown when we get it,
      * should get error result instead.
-     *
-     * @throws ExecutionException
-     * @throws InterruptedException
-     * @throws TimeoutException
      */
     @Test
     fun testSignInEmptyUsernameNoException() = runTest {
