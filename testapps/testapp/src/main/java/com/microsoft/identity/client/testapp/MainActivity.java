@@ -49,14 +49,13 @@ import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
-import com.microsoft.identity.client.opentelemetry.exporter.AriaInitializer;
-import com.microsoft.identity.client.opentelemetry.exporter.AriaSpanExporter;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
 import com.microsoft.identity.common.java.util.StringUtil;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Collection;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -64,9 +63,13 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
+import io.opentelemetry.sdk.trace.export.SpanExporter;
+import lombok.NonNull;
 
 /**
  * The app's main activity.
@@ -147,7 +150,8 @@ public class MainActivity extends AppCompatActivity
                 SecretKey secretKey = new SecretKeySpec(tempkey.getEncoded(), "AES");
                 AuthenticationSettings.INSTANCE.setSecretKey(secretKey.getEncoded());
             }
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException | UnsupportedEncodingException ex) {
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException |
+                 UnsupportedEncodingException ex) {
             showMessageWithToast("Fail to generate secret key:" + ex.getMessage());
         }
 
@@ -168,15 +172,28 @@ public class MainActivity extends AppCompatActivity
      * @param applicationContext the application context
      */
     private static synchronized void initOpenTelemetry(@lombok.NonNull final Context applicationContext) {
-        AriaInitializer.initializeAria(applicationContext, BuildConfig.otelAriaToken);
         final Resource resource = Resource.getDefault();
 
-        final AriaSpanExporter ariaSpanExporter = new AriaSpanExporter(
-                BuildConfig.otelAriaToken, null, applicationContext
-        );
+        final SpanExporter spanExporter = new SpanExporter() {
+            @Override
+            public CompletableResultCode export(@NonNull final Collection<SpanData> spans) {
+                spans.forEach(System.out::println);
+                return CompletableResultCode.ofSuccess();
+            }
+
+            @Override
+            public CompletableResultCode flush() {
+                return CompletableResultCode.ofSuccess();
+            }
+
+            @Override
+            public CompletableResultCode shutdown() {
+                return CompletableResultCode.ofSuccess();
+            }
+        };
 
         final SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
-                .addSpanProcessor(BatchSpanProcessor.builder(ariaSpanExporter).build())
+                .addSpanProcessor(BatchSpanProcessor.builder(spanExporter).build())
                 .setResource(resource)
                 // No Sampling for our test app
                 // because the data is all going into test db
@@ -187,10 +204,10 @@ public class MainActivity extends AppCompatActivity
                 .buildAndRegisterGlobal();
     }
 
-    private Fragment getCurrentFragment(){
+    private Fragment getCurrentFragment() {
         int index = getSupportFragmentManager().getBackStackEntryCount() - 1;
 
-        if (index < 0){
+        if (index < 0) {
             return null;
         }
 
@@ -204,17 +221,17 @@ public class MainActivity extends AppCompatActivity
         final Fragment fragment;
         int menuItemId = item.getItemId();
         if (menuItemId == R.id.nav_acquire) {
-            if (getCurrentFragment() instanceof AcquireTokenFragment){
+            if (getCurrentFragment() instanceof AcquireTokenFragment) {
                 return false;
             }
             fragment = new AcquireTokenFragment();
-        } else  if ( menuItemId == R.id.nav_native) {
-            if (getCurrentFragment() instanceof NativeAuthFragment){
+        } else if (menuItemId == R.id.nav_native) {
+            if (getCurrentFragment() instanceof NativeAuthFragment) {
                 return false;
             }
             fragment = new NativeAuthFragment();
         } else if (menuItemId == R.id.nav_result) {
-            if (getCurrentFragment() instanceof ResultFragment){
+            if (getCurrentFragment() instanceof ResultFragment) {
                 return false;
             }
 
@@ -234,7 +251,7 @@ public class MainActivity extends AppCompatActivity
             fragment.setArguments(bundle);
             mAuthResult = null;
         } else if (menuItemId == R.id.nav_log) {
-            if (getCurrentFragment() instanceof LogFragment){
+            if (getCurrentFragment() instanceof LogFragment) {
                 return false;
             }
             fragment = new LogFragment();
