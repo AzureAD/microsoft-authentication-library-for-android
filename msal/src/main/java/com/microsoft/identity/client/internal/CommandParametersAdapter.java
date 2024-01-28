@@ -462,8 +462,9 @@ public class CommandParametersAdapter {
     public static SignUpResendCodeCommandParameters createSignUpResendCodeCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
-            @NonNull final String correlationId,
-            @NonNull final String continuationToken) {
+            @NonNull final String continuationToken,
+            @NonNull final String correlationId
+    ) {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
