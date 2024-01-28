@@ -300,7 +300,7 @@ class NativeAuthPublicClientApplication(
                 return@withContext SignInError(
                     errorType = ErrorTypes.INVALID_USERNAME,
                     errorMessage = "Empty or blank username",
-                    correlationId = "UNSET"   //TODO use null correlation id here and in other places in this file instead of UNSET
+                    correlationId = "UNSET"
                 )
             }
 
@@ -512,7 +512,7 @@ class NativeAuthPublicClientApplication(
                 return@withContext SignUpError(
                     errorType = ErrorTypes.INVALID_USERNAME,
                     errorMessage = "Empty or blank username",
-                    correlationId = "UNSET"   //TODO use null correlation id here and in other places in this file instead of UNSET
+                    correlationId = "UNSET"
                 )
             }
 
