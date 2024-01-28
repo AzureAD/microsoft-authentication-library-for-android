@@ -321,7 +321,7 @@ class NativeAuthPublicClientApplication(
                 return@withContext SignInError(
                     errorType = ErrorTypes.INVALID_USERNAME,
                     errorMessage = "Empty or blank username",
-                    correlationId = "UNSET"   //TODO use null correlation id here and in other places in this file instead of UNSET
+                    correlationId = "UNSET"
                 )
             }
 
@@ -366,7 +366,7 @@ class NativeAuthPublicClientApplication(
                             )
                             SignInError(
                                 errorMessage = "unexpected state",
-                                error = "unexpected_state",
+                                error = ErrorTypes.INVALID_STATE,
                                 correlationId = result.correlationId
                             )
                         }
@@ -406,7 +406,7 @@ class NativeAuthPublicClientApplication(
                             )
                             SignInError(
                                 errorMessage = "unexpected state",
-                                error = "unexpected_state",
+                                error = ErrorTypes.INVALID_STATE,
                                 correlationId = result.correlationId
                             )
                         } else {
@@ -445,7 +445,7 @@ class NativeAuthPublicClientApplication(
                             )
                             SignInError(
                                 errorMessage = "unexpected state",
-                                error = "unexpected_state",
+                                error = ErrorTypes.INVALID_STATE,
                                 correlationId = result.correlationId,
                                 errorCodes = result.errorCodes
                             )
@@ -611,7 +611,7 @@ class NativeAuthPublicClientApplication(
                                 "Sign up using password received unexpected result $result")
                             SignUpError(
                                 errorMessage = "Unexpected state",
-                                error = "unexpected_state",
+                                error = ErrorTypes.INVALID_STATE,
                                 correlationId = result.correlationId
                             )
                         } else {
@@ -649,7 +649,7 @@ class NativeAuthPublicClientApplication(
                                 "Sign up received unexpected result $result"
                             )
                             SignUpError(
-                                error = "unexpected_state",
+                                error = ErrorTypes.INVALID_STATE,
                                 errorMessage = "Unexpected state",
                                 correlationId = result.correlationId,
                             )
@@ -695,7 +695,7 @@ class NativeAuthPublicClientApplication(
                     is INativeAuthCommandResult.UnknownError -> {
                         SignUpError(
                             errorMessage = "Unexpected state",
-                            error = "unexpected_state",
+                            error = ErrorTypes.INVALID_STATE,
                             correlationId = result.correlationId
                         )
                     }
@@ -837,7 +837,7 @@ class NativeAuthPublicClientApplication(
                         "Reset password received unexpected result $result",
                     )
                     ResetPasswordError(
-                        error = "unexpected_state",
+                        error = ErrorTypes.INVALID_STATE,
                         errorMessage = "Unexpected state",
                         correlationId = result.correlationId,
                     )
@@ -850,7 +850,7 @@ class NativeAuthPublicClientApplication(
                         "Reset password received unexpected result $result"
                     )
                     ResetPasswordError(
-                        error = "unexpected_state",
+                        error = ErrorTypes.INVALID_STATE,
                         errorMessage = "Unexpected state",
                         correlationId = result.correlationId,
                     )

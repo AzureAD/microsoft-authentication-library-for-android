@@ -534,7 +534,7 @@ class SignInContinuationState(
                 )
                 return@withContext SignInContinuationError(
                     errorMessage = "Sign In is not available through this state, please use the standalone sign in methods (signInWithCode or signInWithPassword).",
-                    error = "invalid_state",
+                    error = ErrorTypes.INVALID_STATE,
                     correlationId = "UNSET",
                 )
             }
