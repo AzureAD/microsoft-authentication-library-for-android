@@ -38,11 +38,6 @@ internal class SignUpErrorTypes {
          */
         const val USER_ALREADY_EXISTS = "user_already_exists"
 
-        /* The INVALID_USERNAME value indicates the username provided by the user is not acceptable to the server.
-         * If this occurs, the flow should be restarted.
-         */
-        const val INVALID_USERNAME = "invalid_username"
-
         /*
          * The INVALID_ATTRIBUTES value indicates one or more attributes that were sent failed input validation.
          * The attributes should be resubmitted.
@@ -80,7 +75,7 @@ open class SignUpError (
 
     fun isUserAlreadyExists(): Boolean = this.errorType == SignUpErrorTypes.USER_ALREADY_EXISTS
 
-    fun isInvalidUsername(): Boolean = this.errorType == SignUpErrorTypes.INVALID_USERNAME
+    fun isInvalidUsername(): Boolean = this.errorType == ErrorTypes.INVALID_USERNAME
 
     fun isInvalidAttributes(): Boolean = this.errorType == SignUpErrorTypes.INVALID_ATTRIBUTES
 

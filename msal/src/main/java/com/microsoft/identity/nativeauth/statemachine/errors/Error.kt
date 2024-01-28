@@ -65,6 +65,12 @@ internal class ErrorTypes () {
          * The password should be re-submitted.
          */
         const val INVALID_PASSWORD = "invalid_password"
+
+        /*
+         * The INVALID_USERNAME value indicates the username provided by the user is not acceptable to the server.
+         * If this occurs, the flow should be restarted.
+         */
+        const val INVALID_USERNAME = "invalid_username"
     }
 }
 
