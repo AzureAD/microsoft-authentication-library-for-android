@@ -275,8 +275,8 @@ class SignUpCodeRequiredState internal constructor(
                 CommandParametersAdapter.createSignUpResendCodeCommandParameters(
                     config,
                     config.oAuth2TokenCache,
-                    correlationId,
-                    continuationToken
+                    continuationToken,
+                    correlationId
                 )
             val command = SignUpResendCodeCommand(
                 commandParameters,
