@@ -255,7 +255,7 @@ class SignInCodeRequiredState internal constructor(
                         error = (result as INativeAuthCommandResult.Error).error,
                         correlationId = (result as INativeAuthCommandResult.Error).correlationId,
                         errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
-                        exception = (result as INativeAuthCommandResult.UnknownError).exception
+                        exception = if (result is INativeAuthCommandResult.UnknownError) result.exception else null
                     )
                 }
             }

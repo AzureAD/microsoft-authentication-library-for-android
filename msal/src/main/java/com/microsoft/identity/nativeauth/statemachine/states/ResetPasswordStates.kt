@@ -243,7 +243,8 @@ class ResetPasswordCodeRequiredState internal constructor(
                         errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
                         error = (result as INativeAuthCommandResult.Error).error,
                         correlationId = (result as INativeAuthCommandResult.Error).correlationId,
-                        exception = (result as INativeAuthCommandResult.UnknownError).exception
+                        errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
+                        exception = if (result is INativeAuthCommandResult.UnknownError) result.exception else null
                     )
                 }
             }
