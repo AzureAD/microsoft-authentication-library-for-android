@@ -22,7 +22,6 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp;
 
-import static com.microsoft.identity.client.ui.automation.rules.LoadLabUserTestRule.TEMP_USER_WAIT_TIME;
 import static org.junit.Assert.fail;
 
 import android.app.Activity;
@@ -127,7 +126,7 @@ public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBa
             try {
                 // temp user takes some time to actually being created even though it may be
                 // returned by the LAB API. Adding a wait here before we proceed with the test.
-                Thread.sleep(TEMP_USER_WAIT_TIME);
+                Thread.sleep(LabClient.TEMP_USER_WAIT_TIME);
             } catch (final InterruptedException e) {
                 throw new AssertionError(e);
             }
