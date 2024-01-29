@@ -60,6 +60,7 @@ import com.microsoft.identity.common.java.util.ResultFuture
 import com.microsoft.identity.internal.testutils.TestUtils
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
+import com.microsoft.identity.nativeauth.utils.mockCorrelationId
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInContinuationError
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
@@ -77,6 +78,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.spy
 import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
@@ -302,11 +304,13 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val codeRequiredResult = application.signIn(username)
         // 1a. Server returns invalid user error
         assertTrue(codeRequiredResult is SignInResult.CodeRequired)
-        val nextState = (codeRequiredResult as SignInResult.CodeRequired).nextState
+        val nextState = spy((codeRequiredResult as SignInResult.CodeRequired).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        nextState.mockCorrelationId(correlationId)
 
         // 2. Submit (invalid) code
         // 2a. Setup server response
-        correlationId = UUID.randomUUID().toString()
         configureMockApi(
             endpointType = MockApiEndpoint.SignInToken,
             correlationId = correlationId,
@@ -412,7 +416,12 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         // 1b. client returns error
         val config = mock<NativeAuthPublicClientApplicationConfiguration>()
-        val continuationTokenState = SignInContinuationState(continuationToken = null, username = username, config = config)
+        val continuationTokenState = SignInContinuationState(
+            continuationToken = null,
+            correlationId = correlationId,
+            username = username,
+            config = config
+        )
         val result = continuationTokenState.signIn(scopes = null)
         assertTrue(result is SignInContinuationError)
     }
@@ -609,8 +618,11 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 1b. Transform /start(success) +/challenge(challenge_type=OOB) to Result(CodeRequired).
         assertTrue(resetPasswordResult is ResetPasswordStartResult.CodeRequired)
         // 1c. Respond to Result(Code Required): shifting from start to ResetPasswordCodeRequired state.
-        nextState =
-            (resetPasswordResult as ResetPasswordStartResult.CodeRequired).nextState
+        nextState = spy((resetPasswordResult as ResetPasswordStartResult.CodeRequired).nextState)
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        nextState.mockCorrelationId(correlationId)
 
         // 2. Submit valid code
         // 2_mock_api. Setup server response - endpoint: resetpassowrd/continue - Server returns Success
@@ -624,7 +636,10 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 2b. Transform /continue(success) to Result(PasswordRequired).
         assertTrue(submitCodeResult is ResetPasswordSubmitCodeResult.PasswordRequired)
         // 2c. Respond to Result(PasswordRequired): shifting from ResetPasswordCodeRequired to ResetPasswordPasswordRequired state.
-        nextState = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState
+        nextState = spy((submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        nextState.mockCorrelationId(correlationId)
 
         // 3. Submit valid password
         // 3_mock_api. Setup server response - endpoint: resetpassword/submit - Server returns Success
@@ -678,7 +693,10 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 1b. Transform /start(success) +/challenge(challenge_type=OOB) to Result(CodeRequired).
         assertTrue(resetPasswordResult is ResetPasswordStartResult.CodeRequired)
         // 1c. Respond to Result(Code Required): shifting from start to ResetPasswordCodeRequired state.
-        nextState = (resetPasswordResult as ResetPasswordStartResult.CodeRequired).nextState
+        nextState = spy((resetPasswordResult as ResetPasswordStartResult.CodeRequired).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        nextState.mockCorrelationId(correlationId)
 
         // 2. Submit valid code
         // 2_mock_api. Setup server response - endpoint: resetpassowrd/continue - Server returns Success
@@ -692,7 +710,10 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 2b. Transform /continue(success) to Result(PasswordRequired).
         assertTrue(submitCodeResult is ResetPasswordSubmitCodeResult.PasswordRequired)
         // 2c. Respond to Result(PasswordRequired): shifting from ResetPasswordCodeRequired to ResetPasswordPasswordRequired state.
-        nextState = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState
+        nextState = spy((submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        nextState.mockCorrelationId(correlationId)
 
         // 3. Submit valid password
         // 3_mock_api. Setup server response - endpoint: resetpassword/submit - Server returns Success
@@ -713,7 +734,10 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
         // 3c. Respond to Result(Complete): shifting from ResetPasswordPasswordRequired to end.
         assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
-        val signInWithContinuationTokenState = (submitPasswordResult as ResetPasswordResult.Complete).nextState
+        val signInWithContinuationTokenState = spy((submitPasswordResult as ResetPasswordResult.Complete).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        signInWithContinuationTokenState.mockCorrelationId(correlationId)
 
         // 4a. Sign in with (valid) continuation token
         configureMockApi(
@@ -759,8 +783,10 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 1b. Transform /start(success) +/challenge(challenge_type=OOB) to Result(CodeRequired).
         assertTrue(resetPasswordResult is ResetPasswordStartResult.CodeRequired)
         // 1c. Respond to Result(Code Required): shifting from start to ResetPasswordCodeRequired state.
-        nextState =
-            (resetPasswordResult as ResetPasswordStartResult.CodeRequired).nextState
+        nextState = spy((resetPasswordResult as ResetPasswordStartResult.CodeRequired).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        nextState.mockCorrelationId(correlationId)
 
         // 2. Submit valid code
         // 2_mock_api. Setup server response - endpoint: resetpassowrd/continue - Server returns Success
@@ -774,7 +800,10 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 2b. Transform /continue(success) to Result(PasswordRequired).
         assertTrue(submitCodeResult is ResetPasswordSubmitCodeResult.PasswordRequired)
         // 2c. Respond to Result(PasswordRequired): shifting from ResetPasswordCodeRequired to ResetPasswordCodeRequired state.
-        nextState = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState
+        nextState = spy((submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        nextState.mockCorrelationId(correlationId)
 
         // 3. Submit invalid password
         // 3_mock_api. Setup server response - endpoint: resetpassword/submit - Server returns Error: password too weak
@@ -841,8 +870,10 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 1b. Transform /start(success) +/challenge(challenge_type=OOB) to Result(CodeRequired).
         assertTrue(resetPasswordResult is ResetPasswordStartResult.CodeRequired)
         // 1c. Respond to Result(Code Required): shifting from start to ResetPasswordCodeRequired state.
-        nextState =
-            (resetPasswordResult as ResetPasswordStartResult.CodeRequired).nextState
+        nextState = spy((resetPasswordResult as ResetPasswordStartResult.CodeRequired).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        nextState.mockCorrelationId(correlationId)
 
         // 2. Click resend code
         // 2_mock_api. Setup server response - endpoint: resetpassword/challenge - Server returns Success: challenge_type = OOB
@@ -868,7 +899,10 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 3b. Transform /continue(success) to Result(PasswordRequired).
         assertTrue(submitCodeResult is ResetPasswordSubmitCodeResult.PasswordRequired)
         // 3c. Respond to Result(PasswordRequired): shifting from ResetPasswordCodeRequired to ResetPasswordCodeRequired state.
-        nextState = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState
+        nextState = spy((submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        nextState.mockCorrelationId(correlationId)
 
         // 4. Submit valid password
         // 4_mock_api. Setup server response - endpoint: resetpassword/submit - Server returns Success
@@ -990,8 +1024,10 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 1b. Transform /start(success) +/challenge(challenge_type=OOB) to Result(CodeRequired).
         assertTrue(resetPasswordResult is ResetPasswordStartResult.CodeRequired)
         // 1c. Respond to Result(Code Required): shifting from start to ResetPasswordCodeRequired state.
-        nextState =
-            (resetPasswordResult as ResetPasswordStartResult.CodeRequired).nextState
+        nextState = spy((resetPasswordResult as ResetPasswordStartResult.CodeRequired).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        nextState.mockCorrelationId(correlationId)
 
         // 2. Submit invalid code
         // 2_mock_api. Setup server response - endpoint: resetpassowrd/continue - Server returns Error: explicit invalid oob value
@@ -1018,7 +1054,10 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 3b. Transform /continue(error) to Result(CodeIncorrect).
         assertTrue(submitCodeResult is ResetPasswordSubmitCodeResult.PasswordRequired)
         // 3c. Respond to Result(PasswordRequired): shifting from ResetPasswordCodeRequired to ResetPasswordCodeRequired state.
-        nextState = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState
+        nextState = spy((submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        nextState.mockCorrelationId(correlationId)
 
         // 4. Submit valid password
         // 4_mock_api. Setup server response - endpoint: resetpassword/submit - Server returns Success
@@ -1277,7 +1316,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
     }
 
     // Helper methods
-    // TODO update this after sign up SDK tests PR
     @Throws(
         ExecutionException::class,
         InterruptedException::class,
@@ -1306,10 +1344,13 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 2a. setup server response
         configureMockApi(
             MockApiEndpoint.SignUpContinue,
-            UUID.randomUUID().toString(),
+            correlationId,
             MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
         )
-        val submitCodeState = (result as SignUpResult.CodeRequired).nextState
+        val submitCodeState = spy((result as SignUpResult.CodeRequired).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        submitCodeState.mockCorrelationId(correlationId)
 
         val submitCodeResult = submitCodeState.submitCode(code)
         assertTrue(submitCodeResult is SignUpResult.Complete)
@@ -1350,11 +1391,15 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 2a. setup server response
         configureMockApi(
             endpointType = MockApiEndpoint.SignUpContinue,
-            correlationId = UUID.randomUUID().toString(),
+            correlationId = correlationId,
             responseType = MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
         )
 
-        val submitCodeState = (result as SignUpResult.CodeRequired).nextState
+        val submitCodeState = spy((result as SignUpResult.CodeRequired).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        submitCodeState.mockCorrelationId(correlationId)
+
         val successResult = submitCodeState.submitCode(code)
 
         // 2b. Server accepts code, returns tokens
@@ -1400,7 +1445,10 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
             responseType = MockApiResponseType.CHALLENGE_TYPE_OOB
         )
 
-        val codeRequiredState = (result as SignUpResult.CodeRequired).nextState
+        val codeRequiredState = spy((result as SignUpResult.CodeRequired).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        codeRequiredState.mockCorrelationId(correlationId)
 
         // 2b. Call resendCode
         val resendCodeResult = codeRequiredState.resendCode()
@@ -1410,11 +1458,15 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 3a. setup server response
         configureMockApi(
             endpointType = MockApiEndpoint.SignUpContinue,
-            correlationId = UUID.randomUUID().toString(),
+            correlationId = correlationId,
             responseType = MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
         )
 
-        val submitCodeState = (resendCodeResult as SignUpResendCodeResult.Success).nextState
+        val submitCodeState = spy((resendCodeResult as SignUpResendCodeResult.Success).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        submitCodeState.mockCorrelationId(correlationId)
+
         val successResult = submitCodeState.submitCode(code)
 
         // 3b. Server accepts code, returns tokens
@@ -1459,7 +1511,11 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
             responseType = MockApiResponseType.EXPIRED_TOKEN
         )
 
-        val nextState = (result as SignUpResult.CodeRequired).nextState
+        val nextState = spy((result as SignUpResult.CodeRequired).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        nextState.mockCorrelationId(correlationId)
+
         val expiredTokenResult = nextState.submitCode(code)
 
         assertTrue(expiredTokenResult is SubmitCodeError)
@@ -1554,7 +1610,10 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
             responseType = MockApiResponseType.ATTRIBUTES_REQUIRED
         )
 
-        val codeRequiredState = (result as SignUpResult.CodeRequired).nextState
+        val codeRequiredState = spy((result as SignUpResult.CodeRequired).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        codeRequiredState.mockCorrelationId(correlationId)
 
         val attributesRequiredResult = codeRequiredState.submitCode(code)
         assertTrue(attributesRequiredResult is SignUpResult.AttributesRequired)
@@ -1563,11 +1622,15 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 4a. setup server response
         configureMockApi(
             endpointType = MockApiEndpoint.SignUpContinue,
-            correlationId = UUID.randomUUID().toString(),
+            correlationId = correlationId,
             responseType = MockApiResponseType.VALIDATION_FAILED
         )
 
-        val attributesRequiredState = (attributesRequiredResult as SignUpResult.AttributesRequired).nextState
+        val attributesRequiredState = spy((attributesRequiredResult as SignUpResult.AttributesRequired).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        attributesRequiredState.mockCorrelationId(correlationId)
+
         val invalidAttributes = UserAttributes.Builder.customAttribute("attribute", "invalid_attribute").build()
         val attributesFailedResult = attributesRequiredState.submitAttributes(invalidAttributes)
 
@@ -1578,7 +1641,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 4a. setup server response
         configureMockApi(
             endpointType = MockApiEndpoint.SignUpContinue,
-            correlationId = UUID.randomUUID().toString(),
+            correlationId = correlationId,
             responseType = MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
         )
 
@@ -1664,11 +1727,15 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 2a. setup server response
         configureMockApi(
             endpointType = MockApiEndpoint.SignUpContinue,
-            correlationId = UUID.randomUUID().toString(),
+            correlationId = correlationId,
             responseType = MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
         )
 
-        val submitCodeState = (result as SignUpResult.CodeRequired).nextState
+        val submitCodeState = spy((result as SignUpResult.CodeRequired).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        submitCodeState.mockCorrelationId(correlationId)
+
         val successResult = submitCodeState.submitCode(code)
 
         // 2b. Server accepts code, returns tokens
@@ -1709,11 +1776,14 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 2a. Setup resend code challenge
         configureMockApi(
             endpointType = MockApiEndpoint.SignUpChallenge,
-            correlationId = UUID.randomUUID().toString(),
+            correlationId = correlationId,
             responseType = MockApiResponseType.CHALLENGE_TYPE_OOB
         )
 
-        val codeRequiredState = (result as SignUpResult.CodeRequired).nextState
+        val codeRequiredState = spy((result as SignUpResult.CodeRequired).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        codeRequiredState.mockCorrelationId(correlationId)
 
         // 2b. Call resendCode
         val resendCodeResult = codeRequiredState.resendCode()
@@ -1723,11 +1793,15 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 3a. setup server response
         configureMockApi(
             endpointType = MockApiEndpoint.SignUpContinue,
-            correlationId = UUID.randomUUID().toString(),
+            correlationId = correlationId,
             responseType = MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
         )
 
-        val submitCodeState = (resendCodeResult as SignUpResendCodeResult.Success).nextState
+        val submitCodeState = spy((resendCodeResult as SignUpResendCodeResult.Success).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        submitCodeState.mockCorrelationId(correlationId)
+
         val successResult = submitCodeState.submitCode(code)
 
         // 3b. Server accepts code, returns tokens
@@ -1779,7 +1853,11 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
             responseType = MockApiResponseType.CHALLENGE_TYPE_PASSWORD
         )
 
-        val nextState = (result as SignUpResult.CodeRequired).nextState
+        val nextState = spy((result as SignUpResult.CodeRequired).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        nextState.mockCorrelationId(correlationId)
+
         val passwordRequiredResult = nextState.submitCode(code)
 
         assertTrue(passwordRequiredResult is SignUpResult.PasswordRequired)
@@ -1788,11 +1866,15 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 3a. setup server response
         configureMockApi(
             endpointType = MockApiEndpoint.SignUpContinue,
-            correlationId = UUID.randomUUID().toString(),
+            correlationId = correlationId,
             responseType = MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
         )
 
-        val passwordRequiredState = (passwordRequiredResult as SignUpResult.PasswordRequired).nextState
+        val passwordRequiredState = spy((passwordRequiredResult as SignUpResult.PasswordRequired).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        passwordRequiredState.mockCorrelationId(correlationId)
+
         val successResult = passwordRequiredState.submitPassword(password)
 
         // 3b. Server accepts password, returns tokens
@@ -1835,11 +1917,14 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 2a. Setup resend code challenge
         configureMockApi(
             endpointType = MockApiEndpoint.SignUpChallenge,
-            correlationId = UUID.randomUUID().toString(),
+            correlationId = correlationId,
             responseType = MockApiResponseType.CHALLENGE_TYPE_OOB
         )
 
-        val codeRequiredState = (result as SignUpResult.CodeRequired).nextState
+        val codeRequiredState = spy((result as SignUpResult.CodeRequired).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        codeRequiredState.mockCorrelationId(correlationId)
 
         // 2b. Call resendCode
         val resendCodeResult = codeRequiredState.resendCode()
@@ -1859,7 +1944,11 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
             responseType = MockApiResponseType.CHALLENGE_TYPE_PASSWORD
         )
 
-        val submitCodeState = (resendCodeResult as SignUpResendCodeResult.Success).nextState
+        val submitCodeState = spy((resendCodeResult as SignUpResendCodeResult.Success).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        submitCodeState.mockCorrelationId(correlationId)
+
         val passwordRequiredResult = submitCodeState.submitCode(code)
 
         assertTrue(passwordRequiredResult is SignUpResult.PasswordRequired)
@@ -1868,11 +1957,15 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 4a. setup server response
         configureMockApi(
             endpointType = MockApiEndpoint.SignUpContinue,
-            correlationId = UUID.randomUUID().toString(),
+            correlationId = correlationId,
             responseType = MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
         )
 
-        val passwordRequiredState = (passwordRequiredResult as SignUpResult.PasswordRequired).nextState
+        val passwordRequiredState = spy((passwordRequiredResult as SignUpResult.PasswordRequired).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        passwordRequiredState.mockCorrelationId(correlationId)
+
         val successResult = passwordRequiredState.submitPassword(password)
 
         // 4b. Server accepts password, returns tokens
@@ -1926,7 +2019,11 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
             responseType = MockApiResponseType.CHALLENGE_TYPE_PASSWORD
         )
 
-        val nextState = (result as SignUpResult.CodeRequired).nextState
+        val nextState = spy((result as SignUpResult.CodeRequired).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        nextState.mockCorrelationId(correlationId)
+
         val passwordRequiredResult = nextState.submitCode(code)
 
         assertTrue(passwordRequiredResult is SignUpResult.PasswordRequired)
@@ -1935,11 +2032,15 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 3a. setup server response
         configureMockApi(
             endpointType = MockApiEndpoint.SignUpContinue,
-            correlationId = UUID.randomUUID().toString(),
+            correlationId = correlationId,
             responseType = MockApiResponseType.ATTRIBUTES_REQUIRED
         )
 
-        val passwordRequiredState = (passwordRequiredResult as SignUpResult.PasswordRequired).nextState
+        val passwordRequiredState = spy((passwordRequiredResult as SignUpResult.PasswordRequired).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        passwordRequiredState.mockCorrelationId(correlationId)
+
         val attributesRequiredResult = passwordRequiredState.submitPassword(password)
 
         assertTrue(attributesRequiredResult is SignUpResult.AttributesRequired)
@@ -1948,11 +2049,14 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 4a. setup server response
         configureMockApi(
             endpointType = MockApiEndpoint.SignUpContinue,
-            correlationId = UUID.randomUUID().toString(),
+            correlationId = correlationId,
             responseType = MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
         )
 
-        val attributesRequiredState = (attributesRequiredResult as SignUpResult.AttributesRequired).nextState
+        val attributesRequiredState = spy((attributesRequiredResult as SignUpResult.AttributesRequired).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        attributesRequiredState.mockCorrelationId(correlationId)
 
         val attributes = UserAttributes.Builder.customAttribute("attribute", "attribute").build()
         val successResult = attributesRequiredState.submitAttributes(attributes)
@@ -2002,7 +2106,11 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
             responseType = MockApiResponseType.ATTRIBUTES_REQUIRED
         )
 
-        val submitCodeState = (result as SignUpResult.CodeRequired).nextState
+        val submitCodeState = spy((result as SignUpResult.CodeRequired).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        submitCodeState.mockCorrelationId(correlationId)
+
         val attributesRequiredResult = submitCodeState.submitCode(code)
 
         assertTrue(attributesRequiredResult is SignUpResult.AttributesRequired)
@@ -2013,11 +2121,15 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 3a. setup server response
         configureMockApi(
             endpointType = MockApiEndpoint.SignUpContinue,
-            correlationId = UUID.randomUUID().toString(),
+            correlationId = correlationId,
             responseType = MockApiResponseType.ATTRIBUTES_REQUIRED
         )
 
-        val attributesRequiredState = (attributesRequiredResult).nextState
+        val attributesRequiredState = spy((attributesRequiredResult).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        attributesRequiredState.mockCorrelationId(correlationId)
+
         val incompleteAttributes = UserAttributes.Builder.customAttribute("attribute", "incomplete_attribute").build()
         val additionalAttributesRequiredResult = attributesRequiredState.submitAttributes(incompleteAttributes)
 
@@ -2027,11 +2139,14 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 4a. setup server response
         configureMockApi(
             endpointType = MockApiEndpoint.SignUpContinue,
-            correlationId = UUID.randomUUID().toString(),
+            correlationId = correlationId,
             responseType = MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
         )
 
-        val additionalAttributesRequiredState = (additionalAttributesRequiredResult as SignUpResult.AttributesRequired).nextState
+        val additionalAttributesRequiredState = spy((additionalAttributesRequiredResult as SignUpResult.AttributesRequired).nextState)
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        additionalAttributesRequiredState.mockCorrelationId(correlationId)
 
         val attributes = UserAttributes.Builder.customAttribute("attribute", "attribute").build()
         val successResult = additionalAttributesRequiredState.submitAttributes(attributes)
