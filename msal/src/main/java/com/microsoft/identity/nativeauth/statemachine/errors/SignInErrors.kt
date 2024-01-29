@@ -32,7 +32,7 @@ open class SignInError(
     override val errorType: String? = null,
     override val error: String? = null,
     override val errorMessage: String?,
-    override val correlationId: String?,
+    override val correlationId: String,
     override val errorCodes: List<Int>? = null,
     override var exception: Exception? = null
 ): SignInResult, BrowserRequiredError, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
@@ -58,7 +58,7 @@ class SignInSubmitPasswordError(
     override val errorType: String? = null,
     override val error: String? = null,
     override val errorMessage: String?,
-    override val correlationId: String?,
+    override val correlationId: String,
     override  val errorCodes: List<Int>? = null,
     override var exception: Exception? = null
 ): SignInSubmitPasswordResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {

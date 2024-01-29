@@ -93,7 +93,7 @@ open class Error(
     internal open val errorType: String? = null,
     open val error: String? = null,
     open val errorMessage: String?,
-    open val correlationId: String?,
+    open val correlationId: String,
     open var exception: Exception? = null,
     open val errorCodes: List<Int>? = null
 ) {
@@ -126,7 +126,7 @@ class SubmitCodeError(
     override val errorType: String? = null,
     override val error: String? = null,
     override val errorMessage: String?,
-    override val correlationId: String?,
+    override val correlationId: String,
     override val errorCodes: List<Int>? = null,
     val subError: String? = null,
     override var exception: Exception? = null
@@ -153,7 +153,7 @@ class ResendCodeError(
     override val errorType: String? = null,
     override val error: String? = null,
     override val errorMessage: String?,
-    override val correlationId: String?,
+    override val correlationId: String,
     override val errorCodes: List<Int>? = null,
     override var exception: Exception? = null
 ): SignInResendCodeResult, SignUpResendCodeResult, ResetPasswordResendCodeResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception)
