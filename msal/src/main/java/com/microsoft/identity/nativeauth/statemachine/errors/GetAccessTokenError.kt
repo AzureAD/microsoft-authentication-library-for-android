@@ -35,7 +35,7 @@ class GetAccessTokenError(
     override val errorType: String? = null,
     override val error: String? = null,
     override val errorMessage: String? = null,
-    override val correlationId: String? = null,
+    override val correlationId: String,
     override val errorCodes: List<Int>? = null,
     override var exception: Exception? = null
 ): GetAccessTokenResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
