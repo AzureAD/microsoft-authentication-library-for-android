@@ -1117,10 +1117,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     /**
      * Check that we don't get a type casting exception thrown when we get it,
      * should get error result instead.
-     *
-     * @throws ExecutionException
-     * @throws InterruptedException
-     * @throws TimeoutException
      */
     @Test
     public void testSignInEmptyUsernameNoException() throws ExecutionException, InterruptedException, TimeoutException {
@@ -1159,6 +1155,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         SignInError error = (SignInError)result;
 
+        assertTrue(error.isInvalidUsername());
         assertFalse(error.isBrowserRequired());
         assertFalse(error.isUserNotFound());
         assertFalse(error.isInvalidCredentials());
@@ -1710,8 +1707,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         ResetPasswordStartResult resetPasswordResult = resetPasswordStartTestCallback.get();
 
         assertTrue(resetPasswordResult instanceof ResetPasswordError);
-        assertFalse(((ResetPasswordError) resetPasswordResult).isBrowserRequired());
-        assertFalse(((ResetPasswordError) resetPasswordResult).isUserNotFound());
+        assertTrue(((ResetPasswordError) resetPasswordResult).isInvalidUsername());
     }
 
     // Helper methods
@@ -2650,9 +2646,9 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         SignUpResult signUpResult = signUpTestCallback.get();
 
         assertTrue(signUpResult instanceof SignUpError);
+        assertTrue(((SignUpError) signUpResult).isInvalidUsername());
         assertFalse(((SignUpError) signUpResult).isBrowserRequired());
         assertFalse(((SignUpError) signUpResult).isInvalidPassword());
-        assertFalse(((SignUpError) signUpResult).isInvalidUsername());
         assertFalse(((SignUpError) signUpResult).isInvalidAttributes());
         assertFalse(((SignUpError) signUpResult).isUserAlreadyExists());
     }

@@ -39,6 +39,8 @@ open class SignInError(
     fun isUserNotFound(): Boolean = this.errorType == ErrorTypes.USER_NOT_FOUND
 
     fun isInvalidCredentials(): Boolean = this.errorType == SignInErrorTypes.INVALID_CREDENTIALS
+
+    fun isInvalidUsername(): Boolean = this.errorType == ErrorTypes.INVALID_USERNAME
 }
 
 /**

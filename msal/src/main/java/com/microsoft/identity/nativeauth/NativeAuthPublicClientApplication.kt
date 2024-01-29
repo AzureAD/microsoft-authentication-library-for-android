@@ -296,6 +296,14 @@ class NativeAuthPublicClientApplication(
 
             verifyNoUserIsSignedIn()
 
+            if (username.isBlank()) {
+                return@withContext SignInError(
+                    errorType = ErrorTypes.INVALID_USERNAME,
+                    errorMessage = "Empty or blank username",
+                    correlationId = "UNSET"
+                )
+            }
+
             val hasPassword = password?.isNotEmpty() == true
 
             val params =
@@ -355,6 +363,15 @@ class NativeAuthPublicClientApplication(
                             codeLength = result.codeLength,
                             sentTo = result.challengeTargetLabel,
                             channel = result.challengeChannel
+                        )
+                    }
+                    is INativeAuthCommandResult.InvalidUsername -> {
+                        SignInError(
+                            errorType = ErrorTypes.INVALID_USERNAME,
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes
                         )
                     }
                     is SignInCommandResult.PasswordRequired -> {
@@ -491,6 +508,14 @@ class NativeAuthPublicClientApplication(
                 )
             }
 
+            if (username.isBlank()) {
+                return@withContext SignUpError(
+                    errorType = ErrorTypes.INVALID_USERNAME,
+                    errorMessage = "Empty or blank username",
+                    correlationId = "UNSET"
+                )
+            }
+
             val parameters =
                 CommandParametersAdapter.createSignUpStartCommandParameters(
                     nativeAuthConfig,
@@ -604,9 +629,9 @@ class NativeAuthPublicClientApplication(
                         )
                     }
 
-                    is SignUpCommandResult.InvalidEmail -> {
+                    is INativeAuthCommandResult.InvalidUsername -> {
                         SignUpError(
-                            errorType = SignUpErrorTypes.INVALID_USERNAME,
+                            errorType = ErrorTypes.INVALID_USERNAME,
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId
@@ -687,6 +712,14 @@ class NativeAuthPublicClientApplication(
                 )
             }
 
+            if (username.isBlank()) {
+                return@withContext ResetPasswordError(
+                    errorType = ErrorTypes.INVALID_USERNAME,
+                    errorMessage = "Empty or blank username",
+                    correlationId = "UNSET"
+                )
+            }
+
             val parameters = CommandParametersAdapter.createResetPasswordStartCommandParameters(
                 nativeAuthConfig,
                 nativeAuthConfig.oAuth2TokenCache,
@@ -721,6 +754,16 @@ class NativeAuthPublicClientApplication(
                         error = result.error,
                         errorMessage = result.errorDescription,
                         correlationId = result.correlationId
+                    )
+                }
+
+                is INativeAuthCommandResult.InvalidUsername -> {
+                    ResetPasswordError(
+                        errorType = ErrorTypes.INVALID_USERNAME,
+                        errorMessage = result.errorDescription,
+                        error = result.error,
+                        correlationId = result.correlationId,
+                        errorCodes = result.errorCodes
                     )
                 }
 

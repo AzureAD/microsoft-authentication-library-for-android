@@ -58,6 +58,7 @@ import com.microsoft.identity.common.java.interfaces.IPlatformComponents
 import com.microsoft.identity.common.java.nativeauth.BuildValues
 import com.microsoft.identity.common.java.util.ResultFuture
 import com.microsoft.identity.internal.testutils.TestUtils
+import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInContinuationError
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -1261,10 +1262,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
     /**
      * Check that we don't get a type casting exception thrown when we get it,
      * should get error result instead.
-     *
-     * @throws ExecutionException
-     * @throws InterruptedException
-     * @throws TimeoutException
      */
     @Test
     fun testSignInEmptyUsernameNoException() = runTest {
@@ -1276,7 +1273,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         val result = application.signIn(emptyString, password)
         assertTrue(result is SignInError)
-        assertTrue((result as SignInError).errorType == null)
+        assertTrue((result as SignInError).errorType == ErrorTypes.INVALID_USERNAME)
     }
 
     // Helper methods
@@ -2067,10 +2064,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
     /**
      * Check that we don't get a type casting exception thrown when we get it,
      * should get error result instead.
-     *
-     * @throws ExecutionException
-     * @throws InterruptedException
-     * @throws TimeoutException
      */
     @Test
     fun testSignUpNullUsernameNoException() = runTest {
@@ -2082,10 +2075,30 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
             responseType = MockApiResponseType.CHALLENGE_TYPE_REDIRECT
         )
 
-        // 1b. Call SDK interface
+        //Call SDK interface
         val result = application.signUp(emptyString)
         assertTrue(result is SignUpError)
-        assertTrue((result as SignUpError).errorType == null)
+        assertTrue((result as SignUpError).errorType == ErrorTypes.INVALID_USERNAME)
+    }
+
+    /**
+     * Check that we don't get a type casting exception thrown when we get it,
+     * should get error result instead.
+     */
+    @Test
+    fun testResetPasswordNullUsernameNoException() = runTest {
+        val correlationId = UUID.randomUUID().toString()
+
+        configureMockApi(
+            endpointType = MockApiEndpoint.SSPRStart,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.CHALLENGE_TYPE_REDIRECT
+        )
+
+        // 1b. Call SDK interface
+        val result = application.resetPassword(emptyString)
+        assertTrue(result is ResetPasswordError)
+        assertTrue((result as ResetPasswordError).errorType == ErrorTypes.INVALID_USERNAME)
     }
 
     @Test
