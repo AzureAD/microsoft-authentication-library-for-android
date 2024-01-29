@@ -128,12 +128,5 @@ dependencies {
     compileOnly "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
     annotationProcessor "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
 
-    if (findProject(":otelexporter") != null) {
-        localImplementation(project(':otelexporter'))
-    } else {
-        localImplementation "com.microsoft.identity.client:opentelemetry.exporter:1.+"
-    }
-
-    distImplementation "com.microsoft.identity.client:opentelemetry.exporter:1.+"
     implementation("io.opentelemetry:opentelemetry-sdk:1.18.0")
 }
