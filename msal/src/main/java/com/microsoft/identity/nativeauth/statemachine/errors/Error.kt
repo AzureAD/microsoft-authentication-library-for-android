@@ -40,7 +40,7 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignUpSubmitPasswo
  * ErrorTypes class holds the possible error type values that are shared between the errors
  * returned from each flow.
  */
-internal class ErrorTypes () {
+internal class ErrorTypes {
     companion object {
         /*
          * The BROWSER_REQUIRED value indicates that the server requires more/different authentication mechanisms than the client is configured to provide.
@@ -65,6 +65,18 @@ internal class ErrorTypes () {
          * The password should be re-submitted.
          */
         const val INVALID_PASSWORD = "invalid_password"
+
+        /*
+         * The INVALID_USERNAME value indicates the username provided by the user is not acceptable to the server.
+         * If this occurs, the flow should be restarted.
+         */
+        const val INVALID_USERNAME = "invalid_username"
+
+        /*
+         * The INVALID_STATE value indicates a misconfigured or expired state, or an internal error
+         * in state transitions. If this occurs, the flow should be restarted.
+         */
+        const val INVALID_STATE = "invalid_state"
     }
 }
 
@@ -81,7 +93,7 @@ open class Error(
     internal open val errorType: String? = null,
     open val error: String? = null,
     open val errorMessage: String?,
-    open val correlationId: String?,
+    open val correlationId: String,
     open var exception: Exception? = null,
     open val errorCodes: List<Int>? = null
 ) {
