@@ -40,7 +40,7 @@ import com.microsoft.identity.client.testapp.nativeauth.PasswordResetFragment
  */
 class NativeAuthFragment : Fragment() {
     companion object {
-        private val TAG = MainActivity::class.java.simpleName
+        private val TAG = NativeAuthFragment::class.java.simpleName
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
