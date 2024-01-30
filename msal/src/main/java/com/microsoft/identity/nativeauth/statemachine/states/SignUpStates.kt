@@ -59,6 +59,7 @@ import com.microsoft.identity.nativeauth.statemachine.errors.SignUpErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpSubmitAttributesError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpSubmitPasswordError
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
+import com.microsoft.identity.nativeauth.utils.serializable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -68,22 +69,24 @@ import kotlinx.coroutines.withContext
  * SignUpCodeRequiredState class represents a state where the user has to provide a code to progress
  * in the signup flow.
  * @property continuationToken: Continuation token to be passed in the next request
+ * @property correlationId: Correlation ID taken from the previous API response and passed to the next request
  * @property username: Email address of the user
  * @property config Configuration used by Native Auth
  */
 class SignUpCodeRequiredState internal constructor(
     override val continuationToken: String,
+    override val correlationId: String,
     private val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(continuationToken), State, Parcelable {
+) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
     private val TAG: String = SignUpCodeRequiredState::class.java.simpleName
 
     constructor(parcel: Parcel) : this(
-        parcel.readString()  ?: "",
-        parcel.readString() ?: "",
-        parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
-    ) {
-    }
+        continuationToken = parcel.readString() ?: "",
+        correlationId = parcel.readString() ?: "UNSET",
+        username = parcel.readString() ?: "",
+        config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
+    )
 
     interface SubmitCodeCallback : Callback<SignUpSubmitCodeResult>
 
@@ -95,7 +98,12 @@ class SignUpCodeRequiredState internal constructor(
      * @return The results of the submit code action.
      */
     fun submitCode(code: String, callback: SubmitCodeCallback) {
-        LogSession.logMethodCall(TAG, "${TAG}.submitCode")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitCode"
+        )
+
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = submitCode(code)
@@ -116,14 +124,19 @@ class SignUpCodeRequiredState internal constructor(
     suspend fun submitCode(
         code: String,
     ): SignUpSubmitCodeResult {
-        LogSession.logMethodCall(TAG, "${TAG}.submitCode(code: String)")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitCode(code: String)"
+        )
         return withContext(Dispatchers.IO) {
             val commandParameters =
                 CommandParametersAdapter.createSignUpSubmitCodeCommandParameters(
                     config,
                     config.oAuth2TokenCache,
                     code,
-                    continuationToken
+                    continuationToken,
+                    correlationId
                 )
 
             val command = SignUpSubmitCodeCommand(
@@ -138,6 +151,7 @@ class SignUpCodeRequiredState internal constructor(
                     SignUpResult.PasswordRequired(
                         nextState = SignUpPasswordRequiredState(
                             continuationToken = result.continuationToken,
+                            correlationId = result.correlationId,
                             username = username,
                             config = config
                         )
@@ -148,6 +162,7 @@ class SignUpCodeRequiredState internal constructor(
                     SignUpResult.AttributesRequired(
                         nextState = SignUpAttributesRequiredState(
                             continuationToken = result.continuationToken,
+                            correlationId = result.correlationId,
                             username = username,
                             config = config
                         ),
@@ -159,6 +174,7 @@ class SignUpCodeRequiredState internal constructor(
                     SignUpResult.Complete(
                         nextState = SignInContinuationState(
                             continuationToken = result.continuationToken,
+                            correlationId = result.correlationId,
                             username = username,
                             config = config
                         )
@@ -189,6 +205,7 @@ class SignUpCodeRequiredState internal constructor(
                 is SignUpCommandResult.UsernameAlreadyExists -> {
                     Logger.warn(
                         TAG,
+                        result.correlationId,
                         "Submit code received unexpected result: $result"
                     )
                     SubmitCodeError(
@@ -201,6 +218,7 @@ class SignUpCodeRequiredState internal constructor(
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
+                        result.correlationId,
                         "Submit code received unexpected result: $result"
                     )
                     SubmitCodeError(
@@ -225,7 +243,11 @@ class SignUpCodeRequiredState internal constructor(
     fun resendCode(
         callback: SignUpWithResendCodeCallback
     ) {
-        LogSession.logMethodCall(TAG, "${TAG}.resendCode")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.resendCode"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = resendCode()
@@ -243,13 +265,18 @@ class SignUpCodeRequiredState internal constructor(
      * @return The results of the resend code action.
      */
     suspend fun resendCode(): SignUpResendCodeResult {
-        LogSession.logMethodCall(TAG, "${TAG}.resendCode()")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.resendCode()"
+        )
         return withContext(Dispatchers.IO) {
             val commandParameters =
                 CommandParametersAdapter.createSignUpResendCodeCommandParameters(
                     config,
                     config.oAuth2TokenCache,
-                    continuationToken
+                    continuationToken,
+                    correlationId
                 )
             val command = SignUpResendCodeCommand(
                 commandParameters,
@@ -263,6 +290,7 @@ class SignUpCodeRequiredState internal constructor(
                     SignUpResendCodeResult.Success(
                         nextState = SignUpCodeRequiredState(
                             continuationToken = result.continuationToken,
+                            correlationId = result.correlationId,
                             username = username,
                             config = config
                         ),
@@ -275,13 +303,15 @@ class SignUpCodeRequiredState internal constructor(
                 is INativeAuthCommandResult.Redirect, is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
+                        result.correlationId,
                         "Resend code received unexpected result: $result"
                     )
                     ResendCodeError(
                         errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
                         error = (result as INativeAuthCommandResult.Error).error,
                         correlationId = (result as INativeAuthCommandResult.Error).correlationId,
-                        exception = (result as INativeAuthCommandResult.UnknownError).exception
+                        errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
+                        exception = if (result is INativeAuthCommandResult.UnknownError) result.exception else null
                     )
                 }
             }
@@ -290,6 +320,7 @@ class SignUpCodeRequiredState internal constructor(
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(continuationToken)
+        parcel.writeString(correlationId)
         parcel.writeString(username)
         parcel.writeSerializable(config)
     }
@@ -314,22 +345,24 @@ class SignUpCodeRequiredState internal constructor(
  * SignUpPasswordRequiredState class represents a state where the user has to provide a password
  * to progress in the signup flow.
  * @property continuationToken: Continuation token to be passed in the next request
+ * @property correlationId: Correlation ID taken from the previous API response and passed to the next request
  * @property username: Email address of the user
  * @property config Configuration used by Native Auth
  */
 class SignUpPasswordRequiredState internal constructor(
     override val continuationToken: String,
+    override val correlationId: String,
     private val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(continuationToken), State, Parcelable {
+) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
     private val TAG: String = SignUpPasswordRequiredState::class.java.simpleName
 
     constructor(parcel: Parcel) : this(
-        parcel.readString()  ?: "",
-        parcel.readString()  ?: "",
-        parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
-    ) {
-    }
+        continuationToken = parcel.readString() ?: "",
+        correlationId = parcel.readString() ?: "UNSET",
+        username = parcel.readString() ?: "",
+        config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
+    )
 
     interface SignUpSubmitPasswordCallback : Callback<SignUpSubmitPasswordResult>
 
@@ -344,7 +377,11 @@ class SignUpPasswordRequiredState internal constructor(
         password: CharArray,
         callback: SignUpSubmitPasswordCallback
     ) {
-        LogSession.logMethodCall(TAG, "${TAG}.submitPassword")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitPassword"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = submitPassword(password)
@@ -363,13 +400,18 @@ class SignUpPasswordRequiredState internal constructor(
      * @return The results of the submit password action.
      */
     suspend fun submitPassword(password: CharArray): SignUpSubmitPasswordResult {
-        LogSession.logMethodCall(TAG, "${TAG}.submitPassword(password: String)")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitPassword(password: CharArray)"
+        )
         return withContext(Dispatchers.IO) {
             val commandParameters =
                 CommandParametersAdapter.createSignUpSubmitPasswordCommandParameters(
                     config,
                     config.oAuth2TokenCache,
                     continuationToken,
+                    correlationId,
                     password
                 )
             val command = SignUpSubmitPasswordCommand(
@@ -387,6 +429,7 @@ class SignUpPasswordRequiredState internal constructor(
                         SignUpResult.Complete(
                             nextState = SignInContinuationState(
                                 continuationToken = result.continuationToken,
+                                correlationId = result.correlationId,
                                 username = username,
                                 config = config
                             )
@@ -397,6 +440,7 @@ class SignUpPasswordRequiredState internal constructor(
                         SignUpResult.AttributesRequired(
                             nextState = SignUpAttributesRequiredState(
                                 continuationToken = result.continuationToken,
+                                correlationId = result.correlationId,
                                 username = username,
                                 config = config
                             ),
@@ -427,6 +471,7 @@ class SignUpPasswordRequiredState internal constructor(
                     is SignUpCommandResult.UsernameAlreadyExists -> {
                         Logger.warn(
                             TAG,
+                            result.correlationId,
                             "Submit password received unexpected result: $result"
                         )
                         SignUpSubmitPasswordError(
@@ -440,6 +485,7 @@ class SignUpPasswordRequiredState internal constructor(
                     is INativeAuthCommandResult.InvalidUsername -> {
                         Logger.warn(
                             TAG,
+                            result.correlationId,
                             "Submit password received unexpected result: $result"
                         )
                         SignUpSubmitPasswordError(
@@ -452,6 +498,7 @@ class SignUpPasswordRequiredState internal constructor(
                     is INativeAuthCommandResult.UnknownError -> {
                         Logger.warn(
                             TAG,
+                            result.correlationId,
                             "Submit password received unexpected result: $result"
                         )
                         SignUpSubmitPasswordError(
@@ -470,6 +517,7 @@ class SignUpPasswordRequiredState internal constructor(
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(continuationToken)
+        parcel.writeString(correlationId)
         parcel.writeString(username)
         parcel.writeSerializable(config)
     }
@@ -494,22 +542,24 @@ class SignUpPasswordRequiredState internal constructor(
  * SignUpAttributesRequiredState class represents a state where the user has to provide signup
  * attributes to progress in the signup flow.
  * @property continuationToken: Continuation token to be passed in the next request
+ * @property correlationId: Correlation ID taken from the previous API response and passed to the next request
  * @property username: Email address of the user
  * @property config Configuration used by Native Auth
  */
 class SignUpAttributesRequiredState internal constructor(
     override val continuationToken: String,
+    override val correlationId: String,
     private val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(continuationToken), State, Parcelable {
+) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
     private val TAG: String = SignUpAttributesRequiredState::class.java.simpleName
 
     constructor(parcel: Parcel) : this(
-        parcel.readString()  ?: "",
-        parcel.readString()  ?: "",
-        parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
-    ) {
-    }
+        continuationToken = parcel.readString() ?: "",
+        correlationId = parcel.readString() ?: "UNSET",
+        username = parcel.readString() ?: "",
+        config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
+    )
 
     interface SignUpSubmitUserAttributesCallback : Callback<SignUpSubmitAttributesResult>
 
@@ -524,7 +574,11 @@ class SignUpAttributesRequiredState internal constructor(
         attributes: UserAttributes,
         callback: SignUpSubmitUserAttributesCallback
     ) {
-        LogSession.logMethodCall(TAG, "${TAG}.submitAttributes")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitAttributes"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = submitAttributes(attributes)
@@ -543,13 +597,18 @@ class SignUpAttributesRequiredState internal constructor(
      * @return The results of the submit user attributes action.
      */
     suspend fun submitAttributes(attributes: UserAttributes): SignUpSubmitAttributesResult {
-        LogSession.logMethodCall(TAG, "${TAG}.submitAttributes(attributes: UserAttributes)")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitAttributes(attributes: UserAttributes)"
+        )
         return withContext(Dispatchers.IO) {
             val commandParameters =
                 CommandParametersAdapter.createSignUpStarSubmitUserAttributesCommandParameters(
                     config,
                     config.oAuth2TokenCache,
                     continuationToken,
+                    correlationId,
                     attributes.toMap()
                 )
 
@@ -566,6 +625,7 @@ class SignUpAttributesRequiredState internal constructor(
                     SignUpResult.AttributesRequired(
                         nextState = SignUpAttributesRequiredState(
                             continuationToken = result.continuationToken,
+                            correlationId = result.correlationId,
                             username = username,
                             config = config
                         ),
@@ -576,6 +636,7 @@ class SignUpAttributesRequiredState internal constructor(
                     SignUpResult.Complete(
                         nextState = SignInContinuationState(
                             continuationToken = result.continuationToken,
+                            correlationId = result.correlationId,
                             username = username,
                             config = config
                         )
@@ -601,6 +662,7 @@ class SignUpAttributesRequiredState internal constructor(
                 is SignUpCommandResult.UsernameAlreadyExists -> {
                     Logger.warn(
                         TAG,
+                        result.correlationId,
                         "Submit attributes received unexpected result: $result"
                     )
                     SignUpSubmitAttributesError(
@@ -612,6 +674,7 @@ class SignUpAttributesRequiredState internal constructor(
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
+                        result.correlationId,
                         "Submit attributes received unexpected result: $result"
                     )
                     SignUpSubmitAttributesError(
@@ -627,6 +690,7 @@ class SignUpAttributesRequiredState internal constructor(
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(continuationToken)
+        parcel.writeString(correlationId)
         parcel.writeString(username)
         parcel.writeSerializable(config)
     }

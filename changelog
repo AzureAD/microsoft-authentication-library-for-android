@@ -6,6 +6,11 @@ vNext
 - [MINOR] Add isQRPinAvailable API to MSAL IPublicClientApplication (#1931)
 - [MINOR] Add PreferredAuthMethod to interactive token flow (#1964)
 
+Version 5.0.1
+----------
+- [PATCH] Update robolectricVersion 4.11.1 (#2015)
+- [PATCH] Update common @17.0.1
+
 Version 5.0.0
 ----------
 - [MINOR] Update common @17.0.0
