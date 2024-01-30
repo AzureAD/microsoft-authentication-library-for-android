@@ -58,8 +58,10 @@ class ResetPasswordError(
     override val correlationId: String,
     override val errorCodes: List<Int>? = null,
     override var exception: Exception? = null
-): ResetPasswordResult, ResetPasswordStartResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
+): ResetPasswordResult, ResetPasswordStartResult, BrowserRequiredError, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
     fun isUserNotFound() : Boolean = this.errorType == ErrorTypes.USER_NOT_FOUND
+
+    fun isInvalidUsername(): Boolean = this.errorType == ErrorTypes.INVALID_USERNAME
 }
 
 /**
@@ -87,4 +89,6 @@ class ResetPasswordSubmitPasswordError(
     fun isInvalidPassword() : Boolean = this.errorType == ErrorTypes.INVALID_PASSWORD
 
     fun isPasswordResetFailed() : Boolean = this.errorType == ResetPasswordErrorTypes.PASSWORD_RESET_FAILED
+
+    fun isInvalidUsername() : Boolean = this.errorType == ErrorTypes.INVALID_USERNAME
 }

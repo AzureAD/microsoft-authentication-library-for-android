@@ -23,51 +23,63 @@
 
 package com.microsoft.identity.nativeauth.statemachine.states
 
-import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
-import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
+import android.os.Parcel
+import android.os.Parcelable
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
-import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResendCodeResult
-import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResult
-import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitCodeResult
-import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitPasswordResult
-import com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordResendCodeCommand
-import com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordSubmitCodeCommand
-import com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordSubmitNewPasswordCommand
-import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.common.java.controllers.CommandDispatcher
+import com.microsoft.identity.common.java.eststelemetry.PublicApiId
+import com.microsoft.identity.common.java.logging.LogSession
+import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.ResetPasswordCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.ResetPasswordResendCodeCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.ResetPasswordSubmitCodeCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.ResetPasswordSubmitNewPasswordCommandResult
-import com.microsoft.identity.common.java.eststelemetry.PublicApiId
-import com.microsoft.identity.common.java.logging.LogSession
-import com.microsoft.identity.common.java.logging.Logger
-import com.microsoft.identity.common.java.util.StringUtil
 import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
+import com.microsoft.identity.common.java.util.StringUtil
+import com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordResendCodeCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordSubmitCodeCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordSubmitNewPasswordCommand
+import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.ResendCodeError
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordSubmitPasswordError
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
+import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResendCodeResult
+import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResult
+import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitCodeResult
+import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitPasswordResult
+import com.microsoft.identity.nativeauth.utils.serializable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.Serializable
 
 /**
  * Native Auth uses a state machine to denote state of and transitions within a flow.
  * ResetPasswordCodeRequiredState class represents a state where the user has to provide a code to progress
  * in the reset password flow.
  * @property continuationToken: Continuation token to be passed in the next request
+ * @property correlationId: Correlation ID taken from the previous API response and passed to the next request
  * @property config Configuration used by Native Auth
  */
 class ResetPasswordCodeRequiredState internal constructor(
     override val continuationToken: String,
+    override val correlationId: String,
+    private val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(continuationToken), State, Serializable {
+) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
     private val TAG: String = ResetPasswordCodeRequiredState::class.java.simpleName
+
+    constructor(parcel: Parcel) : this(
+        continuationToken= parcel.readString() ?: "",
+        correlationId = parcel.readString() ?: "UNSET",
+        username = parcel.readString() ?: "",
+        config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
+    )
 
     interface SubmitCodeCallback : Callback<ResetPasswordSubmitCodeResult>
 
@@ -79,7 +91,11 @@ class ResetPasswordCodeRequiredState internal constructor(
      * @return The results of the submit code action.
      */
     fun submitCode(code: String, callback: SubmitCodeCallback) {
-        LogSession.logMethodCall(TAG, "${TAG}.submitCode")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitCode"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = submitCode(code = code)
@@ -98,13 +114,18 @@ class ResetPasswordCodeRequiredState internal constructor(
      * @return The results of the submit code action.
      */
     suspend fun submitCode(code: String): ResetPasswordSubmitCodeResult {
-        LogSession.logMethodCall(TAG, "${TAG}.submitCode(code: String)")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitCode(code: String)"
+        )
         return withContext(Dispatchers.IO) {
             val parameters =
                 CommandParametersAdapter.createResetPasswordSubmitCodeCommandParameters(
                     config,
                     config.oAuth2TokenCache,
                     code,
+                    correlationId,
                     continuationToken
                 )
 
@@ -121,6 +142,8 @@ class ResetPasswordCodeRequiredState internal constructor(
                     ResetPasswordSubmitCodeResult.PasswordRequired(
                         nextState = ResetPasswordPasswordRequiredState(
                             continuationToken = result.continuationToken,
+                            correlationId = result.correlationId,
+                            username = username,
                             config = config
                         )
                     )
@@ -148,6 +171,7 @@ class ResetPasswordCodeRequiredState internal constructor(
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
+                        result.correlationId,
                         "Submit code received unexpected result: $result"
                     )
                     SubmitCodeError(
@@ -173,7 +197,11 @@ class ResetPasswordCodeRequiredState internal constructor(
      * @return The results of the resend code action.
      */
     fun resendCode(callback: ResendCodeCallback) {
-        LogSession.logMethodCall(TAG, "${TAG}.resendCode(callback: ResendCodeCallback)")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.resendCode(callback: ResendCodeCallback)"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = resendCode()
@@ -191,12 +219,17 @@ class ResetPasswordCodeRequiredState internal constructor(
      * @return The results of the resend code action.
      */
     suspend fun resendCode(): ResetPasswordResendCodeResult {
-        LogSession.logMethodCall(TAG, "${TAG}.resendCode")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.resendCode"
+        )
         return withContext(Dispatchers.IO) {
             val parameters =
                 CommandParametersAdapter.createResetPasswordResendCodeCommandParameters(
                     config,
                     config.oAuth2TokenCache,
+                    correlationId,
                     continuationToken
                 )
 
@@ -213,6 +246,8 @@ class ResetPasswordCodeRequiredState internal constructor(
                     ResetPasswordResendCodeResult.Success(
                         nextState = ResetPasswordCodeRequiredState(
                             continuationToken = result.continuationToken,
+                            correlationId = result.correlationId,
+                            username = username,
                             config = config
                         ),
                         codeLength = result.codeLength,
@@ -221,28 +256,43 @@ class ResetPasswordCodeRequiredState internal constructor(
                     )
                 }
 
-                is INativeAuthCommandResult.Redirect -> {
-                    ResendCodeError(
-                        errorType = ErrorTypes.BROWSER_REQUIRED,
-                        error = result.error,
-                        errorMessage = result.errorDescription,
-                        correlationId = result.correlationId
-                    )
-                }
-
+                is INativeAuthCommandResult.Redirect,
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
+                        result.correlationId,
                         "Resend code received unexpected result: $result"
                     )
                     ResendCodeError(
-                        errorMessage = result.errorDescription,
-                        error = result.error,
-                        correlationId = result.correlationId,
-                        exception = result.exception
+                        errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
+                        error = (result as INativeAuthCommandResult.Error).error,
+                        correlationId = (result as INativeAuthCommandResult.Error).correlationId,
+                        errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
+                        exception = if (result is INativeAuthCommandResult.UnknownError) result.exception else null
                     )
                 }
             }
+        }
+    }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(continuationToken)
+        parcel.writeString(correlationId)
+        parcel.writeString(username)
+        parcel.writeSerializable(config)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<ResetPasswordCodeRequiredState> {
+        override fun createFromParcel(parcel: Parcel): ResetPasswordCodeRequiredState {
+            return ResetPasswordCodeRequiredState(parcel)
+        }
+
+        override fun newArray(size: Int): Array<ResetPasswordCodeRequiredState?> {
+            return arrayOfNulls(size)
         }
     }
 }
@@ -252,13 +302,23 @@ class ResetPasswordCodeRequiredState internal constructor(
  * ResetPasswordPasswordRequiredState class represents a state where the user has to provide a password to progress
  * in the reset password flow.
  * @property continuationToken: Continuation token to be passed in the next request
+ * @property correlationId: Correlation ID taken from the previous API response and passed to the next request
  * @property config Configuration used by Native Auth
  */
 class ResetPasswordPasswordRequiredState internal constructor(
     override val continuationToken: String,
+    override val correlationId: String,
+    private val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(continuationToken), State, Serializable {
+) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
     private val TAG: String = ResetPasswordPasswordRequiredState::class.java.simpleName
+
+    constructor(parcel: Parcel) : this(
+        continuationToken= parcel.readString() ?: "",
+        correlationId = parcel.readString() ?: "UNSET",
+        username = parcel.readString() ?: "",
+        config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
+    )
 
     interface SubmitPasswordCallback : Callback<ResetPasswordSubmitPasswordResult>
 
@@ -270,7 +330,11 @@ class ResetPasswordPasswordRequiredState internal constructor(
      * @return The results of the submit password action.
      */
     fun submitPassword(password: CharArray, callback: SubmitPasswordCallback) {
-        LogSession.logMethodCall(TAG, "${TAG}.submitPassword")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitPassword"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = submitPassword(password = password)
@@ -289,13 +353,18 @@ class ResetPasswordPasswordRequiredState internal constructor(
      * @return The results of the submit password action.
      */
     suspend fun submitPassword(password: CharArray): ResetPasswordSubmitPasswordResult {
-        LogSession.logMethodCall(TAG, "${TAG}.submitPassword(password: String)")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitPassword(password: CharArray)"
+        )
         return withContext(Dispatchers.IO) {
             val parameters =
                 CommandParametersAdapter.createResetPasswordSubmitNewPasswordCommandParameters(
                     config,
                     config.oAuth2TokenCache,
                     continuationToken,
+                    correlationId,
                     password
                 )
 
@@ -311,7 +380,14 @@ class ResetPasswordPasswordRequiredState internal constructor(
                 return@withContext when (val result =
                     rawCommandResult.checkAndWrapCommandResultType<ResetPasswordSubmitNewPasswordCommandResult>()) {
                     is ResetPasswordCommandResult.Complete -> {
-                        ResetPasswordResult.Complete
+                        ResetPasswordResult.Complete(
+                            nextState = SignInContinuationState(
+                                continuationToken = result.continuationToken,
+                                username = username,
+                                correlationId = result.correlationId,
+                                config = config
+                            )
+                        )
                     }
 
                     is ResetPasswordCommandResult.PasswordNotAccepted -> {
@@ -336,6 +412,7 @@ class ResetPasswordPasswordRequiredState internal constructor(
                     is ResetPasswordCommandResult.UserNotFound -> {
                         Logger.warn(
                             TAG,
+                            result.correlationId,
                             "Submit password received unexpected result: $result"
                         )
                         ResetPasswordSubmitPasswordError(
@@ -348,6 +425,7 @@ class ResetPasswordPasswordRequiredState internal constructor(
                     is INativeAuthCommandResult.UnknownError -> {
                         Logger.warn(
                             TAG,
+                            result.correlationId,
                             "Submit password received unexpected result: $result"
                         )
                         ResetPasswordSubmitPasswordError(
@@ -361,6 +439,27 @@ class ResetPasswordPasswordRequiredState internal constructor(
             } finally {
                 StringUtil.overwriteWithNull(parameters.newPassword)
             }
+        }
+    }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(continuationToken)
+        parcel.writeString(correlationId)
+        parcel.writeString(username)
+        parcel.writeSerializable(config)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<ResetPasswordPasswordRequiredState> {
+        override fun createFromParcel(parcel: Parcel): ResetPasswordPasswordRequiredState {
+            return ResetPasswordPasswordRequiredState(parcel)
+        }
+
+        override fun newArray(size: Int): Array<ResetPasswordPasswordRequiredState?> {
+            return arrayOfNulls(size)
         }
     }
 }

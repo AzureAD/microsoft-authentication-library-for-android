@@ -34,15 +34,13 @@ import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTe
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.common.java.nativeauth.BuildValues;
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenError;
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError;
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordSubmitPasswordError;
+import com.microsoft.identity.nativeauth.statemachine.errors.SignInContinuationError;
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError;
-import com.microsoft.identity.nativeauth.statemachine.errors.SignInUsingPasswordError;
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError;
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpSubmitAttributesError;
-import com.microsoft.identity.nativeauth.statemachine.errors.SignUpUsingPasswordError;
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError;
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult;
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult;
@@ -53,19 +51,17 @@ import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmi
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitPasswordResult;
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult;
 import com.microsoft.identity.nativeauth.statemachine.results.SignInSubmitCodeResult;
-import com.microsoft.identity.nativeauth.statemachine.results.SignInUsingPasswordResult;
 import com.microsoft.identity.nativeauth.statemachine.results.SignOutResult;
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResendCodeResult;
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult;
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpSubmitAttributesResult;
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpSubmitCodeResult;
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpSubmitPasswordResult;
-import com.microsoft.identity.nativeauth.statemachine.results.SignUpUsingPasswordResult;
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState;
 import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordCodeRequiredState;
 import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordPasswordRequiredState;
-import com.microsoft.identity.nativeauth.statemachine.states.SignInAfterSignUpState;
 import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState;
+import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState;
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesRequiredState;
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState;
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory;
@@ -92,6 +88,7 @@ import org.robolectric.annotation.Config;
 import org.robolectric.annotation.LooperMode;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -100,11 +97,13 @@ import java.util.concurrent.TimeoutException;
 import androidx.annotation.NonNull;
 import androidx.test.core.app.ApplicationProvider;
 
+import static com.microsoft.identity.nativeauth.utils.MockCorrelationIdHelperKt.mockCorrelationId;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.spy;
 import static org.robolectric.annotation.LooperMode.Mode.LEGACY;
 
 @RunWith(RobolectricTestRunner.class)
@@ -205,11 +204,11 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 MockApiResponseType.TOKEN_SUCCESS
         );
 
-        final ResultFuture<SignInUsingPasswordResult> signInWithPasswordResult = new ResultFuture<>();
-        NativeAuthPublicClientApplication.SignInUsingPasswordCallback signInWithPasswordResultCallback
-                = new NativeAuthPublicClientApplication.SignInUsingPasswordCallback() {
+        final ResultFuture<SignInResult> signInWithPasswordResult = new ResultFuture<>();
+        NativeAuthPublicClientApplication.SignInCallback signInWithPasswordResultCallback
+                = new NativeAuthPublicClientApplication.SignInCallback() {
             @Override
-            public void onResult(SignInUsingPasswordResult result) {
+            public void onResult(SignInResult result) {
                 signInWithPasswordResult.setResult(result);
             }
 
@@ -219,7 +218,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
             }
         };
 
-        application.signInUsingPassword(
+        application.signIn(
                 "user@contoso.com",
                 "password".toCharArray(),
                 null,
@@ -266,10 +265,10 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         );
 
         // 1b. Call SDK interface
-        final ResultFuture<SignInUsingPasswordResult> signInResult = new ResultFuture<>();
-        NativeAuthPublicClientApplication.SignInUsingPasswordCallback callback = new NativeAuthPublicClientApplication.SignInUsingPasswordCallback() {
+        final ResultFuture<SignInResult> signInResult = new ResultFuture<>();
+        NativeAuthPublicClientApplication.SignInCallback callback = new NativeAuthPublicClientApplication.SignInCallback() {
             @Override
-            public void onResult(SignInUsingPasswordResult result) {
+            public void onResult(SignInResult result) {
                 signInResult.setResult(result);
             }
 
@@ -278,12 +277,12 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 signInResult.setException(exception);
             }
         };
-        application.signInUsingPassword(username, password, null, callback);
+        application.signIn(username, password, null, callback);
         // 1a. Server returns invalid password error
-        SignInUsingPasswordResult result = signInResult.get(30, TimeUnit.SECONDS);
-        assertTrue(result instanceof SignInUsingPasswordError);
+        SignInResult result = signInResult.get(30, TimeUnit.SECONDS);
+        assertTrue(result instanceof SignInError);
 
-        SignInUsingPasswordError error = (SignInUsingPasswordError)result;
+        SignInError error = (SignInError)result;
         assertTrue(error.isInvalidCredentials());
     }
 
@@ -304,10 +303,10 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         );
 
         // 1b. Call SDK interface
-        final ResultFuture<SignInUsingPasswordResult> signInResult = new ResultFuture<>();
-        NativeAuthPublicClientApplication.SignInUsingPasswordCallback callback = new NativeAuthPublicClientApplication.SignInUsingPasswordCallback() {
+        final ResultFuture<SignInResult> signInResult = new ResultFuture<>();
+        NativeAuthPublicClientApplication.SignInCallback callback = new NativeAuthPublicClientApplication.SignInCallback() {
             @Override
-            public void onResult(SignInUsingPasswordResult result) {
+            public void onResult(SignInResult result) {
                 signInResult.setResult(result);
             }
 
@@ -316,12 +315,12 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 signInResult.setException(exception);
             }
         };
-        application.signInUsingPassword(username, password, null, callback);
+        application.signIn(username, password, null, callback);
         // 1a. Server returns invalid user error
-        SignInUsingPasswordResult result = signInResult.get(30, TimeUnit.SECONDS);
-        assertTrue(result instanceof SignInUsingPasswordError);
+        SignInResult result = signInResult.get(30, TimeUnit.SECONDS);
+        assertTrue(result instanceof SignInError);
 
-        SignInUsingPasswordError error = (SignInUsingPasswordError)result;
+        SignInError error = (SignInError)result;
         assertTrue(error.isUserNotFound());
     }
 
@@ -354,7 +353,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 signInResult.setException(exception);
             }
         };
-        application.signIn(username, null, callback);
+        application.signIn(username, null, null, callback);
         // 1a. Server returns invalid user error
         SignInResult result = signInResult.get(30, TimeUnit.SECONDS);
         assertTrue(result instanceof SignInError);
@@ -373,7 +372,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
      * 3b <- sign in succeeds
      */
     @Test
-    public void testSignInScenario7() throws ExecutionException, InterruptedException, TimeoutException {
+    public void testSignInScenario7() throws ExecutionException, InterruptedException, TimeoutException, NoSuchFieldException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         // 1. Sign in initiate with username
         // 1a. Setup server response
         String correlationId = UUID.randomUUID().toString();
@@ -404,14 +403,17 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 signInResult.setException(exception);
             }
         };
-        application.signIn(username, null, signInCallback);
+        application.signIn(username, null, null, signInCallback);
         // 1a. Server returns invalid user error
         assertTrue(signInResult.get(30, TimeUnit.SECONDS) instanceof SignInResult.CodeRequired);
-        SignInCodeRequiredState nextState = (((SignInResult.CodeRequired) signInResult.get(30, TimeUnit.SECONDS)).getNextState());
+        SignInCodeRequiredState nextState = spy((((SignInResult.CodeRequired) signInResult.get(30, TimeUnit.SECONDS)).getNextState()));
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        mockCorrelationId(nextState, correlationId);
 
         // 2. Submit (invalid) code
         // 2a. Setup server response
-        correlationId = UUID.randomUUID().toString();
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignInToken,
                 correlationId,
@@ -435,12 +437,15 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         SignInSubmitCodeResult result = submitCodeResult.get(30, TimeUnit.SECONDS);
         assertTrue(result instanceof SubmitCodeError);
 
-        SubmitCodeError error = (SubmitCodeError)result;
+        SubmitCodeError error = spy((SubmitCodeError)result);
         assertTrue(error.isInvalidCode());
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        mockCorrelationId(error, correlationId);
 
         // 3. Submit (valid) code
         // 3a. Setup server response
-        correlationId = UUID.randomUUID().toString();
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignInToken,
                 correlationId,
@@ -496,10 +501,10 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         );
 
         // 3c. Call SDK interface
-        final ResultFuture<SignInUsingPasswordResult> signInResult = new ResultFuture<>();
-        NativeAuthPublicClientApplication.SignInUsingPasswordCallback callback = new NativeAuthPublicClientApplication.SignInUsingPasswordCallback() {
+        final ResultFuture<SignInResult> signInResult = new ResultFuture<>();
+        NativeAuthPublicClientApplication.SignInCallback callback = new NativeAuthPublicClientApplication.SignInCallback() {
             @Override
-            public void onResult(SignInUsingPasswordResult result) {
+            public void onResult(SignInResult result) {
                 signInResult.setResult(result);
             }
 
@@ -508,7 +513,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 signInResult.setException(exception);
             }
         };
-        application.signInUsingPassword(username, password, null, callback);
+        application.signIn(username, password, null, callback);
         // 3d. Server returns InvalidAuthMethodForUser error
         assertTrue(signInResult.get(30, TimeUnit.SECONDS) instanceof SignInResult.CodeRequired);
     }
@@ -541,10 +546,10 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         );
 
         // 3a. Call SDK interface
-        final ResultFuture<SignInUsingPasswordResult> signInResult = new ResultFuture<>();
-        NativeAuthPublicClientApplication.SignInUsingPasswordCallback callback = new NativeAuthPublicClientApplication.SignInUsingPasswordCallback() {
+        final ResultFuture<SignInResult> signInResult = new ResultFuture<>();
+        NativeAuthPublicClientApplication.SignInCallback callback = new NativeAuthPublicClientApplication.SignInCallback() {
             @Override
-            public void onResult(SignInUsingPasswordResult result) {
+            public void onResult(SignInResult result) {
                 signInResult.setResult(result);
             }
 
@@ -553,10 +558,10 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 signInResult.setException(exception);
             }
         };
-        application.signInUsingPassword(username, password, null, callback);
+        application.signIn(username, password, null, callback);
         // 3b. Server returns BrowserRequired error
-        SignInUsingPasswordResult result = signInResult.get(30, TimeUnit.SECONDS);
-        assertTrue(result instanceof SignInUsingPasswordError);
+        SignInResult result = signInResult.get(30, TimeUnit.SECONDS);
+        assertTrue(result instanceof SignInError);
     }
 
     /**
@@ -578,11 +583,11 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         );
 
 
-        final ResultFuture<SignInUsingPasswordResult> signInWithPasswordResult = new ResultFuture<>();
-        NativeAuthPublicClientApplication.SignInUsingPasswordCallback signInWithPasswordResultCallback
-                = new NativeAuthPublicClientApplication.SignInUsingPasswordCallback() {
+        final ResultFuture<SignInResult> signInWithPasswordResult = new ResultFuture<>();
+        NativeAuthPublicClientApplication.SignInCallback signInWithPasswordResultCallback
+                = new NativeAuthPublicClientApplication.SignInCallback() {
             @Override
-            public void onResult(SignInUsingPasswordResult result) {
+            public void onResult(SignInResult result) {
                 signInWithPasswordResult.setResult(result);
             }
 
@@ -592,7 +597,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
             }
         };
 
-        application.signInUsingPassword(
+        application.signIn(
                 username,
                 password,
                 null,
@@ -602,10 +607,10 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         assertTrue(signInWithPasswordResult.get(10, TimeUnit.SECONDS) instanceof SignInResult.Complete);
 
         ResultFuture<BaseException> signInExceptionResult = new ResultFuture<>();
-        NativeAuthPublicClientApplication.SignInUsingPasswordCallback signInWithPasswordResultCallback2
-                = new NativeAuthPublicClientApplication.SignInUsingPasswordCallback() {
+        NativeAuthPublicClientApplication.SignInCallback signInWithPasswordResultCallback2
+                = new NativeAuthPublicClientApplication.SignInCallback() {
             @Override
-            public void onResult(SignInUsingPasswordResult result) {
+            public void onResult(SignInResult result) {
 
             }
 
@@ -615,7 +620,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
             }
         };
 
-        application.signInUsingPassword(username, password, null, signInWithPasswordResultCallback2);
+        application.signIn(username, password, null, signInWithPasswordResultCallback2);
         BaseException exception = signInExceptionResult.get(10, TimeUnit.SECONDS);
         assertEquals(MsalClientException.INVALID_PARAMETER, exception.getErrorCode());
         assertEquals("An account is already signed in.", exception.getMessage());
@@ -645,14 +650,14 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 MockApiResponseType.TOKEN_SUCCESS
         );
 
-        SignInUsingPasswordTestCallback signInUsingPasswordTestCallback = new SignInUsingPasswordTestCallback();
-        application.signInUsingPassword(
+        SignInTestCallback signInTestCallback = new SignInTestCallback();
+        application.signIn(
                 username,
                 password,
                 null,
-                signInUsingPasswordTestCallback
+                signInTestCallback
         );
-        SignInUsingPasswordResult signInWithPasswordResult = signInUsingPasswordTestCallback.get();
+        SignInResult signInWithPasswordResult = signInTestCallback.get();
         assertTrue(signInWithPasswordResult instanceof SignInResult.Complete);
 
         // Sign out
@@ -680,15 +685,15 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 MockApiResponseType.TOKEN_SUCCESS
         );
 
-        SignInUsingPasswordTestCallback signInUsingPasswordTestCallback2 = new SignInUsingPasswordTestCallback();
-        application.signInUsingPassword(
+        SignInTestCallback signInTestCallback2 = new SignInTestCallback();
+        application.signIn(
                 username,
                 password,
                 null,
-                signInUsingPasswordTestCallback2
+                signInTestCallback2
         );
 
-        SignInUsingPasswordResult signInWithPasswordResult2 = signInUsingPasswordTestCallback2.get();
+        SignInResult signInWithPasswordResult2 = signInTestCallback2.get();
         assertTrue(signInWithPasswordResult2 instanceof SignInResult.Complete);
     }
 
@@ -716,14 +721,14 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 MockApiResponseType.TOKEN_SUCCESS
         );
 
-        SignInUsingPasswordTestCallback signInUsingPasswordTestCallback = new SignInUsingPasswordTestCallback();
-        application.signInUsingPassword(
+        SignInTestCallback signInTestCallback = new SignInTestCallback();
+        application.signIn(
                 username,
                 password,
                 null,
-                signInUsingPasswordTestCallback
+                signInTestCallback
         );
-        SignInUsingPasswordResult signInWithPasswordResult = signInUsingPasswordTestCallback.get();
+        SignInResult signInWithPasswordResult = signInTestCallback.get();
         assertTrue(signInWithPasswordResult instanceof SignInResult.Complete);
 
         // Get access token from sign in result
@@ -776,14 +781,14 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         );
 
         // sign in
-        SignInUsingPasswordTestCallback signInUsingPasswordTestCallback = new SignInUsingPasswordTestCallback();
-        application.signInUsingPassword(
+        SignInTestCallback signInTestCallback = new SignInTestCallback();
+        application.signIn(
                 username,
                 password,
                 null,
-                signInUsingPasswordTestCallback
+                signInTestCallback
         );
-        SignInUsingPasswordResult signInWithPasswordResult = signInUsingPasswordTestCallback.get();
+        SignInResult signInWithPasswordResult = signInTestCallback.get();
         assertTrue(signInWithPasswordResult instanceof SignInResult.Complete);
 
         // Sign out
@@ -827,11 +832,11 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 MockApiResponseType.TOKEN_SUCCESS
         );
 
-        final ResultFuture<SignInUsingPasswordResult> signInWithPasswordResult = new ResultFuture<>();
-        NativeAuthPublicClientApplication.SignInUsingPasswordCallback signInWithPasswordResultCallback
-                = new NativeAuthPublicClientApplication.SignInUsingPasswordCallback() {
+        final ResultFuture<SignInResult> signInWithPasswordResult = new ResultFuture<>();
+        NativeAuthPublicClientApplication.SignInCallback signInWithPasswordResultCallback
+                = new NativeAuthPublicClientApplication.SignInCallback() {
             @Override
-            public void onResult(SignInUsingPasswordResult result) {
+            public void onResult(SignInResult result) {
                 signInWithPasswordResult.setResult(result);
             }
 
@@ -841,7 +846,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
             }
         };
 
-        application.signInUsingPassword(
+        application.signIn(
                 username,
                 password,
                 null,
@@ -851,11 +856,11 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         assertTrue(signInWithPasswordResult.get(10, TimeUnit.SECONDS) instanceof SignInResult.Complete);
 
         ResultFuture<BaseException> signUpExceptionResult = new ResultFuture<>();
-        NativeAuthPublicClientApplication.SignUpUsingPasswordCallback signUpWithPasswordResultCallback
-                = new NativeAuthPublicClientApplication.SignUpUsingPasswordCallback() {
+        NativeAuthPublicClientApplication.SignUpCallback signUpWithPasswordResultCallback
+                = new NativeAuthPublicClientApplication.SignUpCallback() {
 
             @Override
-            public void onResult(SignUpUsingPasswordResult result) {
+            public void onResult(SignUpResult result) {
 
             }
 
@@ -864,7 +869,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 signUpExceptionResult.setResult(exception);
             }
         };
-        application.signUpUsingPassword(username, password, null, signUpWithPasswordResultCallback);
+        application.signUp(username, password, null, signUpWithPasswordResultCallback);
         BaseException exception = signUpExceptionResult.get(10, TimeUnit.SECONDS);
 
         assertEquals(MsalClientException.INVALID_PARAMETER, exception.getErrorCode());
@@ -895,11 +900,11 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 MockApiResponseType.TOKEN_SUCCESS
         );
 
-        final ResultFuture<SignInUsingPasswordResult> signInWithPasswordResult = new ResultFuture<>();
-        NativeAuthPublicClientApplication.SignInUsingPasswordCallback signInWithPasswordResultCallback
-                = new NativeAuthPublicClientApplication.SignInUsingPasswordCallback() {
+        final ResultFuture<SignInResult> signInWithPasswordResult = new ResultFuture<>();
+        NativeAuthPublicClientApplication.SignInCallback signInWithPasswordResultCallback
+                = new NativeAuthPublicClientApplication.SignInCallback() {
             @Override
-            public void onResult(SignInUsingPasswordResult result) {
+            public void onResult(SignInResult result) {
                 signInWithPasswordResult.setResult(result);
             }
 
@@ -909,7 +914,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
             }
         };
 
-        application.signInUsingPassword(
+        application.signIn(
                 username,
                 password,
                 null,
@@ -932,7 +937,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 signUpExceptionResult.setResult(exception);
             }
         };
-        application.signUp(username, null, signUpWithCodeResultCallback);
+        application.signUp(username, null, null, signUpWithCodeResultCallback);
 
         BaseException exception = signUpExceptionResult.get(10, TimeUnit.SECONDS);
         assertEquals(MsalClientException.INVALID_PARAMETER, exception.getErrorCode());
@@ -965,15 +970,15 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 MockApiResponseType.TOKEN_SUCCESS
         );
 
-        SignInUsingPasswordTestCallback signInWithPasswordResultTestCallback = new SignInUsingPasswordTestCallback();
+        SignInTestCallback signInWithPasswordResultTestCallback = new SignInTestCallback();
 
-        application.signInUsingPassword(
+        application.signIn(
                 username,
                 password,
                 null,
                 signInWithPasswordResultTestCallback
         );
-        SignInUsingPasswordResult signInWithPasswordResult = signInWithPasswordResultTestCallback.get();
+        SignInResult signInWithPasswordResult = signInWithPasswordResultTestCallback.get();
 
         assertTrue(signInWithPasswordResult instanceof SignInResult.Complete);
 
@@ -1010,7 +1015,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // Setup - sign up the user, so that we don't have to construct the SLT state manually
         // as this doesn't allow for the NativeAuthPublicClientApplicationConfiguration to be set
         // up, meaning it would need to be mocked (which we don't want in these tests).
-        SignInAfterSignUpState signInWithSLTState = signUpUser();
+        SignInContinuationState signInWithSLTState = signUpUser();
 
         // 1a. sign in with (valid) SLT
         String correlationId = UUID.randomUUID().toString();
@@ -1022,7 +1027,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 1b. server returns token
         final ResultFuture<SignInResult> resultFuture = new ResultFuture<>();
-        SignInAfterSignUpState.SignInAfterSignUpCallback callback = new SignInAfterSignUpState.SignInAfterSignUpCallback() {
+        SignInContinuationState.SignInContinuationCallback callback = new SignInContinuationState.SignInContinuationCallback() {
             @Override
             public void onResult(SignInResult result) {
                 resultFuture.setResult(result);
@@ -1054,9 +1059,14 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 1b. client returns error
         final NativeAuthPublicClientApplicationConfiguration config = Mockito.mock(NativeAuthPublicClientApplicationConfiguration.class);
-        final SignInAfterSignUpState state = new SignInAfterSignUpState(null, username, config);
+        final SignInContinuationState state = new SignInContinuationState(
+                null,
+                correlationId,
+                username,
+                config
+        );
         final ResultFuture<SignInResult> resultFuture = new ResultFuture<>();
-        SignInAfterSignUpState.SignInAfterSignUpCallback callback = new SignInAfterSignUpState.SignInAfterSignUpCallback() {
+        SignInContinuationState.SignInContinuationCallback callback = new SignInContinuationState.SignInContinuationCallback() {
             @Override
             public void onResult(SignInResult result) {
                 resultFuture.setResult(result);
@@ -1070,12 +1080,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         state.signIn(null, callback);
 
         SignInResult result = resultFuture.get(10, TimeUnit.SECONDS);
-        assertTrue(result instanceof SignInError);
-
-        SignInError error = (SignInError)result;
-
-        assertFalse(error.isUserNotFound());
-        assertFalse(error.isBrowserRequired());
+        assertTrue(result instanceof SignInContinuationError);
     }
 
     /**
@@ -1089,7 +1094,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // Setup - sign up the user, so that we don't have to construct the SLT state manually
         // as this doesn't allow for the NativeAuthPublicClientApplicationConfiguration to be set
         // up, meaning it would need to be mocked (which we don't want in these tests).
-        SignInAfterSignUpState signInWithSLTState = signUpUser();
+        SignInContinuationState signInWithSLTState = signUpUser();
 
         // 1a. sign in with (expired) SLT
         String correlationId = UUID.randomUUID().toString();
@@ -1101,7 +1106,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 1b. server returns error
         final ResultFuture<SignInResult> resultFuture = new ResultFuture<>();
-        SignInAfterSignUpState.SignInAfterSignUpCallback callback = new SignInAfterSignUpState.SignInAfterSignUpCallback() {
+        SignInContinuationState.SignInContinuationCallback callback = new SignInContinuationState.SignInContinuationCallback() {
             @Override
             public void onResult(SignInResult result) {
                 resultFuture.setResult(result);
@@ -1126,10 +1131,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     /**
      * Check that we don't get a type casting exception thrown when we get it,
      * should get error result instead.
-     *
-     * @throws ExecutionException
-     * @throws InterruptedException
-     * @throws TimeoutException
      */
     @Test
     public void testSignInEmptyUsernameNoException() throws ExecutionException, InterruptedException, TimeoutException {
@@ -1142,11 +1143,11 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         );
 
 
-        final ResultFuture<SignInUsingPasswordResult> signInWithPasswordResult = new ResultFuture<>();
-        NativeAuthPublicClientApplication.SignInUsingPasswordCallback signInWithPasswordResultCallback
-                = new NativeAuthPublicClientApplication.SignInUsingPasswordCallback() {
+        final ResultFuture<SignInResult> signInWithPasswordResult = new ResultFuture<>();
+        NativeAuthPublicClientApplication.SignInCallback signInWithPasswordResultCallback
+                = new NativeAuthPublicClientApplication.SignInCallback() {
             @Override
-            public void onResult(SignInUsingPasswordResult result) {
+            public void onResult(SignInResult result) {
                 signInWithPasswordResult.setResult(result);
             }
 
@@ -1156,18 +1157,19 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
             }
         };
 
-        application.signInUsingPassword(
+        application.signIn(
                 emptyString,
                 "password".toCharArray(),
                 null,
                 signInWithPasswordResultCallback
         );
 
-        SignInUsingPasswordResult result = signInWithPasswordResult.get(10, TimeUnit.SECONDS);
-        assertTrue(result instanceof SignInUsingPasswordError);
+        SignInResult result = signInWithPasswordResult.get(10, TimeUnit.SECONDS);
+        assertTrue(result instanceof SignInError);
 
-        SignInUsingPasswordError error = (SignInUsingPasswordError)result;
+        SignInError error = (SignInError)result;
 
+        assertTrue(error.isInvalidUsername());
         assertFalse(error.isBrowserRequired());
         assertFalse(error.isUserNotFound());
         assertFalse(error.isInvalidCredentials());
@@ -1245,8 +1247,97 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 3b. Transform /submit(success) +/poll_completion(success) to Result(Complete).
         ResetPasswordSubmitPasswordResult submitPasswordResult = submitPasswordCallback.get();
         assertTrue(submitPasswordResult instanceof ResetPasswordResult.Complete);
-        // 3c. Respond to Result(Complete): shifting from ResetPasswordPasswordRequired to end. SLT as resultValue will be returned after private preview.
-        Object resultValue = ((ResetPasswordResult.Complete) submitPasswordResult).getResultValue();
+    }
+
+    /**
+     * Test SSPR scenario 3.2.2:
+     * 1 -> USER click resetPassword
+     * 1 <- user found, SERVER requires code verification
+     * 2 -> USER submit valid code
+     * 2 <- code valid, SERVER requires new password to be set
+     * 3 -> USER submit valid password
+     * 3 <- password reset succeeds
+     * 4 -> USER calls sign in on the provided state
+     * 4 <- SERVER returns tokens
+     */
+    @Test
+    public void testSSPRScenario3_2_2() throws ExecutionException, InterruptedException, TimeoutException {
+        String correlationId = UUID.randomUUID().toString();
+        // 1. Click reset password
+        // 1_mock_api. Setup server response - endpoint: resetpassword/start - Server returns Success
+        MockApiUtils.configureMockApi(
+                MockApiEndpoint.SSPRStart,
+                correlationId,
+                MockApiResponseType.SSPR_START_SUCCESS
+        );
+        // 1_mock_api. Setup server response - endpoint: resetpassword/challenge - Server returns Success: challenge_type = OOB
+        MockApiUtils.configureMockApi(
+                MockApiEndpoint.SSPRChallenge,
+                correlationId,
+                MockApiResponseType.CHALLENGE_TYPE_OOB
+        );
+
+        ResetPasswordStartTestCallback resetPasswordCallback = new ResetPasswordStartTestCallback();
+        // 1a. Call SDK interface - resetPassword(ResetPasswordStart)
+        application.resetPassword(username, resetPasswordCallback);
+        // 1b. Transform /start(success) +/challenge(challenge_type=OOB) to Result(CodeRequired).
+        ResetPasswordStartResult resetPasswordResult = resetPasswordCallback.get();
+        assertTrue(resetPasswordResult instanceof ResetPasswordStartResult.CodeRequired);
+        // 1c. Respond to Result(Code Required): shifting from start to ResetPasswordCodeRequired state.
+        ResetPasswordCodeRequiredState nextState = ((ResetPasswordStartResult.CodeRequired) resetPasswordResult).getNextState();
+
+        // 2. Submit valid code
+        // 2_mock_api. Setup server response - endpoint: resetpassowrd/continue - Server returns Success
+        MockApiUtils.configureMockApi(
+                MockApiEndpoint.SSPRContinue,
+                correlationId,
+                MockApiResponseType.SSPR_CONTINUE_SUCCESS
+        );
+
+        ResetPasswordSubmitCodeTestCallback submitCodeCallback = new ResetPasswordSubmitCodeTestCallback();
+        // 2a. Call SDK interface - submitCode()
+        nextState.submitCode(code, submitCodeCallback);
+        // 2b. Transform /continue(success) to Result(PasswordRequired).
+        ResetPasswordSubmitCodeResult submitCodeResult = submitCodeCallback.get();
+        assertTrue(submitCodeResult instanceof ResetPasswordSubmitCodeResult.PasswordRequired);
+        // 2c. Respond to Result(PasswordRequired): shifting from ResetPasswordCodeRequired to ResetPasswordPasswordRequired state.
+        ResetPasswordPasswordRequiredState nextState_ = ((ResetPasswordSubmitCodeResult.PasswordRequired) submitCodeResult).getNextState();
+
+        // 3. Submit valid password
+        // 3_mock_api. Setup server response - endpoint: resetpassword/submit - Server returns Success
+        MockApiUtils.configureMockApi(
+                MockApiEndpoint.SSPRSubmit,
+                correlationId,
+                MockApiResponseType.SSPR_SUBMIT_SUCCESS
+        );
+        // 3_mock_api. Setup server response - endpoint: resetpassword/poll_completion - Server returns Success
+        MockApiUtils.configureMockApi(
+                MockApiEndpoint.SSPRPoll,
+                correlationId,
+                MockApiResponseType.SSPR_POLL_SUCCESS
+        );
+
+        ResetPasswordSubmitPasswordTestCallback submitPasswordCallback = new ResetPasswordSubmitPasswordTestCallback();
+        // 3a. Call SDK interface - submitPassword()
+        nextState_.submitPassword(password, submitPasswordCallback);
+        // 3b. Transform /submit(success) +/poll_completion(success) to Result(Complete).
+        ResetPasswordSubmitPasswordResult submitPasswordResult = submitPasswordCallback.get();
+        assertTrue(submitPasswordResult instanceof ResetPasswordResult.Complete);
+        // 3c. Respond to Result(Complete): shifting from ResetPasswordPasswordRequired to end
+        SignInContinuationState signInState = ((ResetPasswordResult.Complete) submitPasswordResult).getNextState();
+
+        // 4a. Sign in with (valid) continuation token
+        MockApiUtils.configureMockApi(
+                MockApiEndpoint.SignInToken,
+                correlationId,
+                MockApiResponseType.TOKEN_SUCCESS
+        );
+
+        SignInContinuationTestCallback signInCallback = new SignInContinuationTestCallback();
+        signInState.signIn(null, signInCallback);
+
+        SignInResult signInResult = signInCallback.get();
+        assertTrue(signInResult instanceof SignInResult.Complete);
     }
 
     /**
@@ -1284,7 +1375,10 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         ResetPasswordStartResult resetPasswordResult = resetPasswordCallback.get();
         assertTrue(resetPasswordResult instanceof ResetPasswordStartResult.CodeRequired);
         // 1c. Respond to Result(Code Required): shifting from start to ResetPasswordCodeRequired state.
-        ResetPasswordCodeRequiredState ResetPasswordNextState = ((ResetPasswordStartResult.CodeRequired) resetPasswordResult).getNextState();
+        ResetPasswordCodeRequiredState ResetPasswordNextState = spy(((ResetPasswordStartResult.CodeRequired) resetPasswordResult).getNextState());
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        mockCorrelationId(ResetPasswordNextState, correlationId);
 
         // 2. Submit valid code
         // 2_mock_api. Setup server response - endpoint: resetpassowrd/continue - Server returns Success
@@ -1301,7 +1395,10 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         ResetPasswordSubmitCodeResult submitCodeResult = submitCodeCallback.get();
         assertTrue(submitCodeResult instanceof ResetPasswordSubmitCodeResult.PasswordRequired);
         // 2c. Respond to Result(PasswordRequired): shifting from ResetPasswordCodeRequired to ResetPasswordPasswordRequired state.
-        ResetPasswordPasswordRequiredState SubmitCodeNextState = ((ResetPasswordSubmitCodeResult.PasswordRequired) submitCodeResult).getNextState();
+        ResetPasswordPasswordRequiredState submitCodeNextState = spy(((ResetPasswordSubmitCodeResult.PasswordRequired) submitCodeResult).getNextState());
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        mockCorrelationId(submitCodeNextState, correlationId);
 
         // 3. Submit invalid password
         // 3_mock_api. Setup server response - endpoint: resetpassword/submit - Server returns Success
@@ -1313,9 +1410,10 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         ResetPasswordSubmitPasswordTestCallback submitPasswordCallback1 = new ResetPasswordSubmitPasswordTestCallback();
         // 3a. Call SDK interface - submitPassword()
-        SubmitCodeNextState.submitPassword(password, submitPasswordCallback1);
+        submitCodeNextState.submitPassword(password, submitPasswordCallback1);
         // 3b. Transform /submit(success) +/poll_completion(success) to Result(Complete).
         ResetPasswordSubmitPasswordResult submitPasswordResult1 = submitPasswordCallback1.get();
+
         assertTrue(submitPasswordResult1 instanceof ResetPasswordSubmitPasswordError);
         assertTrue(((ResetPasswordSubmitPasswordError) submitPasswordResult1).isInvalidPassword());
 
@@ -1335,7 +1433,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         ResetPasswordSubmitPasswordTestCallback submitPasswordCallback2 = new ResetPasswordSubmitPasswordTestCallback();
         // 4a. Call SDK interface - submitPassword()
-        SubmitCodeNextState.submitPassword(password, submitPasswordCallback2);
+        submitCodeNextState.submitPassword(password, submitPasswordCallback2);
         // 4b. Transform /submit(success) +/poll_completion(success) to Result(Complete).
         ResetPasswordSubmitPasswordResult submitPasswordResult2 = submitPasswordCallback2.get();
         assertTrue(submitPasswordResult2 instanceof ResetPasswordResult.Complete);
@@ -1547,7 +1645,10 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         ResetPasswordStartResult resetPasswordResult = resetPasswordCallback.get();
         assertTrue(resetPasswordResult instanceof ResetPasswordStartResult.CodeRequired);
         // 1c. Respond to Result(Code Required): shifting from start to ResetPasswordCodeRequired state.
-        ResetPasswordCodeRequiredState nextState = ((ResetPasswordStartResult.CodeRequired) resetPasswordResult).getNextState();
+        ResetPasswordCodeRequiredState nextState = spy(((ResetPasswordStartResult.CodeRequired) resetPasswordResult).getNextState());
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        mockCorrelationId(nextState, correlationId);
 
         // 2. Submit invalid code
         // 2_mock_api. Setup server response - endpoint: resetpassowrd/continue - Server returns Error: explicit invalid oob value
@@ -1580,7 +1681,10 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         ResetPasswordSubmitCodeResult submitCodeResult2 = submitCodeCallback2.get();
         assertTrue(submitCodeResult2 instanceof ResetPasswordSubmitCodeResult.PasswordRequired);
         // 3c. Respond to Result(PasswordRequired): shifting from ResetPasswordCodeRequired to ResetPasswordPasswordRequired state.
-        ResetPasswordPasswordRequiredState nextState_ = ((ResetPasswordSubmitCodeResult.PasswordRequired) submitCodeResult2).getNextState();
+        ResetPasswordPasswordRequiredState nextState_ = spy(((ResetPasswordSubmitCodeResult.PasswordRequired) submitCodeResult2).getNextState());
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        mockCorrelationId(nextState_, correlationId);
 
         // 4. Submit valid password
         // 4_mock_api. Setup server response - endpoint: resetpassword/submit - Server returns Success
@@ -1630,13 +1734,12 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         ResetPasswordStartResult resetPasswordResult = resetPasswordStartTestCallback.get();
 
         assertTrue(resetPasswordResult instanceof ResetPasswordError);
-        assertFalse(((ResetPasswordError) resetPasswordResult).isBrowserRequired());
-        assertFalse(((ResetPasswordError) resetPasswordResult).isUserNotFound());
+        assertTrue(((ResetPasswordError) resetPasswordResult).isInvalidUsername());
     }
 
     // Helper methods
     // TODO update this after sign up SDK tests PR
-    private SignInAfterSignUpState signUpUser() throws ExecutionException, InterruptedException, TimeoutException {
+    private SignInContinuationState signUpUser() throws ExecutionException, InterruptedException, TimeoutException {
         // 1. sign up with password
         // 1a. Setup server response
         String correlationId = UUID.randomUUID().toString();
@@ -1654,17 +1757,17 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         );
 
         // 1b. Call SDK interface
-        SignUpUsingPasswordTestCallback signUpUsingPasswordTestCallback = new SignUpUsingPasswordTestCallback();
-        application.signUpUsingPassword(username, password, null, signUpUsingPasswordTestCallback);
+        SignUpTestCallback signUpTestCallback = new SignUpTestCallback();
+        application.signUp(username, password, null, signUpTestCallback);
 
-        SignUpUsingPasswordResult signUpResult = signUpUsingPasswordTestCallback.get();
+        SignUpResult signUpResult = signUpTestCallback.get();
         assertTrue(signUpResult instanceof SignUpResult.CodeRequired);
 
         // 2. submit (valid) code
         // 2a. setup server response
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpContinue,
-                UUID.randomUUID().toString(),
+                correlationId,
                 MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
         );
 
@@ -1681,7 +1784,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
     /**
      * Test Sign Up scenario 1:
-     * 1a -> signUpUsingPassword
+     * 1a -> signUp
      * 1b <- server requires code verification
      * 2a -> submit valid code
      * 2b <- sign up succeeds
@@ -1705,10 +1808,10 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         );
 
         // 1b. Call SDK interface
-        SignUpUsingPasswordTestCallback signUpUsingPasswordTestCallback = new SignUpUsingPasswordTestCallback();
-        application.signUpUsingPassword(username, password, null, signUpUsingPasswordTestCallback);
+        SignUpTestCallback signUpTestCallback = new SignUpTestCallback();
+        application.signUp(username, password, null, signUpTestCallback);
 
-        SignUpUsingPasswordResult signInResult = signUpUsingPasswordTestCallback.get();
+        SignUpResult signInResult = signUpTestCallback.get();
 
         assertTrue(signInResult instanceof SignUpResult.CodeRequired);
 
@@ -1716,7 +1819,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 2a. setup server response
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpContinue,
-                UUID.randomUUID().toString(),
+                correlationId,
                 MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
         );
 
@@ -1730,7 +1833,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
     /**
      * Test Sign Up scenario 2:
-     * 1a -> signUpUsingPassword
+     * 1a -> signUp
      * 1b <- server requires code verification
      * 2a -> user prompts resend code, challenge endpoint is called
      * 2b <- codeRequired is returned
@@ -1756,21 +1859,24 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         );
 
         // 1b. Call SDK interface
-        SignUpUsingPasswordTestCallback signUpUsingPasswordTestCallback = new SignUpUsingPasswordTestCallback();
-        application.signUpUsingPassword(username, password, null, signUpUsingPasswordTestCallback);
+        SignUpTestCallback signUpTestCallback = new SignUpTestCallback();
+        application.signUp(username, password, null, signUpTestCallback);
 
-        SignUpUsingPasswordResult signUpResult = signUpUsingPasswordTestCallback.get();
+        SignUpResult signUpResult = signUpTestCallback.get();
 
         assertTrue(signUpResult instanceof SignUpResult.CodeRequired);
 
         // 2a. Setup resend code challenge
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpChallenge,
-                UUID.randomUUID().toString(),
+                correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_OOB
         );
 
-        SignUpCodeRequiredState codeRequiredState = ((SignUpResult.CodeRequired) signUpResult).getNextState();
+        SignUpCodeRequiredState codeRequiredState = spy(((SignUpResult.CodeRequired) signUpResult).getNextState());
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        mockCorrelationId(codeRequiredState, correlationId);
 
         // 2b. Call resendCode
         SignUpResendCodeRequiredTestCallback resendCodeCallback = new SignUpResendCodeRequiredTestCallback();
@@ -1784,11 +1890,14 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 3a. setup server response
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpContinue,
-                UUID.randomUUID().toString(),
+                correlationId,
                 MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
         );
 
-        SignUpCodeRequiredState submitCodeState = ((SignUpResendCodeResult.Success) resendCodeResult).getNextState();
+        SignUpCodeRequiredState submitCodeState = spy(((SignUpResendCodeResult.Success) resendCodeResult).getNextState());
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        mockCorrelationId(submitCodeState, correlationId);
 
         final SignUpCodeRequiredTestCallback codeRequiredCallback = new SignUpCodeRequiredTestCallback();
         submitCodeState.submitCode(code, codeRequiredCallback);
@@ -1799,7 +1908,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
     /**
      * Test Sign Up scenario 3:
-     * 1a -> signUpUsingPassword
+     * 1a -> signUp
      * 1b <- server requires code verification
      * 2a -> submit valid code
      * 3a <- sign up token has expired, server returns token expired error
@@ -1823,10 +1932,10 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         );
 
         // 1b. Call SDK interface
-        SignUpUsingPasswordTestCallback signUpUsingPasswordTestCallback = new SignUpUsingPasswordTestCallback();
-        application.signUpUsingPassword(username, password, null, signUpUsingPasswordTestCallback);
+        SignUpTestCallback signUpTestCallback = new SignUpTestCallback();
+        application.signUp(username, password, null, signUpTestCallback);
 
-        SignUpUsingPasswordResult signUpResult = signUpUsingPasswordTestCallback.get();
+        SignUpResult signUpResult = signUpTestCallback.get();
 
         assertTrue(signUpResult instanceof SignUpResult.CodeRequired);
 
@@ -1838,7 +1947,10 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 MockApiResponseType.EXPIRED_TOKEN
         );
 
-        SignUpCodeRequiredState codeRequiredState = ((SignUpResult.CodeRequired) signUpResult).getNextState();
+        SignUpCodeRequiredState codeRequiredState = spy(((SignUpResult.CodeRequired) signUpResult).getNextState());
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        mockCorrelationId(codeRequiredState, correlationId);
 
         final SignUpCodeRequiredTestCallback codeRequiredCallback = new SignUpCodeRequiredTestCallback();
 
@@ -1851,7 +1963,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
     /**
      * Test Sign Up scenario 4:
-     * 1a -> signUpUsingPassword
+     * 1a -> signUp
      * 1b <- server does not support password authentication
      */
     @Test
@@ -1865,16 +1977,16 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         );
 
         // 1b. Call SDK interface
-        SignUpUsingPasswordTestCallback signUpUsingPasswordTestCallback = new SignUpUsingPasswordTestCallback();
-        application.signUpUsingPassword(username, password, null, signUpUsingPasswordTestCallback);
+        SignUpTestCallback signUpTestCallback = new SignUpTestCallback();
+        application.signUp(username, password, null, signUpTestCallback);
 
-        assertTrue(signUpUsingPasswordTestCallback.get() instanceof SignUpUsingPasswordError);
-        assertTrue(((SignUpUsingPasswordError) signUpUsingPasswordTestCallback.get()).isBrowserRequired());
+        assertTrue(signUpTestCallback.get() instanceof SignUpError);
+        assertTrue(((SignUpError) signUpTestCallback.get()).isBrowserRequired());
     }
 
     /**
      * Test Sign Up scenario 5:
-     * 1a -> signUpUsingPassword
+     * 1a -> signUp
      * 1b <- server does not support password authentication, returns error to use OOB instead
      */
     @Test
@@ -1888,16 +2000,16 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         );
 
         // 1b. Call SDK interface
-        SignUpUsingPasswordTestCallback signUpUsingPasswordTestCallback = new SignUpUsingPasswordTestCallback();
-        application.signUpUsingPassword(username, password, null, signUpUsingPasswordTestCallback);
+        SignUpTestCallback signUpTestCallback = new SignUpTestCallback();
+        application.signUp(username, password, null, signUpTestCallback);
 
-        assertTrue(signUpUsingPasswordTestCallback.get() instanceof SignUpUsingPasswordError);
-        assertTrue(((SignUpUsingPasswordError) signUpUsingPasswordTestCallback.get()).isAuthNotSupported());
+        assertTrue(signUpTestCallback.get() instanceof SignUpError);
+        assertTrue(((SignUpError) signUpTestCallback.get()).isAuthNotSupported());
     }
 
     /**
      * Test Sign Up scenario 6:
-     * 1a -> signUpUsingPassword
+     * 1a -> signUp
      * 1b <- server requires code verification
      * 2a -> user prompts resend code, challenge endpoint is called
      * 2b <- codeRequired is returned
@@ -1927,14 +2039,17 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         );
 
         // 1b. Call SDK interface
-        SignUpUsingPasswordTestCallback signUpUsingPasswordTestCallback = new SignUpUsingPasswordTestCallback();
+        SignUpTestCallback signUpTestCallback = new SignUpTestCallback();
 
-        application.signUpUsingPassword(username, password, null, signUpUsingPasswordTestCallback);
-        SignUpUsingPasswordResult signUpResult = signUpUsingPasswordTestCallback.get();
+        application.signUp(username, password, null, signUpTestCallback);
+        SignUpResult signUpResult = signUpTestCallback.get();
 
         assertTrue(signUpResult instanceof SignUpResult.CodeRequired);
 
-        SignUpCodeRequiredState codeRequiredState = ((SignUpResult.CodeRequired) signUpResult).getNextState();
+        SignUpCodeRequiredState codeRequiredState = spy(((SignUpResult.CodeRequired) signUpResult).getNextState());
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        mockCorrelationId(codeRequiredState, correlationId);
 
         // 3. submit (valid) code
         // 3a. setup server response
@@ -1955,11 +2070,14 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         //4a. setup server response
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpContinue,
-                UUID.randomUUID().toString(),
+                correlationId,
                 MockApiResponseType.VALIDATION_FAILED
         );
 
-        SignUpAttributesRequiredState attributesRequiredState = ((SignUpResult.AttributesRequired) submitCodeResult).getNextState();
+        SignUpAttributesRequiredState attributesRequiredState = spy(((SignUpResult.AttributesRequired) submitCodeResult).getNextState());
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        mockCorrelationId(attributesRequiredState, correlationId);
 
         UserAttributes invalidAttributes = UserAttributes.Builder.customAttribute("attribute", "invalid_attribute").build();
         SignUpSubmitUserAttributesTestCallback failedUserAttributesCallback = new SignUpSubmitUserAttributesTestCallback();
@@ -1974,7 +2092,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         //4a. setup server response
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpContinue,
-                UUID.randomUUID().toString(),
+                correlationId,
                 MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
         );
 
@@ -1990,9 +2108,9 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
     /**
      * Test Sign Up scenario 7:
-     * 1a -> signUpUsingPassword with invalid custom attributes
+     * 1a -> signUp with invalid custom attributes
      * 1b <- server returns invalid attribute error
-     * 2a -> call signUpUsingPassword with correct attributes
+     * 2a -> call signUp with correct attributes
      * 2b <- server returns code required, flow continues
      */
     @Test
@@ -2006,13 +2124,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 1b. Call SDK interface
         UserAttributes invalidAttributes = UserAttributes.Builder.customAttribute("attribute", "valid_attribute").build();
-        SignUpUsingPasswordTestCallback signUpUsingPasswordTestCallback = new SignUpUsingPasswordTestCallback();
+        SignUpTestCallback signUpTestCallback = new SignUpTestCallback();
 
-        application.signUpUsingPassword(username, password, invalidAttributes, signUpUsingPasswordTestCallback);
-        SignUpUsingPasswordResult signUpResult = signUpUsingPasswordTestCallback.get();
+        application.signUp(username, password, invalidAttributes, signUpTestCallback);
+        SignUpResult signUpResult = signUpTestCallback.get();
 
-        assertTrue(signUpResult instanceof SignUpUsingPasswordError);
-        assertTrue(((SignUpUsingPasswordError) signUpResult).isInvalidAttributes());
+        assertTrue(signUpResult instanceof SignUpError);
+        assertTrue(((SignUpError) signUpResult).isInvalidAttributes());
 
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpStart,
@@ -2029,10 +2147,10 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 2b. Call SDK interface again
         UserAttributes validAttributes = UserAttributes.Builder.customAttribute("attribute", "valid_attribute").build();
 
-        SignUpUsingPasswordTestCallback signUpSuccessCallback = new SignUpUsingPasswordTestCallback();
+        SignUpTestCallback signUpSuccessCallback = new SignUpTestCallback();
 
-        application.signUpUsingPassword(username, password, validAttributes, signUpSuccessCallback);
-        SignUpUsingPasswordResult signUpSuccessResult = signUpSuccessCallback.get();
+        application.signUp(username, password, validAttributes, signUpSuccessCallback);
+        SignUpResult signUpSuccessResult = signUpSuccessCallback.get();
 
         assertTrue(signUpSuccessResult instanceof SignUpResult.CodeRequired);
     }
@@ -2064,7 +2182,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         SignUpTestCallback signUpTestCallback = new SignUpTestCallback();
 
-        application.signUp(username, null, signUpTestCallback);
+        application.signUp(username, null, null, signUpTestCallback);
         SignUpResult signUpResult = signUpTestCallback.get();
 
         assertTrue(signUpResult instanceof SignUpResult.CodeRequired);
@@ -2073,7 +2191,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 2a. setup server response
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpContinue,
-                UUID.randomUUID().toString(),
+                correlationId,
                 MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
         );
 
@@ -2118,7 +2236,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 1b. Call SDK interface
         SignUpTestCallback signUpTestCallback = new SignUpTestCallback();
 
-        application.signUp(username, null, signUpTestCallback);
+        application.signUp(username, null, null, signUpTestCallback);
         SignUpResult signUpResult = signUpTestCallback.get();
 
         assertTrue(signUpResult instanceof SignUpResult.CodeRequired);
@@ -2126,11 +2244,14 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 2a. Setup resend code challenge
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpChallenge,
-                UUID.randomUUID().toString(),
+                correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_OOB
         );
 
-        SignUpCodeRequiredState codeRequiredState = ((SignUpResult.CodeRequired) signUpResult).getNextState();
+        SignUpCodeRequiredState codeRequiredState = spy(((SignUpResult.CodeRequired) signUpResult).getNextState());
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        mockCorrelationId(codeRequiredState, correlationId);
 
         // 2b. Call resendCode
         SignUpResendCodeRequiredTestCallback resendCodeCallback = new SignUpResendCodeRequiredTestCallback();
@@ -2144,7 +2265,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 3a. setup server response
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpContinue,
-                UUID.randomUUID().toString(),
+                correlationId,
                 MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
         );
 
@@ -2188,7 +2309,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 1b. Call SDK interface
         SignUpTestCallback signUpTestCallback = new SignUpTestCallback();
-        application.signUp(username, null, signUpTestCallback);
+        application.signUp(username, null, null, signUpTestCallback);
 
         SignUpResult signUpResult = signUpTestCallback.get();
 
@@ -2208,7 +2329,11 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 MockApiResponseType.CHALLENGE_TYPE_PASSWORD
         );
 
-        SignUpCodeRequiredState codeRequiredState = ((SignUpResult.CodeRequired) signUpResult).getNextState();
+        SignUpCodeRequiredState codeRequiredState = spy(((SignUpResult.CodeRequired) signUpResult).getNextState());
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        mockCorrelationId(codeRequiredState, correlationId);
 
         final SignUpCodeRequiredTestCallback codeRequiredCallback = new SignUpCodeRequiredTestCallback();
         codeRequiredState.submitCode(code, codeRequiredCallback);
@@ -2221,11 +2346,15 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         //3a. setup server response
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpContinue,
-                UUID.randomUUID().toString(),
+                correlationId,
                 MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
         );
 
-        SignUpPasswordRequiredState passwordRequiredState = ((SignUpResult.PasswordRequired) passwordRequiredResult).getNextState();
+        SignUpPasswordRequiredState passwordRequiredState = spy(((SignUpResult.PasswordRequired) passwordRequiredResult).getNextState());
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        mockCorrelationId(passwordRequiredState, correlationId);
 
         SignUpSubmitPasswordTestCallback passwordCallback = new SignUpSubmitPasswordTestCallback();
         passwordRequiredState.submitPassword(password, passwordCallback);
@@ -2268,7 +2397,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 1b. Call SDK interface
         SignUpTestCallback signUpTestCallback = new SignUpTestCallback();
 
-        application.signUp(username, null, signUpTestCallback);
+        application.signUp(username, null, null, signUpTestCallback);
         SignUpResult signUpResult = signUpTestCallback.get();
 
         assertTrue(signUpResult instanceof SignUpResult.CodeRequired);
@@ -2276,11 +2405,14 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 2a. Setup resend code challenge
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpChallenge,
-                correlationId = UUID.randomUUID().toString(),
+                correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_OOB
         );
 
-        SignUpCodeRequiredState codeRequiredState = ((SignUpResult.CodeRequired) signUpResult).getNextState();
+        SignUpCodeRequiredState codeRequiredState = spy(((SignUpResult.CodeRequired) signUpResult).getNextState());
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        mockCorrelationId(codeRequiredState, correlationId);
 
         // 2b. Call resendCode
         SignUpResendCodeRequiredTestCallback resendCodeCallback = new SignUpResendCodeRequiredTestCallback();
@@ -2304,7 +2436,10 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 MockApiResponseType.CHALLENGE_TYPE_PASSWORD
         );
 
-        SignUpCodeRequiredState submitCodeState = ((SignUpResendCodeResult.Success) resendCodeResult).getNextState();
+        SignUpCodeRequiredState submitCodeState = spy(((SignUpResendCodeResult.Success) resendCodeResult).getNextState());
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        mockCorrelationId(submitCodeState, correlationId);
 
         final SignUpCodeRequiredTestCallback codeRequiredCallback = new SignUpCodeRequiredTestCallback();
         submitCodeState.submitCode(code, codeRequiredCallback);
@@ -2317,11 +2452,14 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         //4a. setup server response
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpContinue,
-                UUID.randomUUID().toString(),
+                correlationId,
                 MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
         );
 
-        SignUpPasswordRequiredState passwordRequiredState = ((SignUpResult.PasswordRequired) passwordRequiredResult).getNextState();
+        SignUpPasswordRequiredState passwordRequiredState = spy(((SignUpResult.PasswordRequired) passwordRequiredResult).getNextState());
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        mockCorrelationId(passwordRequiredState, correlationId);
 
         SignUpSubmitPasswordTestCallback passwordCallback = new SignUpSubmitPasswordTestCallback();
         passwordRequiredState.submitPassword(password, passwordCallback);
@@ -2364,7 +2502,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 1b. Call SDK interface
         SignUpTestCallback signUpTestCallback = new SignUpTestCallback();
 
-        application.signUp(username, null, signUpTestCallback);
+        application.signUp(username, null, null, signUpTestCallback);
         SignUpResult signUpResult = signUpTestCallback.get();
 
         assertTrue(signUpResult instanceof SignUpResult.CodeRequired);
@@ -2383,7 +2521,10 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 MockApiResponseType.CHALLENGE_TYPE_PASSWORD
         );
 
-        SignUpCodeRequiredState submitCodeState = ((SignUpResult.CodeRequired) signUpResult).getNextState();
+        SignUpCodeRequiredState submitCodeState = spy(((SignUpResult.CodeRequired) signUpResult).getNextState());
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        mockCorrelationId(submitCodeState, correlationId);
 
         final SignUpCodeRequiredTestCallback codeRequiredCallback = new SignUpCodeRequiredTestCallback();
         submitCodeState.submitCode(code, codeRequiredCallback);
@@ -2396,11 +2537,14 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 3a. setup server response
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpContinue,
-                UUID.randomUUID().toString(),
+                correlationId,
                 MockApiResponseType.ATTRIBUTES_REQUIRED
         );
 
-        SignUpPasswordRequiredState passwordRequiredState = ((SignUpResult.PasswordRequired) passwordRequiredResult).getNextState();
+        SignUpPasswordRequiredState passwordRequiredState = spy(((SignUpResult.PasswordRequired) passwordRequiredResult).getNextState());
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        mockCorrelationId(passwordRequiredState, correlationId);
 
         SignUpSubmitPasswordTestCallback passwordCallback = new SignUpSubmitPasswordTestCallback();
         passwordRequiredState.submitPassword(password, passwordCallback);
@@ -2413,11 +2557,14 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         //4a. setup server response
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpContinue,
-                UUID.randomUUID().toString(),
+                correlationId,
                 MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
         );
 
-        SignUpAttributesRequiredState attributesRequiredState = ((SignUpResult.AttributesRequired) attributesRequiredResult).getNextState();
+        SignUpAttributesRequiredState attributesRequiredState = spy(((SignUpResult.AttributesRequired) attributesRequiredResult).getNextState());
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        mockCorrelationId(attributesRequiredState, correlationId);
 
         SignUpSubmitUserAttributesTestCallback attributesRequiredCallback = new SignUpSubmitUserAttributesTestCallback();
         UserAttributes attributes = UserAttributes.Builder.customAttribute("attribute", "attribute").build();
@@ -2461,7 +2608,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 1b. Call SDK interface
         SignUpTestCallback signUpTestCallback = new SignUpTestCallback();
 
-        application.signUp(username, null, signUpTestCallback);
+        application.signUp(username, null, null, signUpTestCallback);
         SignUpResult signUpResult = signUpTestCallback.get();
 
         assertTrue(signUpResult instanceof SignUpResult.CodeRequired);
@@ -2474,7 +2621,10 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 MockApiResponseType.ATTRIBUTES_REQUIRED
         );
 
-        SignUpCodeRequiredState submitCodeState = ((SignUpResult.CodeRequired) signUpResult).getNextState();
+        SignUpCodeRequiredState submitCodeState = spy(((SignUpResult.CodeRequired) signUpResult).getNextState());
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        mockCorrelationId(submitCodeState, correlationId);
 
         final SignUpCodeRequiredTestCallback codeRequiredCallback = new SignUpCodeRequiredTestCallback();
         submitCodeState.submitCode(code, codeRequiredCallback);
@@ -2488,11 +2638,14 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 3a. setup server response
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpContinue,
-                UUID.randomUUID().toString(),
+                correlationId,
                 MockApiResponseType.ATTRIBUTES_REQUIRED
         );
 
-        SignUpAttributesRequiredState attributesRequiredState = ((SignUpResult.AttributesRequired) attributesRequiredResult).getNextState();
+        SignUpAttributesRequiredState attributesRequiredState = spy(((SignUpResult.AttributesRequired) attributesRequiredResult).getNextState());
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        mockCorrelationId(attributesRequiredState, correlationId);
 
         UserAttributes incompleteAttributes = UserAttributes.Builder.customAttribute("attribute", "incomplete_attribute").build();
         SignUpSubmitUserAttributesTestCallback attributesRequiredCallback = new SignUpSubmitUserAttributesTestCallback();
@@ -2506,11 +2659,14 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         //4a. setup server response
         MockApiUtils.configureMockApi(
                 MockApiEndpoint.SignUpContinue,
-                UUID.randomUUID().toString(),
+                correlationId,
                 MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
         );
 
-        SignUpAttributesRequiredState additionalAttributesRequiredState = ((SignUpResult.AttributesRequired) attributesRequiredResult).getNextState();
+        SignUpAttributesRequiredState additionalAttributesRequiredState = spy(((SignUpResult.AttributesRequired) attributesRequiredResult).getNextState());
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        mockCorrelationId(additionalAttributesRequiredState, correlationId);
 
         UserAttributes attributes = UserAttributes.Builder.customAttribute("attribute", "attribute").build();
         SignUpSubmitUserAttributesTestCallback additionalAttributesRequiredCallback = new SignUpSubmitUserAttributesTestCallback();
@@ -2539,7 +2695,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         SignUpTestCallback signUpTestCallback = new SignUpTestCallback();
 
-        application.signUp(username, null, signUpTestCallback);
+        application.signUp(username, null, null, signUpTestCallback);
         SignUpResult signUpResult = signUpTestCallback.get();
 
         assertTrue(signUpResult instanceof SignUpError);
@@ -2566,13 +2722,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         SignUpTestCallback signUpTestCallback = new SignUpTestCallback();
 
-        application.signUp(emptyString, null, signUpTestCallback);
+        application.signUp(emptyString, null, null, signUpTestCallback);
         SignUpResult signUpResult = signUpTestCallback.get();
 
         assertTrue(signUpResult instanceof SignUpError);
+        assertTrue(((SignUpError) signUpResult).isInvalidUsername());
         assertFalse(((SignUpError) signUpResult).isBrowserRequired());
         assertFalse(((SignUpError) signUpResult).isInvalidPassword());
-        assertFalse(((SignUpError) signUpResult).isInvalidUsername());
         assertFalse(((SignUpError) signUpResult).isInvalidAttributes());
         assertFalse(((SignUpError) signUpResult).isUserAlreadyExists());
     }
@@ -2587,17 +2743,17 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 MockApiResponseType.PASSWORD_TOO_WEAK
         );
 
-        SignUpUsingPasswordTestCallback signUpUsingPasswordTestCallback = new SignUpUsingPasswordTestCallback();
-        application.signUpUsingPassword(username, password, UserAttributes.Builder.customAttribute("password", password.toString()).build(), signUpUsingPasswordTestCallback);
+        SignUpTestCallback signUpTestCallback = new SignUpTestCallback();
+        application.signUp(username, password, null, signUpTestCallback);
 
-        SignUpUsingPasswordResult signUpResult = signUpUsingPasswordTestCallback.get();
+        SignUpResult signUpResult = signUpTestCallback.get();
 
-        assertTrue(signUpResult instanceof SignUpUsingPasswordError);
-        assertTrue(((SignUpUsingPasswordError) signUpResult).isInvalidPassword());
+        assertTrue(signUpResult instanceof SignUpError);
+        assertTrue(((SignUpError) signUpResult).isInvalidPassword());
     }
 
     @Test
-    public void testSignUpUsingPasswordInvalidEmailReturnsError() throws ExecutionException, InterruptedException, TimeoutException {
+    public void testSignUpWithPasswordInvalidEmailReturnsError() throws ExecutionException, InterruptedException, TimeoutException {
         String correlationId = UUID.randomUUID().toString();
 
         MockApiUtils.configureMockApi(
@@ -2606,13 +2762,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 MockApiResponseType.INVALID_USERNAME
         );
 
-        SignUpUsingPasswordTestCallback signUpUsingPasswordTestCallback = new SignUpUsingPasswordTestCallback();
-        application.signUpUsingPassword(invalidUsername, password, UserAttributes.Builder.customAttribute("password", password.toString()).build(), signUpUsingPasswordTestCallback);
+        SignUpTestCallback signUpTestCallback = new SignUpTestCallback();
+        application.signUp(invalidUsername, password, null, signUpTestCallback);
 
-        SignUpUsingPasswordResult signUpResult = signUpUsingPasswordTestCallback.get();
+        SignUpResult signUpResult = signUpTestCallback.get();
 
-        assertTrue(signUpResult instanceof SignUpUsingPasswordError);
-        assertTrue(((SignUpUsingPasswordError) signUpResult).isInvalidUsername());
+        assertTrue(signUpResult instanceof SignUpError);
+        assertTrue(((SignUpError) signUpResult).isInvalidUsername());
     }
 
     @Test
@@ -2626,7 +2782,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         );
 
         SignUpTestCallback signUpTestCallback = new SignUpTestCallback();
-        application.signUp(invalidUsername, UserAttributes.Builder.customAttribute("password", password.toString()).build(), signUpTestCallback);
+        application.signUp(invalidUsername, null, null, signUpTestCallback);
 
         SignUpResult signUpResult = signUpTestCallback.get();
 
@@ -2656,26 +2812,13 @@ class SignOutTestCallback extends TestCallback<SignOutResult> implements Account
     public void onError(@NonNull BaseException exception) { future.setException(exception); }
 }
 
-class SignInUsingPasswordTestCallback extends TestCallback<SignInUsingPasswordResult> implements NativeAuthPublicClientApplication.SignInUsingPasswordCallback {
+class SignInTestCallback extends TestCallback<SignInResult> implements NativeAuthPublicClientApplication.SignInCallback {
 
     @Override
-    public void onResult(SignInUsingPasswordResult result) { future.setResult(result); }
+    public void onResult(SignInResult result) { future.setResult(result); }
 
     @Override
     public void onError(@NonNull BaseException exception) { future.setException(exception); }
-}
-
-class SignUpUsingPasswordTestCallback extends TestCallback<SignUpUsingPasswordResult> implements NativeAuthPublicClientApplication.SignUpUsingPasswordCallback {
-
-    @Override
-    public void onResult(SignUpUsingPasswordResult result) {
-        future.setResult(result);
-    }
-
-    @Override
-    public void onError(@NonNull BaseException exception) {
-        future.setException(exception);
-    }
 }
 
 class SignUpTestCallback extends TestCallback<SignUpResult> implements NativeAuthPublicClientApplication.SignUpCallback {
@@ -2734,6 +2877,19 @@ class SignUpSubmitPasswordTestCallback extends TestCallback<SignUpSubmitPassword
 
     @Override
     public void onResult(SignUpSubmitPasswordResult result) {
+        future.setResult(result);
+    }
+
+    @Override
+    public void onError(@NonNull BaseException exception) {
+        future.setException(exception);
+    }
+}
+
+class SignInContinuationTestCallback extends TestCallback<SignInResult> implements SignInContinuationState.SignInContinuationCallback {
+
+    @Override
+    public void onResult(SignInResult result) {
         future.setResult(result);
     }
 
