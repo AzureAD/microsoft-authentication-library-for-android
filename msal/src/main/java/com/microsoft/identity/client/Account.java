@@ -173,11 +173,6 @@ public class Account implements IAccount {
     @Override
     @NonNull
     public String getAuthority() {
-        // If the environment shows CIAM, we should return an authority of format https://tenant.ciamlogin.com/tenant.onmicrosoft.com
-        if (getEnvironment() != null && getEnvironment().contains(CIAMAuthority.CIAM_LOGIN_URL_SEGMENT)) {
-            // Call static method in CIAMAuthority to create the full authority uri
-            return CIAMAuthority.getFullAuthorityUrlFromAuthorityWithoutPath(getEnvironment());
-        }
         // TODO: The below logic only works for the case of AAD. We need to refactor this once we
         //  make a proper fix for B2C
         if (null != getClaims()) {
