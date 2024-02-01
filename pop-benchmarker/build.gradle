@@ -11,6 +11,7 @@ android {
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
     defaultConfig {
+        namespace "com.microsoft.identity.common.internal.platform"
         multiDexEnabled true
         applicationId "com.microsoft.testing.popbenchmarker"
         minSdkVersion 18
