@@ -1,0 +1,15 @@
+{
+  "client_id" : "4813382a-8fa7-425e-ab75-3b753aab3abb",
+  "authorization_user_agent" : "DEFAULT",
+  "redirect_uri" : "msauth://com.azure.authenticator/ho040S3ffZkmxqtQrSwpTVOn9r0%3D",
+  "handle_null_taskaffinity": true,
+  "authorization_in_current_task": false,
+  "authorities" : [
+    {
+      "type": "AAD",
+      "audience": {
+        "type": "AzureADMultipleOrgs"
+      }
+    }
+  ]
+}
