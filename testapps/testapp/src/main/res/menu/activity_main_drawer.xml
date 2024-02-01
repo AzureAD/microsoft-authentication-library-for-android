@@ -31,14 +31,14 @@
             android:id="@+id/nav_acquire"
             android:title="AcquireToken" />
         <item
-            android:id="@+id/nav_native"
-            android:title="Native Auth" />
-        <item
             android:id="@+id/nav_result"
             android:title="Result" />
         <item
             android:id="@+id/nav_log"
             android:title="Log" />
+        <item
+            android:id="@+id/nav_native"
+            android:title="Native Auth" />
     </group>
 
 </menu>
