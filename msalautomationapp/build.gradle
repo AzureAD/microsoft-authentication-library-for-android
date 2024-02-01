@@ -164,9 +164,9 @@ android {
             res.srcDirs = ['src/main/res', 'src/main/kotlin']
         }
     }
-}
 
-android.buildFeatures.buildConfig true
+    buildFeatures.buildConfig true
+}
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"

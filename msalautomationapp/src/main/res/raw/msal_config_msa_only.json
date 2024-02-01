@@ -1,10 +1,11 @@
 {
   "client_id" : "9668f2bd-6103-4292-9024-84fa2d1b6fb2",
-  "authorization_user_agent" : "DEFAULT",
+  "authorization_user_agent" : "WEBVIEW",
   "redirect_uri" : "msauth://com.msft.identity.client.sample.local/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D",
   "authorities" : [
     {
       "type": "AAD",
+      "authority_url": "login.live-int.com/common",
       "audience": {
         "type": "PersonalMicrosoftAccount"
       }
