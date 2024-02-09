@@ -47,7 +47,6 @@ import java.util.List;
 import java.util.Map;
 
 // Brokered Auth verify "Sign In from other device" option.
-//@RetryOnFailure(retryCount = 2)
 abstract class AbstractSignInFromOtherDeviceTest extends AbstractMsalBrokerTest {
 
     private final AzureEnvironment mAzureEnvironment;
