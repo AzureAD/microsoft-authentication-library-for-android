@@ -188,7 +188,7 @@ task sourcesJar(type: Jar) {
 
 // In dev, we want to keep the dependencies (common4j, common) to 1.0.+ to be able to be consumed by daily dev pipeline.
 // In release/*, we change these to specific versions being consumed.
-def commonVersion = "17.1.0-RC5"
+def commonVersion = "17.1.0"
 if (project.hasProperty("distCommonVersion")) {
     commonVersion = project.distCommonVersion
 }
