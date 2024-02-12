@@ -11,7 +11,8 @@ on:
 
 jobs:
   label:
-    permissions: read-all
+    permissions:
+      pull-requests: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/labeler@v2
