@@ -20,24 +20,35 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.dcf;
 
-package com.microsoft.identity.nativeauth.statemachine.errors
+import com.microsoft.identity.client.msal.automationapp.R;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
+import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 
-import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
+import org.junit.Test;
 
-internal class GetAccessTokenErrorTypes {
-    companion object {
-        const val NO_ACCOUNT_FOUND = "no_account_found"
+// Brokered Auth verify "Sign In from other device" option and remote login url.
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2828864
+@RetryOnFailure(retryCount = 2)
+public class TestCase2828864 extends AbstractSignInFromOtherDeviceTest {
+
+    public TestCase2828864() {
+        super(AzureEnvironment.AZURE_CLOUD);
     }
-}
 
-class GetAccessTokenError(
-    override val errorType: String? = null,
-    override val error: String? = null,
-    override val errorMessage: String? = null,
-    override val correlationId: String,
-    override val errorCodes: List<Int>? = null,
-    override var exception: Exception? = null
-): GetAccessTokenResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
-    fun isNoAccountFound() : Boolean = this.errorType == GetAccessTokenErrorTypes.NO_ACCOUNT_FOUND
+    @Test
+    public void test_2828864() throws Throwable {
+        this.testSignInFromOtherDevice();
+    }
+
+    @Override
+    public int getConfigFileResourceId() {
+        return R.raw.msal_config_default;
+    }
+
+    @Override
+    protected String getExpectedDeviceCodeUrl() {
+        return "https://microsoft.com/devicelogin";
+    }
 }

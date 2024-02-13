@@ -58,6 +58,7 @@ import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInSubmitPasswordError
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
+import com.microsoft.identity.nativeauth.utils.serializable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -67,22 +68,24 @@ import kotlinx.coroutines.withContext
  * SignInCodeRequiredState class represents a state where the user has to provide a code to progress
  * in the signin flow.
  * @property continuationToken: Continuation token to be passed in the next request
+ * @property correlationId: Correlation ID taken from the previous API response and passed to the next request
  * @property scopes: List of scopes
  * @property config Configuration used by Native Auth
  */
 class SignInCodeRequiredState internal constructor(
     override val continuationToken: String,
+    override val correlationId: String,
     private val scopes: List<String>?,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(continuationToken), State, Parcelable {
+) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
     private val TAG: String = SignInCodeRequiredState::class.java.simpleName
 
     constructor(parcel: Parcel) : this(
-        parcel.readString()  ?: "",
-        parcel.createStringArrayList(),
-        parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
-    ) {
-    }
+        continuationToken = parcel.readString()  ?: "",
+        correlationId = parcel.readString() ?: "UNSET",
+        scopes = parcel.createStringArrayList(),
+        config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
+    )
 
     /**
      * SubmitCodeCallback receives the result for submit code for SignIn for Native Auth
@@ -97,7 +100,11 @@ class SignInCodeRequiredState internal constructor(
      * @return The results of the submit code action.
      */
     fun submitCode(code: String, callback: SubmitCodeCallback) {
-        LogSession.logMethodCall(TAG, "${TAG}.submitCode")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitCode"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = submitCode(code)
@@ -116,13 +123,18 @@ class SignInCodeRequiredState internal constructor(
      * @return The results of the submit code action.
      */
     suspend fun submitCode(code: String): SignInSubmitCodeResult {
-        LogSession.logMethodCall(TAG, "${TAG}.submitCode(code: String)")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitCode(code: String)"
+        )
         return withContext(Dispatchers.IO) {
             val params = CommandParametersAdapter.createSignInSubmitCodeCommandParameters(
                 config,
                 config.oAuth2TokenCache,
                 code,
                 continuationToken,
+                correlationId,
                 scopes
             )
 
@@ -154,6 +166,7 @@ class SignInCodeRequiredState internal constructor(
                     SignInResult.Complete(
                         resultValue = AccountState.createFromAuthenticationResult(
                             authenticationResult = authenticationResult,
+                            correlationId = result.correlationId,
                             config = config
                         )
                     )
@@ -171,6 +184,7 @@ class SignInCodeRequiredState internal constructor(
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
+                        result.correlationId,
                         "Submit code received unexpected result: $result"
                     )
                     SubmitCodeError(
@@ -197,7 +211,11 @@ class SignInCodeRequiredState internal constructor(
      * @return The results of the resend code action.
      */
     fun resendCode(callback: ResendCodeCallback) {
-        LogSession.logMethodCall(TAG, "${TAG}.resendCode")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.resendCode"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = resendCode()
@@ -215,11 +233,16 @@ class SignInCodeRequiredState internal constructor(
      * @return The results of the resend code action.
      */
     suspend fun resendCode(): SignInResendCodeResult {
-        LogSession.logMethodCall(TAG, "${TAG}.resendCode()")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.resendCode()"
+        )
         return withContext(Dispatchers.IO) {
             val params = CommandParametersAdapter.createSignInResendCodeCommandParameters(
                 config,
                 config.oAuth2TokenCache,
+                correlationId,
                 continuationToken
             )
 
@@ -236,6 +259,7 @@ class SignInCodeRequiredState internal constructor(
                     SignInResendCodeResult.Success(
                         nextState = SignInCodeRequiredState(
                             continuationToken = result.continuationToken,
+                            correlationId = result.correlationId,
                             scopes = scopes,
                             config = config
                         ),
@@ -248,6 +272,7 @@ class SignInCodeRequiredState internal constructor(
                 is INativeAuthCommandResult.Redirect, is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
+                        result.correlationId,
                         "Resend code received unexpected result: $result"
                     )
                     ResendCodeError(
@@ -255,7 +280,7 @@ class SignInCodeRequiredState internal constructor(
                         error = (result as INativeAuthCommandResult.Error).error,
                         correlationId = (result as INativeAuthCommandResult.Error).correlationId,
                         errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
-                        exception = (result as INativeAuthCommandResult.UnknownError).exception
+                        exception = if (result is INativeAuthCommandResult.UnknownError) result.exception else null
                     )
                 }
             }
@@ -264,6 +289,7 @@ class SignInCodeRequiredState internal constructor(
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(continuationToken)
+        parcel.writeString(correlationId)
         parcel.writeStringList(scopes)
         parcel.writeSerializable(config)
     }
@@ -288,15 +314,23 @@ class SignInCodeRequiredState internal constructor(
  * SignInPasswordRequiredState class represents a state where the user has to provide a password to progress
  * in the signin flow.
  * @property continuationToken: Continuation token to be passed in the next request
+ * @property correlationId: Correlation ID taken from the previous API response and passed to the next request
  * @property scopes: List of scopes
  * @property config Configuration used by Native Auth
  */
 class SignInPasswordRequiredState(
     override val continuationToken: String,
+    override val correlationId: String,
     private val scopes: List<String>?,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(continuationToken), State {
+) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
     private val TAG: String = SignInPasswordRequiredState::class.java.simpleName
+    constructor(parcel: Parcel) : this(
+        continuationToken = parcel.readString()  ?: "",
+        correlationId = parcel.readString() ?: "UNSET",
+        scopes = parcel.createStringArrayList(),
+        config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
+    )
 
     /**
      * SubmitPasswordCallback receives the result for submit password for SignIn for Native Auth
@@ -311,7 +345,11 @@ class SignInPasswordRequiredState(
      * @return The results of the submit password action.
      */
     fun submitPassword(password: CharArray, callback: SubmitPasswordCallback) {
-        LogSession.logMethodCall(TAG, "${TAG}.submitPassword")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitPassword"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = submitPassword(password)
@@ -330,13 +368,18 @@ class SignInPasswordRequiredState(
      * @return The results of the submit password action.
      */
     suspend fun submitPassword(password: CharArray): SignInSubmitPasswordResult {
-        LogSession.logMethodCall(TAG, "${TAG}.submitPassword(password: String)")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitPassword(password: CharArray)"
+        )
         return withContext(Dispatchers.IO) {
             val params = CommandParametersAdapter.createSignInSubmitPasswordCommandParameters(
                 config,
                 config.oAuth2TokenCache,
                 continuationToken,
                 password,
+                correlationId,
                 scopes
             )
 
@@ -367,6 +410,7 @@ class SignInPasswordRequiredState(
                         SignInResult.Complete(
                             resultValue = AccountState.createFromAuthenticationResult(
                                 authenticationResult = authenticationResult,
+                                correlationId = result.correlationId,
                                 config = config
                             )
                         )
@@ -374,6 +418,7 @@ class SignInPasswordRequiredState(
                     is INativeAuthCommandResult.Redirect, is INativeAuthCommandResult.UnknownError -> {
                         Logger.warn(
                             TAG,
+                            result.correlationId,
                             "Submit password received unexpected result: $result"
                         )
                         SignInSubmitPasswordError(
@@ -390,29 +435,52 @@ class SignInPasswordRequiredState(
             }
         }
     }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(continuationToken)
+        parcel.writeString(correlationId)
+        parcel.writeStringList(scopes)
+        parcel.writeSerializable(config)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<SignInPasswordRequiredState> {
+        override fun createFromParcel(parcel: Parcel): SignInPasswordRequiredState {
+            return SignInPasswordRequiredState(parcel)
+        }
+
+        override fun newArray(size: Int): Array<SignInPasswordRequiredState?> {
+            return arrayOfNulls(size)
+        }
+    }
 }
 
 /**
  * Native Auth uses a state machine to denote state of and transitions within a flow.
  * SignInContinuationState is a class to represent a sign in state after
  * a successful signup or password reset.
- * @property continuationToken: Continuation token from signup APIS
+ * @property continuationToken: Continuation token from signup APIs
+ * @property correlationId: Correlation ID taken from the previous API response and passed to the next request
  * @property username: Username of the user
  * @property config Configuration used by Native Auth
  */
 class SignInContinuationState(
     override val continuationToken: String?,
+    override val correlationId: String,
     internal val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(continuationToken), State, Parcelable {
+) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
     private val TAG: String = SignInContinuationState::class.java.simpleName
 
     constructor(parcel: Parcel) : this(
-        parcel.readString(),
-        parcel.readString() ?: "",
-        parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
-    ) {
-    }
+        continuationToken= parcel.readString(),
+        correlationId = parcel.readString() ?: "UNSET",
+        username = parcel.readString() ?: "",
+        config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
+    )
 
     /**
      * SignInContinuationCallback receives the result for sign in after flow completion for Native Auth
@@ -427,7 +495,11 @@ class SignInContinuationState(
      * @return The results of the sign-in-continuation action.
      */
     fun signIn(scopes: List<String>? = null, callback: SignInContinuationCallback) {
-        LogSession.logMethodCall(TAG, "${TAG}.signIn")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.signIn"
+        )
 
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
@@ -448,8 +520,11 @@ class SignInContinuationState(
      */
     suspend fun signIn(scopes: List<String>? = null): SignInResult {
         return withContext(Dispatchers.IO) {
-            LogSession.logMethodCall(TAG, "${TAG}.signIn(scopes: List<String>)")
-
+            LogSession.logMethodCall(
+                tag = TAG,
+                correlationId = correlationId,
+                methodName = "${TAG}.signIn(scopes: List<String>)"
+            )
             // Check if verification code was passed. If not, return an UnknownError with instructions to call the other
             // sign in flows (code or password).
             if (continuationToken.isNullOrEmpty()) {
@@ -459,7 +534,7 @@ class SignInContinuationState(
                 )
                 return@withContext SignInContinuationError(
                     errorMessage = "Sign In is not available through this state, please use the standalone sign in methods (signInWithCode or signInWithPassword).",
-                    error = "invalid_state",
+                    error = ErrorTypes.INVALID_STATE,
                     correlationId = "UNSET",
                 )
             }
@@ -469,6 +544,7 @@ class SignInContinuationState(
                 config.oAuth2TokenCache,
                 continuationToken,
                 username,
+                correlationId,
                 scopes
             )
 
@@ -487,6 +563,7 @@ class SignInContinuationState(
                     SignInResult.Complete(
                         resultValue = AccountState.createFromAuthenticationResult(
                             authenticationResult = authenticationResult,
+                            correlationId = result.correlationId,
                             config = config
                         )
                     )
@@ -495,6 +572,7 @@ class SignInContinuationState(
                 is INativeAuthCommandResult.UnknownError -> {
                     Logger.warn(
                         TAG,
+                        result.correlationId,
                         "Sign in after sign up received unexpected result: $result"
                     )
                     SignInContinuationError(
@@ -511,6 +589,7 @@ class SignInContinuationState(
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(continuationToken)
+        parcel.writeString(correlationId)
         parcel.writeString(username)
         parcel.writeSerializable(config)
     }

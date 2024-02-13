@@ -27,6 +27,7 @@ import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.ui.automation.sdk.AuthTestParams;
 
 import java.util.List;
+import java.util.Map;
 
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
@@ -41,4 +42,5 @@ public class MsalAuthTestParams extends AuthTestParams {
     private final int msalConfigResourceId;
     private final List<String> scopes;
     private final ClaimsRequest claims;
+    private final List<Map.Entry<String, String>> extraQueryParameters;
 }

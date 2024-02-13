@@ -31,30 +31,20 @@ import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
-import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult
-import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
-import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
-import com.microsoft.identity.nativeauth.statemachine.states.Callback
-import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordCodeRequiredState
-import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
-import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState
-import com.microsoft.identity.nativeauth.statemachine.states.SignInPasswordRequiredState
-import com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesRequiredState
-import com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState
-import com.microsoft.identity.nativeauth.statemachine.states.SignUpPasswordRequiredState
 import com.microsoft.identity.common.crypto.AndroidAuthSdkStorageEncryptionManager
 import com.microsoft.identity.common.internal.cache.SharedPreferencesFileManager
 import com.microsoft.identity.common.internal.commands.GetCurrentAccountCommand
 import com.microsoft.identity.common.internal.controllers.LocalMSALController
-import com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordStartCommand
-import com.microsoft.identity.common.nativeauth.internal.commands.SignInStartCommand
-import com.microsoft.identity.common.nativeauth.internal.commands.SignUpStartCommand
-import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.common.internal.net.cache.HttpCache
 import com.microsoft.identity.common.java.authorities.Authority
 import com.microsoft.identity.common.java.cache.ICacheRecord
 import com.microsoft.identity.common.java.commands.CommandCallback
 import com.microsoft.identity.common.java.controllers.CommandDispatcher
+import com.microsoft.identity.common.java.eststelemetry.PublicApiId
+import com.microsoft.identity.common.java.exception.BaseException
+import com.microsoft.identity.common.java.logging.DiagnosticContext
+import com.microsoft.identity.common.java.logging.LogSession
+import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.ResetPasswordCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.ResetPasswordStartCommandResult
@@ -62,14 +52,14 @@ import com.microsoft.identity.common.java.nativeauth.controllers.results.SignInC
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignInStartCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignUpCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignUpStartCommandResult
-import com.microsoft.identity.common.java.eststelemetry.PublicApiId
-import com.microsoft.identity.common.java.exception.BaseException
-import com.microsoft.identity.common.java.logging.LogSession
-import com.microsoft.identity.common.java.logging.Logger
+import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory
 import com.microsoft.identity.common.java.util.ResultFuture
 import com.microsoft.identity.common.java.util.StringUtil
-import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
+import com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordStartCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.SignInStartCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.SignUpStartCommand
+import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
@@ -77,7 +67,18 @@ import com.microsoft.identity.nativeauth.statemachine.errors.SignInErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
+import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState
+import com.microsoft.identity.nativeauth.statemachine.states.Callback
+import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordCodeRequiredState
+import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState
+import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
+import com.microsoft.identity.nativeauth.statemachine.states.SignInPasswordRequiredState
+import com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesRequiredState
+import com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState
+import com.microsoft.identity.nativeauth.statemachine.states.SignUpPasswordRequiredState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -114,7 +115,11 @@ class NativeAuthPublicClientApplication(
         val pcaScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
         fun getCurrentAccountInternal(config: NativeAuthPublicClientApplicationConfiguration): IAccount? {
-            LogSession.logMethodCall(TAG, "${TAG}.getCurrentAccountInternal")
+            LogSession.logMethodCall(
+                tag = TAG,
+                correlationId = null,
+                methodName = "${TAG}.getCurrentAccountInternal"
+            )
 
             val params = CommandParametersAdapter.createCommandParameters(
                 config,
@@ -154,7 +159,11 @@ class NativeAuthPublicClientApplication(
          * If the list can be converted to multiple accounts, only the first one will be returned.
          */
         private fun getAccountFromICacheRecordsList(cacheRecords: List<ICacheRecord?>?): IAccount? {
-            LogSession.logMethodCall(TAG, "${TAG}.getAccountFromICacheRecordsList")
+            LogSession.logMethodCall(
+                tag = TAG,
+                correlationId = null,
+                methodName = "${TAG}.getAccountFromICacheRecordsList"
+            )
             if (cacheRecords.isNullOrEmpty()) {
                 return null
             }
@@ -195,7 +204,11 @@ class NativeAuthPublicClientApplication(
 
         // Init HTTP cache
         HttpCache.initialize(context.cacheDir)
-        LogSession.logMethodCall(TAG, "${TAG}.initializeApplication")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.initializeApplication"
+        )
     }
 
     private fun initializeSharedPreferenceFileManager(context: Context) {
@@ -237,6 +250,7 @@ class NativeAuthPublicClientApplication(
                 GetAccountResult.AccountFound(
                     resultValue = AccountState.createFromAccountResult(
                         account = account,
+                        correlationId = DiagnosticContext.INSTANCE.threadCorrelationId,
                         config = nativeAuthConfig
                     )
                 )
@@ -264,7 +278,11 @@ class NativeAuthPublicClientApplication(
         scopes: List<String>?,
         callback: SignInCallback
     ) {
-        LogSession.logMethodCall(TAG, "${TAG}.signIn")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.signIn"
+        )
         pcaScope.launch {
             try {
                 val result = signIn(username, password, scopes)
@@ -290,11 +308,22 @@ class NativeAuthPublicClientApplication(
         password: CharArray?,
         scopes: List<String>?
     ): SignInResult {
-        LogSession.logMethodCall(TAG, "${TAG}.signIn")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.signIn"
+        )
         return withContext(Dispatchers.IO) {
-            LogSession.logMethodCall(TAG, "${TAG}.signIn.withContext")
 
             verifyNoUserIsSignedIn()
+
+            if (username.isBlank()) {
+                return@withContext SignInError(
+                    errorType = ErrorTypes.INVALID_USERNAME,
+                    errorMessage = "Empty or blank username",
+                    correlationId = "UNSET"
+                )
+            }
 
             val hasPassword = password?.isNotEmpty() == true
 
@@ -325,8 +354,9 @@ class NativeAuthPublicClientApplication(
 
                             SignInResult.Complete(
                                 resultValue = AccountState.createFromAuthenticationResult(
-                                    authenticationResult,
-                                    nativeAuthConfig
+                                    authenticationResult = authenticationResult,
+                                    correlationId = result.correlationId,
+                                    config = nativeAuthConfig
                                 )
                             )
                         } else {
@@ -336,25 +366,36 @@ class NativeAuthPublicClientApplication(
                             )
                             SignInError(
                                 errorMessage = "unexpected state",
-                                error = "unexpected_state",
-                                correlationId = "UNSET"
+                                error = ErrorTypes.INVALID_STATE,
+                                correlationId = result.correlationId
                             )
                         }
                     }
                     is SignInCommandResult.CodeRequired -> {
                         Logger.warn(
                             TAG,
+                            result.correlationId,
                             "Server requires a code"
                         )
                         SignInResult.CodeRequired(
                             nextState = SignInCodeRequiredState(
                                 continuationToken = result.continuationToken,
+                                correlationId = result.correlationId,
                                 scopes = scopes,
                                 config = nativeAuthConfig
                             ),
                             codeLength = result.codeLength,
                             sentTo = result.challengeTargetLabel,
                             channel = result.challengeChannel
+                        )
+                    }
+                    is INativeAuthCommandResult.InvalidUsername -> {
+                        SignInError(
+                            errorType = ErrorTypes.INVALID_USERNAME,
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes
                         )
                     }
                     is SignInCommandResult.PasswordRequired -> {
@@ -365,13 +406,14 @@ class NativeAuthPublicClientApplication(
                             )
                             SignInError(
                                 errorMessage = "unexpected state",
-                                error = "unexpected_state",
-                                correlationId = "UNSET"
+                                error = ErrorTypes.INVALID_STATE,
+                                correlationId = result.correlationId
                             )
                         } else {
                             SignInResult.PasswordRequired(
                                 nextState = SignInPasswordRequiredState(
                                     continuationToken = result.continuationToken,
+                                    correlationId = result.correlationId,
                                     scopes = scopes,
                                     config = nativeAuthConfig
                                 )
@@ -403,7 +445,7 @@ class NativeAuthPublicClientApplication(
                             )
                             SignInError(
                                 errorMessage = "unexpected state",
-                                error = "unexpected_state",
+                                error = ErrorTypes.INVALID_STATE,
                                 correlationId = result.correlationId,
                                 errorCodes = result.errorCodes
                             )
@@ -452,7 +494,11 @@ class NativeAuthPublicClientApplication(
         attributes: UserAttributes?,
         callback: SignUpCallback
     ) {
-        LogSession.logMethodCall(TAG, "${TAG}.signUp")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.signUp"
+        )
         pcaScope.launch {
             try {
                 val result = signUp(username, password, attributes)
@@ -478,8 +524,11 @@ class NativeAuthPublicClientApplication(
         password: CharArray?,
         attributes: UserAttributes?
     ): SignUpResult {
-        LogSession.logMethodCall(TAG, "${TAG}.signUp")
-
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.signUp"
+        )
         var hasPassword = password?.isNotEmpty() == true
 
         return withContext(Dispatchers.IO) {
@@ -488,6 +537,14 @@ class NativeAuthPublicClientApplication(
                 throw MsalClientException(
                     MsalClientException.INVALID_PARAMETER,
                     "An account is already signed in."
+                )
+            }
+
+            if (username.isBlank()) {
+                return@withContext SignUpError(
+                    errorType = ErrorTypes.INVALID_USERNAME,
+                    errorMessage = "Empty or blank username",
+                    correlationId = "UNSET"
                 )
             }
 
@@ -515,6 +572,7 @@ class NativeAuthPublicClientApplication(
                         SignUpResult.Complete(
                             nextState = SignInContinuationState(
                                 continuationToken = result.continuationToken,
+                                correlationId = result.correlationId,
                                 username = username,
                                 config = nativeAuthConfig
                             )
@@ -525,6 +583,7 @@ class NativeAuthPublicClientApplication(
                         SignUpResult.AttributesRequired(
                             nextState = SignUpAttributesRequiredState(
                                 continuationToken = result.continuationToken,
+                                correlationId = result.correlationId,
                                 username = username,
                                 config = nativeAuthConfig
                             ),
@@ -536,6 +595,7 @@ class NativeAuthPublicClientApplication(
                         SignUpResult.CodeRequired(
                             nextState = SignUpCodeRequiredState(
                                 continuationToken = result.continuationToken,
+                                correlationId = result.correlationId,
                                 username = username,
                                 config = nativeAuthConfig
                             ),
@@ -551,13 +611,14 @@ class NativeAuthPublicClientApplication(
                                 "Sign up using password received unexpected result $result")
                             SignUpError(
                                 errorMessage = "Unexpected state",
-                                error = "unexpected_state",
-                                correlationId = "UNSET"
+                                error = ErrorTypes.INVALID_STATE,
+                                correlationId = result.correlationId
                             )
                         } else {
                             SignUpResult.PasswordRequired(
                                 nextState = SignUpPasswordRequiredState(
                                     continuationToken = result.continuationToken,
+                                    correlationId = result.correlationId,
                                     username = username,
                                     config = nativeAuthConfig
                                 )
@@ -588,7 +649,7 @@ class NativeAuthPublicClientApplication(
                                 "Sign up received unexpected result $result"
                             )
                             SignUpError(
-                                error = "unexpected_state",
+                                error = ErrorTypes.INVALID_STATE,
                                 errorMessage = "Unexpected state",
                                 correlationId = result.correlationId,
                             )
@@ -604,9 +665,9 @@ class NativeAuthPublicClientApplication(
                         )
                     }
 
-                    is SignUpCommandResult.InvalidEmail -> {
+                    is INativeAuthCommandResult.InvalidUsername -> {
                         SignUpError(
-                            errorType = SignUpErrorTypes.INVALID_USERNAME,
+                            errorType = ErrorTypes.INVALID_USERNAME,
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId
@@ -634,8 +695,8 @@ class NativeAuthPublicClientApplication(
                     is INativeAuthCommandResult.UnknownError -> {
                         SignUpError(
                             errorMessage = "Unexpected state",
-                            error = "unexpected_state",
-                            correlationId = "UNSET"
+                            error = ErrorTypes.INVALID_STATE,
+                            correlationId = result.correlationId
                         )
                     }
                 }
@@ -656,7 +717,11 @@ class NativeAuthPublicClientApplication(
      * @throws MsalClientException if an account is already signed in.
      */
     override fun resetPassword(username: String, callback: ResetPasswordCallback) {
-        LogSession.logMethodCall(TAG, "${TAG}.resetPassword")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.resetPassword"
+        )
         pcaScope.launch {
             try {
                 val result = resetPassword(username = username)
@@ -676,7 +741,11 @@ class NativeAuthPublicClientApplication(
      * @throws MsalClientException if an account is already signed in.
      */
     override suspend fun resetPassword(username: String): ResetPasswordStartResult {
-        LogSession.logMethodCall(TAG, "${TAG}.resetPassword(username: String)")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.resetPassword(username: String)"
+        )
 
         return withContext(Dispatchers.IO) {
             val doesAccountExist = checkForPersistedAccount().get()
@@ -684,6 +753,14 @@ class NativeAuthPublicClientApplication(
                 throw MsalClientException(
                     MsalClientException.INVALID_PARAMETER,
                     "An account is already signed in."
+                )
+            }
+
+            if (username.isBlank()) {
+                return@withContext ResetPasswordError(
+                    errorType = ErrorTypes.INVALID_USERNAME,
+                    errorMessage = "Empty or blank username",
+                    correlationId = "UNSET"
                 )
             }
 
@@ -707,6 +784,7 @@ class NativeAuthPublicClientApplication(
                         nextState = ResetPasswordCodeRequiredState(
                             continuationToken = result.continuationToken,
                             username = username,
+                            correlationId = result.correlationId,
                             config = nativeAuthConfig
                         ),
                         codeLength = result.codeLength,
@@ -721,6 +799,16 @@ class NativeAuthPublicClientApplication(
                         error = result.error,
                         errorMessage = result.errorDescription,
                         correlationId = result.correlationId
+                    )
+                }
+
+                is INativeAuthCommandResult.InvalidUsername -> {
+                    ResetPasswordError(
+                        errorType = ErrorTypes.INVALID_USERNAME,
+                        errorMessage = result.errorDescription,
+                        error = result.error,
+                        correlationId = result.correlationId,
+                        errorCodes = result.errorCodes
                     )
                 }
 
@@ -745,10 +833,11 @@ class NativeAuthPublicClientApplication(
                 is ResetPasswordCommandResult.PasswordNotSet -> {
                     Logger.warn(
                         TAG,
+                        result.correlationId,
                         "Reset password received unexpected result $result",
                     )
                     ResetPasswordError(
-                        error = "unexpected_state",
+                        error = ErrorTypes.INVALID_STATE,
                         errorMessage = "Unexpected state",
                         correlationId = result.correlationId,
                     )
@@ -757,10 +846,11 @@ class NativeAuthPublicClientApplication(
                 is ResetPasswordCommandResult.EmailNotVerified -> {
                     Logger.warn(
                         TAG,
+                        result.correlationId,
                         "Reset password received unexpected result $result"
                     )
                     ResetPasswordError(
-                        error = "unexpected_state",
+                        error = ErrorTypes.INVALID_STATE,
                         errorMessage = "Unexpected state",
                         correlationId = result.correlationId,
                     )
@@ -785,7 +875,11 @@ class NativeAuthPublicClientApplication(
     }
 
     private fun checkForPersistedAccount(): ResultFuture<Boolean> {
-        LogSession.logMethodCall(TAG, "${TAG}.checkForPersistedAccount")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.checkForPersistedAccount"
+        )
         val future = ResultFuture<Boolean>()
         getCurrentAccount(object : GetCurrentAccountCallback {
             override fun onResult(result: GetAccountResult) {

@@ -39,6 +39,8 @@ open class SignInError(
     fun isUserNotFound(): Boolean = this.errorType == ErrorTypes.USER_NOT_FOUND
 
     fun isInvalidCredentials(): Boolean = this.errorType == SignInErrorTypes.INVALID_CREDENTIALS
+
+    fun isInvalidUsername(): Boolean = this.errorType == ErrorTypes.INVALID_USERNAME
 }
 
 /**
@@ -77,7 +79,6 @@ class SignInSubmitPasswordError(
 open class SignInContinuationError(
     override val error: String? = null,
     override val errorMessage: String?,
-    // TODO: The parameter type of correlationId should be changed to String? after PBI https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2774018 is completed
     override val correlationId: String,
     override val errorCodes: List<Int>? = null,
     override var exception: Exception? = null

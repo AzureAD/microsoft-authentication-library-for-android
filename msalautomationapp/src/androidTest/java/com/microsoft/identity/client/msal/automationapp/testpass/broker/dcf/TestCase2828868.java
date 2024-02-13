@@ -20,24 +20,34 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.dcf;
 
-package com.microsoft.identity.nativeauth.statemachine.errors
+import com.microsoft.identity.client.msal.automationapp.R;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
+import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 
-import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
+import org.junit.Test;
 
-internal class GetAccessTokenErrorTypes {
-    companion object {
-        const val NO_ACCOUNT_FOUND = "no_account_found"
+// Brokered Auth verify "Sign In from other device" option for Us Gov and and remote login url.
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2828868
+@RetryOnFailure(retryCount = 2)
+public class TestCase2828868 extends AbstractSignInFromOtherDeviceTest {
+    public TestCase2828868() {
+        super(AzureEnvironment.AZURE_US_GOVERNMENT);
     }
-}
 
-class GetAccessTokenError(
-    override val errorType: String? = null,
-    override val error: String? = null,
-    override val errorMessage: String? = null,
-    override val correlationId: String,
-    override val errorCodes: List<Int>? = null,
-    override var exception: Exception? = null
-): GetAccessTokenResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
-    fun isNoAccountFound() : Boolean = this.errorType == GetAccessTokenErrorTypes.NO_ACCOUNT_FOUND
+    @Test
+    public void test_2828868() throws Throwable {
+        this.testSignInFromOtherDevice();
+    }
+
+    @Override
+    public int getConfigFileResourceId() {
+        return R.raw.msal_config_arlington;
+    }
+
+    @Override
+    protected String getExpectedDeviceCodeUrl() {
+        return "https://microsoft.com/deviceloginus";
+    }
 }

@@ -31,9 +31,12 @@ import com.microsoft.identity.common.java.util.StringUtil;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /// Acting as a bridge between the result of MsalWrapper's results and the outside world.
 interface INotifyOperationResultCallback<T> {
@@ -136,6 +139,13 @@ abstract class MsalWrapper {
                 .forAccount(requestOptions.getAccount())
                 .withPrompt(requestOptions.getPrompt())
                 .withCallback(getAuthenticationCallback(callback));
+
+        // create extra query parameters list and add "is_remote_login_allowed=true"
+        if (requestOptions.isAllowSignInFromOtherDevice()) {
+            final List<Map.Entry<String, String>> extraQP = new ArrayList<>();
+            extraQP.add(new AbstractMap.SimpleEntry<>("is_remote_login_allowed", Boolean.toString(true)));
+            builder.withAuthorizationQueryStringParameters(extraQP);
+        }
 
         if (!StringUtil.isNullOrEmpty(requestOptions.getAuthority())) {
             builder.fromAuthority(requestOptions.getAuthority());
