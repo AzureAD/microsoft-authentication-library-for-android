@@ -55,6 +55,7 @@
     <string name="auth_scheme_text">Auth Scheme</string>
     <string name="launch_main_activity_button">Start Task</string>
     <string name="get_active_broker">Get active broker package</string>
+    <string name="sign_in_from_other_device">Allow \"Sign in from other device\"?</string>
     <string name="get_preferred_auth_method"> Get Preferred Auth Method</string>
 
     <!-- TODO: Remove or change this placeholder text -->
