@@ -1,4 +1,7 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
+vNext 2
+---------
+- [MINOR] Add support for CIAM custom domain (#2029)
 
 vNext
 ----------
