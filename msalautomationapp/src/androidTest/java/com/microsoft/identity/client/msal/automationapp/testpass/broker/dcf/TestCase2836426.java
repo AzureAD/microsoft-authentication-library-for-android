@@ -42,7 +42,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
-// Brokered Auth verify "Sign In from other device" option is not present
+// Brokered Auth to verify "Sign In from other device" option is not present
 // if "is_remote_login_allowed=true" query parameter is not present.
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2836426
 @RetryOnFailure(retryCount = 2)
