@@ -50,4 +50,5 @@ class RequestOptions {
     private final HttpMethod mPopHttpMethod;
     private final String mPopResourceUrl;
     private final String mPoPClientClaims;
+    private final boolean mAllowSignInFromOtherDevice;
 }

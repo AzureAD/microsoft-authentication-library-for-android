@@ -86,6 +86,8 @@ public class AcquireTokenFragment extends Fragment {
     private Switch mEnablePII;
     private Switch mForceRefresh;
     private Switch mEnableNewBrokerDiscovery;
+    private Switch mAllowSignInFromOtherDevice;
+
     private Button mClearActiveBrokerDiscoveryCache;
     private TextView mCachedActiveBrokerName;
     private Spinner mKnownBrokerApps;
@@ -157,6 +159,7 @@ public class AcquireTokenFragment extends Fragment {
 
         mEnablePII = view.findViewById(enablePII);
         mForceRefresh = view.findViewById(R.id.forceRefresh);
+        mAllowSignInFromOtherDevice =  view.findViewById(R.id.sign_in_from_other_device_switch);
         mSelectAccount = view.findViewById(R.id.select_user);
         mGetUsers = view.findViewById(R.id.btn_getUsers);
         mClearCache = view.findViewById(R.id.btn_clearCache);
@@ -599,6 +602,7 @@ public class AcquireTokenFragment extends Fragment {
         final String claims = mClaims.getText().toString();
         final boolean enablePII = mEnablePII.isChecked();
         final boolean forceRefresh = mForceRefresh.isChecked();
+        final boolean allowSignInFromOtherDevice = mAllowSignInFromOtherDevice.isChecked();
         final String authority = mAuthority.getText().toString();
         final Constants.AuthScheme authScheme = Constants.AuthScheme.valueOf(mAuthScheme.getSelectedItem().toString());
         final String httpMethodTextFromSpinner = mPopHttpMethod.getSelectedItem().toString();
@@ -622,7 +626,8 @@ public class AcquireTokenFragment extends Fragment {
                 authScheme,
                 popHttpMethod,
                 popResourceUrl,
-                popClientClaimsTxt
+                popClientClaimsTxt,
+                allowSignInFromOtherDevice
         );
     }
 
