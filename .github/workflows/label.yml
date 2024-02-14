@@ -11,8 +11,6 @@ on:
 
 jobs:
   label:
-    permissions:
-      pull-requests: write
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
