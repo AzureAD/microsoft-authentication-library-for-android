@@ -26,6 +26,7 @@ import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
+import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.http.MockHttpClient;
 import com.microsoft.identity.internal.testutils.TestUtils;
 
@@ -55,6 +56,8 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
         AcquireTokenTestHelper.setAccount(null);
         // remove everything from cache after test ends
         TestUtils.clearCache(SHARED_PREFERENCES_NAME);
+
+        Authority.clearKnownAuthorities();
 
         mockHttpClient.uninstall();
     }

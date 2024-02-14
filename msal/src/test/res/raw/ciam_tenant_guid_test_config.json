@@ -5,7 +5,7 @@
   "authorities" : [
     {
       "type": "CIAM",
-      "authority_url": "https://msidlabciam2.ciamlogin.com/f7416cc8-8ea1-4e5c-b230-0c978f81dfc6"
+      "authority_url": "https://msidlabciam2.ciamlogin.com/f7416cc8-8ea1-4e5c-b230-0c978f81dfc6/v2.0"
     }
   ]
 }
