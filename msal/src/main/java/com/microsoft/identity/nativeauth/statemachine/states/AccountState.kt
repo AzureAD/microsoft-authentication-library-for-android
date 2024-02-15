@@ -54,6 +54,7 @@ import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenError
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignOutResult
+import com.microsoft.identity.nativeauth.utils.serializable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -63,16 +64,17 @@ import kotlinx.coroutines.withContext
  */
 class AccountState private constructor(
     private val account: IAccount,
-    private val config: NativeAuthPublicClientApplicationConfiguration
+    private val config: NativeAuthPublicClientApplicationConfiguration,
+    val correlationId: String
 ) : Parcelable {
 
     interface SignOutCallback : Callback<SignOutResult>
 
     constructor(parcel: Parcel) : this(
-        parcel.readSerializable() as IAccount,
-        parcel.readSerializable() as NativeAuthPublicClientApplicationConfiguration
-    ) {
-    }
+        account = parcel.serializable<IAccount>() as IAccount,
+        correlationId = parcel.readString() ?: "UNSET",
+        config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
+    )
 
     /**
      * Remove the current account from the cache; callback variant.
@@ -80,7 +82,11 @@ class AccountState private constructor(
      * @param callback [com.microsoft.identity.nativeauth.statemachine.states.AccountState.SignOutCallback] to receive the result on.
      */
     fun signOut(callback: SignOutCallback) {
-        LogSession.logMethodCall(TAG, "$TAG.signOut")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "$TAG.signOut"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = signOut()
@@ -97,7 +103,11 @@ class AccountState private constructor(
      */
     suspend fun signOut(): SignOutResult {
         return withContext(Dispatchers.IO) {
-            LogSession.logMethodCall(TAG, "$TAG.signOut.withContext")
+            LogSession.logMethodCall(
+                tag = TAG,
+                correlationId = null,
+                methodName = "$TAG.signOut.withContext"
+            )
 
             val account: IAccount =
                 NativeAuthPublicClientApplication.getCurrentAccountInternal(config)
@@ -193,7 +203,11 @@ class AccountState private constructor(
      * @throws [ServiceException] If the refresh token doesn't exist in the cache/is expired, or the refreshing fails.
      */
     fun getAccessToken(forceRefresh: Boolean = false, callback: GetAccessTokenCallback) {
-        LogSession.logMethodCall(TAG, "$TAG.getAccessToken")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "$TAG.getAccessToken"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = getAccessToken(forceRefresh)
@@ -213,14 +227,19 @@ class AccountState private constructor(
      * @return [com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult] The result of the getAccessToken action
      */
     suspend fun getAccessToken(forceRefresh: Boolean = false): GetAccessTokenResult {
-        LogSession.logMethodCall(TAG, "$TAG.getAccessToken(forceRefresh: Boolean)")
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "$TAG.getAccessToken(forceRefresh: Boolean)"
+        )
         return withContext(Dispatchers.IO) {
             val account =
                 NativeAuthPublicClientApplication.getCurrentAccountInternal(config) as? Account
                     ?: return@withContext GetAccessTokenError(
                         errorType = GetAccessTokenErrorTypes.NO_ACCOUNT_FOUND,
                         error = MsalClientException.NO_CURRENT_ACCOUNT,
-                        errorMessage = MsalClientException.NO_CURRENT_ACCOUNT_ERROR_MESSAGE
+                        errorMessage = MsalClientException.NO_CURRENT_ACCOUNT_ERROR_MESSAGE,
+                        correlationId = "UNSET"
                     )
 
             val acquireTokenSilentParameters = AcquireTokenSilentParameters.Builder()
@@ -237,7 +256,8 @@ class AccountState private constructor(
                 config,
                 config.oAuth2TokenCache,
                 accountToBeUsed,
-                forceRefresh
+                forceRefresh,
+                correlationId
             )
 
             val command = AcquireTokenNoFixedScopesCommand(
@@ -252,12 +272,14 @@ class AccountState private constructor(
             return@withContext when (commandResult) {
                 is ServiceException -> {
                     GetAccessTokenError(
-                        exception = ExceptionAdapter.convertToNativeAuthException(commandResult)
+                        exception = ExceptionAdapter.convertToNativeAuthException(commandResult),
+                        correlationId = "UNSET"
                     )
                 }
                 is Exception -> {
                     GetAccessTokenError(
-                        exception = commandResult
+                        exception = commandResult,
+                        correlationId = "UNSET"
                     )
                 }
                 else -> {
@@ -271,6 +293,7 @@ class AccountState private constructor(
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeSerializable(account)
+        parcel.writeSerializable(correlationId)
         parcel.writeSerializable(config)
     }
 
@@ -291,20 +314,24 @@ class AccountState private constructor(
 
         fun createFromAuthenticationResult(
             authenticationResult: IAuthenticationResult,
+            correlationId: String,
             config: NativeAuthPublicClientApplicationConfiguration
         ): AccountState {
             return AccountState(
                 account = authenticationResult.account,
+                correlationId = correlationId,
                 config = config
             )
         }
 
         fun createFromAccountResult(
             account: IAccount,
+            correlationId: String,
             config: NativeAuthPublicClientApplicationConfiguration
         ): AccountState {
             return AccountState(
                 account = account,
+                correlationId = correlationId,
                 config = config
             )
         }

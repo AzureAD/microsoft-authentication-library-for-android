@@ -56,6 +56,7 @@
     <string name="launch_main_activity_button">Start Task</string>
     <string name="get_active_broker">Get active broker package</string>
     <string name="is_qr_pin_available">is QR + PIN available</string>
+    <string name="sign_in_from_other_device">Allow \"Sign in from other device\"?</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
@@ -70,5 +71,52 @@
     <string name="clear_active_broker_cache">Clear Active Broker Cache</string>
     <string name="current_cached_active_broker">Cached Active Broker</string>
     <string name="none">None</string>
+
+    <!-- Native Auth Title screens -->
+    <string name="title_email_password_sisu">Email &amp; Password</string>
+    <string name="title_email_oob_sisu">Email &amp; OTP</string>
+    <string name="title_email_attribute_oob_sisu">Custom Attributes</string>
+    <string name="title_email_oob_sspr">Password Reset</string>
+    <string name="title_more">More</string>
+    <string name="title_web_fallback">Web Fallback</string>
+
+    <!-- Native Auth -->
+    <string name="sign_in">"Sign In"</string>
+    <string name="sign_up">"Sign Up"</string>
+    <string name="sign_out">"Sign Out"</string>
+    <string name="forget_password">"Forget Password"</string>
+    <string name="submit_attribute">"Submit"</string>
+    <string name="submit_password">"Submit"</string>
+    <string name="create">"Create new user"</string>
+    <string name="attributes_intro">Attributes are required. Check logs for details.</string>
+    <string name="submit_attributes">Submit attributes</string>
+    <string name="verify_email">"Send"</string>
+    <string name="verify_code">"Next"</string>
+    <string name="resend_code_text">"Resend Passcode"</string>
+
+    <string name="sign_in_successful_message">"Sign in successful"</string>
+    <string name="sign_up_successful_message">"Sign up successful. Trigger sign in flow."</string>
+    <string name="sign_in_switch_to_otp">"Account requires code for sign in"</string>
+    <string name="sign_out_successful_message">"Sign out successful"</string>
+    <string name="password_reset_success_message">"Password change successful"</string>
+    <string name="resend_code_message">"New code sent"</string>
+
+    <!-- Native Auth Errors -->
+    <string name="msal_exception_title">MSAL Exception</string>
+
+    <!-- Native Auth Fields -->
+    <string name="attribute_email">Email <font color='@android:color/red'>*</font></string>
+    <string name="attribute_password">Password <font color='@android:color/red'>*</font></string>
+    <string name="attribute_attr1_key">Attribute 1 - Key</string>
+    <string name="attribute_attr1_value">Attribute 1 - Value</string>
+    <string name="attribute_attr2_key">Attribute 2 - Key</string>
+    <string name="attribute_attr2_value">Attribute 2 - Value</string>
+    <string name="attribute_given">"Given name"</string>
+    <string name="attribute_surname">"Surname"</string>
+    <string name="attribute_otp">"Code"</string>
+
+    <!-- Results -->
+    <string name="result_access_token_text">"Access token: "</string>
+    <string name="result_id_token_text">"ID token: "</string>
     <string name="at_with_qr_pin">AT with QR + PIN</string>
 </resources>

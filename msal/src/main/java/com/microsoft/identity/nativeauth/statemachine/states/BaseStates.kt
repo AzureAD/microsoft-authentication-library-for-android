@@ -28,4 +28,7 @@ interface State
 /**
  * BaseState is the base class for various states in the Native Auth state machine.
  */
-abstract class BaseState(internal open val continuationToken: String?)
+abstract class BaseState(
+    internal open val continuationToken: String?,
+    internal open val correlationId: String
+)

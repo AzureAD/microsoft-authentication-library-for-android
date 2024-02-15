@@ -36,6 +36,9 @@
         <item
             android:id="@+id/nav_log"
             android:title="Log" />
+        <item
+            android:id="@+id/nav_native"
+            android:title="Native Auth" />
     </group>
 
 </menu>
