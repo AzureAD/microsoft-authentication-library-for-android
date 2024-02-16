@@ -89,16 +89,15 @@ class MSALControllerFactory(
     /**
      * Returns one or more controllers to address a given request.
      *
-     * The order of the response matters.  The local controller should be returned first in order to
-     * ensure that any local refresh tokens are preferred over the use of the broker
+     * If requests is eligible for broker, {@link BrokerMsalController} will be
+     * added before {@link LocalMSALController}. otherwise only {@link LocalMSALController} will
+     * be returned.
      *
-     * Only return the broker controller when the following are true:
+     * Broker eligibility is determined if following conditions are true:
      *
-     * 1) The client indicates it wants to use broker
-     * 2) The authority is AAD
-     * 3) The audience is not AnyPersonalAccount
-     * 4) The broker is installed
-     * 5) The broker redirect URI for the client is registered
+     * 1) The broker is installed
+     * 2) The client indicates it wants to use broker
+     * 3) The authority is AAD
      */
     fun getAllControllers(authority: Authority): List<BaseController> {
         val activeBroker = getActiveBrokerPackageName()
