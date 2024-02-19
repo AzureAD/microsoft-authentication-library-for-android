@@ -49,15 +49,20 @@ import com.microsoft.identity.client.exception.MsalUserCancelException;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.constants.AuthScheme;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
+import com.microsoft.identity.client.ui.automation.sdk.AuthResult;
 import com.microsoft.identity.client.ui.automation.sdk.ResultFuture;
 import com.microsoft.identity.client.ui.automation.sdk.IAuthSdk;
 import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryB2CAuthority;
+import com.microsoft.identity.common.java.request.ILocalAuthenticationCallback;
 import com.microsoft.identity.common.java.util.ThreadUtils;
 
 import java.net.URL;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -66,16 +71,39 @@ import java.util.concurrent.TimeUnit;
  * AuthResult, MSAL tests can leverage this sdk for acquiring token with specific
  * parameters and get back the final result.
  */
-public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
+public class MsalSdk implements IAuthSdk<MsalAuthTestParams, MsalAuthResult> {
 
     @Override
-    public MsalAuthResult acquireTokenInteractive(@NonNull MsalAuthTestParams authTestParams, final OnInteractionRequired interactionRequiredCallback, @NonNull final TokenRequestTimeout tokenRequestTimeout) throws Throwable {
+    public MsalAuthResult acquireTokenInteractive(
+            @NonNull MsalAuthTestParams authTestParams,
+            final OnInteractionRequired interactionRequiredCallback,
+            @NonNull final TokenRequestTimeout tokenRequestTimeout
+    ) throws Throwable {
+        final ResultFuture<MsalAuthResult, Exception> future = acquireTokenInteractiveAsync(
+                authTestParams,
+                interactionRequiredCallback,
+                tokenRequestTimeout
+        );
+
+        try {
+            return future.get(tokenRequestTimeout.getTime(), tokenRequestTimeout.getTimeUnit());
+        } catch (Exception exception) {
+            return new MsalAuthResult(exception);
+        }
+    }
+
+    @Override
+    public ResultFuture<MsalAuthResult, Exception> acquireTokenInteractiveAsync(
+            @NonNull final MsalAuthTestParams authTestParams,
+            @NonNull final OnInteractionRequired interactionRequiredCallback,
+            @NonNull final TokenRequestTimeout tokenRequestTimeout
+    ) throws Throwable {
         final IPublicClientApplication pca = setupPCA(
                 authTestParams.getActivity(),
                 authTestParams.getMsalConfigResourceId()
         );
 
-        final ResultFuture<IAuthenticationResult, Exception> future = new ResultFuture<>();
+        final ResultFuture<MsalAuthResult, Exception> future = new ResultFuture<>();
 
         final AcquireTokenParameters.Builder acquireTokenParametersBuilder = new AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(authTestParams.getActivity())
@@ -83,6 +111,11 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
                 .withPrompt(authTestParams.getPromptParameter())
                 .fromAuthority(authTestParams.getAuthority())
                 .withCallback(getAuthCallback(future));
+
+        if (authTestParams.getExtraQueryParameters() != null) {
+            acquireTokenParametersBuilder.withAuthorizationQueryStringParameters(
+                    new ArrayList<>(authTestParams.getExtraQueryParameters()));
+        }
 
         if (authTestParams.getScopes() == null || authTestParams.getScopes().isEmpty()) {
             acquireTokenParametersBuilder.withResource(authTestParams.getResource());
@@ -116,12 +149,7 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
 
         interactionRequiredCallback.handleUserInteraction();
 
-        try {
-            final IAuthenticationResult result = future.get(tokenRequestTimeout.getTime(), tokenRequestTimeout.getTimeUnit());
-            return new MsalAuthResult(result);
-        } catch (Exception exception) {
-            return new MsalAuthResult(exception);
-        }
+        return future;
     }
 
     @Override
@@ -131,7 +159,7 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
                 authTestParams.getMsalConfigResourceId()
         );
 
-        final ResultFuture<IAuthenticationResult, Exception> future = new ResultFuture<>();
+        final ResultFuture<MsalAuthResult, Exception> future = new ResultFuture<>();
 
         final Authority authority;
         if (authTestParams.getAuthority() != null) {
@@ -184,8 +212,7 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
         pca.acquireTokenSilentAsync(acquireTokenParameters);
 
         try {
-            final IAuthenticationResult result = future.get(tokenRequestTimeout.getTime(), tokenRequestTimeout.getTimeUnit());
-            return new MsalAuthResult(result);
+            return future.get(tokenRequestTimeout.getTime(), tokenRequestTimeout.getTimeUnit());
         } catch (final Exception exception) {
             return new MsalAuthResult(exception);
         }
@@ -200,11 +227,11 @@ public class MsalSdk implements IAuthSdk<MsalAuthTestParams> {
         }
     }
 
-    private AuthenticationCallback getAuthCallback(final ResultFuture<IAuthenticationResult, Exception> future) {
+    private AuthenticationCallback getAuthCallback(final ResultFuture<MsalAuthResult, Exception> future) {
         return new AuthenticationCallback() {
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
-                future.setResult(authenticationResult);
+                future.setResult(new MsalAuthResult(authenticationResult));
             }
 
             @Override

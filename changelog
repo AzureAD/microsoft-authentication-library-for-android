@@ -5,6 +5,10 @@ vNext 2
 
 vNext
 ----------
+
+Version 5.1.0
+----------
+- [PATCH] Update common @17.1.0
 - [PATCH] Fix MSAL Issue #1864 (#2003)
 - [MINOR] Add isQRPinAvailable API to MSAL IPublicClientApplication (#1931)
 - [MINOR] Add PreferredAuthMethod to interactive token flow (#1964)
