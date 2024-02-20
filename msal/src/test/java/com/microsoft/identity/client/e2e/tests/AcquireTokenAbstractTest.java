@@ -57,8 +57,6 @@ public abstract class AcquireTokenAbstractTest extends PublicClientApplicationAb
         // remove everything from cache after test ends
         TestUtils.clearCache(SHARED_PREFERENCES_NAME);
 
-        Authority.clearKnownAuthorities();
-
         mockHttpClient.uninstall();
     }
 

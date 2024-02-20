@@ -5,7 +5,7 @@
   "authorities" : [
     {
       "type": "CIAM",
-      "authority_url": "https://msidlabciam2.ciamlogin.com/msidlabciam2.onmicrosoft.com/v2.0"
+      "authority_url": "https://msidlabciam2.ciamlogin.com/msidlabciam2.onmicrosoft.com"
     }
   ]
 }
