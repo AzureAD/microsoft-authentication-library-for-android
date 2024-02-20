@@ -20,27 +20,34 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.sdk;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.dcf;
 
-import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.claims.ClaimsRequest;
-import com.microsoft.identity.client.ui.automation.sdk.AuthTestParams;
+import com.microsoft.identity.client.msal.automationapp.R;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
+import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 
-import java.util.List;
-import java.util.Map;
+import org.junit.Test;
 
-import lombok.Getter;
-import lombok.experimental.SuperBuilder;
+// Brokered Auth verify "Sign In from other device" option for Us Gov and and remote login url.
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2828868
+@RetryOnFailure(retryCount = 2)
+public class TestCase2828868 extends AbstractSignInFromOtherDeviceTest {
+    public TestCase2828868() {
+        super(AzureEnvironment.AZURE_US_GOVERNMENT);
+    }
 
-// MSAL Test Parameters Class which has all the parameters required for MSAL with or w/o Broker Automation TestCases
-@Getter
-@SuperBuilder
-public class MsalAuthTestParams extends AuthTestParams {
+    @Test
+    public void test_2828868() throws Throwable {
+        this.testSignInFromOtherDevice();
+    }
 
-    private final Prompt promptParameter;
-    private final boolean forceRefresh;
-    private final int msalConfigResourceId;
-    private final List<String> scopes;
-    private final ClaimsRequest claims;
-    private final List<Map.Entry<String, String>> extraQueryParameters;
+    @Override
+    public int getConfigFileResourceId() {
+        return R.raw.msal_config_arlington;
+    }
+
+    @Override
+    protected String getExpectedDeviceCodeUrl() {
+        return "https://microsoft.com/deviceloginus";
+    }
 }
