@@ -180,7 +180,8 @@ public class Account implements IAccount {
             if (!StringUtil.isEmpty(iss)) {
                 // We're using the issuer to determine whether this is a CIAM authority, as the environment
                 // be a custom-URL-domain variant, which won't contain ciamlogin.com.
-                // Note: this will work as long as the issuer for CUD doesn't change.
+                // Note: this will work as long as the issuer for CUD doesn't change, which it will
+                // in the future. See https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2832277
                 if (iss.contains(CIAMAuthority.CIAM_LOGIN_URL_SEGMENT) && !StringUtil.isEmpty(getEnvironment())
                         && !StringUtil.isEmpty(getTenantId())) {
                     // Call static method in CIAMAuthority to create the full authority uri
