@@ -132,4 +132,25 @@ public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
             flushScheduler();
         }
     }
+
+    public static class CiamTenantNoPath extends AcquireTokenCIAMTest {
+        @Override
+        public String getConfigFilePath() {
+            return CIAM_NO_PATH_CONFIG_FILE_PATH;
+        }
+
+        @Test
+        public void testAcquireTokenSuccessVerifyIssuer() {
+            final AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
+                    .startAuthorizationFromActivity(mActivity)
+                    .withLoginHint(mUsername)
+                    .withScopes(Arrays.asList(mScopes))
+                    .withCallback(successfulVerifyIssuerCallback())
+                    .build();
+
+
+            mApplication.acquireToken(parameters);
+            flushScheduler();
+        }
+    }
 }
