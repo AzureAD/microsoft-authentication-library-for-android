@@ -1,10 +1,8 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
-vNext 2
----------
-- [MINOR] Add support for CIAM custom domain (#2029)
 
 vNext
 ----------
+- [MINOR] Add support for CIAM custom domain (#2029)
 - [PATCH] Update nimbus-jose-jwt 9.37.3 (#2042)
 
 Version 5.1.0
