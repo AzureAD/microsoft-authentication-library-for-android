@@ -5,6 +5,7 @@ vNext 2
 
 vNext
 ----------
+- [PATCH] Update nimbus-jose-jwt 9.37.3 (#2042)
 
 Version 5.1.0
 ----------
