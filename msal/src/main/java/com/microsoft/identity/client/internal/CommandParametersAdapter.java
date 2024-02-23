@@ -35,6 +35,8 @@ import com.microsoft.identity.client.DeviceCodeFlowParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.ITenantProfile;
 import com.microsoft.identity.client.MultiTenantAccount;
+import com.microsoft.identity.common.java.flighting.CommonFlight;
+import com.microsoft.identity.common.java.flighting.CommonFlightManager;
 import com.microsoft.identity.common.java.logging.DiagnosticContext;
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.PoPAuthenticationScheme;
@@ -1189,7 +1191,7 @@ public class CommandParametersAdapter {
             @Nullable final List<Map.Entry<String, String>> queryStringParameters,
             @NonNull final PublicClientApplicationConfiguration configuration) {
         //Putting behind passkey feature flag until feature is ready.
-        if (FidoConstants.IS_PASSKEY_SUPPORT_READY
+        if (CommonFlightManager.isFlightEnabled(CommonFlight.ENABLE_PASSKEY_FEATURE)
                 && configuration.isWebauthnCapable()) {
             final Map.Entry<String, String> webauthnExtraParameter = new AbstractMap.SimpleEntry<>(
                     FidoConstants.WEBAUTHN_QUERY_PARAMETER_FIELD,
