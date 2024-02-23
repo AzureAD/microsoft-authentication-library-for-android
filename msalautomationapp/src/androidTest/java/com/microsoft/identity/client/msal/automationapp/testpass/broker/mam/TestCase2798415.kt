@@ -49,18 +49,16 @@ import org.junit.Test
 @SupportedBrokers(brokers = [BrokerMicrosoftAuthenticator::class])
 @RetryOnFailure
 class TestCase2798415 : AbstractMsalBrokerTest() {
-    val TAG = TestCase2798415::class.java.simpleName
+    private val TAG = TestCase2798415::class.java.simpleName
     @Test
     @Throws(MsalException::class, InterruptedException::class, LabApiException::class)
     fun test_2798415() {
         val adminUserLabQuery = getAdminAccountLabQuery()
 
         // get username and password for this account
-        val user2: ILabAccount = mLabClient.getLabAccount(adminUserLabQuery)
-        val adminUsername = user2.username
-        val adminPassword = user2.password
+        val admin: ILabAccount = mLabClient.getLabAccount(adminUserLabQuery)
         Logger.i(TAG, "Performing Shared Device Registration.")
-        mBroker.performSharedDeviceRegistration(adminUsername, adminPassword)
+        mBroker.performSharedDeviceRegistration(admin.username, admin.password)
 
         // install CP
         val companyPortal = BrokerCompanyPortal()
@@ -79,7 +77,7 @@ class TestCase2798415 : AbstractMsalBrokerTest() {
             .prompt(PromptParameter.SELECT_ACCOUNT)
             .loginHint(username)
             .broker(mBroker)
-            .registerPageExpected(true)
+            .registerPageExpected(false)
             .enrollPageExpected(false)
             .consentPageExpected(false)
             .speedBumpExpected(false)
@@ -88,7 +86,7 @@ class TestCase2798415 : AbstractMsalBrokerTest() {
         // Sign in the first time
         teams.addFirstAccount(username, password, teamsPromptHandlerParameters)
         // handle app protection policy in CP i.e. setup PIN when asked
-        (mBroker as IMdmAgent).handleAppProtectionPolicy()
+        (companyPortal as IMdmAgent).handleAppProtectionPolicy()
         teams.onAccountAdded()
         teams.forceStop() // Teams sometimes seems to like to pop up on screen randomly
 
@@ -116,7 +114,7 @@ class TestCase2798415 : AbstractMsalBrokerTest() {
             }
         }
         // handle app protection policy in CP i.e. setup PIN when asked
-        (mBroker as IMdmAgent).handleAppProtectionPolicy()
+        (companyPortal as IMdmAgent).handleAppProtectionPolicy()
     }
 
     override fun getScopes(): Array<String> {
