@@ -28,7 +28,7 @@ public class TestBrokerPerfJoined extends AbstractMsalBrokerTest {
 
     final ExecutorService executorService = Executors.newFixedThreadPool(25);
 
-    int f = 2;
+    int f = 1;
 
     @Test
     public void testBrokerPerJoined() throws Throwable {
