@@ -48,7 +48,9 @@ public class Constants {
 
         BROWSER_SKIP_BROKER,
 
-        WEBVIEW_SKIP_BROKER
+        WEBVIEW_SKIP_BROKER,
+
+        PPE
 
     }
 
@@ -104,6 +106,9 @@ public class Constants {
 
             case WEBVIEW_SKIP_BROKER:
                 return R.raw.msal_config_webview_skip_broker;
+
+            case PPE:
+                return R.raw.msal_config_ppe;
         }
 
         return R.raw.msal_config_default;

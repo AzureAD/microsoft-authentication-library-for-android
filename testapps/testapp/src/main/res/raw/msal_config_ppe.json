@@ -1,0 +1,14 @@
+{
+  "client_id" : "8fcb9fc1-d8f9-49c0-b80e-a8a8a201d051",
+  "authorization_user_agent" : "WEBVIEW",
+  "redirect_uri" : "msauth://com.msft.identity.client.sample.local/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D",
+  "webauthn_capable" : true,
+  "authorities" : [
+    {
+      "type": "AAD",
+      "audience": {
+        "type": "AzureADMultipleOrgs"
+      }
+    }
+  ]
+}
