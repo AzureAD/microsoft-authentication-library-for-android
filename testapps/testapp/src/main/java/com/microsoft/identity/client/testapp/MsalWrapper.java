@@ -371,9 +371,9 @@ abstract class MsalWrapper {
                                                            @NonNull final INotifyOperationResultCallback<String> generateShrCallback
     );
 
-    public String isQrPinAvailable() {
+    public String getPreferredAuthMethod() {
         try {
-            return String.valueOf(getApp().isQRPinAvailable());
+            return getApp().getPreferredAuthConfiguration().name();
         } catch (BaseException e) {
             return e.getMessage();
         }

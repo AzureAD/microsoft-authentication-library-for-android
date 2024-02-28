@@ -31,6 +31,7 @@ import androidx.annotation.WorkerThread;
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.java.exception.BaseException;
+import com.microsoft.identity.common.java.ui.PreferredAuthMethod;
 import com.microsoft.identity.common.java.util.TaskCompletedCallbackWithError;
 
 import java.util.Date;
@@ -146,12 +147,14 @@ public interface IPublicClientApplication {
     boolean isSharedDevice();
 
     /**
-     * Returns whether the application can support the QR code scanning + PIN protocol.
+     * Reads the preferred authentication method from Authenticator app Restriction Manager.
+     * If the Authenticator app is not installed, or no preferred authentication method is available,
+     * this method will return {@link PreferredAuthMethod#NONE}.
      *
-     * @return true if the device supports the QR code scanning + PIN protocol, false otherwise.
-     * @throws BaseException if the broker is required but not installed.
+     * @return The preferred auth method to use.
+     * @throws BaseException  If the broker is not installed, this method will throw an exception.
      */
-    boolean isQRPinAvailable() throws BaseException;
+    PreferredAuthMethod getPreferredAuthConfiguration() throws BaseException;
 
     /**
      * Signs the provided {@link PoPAuthenticationScheme} parameters into a JWT on behalf of the
