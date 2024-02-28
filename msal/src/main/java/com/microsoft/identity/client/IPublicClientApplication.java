@@ -148,7 +148,7 @@ public interface IPublicClientApplication {
 
     /**
      * Reads the preferred authentication method from Authenticator app Restriction Manager.
-     * If the Authenticator app is not installed, or not authentication method is preferred,
+     * If the Authenticator app is not installed, or no preferred authentication method is available,
      * this method will return {@link PreferredAuthMethod#NONE}.
      *
      * @return The preferred auth method to use.
