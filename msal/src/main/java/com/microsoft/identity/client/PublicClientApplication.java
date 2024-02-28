@@ -155,6 +155,8 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
@@ -1510,7 +1512,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         final ResultFuture<CommandResult> future = CommandDispatcher.submitSilentReturningFuture(command);
 
         try {
-            final CommandResult commandResult = future.get();
+            final CommandResult commandResult = future.get(15, TimeUnit.SECONDS);
             switch (commandResult.getStatus()) {
                 case COMPLETED:
                     Logger.info(methodTag, "Preferred AuthMethod: " + commandResult.getResult());
@@ -1526,7 +1528,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     Logger.warn(methodTag, "Unexpected status on GetPreferredAuthMethodFromAuthenticator: " + commandResult.getStatus());
                     return PreferredAuthMethod.NONE;
             }
-        } catch (final InterruptedException | ExecutionException e) {
+        } catch (final InterruptedException | ExecutionException | TimeoutException e) {
             Logger.error(methodTag, "Unexpected error on GetPreferredAuthMethodFromAuthenticator", e);
             return PreferredAuthMethod.NONE;
         }
