@@ -1190,9 +1190,7 @@ public class CommandParametersAdapter {
     public static List<Map.Entry<String, String>> appendToExtraQueryParametersIfWebAuthnCapable(
             @Nullable final List<Map.Entry<String, String>> queryStringParameters,
             @NonNull final PublicClientApplicationConfiguration configuration) {
-        //Putting behind passkey feature flag until feature is ready.
-        if (CommonFlightManager.isFlightEnabled(CommonFlight.ENABLE_PASSKEY_FEATURE)
-                && configuration.isWebauthnCapable()) {
+        if (configuration.isWebauthnCapable()) {
             final Map.Entry<String, String> webauthnExtraParameter = new AbstractMap.SimpleEntry<>(
                     FidoConstants.WEBAUTHN_QUERY_PARAMETER_FIELD,
                     FidoConstants.WEBAUTHN_QUERY_PARAMETER_VALUE);
