@@ -525,12 +525,18 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 MOCK_ACTIVE_BROKER_NAME
                 , Collections.singletonList(
                 new IIpcStrategy() {
+
                     @Override
                     public Bundle communicateToBroker(@NonNull BrokerOperationBundle bundle) throws BrokerCommunicationException {
                         final Bundle errorBundle = new Bundle();
                         errorBundle.putString(HELLO_ERROR_CODE, ErrorStrings.UNSUPPORTED_BROKER_VERSION_ERROR_CODE);
                         errorBundle.putString(HELLO_ERROR_MESSAGE, ErrorStrings.UNSUPPORTED_BROKER_VERSION_ERROR_MESSAGE);
                         return errorBundle;
+                    }
+
+                    @Override
+                    public boolean isSupportedByTargetedBroker(@NonNull String targetedBrokerPackageName) {
+                        return true;
                     }
 
                     @Override
