@@ -28,6 +28,12 @@
           package="com.microsoft.identity.client.testapp"
           xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Camera permission is required for QR + PIN authorization method w/o broker-->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
