@@ -85,7 +85,7 @@ public class ShadowAuthority {
         if (pathSegments.size() == 0) {
             if (authorityUrl.contains(CIAMAuthority.CIAM_LOGIN_URL_SEGMENT)){
                 // This is a CIAM authority, return CIAMTestAuthority
-                return new CIAMTestAuthority(CIAMAuthority.getFullAuthorityUrlFromAuthorityWithoutPath(authorityUrl));
+                return new CIAMTestAuthority(CIAMAuthority.getTenantNameVariantUrlFromAuthorityWithoutPath(authorityUrl));
             }
             return new UnknownAuthority();
         }
