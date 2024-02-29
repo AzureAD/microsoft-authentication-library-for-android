@@ -147,12 +147,23 @@ public interface IPublicClientApplication {
     boolean isSharedDevice();
 
     /**
-     * Reads the preferred authentication method from Authenticator app Restriction Manager.
-     * If the Authenticator app is not installed, or no preferred authentication method is available,
-     * this method will return {@link PreferredAuthMethod#NONE}.
+     * Reads the preferred authentication method from Authenticator app Restriction Manager and returns the value if exists.
+     * If there is no value set on the Restriction Manager, it will return {@link PreferredAuthMethod#NONE} .
+     * <p>
+     * To set a preferred auth method, the MDM admin needs to create an
+     * <a href="https://learn.microsoft.com/en-us/mem/intune/apps/app-configuration-policies-use-android#create-an-app-configuration-policy">app configuration policy</a>
+     * on the Authenticator app and set the "preferred_auth_config" configuration with "qrpin".
      *
-     * @return The preferred auth method to use.
-     * @throws BaseException  If the broker is not installed, this method will throw an exception.
+     * <p>
+     * Note: this function will be used by MSAL consumer apps to check what’s the preferred Authorization
+     * method set by the MDM Admin and act accordingly. (e.g.) Showing a button to login with QR.
+     *
+     * @return The {@link PreferredAuthMethod}.
+     * @throws BaseException
+     * <li>If the Broker app does not recognize the preferred auth method returned by the restriction manager.</li>
+     * <li>If the Client app does not recognize the preferred auth method returned by the broker app.</li>
+     * <li>If the Broker App or Authenticator app does not support this operation.</li>
+     * <li>If the broker is not installed.</li>
      */
     PreferredAuthMethod getPreferredAuthConfiguration() throws BaseException;
 
