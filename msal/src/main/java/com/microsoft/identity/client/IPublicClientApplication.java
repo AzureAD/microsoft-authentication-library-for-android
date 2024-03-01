@@ -152,7 +152,7 @@ public interface IPublicClientApplication {
      * <p>
      * To set a preferred auth method, the MDM admin needs to create an
      * <a href="https://learn.microsoft.com/en-us/mem/intune/apps/app-configuration-policies-use-android#create-an-app-configuration-policy">app configuration policy</a>
-     * on the Authenticator app and set the "preferred_auth_config" configuration with "qrpin".
+     * on the Authenticator app and set the "preferred_auth_config" configuration with the desired auth method (e.g.) "qrpin".
      *
      * <p>
      * Note: this function will be used by MSAL consumer apps to check what’s the preferred Authorization
