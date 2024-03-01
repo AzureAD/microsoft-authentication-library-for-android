@@ -1,23 +1,30 @@
-Microsoft Authentication Library (MSAL) for Android
-==============================================
+# Microsoft Authentication Library (MSAL) for Android
 
-|[📚Documentation](https://learn.microsoft.com/en-us/azure/active-directory/develop/tutorial-v2-android) | [ 🚀 Getting Started](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-mobile-app-android-sign-in) | [💻 Sample Code](https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki/MSAL-Code-Samples)| [ 📖 Library Reference](http://javadoc.io/doc/com.microsoft.identity.client/msal) | [🛠️ Support](README.md#community-help-and-support) | [🌐 Docs Site](https://learn.microsoft.com/en-us/azure/active-directory/develop/scenario-mobile-overview)
-| --- | --- | --- | --- | --- | --- |
+| Documentation                  | Sample Code               | Library Reference | Support |
+|-------------------------------|---------------------------|-------------------|---------|
+| [MSAL Android documentation](https://learn.microsoft.com/en-us/entra/msal/android/) <br/> [Workforce apps tutorials](https://learn.microsoft.com/en-us/entra/identity-platform/tutorial-v2-android)<br/> Customer apps tutorials <br/>  • Browser-delegated <br/>• Native Authentication | [Workforce samples](https://learn.microsoft.com/en-us/entra/identity-platform/sample-v2-code?tabs=apptype#mobile) <br/> [Customer samples](https://learn.microsoft.com/en-us/entra/identity-platform/sample-v2-code?tabs=apptype#mobile)          | [ MSAL Android reference](http://javadoc.io/doc/com.microsoft.identity.client/msal)              | 🛠️     |
+| --- | --- | --- | --- |
 
+## Overview
 
-## Introduction
-The Microsoft Authentication Library (MSAL) for Android enables developers to acquire security tokens from the Microsoft identity platform to authenticate users and access secured web APIs for their Android based applications.
-The MSAL library for Android gives your app the ability to use the [Microsoft Cloud](https://cloud.microsoft.com) by supporting [Microsoft Azure Active Directory](https://azure.microsoft.com/services/active-directory/) and [Microsoft Personal Accounts](https://account.microsoft.com)  using industry standard OAuth2 and OpenID Connect. The library also supports [Azure AD B2C](https://azure.microsoft.com/services/active-directory-b2c/).
+MSAL Android is a library that enables Android applications to authenticate users with Microsoft identity platform (formerly Azure Active Directory) and access protected web APIs using OAuth2 and OpenID Connect protocols.  The Microsoft Authentication Library (MSAL) for Android enables developers to acquire security tokens from the Microsoft identity platform to authenticate users and access secure web APIs for their Android based applications.
+ 
+MSAL Android supports multiple authentication scenarios, such as single sign-on (SSO), conditional access, and brokered authentication. MSAL Android also provides native authentication APIs that allow applications to implement a native experience with end-to-end customizable flows. 
 
 [![Version Badge](https://img.shields.io/maven-central/v/com.microsoft.identity.client/msal.svg)](https://repo1.maven.org/maven2/com/microsoft/identity/client/msal/)
 
-### :exclamation: Migrating from ADAL
+## Migrating from ADAL
 
-ADAL Android was deprecated on June 2023. We do not support ADAL. See the [ADAL to MSAL migration guide for Android](https://docs.microsoft.com/azure/active-directory/develop/migrate-android-adal-msal)
+The Azure Active Directory Authentication Library (ADAL) for Android was deprecated on June 2023. Follow the [ADAL to MSAL migration guide for Android](https://docs.microsoft.com/azure/active-directory/develop/migrate-android-adal-msal) to avoid putting your app's security at risk.. 
 
-## Using MSAL
+## Getting started
 
-- Before you can get a token from Azure AD v2.0 or Azure AD B2C, you'll need to register an application. To register your app, use [the Azure portal](https://aka.ms/AppRegistrations). For Azure AD B2C, checkout [how to register your app with B2C](https://docs.microsoft.com/azure/active-directory-b2c/active-directory-b2c-app-registration).  
+To use MSAL Android in your application, you need to register your application in the Microsoft Entra Admin center and configure your Android project. Since MSAL Android supports both browser-delegated and native authentication experiences, follow the steps in the following tutorials based on your scenario. 
+•	For browser-delegated scenarios, refere to the quickstart, [Sign in users and call Microsoft Graph from an Android app](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-mobile-app-android-sign-in)
+•	For Native Authentication scenarios, refer to the Microsoft Entra External ID sample guide, [Run Android Kotlin sample app](https://review.learn.microsoft.com/en-us/entra/external-id/customers/how-to-run-sample-android-app?branch=pr-en-us-2021#register-an-application)
+
+
+## Using MSAL Android
 
 ### Requirements
 
@@ -27,7 +34,9 @@ ADAL Android was deprecated on June 2023. We do not support ADAL. See the [ADAL 
 
 ### Step 1: Declare dependency on MSAL
 
-Add to your app's build.gradle:
+Add the following dependencies to your app's build.gradle:
+
+**For browser-delegated authentication**
 
 ```gradle
 dependencies {
@@ -43,11 +52,25 @@ maven {
 }
 ```
 
+**For Native Authentication**
+
+
+```java
+dependencies {
+implementation 'com.microsoft.identity.client:msal:5.1.0'
+}
+maven {
+            url 'https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed/maven/v1'
+            name 'Duo-SDK-Feed'
+        }
+```
+
 ### Step 2: Create your MSAL configuration file
 
-[Configuration Documentation](https://docs.microsoft.com/azure/active-directory/develop/msal-configuration)
+**Browser-delegated Authentication:**
 
-It's simplest to create your configuration file as a "raw" resource file in your project resources.  You'll be able to refer to this using the generated resource identifier when constructing an instance of PublicClientApplication. If you are registering your app in the portal for the first time, you will also be provided with this config JSON.
+It's simplest to create your configuration file as a "raw" resource file in your project resources. You'll be able to refer to this using the generated resource identifier when constructing an instance of PublicClientApplication. If you are registering your app in the portal for the first time, you will also be provided with the detailed MSAL [Android configuration file](https://learn.microsoft.com/en-us/entra/msal/android/msal-configuration)
+
 
 ```javascript
 {
@@ -59,7 +82,30 @@ It's simplest to create your configuration file as a "raw" resource file in your
 
 >NOTE: In the `redirect_uri`, the part `<YOUR_PACKAGE_NAME>` refers to the package name returned by the `context.getPackageName()` method. This package name is the same as the [`application_id`](https://developer.android.com/studio/build/application-id) defined in your `build.gradle` file.
 
->NOTE: This is the minimum required configuration.  MSAL relies on the defaults that ship with the library for all other settings.  Please refer to the [configuration file documentation](https://docs.microsoft.com/azure/active-directory/develop/msal-configuration) to understand the library defaults.
+>NOTE: This is the minimum required configuration.  MSAL relies on the defaults that ship with the library for all other settings.  Please refer to the [configuration file documentation](https://learn.microsoft.com/en-us/entra/msal/android/msal-configuration) to understand the library defaults.
+
+**For Native Authentication:** 
+
+1. Right-click res and choose New > Directory. Enter raw as the new directory name and select OK.
+1. In this new folder (app > src > main > res > raw), create a new JSON file called auth_config_native_auth.json and paste the following template MSAL Configuration:
+
+```
+{ 
+  "client_id": "Enter_the_Application_Id_Here", 
+  "authorities": [ 
+    { 
+      "type": "CIAM", 
+      "authority_url": "https://Enter_the_Tenant_Subdomain_Here.ciamlogin.com/Enter_the_Tenant_Subdomain_Here.onmicrosoft.com/" 
+    } 
+  ], 
+  "challenge_types": ["oob"], 
+  "logging": { 
+    "pii_enabled": false, 
+    "log_level": "INFO", 
+    "logcat_enabled": true 
+  } 
+ }
+```
 
 ### Step 3: Configure the AndroidManifest.xml
 
@@ -90,7 +136,7 @@ It's simplest to create your configuration file as a "raw" resource file in your
     </activity>
 ```
 
->NOTE: Please refer to [this FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki/MSAL-FAQ#redirect-uri-issues) for more information on common redirect uri issues.
+>NOTE: Please refer to the [frequently asked questions](https://learn.microsoft.com/en-us/entra/msal/android/frequently-asked-questions) for more information on common redirect uri issues.
 
 ### Step 4: Create an MSAL PublicClientApplication
 
