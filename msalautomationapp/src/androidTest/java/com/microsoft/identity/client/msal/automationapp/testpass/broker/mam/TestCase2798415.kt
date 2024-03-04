@@ -55,7 +55,6 @@ class TestCase2798415 : AbstractMsalBrokerTest() {
     fun test_2798415() {
         val adminUserLabQuery = getAdminAccountLabQuery()
 
-        // get username and password for this account
         val admin: ILabAccount = mLabClient.getLabAccount(adminUserLabQuery)
         Logger.i(TAG, "Performing Shared Device Registration.")
         mBroker.performSharedDeviceRegistration(admin.username, admin.password)
