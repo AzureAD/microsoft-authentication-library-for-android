@@ -2,8 +2,7 @@
 
 | Documentation                  | Sample Code               | Library Reference | Support |
 |-------------------------------|---------------------------|-------------------|---------|
-| [MSAL Android documentation](https://learn.microsoft.com/en-us/entra/msal/android/) <br/> [Workforce apps tutorials](https://learn.microsoft.com/en-us/entra/identity-platform/tutorial-v2-android)<br/> Customer apps tutorials <br/>  • Browser-delegated <br/>• Native Authentication | [Workforce samples](https://learn.microsoft.com/en-us/entra/identity-platform/sample-v2-code?tabs=apptype#mobile) <br/> [Customer samples](https://learn.microsoft.com/en-us/entra/identity-platform/sample-v2-code?tabs=apptype#mobile)          | [ MSAL Android reference](http://javadoc.io/doc/com.microsoft.identity.client/msal)              | 🛠️     |
-| --- | --- | --- | --- |
+| [MSAL Android documentation](https://learn.microsoft.com/en-us/entra/msal/android/) | [Microsoft Entra ID (workforce samples)](https://learn.microsoft.com/en-us/entra/identity-platform/sample-v2-code?tabs=apptype#mobile) <br/> [Microsoft Entra External ID (customer samples)](https://learn.microsoft.com/en-us/entra/identity-platform/sample-v2-code?tabs=apptype#mobile)          | [ MSAL Android reference](http://javadoc.io/doc/com.microsoft.identity.client/msal)              | [Get support](README.md#community-help-and-support)     |
 
 ## Overview
 
@@ -19,9 +18,11 @@ The Azure Active Directory Authentication Library (ADAL) for Android was depreca
 
 ## Getting started
 
-To use MSAL Android in your application, you need to register your application in the Microsoft Entra Admin center and configure your Android project. Since MSAL Android supports both browser-delegated and native authentication experiences, follow the steps in the following tutorials based on your scenario. 
-•	For browser-delegated scenarios, refere to the quickstart, [Sign in users and call Microsoft Graph from an Android app](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-mobile-app-android-sign-in)
-•	For Native Authentication scenarios, refer to the Microsoft Entra External ID sample guide, [Run Android Kotlin sample app](https://review.learn.microsoft.com/en-us/entra/external-id/customers/how-to-run-sample-android-app?branch=pr-en-us-2021#register-an-application)
+To use MSAL Android in your application, you need to register your application in the Microsoft Entra Admin center and configure your Android project. Since MSAL Android supports both browser-delegated and native authentication experiences, follow the steps in the following tutorials based on your scenario.
+
+* For browser-delegated scenarios, refer to the quickstart, [Sign in users and call Microsoft Graph from an Android app](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-mobile-app-android-sign-in).
+
+* For Native Authentication scenarios, refer to the Microsoft Entra External ID sample guide, [Run Android Kotlin sample app](https://review.learn.microsoft.com/en-us/entra/external-id/customers/tutorial-native-authentication-prepare-android-app?branch=release-native-auth-public-preview).
 
 
 ## Using MSAL Android
@@ -36,7 +37,7 @@ To use MSAL Android in your application, you need to register your application i
 
 Add the following dependencies to your app's build.gradle:
 
-**For browser-delegated authentication**
+**For browser-delegated authentication:**
 
 ```gradle
 dependencies {
@@ -52,7 +53,7 @@ maven {
 }
 ```
 
-**For Native Authentication**
+**For Native authentication:**
 
 
 ```java
@@ -67,10 +68,9 @@ maven {
 
 ### Step 2: Create your MSAL configuration file
 
-**Browser-delegated Authentication:**
+**Browser-delegated authentication:**
 
-It's simplest to create your configuration file as a "raw" resource file in your project resources. You'll be able to refer to this using the generated resource identifier when constructing an instance of PublicClientApplication. If you are registering your app in the portal for the first time, you will also be provided with the detailed MSAL [Android configuration file](https://learn.microsoft.com/en-us/entra/msal/android/msal-configuration)
-
+It's simplest to create your configuration file as a "raw" resource file in your project resources. You'll be able to refer to this using the generated resource identifier when constructing an instance of PublicClientApplication. If you are registering your app in the Microsoft Entra admin center for the first time, you will also be provided with the detailed MSAL [Android configuration file](https://learn.microsoft.com/en-us/entra/msal/android/msal-configuration)
 
 ```javascript
 {
@@ -80,11 +80,11 @@ It's simplest to create your configuration file as a "raw" resource file in your
 }
 ```
 
->NOTE: In the `redirect_uri`, the part `<YOUR_PACKAGE_NAME>` refers to the package name returned by the `context.getPackageName()` method. This package name is the same as the [`application_id`](https://developer.android.com/studio/build/application-id) defined in your `build.gradle` file.
+In the `redirect_uri`, the `<YOUR_PACKAGE_NAME>` refers to the package name returned by the `context.getPackageName()` method. This package name is the same as the [`application_id`](https://developer.android.com/studio/build/application-id) defined in your `build.gradle` file.
 
->NOTE: This is the minimum required configuration.  MSAL relies on the defaults that ship with the library for all other settings.  Please refer to the [configuration file documentation](https://learn.microsoft.com/en-us/entra/msal/android/msal-configuration) to understand the library defaults.
+The values above are the minimum required configuration.  MSAL relies on the defaults that ship with the library for all other settings.  Please refer to the [MSAL Android configuration file documentation](https://learn.microsoft.com/en-us/entra/msal/android/msal-configuration) to understand the library defaults.
 
-**For Native Authentication:** 
+**For Native authentication:** 
 
 1. Right-click res and choose New > Directory. Enter raw as the new directory name and select OK.
 1. In this new folder (app > src > main > res > raw), create a new JSON file called auth_config_native_auth.json and paste the following template MSAL Configuration:
