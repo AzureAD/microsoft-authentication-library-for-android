@@ -2,7 +2,7 @@
 
 | Documentation                  | Sample Code               | Library Reference | Support |
 |-------------------------------|---------------------------|-------------------|---------|
-| [MSAL Android documentation](https://learn.microsoft.com/en-us/entra/msal/android/) | [Microsoft Entra ID (workforce samples)](https://learn.microsoft.com/en-us/entra/identity-platform/sample-v2-code?tabs=apptype#mobile) <br/> [Microsoft Entra External ID (customer samples)](https://learn.microsoft.com/en-us/entra/external-id/customers/samples-ciam-all?tabs=apptype#mobile)          | [ MSAL Android reference](http://javadoc.io/doc/com.microsoft.identity.client/msal)              | [Get support](README.md#community-help-and-support)     |
+| [MSAL Android documentation](https://learn.microsoft.com/en-us/entra/msal/android/) | * [Microsoft Entra ID (workforce samples)](https://learn.microsoft.com/en-us/entra/identity-platform/sample-v2-code?tabs=apptype#mobile) <br/> * [Microsoft Entra External ID (customer samples)](https://learn.microsoft.com/en-us/entra/external-id/customers/samples-ciam-all?tabs=apptype#mobile)          | [ MSAL Android reference](http://javadoc.io/doc/com.microsoft.identity.client/msal)              | [Get support](README.md#community-help-and-support)     |
 
 ## Overview
 
