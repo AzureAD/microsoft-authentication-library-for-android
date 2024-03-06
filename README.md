@@ -2,7 +2,7 @@
 
 | Documentation                  | Sample Code               | Library Reference | Support |
 |-------------------------------|---------------------------|-------------------|---------|
-| [MSAL Android documentation](https://learn.microsoft.com/en-us/entra/msal/android/) | * [Microsoft Entra ID (workforce samples)](https://learn.microsoft.com/en-us/entra/identity-platform/sample-v2-code?tabs=apptype#mobile) <br/> * [Microsoft Entra External ID (customer samples)](https://learn.microsoft.com/en-us/entra/external-id/customers/samples-ciam-all?tabs=apptype#mobile)          | [ MSAL Android reference](http://javadoc.io/doc/com.microsoft.identity.client/msal)              | [Get support](README.md#community-help-and-support)     |
+| [MSAL Android documentation](https://learn.microsoft.com/en-us/entra/msal/android/) | &#8226;  [Microsoft Entra ID (workforce samples)](https://learn.microsoft.com/en-us/entra/identity-platform/sample-v2-code?tabs=apptype#mobile)<br/>&#8226; [Microsoft Entra External ID (customer samples)](https://learn.microsoft.com/en-us/entra/external-id/customers/samples-ciam-all?tabs=apptype#mobile)          | [ MSAL Android reference](http://javadoc.io/doc/com.microsoft.identity.client/msal)              | [Get support](README.md#community-help-and-support)     |
 
 ## Overview
 
@@ -136,16 +136,16 @@ The values above are the minimum required configuration.  MSAL relies on the def
     </activity>
 ```
 
->NOTE: Please refer to the [frequently asked questions](https://learn.microsoft.com/en-us/entra/msal/android/frequently-asked-questions) for more information on common redirect uri issues.
-
+>NOTE: Please refer to the [MSAL Android FAQ](https://learn.microsoft.com/en-us/entra/msal/android/frequently-asked-questions) for more information on common redirect uri issues.
 
 ### Step 4: Create an MSAL PublicClientApplication
 
-For browser-delegated authentication, you'll need to create an instance of the PublicClientApplication, before you can acquire a token silently or interactively. Please proceed to the official MSAL Android documentation on how to [instantiate your client application and acquire tokens](https://learn.microsoft.com/en-us/entra/msal/android/acquire-tokens)
+For browser-delegated authentication, you'll need to create an instance of the PublicClientApplication, before you can acquire a token silently or interactively. Please proceed to the official MSAL Android documentation on how to [instantiate your client application and acquire tokens](https://learn.microsoft.com/en-us/entra/msal/android/acquire-tokens).
 
-For a native authentication experience, you can optionally complete [additional logging configuration](https://review.learn.microsoft.com/en-us/entra/external-id/customers/tutorial-native-authentication-prepare-android-app?branch=release-native-auth-public-preview#create-sdk-instance), and proceed to creating an instance of the client application using the configuration we created in step 2. Learn more by following the [Native auth Android app tutorial](https://review.learn.microsoft.com/en-us/entra/external-id/customers/tutorial-native-authentication-prepare-android-app?branch=release-native-auth-public-preview#create-sdk-instance)
+For a native authentication experience, you optionally complete [additional logging configuration](https://review.learn.microsoft.com/en-us/entra/external-id/customers/tutorial-native-authentication-prepare-android-app?branch=release-native-auth-public-preview#create-sdk-instance), and proceed to creating an instance of the client application using the configuration we created in [Step 2](README.md#step-2-create-your-msal-configuration-file). Learn more by following the [Native auth Android app tutorial](https://review.learn.microsoft.com/en-us/entra/external-id/customers/tutorial-native-authentication-prepare-android-app?branch=release-native-auth-public-preview#create-sdk-instance).
 
 ## ProGuard
+
 MSAL uses reflection and generic type information stored in `.class` files at runtime to support various persistence and serialization related functionalities. Accordingly, library support for minification and obfuscation is limited. A default configuration is shipped with this library; please [file an issue](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/new/choose) if you find any issues.
 
 ## Community Help and Support
