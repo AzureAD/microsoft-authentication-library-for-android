@@ -54,7 +54,6 @@ import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandRes
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.ResendCodeError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInContinuationError
-import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInSubmitPasswordError
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
@@ -533,7 +532,7 @@ class SignInContinuationState(
                     "Sign in after sign up received unexpected result: continuationToken was null"
                 )
                 return@withContext SignInContinuationError(
-                    errorMessage = "Sign In is not available through this state, please use the standalone sign in methods (signInWithCode or signInWithPassword).",
+                    errorMessage = "Sign In is not available through this state, please use the standalone sign in method.",
                     error = ErrorTypes.INVALID_STATE,
                     correlationId = "UNSET",
                 )
