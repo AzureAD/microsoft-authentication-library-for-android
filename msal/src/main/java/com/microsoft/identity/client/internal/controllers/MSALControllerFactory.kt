@@ -166,6 +166,8 @@ class MSALControllerFactory(
         }
     }
 
+    //TODO: Invoke this in background thread / asynchronously to avoid ANR.
+    //      This can wait until we turn on the new Broker Discovery. (since that one involves IPC, which could be time consuming).
     private fun getActiveBrokerPackageName(): String? {
         val methodTag = "$TAG:getActiveBrokerPackageName"
         val activeBroker = discoveryClient.getActiveBroker(shouldSkipCache = false)

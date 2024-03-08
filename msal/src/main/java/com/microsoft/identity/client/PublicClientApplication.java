@@ -227,7 +227,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     private static final String INTERNET_PERMISSION = "android.permission.INTERNET";
     private static final String ACCESS_NETWORK_STATE_PERMISSION = "android.permission.ACCESS_NETWORK_STATE";
     private static final String ERR_UNSUPPORTED_OPERATION = "This method is unsupported.";
-    private static final ExecutorService sBackgroundExecutor = Executors.newCachedThreadPool();
+    protected static final ExecutorService sBackgroundExecutor = Executors.newCachedThreadPool();
 
     static class NONNULL_CONSTANTS {
         static final String CONTEXT = "context";
