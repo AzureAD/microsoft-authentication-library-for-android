@@ -6,7 +6,7 @@
 
 ## Overview
 
-MSAL Android is a library that enables Android applications to authenticate users with Microsoft identity platform and access protected web APIs using OAuth2 and OpenID Connect protocols.  The Microsoft Authentication Library (MSAL) for Android enables developers to acquire security tokens from the Microsoft identity platform to authenticate users and access secure web APIs for their Android based applications.
+The Microsoft Authentication Library (MSAL) for Android enables developers to acquire security tokens from the Microsoft identity platform using OAuth2 and OpenID Connect protocol to authenticate users and access secure web APIs for their Android based applications.
  
 MSAL Android supports multiple authentication scenarios, such as single sign-on (SSO), conditional access, and brokered authentication. MSAL Android also provides native authentication APIs that allow applications to implement a native experience with end-to-end customizable flows. 
 
