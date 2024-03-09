@@ -6,9 +6,14 @@
 
 ## Overview
 
-The Microsoft Authentication Library (MSAL) for Android enables developers to acquire security tokens from the Microsoft identity platform using OAuth2 and OpenID Connect protocol to authenticate users and access secure web APIs for their Android based applications.
- 
-MSAL Android supports multiple authentication scenarios, such as single sign-on (SSO), conditional access, and brokered authentication. MSAL Android also provides native authentication APIs that allow applications to implement a native experience with end-to-end customizable flows. 
+The Microsoft Authentication Library (MSAL) for Android is an auth SDK that can be used to seamlessly integrate authentication into your apps using industry standard OAuth2 and OpenID Connect protocols. It allows you to sign in users or apps with Microsoft identities. These identities include Microsoft Entra ID work and school accounts, personal Microsoft accounts, social accounts, and customer accounts.
+
+The Microsoft Authentication Library (MSAL) for Android enables developers to acquire security tokens from the Microsoft identity platform using OAuth2 and OpenID Connect protocol to authenticate users and access secure web APIs for their Android based applications. The library supports multiple authentication scenarios such as single sign-on (SSO), Conditional Access, and brokered authentication
+
+## Native authentication support in MSAL
+
+MSAL Android also provides native authentication APIs that allow applications to implement a native experience with end-to-end customizable flows in their mobile applications. With native authentication, users are guided through a rich, native, mobile-first sign-up and sign-in journey without leaving the app. The native authentication feature is only available for mobile apps on [External ID for customers](https://learn.microsoft.com/en-us/entra/external-id/customers/concept-native-authentication).
+
 
 [![Version Badge](https://img.shields.io/maven-central/v/com.microsoft.identity.client/msal.svg)](https://repo1.maven.org/maven2/com/microsoft/identity/client/msal/)
 
@@ -18,12 +23,12 @@ To use MSAL Android in your application, you need to register your application i
 
 * For browser-delegated authentication scenarios, refer to the quickstart, [Sign in users and call Microsoft Graph from an Android app](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-mobile-app-android-sign-in).
 
-* For native authentication scenarios, refer to the Microsoft Entra External ID sample guide, [Run Android Kotlin sample app](https://review.learn.microsoft.com/en-us/entra/external-id/customers/tutorial-native-authentication-prepare-android-app?branch=release-native-auth-public-preview).
+* For native authentication scenarios, refer to the Microsoft Entra External ID sample guide, [Run Android Kotlin sample app](https://learn.microsoft.com/en-us/entra/external-id/customers/tutorial-native-authentication-prepare-android-app).
 
 
 ## Migrating from ADAL
 
-The Azure Active Directory Authentication Library (ADAL) for Android was deprecated on June 2023. Follow the [ADAL to MSAL migration guide for Android](https://docs.microsoft.com/azure/active-directory/develop/migrate-android-adal-msal) to avoid putting your app's security at risk.
+The Azure Active Directory Authentication Library (ADAL) for Android has been deprecated effective June 2023. Follow the [ADAL to MSAL migration guide for Android](https://docs.microsoft.com/azure/active-directory/develop/migrate-android-adal-msal) to avoid putting your app's security at risk.
 
 ## Using MSAL Android
 
@@ -36,25 +41,6 @@ The Azure Active Directory Authentication Library (ADAL) for Android was depreca
 ### Step 1: Declare dependency on MSAL
 
 Add the following dependencies to your app's build.gradle:
-
-**Browser-delegated authentication:**
-
-```gradle
-dependencies {
-    implementation 'com.microsoft.identity.client:msal:4.9.+'
-}
-```
-
-Please also add the following lines to your repositories section in your gradle script:
-
-```gradle
-maven { 
-    url 'https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed/maven/v1' 
-}
-```
-
-**Native authentication:**
-
 
 ```java
 dependencies {
