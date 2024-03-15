@@ -2176,6 +2176,38 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         assertTrue((result as SignUpError).isBrowserRequired())
     }
 
+    @Test
+    fun testSignUpInvalidOTPReturnsInvalidCodeError() = runTest {
+        val correlationId = UUID.randomUUID().toString()
+
+        configureMockApi(
+            endpointType = MockApiEndpoint.SignUpStart,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.SIGNUP_START_SUCCESS
+        )
+
+        configureMockApi(
+            endpointType = MockApiEndpoint.SignUpChallenge,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.CHALLENGE_TYPE_OOB
+        )
+
+        val result = application.signUp(username)
+        assertTrue(result is SignUpResult.CodeRequired)
+
+        configureMockApi(
+            endpointType = MockApiEndpoint.SignUpContinue,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.INVALID_OOB_VALUE
+        )
+
+        val submitCodeState = spy((result as SignUpResult.CodeRequired).nextState)
+        val submitCodeResult = submitCodeState.submitCode("INVALID_CODE")
+
+        assertTrue(submitCodeResult is SubmitCodeError)
+        assertTrue((submitCodeResult as SubmitCodeError).isInvalidCode())
+    }
+
     /**
      * Check that we don't get a type casting exception thrown when we get it,
      * should get error result instead.
