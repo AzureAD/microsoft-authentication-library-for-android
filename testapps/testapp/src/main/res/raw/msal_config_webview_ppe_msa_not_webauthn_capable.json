@@ -1,13 +1,15 @@
 {
-  "client_id" : "9668f2bd-6103-4292-9024-84fa2d1b6fb2",
+  "client_id" : "27397ca4-9d22-450c-88f6-30997b9429bc",
   "authorization_user_agent" : "WEBVIEW",
-  "webauthn_capable" : true,
   "redirect_uri" : "msauth://com.msft.identity.client.sample.local/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D",
+  "environment" : "PreProduction",
   "authorities" : [
     {
       "type": "AAD",
       "audience": {
-        "type": "AzureADandPersonalMicrosoftAccount"
+        "type": "AzureADandPersonalMicrosoftAccount",
+        "tenant_id": "common"
+
       }
     }
   ]

@@ -53,6 +53,11 @@ public class Constants {
         PPE,
 
         WEBVIEW_WITH_PPE,
+
+        WEBVIEW_PPE_MSA_WEBAUTHN_CAPABLE,
+        WEBVIEW_PPE_MSA_NOT_WEBAUTHN_CAPABLE,
+
+        WEBVIEW_PPE_MSA_WEBAUTHN_CAPABLE_SKIP_BROKER,
     }
 
     public static int getResourceIdFromConfigFile(ConfigFile configFile) {
@@ -111,6 +116,12 @@ public class Constants {
                 return R.raw.msal_config_ppe;
             case WEBVIEW_WITH_PPE:
                 return R.raw.msal_config_webview_ppe;
+            case WEBVIEW_PPE_MSA_WEBAUTHN_CAPABLE:
+                return R.raw.msal_config_webview_ppe_msa_webauthn_capable;
+            case WEBVIEW_PPE_MSA_NOT_WEBAUTHN_CAPABLE:
+                return R.raw.msal_config_webview_ppe_msa_not_webauthn_capable;
+            case WEBVIEW_PPE_MSA_WEBAUTHN_CAPABLE_SKIP_BROKER:
+                return R.raw.msal_config_webview_ppe_msa_webauthn_capable_skip_broker;
         }
 
         return R.raw.msal_config_default;
