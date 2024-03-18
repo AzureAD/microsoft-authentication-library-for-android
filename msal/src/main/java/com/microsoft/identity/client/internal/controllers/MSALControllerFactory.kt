@@ -113,12 +113,12 @@ class MSALControllerFactory(
     override fun getAllControllers(): List<BaseController> {
         val activeBroker = getActiveBrokerPackageName()
         val controllers: MutableList<BaseController> = ArrayList()
-        controllers.add(LocalMSALController())
         if (!activeBroker.isNullOrEmpty() && brokerEligible()) {
             controllers.add(
                 BrokerMsalController(applicationContext, platformComponents, activeBroker)
             )
         }
+        controllers.add(LocalMSALController())
 
         return controllers.toList()
     }
