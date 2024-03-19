@@ -30,6 +30,8 @@ import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
+import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest;
+import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,6 +42,8 @@ import java.util.List;
 
 // Nested App auth silent request
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2688459
+@SupportedBrokers(brokers = BrokerHost.class)
+@LocalBrokerHostDebugUiTest
 @RunWith(Parameterized.class)
 public class TestCase2688459 extends AbstractMsalBrokerTest {
 
