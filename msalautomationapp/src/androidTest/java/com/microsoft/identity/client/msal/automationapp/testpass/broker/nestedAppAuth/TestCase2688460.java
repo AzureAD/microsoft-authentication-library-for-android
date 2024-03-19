@@ -26,6 +26,8 @@ import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
+import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest;
+import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
@@ -39,6 +41,8 @@ import java.util.List;
 
 // Nested app interactive request after hub does an interactive request
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2688460
+@SupportedBrokers(brokers = BrokerHost.class)
+@LocalBrokerHostDebugUiTest
 @RunWith(Parameterized.class)
 public class TestCase2688460 extends AbstractMsalBrokerTest {
     private final UserType mUserType;
