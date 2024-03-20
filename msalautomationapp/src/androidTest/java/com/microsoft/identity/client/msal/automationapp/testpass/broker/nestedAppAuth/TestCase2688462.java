@@ -43,6 +43,8 @@ import java.util.List;
 
 // Nested app's fresh AT interactive succeeds but silent request fails
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2688462
+@SupportedBrokers(brokers = BrokerHost.class)
+@LocalBrokerHostDebugUiTest
 @RunWith(Parameterized.class)
 public class TestCase2688462 extends AbstractMsalBrokerTest {
     private final UserType mUserType;

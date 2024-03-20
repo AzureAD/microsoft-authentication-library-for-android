@@ -2753,6 +2753,50 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     }
 
     @Test
+    public void testSignUpInvalidOTPReturnsInvalidCodeError() throws ExecutionException, InterruptedException, TimeoutException {
+        String correlationId = UUID.randomUUID().toString();
+
+        MockApiUtils.configureMockApi(
+                MockApiEndpoint.SignUpStart,
+                correlationId,
+                MockApiResponseType.SIGNUP_START_SUCCESS
+        );
+
+        MockApiUtils.configureMockApi(
+                MockApiEndpoint.SignUpChallenge,
+                correlationId,
+                MockApiResponseType.CHALLENGE_TYPE_OOB
+        );
+
+        SignUpTestCallback signUpTestCallback = new SignUpTestCallback();
+        application.signUp(username, null, null, signUpTestCallback);
+
+        SignUpResult signUpResult = signUpTestCallback.get();
+
+        assertTrue(signUpResult instanceof SignUpResult.CodeRequired);
+        SignUpCodeRequiredState nextState = spy((((SignUpResult.CodeRequired) signUpResult).getNextState()));
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        mockCorrelationId(nextState, correlationId);
+
+        MockApiUtils.configureMockApi(
+                MockApiEndpoint.SignUpContinue,
+                correlationId,
+                MockApiResponseType.INVALID_OOB_VALUE
+        );
+
+        SignUpCodeRequiredTestCallback submitCodeCallback = new SignUpCodeRequiredTestCallback();
+        nextState.submitCode(code, submitCodeCallback);
+
+        SignUpSubmitCodeResult result = submitCodeCallback.get();
+        assertTrue(result instanceof SubmitCodeError);
+
+        SubmitCodeError error = spy((SubmitCodeError) result);
+        assertTrue(error.isInvalidCode());
+    }
+
+    @Test
     public void testSignUpWithPasswordInvalidEmailReturnsError() throws ExecutionException, InterruptedException, TimeoutException {
         String correlationId = UUID.randomUUID().toString();
 
