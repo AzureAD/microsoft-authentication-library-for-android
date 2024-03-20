@@ -126,12 +126,10 @@ public class SingleAccountPublicClientApplication
             @Override
             public void onMigrationFinished(int numberOfAccountsMigrated) {
                 final CommandParameters params = CommandParametersAdapter.createCommandParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
-                final List<BaseController> controllers = new MSALControllerFactory(mPublicClientConfiguration)
-                        .getAllControllers(mPublicClientConfiguration.getDefaultAuthority());
 
                 final GetCurrentAccountCommand command = new GetCurrentAccountCommand(
                         params,
-                        controllers,
+                        new MSALControllerFactory(mPublicClientConfiguration),
                         new CommandCallback<List<ICacheRecord>, BaseException>() {
                             @Override
                             public void onTaskCompleted(final List<ICacheRecord> result) {
@@ -503,12 +501,9 @@ public class SingleAccountPublicClientApplication
                         requestAccountRecord
                 );
 
-        final List<BaseController> controllers = new MSALControllerFactory(mPublicClientConfiguration)
-                .getAllControllers(mPublicClientConfiguration.getDefaultAuthority());
-
         final RemoveCurrentAccountCommand command = new RemoveCurrentAccountCommand(
                 params,
-                controllers,
+                new MSALControllerFactory(mPublicClientConfiguration),
                 new CommandCallback<Boolean, BaseException>() {
                     @Override
                     public void onError(BaseException error) {

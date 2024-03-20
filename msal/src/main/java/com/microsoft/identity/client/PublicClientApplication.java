@@ -1092,8 +1092,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         final GetDeviceModeCommand command = new GetDeviceModeCommand(
                 params,
-                new MSALControllerFactory(config).getDefaultController(
-                        config.getDefaultAuthority()),
+                new MSALControllerFactory(config),
                 new CommandCallback<Boolean, BaseException>() {
                     @Override
                     public void onError(BaseException error) {
@@ -1418,9 +1417,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     }
 
     private void validateBrokerNotInUse() throws MsalClientException {
-        if (new MSALControllerFactory(mPublicClientConfiguration).brokerEligibleAndInstalled(
-                mPublicClientConfiguration.getDefaultAuthority()
-        )) {
+        if (new MSALControllerFactory(mPublicClientConfiguration).brokerEligibleAndInstalled()) {
             throw new MsalClientException(
                     "Cannot perform this action - broker is enabled."
             );
@@ -1486,12 +1483,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 mPublicClientConfiguration.getOAuth2TokenCache()
         );
 
-        final BaseController controller = new MSALControllerFactory(mPublicClientConfiguration)
-                .getDefaultController(CommandParametersAdapter.getRequestAuthority(mPublicClientConfiguration));
-
         final GetPreferredAuthMethodFromAuthenticator command = new GetPreferredAuthMethodFromAuthenticator(
                 params,
-                controller,
+                new MSALControllerFactory(mPublicClientConfiguration,
+                        CommandParametersAdapter.getRequestAuthority(mPublicClientConfiguration)),
                 new CommandCallback<PreferredAuthMethod, BaseException>() {
                     @Override
                     public void onError(BaseException error) {
@@ -1638,9 +1633,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         return new GenerateShrCommand(
                 cmdParams,
-                new MSALControllerFactory(mPublicClientConfiguration).getAllControllers(
-                        mPublicClientConfiguration.getDefaultAuthority()
-                ),
+                new MSALControllerFactory(mPublicClientConfiguration),
                 cmdCallback,
                 publicApiId
         );
@@ -1820,8 +1813,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
                     final InteractiveTokenCommand command = new InteractiveTokenCommand(
                             params,
-                            new MSALControllerFactory(mPublicClientConfiguration).getDefaultController(
-                                    params.getAuthority()),
+                            new MSALControllerFactory(mPublicClientConfiguration, params.getAuthority()),
                             localAuthenticationCallback,
                             publicApiId
                     );
@@ -1902,9 +1894,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
                     final SilentTokenCommand silentTokenCommand = new SilentTokenCommand(
                             params,
-                            new MSALControllerFactory(mPublicClientConfiguration).getAllControllers(
-                                    params.getAuthority()
-                            ),
+                            new MSALControllerFactory(mPublicClientConfiguration, params.getAuthority()),
                             callback,
                             publicApiId
                     );
@@ -2147,8 +2137,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                 final DeviceCodeFlowCommandCallback deviceCodeFlowCommandCallback = getDeviceCodeFlowCommandCallback(callback);
                 final DeviceCodeFlowCommand deviceCodeFlowCommand = new DeviceCodeFlowCommand(
                         commandParameters,
-                        new MSALControllerFactory(mPublicClientConfiguration).getDefaultController(
-                                commandParameters.getAuthority()),
+                        new MSALControllerFactory(mPublicClientConfiguration),
                         deviceCodeFlowCommandCallback,
                         PublicApiId.DEVICE_CODE_FLOW_WITH_CLAIMS_AND_CALLBACK
                 );
@@ -2182,7 +2171,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         // Telemetry with DEVICE_CODE_FLOW_CALLBACK
         final DeviceCodeFlowCommand deviceCodeFlowCommand = new DeviceCodeFlowCommand(
                 commandParameters,
-                new LocalMSALController(),
+                new LocalMSALController().asControllerFactory(),
                 deviceCodeFlowCommandCallback,
                 PublicApiId.DEVICE_CODE_FLOW_WITH_CALLBACK
         );
@@ -2212,7 +2201,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         // Telemetry with DEVICE_CODE_FLOW_CALLBACK
         final DeviceCodeFlowCommand deviceCodeFlowCommand = new DeviceCodeFlowCommand(
                 commandParameters,
-                new LocalMSALController(),
+                new LocalMSALController().asControllerFactory(),
                 deviceCodeFlowCommandCallback,
                 PublicApiId.DEVICE_CODE_FLOW_WITH_CALLBACK
         );
