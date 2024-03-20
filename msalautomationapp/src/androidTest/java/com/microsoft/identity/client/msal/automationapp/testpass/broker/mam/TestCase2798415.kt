@@ -86,7 +86,6 @@ class TestCase2798415 : AbstractMsalBrokerTest() {
         teams.addFirstAccount(username, password, teamsPromptHandlerParameters)
         // handle app protection policy in CP i.e. setup PIN when asked
         (companyPortal as IMdmAgent).handleAppProtectionPolicy()
-        teams.onAccountAdded()
         teams.forceStop() // Teams sometimes seems to like to pop up on screen randomly
 
         teams.signOut()
