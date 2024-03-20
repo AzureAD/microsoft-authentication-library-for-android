@@ -199,6 +199,8 @@ public class CommandParametersAdapter {
                 .handleNullTaskAffinity(configuration.isHandleNullTaskAffinityEnabled())
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .correlationId(parameters.getCorrelationId())
+                .dc(parameters.getDc())
+                .flightInformation(parameters.getFlightParameters())
                 .preferredAuthMethod(parameters.getPreferredAuthMethod())
                 .build();
 
@@ -249,6 +251,8 @@ public class CommandParametersAdapter {
                 .scopes(new HashSet<>(parameters.getScopes()))
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .correlationId(parameters.getCorrelationId())
+                .dc(parameters.getDc())
+                .flightInformation(parameters.getFlightParameters())
                 .build();
 
         return commandParameters;
@@ -289,6 +293,8 @@ public class CommandParametersAdapter {
                 .authority(authority)
                 .claimsRequestJson(claimsRequestJson)
                 .correlationId(parameters.getCorrelationId())
+                .dc(parameters.getDc())
+                .flightInformation(parameters.getFlightParameters())
                 .build();
 
         return commandParameters;
