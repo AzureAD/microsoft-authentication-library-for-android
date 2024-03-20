@@ -89,7 +89,7 @@ class TestCase2798415 : AbstractMsalBrokerTest() {
         (companyPortal as IMdmAgent).handleAppProtectionPolicy()
         teams.forceStop() // Teams sometimes seems to like to pop up on screen randomly
 
-        signOutSharedDeviceMode(teams)
+        teams.signOutSharedDeviceMode()
 
         // Sign in again
         val teamsPromptHandlerParameters2 = FirstPartyAppPromptHandlerParameters.builder()
@@ -143,13 +143,5 @@ class TestCase2798415 : AbstractMsalBrokerTest() {
         return LabQuery.builder()
             .userRole(UserRole.CLOUD_DEVICE_ADMINISTRATOR)
             .build()
-    }
-
-    private fun signOutSharedDeviceMode(teams: TeamsApp) {
-        teams.launch()
-        teams.handleLaunchWhileSignedIn()
-        UiAutomatorUtils.handleButtonClick("com.microsoft.teams:id/avatarView")
-        UiAutomatorUtils.handleButtonClickForObjectWithText("Sign out")
-        UiAutomatorUtils.handleButtonClick("android:id/button1")
     }
 }
