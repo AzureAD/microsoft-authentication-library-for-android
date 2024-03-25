@@ -66,8 +66,8 @@ ext {
     tokenShare = "1.6.5"
     intuneAppSdkVersion = "8.6.3"
     javaAssistVersion = "3.27.0-GA"
-    yubikitAndroidVersion = "2.3.0"
-    yubikitPivVersion = "2.3.0"
+    yubikitAndroidVersion = "2.4.0"
+    yubikitPivVersion = "2.4.0"
     powerliftAndroidVersion="1.0.3"
     kotlinXCoroutinesVersion = "1.6.4"
     mockkVersion = "1.11.0"
@@ -78,7 +78,7 @@ ext {
     openTelemetryVersion = "1.18.0"
     jetpackDataStoreVersion = "1.0.0"
     lifecycleKtxVersion="2.5.1"
-    AndroidCredentialsVersion="1.2.0"
+    AndroidCredentialsVersion="1.2.1"
 
     // microsoft-diagnostics-uploader app versions
     powerliftVersion = "0.14.7"
