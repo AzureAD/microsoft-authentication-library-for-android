@@ -1,4 +1,4 @@
-package com.microsoft.identity.client.extension
+package com.microsoft.identity.client.ktx
 
 import android.content.Context
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication
@@ -11,7 +11,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
 
-object PublicClientApplicationExt {
+object PublicClientApplicationKtx {
     suspend fun createSingleAccountPublicClientApplication(
         context: Context,
         configFileResourceId: Int,

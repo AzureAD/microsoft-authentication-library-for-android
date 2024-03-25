@@ -1,4 +1,4 @@
-package com.microsoft.identity.client.extension
+package com.microsoft.identity.client.ktx
 
 import android.app.Activity
 import com.microsoft.identity.client.AuthenticationCallback

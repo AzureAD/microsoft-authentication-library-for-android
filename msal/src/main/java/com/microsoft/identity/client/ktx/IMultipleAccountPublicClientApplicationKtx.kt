@@ -1,4 +1,4 @@
-package com.microsoft.identity.client.extension
+package com.microsoft.identity.client.ktx
 
 import com.microsoft.identity.client.IAccount
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication
