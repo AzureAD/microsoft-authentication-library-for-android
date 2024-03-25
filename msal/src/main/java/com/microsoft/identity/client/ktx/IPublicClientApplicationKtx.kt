@@ -6,11 +6,23 @@ import com.microsoft.identity.client.AuthenticationCallback
 import com.microsoft.identity.client.IAuthenticationResult
 import com.microsoft.identity.client.IPublicClientApplication
 import com.microsoft.identity.client.SilentAuthenticationCallback
+import com.microsoft.identity.client.Prompt
 import com.microsoft.identity.client.exception.MsalException
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.UUID
 import kotlin.coroutines.resume
 
+/**
+ * Perform acquire token silent call.
+ * If there is a valid access token in the cache, the SDK will return the access token;
+ * If no valid access token exists, the SDK will try to find a refresh token and
+ * use the refresh token to get a new access token.
+ * If a refresh token does not exist or it fails the refresh, an exception will be thrown.
+ *
+ * @param acquireTokenSilentParameters
+ *
+ * @see IPublicClientApplication.acquireTokenSilentAsync
+ */
 suspend fun IPublicClientApplication.acquireTokenSilentSuspend(
     acquireTokenSilentParameters: AcquireTokenSilentParameters,
 ): IAuthenticationResult =
@@ -39,6 +51,16 @@ suspend fun IPublicClientApplication.acquireTokenSilentSuspend(
         this.acquireTokenSilentAsync(paramsWithCallback)
     }
 
+/**
+ * Acquire token interactively. Will pop-up web UI. Interactive flow will skip the cache lookup.
+ * Default value for [Prompt] is [Prompt.SELECT_ACCOUNT].
+ *
+ * Returns null if the user cancels the process.
+ *
+ * @param acquireTokenParameters
+ *
+ * @see IPublicClientApplication.acquireToken
+ */
 suspend fun IPublicClientApplication.acquireTokenSuspend(
     acquireTokenParameters: AcquireTokenParameters,
 ): IAuthenticationResult? =

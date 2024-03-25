@@ -8,7 +8,12 @@ import com.microsoft.identity.client.exception.MsalException
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
-
+/**
+ * Returns a list of [IAccount] objects for which this application has RefreshTokens,
+ * or null if not available.
+ *
+ * @see IMultipleAccountPublicClientApplication.getAccounts
+ */
 suspend fun IMultipleAccountPublicClientApplication.getAccountsSuspend(): List<IAccount>? =
     suspendCancellableCoroutine { continuation ->
         this.getAccounts(object : LoadAccountsCallback {
@@ -22,6 +27,13 @@ suspend fun IMultipleAccountPublicClientApplication.getAccountsSuspend(): List<I
         })
     }
 
+/**
+ * Removes the Account and Credentials (tokens) for the supplied [IAccount].
+ *
+ * @param account The [IAccount] whose entry and associated tokens should be removed.
+ *
+ * @see IMultipleAccountPublicClientApplication.removeAccount
+ */
 suspend fun IMultipleAccountPublicClientApplication.removeAccountSuspend(account: IAccount) =
     suspendCancellableCoroutine { continuation ->
         this.removeAccount(account, object : RemoveAccountCallback {
