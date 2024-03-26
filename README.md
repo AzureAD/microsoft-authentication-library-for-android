@@ -59,7 +59,7 @@ maven {
 
 **Browser-delegated authentication:**
 
-Create your configuration file as a "raw" resource in your project. Refer to it using the generated resource identifier when constructing a `PublicClientApplication` instance.. If you're registering your app in the Microsoft Entra admin center for the first time, you'll also be provided with the detailed MSAL [Android configuration file](https://learn.microsoft.com/en-us/entra/msal/android/msal-configuration)
+Create your configuration file as a "raw" resource in your project. Refer to it using the generated resource identifier when constructing a `PublicClientApplication` instance. If you're registering your app in the Microsoft Entra admin center for the first time, you'll also be provided with the detailed MSAL [Android configuration file](https://learn.microsoft.com/en-us/entra/msal/android/msal-configuration)
 
 ```javascript
 {
@@ -129,9 +129,35 @@ The values above are the minimum required configuration.  MSAL relies on the def
 
 ### Step 4: Create an MSAL PublicClientApplication
 
-For browser-delegated authentication, you'll need to create an instance of the PublicClientApplication, before you can acquire a token silently or interactively. Please proceed to the official MSAL Android documentation on how to [instantiate your client application and acquire tokens](https://learn.microsoft.com/en-us/entra/msal/android/acquire-tokens).
+**Browser-delegated authentication**
 
-For a native authentication experience, you optionally complete [additional logging configuration](https://review.learn.microsoft.com/en-us/entra/external-id/customers/tutorial-native-authentication-prepare-android-app?branch=release-native-auth-public-preview#create-sdk-instance), and proceed to creating an instance of the client application using the configuration we created in [Step 2](README.md#step-2-create-your-msal-configuration-file). Learn more by following the [Native auth Android app tutorial](https://review.learn.microsoft.com/en-us/entra/external-id/customers/tutorial-native-authentication-prepare-android-app?branch=release-native-auth-public-preview#create-sdk-instance).
+For browser-delegated authentication, you create an instance of the PublicClientApplication, before you can acquire a token silently or interactively.
+
+```java
+PublicClientApplication.createMultipleAccountPublicClientApplication(getContext(),
+    R.raw.msal_config,
+    new IPublicClientApplication.IMultipleAccountApplicationCreatedListener() {
+        @Override
+        public void onCreated(IMultipleAccountPublicClientApplication application) {
+            mMultipleAccountApp = application;
+        }
+```
+
+Learn how to [instantiate your client application and acquire tokens](https://learn.microsoft.com/en-us/entra/msal/android/acquire-tokens) in the official MSAL Android documentation. 
+
+
+**Native authentication**
+
+For native authentication, you create an instance of the client application as follows:
+
+```kotlin
+  authClient = PublicClientApplication.createNativeAuthPublicClientApplication( 
+      this, 
+      R.raw.auth_config_native_auth 
+  )
+```
+
+Learn more by following the [Native auth Android app tutorial](https://learn.microsoft.com/en-us/entra/external-id/customers/tutorial-native-authentication-prepare-android-app#create-sdk-instance).
 
 ## ProGuard
 
