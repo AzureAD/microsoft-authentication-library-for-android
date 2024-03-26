@@ -23,7 +23,7 @@ To use MSAL Android in your application, you need to register your application i
 
 * For browser-delegated authentication scenarios, refer to the quickstart, [Sign in users and call Microsoft Graph from an Android app](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-mobile-app-android-sign-in).
 
-* For native authentication scenarios, refer to the Microsoft Entra External ID sample guide, [Run Android Kotlin sample app](https://learn.microsoft.com/en-us/entra/external-id/customers/tutorial-native-authentication-prepare-android-app).
+* For native authentication scenarios, refer to the Microsoft Entra External ID sample guide, [Tutorial: Prepare your Android app for native authentication](https://learn.microsoft.com/en-us/entra/external-id/customers/tutorial-native-authentication-prepare-android-app).
 
 
 ## Migrating from ADAL
