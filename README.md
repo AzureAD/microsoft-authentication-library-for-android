@@ -12,7 +12,7 @@ The Microsoft Authentication Library (MSAL) for Android enables developers to ac
 
 ## Native authentication support in MSAL
 
-MSAL Android also provides native authentication APIs that allow applications to implement a native experience with end-to-end customizable flows in their mobile applications. With native authentication, users are guided through a rich, native, mobile-first sign-up and sign-in journey without leaving the app. The native authentication feature is only available for mobile apps on [External ID for customers](https://learn.microsoft.com/en-us/entra/external-id/customers/concept-native-authentication).
+MSAL Android also enables you to implement a native authentication experience with end-to-end customizable flows in mobile applications. With native authentication, users are guided through a rich, native, mobile-first sign-up and sign-in journey without leaving the app. The native authentication feature is only available for mobile apps on [External ID for customers](https://learn.microsoft.com/en-us/entra/external-id/customers/concept-native-authentication).
 
 
 [![Version Badge](https://img.shields.io/maven-central/v/com.microsoft.identity.client/msal.svg)](https://repo1.maven.org/maven2/com/microsoft/identity/client/msal/)
@@ -56,7 +56,7 @@ maven {
 
 **Browser-delegated authentication:**
 
-It's simplest to create your configuration file as a "raw" resource file in your project resources. You'll be able to refer to this using the generated resource identifier when constructing an instance of PublicClientApplication. If you are registering your app in the Microsoft Entra admin center for the first time, you will also be provided with the detailed MSAL [Android configuration file](https://learn.microsoft.com/en-us/entra/msal/android/msal-configuration)
+Create your configuration file as a "raw" resource in your project. Refer to it using the generated resource identifier when constructing a `PublicClientApplication` instance.. If you're registering your app in the Microsoft Entra admin center for the first time, you'll also be provided with the detailed MSAL [Android configuration file](https://learn.microsoft.com/en-us/entra/msal/android/msal-configuration)
 
 ```javascript
 {
