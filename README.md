@@ -4,18 +4,21 @@
 |-------------------------------|---------------------------|-------------------|---------|
 | [MSAL Android documentation](https://learn.microsoft.com/en-us/entra/msal/android/) | &#8226;  [Microsoft Entra ID (workforce samples)](https://learn.microsoft.com/en-us/entra/identity-platform/sample-v2-code?tabs=apptype#mobile)<br/>&#8226; [Microsoft Entra External ID (customer samples)](https://learn.microsoft.com/en-us/entra/external-id/customers/samples-ciam-all?tabs=apptype#mobile)          | [ MSAL Android reference](http://javadoc.io/doc/com.microsoft.identity.client/msal)              | [Get support](README.md#community-help-and-support)     |
 
+
+[![Version Badge](https://img.shields.io/maven-central/v/com.microsoft.identity.client/msal.svg)](https://repo1.maven.org/maven2/com/microsoft/identity/client/msal/)
+
 ## Overview
 
 The Microsoft Authentication Library (MSAL) for Android is an auth SDK that can be used to seamlessly integrate authentication into your apps using industry standard OAuth2 and OpenID Connect protocols. It allows you to sign in users or apps with Microsoft identities. These identities include Microsoft Entra ID work and school accounts, personal Microsoft accounts, social accounts, and customer accounts.
 
-The Microsoft Authentication Library (MSAL) for Android enables developers to acquire security tokens from the Microsoft identity platform using OAuth2 and OpenID Connect protocol to authenticate users and access secure web APIs for their Android based applications. The library supports multiple authentication scenarios such as single sign-on (SSO), Conditional Access, and brokered authentication
+The Microsoft Authentication Library (MSAL) for Android enables developers to acquire security tokens from the Microsoft identity platform using OAuth2 and OpenID Connect protocol to authenticate users and access secure web APIs for their Android based applications. The library supports multiple authentication scenarios such as single sign-on (SSO), Conditional Access, and brokered authentication.
 
-## Native authentication support in MSAL
+#### Native authentication support in MSAL
 
-MSAL Android also enables you to implement a native authentication experience with end-to-end customizable flows in mobile applications. With native authentication, users are guided through a rich, native, mobile-first sign-up and sign-in journey without leaving the app. The native authentication feature is only available for mobile apps on [External ID for customers](https://learn.microsoft.com/en-us/entra/external-id/customers/concept-native-authentication).
+MSAL Android also enables you to implement a native authentication experience with end-to-end customizable flows in mobile applications. With native authentication, users are guided through a rich, native, mobile-first sign-up and sign-in journey without leaving the app. The native authentication feature is only available for mobile apps on [External ID for customers](https://learn.microsoft.com/en-us/entra/external-id/customers/concept-native-authentication). 
 
 
-[![Version Badge](https://img.shields.io/maven-central/v/com.microsoft.identity.client/msal.svg)](https://repo1.maven.org/maven2/com/microsoft/identity/client/msal/)
+When implementing authentication for mobile apps on External ID, you can choose between browser-delegated authentication and native authentication. In browser-delegated authentication, users are taken to the browser for authentication and then redirected back to the app when the sign-in process is complete. Learn how you can [choose the right authentication option](https://learn.microsoft.com/en-us/entra/external-id/customers/concept-native-authentication#when-to-use-native-authentication) for your mobile app. 
 
 ## Getting started
 
