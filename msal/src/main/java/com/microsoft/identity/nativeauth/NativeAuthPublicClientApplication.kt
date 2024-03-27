@@ -244,6 +244,11 @@ class NativeAuthPublicClientApplication(
      * @return [com.microsoft.identity.nativeauth.statemachine.states.AccountState] if there is a signed in account, null otherwise.
      */
     override suspend fun getCurrentAccount(): GetAccountResult {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.getCurrentAccount"
+        )
         return withContext(Dispatchers.IO) {
             val account = getCurrentAccountInternal(nativeAuthConfig)
             return@withContext if (account != null) {
@@ -278,11 +283,6 @@ class NativeAuthPublicClientApplication(
         scopes: List<String>?,
         callback: SignInCallback
     ) {
-        LogSession.logMethodCall(
-            tag = TAG,
-            correlationId = null,
-            methodName = "${TAG}.signIn"
-        )
         pcaScope.launch {
             try {
                 val result = signIn(username, password, scopes)
@@ -494,11 +494,6 @@ class NativeAuthPublicClientApplication(
         attributes: UserAttributes?,
         callback: SignUpCallback
     ) {
-        LogSession.logMethodCall(
-            tag = TAG,
-            correlationId = null,
-            methodName = "${TAG}.signUp"
-        )
         pcaScope.launch {
             try {
                 val result = signUp(username, password, attributes)
@@ -717,11 +712,6 @@ class NativeAuthPublicClientApplication(
      * @throws MsalClientException if an account is already signed in.
      */
     override fun resetPassword(username: String, callback: ResetPasswordCallback) {
-        LogSession.logMethodCall(
-            tag = TAG,
-            correlationId = null,
-            methodName = "${TAG}.resetPassword"
-        )
         pcaScope.launch {
             try {
                 val result = resetPassword(username = username)
