@@ -98,12 +98,6 @@ class SignUpCodeRequiredState internal constructor(
      * @return The results of the submit code action.
      */
     fun submitCode(code: String, callback: SubmitCodeCallback) {
-        LogSession.logMethodCall(
-            tag = TAG,
-            correlationId = correlationId,
-            methodName = "${TAG}.submitCode"
-        )
-
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = submitCode(code)
@@ -243,11 +237,6 @@ class SignUpCodeRequiredState internal constructor(
     fun resendCode(
         callback: SignUpWithResendCodeCallback
     ) {
-        LogSession.logMethodCall(
-            tag = TAG,
-            correlationId = correlationId,
-            methodName = "${TAG}.resendCode"
-        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = resendCode()
@@ -377,11 +366,6 @@ class SignUpPasswordRequiredState internal constructor(
         password: CharArray,
         callback: SignUpSubmitPasswordCallback
     ) {
-        LogSession.logMethodCall(
-            tag = TAG,
-            correlationId = correlationId,
-            methodName = "${TAG}.submitPassword"
-        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = submitPassword(password)
@@ -574,11 +558,6 @@ class SignUpAttributesRequiredState internal constructor(
         attributes: UserAttributes,
         callback: SignUpSubmitUserAttributesCallback
     ) {
-        LogSession.logMethodCall(
-            tag = TAG,
-            correlationId = correlationId,
-            methodName = "${TAG}.submitAttributes"
-        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = submitAttributes(attributes)
