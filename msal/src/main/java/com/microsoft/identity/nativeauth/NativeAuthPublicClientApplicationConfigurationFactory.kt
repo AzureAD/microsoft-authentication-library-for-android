@@ -149,8 +149,6 @@ class NativeAuthPublicClientApplicationConfigurationFactory :
          */
         @WorkerThread
         private fun loadDefaultNativeAuthConfiguration(context: Context): NativeAuthPublicClientApplicationConfiguration {
-            val methodTag = "$TAG:loadDefaultNativeAuthConfiguration"
-            Logger.verbose(methodTag, "Loading default native auth configuration")
             // Load and return default Native Auth config
             return loadConfiguration(context, R.raw.msal_native_auth_default_config)
         }
@@ -189,7 +187,6 @@ class NativeAuthPublicClientApplicationConfigurationFactory :
             configStream: InputStream,
             isDefaultConfiguration: Boolean
         ): NativeAuthPublicClientApplicationConfiguration {
-            val methodTag = "$TAG:loadConfiguration"
             val buffer: ByteArray
 
             try {
