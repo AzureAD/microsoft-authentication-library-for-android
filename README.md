@@ -45,14 +45,14 @@ The Azure Active Directory Authentication Library (ADAL) for Android has been de
 
 Add the following dependencies to your app's build.gradle:
 
-```java
+```gradle
 dependencies {
-implementation 'com.microsoft.identity.client:msal:5.1.0'
+    implementation 'com.microsoft.identity.client:msal:5.1.0'
 }
 maven {
-            url 'https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed/maven/v1'
-            name 'Duo-SDK-Feed'
-        }
+    url 'https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed/maven/v1'
+    name 'Duo-SDK-Feed'
+}
 ```
 
 ### Step 2: Create your MSAL configuration file
@@ -61,7 +61,7 @@ maven {
 
 Create your configuration file as a "raw" resource in your project. Refer to it using the generated resource identifier when constructing a `PublicClientApplication` instance. If you're registering your app in the Microsoft Entra admin center for the first time, you'll also be provided with the detailed MSAL [Android configuration file](https://learn.microsoft.com/en-us/entra/msal/android/msal-configuration)
 
-```javascript
+```json
 {
   "client_id" : "<YOUR_CLIENT_ID>",
   "redirect_uri" : "msauth://<YOUR_PACKAGE_NAME>/<YOUR_BASE64_URL_ENCODED_PACKAGE_SIGNATURE>",
@@ -78,7 +78,7 @@ The values above are the minimum required configuration.  MSAL relies on the def
 1. Right-click res and choose New > Directory. Enter raw as the new directory name and select OK.
 1. In this new folder (app > src > main > res > raw), create a new JSON file called auth_config_native_auth.json and paste the following template MSAL Configuration:
 
-```
+```json
 { 
   "client_id": "Enter_the_Application_Id_Here", 
   "authorities": [ 
@@ -141,6 +141,7 @@ PublicClientApplication.createMultipleAccountPublicClientApplication(getContext(
         public void onCreated(IMultipleAccountPublicClientApplication application) {
             mMultipleAccountApp = application;
         }
+   }
 ```
 
 Learn how to [instantiate your client application and acquire tokens](https://learn.microsoft.com/en-us/entra/msal/android/acquire-tokens) in the official MSAL Android documentation. 
