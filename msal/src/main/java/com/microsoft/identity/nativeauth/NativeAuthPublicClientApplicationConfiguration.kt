@@ -29,8 +29,6 @@ import com.microsoft.identity.client.configuration.AccountMode
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.common.java.authorities.CIAMAuthority
 import com.microsoft.identity.common.java.nativeauth.authorities.NativeAuthCIAMAuthority
-import com.microsoft.identity.common.java.logging.LogSession
-import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.nativeauth.providers.NativeAuthConstants
 import lombok.Getter
 import lombok.experimental.Accessors
@@ -116,7 +114,10 @@ public class NativeAuthPublicClientApplicationConfiguration :
         if (redirectUri != null) {
             super.validateConfiguration()
         } else {
-            Logger.warn(TAG, "No redirect URI was passed.")
+            throw MsalClientException(
+                MsalClientException.NATIVE_AUTH_USE_WITH_BAD_REDIRECT_URI_ERROR_CODE,
+                MsalClientException.NATIVE_AUTH_USE_WITH_BAD_REDIRECT_URI_ERROR_MESSAGE
+            )
         }
 
         // Enforce that account mode must be "SINGLE"
