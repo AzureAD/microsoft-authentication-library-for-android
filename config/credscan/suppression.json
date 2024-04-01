@@ -1,4 +1,17 @@
 {
     "tool": "Credential Scanner",
-    "suppressions": []
+    "suppressions": [
+    {
+        "file": "msalautomationapp/debug.keystore",
+        "_justification": "general"
+    },
+    {
+        "file": "testapps/testapp/debug.keystore",
+        "_justification": "general"
+    },
+    {
+        "file": "testapps/testapp/debug/debug.keystore",
+        "_justification": "general"
+    }
+    ]
 }   
