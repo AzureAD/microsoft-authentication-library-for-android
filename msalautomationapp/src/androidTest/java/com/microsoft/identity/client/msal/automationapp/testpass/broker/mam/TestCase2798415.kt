@@ -35,6 +35,7 @@ import com.microsoft.identity.client.ui.automation.installer.LocalApkInstaller
 import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
 import com.microsoft.identity.client.ui.automation.logging.Logger
+import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils
 import com.microsoft.identity.labapi.utilities.client.ILabAccount
 import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy
@@ -86,10 +87,9 @@ class TestCase2798415 : AbstractMsalBrokerTest() {
         teams.addFirstAccount(username, password, teamsPromptHandlerParameters)
         // handle app protection policy in CP i.e. setup PIN when asked
         (companyPortal as IMdmAgent).handleAppProtectionPolicy()
-        teams.onAccountAdded()
         teams.forceStop() // Teams sometimes seems to like to pop up on screen randomly
 
-        teams.signOut()
+        teams.signOutSharedDeviceMode()
 
         // Sign in again
         val teamsPromptHandlerParameters2 = FirstPartyAppPromptHandlerParameters.builder()
