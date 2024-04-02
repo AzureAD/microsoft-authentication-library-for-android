@@ -1,8 +1,12 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
-vNext
+Version 5.3.0
 ----------
 - [MINOR] Give BrokerMsalController higher priority than LocalMsalController if available (#2040)
+
+Version 5.2.1
+----------
+- [MINOR] Update common @17.2.1
 
 Version 5.2.0
 ----------
