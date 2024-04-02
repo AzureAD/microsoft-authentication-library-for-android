@@ -170,6 +170,9 @@ task javadoc(type: Javadoc) {
 
     exclude '**/BuildConfig.Java'
     exclude '**/R.java'
+
+    // TODO: Migrate to Dokka.
+    exclude '**/*.kt'
     destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
 }
 
