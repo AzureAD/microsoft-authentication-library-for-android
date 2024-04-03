@@ -26,6 +26,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.microsoft.identity.client.PublicClientApplicationConfiguration
 import com.microsoft.identity.client.PublicClientApplicationConfigurationFactory
+import com.microsoft.identity.client.e2e.shadows.ShadowBrokerDiscoveryClient
 import com.microsoft.identity.client.e2e.shadows.ShadowLegacyBrokerDiscoveryClient
 import com.microsoft.identity.common.internal.controllers.BrokerMsalController
 import com.microsoft.identity.common.java.authorities.Authority
@@ -38,7 +39,9 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(shadows = [ShadowLegacyBrokerDiscoveryClient::class] )
+@Config(shadows = [
+    ShadowLegacyBrokerDiscoveryClient::class,
+    ShadowBrokerDiscoveryClient::class] )
 class MSALControllerFactoryTest {
 
     private lateinit var pcaConfiguration: PublicClientApplicationConfiguration
