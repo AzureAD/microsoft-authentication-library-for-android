@@ -82,11 +82,6 @@ class AccountState private constructor(
      * @param callback [com.microsoft.identity.nativeauth.statemachine.states.AccountState.SignOutCallback] to receive the result on.
      */
     fun signOut(callback: SignOutCallback) {
-        LogSession.logMethodCall(
-            tag = TAG,
-            correlationId = null,
-            methodName = "$TAG.signOut"
-        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = signOut()
@@ -203,11 +198,6 @@ class AccountState private constructor(
      * @throws [ServiceException] If the refresh token doesn't exist in the cache/is expired, or the refreshing fails.
      */
     fun getAccessToken(forceRefresh: Boolean = false, callback: GetAccessTokenCallback) {
-        LogSession.logMethodCall(
-            tag = TAG,
-            correlationId = null,
-            methodName = "$TAG.getAccessToken"
-        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = getAccessToken(forceRefresh)

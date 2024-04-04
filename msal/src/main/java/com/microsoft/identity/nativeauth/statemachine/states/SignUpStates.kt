@@ -197,11 +197,6 @@ class SignUpCodeRequiredState internal constructor(
 
                 // This should be caught earlier in the flow, so throwing UnexpectedError
                 is SignUpCommandResult.UsernameAlreadyExists -> {
-                    Logger.warn(
-                        TAG,
-                        result.correlationId,
-                        "Submit code received unexpected result: $result"
-                    )
                     SubmitCodeError(
                         errorMessage = result.errorDescription,
                         error = result.error,
@@ -453,11 +448,6 @@ class SignUpPasswordRequiredState internal constructor(
 
                     // This should be caught earlier in the flow, so throwing UnexpectedError
                     is SignUpCommandResult.UsernameAlreadyExists -> {
-                        Logger.warn(
-                            TAG,
-                            result.correlationId,
-                            "Submit password received unexpected result: $result"
-                        )
                         SignUpSubmitPasswordError(
                             error = result.error,
                             errorMessage = result.errorDescription,
@@ -467,11 +457,6 @@ class SignUpPasswordRequiredState internal constructor(
 
                     // This should be caught earlier in the flow, so throwing UnexpectedError
                     is INativeAuthCommandResult.InvalidUsername -> {
-                        Logger.warn(
-                            TAG,
-                            result.correlationId,
-                            "Submit password received unexpected result: $result"
-                        )
                         SignUpSubmitPasswordError(
                             error = result.error,
                             errorMessage = result.errorDescription,
@@ -639,11 +624,6 @@ class SignUpAttributesRequiredState internal constructor(
                 }
                 // This should be caught earlier in the flow, so throwing UnexpectedError
                 is SignUpCommandResult.UsernameAlreadyExists -> {
-                    Logger.warn(
-                        TAG,
-                        result.correlationId,
-                        "Submit attributes received unexpected result: $result"
-                    )
                     SignUpSubmitAttributesError(
                         errorMessage = result.errorDescription,
                         error = result.error,

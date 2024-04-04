@@ -395,11 +395,6 @@ class ResetPasswordPasswordRequiredState internal constructor(
                     }
 
                     is ResetPasswordCommandResult.UserNotFound -> {
-                        Logger.warn(
-                            TAG,
-                            result.correlationId,
-                            "Submit password received unexpected result: $result"
-                        )
                         ResetPasswordSubmitPasswordError(
                             error = result.error,
                             errorMessage = result.errorDescription,

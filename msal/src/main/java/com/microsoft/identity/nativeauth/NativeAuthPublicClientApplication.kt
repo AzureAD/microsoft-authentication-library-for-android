@@ -362,6 +362,7 @@ class NativeAuthPublicClientApplication(
                         } else {
                             Logger.warn(
                                 TAG,
+                                result.correlationId,
                                 "Sign in received unexpected result $result"
                             )
                             SignInError(
@@ -372,11 +373,6 @@ class NativeAuthPublicClientApplication(
                         }
                     }
                     is SignInCommandResult.CodeRequired -> {
-                        Logger.warn(
-                            TAG,
-                            result.correlationId,
-                            "Server requires a code"
-                        )
                         SignInResult.CodeRequired(
                             nextState = SignInCodeRequiredState(
                                 continuationToken = result.continuationToken,
@@ -402,6 +398,7 @@ class NativeAuthPublicClientApplication(
                         if (hasPassword) {
                             Logger.warn(
                                 TAG,
+                                result.correlationId,
                                 "Sign in using password received unexpected result $result"
                             )
                             SignInError(
@@ -441,6 +438,7 @@ class NativeAuthPublicClientApplication(
                         } else {
                             Logger.warn(
                                 TAG,
+                                result.correlationId,
                                 "Sign in received Unexpected result $result"
                             )
                             SignInError(
@@ -602,8 +600,11 @@ class NativeAuthPublicClientApplication(
 
                     is SignUpCommandResult.PasswordRequired -> {
                         if (hasPassword) {
-                            Logger.warn(TAG,
-                                "Sign up using password received unexpected result $result")
+                            Logger.warn(
+                                TAG,
+                                result.correlationId,
+                                "Sign up received unexpected result $result"
+                            )
                             SignUpError(
                                 errorMessage = "Unexpected state",
                                 error = ErrorTypes.INVALID_STATE,
@@ -641,6 +642,7 @@ class NativeAuthPublicClientApplication(
                         } else {
                             Logger.warn(
                                 TAG,
+                                result.correlationId,
                                 "Sign up received unexpected result $result"
                             )
                             SignUpError(
@@ -688,6 +690,11 @@ class NativeAuthPublicClientApplication(
                     }
 
                     is INativeAuthCommandResult.UnknownError -> {
+                        Logger.warn(
+                            TAG,
+                            result.correlationId,
+                            "Sign up received unexpected result $result",
+                        )
                         SignUpError(
                             errorMessage = "Unexpected state",
                             error = ErrorTypes.INVALID_STATE,
