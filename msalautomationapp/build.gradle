@@ -191,6 +191,7 @@ dependencies {
     implementation(project(":LabApiUtilities"))
     implementation(project(":uiautomationutilities")) {
         exclude module: 'common'
+        //exclude module: 'common4j'
         exclude module: 'appcompat'
     }
     androidTestImplementation "androidx.test:runner:$rootProject.ext.androidxTestRunnerVersion"
