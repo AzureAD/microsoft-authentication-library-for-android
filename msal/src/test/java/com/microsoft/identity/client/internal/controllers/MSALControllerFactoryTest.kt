@@ -26,6 +26,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.microsoft.identity.client.PublicClientApplicationConfiguration
 import com.microsoft.identity.client.PublicClientApplicationConfigurationFactory
+import com.microsoft.identity.client.e2e.shadows.ShadowBrokerDiscoveryClient
 import com.microsoft.identity.client.e2e.shadows.ShadowLegacyBrokerDiscoveryClient
 import com.microsoft.identity.common.internal.controllers.BrokerMsalController
 import com.microsoft.identity.common.java.authorities.Authority
@@ -38,11 +39,12 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(shadows = [ShadowLegacyBrokerDiscoveryClient::class] )
+@Config(shadows = [
+    ShadowLegacyBrokerDiscoveryClient::class,
+    ShadowBrokerDiscoveryClient::class] )
 class MSALControllerFactoryTest {
 
     private lateinit var pcaConfiguration: PublicClientApplicationConfiguration
-    private lateinit var msalControllerFactory: MSALControllerFactory
 
     @Before
     fun setup() {
@@ -50,20 +52,21 @@ class MSALControllerFactoryTest {
         pcaConfiguration = PublicClientApplicationConfigurationFactory.loadConfiguration(context, R.raw.msal_default_config)
         pcaConfiguration.appContext = context
         Assert.assertTrue(pcaConfiguration.useBroker)
-        msalControllerFactory = MSALControllerFactory(pcaConfiguration)
     }
     @Test
     fun testGetControllers() {
         val testAuthority = Authority.getAuthorityFromAuthorityUrl("https://login.microsoftonline.com/common")
-        Assert.assertTrue(msalControllerFactory.brokerEligibleAndInstalled(testAuthority))
-        Assert.assertEquals(2, msalControllerFactory.getAllControllers(testAuthority).size)
-        Assert.assertTrue(msalControllerFactory.getAllControllers(testAuthority)[0] is BrokerMsalController )
+        val msalControllerFactory = MSALControllerFactory(pcaConfiguration, testAuthority)
+        Assert.assertTrue(msalControllerFactory.brokerEligibleAndInstalled())
+        Assert.assertEquals(2, msalControllerFactory.getAllControllers().size)
+        Assert.assertTrue(msalControllerFactory.getAllControllers()[0] is BrokerMsalController )
     }
 
     @Test
     fun testGetDefaultController() {
         val testAuthority = Authority.getAuthorityFromAuthorityUrl("https://login.microsoftonline.com/common")
-        Assert.assertTrue(msalControllerFactory.brokerEligibleAndInstalled(testAuthority))
-        Assert.assertTrue(msalControllerFactory.getDefaultController(testAuthority) is BrokerMsalController )
+        val msalControllerFactory = MSALControllerFactory(pcaConfiguration, testAuthority)
+        Assert.assertTrue(msalControllerFactory.brokerEligibleAndInstalled())
+        Assert.assertTrue(msalControllerFactory.getDefaultController() is BrokerMsalController )
     }
 }

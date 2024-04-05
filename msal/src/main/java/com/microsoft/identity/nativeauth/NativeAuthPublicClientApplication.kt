@@ -128,7 +128,7 @@ class NativeAuthPublicClientApplication(
 
             val command = GetCurrentAccountCommand(
                 params,
-                LocalMSALController(),
+                LocalMSALController().asControllerFactory(),
                 object : CommandCallback<List<ICacheRecord?>?, BaseException?> {
                     override fun onTaskCompleted(result: List<ICacheRecord?>?) {
                         // Do nothing, handled by CommandDispatcher.submitSilentReturningFuture()

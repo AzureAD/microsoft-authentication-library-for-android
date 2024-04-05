@@ -123,7 +123,7 @@ class AccountState private constructor(
 
             val removeCurrentAccountCommandParameters = RemoveCurrentAccountCommand(
                 params,
-                LocalMSALController(),
+                LocalMSALController().asControllerFactory(),
                 object : CommandCallback<Boolean?, BaseException?> {
                     override fun onError(error: BaseException?) {
                         // Do nothing, handled by CommandDispatcher.submitSilentReturningFuture()
