@@ -118,7 +118,7 @@ class NativeAuthPublicClientApplication(
             LogSession.logMethodCall(
                 tag = TAG,
                 correlationId = null,
-                methodName = "${TAG}.getCurrentAccountInternal"
+                methodName = "${TAG}.getCurrentAccountInternal(config: NativeAuthPublicClientApplicationConfiguration)"
             )
 
             val params = CommandParametersAdapter.createCommandParameters(
@@ -162,7 +162,7 @@ class NativeAuthPublicClientApplication(
             LogSession.logMethodCall(
                 tag = TAG,
                 correlationId = null,
-                methodName = "${TAG}.getAccountFromICacheRecordsList"
+                methodName = "${TAG}.getAccountFromICacheRecordsList(cacheRecords: List<ICacheRecord?>?)"
             )
             if (cacheRecords.isNullOrEmpty()) {
                 return null
@@ -228,6 +228,11 @@ class NativeAuthPublicClientApplication(
      * @return [com.microsoft.identity.nativeauth.statemachine.states.AccountState] if there is a signed in account, null otherwise.
      */
     override fun getCurrentAccount(callback: GetCurrentAccountCallback) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.getCurrentAccount(callback: GetCurrentAccountCallback)"
+        )
         pcaScope.launch {
             try {
                 val result = getCurrentAccount()
@@ -283,6 +288,11 @@ class NativeAuthPublicClientApplication(
         scopes: List<String>?,
         callback: SignInCallback
     ) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.signIn(username: String, password: CharArray?, scopes: List<String>?, callback: SignInCallback)"
+        )
         pcaScope.launch {
             try {
                 val result = signIn(username, password, scopes)
@@ -311,7 +321,7 @@ class NativeAuthPublicClientApplication(
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = null,
-            methodName = "${TAG}.signIn"
+            methodName = "${TAG}.signIn(username: String, password: CharArray?, scopes: List<String>?)"
         )
         return withContext(Dispatchers.IO) {
 
@@ -492,6 +502,11 @@ class NativeAuthPublicClientApplication(
         attributes: UserAttributes?,
         callback: SignUpCallback
     ) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.signUp(username: String, password: CharArray?, attributes: UserAttributes?, callback: SignUpCallback)"
+        )
         pcaScope.launch {
             try {
                 val result = signUp(username, password, attributes)
@@ -520,7 +535,7 @@ class NativeAuthPublicClientApplication(
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = null,
-            methodName = "${TAG}.signUp"
+            methodName = "${TAG}.signUp(username: String, password: CharArray?, attributes: UserAttributes?)"
         )
         var hasPassword = password?.isNotEmpty() == true
 
@@ -719,6 +734,11 @@ class NativeAuthPublicClientApplication(
      * @throws MsalClientException if an account is already signed in.
      */
     override fun resetPassword(username: String, callback: ResetPasswordCallback) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.resetPassword(username: String, callback: ResetPasswordCallback)"
+        )
         pcaScope.launch {
             try {
                 val result = resetPassword(username = username)
@@ -743,7 +763,6 @@ class NativeAuthPublicClientApplication(
             correlationId = null,
             methodName = "${TAG}.resetPassword(username: String)"
         )
-
         return withContext(Dispatchers.IO) {
             val doesAccountExist = checkForPersistedAccount().get()
             if (doesAccountExist) {

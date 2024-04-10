@@ -99,6 +99,11 @@ class SignInCodeRequiredState internal constructor(
      * @return The results of the submit code action.
      */
     fun submitCode(code: String, callback: SubmitCodeCallback) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitCode(code: String, callback: SubmitCodeCallback)"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = submitCode(code)
@@ -205,6 +210,11 @@ class SignInCodeRequiredState internal constructor(
      * @return The results of the resend code action.
      */
     fun resendCode(callback: ResendCodeCallback) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.resendCode(callback: ResendCodeCallback)"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = resendCode()
@@ -334,6 +344,11 @@ class SignInPasswordRequiredState(
      * @return The results of the submit password action.
      */
     fun submitPassword(password: CharArray, callback: SubmitPasswordCallback) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitPassword(password: CharArray, callback: SubmitPasswordCallback)"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = submitPassword(password)
@@ -479,6 +494,11 @@ class SignInContinuationState(
      * @return The results of the sign-in-continuation action.
      */
     fun signIn(scopes: List<String>? = null, callback: SignInContinuationCallback) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.signIn(scopes: List<String>, callback: SignInContinuationCallback)"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = signIn(scopes)
@@ -497,12 +517,12 @@ class SignInContinuationState(
      * @return The results of the sign-in-after-sign-up action.
      */
     suspend fun signIn(scopes: List<String>? = null): SignInResult {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.signIn(scopes: List<String>)"
+        )
         return withContext(Dispatchers.IO) {
-            LogSession.logMethodCall(
-                tag = TAG,
-                correlationId = correlationId,
-                methodName = "${TAG}.signIn(scopes: List<String>)"
-            )
             // Check if verification code was passed. If not, return an UnknownError with instructions to call the other
             // sign in flows (code or password).
             if (continuationToken.isNullOrEmpty()) {

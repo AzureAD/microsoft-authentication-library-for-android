@@ -91,6 +91,11 @@ class ResetPasswordCodeRequiredState internal constructor(
      * @return The results of the submit code action.
      */
     fun submitCode(code: String, callback: SubmitCodeCallback) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitCode(code: String, callback: SubmitCodeCallback)"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = submitCode(code = code)
@@ -192,6 +197,11 @@ class ResetPasswordCodeRequiredState internal constructor(
      * @return The results of the resend code action.
      */
     fun resendCode(callback: ResendCodeCallback) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.resendCode(callback: ResendCodeCallback)"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = resendCode()
@@ -320,6 +330,11 @@ class ResetPasswordPasswordRequiredState internal constructor(
      * @return The results of the submit password action.
      */
     fun submitPassword(password: CharArray, callback: SubmitPasswordCallback) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitPassword(password: CharArray, callback: SubmitPasswordCallback)"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = submitPassword(password = password)
