@@ -383,6 +383,11 @@ class NativeAuthPublicClientApplication(
                         }
                     }
                     is SignInCommandResult.CodeRequired -> {
+                        Logger.warn(
+                            TAG,
+                            result.correlationId,
+                            "Server requires a code"
+                        )
                         SignInResult.CodeRequired(
                             nextState = SignInCodeRequiredState(
                                 continuationToken = result.continuationToken,
