@@ -28,7 +28,7 @@ resources:
   - repository: common
     type: github
     name: AzureAD/microsoft-authentication-library-common-for-android
-    ref: dev
+    ref: melissaahn/release/17.3.0
     endpoint: ANDROID_GITHUB
 
 pool:
