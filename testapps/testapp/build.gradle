@@ -29,7 +29,7 @@ apply plugin: 'kotlin-android'
 
 apply plugin: 'kotlin-android-extensions'
 
-def msalVersion = "5.2.0"
+def msalVersion = "5.+"
 
 if (project.hasProperty("distMsalVersion")) {
     msalVersion = distMsalVersion
