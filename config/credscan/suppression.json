@@ -3,15 +3,15 @@
     "suppressions": [
     {
         "file": "msalautomationapp/debug.keystore",
-        "_justification": "general"
+        "_justification": "Not production keystore"
     },
     {
         "file": "testapps/testapp/debug.keystore",
-        "_justification": "general"
+        "_justification": "Not production keystore"
     },
     {
         "file": "testapps/testapp/debug/debug.keystore",
-        "_justification": "general"
+        "_justification": "Not production keystore"
     }
     ]
 }   
