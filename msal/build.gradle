@@ -167,6 +167,7 @@ task javadoc(type: Javadoc) {
 
     options.memberLevel = JavadocMemberLevel.PUBLIC
     options.addStringOption('Xdoclint:none', '-quiet')
+
     exclude '**/BuildConfig.Java'
     exclude '**/R.java'
     destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
