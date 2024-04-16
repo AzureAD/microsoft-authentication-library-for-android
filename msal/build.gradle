@@ -165,11 +165,19 @@ task javadoc(type: Javadoc) {
     classpath += configurations.api
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
 
+    project.logger.lifecycle("ClasspathApi:" + configurations.api)
+    project.logger.lifecycle("Classpath:" + classpath.asPath)
+
     options.memberLevel = JavadocMemberLevel.PUBLIC
     options.addBooleanOption('Xdoclint:none', true)
 
     exclude '**/BuildConfig.Java'
     exclude '**/R.java'
+
+    // Javadoc doesn't support kotlin.
+    // TODO: Migrate to Dokka
+    exclude '**/*.kt'
+
     destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
 }
 
