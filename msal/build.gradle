@@ -166,7 +166,7 @@ task javadoc(type: Javadoc) {
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
 
     options.memberLevel = JavadocMemberLevel.PUBLIC
-    options.addStringOption('Xdoclint:none', '-quiet')
+    options.addBooleanOption('Xdoclint:none', true)
 
     exclude '**/BuildConfig.Java'
     exclude '**/R.java'
