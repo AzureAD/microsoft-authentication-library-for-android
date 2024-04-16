@@ -23,13 +23,18 @@
 
 package com.microsoft.identity.nativeauth.statemachine.errors
 
+import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
+import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResendCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitCodeResult
+import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitPasswordResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResendCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInSubmitCodeResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignInSubmitPasswordResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignOutResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResendCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpSubmitAttributesResult
@@ -77,6 +82,9 @@ internal class ErrorTypes {
          * in state transitions. If this occurs, the flow should be restarted.
          */
         const val INVALID_STATE = "invalid_state"
+
+
+        const val CLIENT_EXCEPTION = "client_exception"
     }
 }
 
@@ -157,3 +165,19 @@ class ResendCodeError(
     override val errorCodes: List<Int>? = null,
     override var exception: Exception? = null
 ): SignInResendCodeResult, SignUpResendCodeResult, ResetPasswordResendCodeResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception)
+
+class ClientExceptionError(
+    override val errorType: String? = null,
+    override val error: String? = null,
+    override val errorMessage: String?,
+    override val correlationId: String,
+    override val errorCodes: List<Int>? = null,
+    override var exception: Exception? = null
+): GetAccessTokenResult, GetAccountResult,
+    SignInResult, SignUpResult,
+    ResetPasswordStartResult, ResetPasswordSubmitCodeResult, ResetPasswordResendCodeResult,
+    ResetPasswordSubmitPasswordResult,
+    SignInSubmitCodeResult, SignInResendCodeResult, SignInSubmitPasswordResult,
+    SignUpSubmitCodeResult, SignUpResendCodeResult, SignUpSubmitPasswordResult, SignUpSubmitAttributesResult,
+    SignOutResult,
+    Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception)

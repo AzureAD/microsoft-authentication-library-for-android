@@ -47,10 +47,12 @@ import com.microsoft.identity.common.java.nativeauth.controllers.results.SignInS
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignInSubmitPasswordCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignInWithContinuationTokenCommandResult
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
+import com.microsoft.identity.common.java.logging.DiagnosticContext
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.util.StringUtil
 import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
+import com.microsoft.identity.nativeauth.statemachine.errors.ClientExceptionError
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.ResendCodeError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInContinuationError
@@ -61,6 +63,7 @@ import com.microsoft.identity.nativeauth.utils.serializable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.contracts.InvocationKind
 
 /**
  * Native Auth uses a state machine to denote state of and transitions within a flow.
@@ -128,72 +131,84 @@ class SignInCodeRequiredState internal constructor(
             methodName = "${TAG}.submitCode(code: String)"
         )
         return withContext(Dispatchers.IO) {
-            val params = CommandParametersAdapter.createSignInSubmitCodeCommandParameters(
-                config,
-                config.oAuth2TokenCache,
-                code,
-                continuationToken,
-                correlationId,
-                scopes
-            )
+            try {
+                val params = CommandParametersAdapter.createSignInSubmitCodeCommandParameters(
+                    config,
+                    config.oAuth2TokenCache,
+                    code,
+                    continuationToken,
+                    correlationId,
+                    scopes
+                )
 
-            val signInSubmitCodeCommand = SignInSubmitCodeCommand(
-                parameters = params,
-                controller = NativeAuthMsalController(),
-                publicApiId = PublicApiId.NATIVE_AUTH_SIGN_IN_SUBMIT_CODE
-            )
+                val signInSubmitCodeCommand = SignInSubmitCodeCommand(
+                    parameters = params,
+                    controller = NativeAuthMsalController(),
+                    publicApiId = PublicApiId.NATIVE_AUTH_SIGN_IN_SUBMIT_CODE
+                )
 
-            val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(signInSubmitCodeCommand).get()
+                val rawCommandResult =
+                    CommandDispatcher.submitSilentReturningFuture(signInSubmitCodeCommand).get()
 
-            return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<SignInSubmitCodeCommandResult>()) {
-                is SignInCommandResult.IncorrectCode -> {
-                    SubmitCodeError(
-                        errorType = ErrorTypes.INVALID_CODE,
-                        error = result.error,
-                        errorMessage = result.errorDescription,
-                        correlationId = result.correlationId,
-                        errorCodes = result.errorCodes,
-                        subError = result.subError
-                    )
-
-                }
-
-                is SignInCommandResult.Complete -> {
-                    val authenticationResult =
-                        AuthenticationResultAdapter.adapt(result.authenticationResult)
-
-                    SignInResult.Complete(
-                        resultValue = AccountState.createFromAuthenticationResult(
-                            authenticationResult = authenticationResult,
+                return@withContext when (val result =
+                    rawCommandResult.checkAndWrapCommandResultType<SignInSubmitCodeCommandResult>()) {
+                    is SignInCommandResult.IncorrectCode -> {
+                        SubmitCodeError(
+                            errorType = ErrorTypes.INVALID_CODE,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
-                            config = config
+                            errorCodes = result.errorCodes,
+                            subError = result.subError
                         )
-                    )
-                }
 
-                is INativeAuthCommandResult.Redirect -> {
-                    SubmitCodeError(
-                        errorType = ErrorTypes.BROWSER_REQUIRED,
-                        error = result.error,
-                        errorMessage = result.errorDescription,
-                        correlationId = result.correlationId
-                    )
-                }
+                    }
 
-                is INativeAuthCommandResult.UnknownError -> {
-                    Logger.warn(
-                        TAG,
-                        result.correlationId,
-                        "Submit code received unexpected result: $result"
-                    )
-                    SubmitCodeError(
-                        errorMessage = result.errorDescription,
-                        error = result.error,
-                        correlationId = result.correlationId,
-                        errorCodes = result.errorCodes,
-                        exception = result.exception
-                    )
+                    is SignInCommandResult.Complete -> {
+                        val authenticationResult =
+                            AuthenticationResultAdapter.adapt(result.authenticationResult)
+
+                        SignInResult.Complete(
+                            resultValue = AccountState.createFromAuthenticationResult(
+                                authenticationResult = authenticationResult,
+                                correlationId = result.correlationId,
+                                config = config
+                            )
+                        )
+                    }
+
+                    is INativeAuthCommandResult.Redirect -> {
+                        SubmitCodeError(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
+                        )
+                    }
+
+                    is INativeAuthCommandResult.UnknownError -> {
+                        Logger.warn(
+                            TAG,
+                            result.correlationId,
+                            "Submit code received unexpected result: $result"
+                        )
+                        SubmitCodeError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes,
+                            exception = result.exception
+                        )
+                    }
                 }
+            } catch (e: Exception) {
+                Logger.error(TAG, "MSAL client exception occurred in signIn submitCode.", e)
+                ClientExceptionError(
+                    errorType = ErrorTypes.CLIENT_EXCEPTION,
+                    errorMessage = "MSAL client exception occurred in signIn submitCode.",
+                    exception = e,
+                    correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
+                )
             }
         }
     }
@@ -238,50 +253,62 @@ class SignInCodeRequiredState internal constructor(
             methodName = "${TAG}.resendCode()"
         )
         return withContext(Dispatchers.IO) {
-            val params = CommandParametersAdapter.createSignInResendCodeCommandParameters(
-                config,
-                config.oAuth2TokenCache,
-                correlationId,
-                continuationToken
-            )
+            try {
+                val params = CommandParametersAdapter.createSignInResendCodeCommandParameters(
+                    config,
+                    config.oAuth2TokenCache,
+                    correlationId,
+                    continuationToken
+                )
 
-            val signInResendCodeCommand = SignInResendCodeCommand(
-                parameters = params,
-                controller = NativeAuthMsalController(),
-                publicApiId = PublicApiId.NATIVE_AUTH_SIGN_IN_RESEND_CODE
-            )
+                val signInResendCodeCommand = SignInResendCodeCommand(
+                    parameters = params,
+                    controller = NativeAuthMsalController(),
+                    publicApiId = PublicApiId.NATIVE_AUTH_SIGN_IN_RESEND_CODE
+                )
 
-            val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(signInResendCodeCommand).get()
+                val rawCommandResult =
+                    CommandDispatcher.submitSilentReturningFuture(signInResendCodeCommand).get()
 
-            return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<SignInResendCodeCommandResult>()) {
-                is SignInCommandResult.CodeRequired -> {
-                    SignInResendCodeResult.Success(
-                        nextState = SignInCodeRequiredState(
-                            continuationToken = result.continuationToken,
-                            correlationId = result.correlationId,
-                            scopes = scopes,
-                            config = config
-                        ),
-                        codeLength = result.codeLength,
-                        sentTo = result.challengeTargetLabel,
-                        channel = result.challengeChannel
-                    )
+                return@withContext when (val result =
+                    rawCommandResult.checkAndWrapCommandResultType<SignInResendCodeCommandResult>()) {
+                    is SignInCommandResult.CodeRequired -> {
+                        SignInResendCodeResult.Success(
+                            nextState = SignInCodeRequiredState(
+                                continuationToken = result.continuationToken,
+                                correlationId = result.correlationId,
+                                scopes = scopes,
+                                config = config
+                            ),
+                            codeLength = result.codeLength,
+                            sentTo = result.challengeTargetLabel,
+                            channel = result.challengeChannel
+                        )
+                    }
+
+                    is INativeAuthCommandResult.Redirect, is INativeAuthCommandResult.UnknownError -> {
+                        Logger.warn(
+                            TAG,
+                            result.correlationId,
+                            "Resend code received unexpected result: $result"
+                        )
+                        ResendCodeError(
+                            errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
+                            error = (result as INativeAuthCommandResult.Error).error,
+                            correlationId = (result as INativeAuthCommandResult.Error).correlationId,
+                            errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
+                            exception = if (result is INativeAuthCommandResult.UnknownError) result.exception else null
+                        )
+                    }
                 }
-
-                is INativeAuthCommandResult.Redirect, is INativeAuthCommandResult.UnknownError -> {
-                    Logger.warn(
-                        TAG,
-                        result.correlationId,
-                        "Resend code received unexpected result: $result"
-                    )
-                    ResendCodeError(
-                        errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
-                        error = (result as INativeAuthCommandResult.Error).error,
-                        correlationId = (result as INativeAuthCommandResult.Error).correlationId,
-                        errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
-                        exception = if (result is INativeAuthCommandResult.UnknownError) result.exception else null
-                    )
-                }
+            } catch (e: Exception) {
+                Logger.error(TAG, "MSAL client exception occurred in resendCode.", e)
+                ClientExceptionError(
+                    errorType = ErrorTypes.CLIENT_EXCEPTION,
+                    errorMessage = "MSAL client exception occurred in resendCode.",
+                    exception = e,
+                    correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
+                )
             }
         }
     }
@@ -373,17 +400,16 @@ class SignInPasswordRequiredState(
             methodName = "${TAG}.submitPassword(password: CharArray)"
         )
         return withContext(Dispatchers.IO) {
-            val params = CommandParametersAdapter.createSignInSubmitPasswordCommandParameters(
-                config,
-                config.oAuth2TokenCache,
-                continuationToken,
-                password,
-                correlationId,
-                scopes
-            )
+            try {
+                val params = CommandParametersAdapter.createSignInSubmitPasswordCommandParameters(
+                    config,
+                    config.oAuth2TokenCache,
+                    continuationToken,
+                    password,
+                    correlationId,
+                    scopes
+                )
 
-            try
-            {
                 val signInSubmitPasswordCommand = SignInSubmitPasswordCommand(
                     parameters = params,
                     controller = NativeAuthMsalController(),
@@ -403,6 +429,7 @@ class SignInPasswordRequiredState(
                             correlationId = result.correlationId
                         )
                     }
+
                     is SignInCommandResult.Complete -> {
                         val authenticationResult =
                             AuthenticationResultAdapter.adapt(result.authenticationResult)
@@ -414,6 +441,7 @@ class SignInPasswordRequiredState(
                             )
                         )
                     }
+
                     is INativeAuthCommandResult.Redirect, is INativeAuthCommandResult.UnknownError -> {
                         Logger.warn(
                             TAG,
@@ -429,8 +457,16 @@ class SignInPasswordRequiredState(
                         )
                     }
                 }
+            } catch (e: Exception) {
+                Logger.error(TAG, "Exception thrown in submitPassword", e)
+                ClientExceptionError(
+                    errorType = ErrorTypes.CLIENT_EXCEPTION,
+                    errorMessage = "MSAL client exception occurred in resetPassword submitCode.",
+                    exception = e,
+                    correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
+                )
             } finally {
-                StringUtil.overwriteWithNull(params.password)
+                StringUtil.overwriteWithNull(password)
             }
         }
     }

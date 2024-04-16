@@ -29,6 +29,7 @@ import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
 import com.microsoft.identity.common.java.controllers.CommandDispatcher
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
+import com.microsoft.identity.common.java.logging.DiagnosticContext
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
@@ -44,6 +45,7 @@ import com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordS
 import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
+import com.microsoft.identity.nativeauth.statemachine.errors.ClientExceptionError
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.ResendCodeError
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordErrorTypes
@@ -120,67 +122,78 @@ class ResetPasswordCodeRequiredState internal constructor(
             methodName = "${TAG}.submitCode(code: String)"
         )
         return withContext(Dispatchers.IO) {
-            val parameters =
-                CommandParametersAdapter.createResetPasswordSubmitCodeCommandParameters(
-                    config,
-                    config.oAuth2TokenCache,
-                    code,
-                    correlationId,
-                    continuationToken
+            try {
+                val parameters =
+                    CommandParametersAdapter.createResetPasswordSubmitCodeCommandParameters(
+                        config,
+                        config.oAuth2TokenCache,
+                        code,
+                        correlationId,
+                        continuationToken
+                    )
+
+                val command = ResetPasswordSubmitCodeCommand(
+                    parameters = parameters,
+                    controller = NativeAuthMsalController(),
+                    PublicApiId.NATIVE_AUTH_RESET_PASSWORD_SUBMIT_CODE
                 )
 
-            val command = ResetPasswordSubmitCodeCommand(
-                parameters = parameters,
-                controller = NativeAuthMsalController(),
-                PublicApiId.NATIVE_AUTH_RESET_PASSWORD_SUBMIT_CODE
-            )
+                val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
 
-            val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
-
-            return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<ResetPasswordSubmitCodeCommandResult>()) {
-                is ResetPasswordCommandResult.PasswordRequired -> {
-                    ResetPasswordSubmitCodeResult.PasswordRequired(
-                        nextState = ResetPasswordPasswordRequiredState(
-                            continuationToken = result.continuationToken,
-                            correlationId = result.correlationId,
-                            username = username,
-                            config = config
+                return@withContext when (val result =
+                    rawCommandResult.checkAndWrapCommandResultType<ResetPasswordSubmitCodeCommandResult>()) {
+                    is ResetPasswordCommandResult.PasswordRequired -> {
+                        ResetPasswordSubmitCodeResult.PasswordRequired(
+                            nextState = ResetPasswordPasswordRequiredState(
+                                continuationToken = result.continuationToken,
+                                correlationId = result.correlationId,
+                                username = username,
+                                config = config
+                            )
                         )
-                    )
-                }
+                    }
 
-                is ResetPasswordCommandResult.IncorrectCode -> {
-                    SubmitCodeError(
-                        errorType = ErrorTypes.INVALID_CODE,
-                        error = result.error,
-                        errorMessage = result.errorDescription,
-                        correlationId = result.correlationId,
-                        subError = result.subError
-                    )
-                }
+                    is ResetPasswordCommandResult.IncorrectCode -> {
+                        SubmitCodeError(
+                            errorType = ErrorTypes.INVALID_CODE,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            subError = result.subError
+                        )
+                    }
 
-                is INativeAuthCommandResult.Redirect -> {
-                    SubmitCodeError(
-                        errorType = ErrorTypes.BROWSER_REQUIRED,
-                        error = result.error,
-                        errorMessage = result.errorDescription,
-                        correlationId = result.correlationId
-                    )
-                }
+                    is INativeAuthCommandResult.Redirect -> {
+                        SubmitCodeError(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
+                        )
+                    }
 
-                is INativeAuthCommandResult.UnknownError -> {
-                    Logger.warn(
-                        TAG,
-                        result.correlationId,
-                        "Submit code received unexpected result: $result"
-                    )
-                    SubmitCodeError(
-                        errorMessage = result.errorDescription,
-                        error = result.error,
-                        correlationId = result.correlationId,
-                        exception = result.exception
-                    )
+                    is INativeAuthCommandResult.UnknownError -> {
+                        Logger.warn(
+                            TAG,
+                            result.correlationId,
+                            "Submit code received unexpected result: $result"
+                        )
+                        SubmitCodeError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId,
+                            exception = result.exception
+                        )
+                    }
                 }
+            } catch (e: Exception) {
+                Logger.error(TAG, "MSAL client exception occurred in resetPassword submitCode.", e)
+                ClientExceptionError(
+                    errorType = ErrorTypes.CLIENT_EXCEPTION,
+                    errorMessage = "MSAL client exception occurred in resetPassword submitCode.",
+                    exception = e,
+                    correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
+                )
             }
         }
     }
@@ -225,52 +238,63 @@ class ResetPasswordCodeRequiredState internal constructor(
             methodName = "${TAG}.resendCode"
         )
         return withContext(Dispatchers.IO) {
-            val parameters =
-                CommandParametersAdapter.createResetPasswordResendCodeCommandParameters(
-                    config,
-                    config.oAuth2TokenCache,
-                    correlationId,
-                    continuationToken
+            try {
+                val parameters =
+                    CommandParametersAdapter.createResetPasswordResendCodeCommandParameters(
+                        config,
+                        config.oAuth2TokenCache,
+                        correlationId,
+                        continuationToken
+                    )
+
+                val command = ResetPasswordResendCodeCommand(
+                    parameters = parameters,
+                    controller = NativeAuthMsalController(),
+                    PublicApiId.NATIVE_AUTH_RESET_PASSWORD_RESEND_CODE
                 )
 
-            val command = ResetPasswordResendCodeCommand(
-                parameters = parameters,
-                controller = NativeAuthMsalController(),
-                PublicApiId.NATIVE_AUTH_RESET_PASSWORD_RESEND_CODE
-            )
+                val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
 
-            val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
+                return@withContext when (val result =
+                    rawCommandResult.checkAndWrapCommandResultType<ResetPasswordResendCodeCommandResult>()) {
+                    is ResetPasswordCommandResult.CodeRequired -> {
+                        ResetPasswordResendCodeResult.Success(
+                            nextState = ResetPasswordCodeRequiredState(
+                                continuationToken = result.continuationToken,
+                                correlationId = result.correlationId,
+                                username = username,
+                                config = config
+                            ),
+                            codeLength = result.codeLength,
+                            sentTo = result.challengeTargetLabel,
+                            channel = result.challengeChannel
+                        )
+                    }
 
-            return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<ResetPasswordResendCodeCommandResult>()) {
-                is ResetPasswordCommandResult.CodeRequired -> {
-                    ResetPasswordResendCodeResult.Success(
-                        nextState = ResetPasswordCodeRequiredState(
-                            continuationToken = result.continuationToken,
-                            correlationId = result.correlationId,
-                            username = username,
-                            config = config
-                        ),
-                        codeLength = result.codeLength,
-                        sentTo = result.challengeTargetLabel,
-                        channel = result.challengeChannel
-                    )
+                    is INativeAuthCommandResult.Redirect,
+                    is INativeAuthCommandResult.UnknownError -> {
+                        Logger.warn(
+                            TAG,
+                            result.correlationId,
+                            "Resend code received unexpected result: $result"
+                        )
+                        ResendCodeError(
+                            errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
+                            error = (result as INativeAuthCommandResult.Error).error,
+                            correlationId = (result as INativeAuthCommandResult.Error).correlationId,
+                            errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
+                            exception = if (result is INativeAuthCommandResult.UnknownError) result.exception else null
+                        )
+                    }
                 }
-
-                is INativeAuthCommandResult.Redirect,
-                is INativeAuthCommandResult.UnknownError -> {
-                    Logger.warn(
-                        TAG,
-                        result.correlationId,
-                        "Resend code received unexpected result: $result"
-                    )
-                    ResendCodeError(
-                        errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
-                        error = (result as INativeAuthCommandResult.Error).error,
-                        correlationId = (result as INativeAuthCommandResult.Error).correlationId,
-                        errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
-                        exception = if (result is INativeAuthCommandResult.UnknownError) result.exception else null
-                    )
-                }
+            } catch (e: Exception) {
+                Logger.error(TAG, "MSAL client exception occurred in resetPassword resendCode.", e)
+                ClientExceptionError(
+                    errorType = ErrorTypes.CLIENT_EXCEPTION,
+                    errorMessage = "MSAL client exception occurred in resetPassword resendCode.",
+                    exception = e,
+                    correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
+                )
             }
         }
     }
@@ -359,22 +383,22 @@ class ResetPasswordPasswordRequiredState internal constructor(
             methodName = "${TAG}.submitPassword(password: CharArray)"
         )
         return withContext(Dispatchers.IO) {
-            val parameters =
-                CommandParametersAdapter.createResetPasswordSubmitNewPasswordCommandParameters(
-                    config,
-                    config.oAuth2TokenCache,
-                    continuationToken,
-                    correlationId,
-                    password
+            try {
+                val parameters =
+                    CommandParametersAdapter.createResetPasswordSubmitNewPasswordCommandParameters(
+                        config,
+                        config.oAuth2TokenCache,
+                        continuationToken,
+                        correlationId,
+                        password
+                    )
+
+                val command = ResetPasswordSubmitNewPasswordCommand(
+                    parameters = parameters,
+                    controller = NativeAuthMsalController(),
+                    PublicApiId.NATIVE_AUTH_RESET_PASSWORD_SUBMIT_NEW_PASSWORD
                 )
 
-            val command = ResetPasswordSubmitNewPasswordCommand(
-                parameters = parameters,
-                controller = NativeAuthMsalController(),
-                PublicApiId.NATIVE_AUTH_RESET_PASSWORD_SUBMIT_NEW_PASSWORD
-            )
-
-            try {
                 val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
 
                 return@withContext when (val result =
@@ -436,8 +460,16 @@ class ResetPasswordPasswordRequiredState internal constructor(
                         )
                     }
                 }
+            } catch (e: Exception) {
+                Logger.error(TAG, "MSAL client exception occurred in resetPassword submitPassword.", e)
+                ClientExceptionError(
+                    errorType = ErrorTypes.CLIENT_EXCEPTION,
+                    errorMessage = "MSAL client exception occurred in resetPassword submitPassword.",
+                    exception = e,
+                    correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
+                )
             } finally {
-                StringUtil.overwriteWithNull(parameters.newPassword)
+                StringUtil.overwriteWithNull(password)
             }
         }
     }
