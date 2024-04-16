@@ -175,8 +175,7 @@ class ClientExceptionError(
     override var exception: Exception? = null
 ): GetAccessTokenResult, GetAccountResult,
     SignInResult, SignUpResult,
-    ResetPasswordStartResult, ResetPasswordSubmitCodeResult, ResetPasswordResendCodeResult,
-    ResetPasswordSubmitPasswordResult,
+    ResetPasswordStartResult, ResetPasswordSubmitCodeResult, ResetPasswordResendCodeResult, ResetPasswordSubmitPasswordResult,
     SignInSubmitCodeResult, SignInResendCodeResult, SignInSubmitPasswordResult,
     SignUpSubmitCodeResult, SignUpResendCodeResult, SignUpSubmitPasswordResult, SignUpSubmitAttributesResult,
     SignOutResult,
