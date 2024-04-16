@@ -126,9 +126,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                 final CommandParameters params = CommandParametersAdapter.createCommandParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
                 final LoadAccountCommand loadAccountCommand = new LoadAccountCommand(
                         params,
-                        new MSALControllerFactory(mPublicClientConfiguration).getAllControllers(
-                                mPublicClientConfiguration.getDefaultAuthority()
-                        ),
+                        new MSALControllerFactory(mPublicClientConfiguration),
                         getLoadAccountsCallback(callback),
                         publicApiId
                 );
@@ -220,9 +218,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
                 final CommandParameters params = CommandParametersAdapter.createCommandParameters(mPublicClientConfiguration, mPublicClientConfiguration.getOAuth2TokenCache());
                 final LoadAccountCommand loadAccountCommand = new LoadAccountCommand(
                         params,
-                        new MSALControllerFactory(mPublicClientConfiguration).getAllControllers(
-                                mPublicClientConfiguration.getDefaultAuthority()
-                        ),
+                        new MSALControllerFactory(mPublicClientConfiguration),
                         new CommandCallback<List<ICacheRecord>, BaseException>() {
                             @Override
                             public void onTaskCompleted(final List<ICacheRecord> result) {
@@ -356,9 +352,7 @@ public class MultipleAccountPublicClientApplication extends PublicClientApplicat
 
         final RemoveAccountCommand removeAccountCommand = new RemoveAccountCommand(
                 params,
-                new MSALControllerFactory(mPublicClientConfiguration).getAllControllers(
-                        mPublicClientConfiguration.getDefaultAuthority()
-                ),
+                new MSALControllerFactory(mPublicClientConfiguration),
                 new CommandCallback<Boolean, BaseException>() {
                     @Override
                     public void onError(BaseException error) {
