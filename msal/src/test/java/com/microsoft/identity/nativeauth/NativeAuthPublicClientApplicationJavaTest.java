@@ -1169,7 +1169,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         SignInError error = (SignInError)result;
 
-        assertTrue(error.isInvalidUsername());
+        assertFalse(error.isInvalidUsername());
         assertFalse(error.isBrowserRequired());
         assertFalse(error.isUserNotFound());
         assertFalse(error.isInvalidCredentials());
@@ -1734,7 +1734,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         ResetPasswordStartResult resetPasswordResult = resetPasswordStartTestCallback.get();
 
         assertTrue(resetPasswordResult instanceof ResetPasswordError);
-        assertTrue(((ResetPasswordError) resetPasswordResult).isInvalidUsername());
+        assertTrue(((ResetPasswordError) resetPasswordResult).getErrorMessage().equals("username cannot be null or empty"));
     }
 
     // Helper methods
@@ -2726,7 +2726,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         SignUpResult signUpResult = signUpTestCallback.get();
 
         assertTrue(signUpResult instanceof SignUpError);
-        assertTrue(((SignUpError) signUpResult).isInvalidUsername());
+        assertFalse(((SignUpError) signUpResult).isInvalidUsername());
         assertFalse(((SignUpError) signUpResult).isBrowserRequired());
         assertFalse(((SignUpError) signUpResult).isInvalidPassword());
         assertFalse(((SignUpError) signUpResult).isInvalidAttributes());
