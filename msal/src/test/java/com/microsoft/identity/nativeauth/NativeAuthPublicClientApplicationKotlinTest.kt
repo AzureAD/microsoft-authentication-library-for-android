@@ -2225,7 +2225,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         //Call SDK interface
         val result = application.signUp(emptyString)
         assertTrue(result is SignUpError)
-        assertTrue((result as SignUpError).errorType == ErrorTypes.INVALID_USERNAME)
+        assertTrue((result as SignUpError).error == ErrorTypes.INVALID_STATE)
     }
 
     /**
