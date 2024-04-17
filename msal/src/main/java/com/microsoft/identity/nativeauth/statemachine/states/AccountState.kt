@@ -295,9 +295,11 @@ class AccountState private constructor(
                     }
 
                     is Exception -> {
-                        GetAccessTokenError(
+                        ClientExceptionError(
+                            errorType = ErrorTypes.CLIENT_EXCEPTION,
+                            errorMessage = "MSAL client exception occurred in getAccessToken.",
                             exception = commandResult,
-                            correlationId = "UNSET"
+                            correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
                         )
                     }
 
