@@ -717,6 +717,7 @@ class NativeAuthPublicClientApplication(
                 ClientExceptionError(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in signUp.",
+                    exception = e,
                     correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
                 )
             } finally {
