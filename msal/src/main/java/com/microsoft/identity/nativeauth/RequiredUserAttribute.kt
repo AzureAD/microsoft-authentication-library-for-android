@@ -23,6 +23,7 @@
 package com.microsoft.identity.nativeauth
 
 import com.microsoft.identity.common.java.nativeauth.providers.responses.UserAttributeApiResult
+import com.microsoft.identity.common.java.nativeauth.util.ILoggable
 
 /**
  * RequiredUserAttribute represents details about the account attributes required by the server.
@@ -39,7 +40,15 @@ data class RequiredUserAttribute(
 
     //Attribute value should match the constraints
     val options: RequiredUserAttributeOptions?
-)
+) : ILoggable {
+    override fun toSafeString(mayContainPii: Boolean): String {
+        return "RequiredUserAttribute(attributeName=$attributeName, type=$type, required=$required, options=$options"
+    }
+
+    override fun containsPii(): Boolean = false
+
+    override fun toString(): String = toSafeString(false)
+}
 
 /**
  * Converts a list of required user attribute API received as part of signup API to
