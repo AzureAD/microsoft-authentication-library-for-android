@@ -2,6 +2,8 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+- [PATCH] Safe logging of Kotlin data classes through ILoggable interface (#2081)
+
 
 Version 5.3.0
 ----------
