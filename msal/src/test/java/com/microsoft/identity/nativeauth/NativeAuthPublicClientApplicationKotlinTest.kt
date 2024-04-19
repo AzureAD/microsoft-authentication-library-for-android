@@ -50,6 +50,7 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignUpResendCodeRe
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper
+import com.microsoft.identity.common.java.AuthenticationConstants
 import com.microsoft.identity.common.nativeauth.MockApiEndpoint
 import com.microsoft.identity.common.nativeauth.MockApiResponseType
 import com.microsoft.identity.common.nativeauth.MockApiUtils.Companion.configureMockApi
@@ -83,6 +84,8 @@ import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.io.File
+import java.util.Arrays
+import java.util.Collections
 import java.util.UUID
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
@@ -551,6 +554,120 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
     }
 
     /**
+     * Test sign in, get access token. Compare to token from getAccount()
+     */
+    @Test
+    fun testGetAccessTokenThree() = runTest {
+        val correlationId = UUID.randomUUID().toString()
+        configureMockApi(
+            MockApiEndpoint.SignInInitiate,
+            correlationId,
+            MockApiResponseType.INITIATE_SUCCESS
+        )
+
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_PASSWORD
+        )
+
+        configureMockApi(
+            endpointType = MockApiEndpoint.SignInToken,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.TOKEN_SUCCESS
+        )
+
+        val signInResult = application.signIn(username, password)
+        assertTrue(signInResult is SignInResult.Complete)
+
+        val accessTokenState = (signInResult as SignInResult.Complete).resultValue.getAccessToken()
+        assertTrue(accessTokenState is GetAccessTokenResult.Complete)
+
+        val accessToken = (accessTokenState as GetAccessTokenResult.Complete).resultValue.accessToken
+        assertNotNull(accessToken)
+
+        val getAccountResult = application.getCurrentAccount()
+        assertTrue(getAccountResult is GetAccountResult.AccountFound)
+
+        val accessTokenResultTwo = (getAccountResult as GetAccountResult.AccountFound).resultValue.getAccessToken()
+        assertTrue(accessTokenResultTwo is GetAccessTokenResult.Complete)
+
+        val accessTokenTwo = (accessTokenResultTwo as GetAccessTokenResult.Complete).resultValue.accessToken
+        assertNotNull(accessTokenTwo)
+
+        assertEquals(accessToken, accessTokenTwo)
+
+        val scopes = Arrays.asList(AuthenticationConstants.OAuth2Scopes.OPEN_ID_SCOPE)
+        val accessTokenResultThree = (getAccountResult as GetAccountResult.AccountFound).resultValue.getAccessToken(false, scopes)
+        assertTrue(accessTokenResultThree is GetAccessTokenResult.Complete)
+
+        val accessTokenThree = (accessTokenResultThree as GetAccessTokenResult.Complete).resultValue.accessToken
+        assertNotNull(accessTokenThree)
+
+        assertEquals(accessTokenTwo, accessTokenThree)
+        assertEquals(accessToken, accessTokenThree)
+    }
+
+    /**
+     * Test sign in, get access token. Compare to token from getAccount()
+     */
+    @Test
+    fun testGetAccessTokenFour() = runTest {
+        val correlationId = UUID.randomUUID().toString()
+        configureMockApi(
+            MockApiEndpoint.SignInInitiate,
+            correlationId,
+            MockApiResponseType.INITIATE_SUCCESS
+        )
+
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_PASSWORD
+        )
+
+        configureMockApi(
+            endpointType = MockApiEndpoint.SignInToken,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.TOKEN_SUCCESS
+        )
+
+        val signInResult = application.signIn(username, password)
+        assertTrue(signInResult is SignInResult.Complete)
+
+        val getAccountResult = application.getCurrentAccount()
+        assertTrue(getAccountResult is GetAccountResult.AccountFound)
+
+        val scopes = Arrays.asList(AuthenticationConstants.OAuth2Scopes.EMAIL_SCOPE)
+        val accessTokenResultThree = (getAccountResult as GetAccountResult.AccountFound).resultValue.getAccessToken(false, scopes)
+
+        val accessTokenState = (signInResult as SignInResult.Complete).resultValue.getAccessToken()
+        assertTrue(accessTokenState is GetAccessTokenResult.Complete)
+
+        val accessToken = (accessTokenState as GetAccessTokenResult.Complete).resultValue.accessToken
+        assertNotNull(accessToken)
+
+
+
+        val accessTokenResultTwo = (getAccountResult as GetAccountResult.AccountFound).resultValue.getAccessToken()
+        assertTrue(accessTokenResultTwo is GetAccessTokenResult.Complete)
+
+        val accessTokenTwo = (accessTokenResultTwo as GetAccessTokenResult.Complete).resultValue.accessToken
+        assertNotNull(accessTokenTwo)
+
+        assertEquals(accessToken, accessTokenTwo)
+
+
+        assertTrue(accessTokenResultThree is GetAccessTokenResult.Complete)
+
+        val accessTokenThree = (accessTokenResultThree as GetAccessTokenResult.Complete).resultValue.accessToken
+        assertNotNull(accessTokenThree)
+
+        //assertEquals(accessTokenTwo, accessTokenThree)
+        //assertEquals(accessToken, accessTokenThree)
+    }
+
+    /**
      * Test sign in, sign out, get access token
      */
     @Test
@@ -583,6 +700,49 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         assertTrue(signOutResult is SignOutResult.Complete)
 
         val accessTokenState = accountState.getAccessToken()
+        assertTrue(accessTokenState is GetAccessTokenError)
+        assertTrue((accessTokenState as GetAccessTokenError).isNoAccountFound())
+    }
+
+    /**
+     * Test sign in, sign out, get access token
+     */
+    @Test
+    fun testSignOutGetAccessTokenTwoParams() = runTest {
+        val correlationId = UUID.randomUUID().toString()
+        configureMockApi(
+            MockApiEndpoint.SignInInitiate,
+            correlationId,
+            MockApiResponseType.INITIATE_SUCCESS
+        )
+
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_PASSWORD
+        )
+
+        configureMockApi(
+            endpointType = MockApiEndpoint.SignInToken,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.TOKEN_SUCCESS
+        )
+
+        val signInResult = application.signIn(username, password)
+        assertTrue(signInResult is SignInResult.Complete)
+
+        val accountState = (signInResult as SignInResult.Complete).resultValue
+
+        val signOutResult = accountState.signOut()
+        assertTrue(signOutResult is SignOutResult.Complete)
+
+        var accessTokenState = accountState.getAccessToken(false, ArrayList<String>(AuthenticationConstants.DEFAULT_SCOPES))
+        assertTrue(accessTokenState is GetAccessTokenError)
+        assertTrue((accessTokenState as GetAccessTokenError).isNoAccountFound())
+
+
+        accessTokenState = accountState.getAccessToken(false, Arrays.asList(
+            AuthenticationConstants.OAuth2Scopes.EMAIL_SCOPE))
         assertTrue(accessTokenState is GetAccessTokenError)
         assertTrue((accessTokenState as GetAccessTokenError).isNoAccountFound())
     }

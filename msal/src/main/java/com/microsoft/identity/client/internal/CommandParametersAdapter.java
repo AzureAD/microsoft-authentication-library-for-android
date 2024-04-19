@@ -89,6 +89,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -310,6 +311,7 @@ public class CommandParametersAdapter {
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final AccountRecord accountRecord,
             @NonNull final Boolean forceRefresh,
+            final Set<String> scopes,
             @NonNull final String correlationId) throws ClientException {
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
@@ -330,6 +332,7 @@ public class CommandParametersAdapter {
                 .authority(authority)
                 .authenticationScheme(authenticationScheme)
                 .forceRefresh(forceRefresh)
+                .scopes(scopes)
                 .account(accountRecord)
                 .correlationId(correlationId)
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())

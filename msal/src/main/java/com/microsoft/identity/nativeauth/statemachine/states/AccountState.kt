@@ -37,6 +37,7 @@ import com.microsoft.identity.client.internal.CommandParametersAdapter
 import com.microsoft.identity.common.internal.commands.RemoveCurrentAccountCommand
 import com.microsoft.identity.common.internal.controllers.LocalMSALController
 import com.microsoft.identity.common.java.commands.CommandCallback
+import com.microsoft.identity.common.java.controllers.BaseController
 import com.microsoft.identity.common.java.controllers.CommandDispatcher
 import com.microsoft.identity.common.java.controllers.ExceptionAdapter
 import com.microsoft.identity.common.java.dto.AccountRecord
@@ -58,6 +59,7 @@ import com.microsoft.identity.nativeauth.utils.serializable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.Collections
 
 /**
  *  AccountState returned as part of a successful completion of sign in flow [com.microsoft.identity.nativeauth.statemachine.results.SignInResult.Complete].
@@ -227,6 +229,26 @@ class AccountState private constructor(
      * @return [com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult] The result of the getAccessToken action
      */
     suspend fun getAccessToken(forceRefresh: Boolean = false): GetAccessTokenResult {
+        return getAccessTokenInternal(forceRefresh, null);
+    }
+
+    /**
+     * Retrieves the access token for the currently signed in account from the cache.
+     * If the access token is expired, it will be attempted to be refreshed using the refresh token that's stored in the cache;
+     * Kotlin coroutines variant.
+     *
+     * @return [com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult] The result of the getAccessToken action
+     */
+    suspend fun getAccessToken(forceRefresh: Boolean = false, scopes: List<String>): GetAccessTokenResult {
+        var scopeSet = HashSet<String>()
+        if (!scopes.isNullOrEmpty()) {
+            scopeSet.addAll(scopes)
+        }
+        val scopeSet2 = BaseController.addDefaultScopes(scopeSet)
+        return getAccessTokenInternal(forceRefresh, scopeSet2)
+    }
+
+    suspend fun getAccessTokenInternal(forceRefresh: Boolean, scopes: Set<String>?): GetAccessTokenResult {
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = null,
@@ -257,6 +279,7 @@ class AccountState private constructor(
                 config.oAuth2TokenCache,
                 accountToBeUsed,
                 forceRefresh,
+                scopes,
                 correlationId
             )
 
