@@ -203,10 +203,11 @@ class SignUpCodeRequiredState internal constructor(
 
                 // This should be caught earlier in the flow, so throwing UnexpectedError
                 is SignUpCommandResult.UsernameAlreadyExists -> {
-                    Logger.warn(
+                    Logger.warnWithObject(
                         TAG,
                         result.correlationId,
-                        "Submit code received unexpected result: $result"
+                        "Submit code received unexpected result: ",
+                        result
                     )
                     SubmitCodeError(
                         errorMessage = result.errorDescription,
@@ -216,10 +217,11 @@ class SignUpCodeRequiredState internal constructor(
                 }
 
                 is INativeAuthCommandResult.UnknownError -> {
-                    Logger.warn(
+                    Logger.warnWithObject(
                         TAG,
                         result.correlationId,
-                        "Submit code received unexpected result: $result"
+                        "Submit code received unexpected result: ",
+                        result
                     )
                     SubmitCodeError(
                         errorMessage = result.errorDescription,
@@ -301,10 +303,11 @@ class SignUpCodeRequiredState internal constructor(
                 }
 
                 is INativeAuthCommandResult.Redirect, is INativeAuthCommandResult.UnknownError -> {
-                    Logger.warn(
+                    Logger.warnWithObject(
                         TAG,
                         result.correlationId,
-                        "Resend code received unexpected result: $result"
+                        "Resend code received unexpected result: ",
+                        result
                     )
                     ResendCodeError(
                         errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
@@ -469,10 +472,11 @@ class SignUpPasswordRequiredState internal constructor(
 
                     // This should be caught earlier in the flow, so throwing UnexpectedError
                     is SignUpCommandResult.UsernameAlreadyExists -> {
-                        Logger.warn(
+                        Logger.warnWithObject(
                             TAG,
                             result.correlationId,
-                            "Submit password received unexpected result: $result"
+                            "Submit password received unexpected result: ",
+                            result
                         )
                         SignUpSubmitPasswordError(
                             error = result.error,
@@ -483,10 +487,11 @@ class SignUpPasswordRequiredState internal constructor(
 
                     // This should be caught earlier in the flow, so throwing UnexpectedError
                     is INativeAuthCommandResult.InvalidUsername -> {
-                        Logger.warn(
+                        Logger.warnWithObject(
                             TAG,
                             result.correlationId,
-                            "Submit password received unexpected result: $result"
+                            "Submit password received unexpected result: ",
+                            result
                         )
                         SignUpSubmitPasswordError(
                             error = result.error,
@@ -496,10 +501,11 @@ class SignUpPasswordRequiredState internal constructor(
                     }
 
                     is INativeAuthCommandResult.UnknownError -> {
-                        Logger.warn(
+                        Logger.warnWithObject(
                             TAG,
                             result.correlationId,
-                            "Submit password received unexpected result: $result"
+                            "Submit password received unexpected result: ",
+                            result
                         )
                         SignUpSubmitPasswordError(
                             errorMessage = result.errorDescription,
@@ -660,10 +666,11 @@ class SignUpAttributesRequiredState internal constructor(
                 }
                 // This should be caught earlier in the flow, so throwing UnexpectedError
                 is SignUpCommandResult.UsernameAlreadyExists -> {
-                    Logger.warn(
+                    Logger.warnWithObject(
                         TAG,
                         result.correlationId,
-                        "Submit attributes received unexpected result: $result"
+                        "Submit attributes received unexpected result: ",
+                        result
                     )
                     SignUpSubmitAttributesError(
                         errorMessage = result.errorDescription,
@@ -672,10 +679,11 @@ class SignUpAttributesRequiredState internal constructor(
                     )
                 }
                 is INativeAuthCommandResult.UnknownError -> {
-                    Logger.warn(
+                    Logger.warnWithObject(
                         TAG,
                         result.correlationId,
-                        "Submit attributes received unexpected result: $result"
+                        "Submit attributes received unexpected result: ",
+                        result
                     )
                     SignUpSubmitAttributesError(
                         errorMessage = result.errorDescription,
