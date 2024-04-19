@@ -44,8 +44,6 @@ data class RequiredUserAttribute(
     override fun toUnsanitizedString(): String = "RequiredUserAttribute(attributeName=$attributeName, " +
             "type=$type, required=$required, options=$options)"
 
-    override fun containsPii(): Boolean = false
-
     override fun toString(): String = toUnsanitizedString()
 }
 

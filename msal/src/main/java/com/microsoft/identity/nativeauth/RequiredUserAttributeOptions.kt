@@ -33,8 +33,6 @@ data class RequiredUserAttributeOptions(
 ) : ILoggable {
     override fun toUnsanitizedString(): String = "RequiredUserAttributeOptions(regex=$regex)"
 
-    override fun containsPii(): Boolean = false
-
     override fun toString(): String = toUnsanitizedString()
 }
 
