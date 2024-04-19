@@ -41,13 +41,12 @@ data class RequiredUserAttribute(
     //Attribute value should match the constraints
     val options: RequiredUserAttributeOptions?
 ) : ILoggable {
-    override fun toSafeString(mayContainPii: Boolean): String {
-        return "RequiredUserAttribute(attributeName=$attributeName, type=$type, required=$required, options=$options"
-    }
+    override fun toUnsanitizedString(): String = "RequiredUserAttribute(attributeName=$attributeName, " +
+            "type=$type, required=$required, options=$options)"
 
     override fun containsPii(): Boolean = false
 
-    override fun toString(): String = toSafeString(false)
+    override fun toString(): String = toUnsanitizedString()
 }
 
 /**

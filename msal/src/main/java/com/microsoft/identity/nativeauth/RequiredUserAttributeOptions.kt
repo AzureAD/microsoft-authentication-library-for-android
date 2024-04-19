@@ -31,13 +31,11 @@ import com.microsoft.identity.common.java.nativeauth.util.ILoggable
 data class RequiredUserAttributeOptions(
     val regex: String?
 ) : ILoggable {
-    override fun toSafeString(mayContainPii: Boolean): String {
-        return "RequiredUserAttributeOptions(regex=$regex"
-    }
+    override fun toUnsanitizedString(): String = "RequiredUserAttributeOptions(regex=$regex)"
 
     override fun containsPii(): Boolean = false
 
-    override fun toString(): String = toSafeString(false)
+    override fun toString(): String = toUnsanitizedString()
 }
 
 internal fun List<UserAttributeOptionsApiResult>.toListOfRequiredUserAttributeOptions(): List<RequiredUserAttributeOptions> {
