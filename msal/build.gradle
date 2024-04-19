@@ -192,6 +192,10 @@ def commonVersion = "1.0.+"
 if (project.hasProperty("distCommonVersion")) {
     commonVersion = project.distCommonVersion
 }
+def common4jVersion = "1.0.+"
+if (project.hasProperty("distCommon4jVersion")) {
+    distCommon4jVersion = project.distCommon4jVersion
+}
 dependencies {
     //Please leave this in... desugaring is currently disabled by default; however it's required for running some tests
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
@@ -258,7 +262,6 @@ dependencies {
     }
 
     testLocalImplementation(testFixtures(project(":common4j")))
-    String common4jVersion = project.hasProperty("distCommon4jVersion") ? project.distCommon4jVersion : "1.0.+"
     testDistImplementation(testFixtures("com.microsoft.identity:common4j:${common4jVersion}"))
 
     implementation "io.opentelemetry:opentelemetry-api:$rootProject.ext.openTelemetryVersion"
