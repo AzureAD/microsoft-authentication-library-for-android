@@ -138,12 +138,12 @@ android {
         }
     }
 
-//    libraryVariants.all { variant ->
-//        variant.outputs.all {
-//            def fileName = "${archivesBaseName}-${version}.aar"
-//            outputFileName = fileName
-//        }
-//    }
+    libraryVariants.all { variant ->
+        variant.outputs.all {
+            def fileName = "${archivesBaseName}-${version}.aar"
+            outputFileName = fileName
+        }
+    }
 
     testOptions {
         unitTests.all {
@@ -158,43 +158,36 @@ android {
             }
         }
     }
-
-    publishing {
-        singleVariant('distRelease') {
-            withSourcesJar()
-            withJavadocJar()
-        }
-    }
 }
 
-//// Task to generate javadoc
-//task javadoc(type: Javadoc) {
-//    failOnError false
-//    source = android.sourceSets.main.java.srcDirs
-//    configurations.api.setCanBeResolved(true)
-//    classpath += configurations.api
-//    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-//
-//    options.memberLevel = JavadocMemberLevel.PUBLIC
-//    options.addStringOption('Xdoclint:none', '-quiet')
-//
-//    exclude '**/BuildConfig.Java'
-//    exclude '**/R.java'
-//    destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
-//}
-//
-//// Task to generate javadoc.jar
-//task javadocJar(type: Jar, dependsOn: javadoc) {
-//    from javadoc.destinationDir
-//    archiveClassifier.set("javadoc")
-//    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
-//}
-//
-//task sourcesJar(type: Jar) {
-//    from android.sourceSets.main.java.srcDirs
-//    archiveClassifier.set("sources")
-//    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
-//}
+// Task to generate javadoc
+task javadoc(type: Javadoc) {
+    failOnError false
+    source = android.sourceSets.main.java.srcDirs
+    configurations.api.setCanBeResolved(true)
+    classpath += configurations.api
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+
+    options.memberLevel = JavadocMemberLevel.PUBLIC
+    options.addStringOption('Xdoclint:none', '-quiet')
+
+    exclude '**/BuildConfig.Java'
+    exclude '**/R.java'
+    destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
+}
+
+// Task to generate javadoc.jar
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    from javadoc.destinationDir
+    archiveClassifier.set("javadoc")
+    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
+}
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    archiveClassifier.set("sources")
+    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
+}
 
 // In dev, we want to keep the dependencies (common4j, common) to 1.0.+ to be able to be consumed by daily dev pipeline.
 // In release/*, we change these to specific versions being consumed.
@@ -329,98 +322,70 @@ task pmd(type: Pmd) {
 publishing {
     publications {
         msal(MavenPublication) {
-            afterEvaluate {
-                from components.distRelease
-            }
             groupId 'com.microsoft.identity.client'
             artifactId 'msal'
             //Edit the 'version' here for VSTS RC build
             version = project.version
 
-            pom {
-                name = 'msal'
-                description = 'Microsoft Identity library for Android gives you the ability to add authentication to your application with just a few lines of additional code. Using our MSAL SDKs you can quickly and easily extend your existing application to all the employees that use MSA, B2C, Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.'
-                url = 'https://github.com/AzureAD/microsoft-authentication-library-for-android'
-                developers {
-                    developer {
-                        id = 'microsoft'
-                        name = 'Microsoft'
+            pom.withXml {
+                // Custom values
+
+                // Name
+                asNode().appendNode('name', 'msal')
+
+                // Description
+                asNode().appendNode(
+                    'description',
+                    'Microsoft Identity library for Android gives you the ability to add authentication to your application with just a few lines of additional code. Using our MSAL SDKs you can quickly and easily extend your existing application to all the employees that use MSA, B2C, Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.'
+                )
+
+                // URL
+                asNode().appendNode('url', 'https://github.com/AzureAD/microsoft-authentication-library-for-android')
+
+                // Inception Year
+                asNode().appendNode('inceptionYear', '2016')
+
+                // Licenses
+                asNode().appendNode('licenses').appendNode('license').appendNode('name', 'MIT License')
+
+                // Developers
+                def developerNode = asNode().appendNode('developers').appendNode('developer')
+                developerNode.appendNode('id', 'microsoft')
+                developerNode.appendNode('name', 'Microsoft')
+
+                // SCM
+                asNode().appendNode('scm').appendNode('url', 'https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/master')
+
+                // Properties
+                def propertiesNode = asNode().appendNode('properties')
+                propertiesNode.appendNode('branch', 'master')
+                propertiesNode.appendNode('version', project.version)
+
+                def dependenciesNode = asNode().appendNode('dependencies')
+
+
+                def deps = configurations.implementation.allDependencies.asList()
+                if (project.version.toString().endsWith("SNAPSHOT")) {
+                    deps.addAll(configurations.snapshotApi.allDependencies.asList())
+                } else {
+                    deps.addAll(configurations.distApi.allDependencies.asList())
+                }
+
+                //Iterate over the implementation dependencies (we don't want the test ones), adding a <dependency> node for each
+                deps.each {
+                    if (it.group != null && it.name != null) {
+                        def dependencyNode = dependenciesNode.appendNode('dependency')
+                        dependencyNode.appendNode('groupId', it.group)
+                        dependencyNode.appendNode('artifactId', it.name)
+                        dependencyNode.appendNode('version', it.version)
                     }
                 }
-                licenses {
-                    license {
-                        name = 'MIT License'
-                    }
-                }
-                inceptionYear = '2016'
-                scm {
-                    url = 'https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/master'
-                }
-                properties = [
-                        branch : 'master',
-                        version: project.version
-                ]
+
             }
 
-//            pom.withXml {
-//                // Custom values
-//
-//                // Name
-//                asNode().appendNode('name', 'msal')
-//
-//                // Description
-//                asNode().appendNode(
-//                    'description',
-//                    'Microsoft Identity library for Android gives you the ability to add authentication to your application with just a few lines of additional code. Using our MSAL SDKs you can quickly and easily extend your existing application to all the employees that use MSA, B2C, Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.'
-//                )
-//
-//                // URL
-//                asNode().appendNode('url', 'https://github.com/AzureAD/microsoft-authentication-library-for-android')
-//
-//                // Inception Year
-//                asNode().appendNode('inceptionYear', '2016')
-//
-//                // Licenses
-//                asNode().appendNode('licenses').appendNode('license').appendNode('name', 'MIT License')
-//
-//                // Developers
-//                def developerNode = asNode().appendNode('developers').appendNode('developer')
-//                developerNode.appendNode('id', 'microsoft')
-//                developerNode.appendNode('name', 'Microsoft')
-//
-//                // SCM
-//                asNode().appendNode('scm').appendNode('url', 'https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/master')
-//
-//                // Properties
-//                def propertiesNode = asNode().appendNode('properties')
-//                propertiesNode.appendNode('branch', 'master')
-//                propertiesNode.appendNode('version', project.version)
-//
-//                def dependenciesNode = asNode().appendNode('dependencies')
-//
-//
-//                def deps = configurations.implementation.allDependencies.asList()
-//                if (project.version.toString().endsWith("SNAPSHOT")) {
-//                    deps.addAll(configurations.snapshotApi.allDependencies.asList())
-//                } else {
-//                    deps.addAll(configurations.distApi.allDependencies.asList())
-//                }
-//
-//                //Iterate over the implementation dependencies (we don't want the test ones), adding a <dependency> node for each
-//                deps.each {
-//                    if (it.group != null && it.name != null) {
-//                        def dependencyNode = dependenciesNode.appendNode('dependency')
-//                        dependencyNode.appendNode('groupId', it.group)
-//                        dependencyNode.appendNode('artifactId', it.name)
-//                        dependencyNode.appendNode('version', it.version)
-//                    }
-//                }
-//
-//            }
-
-//            artifact(sourcesJar)
-//            artifact(javadocJar)
-//            artifact("$buildDir/outputs/aar/msal-${project.version}.aar")
+            artifact(sourcesJar)
+            artifact(javadocJar)
+            artifact("$buildDir/outputs/aar/msal-${project.version}.aar")
         }
 
     }
@@ -438,18 +403,18 @@ publishing {
     }
 }
 
-//tasks.whenTaskAdded { task ->
-//    if (task.name.contains('assemble')) {
-//        task.dependsOn 'pmd'
-//    }
-//
-//    if (task.name.contains('assemble')
-//        && !task.name.contains('Snapshot')
-//        && !task.name.contains('Test')
-//        && !task.name.contains('Local')) {
-//        task.dependsOn 'javadocJar', 'sourcesJar'
-//    }
-//}
+tasks.whenTaskAdded { task ->
+    if (task.name.contains('assemble')) {
+        task.dependsOn 'pmd'
+    }
+
+    if (task.name.contains('assemble')
+        && !task.name.contains('Snapshot')
+        && !task.name.contains('Test')
+        && !task.name.contains('Local')) {
+        task.dependsOn 'javadocJar', 'sourcesJar'
+    }
+}
 
 // This is used to generate the pom file for publishing to external maven in maven-release-jobs.yml
 tasks.withType(GenerateMavenPom).all {
