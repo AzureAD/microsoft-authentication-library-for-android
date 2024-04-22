@@ -14,8 +14,7 @@ variables:
   value: JDKVersion
 - name: robolectricSdkVersion
   value: 33
-- name: Codeql.Enabled
-  value: true
+
 
 
 trigger:
@@ -40,6 +39,8 @@ jobs:
 - job: build_test
   displayName: Build & Test
   cancelTimeoutInMinutes: 1
+  variables:
+    Codeql.Enabled: true
   steps:
   - checkout: self
     clean: true
