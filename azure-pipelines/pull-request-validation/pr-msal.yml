@@ -116,6 +116,8 @@ jobs:
       arguments: '##vso[task.setvariable variable=ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN]$(System.AccessToken)'
   # https://semmleportal.azurewebsites.net/codeql/guardian
   - task: Semmle@1
+    env:
+      System_AccessToken: $(System.AccessToken)
     inputs:
       sourceCodeDirectory: '$(Build.SourcesDirectory)'
       language: 'java'
