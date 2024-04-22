@@ -117,7 +117,7 @@ jobs:
   # https://semmleportal.azurewebsites.net/codeql/guardian
   - task: Semmle@1
     env:
-      SYSTEM_ACCESSTOKEN: "$(System.AccessToken)"
+      SYSTEM_ACCESSTOKEN: "$(ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN)_abc"
     inputs:
       sourceCodeDirectory: '$(Build.SourcesDirectory)'
       language: 'java'
