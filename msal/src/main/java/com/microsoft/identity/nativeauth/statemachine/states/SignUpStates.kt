@@ -183,7 +183,7 @@ class SignUpCodeRequiredState internal constructor(
 
                 is SignUpCommandResult.InvalidCode -> {
                     SubmitCodeError(
-                        errorType = ErrorTypes.BROWSER_REQUIRED,
+                        errorType = ErrorTypes.INVALID_CODE,
                         error = result.error,
                         errorMessage = result.errorDescription,
                         correlationId = result.correlationId,

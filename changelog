@@ -4,6 +4,22 @@ vNext
 ----------
 - [PATCH] Update nimbus-jose-jwt 9.37.3 (#2042)
 
+Version 5.3.0
+----------
+- [MINOR] Give BrokerMsalController higher priority than LocalMsalController if available (#2040)
+- [PATCH] Update to common@17.3.0
+
+Version 5.2.1
+----------
+- [MINOR] Update common @17.2.1
+
+Version 5.2.0
+----------
+- [MINOR] Rename "is QR + PIN available" API to "get preferred auth method". (#2012)
+- [MINOR] Add support for CIAM custom domain (#2029)
+- [MINOR] Removing passkey feature flag (#2044)
+- [MINOR] Update common @17.2.0
+
 Version 5.1.0
 ----------
 - [PATCH] Update common @17.1.0
