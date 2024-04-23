@@ -31,7 +31,7 @@ ext {
     dexmakerMockitoVersion = "2.19.0"
     espressoCoreVersion = "3.1.0"
     gsonVersion = "2.8.9"
-    junitVersion = "4.12"
+    junitVersion = "4.13.2"
     legacySupportV4Version = "1.0.0"
     localBroadcastManagerVersion = "1.0.0"
     lombokVersion = "1.18.22"

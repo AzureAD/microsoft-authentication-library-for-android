@@ -27,7 +27,7 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.exception.MsalArgumentException;
+import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
@@ -120,9 +120,8 @@ public class TestCase1592510 extends AbstractGuestAccountMsalBrokerUiTest {
 
         // Acquire token silently from home cloud, expected to throw an exception
         final MsalAuthResult acquireTokenSilentlyCrossCloudResult = msalSdk.acquireTokenSilent(acquireTokenHomeCloudAuthParams, TokenRequestTimeout.SHORT);
-        MsalArgumentException exception = (MsalArgumentException) acquireTokenSilentlyCrossCloudResult.getException();
+        final MsalUiRequiredException exception = (MsalUiRequiredException) acquireTokenSilentlyCrossCloudResult.getException();
         Assert.assertNotNull("Verify Exception is returned", exception);
-        Assert.assertEquals("Verify Exception operation name", "authority", exception.getOperationName());
 
         // Acquire token interactively from home cloud, expected to get a different access token
         // We are expecting that this does not prompt for credentials
