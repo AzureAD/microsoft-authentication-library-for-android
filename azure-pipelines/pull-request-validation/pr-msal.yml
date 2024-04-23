@@ -40,7 +40,9 @@ jobs:
   displayName: Build & Test
   cancelTimeoutInMinutes: 1
   variables:
+    Codeql.PublishDatabaseLog: true
     Codeql.Enabled: true
+    Codeql.Cadence: 0
   steps:
   - checkout: self
     clean: true
