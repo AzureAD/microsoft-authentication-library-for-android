@@ -52,6 +52,10 @@ jobs:
       jdkArchitectureOption: x64
       jdkSourceOption: PreInstalled
   - task: CodeQL3000Init@0
+  - script: |
+      cd common
+      git branch
+      git rev-parse HEAD
   - task: Gradle@2
     name: Gradle1
     displayName: Assemble Local
