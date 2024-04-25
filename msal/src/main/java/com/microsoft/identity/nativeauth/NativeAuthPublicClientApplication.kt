@@ -360,9 +360,10 @@ class NativeAuthPublicClientApplication(
                                 )
                             )
                         } else {
-                            Logger.warn(
+                            Logger.warnWithObject(
                                 TAG,
-                                "Sign in received unexpected result $result"
+                                "Sign in received unexpected result: ",
+                                result
                             )
                             SignInError(
                                 errorMessage = "unexpected state",
@@ -400,9 +401,10 @@ class NativeAuthPublicClientApplication(
                     }
                     is SignInCommandResult.PasswordRequired -> {
                         if (hasPassword) {
-                            Logger.warn(
+                            Logger.warnWithObject(
                                 TAG,
-                                "Sign in using password received unexpected result $result"
+                                "Sign in using password received unexpected result: ",
+                                result
                             )
                             SignInError(
                                 errorMessage = "unexpected state",
@@ -439,9 +441,10 @@ class NativeAuthPublicClientApplication(
                                 errorCodes = result.errorCodes
                             )
                         } else {
-                            Logger.warn(
+                            Logger.warnWithObject(
                                 TAG,
-                                "Sign in received Unexpected result $result"
+                                "Sign in received Unexpected result: ",
+                                result
                             )
                             SignInError(
                                 errorMessage = "unexpected state",
@@ -607,8 +610,11 @@ class NativeAuthPublicClientApplication(
 
                     is SignUpCommandResult.PasswordRequired -> {
                         if (hasPassword) {
-                            Logger.warn(TAG,
-                                "Sign up using password received unexpected result $result")
+                            Logger.warnWithObject(
+                                TAG,
+                                "Sign up using password received unexpected result: ",
+                                result
+                            )
                             SignUpError(
                                 errorMessage = "Unexpected state",
                                 error = ErrorTypes.INVALID_STATE,
@@ -644,9 +650,10 @@ class NativeAuthPublicClientApplication(
                                 correlationId = result.correlationId
                             )
                         } else {
-                            Logger.warn(
+                            Logger.warnWithObject(
                                 TAG,
-                                "Sign up received unexpected result $result"
+                                "Sign up received unexpected result: ",
+                                result
                             )
                             SignUpError(
                                 error = ErrorTypes.INVALID_STATE,
@@ -831,10 +838,11 @@ class NativeAuthPublicClientApplication(
                 }
 
                 is ResetPasswordCommandResult.PasswordNotSet -> {
-                    Logger.warn(
+                    Logger.warnWithObject(
                         TAG,
                         result.correlationId,
-                        "Reset password received unexpected result $result",
+                        "Reset password received unexpected result: ",
+                        result
                     )
                     ResetPasswordError(
                         error = ErrorTypes.INVALID_STATE,
@@ -844,10 +852,11 @@ class NativeAuthPublicClientApplication(
                 }
 
                 is ResetPasswordCommandResult.EmailNotVerified -> {
-                    Logger.warn(
+                    Logger.warnWithObject(
                         TAG,
                         result.correlationId,
-                        "Reset password received unexpected result $result"
+                        "Reset password received unexpected result: ",
+                        result
                     )
                     ResetPasswordError(
                         error = ErrorTypes.INVALID_STATE,
