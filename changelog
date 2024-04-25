@@ -1,138 +1,139 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
-vNext
-----------
+V.Next
+---------
+- [PATCH] Update nimbus-jose-jwt 9.37.3 and junit 4.13.2 (#2084)
 
 Version 5.3.0
-----------
+---------
 - [MINOR] Give BrokerMsalController higher priority than LocalMsalController if available (#2040)
 - [PATCH] Update to common@17.3.0
 
 Version 5.2.1
-----------
+---------
 - [MINOR] Update common @17.2.1
 
 Version 5.2.0
-----------
+---------
 - [MINOR] Rename "is QR + PIN available" API to "get preferred auth method". (#2012)
 - [MINOR] Add support for CIAM custom domain (#2029)
 - [MINOR] Removing passkey feature flag (#2044)
 - [MINOR] Update common @17.2.0
 
 Version 5.1.0
-----------
+---------
 - [PATCH] Update common @17.1.0
 - [PATCH] Fix MSAL Issue #1864 (#2003)
 - [MINOR] Add isQRPinAvailable API to MSAL IPublicClientApplication (#1931)
 - [MINOR] Add PreferredAuthMethod to interactive token flow (#1964)
 
 Version 5.0.1
-----------
+---------
 - [PATCH] Update robolectricVersion 4.11.1 (#2015)
 - [PATCH] Update common @17.0.1
 
 Version 5.0.0
-----------
+---------
 - [MINOR] Update common @17.0.0
 - [MINOR] Add consumer rule to remove native auth from msal by default (#1986)
 - [MAJOR] Consuming Credential Manager from common (brings minCompileSdk 34) (#1987)
 
 Version 4.10.0
-----------
+---------
 - [PATCH] Update common @16.2.0
 - [PATCH] Fix NPE in SingleAccountPublicClientApplication.getPersistedCurrentAccount (#1933)
 - [PATCH] Updating JSON version (#1932)
 - [MINOR] Updating Moshi versions (#1926)
 
 Version 4.9.0
-----------
+---------
 - [PATCH] Update common @16.1.0
 - [MINOR] Adding webauthn_capable property option for MSAL config files (#1895)
 
 Version 4.8.1
-----------
+---------
 - [MINOR] Add LTW as prod broker app (#2179)
 - [PATCH] Update common @16.0.1
 
 Version 4.8.0
-----------
+---------
 - [MINOR] Use Active Broker cache specifically for Client SDK (#1892)
 - [MINOR] MSA UI tests for Brokered Auth (#1856)
 - [MINOR] Updated target, compile SDK, AGP and gradle versions(#1882)
 - [PATCH] Update common @16.0.0
 
 Version 4.7.0
-----------
+---------
 - [MINOR] MsalTestApp uses 1.4.0 for com.microsoft.identity.client:opentelemetry.exporter (#1878)
 - [PATCH] Accommodating broker validator refactoring (#1851)
 - [MINOR] Update YubiKit version to 2.3.0 (#1854)
 - [PATCH] Update common @15.0.0
 
 Version 4.6.3
-----------
+---------
 - [PATCH] Update common @14.0.1
 
 Version 4.6.2
-----------
+---------
 - [PATCH] Wire new Broker Discovery Client into MSAL - still disabled by default (#1835)
 - [PATCH] Update common @14.0.0
 
 Version 4.6.1
-----------
+---------
 - [PATCH] Version 4.6.0 was built with common which had lint errors, updating common after fixing the errors
 - [MINOR] Replacing SHA-1 used in broker validation with SHA-512 (#1826)
 - [PATCH] Update common @13.0.1
 
 Version 4.5.0
-----------
+---------
 - [MINOR] Changes to support MSA accounts in Broker (#1793)
 - [PATCH] Update common @12.0.0
 
 Version 4.4.0
-----------
+---------
 - [PATCH] Update common @11.0.0
 - [MINOR] Support CIAM Authority Type (#1783)
 - [MINOR] Bumping YubiKit Versions to 2.2.0 (#1784)
 
 Version 4.3.1
-----------
+---------
 - [PATCH] Version 4.3.0 was built with RC versions, just need to bump version to 4.3.1
 - [MINOR] Add preferred browser support (#1761)
 - [MINOR] Adding sub error codes to MsalUiRequiredException (#1758)
 - [MINOR] Wrap Runnable with Current Telemetry Context (#1747)
 
 Version 4.2.0
-----------
+---------
 - [PATCH] Update common @10.0.0
 
 Version 4.1.3
-----------
+---------
 - [PATCH] Update common @9.1.0
 
 Version 4.1.0
-----------
+---------
 - [MINOR] Add new exception type for broker protocol not supported exception during msal-broker handshake (#1703)
 
 Version 4.0.4
-----------
+---------
 - [PATCH] Update common @8.0.2
 
 Version 4.0.3
-----------
+---------
 - [PATCH] Update common @8.0.0
 
 Version 4.0.2
-----------
+---------
 - [PATCH] Update common @7.0.0
 - [PATCH] Updating the single account cache before notifying the caller of account change/load via callback. (#1688)
 - [MINOR] Added keyboard flag to configChanges in Manifest for YubiKey compatibility. (#1685)
 
 Version 4.0.1
-----------
+---------
 - [PATCH] Update common to 6.0.1
 
 Version 4.0.0
-----------
+---------
 - [PATCH] Update common to 6.0.0
 - [PATCH] Update androidx appcompat version from 1.0.2 -> 1.1.0 (#1629)
 - [MINOR] Add prompt=create support. (#1611)
@@ -141,11 +142,11 @@ Version 4.0.0
 - [PATCH] Update gson version to 2.8.9
 
 Version 3.0.2
-----------
+---------
 - [PATCH] Update common@4.0.2
 
 Version 3.0.1
--------------
+------------
 - [PATCH] Fix msal get account crash in Account Matcher due to NPE because account id was missing (#1560)
 - [PATCH] Better messaging clarity around redirect URI (#1265).
 - [PATCH] Fixes deprecated PackageInfo.signatures and PackageManager.GET_SIGNATURES (#1321)
@@ -156,75 +157,75 @@ Version 3.0.1
 - [MINOR] Adapt to BaseController migration (#1483)
 
 Version 2.2.3
-----------
+---------
 - Remove the broker check for MSA FRT saving function (#1571)
 - Fix msal get account crash in Account Matcher due to NPE because account id was missing (#1558)
 - Picks up common@3.6.7
 
 Version 2.2.2
-----------
+---------
 - Picks up common@3.6.3
 
 Version 2.2.1
-----------
+---------
 - [PATCH] Picks up common@3.6.2
 - [PATCH] Allow Authenticator to pass older format for redirect uri (#1517)
 
 Version 2.2.0
-----------
+---------
 - Picks up common@3.6.0
 
 Version 2.1.0
-----------
+---------
 - Picks up common@3.4.4
 - Adds preview support for authorization using current Android Task
 - Fixes resource URI casing issue.
 
 Version 2.0.12
-----------
+---------
 - Picks up common@3.4.3
 
 Version 2.0.10
-----------
+---------
 - [PATCH] Add extra '/' in the example intent filter (#1323)
 - [PATCH] Better PublicClientApplicationConfiguration validation to fail when empty string is passed (#1324)
 - [PATCH] Improve redirect_uri validation of PCA manifest (#1327)
 - Picks up common@3.3.1
 
 Version 2.0.8
-----------
+---------
 - [MINOR] Changes to Broker Validation to allow setting whether to trust debug brokers (prod brokers are always trusted) (#1274)
 - Picks up common@3.1.2
 
 Version 2.0.6
-----------
+---------
 - Warn if SAPCA used with B2C. Throw Exception if Multiple Policies are Configured (#1270)
 - Picks up common@3.0.9
 
 Version 2.0.5
-----------
+---------
 - Fix exception casting issue in CommandDispatcher (common #1121)
 
 Version 2.0.4
-----------
+---------
 - Fix syntax error in proguard rules, add usage of proguard to test app #1224
 
 Version 2.0.3
-----------
+---------
 - Expose expiresIn in MSAL Device Code flow callback #1169
 - Fixed a bug where proguard rules would include too many symbols #1161
 
 Version 2.0.2
-----------
+---------
 - Correct capitalization of client_capabilities claim 'xms_cc' (LLT) #1191
 
 Version 2.0.1
-----------
+---------
 - Added a check for UNSET OpenIdConnectPromptParameter value.
 - Picks up common@3.0.2
 
 Version 2.0.0
-----------
+---------
 - Add Device Code Flow Support (#1112)
 - Moved broker controller and strategy classes to common for MSALCPP brokered auth. (#1115)
 - Allow Broker apps to obtain an RT associated to Broker's client ID (for WPJ). (#1126)
@@ -232,7 +233,7 @@ Version 2.0.0
 - Picks up common@3.0.1
 
 Version 1.6.0
------------
+----------
 - Introduces new AadAuthorityAudience enum to support new syntax for specifying cloud + audience
 - Adds new property to IAuthenticationResult: correlation_id
 - Fix for String encoding issue affecting devices with Turkish locale
@@ -241,33 +242,33 @@ Version 1.6.0
 - Picks up common@2.0.15
 
 Version 1.5.5
------------
+----------
 - Picks up fixes in common@2.0.12-hf1
 
 Version 1.5.4
------------
+----------
 - Fix for NPE if sub_error is null.
 - Picks up common@2.0.12
 
 Version 1.5.3
------------
+----------
 - Changes to delete RT on bad_token suberror.
 - Picks up common@2.0.11
 
 Version 1.5.2
-------------
+-----------
 - Broker Content Provider Changes
 - FOCI support for Local MSAL
 - Robolectric version update
 - Fixed a bug related tenant ID(#1057)
 
 Version 1.5.1
-------------
+-----------
 - Fix to add the throwIfNetworkNotAvailable API back to common library for ADAL back compat.
 - Picks up common@2.0.8
 
 Version 1.5.0
-------------
+-----------
 - Added new Single Account Public Client Application API overloads
 	* Added new signIn() overload which adds a prompt param
 	* Added new reauthorize() method which lets your set a prompt for the already-signed-in account
@@ -288,7 +289,7 @@ Version 1.5.0
 - Picks up common@2.0.7
 
 Version 1.4.1
-------------
+-----------
 - Hotfix release for Teams.
 - Fixes #1005
 - Fixes common #871
@@ -296,13 +297,13 @@ Version 1.4.1
 - Picks up common@2.0.2-hf1
 
 Version 1.4.0
-------------
+-----------
 - Fix for MSAL #920, 924, 935, 940
     * Crash due to error receiving CANCEL broadcast
 - (Preview) Support for AT PoP
 
 Version 1.3.0
-------------
+-----------
 - Picks up fixes in common@1.0.15
 - Fix for msal#915
     * Incorrect id_token returned for B2C app with multiple policies
@@ -315,12 +316,12 @@ Version 1.3.0
 - MSAL Enhancement: WebView zoom controls are now configurable
 
 Version 1.2.0-hf1
-------------
+-----------
 - Fixed issue #910
 - Adds spinner to WebView when loading interactive requests using WEBVIEW authorization_user_agent.
 
 Version 1.2.0
-------------
+-----------
 - API change
     * Replaced the following PublicClientApplication#create methods.
         - create(context, clientId, listener)
@@ -333,15 +334,15 @@ Version 1.2.0
 - Added Fragment support in WebView flow.
 
 Version 1.1.0-hf1
-------------
+-----------
 - Fix issue #882.
 
 Version 1.1.0
-----------------------------
+--------------------------
 - Expose id_token (raw) via IAccount/ITenantProfile from AuthenticationResult (#850).
 
 Version 1.0.1
-----------------------------
+--------------------------
 - Fix issue  #785, #786, #805, #806, #807, #816, #828, #855, #859
 - Fixed multiple cloud support in MSAL with Broker.
 - Added support for client capabilities to config.
@@ -352,11 +353,11 @@ Version 1.0.1
 - Enabled MSAL-Broker communication via AccountManager.
 
 Version 1.0.0-hf1
-----------------------------
+--------------------------
 - Logging fixes in common.
 
 Version 1.0.0
-----------------------------
+--------------------------
 - MSAL Android is now generally available with MSAL 1.0
 - Supported Authorities (Microsoft identity platform and Azure Active Directory B2C)
 - Microsoft authentication broker support
@@ -374,7 +375,7 @@ Version 1.0.0
 
 
 Version 0.3.1-alpha
-----------------------------
+--------------------------
 - Picks up common@0.0.10-alpha
 - Adds additional validation to PublicClientApplicationConfiguration
 - Adds support for non-tfp B2C authority URIs when declared via configuration
@@ -395,7 +396,7 @@ Known issues:
 - Property `authority` of `IAuthenticationResult` is always `null` for AAD authorities
 
 Version 0.2.2
-----------------------------
+--------------------------
 - Picks up common@0.0.8
 	* Bugfix: Resolves MSAL/#517
 		- Fix the bug caused by fragment parameter when extracting the redirect url
@@ -403,7 +404,7 @@ Version 0.2.2
 		- Fix the discrepancy on "mIdentityProvider" of Account object between ADAL v1.14.1 and ADAL v1.15.1
 
 Version 0.2.1
-----------------------------
+--------------------------
 - Picks up common@0.0.7
     * Bugfix: Resolves MSAL/#420
         - Corrects an issue whereby expired access tokens can be returned from the cache
@@ -411,7 +412,7 @@ Version 0.2.1
         - Adds client_id, redirect_uri to refresh token requests (previously missing, yielding inconsistent behavior depending on account type).
 
 Version 0.2.0
-----------------------------
+--------------------------
 - Cache schema has been redesigned to support migration from ADAL 1.15.2+
 - SSO and user state will be lost in migration from prior MSAL versions.
 - Added support for authorization via:
@@ -442,7 +443,7 @@ Version 0.2.0
     * PublicClientApplication#setSliceParameters has been moved to PublicClientApplicationConfiguration
 
 Version 0.1.3
-----------------------------
+--------------------------
 1. GDPR compliance to Telemetry and Logger. Link: https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki/Logging
 2. Fix the bug on CustomTabService checking when calling getCustomTabsServiceIsBound()
 3. Update Telemetry to track telemetry Event data in a single Map instance
@@ -454,10 +455,10 @@ Version 0.1.3
 9. Update Gson to 2.8.0
 
 Version 0.1.1
-----------------------------
+--------------------------
 * This release contains the preview for Microsoft Authentication library (MSAL) for Android.
 Re-tag to fix the dependencies pulling issue from jcenter.
 
 Version 0.1.0
-----------------------------
+--------------------------
 * Initial preview release for MSAL
