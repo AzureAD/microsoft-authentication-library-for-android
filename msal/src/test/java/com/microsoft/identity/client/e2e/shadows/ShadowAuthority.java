@@ -59,8 +59,7 @@ public class ShadowAuthority {
     private static final String B2C_PATH_SEGMENT_ALT = "te";
     private static final String AAD_MOCK_DELAYED_PATH_SEGMENT = "mock_with_delays";
     private static final String CIAM_PATH_SEGMENT = "msidlabciam6.onmicrosoft.com";
-    private static final String CIAM_LAB_TENANT = "fe362aec-5d43-45d1-b730-9755e60dc3b9";
-
+    private static final String CIAM_LAB_TENANT = "fe362aec-5d43-45d1-b730-9755e60dc3b9z";
     /**
      * Returns an Authority based on an authority url.  This method works in similar way to the actual
      * method in the Authority class, except that over here we create and return test versions of the Authorities
