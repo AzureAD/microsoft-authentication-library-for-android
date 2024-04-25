@@ -37,6 +37,7 @@ import com.microsoft.identity.client.internal.CommandParametersAdapter
 import com.microsoft.identity.common.internal.commands.RemoveCurrentAccountCommand
 import com.microsoft.identity.common.internal.controllers.LocalMSALController
 import com.microsoft.identity.common.java.commands.CommandCallback
+import com.microsoft.identity.common.java.commands.SilentTokenCommand
 import com.microsoft.identity.common.java.controllers.BaseController
 import com.microsoft.identity.common.java.controllers.CommandDispatcher
 import com.microsoft.identity.common.java.controllers.ExceptionAdapter
@@ -245,18 +246,19 @@ class AccountState private constructor(
             scopeSet.addAll(scopes)
         }
         val scopeSet2 = BaseController.addDefaultScopes(scopeSet)
-        return getAccessTokenInternal(forceRefresh, scopeSet2)
+        return getAccessTokenInternal(forceRefresh, ArrayList(scopeSet2))
     }
 
-    suspend fun getAccessTokenInternal(forceRefresh: Boolean, scopes: Set<String>?): GetAccessTokenResult {
+    suspend fun getAccessTokenInternal(forceRefresh: Boolean, scopes: List<String>?): GetAccessTokenResult {
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = null,
             methodName = "$TAG.getAccessToken(forceRefresh: Boolean)"
         )
         return withContext(Dispatchers.IO) {
-            val account =
-                NativeAuthPublicClientApplication.getCurrentAccountInternal(config) as? Account
+
+            val accountResult = NativeAuthPublicClientApplication.getCurrentAccountInternal(config) as? Account
+            val account = accountResult
                     ?: return@withContext GetAccessTokenError(
                         errorType = GetAccessTokenErrorTypes.NO_ACCOUNT_FOUND,
                         error = MsalClientException.NO_CURRENT_ACCOUNT,
@@ -264,28 +266,43 @@ class AccountState private constructor(
                         correlationId = "UNSET"
                     )
 
-            val acquireTokenSilentParameters = AcquireTokenSilentParameters.Builder()
+            val acquireTokenSilentParametersBuilder = AcquireTokenSilentParameters.Builder()
                 .forAccount(account)
                 .fromAuthority(account.authority)
-                .build()
+                .forceRefresh(forceRefresh)
+
+            if (scopes != null ) {
+                acquireTokenSilentParametersBuilder.withScopes(scopes)
+            }
+
+            val acquireTokenSilentParameters = acquireTokenSilentParametersBuilder.build()
 
             val accountToBeUsed = PublicClientApplication.selectAccountRecordForTokenRequest(
                 config,
                 acquireTokenSilentParameters
             )
 
-            val params = CommandParametersAdapter.createAcquireTokenNoFixedScopesCommandParameters(
+            val params = CommandParametersAdapter.createSilentTokenCommandParameters(
                 config,
                 config.oAuth2TokenCache,
-                accountToBeUsed,
-                forceRefresh,
-                scopes,
-                correlationId
+                acquireTokenSilentParameters
             )
 
-            val command = AcquireTokenNoFixedScopesCommand(
+            val command = SilentTokenCommand(
                 params,
-                NativeAuthMsalController(),
+                NativeAuthMsalController().asControllerFactory(),
+                object:CommandCallback<ILocalAuthenticationResult, BaseException>{
+                    override fun onTaskCompleted(t: ILocalAuthenticationResult?) {
+                        //TODO("Not yet implemented")
+                    }
+
+                    override fun onError(error: BaseException?) {
+                        //TODO("Not yet implemented")
+                    }
+
+                    override fun onCancel() {
+                    }
+                },
                 PublicApiId.NATIVE_AUTH_ACCOUNT_GET_ACCESS_TOKEN
             )
 

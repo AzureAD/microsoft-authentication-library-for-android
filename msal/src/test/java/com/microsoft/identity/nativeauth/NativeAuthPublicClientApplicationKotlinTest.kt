@@ -613,7 +613,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
      */
     @Test
     fun testGetAccessTokenFour() = runTest {
-        val correlationId = UUID.randomUUID().toString()
+        val correlationId = "d1a75d96-1f96-4919-ac5f-ce2d62d07b68" //UUID.randomUUID().toString()
         configureMockApi(
             MockApiEndpoint.SignInInitiate,
             correlationId,
@@ -639,15 +639,12 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         assertTrue(getAccountResult is GetAccountResult.AccountFound)
 
         val scopes = Arrays.asList(AuthenticationConstants.OAuth2Scopes.EMAIL_SCOPE)
-        val accessTokenResultThree = (getAccountResult as GetAccountResult.AccountFound).resultValue.getAccessToken(false, scopes)
 
         val accessTokenState = (signInResult as SignInResult.Complete).resultValue.getAccessToken()
         assertTrue(accessTokenState is GetAccessTokenResult.Complete)
 
         val accessToken = (accessTokenState as GetAccessTokenResult.Complete).resultValue.accessToken
         assertNotNull(accessToken)
-
-
 
         val accessTokenResultTwo = (getAccountResult as GetAccountResult.AccountFound).resultValue.getAccessToken()
         assertTrue(accessTokenResultTwo is GetAccessTokenResult.Complete)
@@ -657,14 +654,14 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         assertEquals(accessToken, accessTokenTwo)
 
-
+        val accessTokenResultThree = (getAccountResult as GetAccountResult.AccountFound).resultValue.getAccessToken(false, scopes)
         assertTrue(accessTokenResultThree is GetAccessTokenResult.Complete)
 
         val accessTokenThree = (accessTokenResultThree as GetAccessTokenResult.Complete).resultValue.accessToken
         assertNotNull(accessTokenThree)
 
-        //assertEquals(accessTokenTwo, accessTokenThree)
-        //assertEquals(accessToken, accessTokenThree)
+        assertEquals(accessTokenTwo, accessTokenThree)
+        assertEquals(accessToken, accessTokenThree)
     }
 
     /**
