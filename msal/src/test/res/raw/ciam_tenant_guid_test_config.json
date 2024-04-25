@@ -1,11 +1,11 @@
 {
-  "client_id" : "ced781e7-bdb0-4c99-855c-d3bacddea88a",
+  "client_id" : "f21442c3-bff7-465e-8e72-37888483d7b8",
   "authorization_user_agent" : "DEFAULT",
   "redirect_uri" : "msauth://com.microsoft.identity.client.sample.local/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D",
   "authorities" : [
     {
       "type": "CIAM",
-      "authority_url": "https://msidlabciam2.ciamlogin.com/f7416cc8-8ea1-4e5c-b230-0c978f81dfc6"
+      "authority_url": "https://msidlabciam6.ciamlogin.com/fe362aec-5d43-45d1-b730-9755e60dc3b9"
     }
   ]
 }

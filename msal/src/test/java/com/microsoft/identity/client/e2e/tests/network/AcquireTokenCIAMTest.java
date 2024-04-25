@@ -63,7 +63,8 @@ public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
     @Override
     public LabUserQuery getLabUserQuery() {
         final LabUserQuery query = new LabUserQuery();
-        query.federationProvider = LabConstants.FederationProvider.CIAM;
+        query.federationProvider = LabConstants.FederationProvider.CIAM_CUD;
+        query.publicClient = LabConstants.PublicClient.NO;
         return query;
     }
 
