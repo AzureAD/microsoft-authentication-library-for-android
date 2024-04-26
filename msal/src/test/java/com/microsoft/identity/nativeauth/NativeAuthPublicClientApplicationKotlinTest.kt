@@ -79,6 +79,7 @@ import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.argThat
+import org.mockito.ArgumentMatchers.contains
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
@@ -197,26 +198,19 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         val result = application.signIn(username, password)
 
-        checkingSafeLogging()
+        checkSafeLogging()
 
         assertTrue(result is SignInResult.Complete)
     }
 
-    private fun checkingSafeLogging() {
+    private fun checkSafeLogging() {
         val elementsToCheck = listOf("username", "password")
         elementsToCheck.forEach { element ->
-            verifyLogContains(element)
+            verifyLogDoesNotContain(element)
         }
     }
-    // Custom matcher function to check if a list contains a certain element
-    private fun verifyLogContains(element: String) {
-        verify(externalLogger, never()).log(any(), any(), containsElement(element), eq(true))
-    }
-
-    private fun containsElement(element: String): String {
-        return argThat {
-            it.contains(element)
-        }
+    private fun verifyLogDoesNotContain(element: String) {
+        verify(externalLogger, never()).log(any(), any(), contains(element), eq(true))
     }
 
     /**
