@@ -6,5 +6,10 @@
       "authority_url": "https://ciamtestandroid.ciamlogin.com/ciamtestandroid.onmicrosoft.com"
     }
   ],
-  "challenge_types" : ["oob", "password"]
+  "challenge_types" : ["oob", "password"],
+  "logging": {
+    "pii_enabled": true,
+    "log_level": "INFO",
+    "logcat_enabled": true
+  }
 }

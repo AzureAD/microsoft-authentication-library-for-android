@@ -25,6 +25,8 @@ package com.microsoft.identity.nativeauth
 import android.app.Activity
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import com.microsoft.identity.client.ILoggerCallback
+import com.microsoft.identity.client.Logger
 import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager
 import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest
@@ -76,9 +78,16 @@ import org.junit.BeforeClass
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.ArgumentMatchers.argThat
+import org.mockito.Mock
 import org.mockito.Mockito
+import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.spy
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
@@ -101,6 +110,8 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
     private val password = "verySafePassword".toCharArray()
     private val code = "1234"
     private val emptyString = ""
+    @Mock
+    private lateinit var externalLogger: ILoggerCallback
 
     override fun getConfigFilePath() = "src/test/res/raw/native_auth_native_only_test_config.json"
 
@@ -120,9 +131,12 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
     @Before
     override fun setup() {
+        MockitoAnnotations.initMocks(this)
         context = ApplicationProvider.getApplicationContext()
         components = AndroidPlatformComponentsFactory.createFromContext(context)
         activity = Mockito.mock(Activity::class.java)
+        Logger.getInstance().setExternalLogger(externalLogger)
+        Logger.getInstance().setEnablePII(true)
         whenever(activity.applicationContext).thenReturn(context)
         setupPCA()
         CommandDispatcherHelper.clear()
@@ -182,7 +196,27 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         )
 
         val result = application.signIn(username, password)
+
+        checkingSafeLogging()
+
         assertTrue(result is SignInResult.Complete)
+    }
+
+    private fun checkingSafeLogging() {
+        val elementsToCheck = listOf("username", "password")
+        elementsToCheck.forEach { element ->
+            verifyLogContains(element)
+        }
+    }
+    // Custom matcher function to check if a list contains a certain element
+    private fun verifyLogContains(element: String) {
+        verify(externalLogger, never()).log(any(), any(), containsElement(element), eq(true))
+    }
+
+    private fun containsElement(element: String): String {
+        return argThat {
+            it.contains(element)
+        }
     }
 
     /**
