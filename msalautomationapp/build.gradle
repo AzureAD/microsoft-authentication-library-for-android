@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
-def msalVersion = "5.0.0"
+def msalVersion = "5.3.0"
 
 if (project.hasProperty("distMsalVersion")) {
     msalVersion = distMsalVersion
@@ -11,6 +11,10 @@ android {
 
     packagingOptions {
         pickFirst  'META-INF/common4j.kotlin_module'
+        exclude 'META-INF/AL2.0'
+        exclude 'META-INF/LGPL2.1'
+        exclude 'META-INF/*.properties'
+        exclude 'META-INF/INDEX.LIST'
     }
 
     compileOptions {
@@ -191,6 +195,7 @@ dependencies {
     implementation(project(":LabApiUtilities"))
     implementation(project(":uiautomationutilities")) {
         exclude module: 'common'
+        exclude module: 'common4j'
         exclude module: 'appcompat'
     }
     androidTestImplementation "androidx.test:runner:$rootProject.ext.androidxTestRunnerVersion"

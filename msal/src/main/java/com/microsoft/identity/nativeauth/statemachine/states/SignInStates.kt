@@ -181,10 +181,11 @@ class SignInCodeRequiredState internal constructor(
                 }
 
                 is INativeAuthCommandResult.UnknownError -> {
-                    Logger.warn(
+                    Logger.warnWithObject(
                         TAG,
                         result.correlationId,
-                        "Submit code received unexpected result: $result"
+                        "Submit code received unexpected result: ",
+                        result
                     )
                     SubmitCodeError(
                         errorMessage = result.errorDescription,
@@ -269,10 +270,11 @@ class SignInCodeRequiredState internal constructor(
                 }
 
                 is INativeAuthCommandResult.Redirect, is INativeAuthCommandResult.UnknownError -> {
-                    Logger.warn(
+                    Logger.warnWithObject(
                         TAG,
                         result.correlationId,
-                        "Resend code received unexpected result: $result"
+                        "Resend code received unexpected result: ",
+                        result
                     )
                     ResendCodeError(
                         errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
@@ -415,10 +417,11 @@ class SignInPasswordRequiredState(
                         )
                     }
                     is INativeAuthCommandResult.Redirect, is INativeAuthCommandResult.UnknownError -> {
-                        Logger.warn(
+                        Logger.warnWithObject(
                             TAG,
                             result.correlationId,
-                            "Submit password received unexpected result: $result"
+                            "Submit password received unexpected result: ",
+                            result
                         )
                         SignInSubmitPasswordError(
                             errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
@@ -568,10 +571,11 @@ class SignInContinuationState(
                 }
                 is INativeAuthCommandResult.Redirect,
                 is INativeAuthCommandResult.UnknownError -> {
-                    Logger.warn(
+                    Logger.warnWithObject(
                         TAG,
                         result.correlationId,
-                        "Sign in after sign up received unexpected result: $result"
+                        "Sign in after sign up received unexpected result: ",
+                        result
                     )
                     SignInContinuationError(
                         errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,

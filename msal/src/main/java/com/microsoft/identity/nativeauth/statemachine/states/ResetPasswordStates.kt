@@ -169,10 +169,11 @@ class ResetPasswordCodeRequiredState internal constructor(
                 }
 
                 is INativeAuthCommandResult.UnknownError -> {
-                    Logger.warn(
+                    Logger.warnWithObject(
                         TAG,
                         result.correlationId,
-                        "Submit code received unexpected result: $result"
+                        "Submit code received unexpected result: ",
+                        result
                     )
                     SubmitCodeError(
                         errorMessage = result.errorDescription,
@@ -258,10 +259,11 @@ class ResetPasswordCodeRequiredState internal constructor(
 
                 is INativeAuthCommandResult.Redirect,
                 is INativeAuthCommandResult.UnknownError -> {
-                    Logger.warn(
+                    Logger.warnWithObject(
                         TAG,
                         result.correlationId,
-                        "Resend code received unexpected result: $result"
+                        "Resend code received unexpected result: ",
+                        result
                     )
                     ResendCodeError(
                         errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
@@ -410,6 +412,12 @@ class ResetPasswordPasswordRequiredState internal constructor(
                     }
 
                     is ResetPasswordCommandResult.UserNotFound -> {
+                        Logger.warnWithObject(
+                            TAG,
+                            result.correlationId,
+                            "Submit password received unexpected result: ",
+                            result
+                        )
                         ResetPasswordSubmitPasswordError(
                             error = result.error,
                             errorMessage = result.errorDescription,
@@ -418,10 +426,11 @@ class ResetPasswordPasswordRequiredState internal constructor(
                     }
 
                     is INativeAuthCommandResult.UnknownError -> {
-                        Logger.warn(
+                        Logger.warnWithObject(
                             TAG,
                             result.correlationId,
-                            "Submit password received unexpected result: $result"
+                            "Submit password received unexpected result: ",
+                            result
                         )
                         ResetPasswordSubmitPasswordError(
                             errorMessage = result.errorDescription,
