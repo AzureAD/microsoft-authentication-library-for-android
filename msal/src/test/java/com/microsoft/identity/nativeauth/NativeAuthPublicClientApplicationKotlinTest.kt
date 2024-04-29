@@ -2402,18 +2402,18 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
     private fun checkSafeLogging() {
         val piiTrueToCheck = listOf(
-            "(?<![,\\[],\")\bpassword\\s*[:=]|\bpassword(?![,\\],\"])", // 'password:'  'password='  exclude ',password' 'password,' '[password' 'password]' '"password' 'password"'
-            "\bcode(?![:=])\b", // 'code' 'code:' 'code=' exclude 'codeLength' 'error_code',
-            "\battributes(?![:=])\b",
-            "(?i)access_token|\baccessToken(?![:=])\b", // access_token, accessToken
-            "(?i)refresh_token|\brefreshToken(?![:=])\b",
-            "(?i)id_token|\bidToken(?![:=])\b",
-            "(?i)client_secret|clientSecret",
-            "(?i)continuation_token|\bcontinuationToken(?![:=])\b",
+            """(?<![,"\[\]])password[:=](?![,"'\[\]])""", // 'password:'  'password='  exclude ',password,' '[password]' '"password"'
+            """(?<![\s\?])(code)[:=]""", // 'code' 'code:' 'code=' exclude 'codeLength' 'error?code',
+            """(?i)\b(attributes)[:=]""",
+            """(?i)\b(accessToken|access_token)[:=]""", // access_token, accessToken
+            """(?i)\b(refreshToken|refresh_token)[:=]""",
+            """(?i)\b(idToken|id_token)[:=]""",
+            """(?i)\b(continuationToken|continuation_token)[:=]"""
         )
         val piiFalseToCheck = listOf(
-            "\busername(?![:=])\b",
-            "\bchallengeTargetLabel(?![:=])\b"
+            """(?i)\b(challengeTargetLabel|challenge_target_label)[:=]""",
+            """(?i)\b(grantType|grant_type)[:=]""",
+            """(?i)\b(username)[:=]""",
         )
 
         val elementsToCheck = piiTrueToCheck.toMutableList()
@@ -2424,12 +2424,13 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         elementsToCheck.forEach { regex ->
             verifyLogDoesNotContain("Command", regex)
+            verifyLogDoesNotContain("Interactor", regex)
         }
     }
 
     class RegexMatcher(private val regex: String) : ArgumentMatcher<String> {
         override fun matches(argument: String?): Boolean {
-            return argument?.matches(regex.toRegex()) ?: false
+            return regex.toRegex().containsMatchIn(argument ?: "")
         }
     }
 
