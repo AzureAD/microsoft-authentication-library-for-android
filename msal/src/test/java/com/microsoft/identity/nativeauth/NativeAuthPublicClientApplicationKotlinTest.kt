@@ -94,6 +94,7 @@ import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.io.File
+import java.util.Locale
 import java.util.UUID
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
@@ -2417,10 +2418,8 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         elementsToCheck.forEach { element ->
             verifyLogDoesNotContain("Command", element)
         }
-
-        Logger.getInstance().setExternalLogger(null)
     }
     private fun verifyLogDoesNotContain(tag: String, element: String) {
-        verify(externalLogger, never()).log(contains(tag), any(), contains(element), eq(true))
+        verify(externalLogger, never()).log(contains(tag), any(), contains(element), eq(allowPII))
     }
 }
