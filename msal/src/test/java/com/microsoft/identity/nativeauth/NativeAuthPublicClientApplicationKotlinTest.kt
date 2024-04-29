@@ -79,6 +79,7 @@ import org.junit.BeforeClass
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.ArgumentMatcher
 import org.mockito.ArgumentMatchers.contains
 import org.mockito.Mock
 import org.mockito.Mockito
@@ -2401,12 +2402,18 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
     private fun checkSafeLogging() {
         val piiTrueToCheck = listOf(
-            "password:","password=",
-            "code:","code=",
-            "continuationToken:","continuationToken="
+            "(?<![,\\[],\")\bpassword\\s*[:=]|\bpassword(?![,\\],\"])", // 'password:'  'password='  exclude ',password' 'password,' '[password' 'password]' '"password' 'password"'
+            "\bcode(?![:=])\b", // 'code' 'code:' 'code=' exclude 'codeLength' 'error_code',
+            "\battributes(?![:=])\b",
+            "(?i)access_token|\baccessToken(?![:=])\b", // access_token, accessToken
+            "(?i)refresh_token|\brefreshToken(?![:=])\b",
+            "(?i)id_token|\bidToken(?![:=])\b",
+            "(?i)client_secret|clientSecret",
+            "(?i)continuation_token|\bcontinuationToken(?![:=])\b",
         )
         val piiFalseToCheck = listOf(
-            "username:", "username="
+            "\busername(?![:=])\b",
+            "\bchallengeTargetLabel(?![:=])\b"
         )
 
         val elementsToCheck = piiTrueToCheck.toMutableList()
@@ -2415,11 +2422,23 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
             elementsToCheck.addAll(piiFalseToCheck)
         }
 
-        elementsToCheck.forEach { element ->
-            verifyLogDoesNotContain("Command", element)
+        elementsToCheck.forEach { regex ->
+            verifyLogDoesNotContain("Command", regex)
         }
     }
-    private fun verifyLogDoesNotContain(tag: String, element: String) {
-        verify(externalLogger, never()).log(contains(tag), any(), contains(element), eq(allowPII))
+
+    class RegexMatcher(private val regex: String) : ArgumentMatcher<String> {
+        override fun matches(argument: String?): Boolean {
+            return argument?.matches(regex.toRegex()) ?: false
+        }
+    }
+
+    private fun verifyLogDoesNotContain(tag: String, regex: String) {
+        verify(externalLogger, never()).log(
+            contains(tag),
+            any(),
+            argThat(RegexMatcher(regex)),
+            eq(allowPII)
+        )
     }
 }
