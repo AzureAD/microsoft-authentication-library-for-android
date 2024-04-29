@@ -2423,8 +2423,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         }
 
         elementsToCheck.forEach { regex ->
-            verifyLogDoesNotContain("Command", regex)
-            verifyLogDoesNotContain("Interactor", regex)
+            verifyLogDoesNotContain("""\S*(Command|Interactor)\S*""", regex)
         }
     }
 
@@ -2434,11 +2433,11 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         }
     }
 
-    private fun verifyLogDoesNotContain(tag: String, regex: String) {
+    private fun verifyLogDoesNotContain(tagRegex: String, messageRegex: String) {
         verify(externalLogger, never()).log(
-            contains(tag),
+            argThat(RegexMatcher(tagRegex)),
             any(),
-            argThat(RegexMatcher(regex)),
+            argThat(RegexMatcher(messageRegex)),
             eq(allowPII)
         )
     }
