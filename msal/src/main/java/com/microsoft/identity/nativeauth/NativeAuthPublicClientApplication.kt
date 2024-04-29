@@ -372,6 +372,7 @@ class NativeAuthPublicClientApplication(
                         } else {
                             Logger.warnWithObject(
                                 TAG,
+                                result.correlationId,
                                 "Sign in received unexpected result: ",
                                 result
                             )
@@ -413,6 +414,7 @@ class NativeAuthPublicClientApplication(
                         if (hasPassword) {
                             Logger.warnWithObject(
                                 TAG,
+                                result.correlationId,
                                 "Sign in using password received unexpected result: ",
                                 result
                             )
@@ -453,6 +455,7 @@ class NativeAuthPublicClientApplication(
                         } else {
                             Logger.warnWithObject(
                                 TAG,
+                                result.correlationId,
                                 "Sign in received Unexpected result: ",
                                 result
                             )
@@ -622,6 +625,7 @@ class NativeAuthPublicClientApplication(
                         if (hasPassword) {
                             Logger.warnWithObject(
                                 TAG,
+                                result.correlationId,
                                 "Sign up using password received unexpected result: ",
                                 result
                             )
@@ -662,6 +666,7 @@ class NativeAuthPublicClientApplication(
                         } else {
                             Logger.warnWithObject(
                                 TAG,
+                                result.correlationId,
                                 "Sign up received unexpected result: ",
                                 result
                             )
@@ -710,10 +715,11 @@ class NativeAuthPublicClientApplication(
                     }
 
                     is INativeAuthCommandResult.UnknownError -> {
-                        Logger.warn(
+                        Logger.warnWithObject(
                             TAG,
                             result.correlationId,
-                            "Sign up received unexpected result $result",
+                            "Sign up received unexpected result: ",
+                            result
                         )
                         SignUpError(
                             errorMessage = "Unexpected state",
