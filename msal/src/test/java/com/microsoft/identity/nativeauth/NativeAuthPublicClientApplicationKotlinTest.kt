@@ -116,7 +116,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
     private val emptyString = ""
     @Mock
     private lateinit var externalLogger: ILoggerCallback
-    private val allowPII = true
+    private val allowPII = false
 
     override fun getConfigFilePath() = "src/test/res/raw/native_auth_native_only_test_config.json"
 
@@ -2402,18 +2402,19 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
     private fun checkSafeLogging() {
         val piiTrueToCheck = listOf(
-            """(?<![,"\[\]])password[:=](?![,"'\[\]])""", // 'password:'  'password='  exclude ',password,' '[password]' '"password"'
-            """(?<![\s\?])(code)[:=]""", // 'code' 'code:' 'code=' exclude 'codeLength' 'error?code',
-            """(?i)\b(attributes)[:=]""",
+            """(?<![,"\[\]\(])password[:=](?![,"'\[\]\)])""",  // 'password:'  'password='  exclude ',password,' '[password]' '"password"' '(password)'
+            """(?<![\s\?\(])(code)[:=]""", // 'code' 'code:' 'code=' exclude 'codeLength' 'error?code',
+            """(?<![\(])continuationToken[:=]""",
+            """(?<![\(])attributes[:=]""",
             """(?i)\b(accessToken|access_token)[:=]""", // access_token, accessToken
             """(?i)\b(refreshToken|refresh_token)[:=]""",
             """(?i)\b(idToken|id_token)[:=]""",
-            """(?i)\b(continuationToken|continuation_token)[:=]"""
+            """(?i)\b(continuation_token)[:=]"""
         )
         val piiFalseToCheck = listOf(
+            """(?<![\(])username[:=]""",
             """(?i)\b(challengeTargetLabel|challenge_target_label)[:=]""",
-            """(?i)\b(grantType|grant_type)[:=]""",
-            """(?i)\b(username)[:=]""",
+            """(?i)\b(grantType|grant_type)[:=]"""
         )
 
         val elementsToCheck = piiTrueToCheck.toMutableList()
@@ -2423,7 +2424,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         }
 
         elementsToCheck.forEach { regex ->
-            verifyLogDoesNotContain("""\S*(Command|Interactor)\S*""", regex)
+            verifyLogDoesNotContain(regex)
         }
     }
 
@@ -2433,12 +2434,12 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         }
     }
 
-    private fun verifyLogDoesNotContain(tagRegex: String, messageRegex: String) {
+    private fun verifyLogDoesNotContain(messageRegex: String) {
         verify(externalLogger, never()).log(
-            argThat(RegexMatcher(tagRegex)),
+            any(),
             any(),
             argThat(RegexMatcher(messageRegex)),
-            eq(allowPII)
+            any()
         )
     }
 }
