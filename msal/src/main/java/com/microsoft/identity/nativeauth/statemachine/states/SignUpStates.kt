@@ -238,7 +238,7 @@ class SignUpCodeRequiredState internal constructor(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in signUp submitCode.",
                     exception = e,
-                    correlationId = "UNSET"
+                    correlationId = correlationId
                 )
             }
         }
@@ -335,7 +335,7 @@ class SignUpCodeRequiredState internal constructor(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in signUp resendCode.",
                     exception = e,
-                    correlationId = "UNSET"
+                    correlationId = correlationId
                 )
             }
         }
@@ -538,7 +538,7 @@ class SignUpPasswordRequiredState internal constructor(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in signUp submitPassword.",
                     exception = e,
-                    correlationId = "UNSET"
+                    correlationId = correlationId
                 )
             } finally {
                 StringUtil.overwriteWithNull(password)
@@ -728,7 +728,7 @@ class SignUpAttributesRequiredState internal constructor(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in signUp submitAttributes.",
                     exception = e,
-                    correlationId = "UNSET"
+                    correlationId = correlationId
                 )
             }
         }

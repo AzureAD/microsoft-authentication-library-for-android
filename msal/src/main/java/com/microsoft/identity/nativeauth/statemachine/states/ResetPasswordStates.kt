@@ -190,7 +190,7 @@ class ResetPasswordCodeRequiredState internal constructor(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in resetPassword submitCode.",
                     exception = e,
-                    correlationId = "UNSET"
+                    correlationId = correlationId
                 )
             }
         }
@@ -291,7 +291,7 @@ class ResetPasswordCodeRequiredState internal constructor(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in resetPassword resendCode.",
                     exception = e,
-                    correlationId = "UNSET"
+                    correlationId = correlationId
                 )
             }
         }
@@ -464,7 +464,7 @@ class ResetPasswordPasswordRequiredState internal constructor(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in resetPassword submitPassword.",
                     exception = e,
-                    correlationId = "UNSET"
+                    correlationId = correlationId
                 )
             } finally {
                 StringUtil.overwriteWithNull(password)

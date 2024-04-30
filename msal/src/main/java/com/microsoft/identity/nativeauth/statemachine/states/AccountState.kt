@@ -43,7 +43,6 @@ import com.microsoft.identity.common.java.dto.AccountRecord
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.exception.ServiceException
-import com.microsoft.identity.common.java.logging.DiagnosticContext
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.result.ILocalAuthenticationResult
@@ -173,7 +172,7 @@ class AccountState private constructor(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in getCurrentAccount.",
                     exception = e,
-                    correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
+                    correlationId = correlationId
                 )
             }
         }
@@ -313,7 +312,7 @@ class AccountState private constructor(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in getAccessToken.",
                     exception = e,
-                    correlationId = "UNSET"
+                    correlationId = correlationId
                 )
             }
         }

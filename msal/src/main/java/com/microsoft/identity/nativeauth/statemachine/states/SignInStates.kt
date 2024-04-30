@@ -47,12 +47,10 @@ import com.microsoft.identity.common.java.nativeauth.controllers.results.SignInS
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignInSubmitPasswordCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignInWithContinuationTokenCommandResult
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
-import com.microsoft.identity.common.java.logging.DiagnosticContext
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.util.StringUtil
 import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
-import com.microsoft.identity.nativeauth.statemachine.errors.ClientExceptionError
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.ResendCodeError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInContinuationError
@@ -207,7 +205,7 @@ class SignInCodeRequiredState internal constructor(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in signIn submitCode.",
                     exception = e,
-                    correlationId = "UNSET"
+                    correlationId = correlationId
                 )
             }
         }
@@ -307,7 +305,7 @@ class SignInCodeRequiredState internal constructor(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in resendCode.",
                     exception = e,
-                    correlationId = "UNSET"
+                    correlationId = correlationId
                 )
             }
         }
@@ -463,7 +461,7 @@ class SignInPasswordRequiredState(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in resetPassword submitCode.",
                     exception = e,
-                    correlationId = "UNSET"
+                    correlationId = correlationId
                 )
             } finally {
                 StringUtil.overwriteWithNull(password)
@@ -555,69 +553,82 @@ class SignInContinuationState(
      */
     suspend fun signIn(scopes: List<String>? = null): SignInResult {
         return withContext(Dispatchers.IO) {
-            LogSession.logMethodCall(
-                tag = TAG,
-                correlationId = correlationId,
-                methodName = "${TAG}.signIn(scopes: List<String>)"
-            )
-            // Check if verification code was passed. If not, return an UnknownError with instructions to call the other
-            // sign in flows (code or password).
-            if (continuationToken.isNullOrEmpty()) {
-                Logger.warn(
-                    TAG,
-                    "Sign in after sign up received unexpected result: continuationToken was null"
+            try {
+                LogSession.logMethodCall(
+                    tag = TAG,
+                    correlationId = correlationId,
+                    methodName = "${TAG}.signIn(scopes: List<String>)"
                 )
-                return@withContext SignInContinuationError(
-                    errorMessage = "Sign In is not available through this state, please use the standalone sign in method.",
-                    error = ErrorTypes.INVALID_STATE,
-                    correlationId = "UNSET",
-                )
-            }
-
-            val commandParameters = CommandParametersAdapter.createSignInWithContinuationTokenCommandParameters(
-                config,
-                config.oAuth2TokenCache,
-                continuationToken,
-                username,
-                correlationId,
-                scopes
-            )
-
-            val command = SignInWithContinuationTokenCommand(
-                commandParameters,
-                NativeAuthMsalController(),
-                PublicApiId.NATIVE_AUTH_SIGN_IN_WITH_SLT
-            )
-
-            val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
-
-            return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<SignInWithContinuationTokenCommandResult>()) {
-                is SignInCommandResult.Complete -> {
-                    val authenticationResult =
-                        AuthenticationResultAdapter.adapt(result.authenticationResult)
-                    SignInResult.Complete(
-                        resultValue = AccountState.createFromAuthenticationResult(
-                            authenticationResult = authenticationResult,
-                            correlationId = result.correlationId,
-                            config = config
-                        )
-                    )
-                }
-                is INativeAuthCommandResult.Redirect,
-                is INativeAuthCommandResult.UnknownError -> {
+                // Check if verification code was passed. If not, return an UnknownError with instructions to call the other
+                // sign in flows (code or password).
+                if (continuationToken.isNullOrEmpty()) {
                     Logger.warn(
                         TAG,
-                        result.correlationId,
-                        "Sign in after sign up received unexpected result: $result"
+                        "Sign in after sign up received unexpected result: continuationToken was null"
                     )
-                    SignInContinuationError(
-                        errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
-                        error = (result as INativeAuthCommandResult.Error).error,
-                        correlationId = (result as INativeAuthCommandResult.Error).correlationId,
-                        errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
-                        exception = (result as INativeAuthCommandResult.UnknownError).exception
+                    return@withContext SignInContinuationError(
+                        errorMessage = "Sign In is not available through this state, please use the standalone sign in method.",
+                        error = ErrorTypes.INVALID_STATE,
+                        correlationId = correlationId,
                     )
                 }
+
+                val commandParameters =
+                    CommandParametersAdapter.createSignInWithContinuationTokenCommandParameters(
+                        config,
+                        config.oAuth2TokenCache,
+                        continuationToken,
+                        username,
+                        correlationId,
+                        scopes
+                    )
+
+                val command = SignInWithContinuationTokenCommand(
+                    commandParameters,
+                    NativeAuthMsalController(),
+                    PublicApiId.NATIVE_AUTH_SIGN_IN_WITH_SLT
+                )
+
+                val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
+
+                return@withContext when (val result =
+                    rawCommandResult.checkAndWrapCommandResultType<SignInWithContinuationTokenCommandResult>()) {
+                    is SignInCommandResult.Complete -> {
+                        val authenticationResult =
+                            AuthenticationResultAdapter.adapt(result.authenticationResult)
+                        SignInResult.Complete(
+                            resultValue = AccountState.createFromAuthenticationResult(
+                                authenticationResult = authenticationResult,
+                                correlationId = result.correlationId,
+                                config = config
+                            )
+                        )
+                    }
+
+                    is INativeAuthCommandResult.Redirect,
+                    is INativeAuthCommandResult.UnknownError -> {
+                        Logger.warn(
+                            TAG,
+                            result.correlationId,
+                            "Sign in after sign up received unexpected result: $result"
+                        )
+                        SignInContinuationError(
+                            errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
+                            error = (result as INativeAuthCommandResult.Error).error,
+                            correlationId = (result as INativeAuthCommandResult.Error).correlationId,
+                            errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
+                            exception = (result as INativeAuthCommandResult.UnknownError).exception
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                Logger.error(TAG, "MSAL client exception occurred in sign in after sign up.", e)
+                SignInContinuationError(
+                    errorMessage = "MSAL client exception occurred in sign in after sign up.",
+                    error = ErrorTypes.CLIENT_EXCEPTION,
+                    correlationId = correlationId,
+                    exception = e
+                )
             }
         }
     }
