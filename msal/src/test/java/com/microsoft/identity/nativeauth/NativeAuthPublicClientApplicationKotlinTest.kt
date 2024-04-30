@@ -71,6 +71,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.AfterClass
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
@@ -80,13 +81,10 @@ import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatcher
-import org.mockito.ArgumentMatchers.contains
-import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argThat
-import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.spy
@@ -95,7 +93,6 @@ import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.io.File
-import java.util.Locale
 import java.util.UUID
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
@@ -114,9 +111,40 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
     private val password = "verySafePassword".toCharArray()
     private val code = "1234"
     private val emptyString = ""
-    @Mock
-    private lateinit var externalLogger: ILoggerCallback
-    private val allowPII = false
+    private val allowPII = true
+    private val loggerCallback = object : ILoggerCallback {  // User anonymous object instead of lambda to avoid mockito VM not support issues
+        override fun log(
+            tag: String?,
+            logLevel: Logger.LogLevel?,
+            message: String?,
+            containsPII: Boolean
+        ) {
+            if (containsPII) {
+                val elementsToCheck = allowPIITrueToCheck.toMutableList()
+                if (!allowPII) {
+                    elementsToCheck.addAll(allowPIIFalseToCheck)
+                }
+                elementsToCheck.forEach { regex ->
+                    assertFalse(RegexMatcher(regex).matches(message))
+                }
+            }
+        }
+    }
+    private val allowPIITrueToCheck = listOf(
+        """(?<![,"\[\]\(])password[:=](?![,"'\[\]\)])""",  // 'password:'  'password='  exclude ',password,' '[password]' '"password"' '(password)'
+        """(?<![\s\?\(])(code)[:=]""", // 'code' 'code:' 'code=' exclude 'codeLength' 'error?code',
+        """(?<![\(])continuationToken[:=]""",
+        """(?<![\(])attributes[:=]""",
+        """(?i)\b(accessToken|access_token)[:=]""", // access_token, accessToken
+        """(?i)\b(refreshToken|refresh_token)[:=]""",
+        """(?i)\b(idToken|id_token)[:=]""",
+        """(?i)\b(continuation_token)[:=]"""
+    )
+    private val allowPIIFalseToCheck = listOf(
+        """(?<![\(])username[:=]""",
+        """(?i)\b(challengeTargetLabel|challenge_target_label)[:=]""",
+        """(?i)\b(grantType|grant_type)[:=]"""
+    )
 
     override fun getConfigFilePath() = "src/test/res/raw/native_auth_native_only_test_config.json"
 
@@ -165,9 +193,10 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
     }
 
     private fun setupLogger() {
-        Logger.getInstance().setExternalLogger(externalLogger)
+        val spyLoggerCallback = spy(loggerCallback)
         Logger.getInstance().setLogLevel(Logger.LogLevel.INFO)
         Logger.getInstance().setEnablePII(allowPII)
+        Logger.getInstance().setExternalLogger(spyLoggerCallback)
     }
 
     /**
@@ -208,8 +237,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         val result = application.signIn(username, password)
         assertTrue(result is SignInResult.Complete)
-
-        checkSafeLogging()
     }
 
     /**
@@ -253,8 +280,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 1a. Server returns invalid password error
         assertTrue(codeRequiredResult is SignInError)
         assertTrue((codeRequiredResult as SignInError).isInvalidCredentials())
-
-        checkSafeLogging()
     }
 
     /**
@@ -278,8 +303,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 1a. Server returns invalid user error
         assertTrue(codeRequiredResult is SignInError)
         assertTrue((codeRequiredResult as SignInError).isUserNotFound())
-
-        checkSafeLogging()
     }
 
     /**
@@ -303,8 +326,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 1a. Server returns invalid user error
         assertTrue(codeRequiredResult is SignInError )
         assertTrue((codeRequiredResult as SignInError).isUserNotFound())
-
-        checkSafeLogging()
     }
 
     /**
@@ -368,8 +389,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val successResult = nextState.submitCode(code)
         // 3a. Server accepts code, returns tokens
         assertTrue(successResult is SignInResult.Complete)
-
-        checkSafeLogging()
     }
 
     /**
@@ -432,8 +451,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 1b. server returns token
         val result = signInWithContinuationTokenState.signIn(scopes = null)
         assertTrue(result is SignInResult.Complete)
-
-        checkSafeLogging()
     }
 
     /**
@@ -461,8 +478,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         )
         val result = continuationTokenState.signIn(scopes = null)
         assertTrue(result is SignInContinuationError)
-
-        checkSafeLogging()
     }
 
     /**
@@ -542,8 +557,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         val secondSignInResult = application.signIn(username, password)
         assertTrue(secondSignInResult is SignInResult.Complete)
-
-        checkSafeLogging()
     }
 
     /**
@@ -589,8 +602,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         assertNotNull(accessTokenTwo)
 
         assertEquals(accessToken, accessTokenTwo)
-
-        checkSafeLogging()
     }
 
     /**
@@ -628,8 +639,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val accessTokenState = accountState.getAccessToken()
         assertTrue(accessTokenState is GetAccessTokenError)
         assertTrue((accessTokenState as GetAccessTokenError).isNoAccountFound())
-
-        checkSafeLogging()
     }
 
     /**
@@ -703,8 +712,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val submitPasswordResult = nextState.submitPassword(password = password)
         // 3b. Transform /submit(success) +/poll_completion(success) to Result(Complete).
         assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
-
-        checkSafeLogging()
     }
 
     /**
@@ -796,8 +803,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 4b. Server returns tokens
         val result = signInWithContinuationTokenState.signIn(scopes = null)
         assertTrue(result is SignInResult.Complete)
-
-        checkSafeLogging()
     }
 
     /**
@@ -884,8 +889,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         submitPasswordResult = nextState.submitPassword(password = password)
         // 4b. Transform /submit(error) + /resetpassword/poll_completion(success) to Result(Complete).
         assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
-
-        checkSafeLogging()
     }
 
     /**
@@ -972,8 +975,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val submitPasswordResult = nextState.submitPassword(password = password)
         // 4b. Transform /submit(success) +/poll_completion(success) to Result(Complete).
         assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
-
-        checkSafeLogging()
     }
 
     /**
@@ -997,8 +998,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 1b. Transform /start(error) to Result(UserNotFound)
         assertTrue(resetPasswordResult is ResetPasswordError)
         assertTrue((resetPasswordResult as ResetPasswordError).isUserNotFound())
-
-        checkSafeLogging()
     }
 
     /**
@@ -1022,8 +1021,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 1b. Transform /start(error) to Result(UserNotFound)
         assertTrue(resetPasswordResult is ResetPasswordError)
         assertTrue((resetPasswordResult as ResetPasswordError).isBrowserRequired())
-
-        checkSafeLogging()
     }
 
     /**
@@ -1046,8 +1043,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 1b. Transform /start(error) to Result(UnexpectedError)
         assertTrue(resetPasswordResult is ResetPasswordError)
         assertTrue((resetPasswordResult as ResetPasswordError).errorType == null)
-
-        checkSafeLogging()
     }
 
     /**
@@ -1135,8 +1130,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val submitPasswordResult = nextState.submitPassword(password = password)
         // 4b. Transform /submit(success) +/poll_completion(success) to Result(Complete).
         assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
-
-        checkSafeLogging()
     }
 
     /**
@@ -1307,8 +1300,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         application.signIn(username, password, null, callback)
         // 3d. Server returns InvalidAuthMethodForUser error
         assertTrue(signInResult[30, TimeUnit.SECONDS] is SignInResult.CodeRequired)
-
-        checkSafeLogging()
     }
 
     /* Test sign in scenario 10:
@@ -1359,8 +1350,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         assertTrue(signInResult[30, TimeUnit.SECONDS] is SignInError)
         val result = signInResult.get() as SignInError
         assertTrue(result.isBrowserRequired())
-
-        checkSafeLogging()
     }
 
     /**
@@ -1378,8 +1367,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val result = application.signIn(emptyString, password)
         assertTrue(result is SignInError)
         assertTrue((result as SignInError).errorType == ErrorTypes.INVALID_USERNAME)
-
-        checkSafeLogging()
     }
 
     // Helper methods
@@ -1471,8 +1458,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         // 2b. Server accepts code, returns tokens
         assertTrue(successResult is SignUpResult.Complete)
-
-        checkSafeLogging()
     }
 
     /**
@@ -1540,8 +1525,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         // 3b. Server accepts code, returns tokens
         assertTrue(successResult is SignUpResult.Complete)
-
-        checkSafeLogging()
     }
 
     /**
@@ -1591,8 +1574,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         assertTrue(expiredTokenResult is SubmitCodeError)
         assertTrue((expiredTokenResult as SubmitCodeError).errorType == null)
-
-        checkSafeLogging()
     }
 
     /**
@@ -1615,8 +1596,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         assertTrue(result is SignUpError)
         assertTrue((result as SignUpError).isBrowserRequired())
-
-        checkSafeLogging()
     }
 
     /**
@@ -1639,8 +1618,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         assertTrue(result is SignUpError)
         assertTrue((result as SignUpError).isAuthNotSupported())
-
-        checkSafeLogging()
     }
 
     /**
@@ -1727,8 +1704,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         // 4b. Server accepts password, returns tokens
         assertTrue(successResult is SignUpResult.Complete)
-
-        checkSafeLogging()
     }
 
     /**
@@ -1771,8 +1746,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val validAttributes = UserAttributes.Builder.customAttribute("attribute", "valid_attribute").build()
         val result = application.signUp(username, password, validAttributes)
         assertTrue(result is SignUpResult.CodeRequired)
-
-        checkSafeLogging()
     }
 
     /**
@@ -1821,8 +1794,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         // 2b. Server accepts code, returns tokens
         assertTrue(successResult is SignUpResult.Complete)
-
-        checkSafeLogging()
     }
 
     /**
@@ -1889,8 +1860,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         // 3b. Server accepts code, returns tokens
         assertTrue(successResult is SignUpResult.Complete)
-
-        checkSafeLogging()
     }
 
     /**
@@ -1964,8 +1933,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         // 3b. Server accepts password, returns tokens
         assertTrue(successResult is SignUpResult.Complete)
-
-        checkSafeLogging()
     }
 
     /**
@@ -2057,8 +2024,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         // 4b. Server accepts password, returns tokens
         assertTrue(successResult is SignUpResult.Complete)
-
-        checkSafeLogging()
     }
 
     /**
@@ -2152,8 +2117,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         // 4b. Server accepts attributes, returns tokens
         assertTrue(successResult is SignUpResult.Complete)
-
-        checkSafeLogging()
     }
 
     /**
@@ -2244,8 +2207,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         // 4b. Server accepts password, returns tokens
         assertTrue(successResult is SignUpResult.Complete)
-
-        checkSafeLogging()
     }
 
     /**
@@ -2267,8 +2228,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val result = application.signUp(username)
         assertTrue(result is SignUpError)
         assertTrue((result as SignUpError).isBrowserRequired())
-
-        checkSafeLogging()
     }
 
     @Test
@@ -2301,8 +2260,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         assertTrue(submitCodeResult is SubmitCodeError)
         assertTrue((submitCodeResult as SubmitCodeError).isInvalidCode())
-
-        checkSafeLogging()
     }
 
     /**
@@ -2323,8 +2280,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val result = application.signUp(emptyString)
         assertTrue(result is SignUpError)
         assertTrue((result as SignUpError).errorType == ErrorTypes.INVALID_USERNAME)
-
-        checkSafeLogging()
     }
 
     /**
@@ -2345,8 +2300,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val result = application.resetPassword(emptyString)
         assertTrue(result is ResetPasswordError)
         assertTrue((result as ResetPasswordError).errorType == ErrorTypes.INVALID_USERNAME)
-
-        checkSafeLogging()
     }
 
     @Test
@@ -2362,8 +2315,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val result = application.signUp(username, password)
         assertTrue(result is SignUpError)
         assertTrue((result as SignUpError).isInvalidPassword())
-
-        checkSafeLogging()
     }
 
     @Test
@@ -2379,8 +2330,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val result = application.signUp(invalidUsername, password)
         assertTrue(result is SignUpError)
         assertTrue((result as SignUpError).isInvalidUsername())
-
-        checkSafeLogging()
     }
 
     @Test
@@ -2396,50 +2345,11 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val result = application.signUp(invalidUsername)
         assertTrue(result is SignUpError)
         assertTrue((result as SignUpError).isInvalidUsername())
-
-        checkSafeLogging()
-    }
-
-    private fun checkSafeLogging() {
-        val piiTrueToCheck = listOf(
-            """(?<![,"\[\]\(])password[:=](?![,"'\[\]\)])""",  // 'password:'  'password='  exclude ',password,' '[password]' '"password"' '(password)'
-            """(?<![\s\?\(])(code)[:=]""", // 'code' 'code:' 'code=' exclude 'codeLength' 'error?code',
-            """(?<![\(])continuationToken[:=]""",
-            """(?<![\(])attributes[:=]""",
-            """(?i)\b(accessToken|access_token)[:=]""", // access_token, accessToken
-            """(?i)\b(refreshToken|refresh_token)[:=]""",
-            """(?i)\b(idToken|id_token)[:=]""",
-            """(?i)\b(continuation_token)[:=]"""
-        )
-        val piiFalseToCheck = listOf(
-            """(?<![\(])username[:=]""",
-            """(?i)\b(challengeTargetLabel|challenge_target_label)[:=]""",
-            """(?i)\b(grantType|grant_type)[:=]"""
-        )
-
-        val elementsToCheck = piiTrueToCheck.toMutableList()
-
-        if (!allowPII) {
-            elementsToCheck.addAll(piiFalseToCheck)
-        }
-
-        elementsToCheck.forEach { regex ->
-            verifyLogDoesNotContain(regex)
-        }
     }
 
     class RegexMatcher(private val regex: String) : ArgumentMatcher<String> {
         override fun matches(argument: String?): Boolean {
             return regex.toRegex().containsMatchIn(argument ?: "")
         }
-    }
-
-    private fun verifyLogDoesNotContain(messageRegex: String) {
-        verify(externalLogger, never()).log(
-            any(),
-            any(),
-            argThat(RegexMatcher(messageRegex)),
-            any()
-        )
     }
 }
