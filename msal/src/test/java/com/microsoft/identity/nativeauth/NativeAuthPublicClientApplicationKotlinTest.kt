@@ -112,6 +112,21 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
     private val code = "1234"
     private val emptyString = ""
     private val allowPII = true
+    private val allowPIITrueToCheck = listOf(
+        """(?<![,"\[\]\(])password[:=](?![,"'\[\]\)])""",  // 'password:'  'password='  exclude ',password,' '[password]' '"password"' '(password)'
+        """(?<![\s\?\(])(code)[:=]""", // 'code' 'code:' 'code=' exclude 'codeLength' 'error?code',
+        """(?<![\(])continuationToken[:=]""",
+        """(?<![\(])attributes[:=]""",
+        """(?i)\b(accessToken|access_token)[:=]""", // access_token, accessToken
+        """(?i)\b(refreshToken|refresh_token)[:=]""",
+        """(?i)\b(idToken|id_token)[:=]""",
+        """(?i)\b(continuation_token)[:=]"""
+    )
+    private val allowPIIFalseToCheck = listOf(
+        """(?<![\(])username[:=]""",
+        """(?i)\b(challengeTargetLabel|challenge_target_label)[:=]""",
+        """(?i)\b(grantType|grant_type)[:=]"""
+    )
     private val loggerCallback = object : ILoggerCallback {  // User anonymous object instead of lambda to avoid mockito VM not support issues
         override fun log(
             tag: String?,
@@ -130,21 +145,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
             }
         }
     }
-    private val allowPIITrueToCheck = listOf(
-        """(?<![,"\[\]\(])password[:=](?![,"'\[\]\)])""",  // 'password:'  'password='  exclude ',password,' '[password]' '"password"' '(password)'
-        """(?<![\s\?\(])(code)[:=]""", // 'code' 'code:' 'code=' exclude 'codeLength' 'error?code',
-        """(?<![\(])continuationToken[:=]""",
-        """(?<![\(])attributes[:=]""",
-        """(?i)\b(accessToken|access_token)[:=]""", // access_token, accessToken
-        """(?i)\b(refreshToken|refresh_token)[:=]""",
-        """(?i)\b(idToken|id_token)[:=]""",
-        """(?i)\b(continuation_token)[:=]"""
-    )
-    private val allowPIIFalseToCheck = listOf(
-        """(?<![\(])username[:=]""",
-        """(?i)\b(challengeTargetLabel|challenge_target_label)[:=]""",
-        """(?i)\b(grantType|grant_type)[:=]"""
-    )
 
     override fun getConfigFilePath() = "src/test/res/raw/native_auth_native_only_test_config.json"
 
