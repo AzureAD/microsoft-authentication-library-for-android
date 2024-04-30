@@ -254,7 +254,7 @@ class AccountState private constructor(
                             errorType = GetAccessTokenErrorTypes.NO_ACCOUNT_FOUND,
                             error = MsalClientException.NO_CURRENT_ACCOUNT,
                             errorMessage = MsalClientException.NO_CURRENT_ACCOUNT_ERROR_MESSAGE,
-                            correlationId = "UNSET"
+                            correlationId = correlationId
                         )
 
                 val acquireTokenSilentParameters = AcquireTokenSilentParameters.Builder()
@@ -289,14 +289,14 @@ class AccountState private constructor(
                     is ServiceException -> {
                         GetAccessTokenError(
                             exception = ExceptionAdapter.convertToNativeAuthException(commandResult),
-                            correlationId = "UNSET"
+                            correlationId = correlationId
                         )
                     }
 
                     is Exception -> {
                         GetAccessTokenError(
                             exception = commandResult,
-                            correlationId = "UNSET"
+                            correlationId = correlationId
                         )
                     }
 
