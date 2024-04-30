@@ -1296,7 +1296,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         val result = application.signIn(emptyString, password)
         assertTrue(result is SignInError)
-        assertTrue((result as SignInError).exception?.message.equals("username cannot be null or empty"))
+        assertTrue((result as SignInError).errorType == ErrorTypes.INVALID_USERNAME)
     }
 
     // Helper methods
@@ -2229,7 +2229,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // 1b. Call SDK interface
         val result = application.resetPassword(emptyString)
         assertTrue(result is ResetPasswordError)
-        assertTrue((result as ResetPasswordError).exception?.message.equals("username cannot be null or empty"))
+        assertTrue((result as ResetPasswordError).errorType == ErrorTypes.INVALID_USERNAME)
     }
 
     @Test
