@@ -286,7 +286,7 @@ class AccountState private constructor(
                     // Account and Id token data could change after access token refresh, update the account object in the state
                     account = AuthenticationResultAdapter.adapt(commandResult as ILocalAuthenticationResult).account
                     GetAccessTokenResult.Complete(
-                        resultValue =  AuthenticationResultAdapter.adapt(commandResult as ILocalAuthenticationResult)
+                        resultValue =  AuthenticationResultAdapter.adapt(commandResult)
                     )
                 }
             }
