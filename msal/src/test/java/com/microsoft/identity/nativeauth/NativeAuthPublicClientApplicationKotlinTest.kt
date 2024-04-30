@@ -58,7 +58,6 @@ import com.microsoft.identity.common.java.interfaces.IPlatformComponents
 import com.microsoft.identity.common.java.nativeauth.BuildValues
 import com.microsoft.identity.common.java.util.ResultFuture
 import com.microsoft.identity.internal.testutils.TestUtils
-import com.microsoft.identity.nativeauth.statemachine.errors.ClientExceptionError
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
 import com.microsoft.identity.nativeauth.utils.mockCorrelationId
@@ -82,7 +81,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.RuntimeEnvironment.application
 import org.robolectric.annotation.Config
 import java.io.File
 import java.util.UUID
@@ -366,9 +364,14 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val result = application.signIn(username, password)
         assertTrue(result is SignInResult.Complete)
 
-        val newResult = application.signUp(username)
-        assertTrue(newResult is ClientExceptionError)
-        assertTrue((newResult as ClientExceptionError).exception?.message.equals("An account is already signed in."))
+        try {
+            application.signIn(username, password)
+        } catch (exception: MsalException) {
+            assertEquals(MsalClientException.INVALID_PARAMETER, exception.errorCode)
+            assertEquals("An account is already signed in.", exception.message)
+            return@runTest
+        }
+        fail() // An exception should happen
     }
 
     /**
@@ -1102,9 +1105,14 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val result = application.signIn(username, password)
         assertTrue(result is SignInResult.Complete)
 
-        val newResult = application.signUp(username)
-        assertTrue(newResult is ClientExceptionError)
-        assertTrue((newResult as ClientExceptionError).exception?.message.equals("An account is already signed in."))
+        try {
+            application.signIn(username, password)
+        } catch (exception: MsalException) {
+            assertEquals(MsalClientException.INVALID_PARAMETER, exception.errorCode)
+            assertEquals("An account is already signed in.", exception.message)
+            return@runTest
+        }
+        fail() // An exception should happen
     }
 
     /**
@@ -1134,10 +1142,14 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val result = application.signIn(username, password)
         assertTrue(result is SignInResult.Complete)
 
-
-        val newResult = application.signUp(username)
-        assertTrue(newResult is ClientExceptionError)
-        assertTrue((newResult as ClientExceptionError).exception?.message.equals("An account is already signed in."))
+        try {
+            application.signUp(username)
+        } catch (exception: MsalException) {
+            assertEquals(MsalClientException.INVALID_PARAMETER, exception.errorCode)
+            assertEquals("An account is already signed in.", exception.message)
+            return@runTest
+        }
+        fail() // An exception should happen
     }
 
     /**
@@ -1167,10 +1179,14 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val result = application.signIn(username, password)
         assertTrue(result is SignInResult.Complete)
 
-
-        val newResult = application.resetPassword(username)
-        assertTrue(newResult is ClientExceptionError)
-        assertTrue((newResult as ClientExceptionError).exception?.message.equals("An account is already signed in."))
+        try {
+            application.resetPassword(username)
+        } catch (exception: MsalException) {
+            assertEquals(MsalClientException.INVALID_PARAMETER, exception.errorCode)
+            assertEquals("An account is already signed in.", exception.message)
+            return@runBlocking
+        }
+        fail() // An exception should happen
     }
 
     /**
