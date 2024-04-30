@@ -195,7 +195,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
     }
 
     private fun setupLogger() {
-
         Logger.getInstance().setLogLevel(Logger.LogLevel.INFO)
         Logger.getInstance().setEnablePII(allowPII)
         Logger.getInstance().setExternalLogger(spyLoggerCallback)
