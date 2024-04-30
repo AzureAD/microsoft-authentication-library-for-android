@@ -58,6 +58,7 @@ import com.microsoft.identity.common.java.interfaces.IPlatformComponents
 import com.microsoft.identity.common.java.nativeauth.BuildValues
 import com.microsoft.identity.common.java.util.ResultFuture
 import com.microsoft.identity.internal.testutils.TestUtils
+import com.microsoft.identity.nativeauth.statemachine.errors.ClientExceptionError
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
 import com.microsoft.identity.nativeauth.utils.mockCorrelationId
@@ -364,14 +365,9 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val result = application.signIn(username, password)
         assertTrue(result is SignInResult.Complete)
 
-        try {
-            application.signIn(username, password)
-        } catch (exception: MsalException) {
-            assertEquals(MsalClientException.INVALID_PARAMETER, exception.errorCode)
-            assertEquals("An account is already signed in.", exception.message)
-            return@runTest
-        }
-        fail() // An exception should happen
+        val newResult = application.signIn(username)
+        assertTrue(newResult is SignInError)
+        assertTrue((newResult as SignInError).exception?.message.equals("An account is already signed in."))
     }
 
     /**
@@ -1105,14 +1101,9 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val result = application.signIn(username, password)
         assertTrue(result is SignInResult.Complete)
 
-        try {
-            application.signIn(username, password)
-        } catch (exception: MsalException) {
-            assertEquals(MsalClientException.INVALID_PARAMETER, exception.errorCode)
-            assertEquals("An account is already signed in.", exception.message)
-            return@runTest
-        }
-        fail() // An exception should happen
+        val newResult = application.signUp(username)
+        assertTrue(newResult is SignUpError)
+        assertTrue((newResult as SignUpError).exception?.message.equals("An account is already signed in."))
     }
 
     /**
@@ -1142,14 +1133,9 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val result = application.signIn(username, password)
         assertTrue(result is SignInResult.Complete)
 
-        try {
-            application.signUp(username)
-        } catch (exception: MsalException) {
-            assertEquals(MsalClientException.INVALID_PARAMETER, exception.errorCode)
-            assertEquals("An account is already signed in.", exception.message)
-            return@runTest
-        }
-        fail() // An exception should happen
+        val newResult = application.signUp(username)
+        assertTrue(newResult is SignUpError)
+        assertTrue((newResult as SignUpError).exception?.message.equals("An account is already signed in."))
     }
 
     /**
@@ -1179,14 +1165,9 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val result = application.signIn(username, password)
         assertTrue(result is SignInResult.Complete)
 
-        try {
-            application.resetPassword(username)
-        } catch (exception: MsalException) {
-            assertEquals(MsalClientException.INVALID_PARAMETER, exception.errorCode)
-            assertEquals("An account is already signed in.", exception.message)
-            return@runBlocking
-        }
-        fail() // An exception should happen
+        val newResult = application.resetPassword(username)
+        assertTrue(newResult is ResetPasswordError)
+        assertTrue((newResult as ResetPasswordError).exception?.message.equals("An account is already signed in."))
     }
 
     /**
