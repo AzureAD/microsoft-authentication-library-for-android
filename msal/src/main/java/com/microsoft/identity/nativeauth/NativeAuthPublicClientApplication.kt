@@ -265,7 +265,7 @@ class NativeAuthPublicClientApplication(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in getCurrentAccount.",
                     exception = e,
-                    correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
+                    correlationId = "UNSET"
                 )
             }
         }
@@ -328,13 +328,13 @@ class NativeAuthPublicClientApplication(
             try {
                 verifyNoUserIsSignedIn()
 
-//            if (username.isBlank()) {
-//                return@withContext SignInError(
-//                    errorType = ErrorTypes.INVALID_USERNAME,
-//                    errorMessage = "Empty or blank username",
-//                    correlationId = "UNSET"
-//                )
-//            }
+                if (username.isBlank()) {
+                    return@withContext SignInError(
+                        errorType = ErrorTypes.INVALID_USERNAME,
+                        errorMessage = "Empty or blank username",
+                        correlationId = "UNSET"
+                    )
+                }
 
                 val hasPassword = password?.isNotEmpty() == true
 
@@ -481,11 +481,11 @@ class NativeAuthPublicClientApplication(
                 }
             } catch (e: Exception) {
                 Logger.error(TAG, "MSAL client exception occurred in signIn.", e)
-                ClientExceptionError(
+                SignInError(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in signIn.",
                     exception = e,
-                    correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
+                    correlationId = "UNSET"
                 )
             } finally {
                 StringUtil.overwriteWithNull(password)
@@ -553,13 +553,13 @@ class NativeAuthPublicClientApplication(
             try {
                 verifyNoUserIsSignedIn()
 
-//            if (username.isBlank()) {
-//                return@withContext SignUpError(
-//                    errorType = ErrorTypes.INVALID_USERNAME,
-//                    errorMessage = "Empty or blank username",
-//                    correlationId = "UNSET"
-//                )
-//            }
+                if (username.isBlank()) {
+                    return@withContext SignUpError(
+                        errorType = ErrorTypes.INVALID_USERNAME,
+                        errorMessage = "Empty or blank username",
+                        correlationId = "UNSET"
+                    )
+                }
 
                 val parameters =
                     CommandParametersAdapter.createSignUpStartCommandParameters(
@@ -714,11 +714,11 @@ class NativeAuthPublicClientApplication(
                 }
             } catch (e: Exception) {
                 Logger.error(TAG, "MSAL client exception occurred in signUp.", e)
-                ClientExceptionError(
+                SignUpError(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in signUp.",
                     exception = e,
-                    correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
+                    correlationId = "UNSET"
                 )
             } finally {
                 StringUtil.overwriteWithNull(password)
@@ -771,13 +771,13 @@ class NativeAuthPublicClientApplication(
 
                 verifyNoUserIsSignedIn()
 
-//            if (username.isBlank()) {
-//                return@withContext ResetPasswordError(
-//                    errorType = ErrorTypes.INVALID_USERNAME,
-//                    errorMessage = "Empty or blank username",
-//                    correlationId = "UNSET"
-//                )
-//            }
+                if (username.isBlank()) {
+                    return@withContext ResetPasswordError(
+                        errorType = ErrorTypes.INVALID_USERNAME,
+                        errorMessage = "Empty or blank username",
+                        correlationId = "UNSET"
+                    )
+                }
 
                 val parameters = CommandParametersAdapter.createResetPasswordStartCommandParameters(
                     nativeAuthConfig,
@@ -874,11 +874,11 @@ class NativeAuthPublicClientApplication(
                 }
             } catch (e: Exception) {
                 Logger.error(TAG, "MSAL client exception occurred in resetPassword.", e)
-                ClientExceptionError(
+                ResetPasswordError(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in resetPassword.",
                     exception = e,
-                    correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
+                    correlationId = "UNSET"
                 )
             }
         }

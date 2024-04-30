@@ -173,10 +173,5 @@ class ClientExceptionError(
     override val correlationId: String,
     override val errorCodes: List<Int>? = null,
     override var exception: Exception? = null
-): GetAccessTokenResult, GetAccountResult,
-    SignInResult, SignUpResult,
-    ResetPasswordStartResult, ResetPasswordSubmitCodeResult, ResetPasswordResendCodeResult, ResetPasswordSubmitPasswordResult,
-    SignInSubmitCodeResult, SignInResendCodeResult, SignInSubmitPasswordResult,
-    SignUpSubmitCodeResult, SignUpResendCodeResult, SignUpSubmitPasswordResult, SignUpSubmitAttributesResult,
-    SignOutResult,
+): GetAccountResult, SignOutResult,
     Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception)

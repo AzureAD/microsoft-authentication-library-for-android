@@ -29,7 +29,6 @@ import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
 import com.microsoft.identity.common.java.controllers.CommandDispatcher
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
-import com.microsoft.identity.common.java.logging.DiagnosticContext
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
@@ -45,7 +44,6 @@ import com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordS
 import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
-import com.microsoft.identity.nativeauth.statemachine.errors.ClientExceptionError
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.ResendCodeError
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordErrorTypes
@@ -188,11 +186,11 @@ class ResetPasswordCodeRequiredState internal constructor(
                 }
             } catch (e: Exception) {
                 Logger.error(TAG, "MSAL client exception occurred in resetPassword submitCode.", e)
-                ClientExceptionError(
+                SubmitCodeError(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in resetPassword submitCode.",
                     exception = e,
-                    correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
+                    correlationId = "UNSET"
                 )
             }
         }
@@ -289,11 +287,11 @@ class ResetPasswordCodeRequiredState internal constructor(
                 }
             } catch (e: Exception) {
                 Logger.error(TAG, "MSAL client exception occurred in resetPassword resendCode.", e)
-                ClientExceptionError(
+                ResendCodeError(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in resetPassword resendCode.",
                     exception = e,
-                    correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
+                    correlationId = "UNSET"
                 )
             }
         }
@@ -462,11 +460,11 @@ class ResetPasswordPasswordRequiredState internal constructor(
                 }
             } catch (e: Exception) {
                 Logger.error(TAG, "MSAL client exception occurred in resetPassword submitPassword.", e)
-                ClientExceptionError(
+                ResetPasswordSubmitPasswordError(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in resetPassword submitPassword.",
                     exception = e,
-                    correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
+                    correlationId = "UNSET"
                 )
             } finally {
                 StringUtil.overwriteWithNull(password)

@@ -50,12 +50,10 @@ import com.microsoft.identity.common.java.nativeauth.controllers.results.SignUpS
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignUpSubmitUserAttributesCommandResult
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.exception.BaseException
-import com.microsoft.identity.common.java.logging.DiagnosticContext
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.util.StringUtil
 import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
-import com.microsoft.identity.nativeauth.statemachine.errors.ClientExceptionError
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.ResendCodeError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpErrorTypes
@@ -236,11 +234,11 @@ class SignUpCodeRequiredState internal constructor(
                 }
             } catch (e: Exception) {
                 Logger.error(TAG, "MSAL client exception occurred in signUp submitCode.", e)
-                ClientExceptionError(
+                SubmitCodeError(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in signUp submitCode.",
                     exception = e,
-                    correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
+                    correlationId = "UNSET"
                 )
             }
         }
@@ -333,11 +331,11 @@ class SignUpCodeRequiredState internal constructor(
                 }
             } catch (e: Exception) {
                 Logger.error(TAG, "MSAL client exception occurred in signUp resendCode.", e)
-                ClientExceptionError(
+                ResendCodeError(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in signUp resendCode.",
                     exception = e,
-                    correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
+                    correlationId = "UNSET"
                 )
             }
         }
@@ -536,11 +534,11 @@ class SignUpPasswordRequiredState internal constructor(
                 }
             } catch (e: BaseException) {
                 Logger.error(TAG, "MSAL client exception occurred in signUp submitPassword.", e)
-                ClientExceptionError(
+                SignUpSubmitPasswordError(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in signUp submitPassword.",
                     exception = e,
-                    correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
+                    correlationId = "UNSET"
                 )
             } finally {
                 StringUtil.overwriteWithNull(password)
@@ -726,11 +724,11 @@ class SignUpAttributesRequiredState internal constructor(
                 }
             } catch (e: Exception) {
                 Logger.error(TAG, "MSAL client exception occurred in signUp submitAttributes.", e)
-                ClientExceptionError(
+                SignUpSubmitAttributesError(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in signUp submitAttributes.",
                     exception = e,
-                    correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
+                    correlationId = "UNSET"
                 )
             }
         }

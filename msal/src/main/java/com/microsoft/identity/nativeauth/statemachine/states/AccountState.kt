@@ -295,11 +295,9 @@ class AccountState private constructor(
                     }
 
                     is Exception -> {
-                        ClientExceptionError(
-                            errorType = ErrorTypes.CLIENT_EXCEPTION,
-                            errorMessage = "MSAL client exception occurred in getAccessToken.",
+                        GetAccessTokenError(
                             exception = commandResult,
-                            correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
+                            correlationId = "UNSET"
                         )
                     }
 
@@ -311,11 +309,11 @@ class AccountState private constructor(
                 }
             } catch (e: Exception) {
                 Logger.error(TAG, "MSAL client exception occurred in getAccessToken", e)
-                ClientExceptionError(
+                GetAccessTokenError(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in getAccessToken.",
                     exception = e,
-                    correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
+                    correlationId = "UNSET"
                 )
             }
         }

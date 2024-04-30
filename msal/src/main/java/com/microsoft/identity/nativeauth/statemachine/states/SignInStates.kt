@@ -203,11 +203,11 @@ class SignInCodeRequiredState internal constructor(
                 }
             } catch (e: Exception) {
                 Logger.error(TAG, "MSAL client exception occurred in signIn submitCode.", e)
-                ClientExceptionError(
+                SubmitCodeError(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in signIn submitCode.",
                     exception = e,
-                    correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
+                    correlationId = "UNSET"
                 )
             }
         }
@@ -303,11 +303,11 @@ class SignInCodeRequiredState internal constructor(
                 }
             } catch (e: Exception) {
                 Logger.error(TAG, "MSAL client exception occurred in resendCode.", e)
-                ClientExceptionError(
+                ResendCodeError(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in resendCode.",
                     exception = e,
-                    correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
+                    correlationId = "UNSET"
                 )
             }
         }
@@ -459,11 +459,11 @@ class SignInPasswordRequiredState(
                 }
             } catch (e: Exception) {
                 Logger.error(TAG, "Exception thrown in submitPassword", e)
-                ClientExceptionError(
+                SignInSubmitPasswordError(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in resetPassword submitCode.",
                     exception = e,
-                    correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
+                    correlationId = "UNSET"
                 )
             } finally {
                 StringUtil.overwriteWithNull(password)
