@@ -247,9 +247,9 @@ public class CommandParametersAdapter {
                 .forceRefresh(forceRefresh)
                 .account(parameters.getAccountRecord())
                 .authenticationScheme(authenticationScheme)
-                .scopes(new HashSet<>(parameters.getScopes()))
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .correlationId(parameters.getCorrelationId())
+                .scopes(new HashSet<>(parameters.getScopes()))
                 .build();
 
         return commandParameters;
@@ -290,52 +290,6 @@ public class CommandParametersAdapter {
                 .authority(authority)
                 .claimsRequestJson(claimsRequestJson)
                 .correlationId(parameters.getCorrelationId())
-                .build();
-
-        return commandParameters;
-    }
-
-    /**
-     * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.AcquireTokenNoFixedScopesCommand}] of Native Auth.
-     *
-     * @param configuration PCA configuration
-     * @param tokenCache token cache for storing results
-     * @param accountRecord accountRecord object containing account information
-     * @param forceRefresh boolean parameter to denote if refresh should be forced
-     * @param correlationId correlation ID to use in the API request, taken from the previous API response in the flow
-     * @return Command parameter object
-     * @throws ClientException
-     */
-    public static AcquireTokenNoFixedScopesCommandParameters createAcquireTokenNoFixedScopesCommandParameters(
-            @NonNull final PublicClientApplicationConfiguration configuration,
-            @NonNull final OAuth2TokenCache tokenCache,
-            @NonNull final AccountRecord accountRecord,
-            @NonNull final Boolean forceRefresh,
-            final Set<String> scopes,
-            @NonNull final String correlationId) throws ClientException {
-        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
-
-        final AbstractAuthenticationScheme authenticationScheme = new BearerAuthenticationSchemeInternal();
-
-        final AcquireTokenNoFixedScopesCommandParameters commandParameters = AcquireTokenNoFixedScopesCommandParameters
-                .builder()
-                .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
-                .applicationName(configuration.getAppContext().getPackageName())
-                .applicationVersion(getPackageVersion(configuration.getAppContext()))
-                .clientId(configuration.getClientId())
-                .isSharedDevice(configuration.getIsSharedDevice())
-                .oAuth2TokenCache(tokenCache)
-                .redirectUri(configuration.getRedirectUri())
-                .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
-                .sdkType(SdkType.MSAL)
-                .sdkVersion(PublicClientApplication.getSdkVersion())
-                .authority(authority)
-                .authenticationScheme(authenticationScheme)
-                .forceRefresh(forceRefresh)
-                .scopes(scopes)
-                .account(accountRecord)
-                .correlationId(correlationId)
-                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .build();
 
         return commandParameters;

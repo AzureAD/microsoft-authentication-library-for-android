@@ -36,6 +36,7 @@ import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
 import com.microsoft.identity.common.internal.commands.RemoveCurrentAccountCommand
 import com.microsoft.identity.common.internal.controllers.LocalMSALController
+import com.microsoft.identity.common.java.AuthenticationConstants
 import com.microsoft.identity.common.java.commands.CommandCallback
 import com.microsoft.identity.common.java.commands.SilentTokenCommand
 import com.microsoft.identity.common.java.controllers.BaseController
@@ -48,7 +49,6 @@ import com.microsoft.identity.common.java.exception.ServiceException
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.result.ILocalAuthenticationResult
-import com.microsoft.identity.common.nativeauth.internal.commands.AcquireTokenNoFixedScopesCommand
 import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
@@ -60,7 +60,6 @@ import com.microsoft.identity.nativeauth.utils.serializable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.Collections
 
 /**
  *  AccountState returned as part of a successful completion of sign in flow [com.microsoft.identity.nativeauth.statemachine.results.SignInResult.Complete].
@@ -99,6 +98,19 @@ class AccountState private constructor(
                 callback.onError(e)
             }
         }
+    }
+
+    private fun addDefaultScopes(scopes: List<String>?): List<String> {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.addDefaultScopes"
+        )
+        val requestScopes = scopes?.toMutableList() ?: mutableListOf()
+        requestScopes.addAll(AuthenticationConstants.DEFAULT_SCOPES)
+        // sanitize empty and null scopes
+        requestScopes.removeAll(listOf("", null))
+        return requestScopes.toList()
     }
 
     /**
@@ -197,7 +209,8 @@ class AccountState private constructor(
     interface GetAccessTokenCallback : Callback<GetAccessTokenResult>
 
     /**
-     * Retrieves the access token for the currently signed in account from the cache.
+     * Retrieves the access token for the currently signed in account from the cache. If multiple
+     * access tokens are present in the cache then the one that matches the sign in scopes is returned.
      * If the access token is expired, it will be attempted to be refreshed using the refresh token that's stored in the cache;
      * callback variant.
      *
@@ -223,7 +236,8 @@ class AccountState private constructor(
     }
 
     /**
-     * Retrieves the access token for the currently signed in account from the cache.
+     * Retrieves the access token for the currently signed in account from the cache. If multiple
+     * access tokens are present in the cache then the one that matches the sign in scopes is returned.
      * If the access token is expired, it will be attempted to be refreshed using the refresh token that's stored in the cache;
      * Kotlin coroutines variant.
      *
@@ -236,25 +250,53 @@ class AccountState private constructor(
     /**
      * Retrieves the access token for the currently signed in account from the cache.
      * If the access token is expired, it will be attempted to be refreshed using the refresh token that's stored in the cache;
+     * If any of the cached access token matches the scope specified in scopes parameter then that
+     * is returned otherwise a new access token with requested scopes is fetched.
      * Kotlin coroutines variant.
      *
      * @return [com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult] The result of the getAccessToken action
      */
-    suspend fun getAccessToken(forceRefresh: Boolean = false, scopes: List<String>): GetAccessTokenResult {
-        var scopeSet = HashSet<String>()
-        if (!scopes.isNullOrEmpty()) {
-            scopeSet.addAll(scopes)
-        }
-        val scopeSet2 = BaseController.addDefaultScopes(scopeSet)
-        return getAccessTokenInternal(forceRefresh, ArrayList(scopeSet2))
+    suspend fun getAccessToken(forceRefresh: Boolean = false, scopes: List<String>?): GetAccessTokenResult {
+        return getAccessTokenInternal(forceRefresh, scopes)
     }
 
-    suspend fun getAccessTokenInternal(forceRefresh: Boolean, scopes: List<String>?): GetAccessTokenResult {
+    /**
+     * Retrieves the access token for the currently signed in account from the cache.
+     * If the access token is expired, it will be attempted to be refreshed using the refresh token that's stored in the cache;
+     * If any of the cached access token matches the scope specified in scopes parameter then that
+     * is returned otherwise a new access token with requested scopes is fetched.
+     * callback variant.
+     *
+     * @return [com.microsoft.identity.client.IAuthenticationResult] If successful.
+     * @throws [MsalClientException] If the the account doesn't exist in the cache.
+     * @throws [ServiceException] If the refresh token doesn't exist in the cache/is expired, or the refreshing fails.
+     */
+    fun getAccessToken(forceRefresh: Boolean = false, scopes: List<String>, callback: GetAccessTokenCallback) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "$TAG.getAccessToken"
+        )
+        NativeAuthPublicClientApplication.pcaScope.launch {
+            try {
+                val result = getAccessToken(forceRefresh, scopes)
+                callback.onResult(result)
+            } catch (e: MsalException) {
+                Logger.error(TAG, "Exception thrown in getAccessToken", e)
+                callback.onError(e)
+            }
+        }
+    }
+
+    private suspend fun getAccessTokenInternal(forceRefresh: Boolean, scopes: List<String>?): GetAccessTokenResult {
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = null,
             methodName = "$TAG.getAccessToken(forceRefresh: Boolean)"
         )
+        val mergedScopes = BaseController.addDefaultScopes(
+            scopes?.toMutableSet() ?: mutableSetOf() ).toList()
+
         return withContext(Dispatchers.IO) {
 
             val accountResult = NativeAuthPublicClientApplication.getCurrentAccountInternal(config) as? Account
@@ -266,21 +308,18 @@ class AccountState private constructor(
                         correlationId = "UNSET"
                     )
 
-            val acquireTokenSilentParametersBuilder = AcquireTokenSilentParameters.Builder()
+            val acquireTokenSilentParameters = AcquireTokenSilentParameters.Builder()
                 .forAccount(account)
                 .fromAuthority(account.authority)
                 .forceRefresh(forceRefresh)
+                .withScopes(mergedScopes)
+                .build()
 
-            if (scopes != null ) {
-                acquireTokenSilentParametersBuilder.withScopes(scopes)
-            }
-
-            val acquireTokenSilentParameters = acquireTokenSilentParametersBuilder.build()
-
-            val accountToBeUsed = PublicClientApplication.selectAccountRecordForTokenRequest(
+            val accountRecord = PublicClientApplication.selectAccountRecordForTokenRequest(
                 config,
                 acquireTokenSilentParameters
             )
+            acquireTokenSilentParameters.accountRecord = accountRecord
 
             val params = CommandParametersAdapter.createSilentTokenCommandParameters(
                 config,
@@ -291,16 +330,17 @@ class AccountState private constructor(
             val command = SilentTokenCommand(
                 params,
                 NativeAuthMsalController().asControllerFactory(),
-                object:CommandCallback<ILocalAuthenticationResult, BaseException>{
-                    override fun onTaskCompleted(t: ILocalAuthenticationResult?) {
-                        //TODO("Not yet implemented")
+                object : CommandCallback<Boolean?, BaseException?> {
+                    override fun onError(error: BaseException?) {
+                        // Do nothing, handled by CommandDispatcher.submitSilentReturningFuture()
                     }
 
-                    override fun onError(error: BaseException?) {
-                        //TODO("Not yet implemented")
+                    override fun onTaskCompleted(result: Boolean?) {
+                        // Do nothing, handled by CommandDispatcher.submitSilentReturningFuture()
                     }
 
                     override fun onCancel() {
+                        // Do nothing
                     }
                 },
                 PublicApiId.NATIVE_AUTH_ACCOUNT_GET_ACCESS_TOKEN
