@@ -109,8 +109,8 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
     private val emptyString = ""
     private val allowPII = true
     private val allowPIITrueToCheck = listOf(
-        """(?<![\[\(])["]password["][:=]?(?![\]\)])""", // '"password":' 'password' 'password=' 'password=' '"password"' exclude 'password' ',password,' '"challengeType":["password"]' '"password"' '(password)'
-        """(?<![\s\?\(])(code)[:=]""", // 'code' 'code:' 'code=' exclude 'codeLength' 'error?code',
+        """(?<![\[\(])["]password["][:=]?(?![\]\)])""", // '"password":' '"password"=' exclude 'password' '"challengeType":["password"]'
+        """(?<![\s\?\(])(code)[:=]""", // 'code:' 'code=' exclude 'codeLength' 'error?code',
         """(?<![\(])continuationToken[:=]""",
         """(?<![\(])attributes[:=]""",
         """(?i)\b(accessToken|access_token)[:=]""", // access_token, accessToken
