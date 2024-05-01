@@ -16,8 +16,8 @@ public class msaTestcase extends AbstractMsalBrokerTest {
 
     @Test
     public void msa_testcase() throws Throwable {
-        final String username = "xxxxxx";
-        final String password = "XXXXXX";
+        final String username = mLabAccount.getUsername();
+        final String password = mLabAccount.getPassword();
 
         //Enable Authenticator as a passkey provider.
 //        final GoogleSettings settings = new GoogleSettings();
@@ -69,7 +69,7 @@ public class msaTestcase extends AbstractMsalBrokerTest {
     @Override
     public LabQuery getLabQuery() {
         return LabQuery.builder()
-                .userType(UserType.CLOUD)
+                .userType(UserType.MSA)
                 .build();
     }
 
