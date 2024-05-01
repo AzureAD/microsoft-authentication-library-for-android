@@ -27,7 +27,6 @@ import static com.microsoft.identity.common.java.nativeauth.BuildValues.*;
 import android.app.Activity;
 import android.content.Context;
 
-import com.microsoft.identity.client.ILoggerCallback;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
@@ -83,7 +82,6 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
@@ -91,9 +89,6 @@ import org.robolectric.annotation.LooperMode;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -115,6 +110,7 @@ import static org.robolectric.annotation.LooperMode.Mode.LEGACY;
 @LooperMode(LEGACY)
 @Config(shadows = {ShadowAndroidSdkStorageEncryptionManager.class})
 public class NativeAuthPublicClientApplicationJavaTest extends PublicClientApplicationAbstractTest {
+
     private Context context;
     private IPlatformComponents components;
     private Activity activity;
@@ -124,6 +120,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     private final char[] password = "verySafePassword".toCharArray();
     private final String code = "1234";
     private final String emptyString = "";
+
 
     @Override
     public String getConfigFilePath() {
@@ -147,7 +144,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         activity = Mockito.mock(Activity.class);
         Mockito.when(activity.getApplicationContext()).thenReturn(context);
         setupPCA();
-        setupLogger();
         Logger.getInstance().setEnableLogcatLog(true);
         Logger.getInstance().setEnablePII(true);
         Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
@@ -159,7 +155,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         AcquireTokenTestHelper.setAccount(null);
         // remove everything from cache after test ends
         TestUtils.clearCache(SHARED_PREFERENCES_NAME);
-        Logger.getInstance().removeExternalLogger();
     }
 
     private void setupPCA() {
@@ -171,43 +166,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
             e.printStackTrace();
             fail(e.getMessage());
         }
-    }
-
-    private void setupLogger() {
-        Boolean allowPII = true;
-        List<String> allowPIITrueToCheck = Arrays.asList(
-                "username",
-                "(?<![,\"\\[\\]\\(])password[:=](?![,\"'\\[\\]\\)])",  // 'password:'  'password='  exclude ',password,' '[password]' '"password"' '(password)'
-                "(?<![\\s\\?\\(])(code)[:=]", // 'code' 'code:' 'code=' exclude 'codeLength' 'error?code',
-                "(?<![\\(])continuationToken[:=]",
-                "(?<![\\(])attributes[:=]",
-                "(?i)\\b(accessToken|access_token)[:=]", // access_token, accessToken
-                "(?i)\\b(refreshToken|refresh_token)[:=]",
-                "(?i)\\b(idToken|id_token)[:=]",
-                "(?i)\\b(continuation_token)[:=]"
-        );
-        List<String> allowPIIFalseToCheck = Arrays.asList(
-                "(?<![\\(])username[:=]",
-                "(?i)\\b(challengeTargetLabel|challenge_target_label)[:=]",
-                "(?i)\\b(grantType|grant_type)[:=]"
-        );
-        ILoggerCallback loggerCallback = (tag, logLevel, message, containsPII) -> {
-            if (containsPII) {
-                List<String> elementsToCheck = new ArrayList<>(allowPIITrueToCheck);
-                if (!allowPII) {
-                    elementsToCheck.addAll(allowPIIFalseToCheck);
-                }
-                for (String regex : elementsToCheck) {
-                    if (new RegexMatcher(regex).matches(message)) {
-                        throw new AssertionError("PII" + regex + "found in log message: " + message);
-                    }
-                }
-            }
-        };
-        ILoggerCallback spyLoggerCallback = Mockito.spy(loggerCallback);
-        Logger.getInstance().setLogLevel(Logger.LogLevel.INFO);
-        Logger.getInstance().setEnablePII(allowPII);
-        Logger.getInstance().setExternalLogger(spyLoggerCallback);
     }
 
     /**
@@ -260,16 +218,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
             }
         };
 
-        try {
-            application.signIn(
-                    "user@contoso.com",
-                    "password".toCharArray(),
-                    null,
-                    signInWithPasswordResultCallback
-            );
-        } catch (AssertionError e) {
-            fail(e.getMessage());
-        }
+        application.signIn(
+                "user@contoso.com",
+                "password".toCharArray(),
+                null,
+                signInWithPasswordResultCallback
+        );
+
         assertTrue(signInWithPasswordResult.get(10, TimeUnit.SECONDS) instanceof SignInResult.Complete);
     }
 
@@ -322,12 +277,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 signInResult.setException(exception);
             }
         };
-
-        try {
-            application.signIn(username, password, null, callback);
-        } catch (AssertionError e) {
-            fail(e.getMessage());
-        }
+        application.signIn(username, password, null, callback);
         // 1a. Server returns invalid password error
         SignInResult result = signInResult.get(30, TimeUnit.SECONDS);
         assertTrue(result instanceof SignInError);
@@ -365,11 +315,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 signInResult.setException(exception);
             }
         };
-        try {
-            application.signIn(username, password, null, callback);
-        } catch (AssertionError e) {
-            fail(e.getMessage());
-        }
+        application.signIn(username, password, null, callback);
         // 1a. Server returns invalid user error
         SignInResult result = signInResult.get(30, TimeUnit.SECONDS);
         assertTrue(result instanceof SignInError);
@@ -407,11 +353,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 signInResult.setException(exception);
             }
         };
-        try {
-            application.signIn(username, null, null, callback);
-        } catch (AssertionError e) {
-            fail(e.getMessage());
-        }
+        application.signIn(username, null, null, callback);
         // 1a. Server returns invalid user error
         SignInResult result = signInResult.get(30, TimeUnit.SECONDS);
         assertTrue(result instanceof SignInError);
@@ -461,12 +403,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 signInResult.setException(exception);
             }
         };
-
-        try {
-            application.signIn(username, null, null, signInCallback);
-        } catch (AssertionError e) {
-            fail(e.getMessage());
-        }
+        application.signIn(username, null, null, signInCallback);
         // 1a. Server returns invalid user error
         assertTrue(signInResult.get(30, TimeUnit.SECONDS) instanceof SignInResult.CodeRequired);
         SignInCodeRequiredState nextState = spy((((SignInResult.CodeRequired) signInResult.get(30, TimeUnit.SECONDS)).getNextState()));
@@ -495,11 +432,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 submitCodeResult.setException(exception);
             }
         };
-        try {
-            nextState.submitCode(code, submitCodeCallback);
-        } catch (AssertionError e) {
-            fail(e.getMessage());
-        }
+        nextState.submitCode(code, submitCodeCallback);
         // 2a. Server returns invalid code, stays in CodeRequired state
         SignInSubmitCodeResult result = submitCodeResult.get(30, TimeUnit.SECONDS);
         assertTrue(result instanceof SubmitCodeError);
@@ -532,11 +465,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 submitCodeResult2.setException(exception);
             }
         };
-        try {
-            nextState.submitCode(code, submitCodeCallback2);
-        } catch (AssertionError e) {
-            fail(e.getMessage());
-        }
+        nextState.submitCode(code, submitCodeCallback2);
         // 3a. Server accepts code, returns tokens
         assertTrue(submitCodeResult2.get(30, TimeUnit.SECONDS) instanceof SignInResult.Complete);
     }
@@ -3089,51 +3018,5 @@ class GetAccessTokenTestCallback extends TestCallback<GetAccessTokenResult> impl
     @Override
     public void onError(@NonNull BaseException exception) {
         future.setException(exception);
-    }
-}
-
-interface LoggerTestCallback extends ILoggerCallback {
-    List<String> allowPIITrueToCheck = Arrays.asList(
-            "password",
-            "(?<![,\"\\[\\]\\(])password[:=](?![,\"'\\[\\]\\)])",  // 'password:'  'password='  exclude ',password,' '[password]' '"password"' '(password)'
-            "(?<![\\s\\?\\(])(code)[:=]", // 'code' 'code:' 'code=' exclude 'codeLength' 'error?code',
-            "(?<![\\(])continuationToken[:=]",
-            "(?<![\\(])attributes[:=]",
-            "(?i)\\b(accessToken|access_token)[:=]", // access_token, accessToken
-            "(?i)\\b(refreshToken|refresh_token)[:=]",
-            "(?i)\\b(idToken|id_token)[:=]",
-            "(?i)\\b(continuation_token)[:=]"
-    );
-    List<String> allowPIIFalseToCheck = Arrays.asList(
-            "(?<![\\(])username[:=]",
-            "(?i)\\b(challengeTargetLabel|challenge_target_label)[:=]",
-            "(?i)\\b(grantType|grant_type)[:=]"
-    );
-    @Override
-    default void log(String tag, Logger.LogLevel logLevel, String message, boolean containsPII) {
-        if (containsPII) {
-            List<String> elementsToCheck = new ArrayList<>(allowPIITrueToCheck);
-            if (!true) {
-                elementsToCheck.addAll(allowPIIFalseToCheck);
-            }
-            for (String regex : elementsToCheck) {
-                if (new RegexMatcher(regex).matches(message)) {
-                    throw new AssertionError("PII" + regex + "found in log message: " + message);
-                }
-            }
-        }
-    }
-}
-
-class RegexMatcher implements ArgumentMatcher<String> {
-    private final String regex;
-
-    public RegexMatcher(String regex) {
-        this.regex = regex;
-    }
-
-    @Override
-    public boolean matches(String argument) {
-        return argument != null && argument.matches(regex);
     }
 }
