@@ -101,7 +101,6 @@ import java.util.concurrent.TimeoutException
 @RunWith(RobolectricTestRunner::class)
 @Config(shadows = [ShadowAndroidSdkStorageEncryptionManager::class])
 class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstractTest() {
-    private val DISCARDED_TIME_IN_MILLISECONDS = 5000
     private lateinit var context: Context
     private lateinit var components: IPlatformComponents
     private lateinit var activity: Activity
@@ -215,18 +214,18 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
             MockApiResponseType.TOKEN_SUCCESS
         )
 
-        val result = application.signIn(username, password)
-        assertTrue(result is SignInResult.Complete)
-
         // check the safe logging
         val latch = CountDownLatch(1)
-        val shouldLogBeDiscarded = false
         val loggerCallback = LoggerTestCallback(allowPIITrueToCheck, allowPIIFalseToCheck, allowPII, latch)
         Logger.getInstance().setExternalLogger(loggerCallback)
-        val timedOut = withContext(Dispatchers.IO) {
-            !latch.await(DISCARDED_TIME_IN_MILLISECONDS.toLong(), TimeUnit.MILLISECONDS)
+
+        val result = application.signIn(username, password)
+
+        withContext(Dispatchers.IO) {
+            latch.await()
         }
-        assertEquals(shouldLogBeDiscarded, timedOut)
+
+        assertTrue(result is SignInResult.Complete)
         assertFalse(loggerCallback.failCalled)
     }
 
