@@ -87,7 +87,7 @@ import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.whenever
-import org.robolectric.RobolectricTestRunner
+import org.robolectric.ParameterizedRobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.io.File
 import java.util.UUID
@@ -98,9 +98,9 @@ import java.util.concurrent.TimeoutException
 
 
 @ExperimentalCoroutinesApi
-@RunWith(RobolectricTestRunner::class)
+@RunWith(ParameterizedRobolectricTestRunner::class)
 @Config(shadows = [ShadowAndroidSdkStorageEncryptionManager::class])
-class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstractTest() {
+class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean) : PublicClientApplicationAbstractTest() {
     private lateinit var context: Context
     private lateinit var components: IPlatformComponents
     private lateinit var activity: Activity
@@ -110,7 +110,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
     private val password = "verySafePassword".toCharArray()
     private val code = "1234"
     private val emptyString = ""
-    private val allowPII = true
     private val allowPIITrueToCheck = listOf(
         """(?<![\[\(])["]password["][:=]?(?![\]\)])""", // '"password":' '"password"=' exclude 'password' '"challengeType":["password"]'
         """(?<![\s\?\(])(code)[:=]""", // 'code:' 'code=' exclude 'codeLength' 'error?code',
@@ -130,6 +129,12 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
     override fun getConfigFilePath() = "src/test/res/raw/native_auth_native_only_test_config.json"
 
     companion object {
+        @JvmStatic
+        @ParameterizedRobolectricTestRunner.Parameters
+        fun data(): Collection<Boolean> {
+            return listOf(true, false)
+        }
+
         @BeforeClass
         @JvmStatic
         fun setupClass() {
@@ -217,6 +222,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         // check the safe logging
         val latch = CountDownLatch(1)
         val loggerCallback = LoggerTestCallback(allowPIITrueToCheck, allowPIIFalseToCheck, allowPII, latch)
+        Logger.getInstance().removeExternalLogger()
         Logger.getInstance().setExternalLogger(loggerCallback)
 
         val result = application.signIn(username, password)
