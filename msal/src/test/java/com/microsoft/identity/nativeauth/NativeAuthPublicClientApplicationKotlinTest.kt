@@ -69,6 +69,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.AfterClass
 import org.junit.Assert.assertEquals
@@ -111,7 +112,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
     private val code = "1234"
     private val emptyString = ""
     private val allowPIITrueToCheck = listOf(
-        """(?<![\[\(])["]password["][:=]?(?![\]\)])""", // '"password":' '"password"=' exclude 'password' '"challengeType":["password"]'
+        """(?<![\[\(])["]password["][:=]?(?![\]\)\}])""", // '"password":' '"password"=' exclude 'password' '"challengeType":["password"]' '"challenge_type":"password"}'
         """(?<![\s\?\(])(code)[:=]""", // 'code:' 'code=' exclude 'codeLength' 'error?code',
         """(?<![\(])continuationToken[:=]""",
         """(?<![\(])attributes[:=]""",
@@ -219,20 +220,13 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
             MockApiResponseType.TOKEN_SUCCESS
         )
 
-        // check the safe logging
-        val latch = CountDownLatch(1)
-        val loggerCallback = LoggerTestCallback(allowPIITrueToCheck, allowPIIFalseToCheck, allowPII, latch)
-        Logger.getInstance().removeExternalLogger()
-        Logger.getInstance().setExternalLogger(loggerCallback)
-
         val result = application.signIn(username, password)
 
-        withContext(Dispatchers.IO) {
-            latch.await()
-        }
+        // check the safe logging
+        val loggingNumber = if (allowPII) 137 else 127
+        safeLoggingCheck(loggingNumber)
 
         assertTrue(result is SignInResult.Complete)
-        assertFalse(loggerCallback.failCalled)
     }
 
     /**
@@ -273,11 +267,14 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
 
         // 1b. Call SDK interface
         val codeRequiredResult = application.signIn(username, password)
+
+        // check the safe logging
+        val loggingNumber = if (allowPII) 137 else 127
+        safeLoggingCheck(loggingNumber)
+
         // 1a. Server returns invalid password error
         assertTrue(codeRequiredResult is SignInError)
         assertTrue((codeRequiredResult as SignInError).isInvalidCredentials())
-
-        // check the safe logging
     }
 
     /**
@@ -2400,29 +2397,46 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         assertTrue(result is SignUpError)
         assertTrue((result as SignUpError).isInvalidUsername())
     }
+
+    private suspend fun safeLoggingCheck(countDownNumber: Int) {
+        val latch = CountDownLatch(countDownNumber)
+        val loggerCallback = LoggerTestCallback(allowPIITrueToCheck, allowPIIFalseToCheck, allowPII, latch)
+
+        Logger.getInstance().setExternalLogger(loggerCallback)
+
+        println(loggerCallback.count)
+
+        withContext(Dispatchers.IO) {
+            withTimeout(15000) {
+                latch.await()
+            }
+        }
+
+        assertFalse(loggerCallback.failCalled)
+    }
 }
 
 class LoggerTestCallback(private val allowPIITrueToCheck: List<String>, private val allowPIIFalseToCheck: List<String>, private val allowPII: Boolean, private val latch: CountDownLatch?) : ILoggerCallback {
     var failCalled = false
+    var count = 0  // Used to know how many logs need to be checked
     override fun log(
         tag: String?,
         logLevel: Logger.LogLevel?,
         message: String?,
         containsPII: Boolean
     ) {
-        if (containsPII) {
-            val elementsToCheck = allowPIITrueToCheck.toMutableList()
-            if (!allowPII) {
-                elementsToCheck.addAll(allowPIIFalseToCheck)
-            }
-            elementsToCheck.forEach { regex ->
-                if (RegexMatcher(regex).matches(message)) {
-                    failCalled = true
-                    fail("PII $regex found in log message: $message")
-                }
-            }
-            latch?.countDown()
+        val elementsToCheck = allowPIITrueToCheck.toMutableList()
+        if (!allowPII) {
+            elementsToCheck.addAll(allowPIIFalseToCheck)
         }
+        elementsToCheck.forEach { regex ->
+            if (RegexMatcher(regex).matches(message)) {
+                failCalled = true
+                fail("PII $regex found in log message: $message")
+            }
+        }
+        count += 1
+        latch?.countDown()
     }
 }
 
