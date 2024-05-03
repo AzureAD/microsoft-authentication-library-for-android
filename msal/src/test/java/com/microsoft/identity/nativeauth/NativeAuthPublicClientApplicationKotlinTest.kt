@@ -2421,7 +2421,10 @@ class LoggerTestCallback(private val infoPIIToCheck: List<String>, private val a
         if (allowPII) {
             allowPIIFalseToCheck.forEach { regex ->
                 if (RegexMatcher(regex).matches(message)) {
-                    assertTrue(containsPII)  // allowPIIFalseToCheck item are allowed to be logged when allowPII is true, however the containsPII should be true.
+                    if (!containsPII) {
+                        failCalled = true
+                        fail("containsPII should be true while wrongly set as false for $tag") // allowPIIFalseToCheck item are allowed to be logged when allowPII is true, however the containsPII should be true.
+                    }
                 }
             }
             infoPIIToCheck.forEach { regex ->
