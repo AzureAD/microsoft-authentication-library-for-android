@@ -111,7 +111,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
     private val password = "verySafePassword".toCharArray()
     private val code = "1234"
     private val emptyString = ""
-    private val allowPIITrueToCheck = listOf(
+    private val infoPIIToCheck = listOf(
         """(?<![\[\(])["]password["][:=]?(?![\]\)\}])""", // '"password":' '"password"=' exclude 'password' '"challengeType":["password"]' '"challenge_type":"password"}'
         """(?<![\s\?\(])(code)[:=]""", // 'code:' 'code=' exclude 'codeLength' 'error?code',
         """(?<![\(])continuationToken[:=]""",
@@ -222,7 +222,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
 
         val loggingNumber = if (allowPII) 137 else 127
         val latch = CountDownLatch(loggingNumber)
-        val loggerCallback = LoggerTestCallback(allowPIITrueToCheck, allowPIIFalseToCheck, allowPII, latch)
+        val loggerCallback = LoggerTestCallback(infoPIIToCheck, allowPIIFalseToCheck, allowPII, latch)
         Logger.getInstance().setExternalLogger(loggerCallback)
 
         val result = application.signIn(username, password)
@@ -278,7 +278,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
 
         val loggingNumber = if (allowPII) 114 else 114
         val latch = CountDownLatch(loggingNumber)
-        val loggerCallback = LoggerTestCallback(allowPIITrueToCheck, allowPIIFalseToCheck, allowPII, latch)
+        val loggerCallback = LoggerTestCallback(infoPIIToCheck, allowPIIFalseToCheck, allowPII, latch)
         Logger.getInstance().setExternalLogger(loggerCallback)
 
         // 1b. Call SDK interface
@@ -2431,26 +2431,24 @@ class LoggerTestCallback(private val infoPIIToCheck: List<String>, private val a
         message: String?,
         containsPII: Boolean
     ) {
-        // Check containsPII is correct.
         if (allowPII) {
             allowPIIFalseToCheck.forEach { regex ->
                 if (RegexMatcher(regex).matches(message)) {
-                    assertTrue(containsPII)  // If we are allowing PII, we should not see false positives
+                    assertTrue(containsPII)  // allowPIIFalseToCheck item are allowed to be logged when allowPII is true, however the containsPII should be true.
                 }
             }
-        }
-
-        // Check for message does not contain PII.
-        val elementsToCheck = if (allowPII) {
-            infoPIIToCheck
+            infoPIIToCheck.forEach { regex ->
+                if (RegexMatcher(regex).matches(message)) {
+                    failCalled = true
+                    fail("PII $regex found in log message: $message") // infoPIIToCheck item should never be logged even when allowPII is true.
+                }
+            }
         } else {
-            infoPIIToCheck + allowPIIFalseToCheck
-        }
-
-        elementsToCheck.forEach { regex ->
-            if (RegexMatcher(regex).matches(message)) {
-                failCalled = true
-                fail("PII $regex found in log message: $message")
+            infoPIIToCheck + allowPIIFalseToCheck.forEach { regex ->
+                if (RegexMatcher(regex).matches(message)) {
+                    failCalled = true
+                    fail("PII $regex found in log message: $message") // allowPIIFalseToCheck item are now allowed to be logged when allowPII is false.
+                }
             }
         }
 
