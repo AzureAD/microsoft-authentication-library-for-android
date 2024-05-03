@@ -102,6 +102,7 @@ import java.util.concurrent.TimeoutException
 @RunWith(ParameterizedRobolectricTestRunner::class)
 @Config(shadows = [ShadowAndroidSdkStorageEncryptionManager::class])
 class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean) : PublicClientApplicationAbstractTest() {
+    private val DISCARDED_TIME_IN_MILLISECONDS = 10000L
     private lateinit var context: Context
     private lateinit var components: IPlatformComponents
     private lateinit var activity: Activity
@@ -231,12 +232,9 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         // check the safe logging
         println(loggerCallback.count)
 
-        withContext(Dispatchers.IO) {
-            withTimeout(15000) {
-                latch.await()
-            }
-        }
-
+        val shouldLogBeDiscarded = false
+        val timedOut: Boolean = !latch.await(DISCARDED_TIME_IN_MILLISECONDS, TimeUnit.MILLISECONDS)
+        assertEquals(shouldLogBeDiscarded, timedOut)
         assertFalse(loggerCallback.failCalled)
     }
 
@@ -287,17 +285,6 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         // 1a. Server returns invalid password error
         assertTrue(codeRequiredResult is SignInError)
         assertTrue((codeRequiredResult as SignInError).isInvalidCredentials())
-
-        // check the safe logging
-        println(loggerCallback.count)
-
-        withContext(Dispatchers.IO) {
-            withTimeout(15000) {
-                latch.await()
-            }
-        }
-
-        assertFalse(loggerCallback.failCalled)
     }
 
     /**
