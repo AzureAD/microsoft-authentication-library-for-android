@@ -144,7 +144,7 @@ PublicClientApplication.createMultipleAccountPublicClientApplication(getContext(
         public void onCreated(IMultipleAccountPublicClientApplication application) {
             mMultipleAccountApp = application;
         }
-   }
+   });
 ```
 
 Learn how to [instantiate your client application and acquire tokens](https://learn.microsoft.com/en-us/entra/msal/android/acquire-tokens) in the official MSAL Android documentation. 
