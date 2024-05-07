@@ -49,7 +49,6 @@ import com.microsoft.identity.common.java.nativeauth.controllers.results.SignUpS
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignUpSubmitPasswordCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignUpSubmitUserAttributesCommandResult
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
-import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.util.StringUtil
@@ -131,115 +130,106 @@ class SignUpCodeRequiredState internal constructor(
             methodName = "${TAG}.submitCode(code: String)"
         )
         return withContext(Dispatchers.IO) {
-            try {
-                val commandParameters =
-                    CommandParametersAdapter.createSignUpSubmitCodeCommandParameters(
-                        config,
-                        config.oAuth2TokenCache,
-                        code,
-                        continuationToken,
-                        correlationId
+            val commandParameters =
+                CommandParametersAdapter.createSignUpSubmitCodeCommandParameters(
+                    config,
+                    config.oAuth2TokenCache,
+                    code,
+                    continuationToken,
+                    correlationId
+                )
+
+            val command = SignUpSubmitCodeCommand(
+                commandParameters,
+                NativeAuthMsalController(),
+                PublicApiId.NATIVE_AUTH_SIGN_UP_SUBMIT_CODE
+            )
+            val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
+
+            return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<SignUpSubmitCodeCommandResult>()) {
+                is SignUpCommandResult.PasswordRequired -> {
+                    SignUpResult.PasswordRequired(
+                        nextState = SignUpPasswordRequiredState(
+                            continuationToken = result.continuationToken,
+                            correlationId = result.correlationId,
+                            username = username,
+                            config = config
+                        )
                     )
-
-                val command = SignUpSubmitCodeCommand(
-                    commandParameters,
-                    NativeAuthMsalController(),
-                    PublicApiId.NATIVE_AUTH_SIGN_UP_SUBMIT_CODE
-                )
-                val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
-
-                return@withContext when (val result =
-                    rawCommandResult.checkAndWrapCommandResultType<SignUpSubmitCodeCommandResult>()) {
-                    is SignUpCommandResult.PasswordRequired -> {
-                        SignUpResult.PasswordRequired(
-                            nextState = SignUpPasswordRequiredState(
-                                continuationToken = result.continuationToken,
-                                correlationId = result.correlationId,
-                                username = username,
-                                config = config
-                            )
-                        )
-                    }
-
-                    is SignUpCommandResult.AttributesRequired -> {
-                        SignUpResult.AttributesRequired(
-                            nextState = SignUpAttributesRequiredState(
-                                continuationToken = result.continuationToken,
-                                correlationId = result.correlationId,
-                                username = username,
-                                config = config
-                            ),
-                            requiredAttributes = result.requiredAttributes.toListOfRequiredUserAttribute()
-                        )
-                    }
-
-                    is SignUpCommandResult.Complete -> {
-                        SignUpResult.Complete(
-                            nextState = SignInContinuationState(
-                                continuationToken = result.continuationToken,
-                                correlationId = result.correlationId,
-                                username = username,
-                                config = config
-                            )
-                        )
-                    }
-
-                    is SignUpCommandResult.InvalidCode -> {
-                        SubmitCodeError(
-                            errorType = ErrorTypes.INVALID_CODE,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            subError = result.subError
-                        )
-                    }
-
-
-                    is INativeAuthCommandResult.Redirect -> {
-                        SubmitCodeError(
-                            errorType = ErrorTypes.BROWSER_REQUIRED,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId
-                        )
-                    }
-
-                    // This should be caught earlier in the flow, so throwing UnexpectedError
-                    is SignUpCommandResult.UsernameAlreadyExists -> {
-                        Logger.warn(
-                            TAG,
-                            result.correlationId,
-                            "Submit code received unexpected result: $result"
-                        )
-                        SubmitCodeError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId
-                        )
-                    }
-
-                    is INativeAuthCommandResult.UnknownError -> {
-                        Logger.warn(
-                            TAG,
-                            result.correlationId,
-                            "Submit code received unexpected result: $result"
-                        )
-                        SubmitCodeError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId,
-                            exception = result.exception
-                        )
-                    }
                 }
-            } catch (e: Exception) {
-                Logger.error(TAG, "MSAL client exception occurred in signUp submitCode.", e)
-                SubmitCodeError(
-                    errorType = ErrorTypes.CLIENT_EXCEPTION,
-                    errorMessage = "MSAL client exception occurred in signUp submitCode.",
-                    exception = e,
-                    correlationId = correlationId
-                )
+
+                is SignUpCommandResult.AttributesRequired -> {
+                    SignUpResult.AttributesRequired(
+                        nextState = SignUpAttributesRequiredState(
+                            continuationToken = result.continuationToken,
+                            correlationId = result.correlationId,
+                            username = username,
+                            config = config
+                        ),
+                        requiredAttributes = result.requiredAttributes.toListOfRequiredUserAttribute()
+                    )
+                }
+
+                is SignUpCommandResult.Complete -> {
+                    SignUpResult.Complete(
+                        nextState = SignInContinuationState(
+                            continuationToken = result.continuationToken,
+                            correlationId = result.correlationId,
+                            username = username,
+                            config = config
+                        )
+                    )
+                }
+
+                is SignUpCommandResult.InvalidCode -> {
+                    SubmitCodeError(
+                        errorType = ErrorTypes.INVALID_CODE,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId,
+                        subError = result.subError
+                    )
+                }
+
+
+                is INativeAuthCommandResult.Redirect -> {
+                    SubmitCodeError(
+                        errorType = ErrorTypes.BROWSER_REQUIRED,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId
+                    )
+                }
+
+                // This should be caught earlier in the flow, so throwing UnexpectedError
+                is SignUpCommandResult.UsernameAlreadyExists -> {
+                    Logger.warnWithObject(
+                        TAG,
+                        result.correlationId,
+                        "Submit code received unexpected result: ",
+                        result
+                    )
+                    SubmitCodeError(
+                        errorMessage = result.errorDescription,
+                        error = result.error,
+                        correlationId = result.correlationId
+                    )
+                }
+
+                is INativeAuthCommandResult.UnknownError -> {
+                    Logger.warnWithObject(
+                        TAG,
+                        result.correlationId,
+                        "Submit code received unexpected result: ",
+                        result
+                    )
+                    SubmitCodeError(
+                        errorMessage = result.errorDescription,
+                        error = result.error,
+                        correlationId = result.correlationId,
+                        exception = result.exception
+                    )
+                }
             }
         }
     }
@@ -283,60 +273,50 @@ class SignUpCodeRequiredState internal constructor(
             methodName = "${TAG}.resendCode()"
         )
         return withContext(Dispatchers.IO) {
-            try {
-                val commandParameters =
-                    CommandParametersAdapter.createSignUpResendCodeCommandParameters(
-                        config,
-                        config.oAuth2TokenCache,
-                        continuationToken,
-                        correlationId
+            val commandParameters =
+                CommandParametersAdapter.createSignUpResendCodeCommandParameters(
+                    config,
+                    config.oAuth2TokenCache,
+                    continuationToken,
+                    correlationId
+                )
+            val command = SignUpResendCodeCommand(
+                commandParameters,
+                NativeAuthMsalController(),
+                PublicApiId.NATIVE_AUTH_SIGN_UP_RESEND_CODE
+            )
+            val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
+
+            return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<SignUpResendCodeCommandResult>()) {
+                is SignUpCommandResult.CodeRequired -> {
+                    SignUpResendCodeResult.Success(
+                        nextState = SignUpCodeRequiredState(
+                            continuationToken = result.continuationToken,
+                            correlationId = result.correlationId,
+                            username = username,
+                            config = config
+                        ),
+                        codeLength = result.codeLength,
+                        sentTo = result.challengeTargetLabel,
+                        channel = result.challengeChannel
                     )
-                val command = SignUpResendCodeCommand(
-                    commandParameters,
-                    NativeAuthMsalController(),
-                    PublicApiId.NATIVE_AUTH_SIGN_UP_RESEND_CODE
-                )
-                val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
-
-                return@withContext when (val result =
-                    rawCommandResult.checkAndWrapCommandResultType<SignUpResendCodeCommandResult>()) {
-                    is SignUpCommandResult.CodeRequired -> {
-                        SignUpResendCodeResult.Success(
-                            nextState = SignUpCodeRequiredState(
-                                continuationToken = result.continuationToken,
-                                correlationId = result.correlationId,
-                                username = username,
-                                config = config
-                            ),
-                            codeLength = result.codeLength,
-                            sentTo = result.challengeTargetLabel,
-                            channel = result.challengeChannel
-                        )
-                    }
-
-                    is INativeAuthCommandResult.Redirect, is INativeAuthCommandResult.UnknownError -> {
-                        Logger.warn(
-                            TAG,
-                            result.correlationId,
-                            "Resend code received unexpected result: $result"
-                        )
-                        ResendCodeError(
-                            errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
-                            error = (result as INativeAuthCommandResult.Error).error,
-                            correlationId = (result as INativeAuthCommandResult.Error).correlationId,
-                            errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
-                            exception = if (result is INativeAuthCommandResult.UnknownError) result.exception else null
-                        )
-                    }
                 }
-            } catch (e: Exception) {
-                Logger.error(TAG, "MSAL client exception occurred in signUp resendCode.", e)
-                ResendCodeError(
-                    errorType = ErrorTypes.CLIENT_EXCEPTION,
-                    errorMessage = "MSAL client exception occurred in signUp resendCode.",
-                    exception = e,
-                    correlationId = correlationId
-                )
+
+                is INativeAuthCommandResult.Redirect, is INativeAuthCommandResult.UnknownError -> {
+                    Logger.warnWithObject(
+                        TAG,
+                        result.correlationId,
+                        "Resend code received unexpected result: ",
+                        result
+                    )
+                    ResendCodeError(
+                        errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
+                        error = (result as INativeAuthCommandResult.Error).error,
+                        correlationId = (result as INativeAuthCommandResult.Error).correlationId,
+                        errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
+                        exception = if (result is INativeAuthCommandResult.UnknownError) result.exception else null
+                    )
+                }
             }
         }
     }
@@ -429,21 +409,21 @@ class SignUpPasswordRequiredState internal constructor(
             methodName = "${TAG}.submitPassword(password: CharArray)"
         )
         return withContext(Dispatchers.IO) {
-            try {
-                val commandParameters =
-                    CommandParametersAdapter.createSignUpSubmitPasswordCommandParameters(
-                        config,
-                        config.oAuth2TokenCache,
-                        continuationToken,
-                        correlationId,
-                        password
-                    )
-                val command = SignUpSubmitPasswordCommand(
-                    commandParameters,
-                    NativeAuthMsalController(),
-                    PublicApiId.NATIVE_AUTH_SIGN_UP_SUBMIT_PASSWORD
+            val commandParameters =
+                CommandParametersAdapter.createSignUpSubmitPasswordCommandParameters(
+                    config,
+                    config.oAuth2TokenCache,
+                    continuationToken,
+                    correlationId,
+                    password
                 )
+            val command = SignUpSubmitPasswordCommand(
+                commandParameters,
+                NativeAuthMsalController(),
+                PublicApiId.NATIVE_AUTH_SIGN_UP_SUBMIT_PASSWORD
+            )
 
+            try {
                 val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
 
                 return@withContext when (val result =
@@ -492,10 +472,11 @@ class SignUpPasswordRequiredState internal constructor(
 
                     // This should be caught earlier in the flow, so throwing UnexpectedError
                     is SignUpCommandResult.UsernameAlreadyExists -> {
-                        Logger.warn(
+                        Logger.warnWithObject(
                             TAG,
                             result.correlationId,
-                            "Submit password received unexpected result: $result"
+                            "Submit password received unexpected result: ",
+                            result
                         )
                         SignUpSubmitPasswordError(
                             error = result.error,
@@ -506,10 +487,11 @@ class SignUpPasswordRequiredState internal constructor(
 
                     // This should be caught earlier in the flow, so throwing UnexpectedError
                     is INativeAuthCommandResult.InvalidUsername -> {
-                        Logger.warn(
+                        Logger.warnWithObject(
                             TAG,
                             result.correlationId,
-                            "Submit password received unexpected result: $result"
+                            "Submit password received unexpected result: ",
+                            result
                         )
                         SignUpSubmitPasswordError(
                             error = result.error,
@@ -519,10 +501,11 @@ class SignUpPasswordRequiredState internal constructor(
                     }
 
                     is INativeAuthCommandResult.UnknownError -> {
-                        Logger.warn(
+                        Logger.warnWithObject(
                             TAG,
                             result.correlationId,
-                            "Submit password received unexpected result: $result"
+                            "Submit password received unexpected result: ",
+                            result
                         )
                         SignUpSubmitPasswordError(
                             errorMessage = result.errorDescription,
@@ -532,16 +515,8 @@ class SignUpPasswordRequiredState internal constructor(
                         )
                     }
                 }
-            } catch (e: BaseException) {
-                Logger.error(TAG, "MSAL client exception occurred in signUp submitPassword.", e)
-                SignUpSubmitPasswordError(
-                    errorType = ErrorTypes.CLIENT_EXCEPTION,
-                    errorMessage = "MSAL client exception occurred in signUp submitPassword.",
-                    exception = e,
-                    correlationId = correlationId
-                )
             } finally {
-                StringUtil.overwriteWithNull(password)
+                StringUtil.overwriteWithNull(commandParameters.password)
             }
         }
     }
@@ -634,102 +609,89 @@ class SignUpAttributesRequiredState internal constructor(
             methodName = "${TAG}.submitAttributes(attributes: UserAttributes)"
         )
         return withContext(Dispatchers.IO) {
-            try {
-                val commandParameters =
-                    CommandParametersAdapter.createSignUpStarSubmitUserAttributesCommandParameters(
-                        config,
-                        config.oAuth2TokenCache,
-                        continuationToken,
-                        correlationId,
-                        attributes.toMap()
-                    )
-
-                val command = SignUpSubmitUserAttributesCommand(
-                    commandParameters,
-                    NativeAuthMsalController(),
-                    PublicApiId.NATIVE_AUTH_SIGN_UP_SUBMIT_ATTRIBUTES
+            val commandParameters =
+                CommandParametersAdapter.createSignUpStarSubmitUserAttributesCommandParameters(
+                    config,
+                    config.oAuth2TokenCache,
+                    continuationToken,
+                    correlationId,
+                    attributes.toMap()
                 )
 
-                val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
+            val command = SignUpSubmitUserAttributesCommand(
+                commandParameters,
+                NativeAuthMsalController(),
+                PublicApiId.NATIVE_AUTH_SIGN_UP_SUBMIT_ATTRIBUTES
+            )
 
-                return@withContext when (val result =
-                    rawCommandResult.checkAndWrapCommandResultType<SignUpSubmitUserAttributesCommandResult>()) {
-                    is SignUpCommandResult.AttributesRequired -> {
-                        SignUpResult.AttributesRequired(
-                            nextState = SignUpAttributesRequiredState(
-                                continuationToken = result.continuationToken,
-                                correlationId = result.correlationId,
-                                username = username,
-                                config = config
-                            ),
-                            requiredAttributes = result.requiredAttributes.toListOfRequiredUserAttribute()
-                        )
-                    }
+            val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
 
-                    is SignUpCommandResult.Complete -> {
-                        SignUpResult.Complete(
-                            nextState = SignInContinuationState(
-                                continuationToken = result.continuationToken,
-                                correlationId = result.correlationId,
-                                username = username,
-                                config = config
-                            )
-                        )
-                    }
-
-                    is SignUpCommandResult.InvalidAttributes -> {
-                        SignUpSubmitAttributesError(
-                            errorType = SignUpErrorTypes.INVALID_ATTRIBUTES,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId
-                        )
-                    }
-
-                    is INativeAuthCommandResult.Redirect -> {
-                        SignUpSubmitAttributesError(
-                            errorType = ErrorTypes.BROWSER_REQUIRED,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId
-                        )
-                    }
-                    // This should be caught earlier in the flow, so throwing UnexpectedError
-                    is SignUpCommandResult.UsernameAlreadyExists -> {
-                        Logger.warn(
-                            TAG,
-                            result.correlationId,
-                            "Submit attributes received unexpected result: $result"
-                        )
-                        SignUpSubmitAttributesError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId
-                        )
-                    }
-
-                    is INativeAuthCommandResult.UnknownError -> {
-                        Logger.warn(
-                            TAG,
-                            result.correlationId,
-                            "Submit attributes received unexpected result: $result"
-                        )
-                        SignUpSubmitAttributesError(
-                            errorMessage = result.errorDescription,
-                            error = result.error,
+            return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<SignUpSubmitUserAttributesCommandResult>()) {
+                is SignUpCommandResult.AttributesRequired -> {
+                    SignUpResult.AttributesRequired(
+                        nextState = SignUpAttributesRequiredState(
+                            continuationToken = result.continuationToken,
                             correlationId = result.correlationId,
-                            exception = result.exception
-                        )
-                    }
+                            username = username,
+                            config = config
+                        ),
+                        requiredAttributes = result.requiredAttributes.toListOfRequiredUserAttribute()
+                    )
                 }
-            } catch (e: Exception) {
-                Logger.error(TAG, "MSAL client exception occurred in signUp submitAttributes.", e)
-                SignUpSubmitAttributesError(
-                    errorType = ErrorTypes.CLIENT_EXCEPTION,
-                    errorMessage = "MSAL client exception occurred in signUp submitAttributes.",
-                    exception = e,
-                    correlationId = correlationId
-                )
+                is SignUpCommandResult.Complete -> {
+                    SignUpResult.Complete(
+                        nextState = SignInContinuationState(
+                            continuationToken = result.continuationToken,
+                            correlationId = result.correlationId,
+                            username = username,
+                            config = config
+                        )
+                    )
+                }
+                is SignUpCommandResult.InvalidAttributes -> {
+                    SignUpSubmitAttributesError(
+                        errorType = SignUpErrorTypes.INVALID_ATTRIBUTES,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId
+                    )
+                }
+                is INativeAuthCommandResult.Redirect -> {
+                    SignUpSubmitAttributesError(
+                        errorType = ErrorTypes.BROWSER_REQUIRED,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId
+                    )
+                }
+                // This should be caught earlier in the flow, so throwing UnexpectedError
+                is SignUpCommandResult.UsernameAlreadyExists -> {
+                    Logger.warnWithObject(
+                        TAG,
+                        result.correlationId,
+                        "Submit attributes received unexpected result: ",
+                        result
+                    )
+                    SignUpSubmitAttributesError(
+                        errorMessage = result.errorDescription,
+                        error = result.error,
+                        correlationId = result.correlationId
+                    )
+                }
+                is INativeAuthCommandResult.UnknownError -> {
+                    Logger.warnWithObject(
+                        TAG,
+                        result.correlationId,
+                        "Submit attributes received unexpected result: ",
+                        result
+                    )
+                    SignUpSubmitAttributesError(
+                        errorMessage = result.errorDescription,
+                        error = result.error,
+                        correlationId = result.correlationId,
+                        exception = result.exception
+                    )
+                }
             }
         }
     }

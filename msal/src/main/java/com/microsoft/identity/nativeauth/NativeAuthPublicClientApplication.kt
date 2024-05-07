@@ -60,7 +60,6 @@ import com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordS
 import com.microsoft.identity.common.nativeauth.internal.commands.SignInStartCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.SignUpStartCommand
 import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
-import com.microsoft.identity.nativeauth.statemachine.errors.ClientExceptionError
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
@@ -246,27 +245,17 @@ class NativeAuthPublicClientApplication(
      */
     override suspend fun getCurrentAccount(): GetAccountResult {
         return withContext(Dispatchers.IO) {
-            try {
-                val account = getCurrentAccountInternal(nativeAuthConfig)
-                return@withContext if (account != null) {
-                    GetAccountResult.AccountFound(
-                        resultValue = AccountState.createFromAccountResult(
-                            account = account,
-                            correlationId = DiagnosticContext.INSTANCE.threadCorrelationId,
-                            config = nativeAuthConfig
-                        )
+            val account = getCurrentAccountInternal(nativeAuthConfig)
+            return@withContext if (account != null) {
+                GetAccountResult.AccountFound(
+                    resultValue = AccountState.createFromAccountResult(
+                        account = account,
+                        correlationId = DiagnosticContext.INSTANCE.threadCorrelationId,
+                        config = nativeAuthConfig
                     )
-                } else {
-                    GetAccountResult.NoAccountFound
-                }
-            } catch (e: Exception) {
-                Logger.error(TAG, "MSAL client exception occurred in getCurrentAccount.", e)
-                ClientExceptionError(
-                    errorType = ErrorTypes.CLIENT_EXCEPTION,
-                    errorMessage = "MSAL client exception occurred in getCurrentAccount.",
-                    exception = e,
-                    correlationId = "UNSET"
                 )
+            } else {
+                GetAccountResult.NoAccountFound
             }
         }
     }
@@ -325,33 +314,34 @@ class NativeAuthPublicClientApplication(
             methodName = "${TAG}.signIn"
         )
         return withContext(Dispatchers.IO) {
+
+            verifyNoUserIsSignedIn()
+
+            if (username.isBlank()) {
+                return@withContext SignInError(
+                    errorType = ErrorTypes.INVALID_USERNAME,
+                    errorMessage = "Empty or blank username",
+                    correlationId = "UNSET"
+                )
+            }
+
+            val hasPassword = password?.isNotEmpty() == true
+
+            val params =
+                CommandParametersAdapter.createSignInStartCommandParameters(
+                    nativeAuthConfig,
+                    nativeAuthConfig.oAuth2TokenCache,
+                    username,
+                    password,
+                    scopes
+                )
+
             try {
-                verifyNoUserIsSignedIn()
-
-                if (username.isBlank()) {
-                    return@withContext SignInError(
-                        errorType = ErrorTypes.INVALID_USERNAME,
-                        errorMessage = "Empty or blank username",
-                        correlationId = "UNSET"
-                    )
-                }
-
-                val hasPassword = password?.isNotEmpty() == true
-
-                val params =
-                    CommandParametersAdapter.createSignInStartCommandParameters(
-                        nativeAuthConfig,
-                        nativeAuthConfig.oAuth2TokenCache,
-                        username,
-                        password,
-                        scopes
-                    )
-
-                    val command = SignInStartCommand(
-                        params,
-                        NativeAuthMsalController(),
-                        PublicApiId.NATIVE_AUTH_SIGN_IN_WITH_EMAIL
-                    )
+                val command = SignInStartCommand(
+                    params,
+                    NativeAuthMsalController(),
+                    PublicApiId.NATIVE_AUTH_SIGN_IN_WITH_EMAIL
+                )
 
                 val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
 
@@ -370,9 +360,10 @@ class NativeAuthPublicClientApplication(
                                 )
                             )
                         } else {
-                            Logger.warn(
+                            Logger.warnWithObject(
                                 TAG,
-                                "Sign in received unexpected result $result"
+                                "Sign in received unexpected result: ",
+                                result
                             )
                             SignInError(
                                 errorMessage = "unexpected state",
@@ -410,9 +401,10 @@ class NativeAuthPublicClientApplication(
                     }
                     is SignInCommandResult.PasswordRequired -> {
                         if (hasPassword) {
-                            Logger.warn(
+                            Logger.warnWithObject(
                                 TAG,
-                                "Sign in using password received unexpected result $result"
+                                "Sign in using password received unexpected result: ",
+                                result
                             )
                             SignInError(
                                 errorMessage = "unexpected state",
@@ -449,9 +441,10 @@ class NativeAuthPublicClientApplication(
                                 errorCodes = result.errorCodes
                             )
                         } else {
-                            Logger.warn(
+                            Logger.warnWithObject(
                                 TAG,
-                                "Sign in received Unexpected result $result"
+                                "Sign in received Unexpected result: ",
+                                result
                             )
                             SignInError(
                                 errorMessage = "unexpected state",
@@ -479,16 +472,8 @@ class NativeAuthPublicClientApplication(
                         )
                     }
                 }
-            } catch (e: Exception) {
-                Logger.error(TAG, "MSAL client exception occurred in signIn.", e)
-                SignInError(
-                    errorType = ErrorTypes.CLIENT_EXCEPTION,
-                    errorMessage = "MSAL client exception occurred in signIn.",
-                    exception = e,
-                    correlationId = "UNSET"
-                )
             } finally {
-                StringUtil.overwriteWithNull(password)
+                StringUtil.overwriteWithNull(params.password)
             }
         }
     }
@@ -550,32 +535,38 @@ class NativeAuthPublicClientApplication(
         var hasPassword = password?.isNotEmpty() == true
 
         return withContext(Dispatchers.IO) {
-            try {
-                verifyNoUserIsSignedIn()
+            val doesAccountExist = checkForPersistedAccount().get()
+            if (doesAccountExist) {
+                throw MsalClientException(
+                    MsalClientException.INVALID_PARAMETER,
+                    "An account is already signed in."
+                )
+            }
 
-                if (username.isBlank()) {
-                    return@withContext SignUpError(
-                        errorType = ErrorTypes.INVALID_USERNAME,
-                        errorMessage = "Empty or blank username",
-                        correlationId = "UNSET"
-                    )
-                }
+            if (username.isBlank()) {
+                return@withContext SignUpError(
+                    errorType = ErrorTypes.INVALID_USERNAME,
+                    errorMessage = "Empty or blank username",
+                    correlationId = "UNSET"
+                )
+            }
 
-                val parameters =
-                    CommandParametersAdapter.createSignUpStartCommandParameters(
-                        nativeAuthConfig,
-                        nativeAuthConfig.oAuth2TokenCache,
-                        username,
-                        password,
-                        attributes?.toMap()
-                    )
-
-                val command = SignUpStartCommand(
-                    parameters,
-                    NativeAuthMsalController(),
-                    PublicApiId.NATIVE_AUTH_SIGN_UP_START
+            val parameters =
+                CommandParametersAdapter.createSignUpStartCommandParameters(
+                    nativeAuthConfig,
+                    nativeAuthConfig.oAuth2TokenCache,
+                    username,
+                    password,
+                    attributes?.toMap()
                 )
 
+            val command = SignUpStartCommand(
+                parameters,
+                NativeAuthMsalController(),
+                PublicApiId.NATIVE_AUTH_SIGN_UP_START
+            )
+
+            try {
                 val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
 
                 return@withContext when (val result =
@@ -619,8 +610,11 @@ class NativeAuthPublicClientApplication(
 
                     is SignUpCommandResult.PasswordRequired -> {
                         if (hasPassword) {
-                            Logger.warn(TAG,
-                                "Sign up using password received unexpected result $result")
+                            Logger.warnWithObject(
+                                TAG,
+                                "Sign up using password received unexpected result: ",
+                                result
+                            )
                             SignUpError(
                                 errorMessage = "Unexpected state",
                                 error = ErrorTypes.INVALID_STATE,
@@ -656,9 +650,10 @@ class NativeAuthPublicClientApplication(
                                 correlationId = result.correlationId
                             )
                         } else {
-                            Logger.warn(
+                            Logger.warnWithObject(
                                 TAG,
-                                "Sign up received unexpected result $result"
+                                "Sign up received unexpected result: ",
+                                result
                             )
                             SignUpError(
                                 error = ErrorTypes.INVALID_STATE,
@@ -712,16 +707,8 @@ class NativeAuthPublicClientApplication(
                         )
                     }
                 }
-            } catch (e: Exception) {
-                Logger.error(TAG, "MSAL client exception occurred in signUp.", e)
-                SignUpError(
-                    errorType = ErrorTypes.CLIENT_EXCEPTION,
-                    errorMessage = "MSAL client exception occurred in signUp.",
-                    exception = e,
-                    correlationId = "UNSET"
-                )
             } finally {
-                StringUtil.overwriteWithNull(password)
+                StringUtil.overwriteWithNull(parameters.password)
             }
         }
     }
@@ -766,120 +753,117 @@ class NativeAuthPublicClientApplication(
             correlationId = null,
             methodName = "${TAG}.resetPassword(username: String)"
         )
+
         return withContext(Dispatchers.IO) {
-            try {
+            val doesAccountExist = checkForPersistedAccount().get()
+            if (doesAccountExist) {
+                throw MsalClientException(
+                    MsalClientException.INVALID_PARAMETER,
+                    "An account is already signed in."
+                )
+            }
 
-                verifyNoUserIsSignedIn()
+            if (username.isBlank()) {
+                return@withContext ResetPasswordError(
+                    errorType = ErrorTypes.INVALID_USERNAME,
+                    errorMessage = "Empty or blank username",
+                    correlationId = "UNSET"
+                )
+            }
 
-                if (username.isBlank()) {
-                    return@withContext ResetPasswordError(
-                        errorType = ErrorTypes.INVALID_USERNAME,
-                        errorMessage = "Empty or blank username",
-                        correlationId = "UNSET"
+            val parameters = CommandParametersAdapter.createResetPasswordStartCommandParameters(
+                nativeAuthConfig,
+                nativeAuthConfig.oAuth2TokenCache,
+                username
+            )
+
+            val command = ResetPasswordStartCommand(
+                parameters,
+                NativeAuthMsalController(),
+                PublicApiId.NATIVE_AUTH_RESET_PASSWORD_START
+            )
+
+            val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
+
+            return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<ResetPasswordStartCommandResult>()) {
+                is ResetPasswordCommandResult.CodeRequired -> {
+                    ResetPasswordStartResult.CodeRequired(
+                        nextState = ResetPasswordCodeRequiredState(
+                            continuationToken = result.continuationToken,
+                            username = username,
+                            correlationId = result.correlationId,
+                            config = nativeAuthConfig
+                        ),
+                        codeLength = result.codeLength,
+                        sentTo = result.challengeTargetLabel,
+                        channel = result.challengeChannel
                     )
                 }
 
-                val parameters = CommandParametersAdapter.createResetPasswordStartCommandParameters(
-                    nativeAuthConfig,
-                    nativeAuthConfig.oAuth2TokenCache,
-                    username
-                )
-
-                val command = ResetPasswordStartCommand(
-                    parameters,
-                    NativeAuthMsalController(),
-                    PublicApiId.NATIVE_AUTH_RESET_PASSWORD_START
-                )
-
-                val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
-
-                return@withContext when (val result =
-                    rawCommandResult.checkAndWrapCommandResultType<ResetPasswordStartCommandResult>()) {
-                    is ResetPasswordCommandResult.CodeRequired -> {
-                        ResetPasswordStartResult.CodeRequired(
-                            nextState = ResetPasswordCodeRequiredState(
-                                continuationToken = result.continuationToken,
-                                username = username,
-                                correlationId = result.correlationId,
-                                config = nativeAuthConfig
-                            ),
-                            codeLength = result.codeLength,
-                            sentTo = result.challengeTargetLabel,
-                            channel = result.challengeChannel
-                        )
-                    }
-
-                    is ResetPasswordCommandResult.UserNotFound -> {
-                        ResetPasswordError(
-                            errorType = ErrorTypes.USER_NOT_FOUND,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId
-                        )
-                    }
-
-                    is INativeAuthCommandResult.InvalidUsername -> {
-                        ResetPasswordError(
-                            errorType = ErrorTypes.INVALID_USERNAME,
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId,
-                            errorCodes = result.errorCodes
-                        )
-                    }
-
-                    is INativeAuthCommandResult.UnknownError -> {
-                        ResetPasswordError(
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId,
-                            exception = result.exception
-                        )
-                    }
-
-                    is INativeAuthCommandResult.Redirect -> {
-                        ResetPasswordError(
-                            errorType = ErrorTypes.BROWSER_REQUIRED,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId
-                        )
-                    }
-
-                    is ResetPasswordCommandResult.PasswordNotSet -> {
-                        Logger.warn(
-                            TAG,
-                            result.correlationId,
-                            "Reset password received unexpected result $result",
-                        )
-                        ResetPasswordError(
-                            error = ErrorTypes.INVALID_STATE,
-                            errorMessage = "Unexpected state",
-                            correlationId = result.correlationId,
-                        )
-                    }
-
-                    is ResetPasswordCommandResult.EmailNotVerified -> {
-                        Logger.warn(
-                            TAG,
-                            result.correlationId,
-                            "Reset password received unexpected result $result"
-                        )
-                        ResetPasswordError(
-                            error = ErrorTypes.INVALID_STATE,
-                            errorMessage = "Unexpected state",
-                            correlationId = result.correlationId,
-                        )
-                    }
+                is ResetPasswordCommandResult.UserNotFound -> {
+                    ResetPasswordError(
+                        errorType = ErrorTypes.USER_NOT_FOUND,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId
+                    )
                 }
-            } catch (e: Exception) {
-                Logger.error(TAG, "MSAL client exception occurred in resetPassword.", e)
-                ResetPasswordError(
-                    errorType = ErrorTypes.CLIENT_EXCEPTION,
-                    errorMessage = "MSAL client exception occurred in resetPassword.",
-                    exception = e,
-                    correlationId = "UNSET"
-                )
+
+                is INativeAuthCommandResult.InvalidUsername -> {
+                    ResetPasswordError(
+                        errorType = ErrorTypes.INVALID_USERNAME,
+                        errorMessage = result.errorDescription,
+                        error = result.error,
+                        correlationId = result.correlationId,
+                        errorCodes = result.errorCodes
+                    )
+                }
+
+                is INativeAuthCommandResult.UnknownError -> {
+                    ResetPasswordError(
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId,
+                        exception = result.exception
+                    )
+                }
+
+                is INativeAuthCommandResult.Redirect -> {
+                    ResetPasswordError(
+                        errorType = ErrorTypes.BROWSER_REQUIRED,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId
+                    )
+                }
+
+                is ResetPasswordCommandResult.PasswordNotSet -> {
+                    Logger.warnWithObject(
+                        TAG,
+                        result.correlationId,
+                        "Reset password received unexpected result: ",
+                        result
+                    )
+                    ResetPasswordError(
+                        error = ErrorTypes.INVALID_STATE,
+                        errorMessage = "Unexpected state",
+                        correlationId = result.correlationId,
+                    )
+                }
+
+                is ResetPasswordCommandResult.EmailNotVerified -> {
+                    Logger.warnWithObject(
+                        TAG,
+                        result.correlationId,
+                        "Reset password received unexpected result: ",
+                        result
+                    )
+                    ResetPasswordError(
+                        error = ErrorTypes.INVALID_STATE,
+                        errorMessage = "Unexpected state",
+                        correlationId = result.correlationId,
+                    )
+                }
             }
         }
     }
@@ -906,7 +890,7 @@ class NativeAuthPublicClientApplication(
             methodName = "${TAG}.checkForPersistedAccount"
         )
         val future = ResultFuture<Boolean>()
-        getCurrentAccount(object : NativeAuthPublicClientApplication.GetCurrentAccountCallback {
+        getCurrentAccount(object : GetCurrentAccountCallback {
             override fun onResult(result: GetAccountResult) {
                 future.setResult(result is GetAccountResult.AccountFound)
             }

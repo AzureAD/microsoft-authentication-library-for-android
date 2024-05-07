@@ -27,7 +27,7 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.Prompt;
-import com.microsoft.identity.client.exception.MsalArgumentException;
+import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
@@ -115,12 +115,11 @@ public class TestCase1592465 extends AbstractGuestAccountMsalBrokerUiTest {
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-        // Acquire token silently from cross cloud, expected to throw an exception
-        // due to authority mismatch between the requested authority and prt authority.
+        // Acquire token silently from cross cloud, expected to throw UiRequired exception
         final MsalAuthResult acquireTokenSilentlyCrossCloudResult = msalSdk.acquireTokenSilent(acquireTokenCrossCloudAuthParams, TokenRequestTimeout.SHORT);
-        MsalArgumentException exception = (MsalArgumentException) acquireTokenSilentlyCrossCloudResult.getException();
+        final MsalUiRequiredException exception = (MsalUiRequiredException) acquireTokenSilentlyCrossCloudResult.getException();
         Assert.assertNotNull("Verify Exception is returned", exception);
-        Assert.assertEquals("Verify Exception operation name", "authority", exception.getOperationName());
+        Assert.assertEquals("Verify error code is invalid_grant", "invalid_grant", exception.getErrorCode());
 
         ThreadUtils.sleepSafely(3000, "Sleep failed", "Interrupted");
 
