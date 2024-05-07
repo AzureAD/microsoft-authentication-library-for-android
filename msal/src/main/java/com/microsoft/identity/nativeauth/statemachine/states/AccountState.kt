@@ -100,19 +100,6 @@ class AccountState private constructor(
         }
     }
 
-    private fun addDefaultScopes(scopes: List<String>?): List<String> {
-        LogSession.logMethodCall(
-            tag = TAG,
-            correlationId = null,
-            methodName = "${TAG}.addDefaultScopes"
-        )
-        val requestScopes = scopes?.toMutableList() ?: mutableListOf()
-        requestScopes.addAll(AuthenticationConstants.DEFAULT_SCOPES)
-        // sanitize empty and null scopes
-        requestScopes.removeAll(listOf("", null))
-        return requestScopes.toList()
-    }
-
     /**
      * Remove the current account from the cache; Kotlin coroutines variant.
      */
@@ -209,8 +196,7 @@ class AccountState private constructor(
     interface GetAccessTokenCallback : Callback<GetAccessTokenResult>
 
     /**
-     * Retrieves the access token for the currently signed in account from the cache. If multiple
-     * access tokens are present in the cache then the one that matches the sign in scopes is returned.
+     * Retrieves the access token for the default OIDC scopes from the cache
      * If the access token is expired, it will be attempted to be refreshed using the refresh token that's stored in the cache;
      * callback variant.
      *
@@ -237,8 +223,7 @@ class AccountState private constructor(
     }
 
     /**
-     * Retrieves the access token for the currently signed in account from the cache. If multiple
-     * access tokens are present in the cache then the one that matches the sign in scopes is returned.
+     * Retrieves the access token for the default OIDC scopes from the cache.
      * If the access token is expired, it will be attempted to be refreshed using the refresh token that's stored in the cache;
      * Kotlin coroutines variant.
      *
@@ -246,27 +231,27 @@ class AccountState private constructor(
      */
     @Deprecated("Use the getAccessToken(forceRefresh: Boolean = false, scopes: List<String>) method")
     suspend fun getAccessToken(forceRefresh: Boolean = false): GetAccessTokenResult {
-        return getAccessTokenInternal(forceRefresh, null);
+        return getAccessTokenInternal(forceRefresh, emptyList());
     }
 
     /**
-     * Retrieves the access token for the currently signed in account from the cache.
-     * If the access token is expired, it will be attempted to be refreshed using the refresh token that's stored in the cache;
-     * If any of the cached access token matches the scope specified in scopes parameter then that
-     * is returned otherwise a new access token with requested scopes is fetched.
+     * Retrieves the access token for the currently signed in account from the cache such that
+     * the scope of retrieved access token is a superset of requested scopes. If the access token
+     * has expired, it will be refreshed using the refresh token that's stored in the cache. If no
+     * access token matching the requested scopes is found in cache then a new access token is fetched.
      * Kotlin coroutines variant.
      *
      * @return [com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult] The result of the getAccessToken action
      */
-    suspend fun getAccessToken(forceRefresh: Boolean = false, scopes: List<String>?): GetAccessTokenResult {
+    suspend fun getAccessToken(forceRefresh: Boolean = false, scopes: List<String>): GetAccessTokenResult {
         return getAccessTokenInternal(forceRefresh, scopes)
     }
 
     /**
-     * Retrieves the access token for the currently signed in account from the cache.
-     * If the access token is expired, it will be attempted to be refreshed using the refresh token that's stored in the cache;
-     * If any of the cached access token matches the scope specified in scopes parameter then that
-     * is returned otherwise a new access token with requested scopes is fetched.
+     * Retrieves the access token for the currently signed in account from the cache such that
+     * the scope of retrieved access token is a superset of requested scopes. If the access token
+     * has expired, it will be refreshed using the refresh token that's stored in the cache. If no
+     * access token matching the requested scopes is found in cache then a new access token is fetched.
      * callback variant.
      *
      * @return [com.microsoft.identity.client.IAuthenticationResult] If successful.
@@ -290,14 +275,13 @@ class AccountState private constructor(
         }
     }
 
-    private suspend fun getAccessTokenInternal(forceRefresh: Boolean, scopes: List<String>?): GetAccessTokenResult {
+    private suspend fun getAccessTokenInternal(forceRefresh: Boolean, scopes: List<String>): GetAccessTokenResult {
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = null,
             methodName = "$TAG.getAccessToken(forceRefresh: Boolean)"
         )
-        val mergedScopes = BaseController.addDefaultScopes(
-            scopes?.toMutableSet() ?: mutableSetOf() ).toList()
+        val mergedScopes = BaseController.addDefaultScopes(scopes.toMutableSet()).toList()
 
         return withContext(Dispatchers.IO) {
 
