@@ -112,7 +112,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
     private val password = "verySafePassword".toCharArray()
     private val code = "1234"
     private val emptyString = ""
-    private val piiToCheck = listOf(
+    private val sensitivePIIMessages = listOf(
         """(?<![\[\(])["]password["][:=]?(?![\]\)\}])""", // '"password":' '"password"=' exclude 'password' '"challengeType":["password"]' '"challenge_type":"password"}'
         """(?<![\s\?\(])(code)[:=]""", // 'code:' 'code=' exclude 'codeLength' 'error?code',
         """(?<![\(])continuationToken[:=]""",
@@ -122,7 +122,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         """(?i)\b(idToken|id_token)[:=]""",
         """(?i)\b(continuation_token)[:=]"""
     )
-    private val allowPIIFalseToCheck = listOf(
+    private val permittedPIIMessages = listOf(
         """(?<![\(])username[:=]""",
         """(?i)\b(challengeTargetLabel|challenge_target_label)[:=]"""
     )
@@ -2454,10 +2454,10 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         val disableList: List<String>
 
         if (allowPII) {
-            allowList = allowPIIFalseToCheck
-            disableList = piiToCheck
+            allowList = permittedPIIMessages
+            disableList = sensitivePIIMessages
         } else {
-            disableList = piiToCheck + allowPIIFalseToCheck
+            disableList = sensitivePIIMessages + permittedPIIMessages
         }
 
         allowList.forEach {regex ->
