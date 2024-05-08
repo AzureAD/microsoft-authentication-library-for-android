@@ -30,14 +30,14 @@ public class msaTestcase extends AbstractMsalBrokerTest {
         UiAutomatorUtils.handleButtonClickForObjectWithText("Use without an account");
         UiAutomatorUtils.handleButtonClickForObjectWithText("Got it");
         chrome.navigateTo("account.live.com");
-        //UiAutomatorUtils.handleInput("i0116", username);
         UiAutomatorUtils.handleButtonClickForObjectWithText("Sign in to your Microsoft account");
+        //UiAutomatorUtils.handleInput("i0116", username);
         UiAutomatorUtils.obtainUiObjectWithClassAndIndex(EditText.class, 0).setText(username);
         UiAutomatorUtils.handleButtonClickForObjectWithText("Next");
         UiAutomatorUtils.obtainUiObjectWithClassAndIndex(EditText.class, 0).setText(password);
         UiAutomatorUtils.pressEnter();
-        UiAutomatorUtils.handleButtonClickForObjectWithText("No");
-        UiAutomatorUtils.obtainUiObjectWithText("Get started").click();
+        //UiAutomatorUtils.handleButtonClickForObjectWithText("No");
+        //UiAutomatorUtils.obtainUiObjectWithText("Get started").click();
         //UiAutomatorUtils.handleButtonClick("idSIButton9");
         // final UiObject passwordInput = UiAutomatorUtils.obtainUiObjectWithUiSelector(new UiSelector().focused(true), FIND_UI_ELEMENT_TIMEOUT);
         //passwordInput.click();
