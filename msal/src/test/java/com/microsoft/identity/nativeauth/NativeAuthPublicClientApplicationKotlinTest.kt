@@ -70,6 +70,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import org.json.JSONObject
 import org.junit.After
 import org.junit.AfterClass
 import org.junit.Assert.assertEquals
@@ -83,10 +84,16 @@ import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatcher
+import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argThat
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.spy
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.robolectric.ParameterizedRobolectricTestRunner
 import org.robolectric.annotation.Config
@@ -102,7 +109,6 @@ import java.util.concurrent.TimeoutException
 @RunWith(ParameterizedRobolectricTestRunner::class)
 @Config(shadows = [ShadowAndroidSdkStorageEncryptionManager::class])
 class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean) : PublicClientApplicationAbstractTest() {
-    private val DISCARDED_TIME_IN_MILLISECONDS = 10000L
     private lateinit var context: Context
     private lateinit var components: IPlatformComponents
     private lateinit var activity: Activity
@@ -127,6 +133,8 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         """(?i)\b(challengeTargetLabel|challenge_target_label)[:=]""",
         """(?i)\b(grantType|grant_type)[:=]"""
     )
+    @Mock
+    private lateinit var externalLogger: ILoggerCallback
 
     override fun getConfigFilePath() = "src/test/res/raw/native_auth_native_only_test_config.json"
 
@@ -181,6 +189,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
     }
 
     private fun setupLogger() {
+        Logger.getInstance().setExternalLogger(externalLogger)
         Logger.getInstance().setLogLevel(Logger.LogLevel.INFO)
         Logger.getInstance().setEnablePII(allowPII)
     }
@@ -221,21 +230,11 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
             MockApiResponseType.TOKEN_SUCCESS
         )
 
-        val loggingNumber = if (allowPII) 137 else 127
-        val latch = CountDownLatch(loggingNumber)
-        val loggerCallback = LoggerTestCallback(infoPIIToCheck, allowPIIFalseToCheck, allowPII, latch)
-        Logger.getInstance().setExternalLogger(loggerCallback)
-
         val result = application.signIn(username, password)
         assertTrue(result is SignInResult.Complete)
 
         // check the safe logging
-        println(loggerCallback.count)
-
-        val shouldLogBeDiscarded = false
-        val timedOut: Boolean = !latch.await(DISCARDED_TIME_IN_MILLISECONDS, TimeUnit.MILLISECONDS)
-        assertEquals(shouldLogBeDiscarded, timedOut)
-        assertFalse(loggerCallback.failCalled)
+        checkSafeLogging()
     }
 
     /**
@@ -274,17 +273,14 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
             MockApiResponseType.INVALID_PASSWORD
         )
 
-        val loggingNumber = if (allowPII) 114 else 114
-        val latch = CountDownLatch(loggingNumber)
-        val loggerCallback = LoggerTestCallback(infoPIIToCheck, allowPIIFalseToCheck, allowPII, latch)
-        Logger.getInstance().setExternalLogger(loggerCallback)
-
         // 1b. Call SDK interface
         val codeRequiredResult = application.signIn(username, password)
-
         // 1a. Server returns invalid password error
         assertTrue(codeRequiredResult is SignInError)
         assertTrue((codeRequiredResult as SignInError).isInvalidCredentials())
+
+        // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -310,6 +306,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         assertTrue((codeRequiredResult as SignInError).isUserNotFound())
 
         // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -335,6 +332,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         assertTrue((codeRequiredResult as SignInError).isUserNotFound())
 
         // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -400,6 +398,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         assertTrue(successResult is SignInResult.Complete)
 
         // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -464,6 +463,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         assertTrue(result is SignInResult.Complete)
 
         // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -493,6 +493,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         assertTrue(result is SignInContinuationError)
 
         // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -522,6 +523,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         assertTrue((result as SignInError).errorType == null)
 
         // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -574,6 +576,9 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
 
         val secondSignInResult = application.signIn(username, password)
         assertTrue(secondSignInResult is SignInResult.Complete)
+
+        // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -619,6 +624,9 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         assertNotNull(accessTokenTwo)
 
         assertEquals(accessToken, accessTokenTwo)
+
+        // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -656,6 +664,9 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         val accessTokenState = accountState.getAccessToken()
         assertTrue(accessTokenState is GetAccessTokenError)
         assertTrue((accessTokenState as GetAccessTokenError).isNoAccountFound())
+
+        // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -731,6 +742,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
 
         // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -824,6 +836,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         assertTrue(result is SignInResult.Complete)
 
         // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -912,6 +925,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
 
         // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -1000,6 +1014,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
 
         // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -1025,6 +1040,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         assertTrue((resetPasswordResult as ResetPasswordError).isUserNotFound())
 
         // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -1050,6 +1066,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         assertTrue((resetPasswordResult as ResetPasswordError).isBrowserRequired())
 
         // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -1074,6 +1091,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         assertTrue((resetPasswordResult as ResetPasswordError).errorType == null)
 
         // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -1163,6 +1181,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
 
         // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -1335,6 +1354,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         assertTrue(signInResult[30, TimeUnit.SECONDS] is SignInResult.CodeRequired)
 
         // check the safe logging
+        checkSafeLogging()
     }
 
     /* Test sign in scenario 10:
@@ -1387,6 +1407,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         assertTrue(result.isBrowserRequired())
 
         // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -1497,6 +1518,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         assertTrue(successResult is SignUpResult.Complete)
 
         // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -1566,6 +1588,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         assertTrue(successResult is SignUpResult.Complete)
 
         // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -1615,6 +1638,9 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
 
         assertTrue(expiredTokenResult is SubmitCodeError)
         assertTrue((expiredTokenResult as SubmitCodeError).errorType == null)
+
+        // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -1639,6 +1665,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         assertTrue((result as SignUpError).isBrowserRequired())
 
         // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -1663,6 +1690,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         assertTrue((result as SignUpError).isAuthNotSupported())
 
         // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -1751,6 +1779,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         assertTrue(successResult is SignUpResult.Complete)
 
         // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -1795,6 +1824,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         assertTrue(result is SignUpResult.CodeRequired)
 
         // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -1845,6 +1875,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         assertTrue(successResult is SignUpResult.Complete)
 
         // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -1912,7 +1943,8 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         // 3b. Server accepts code, returns tokens
         assertTrue(successResult is SignUpResult.Complete)
 
-        // checking the safe logging
+        // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -1987,7 +2019,8 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         // 3b. Server accepts password, returns tokens
         assertTrue(successResult is SignUpResult.Complete)
 
-        // checking the safe logging
+        // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -2080,7 +2113,8 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         // 4b. Server accepts password, returns tokens
         assertTrue(successResult is SignUpResult.Complete)
 
-        // checking the safe logging
+        // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -2175,7 +2209,8 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         // 4b. Server accepts attributes, returns tokens
         assertTrue(successResult is SignUpResult.Complete)
 
-        // checking the safe logging
+        // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -2268,6 +2303,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         assertTrue(successResult is SignUpResult.Complete)
 
         // checking the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -2321,6 +2357,9 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
 
         assertTrue(submitCodeResult is SubmitCodeError)
         assertTrue((submitCodeResult as SubmitCodeError).isInvalidCode())
+
+        // check the safe logging
+        checkSafeLogging()
     }
 
     /**
@@ -2361,6 +2400,9 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         val result = application.resetPassword(emptyString)
         assertTrue(result is ResetPasswordError)
         assertTrue((result as ResetPasswordError).errorType == ErrorTypes.INVALID_USERNAME)
+
+        // check the safe logging
+        checkSafeLogging()
     }
 
     @Test
@@ -2391,6 +2433,9 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         val result = application.signUp(invalidUsername, password)
         assertTrue(result is SignUpError)
         assertTrue((result as SignUpError).isInvalidUsername())
+
+        // check the safe logging
+        checkSafeLogging()
     }
 
     @Test
@@ -2406,45 +2451,30 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         val result = application.signUp(invalidUsername)
         assertTrue(result is SignUpError)
         assertTrue((result as SignUpError).isInvalidUsername())
-    }
-}
 
-class LoggerTestCallback(private val infoPIIToCheck: List<String>, private val allowPIIFalseToCheck: List<String>, private val allowPII: Boolean, private val latch: CountDownLatch?) : ILoggerCallback {
-    var failCalled = false
-    var count = 0  // Used to know how many logs need to be checked
-    override fun log(
-        tag: String?,
-        logLevel: Logger.LogLevel?,
-        message: String?,
-        containsPII: Boolean
-    ) {
+        // check the safe logging
+        checkSafeLogging()
+    }
+
+    private fun checkSafeLogging() {
         if (allowPII) {
-            allowPIIFalseToCheck.forEach { regex ->
-                if (RegexMatcher(regex).matches(message)) {
-                    if (!containsPII) {
-                        failCalled = true
-                        fail("containsPII should be true while wrongly set as false for $tag") // allowPIIFalseToCheck item are allowed to be logged when allowPII is true, however the containsPII should be true.
-                    }
-                }
-            }
             infoPIIToCheck.forEach { regex ->
-                if (RegexMatcher(regex).matches(message)) {
-                    failCalled = true
-                    fail("PII $regex found in log message: $message") // infoPIIToCheck item should never be logged even when allowPII is true.
-                }
+                verifyLogDoesNotContain(regex)
             }
         } else {
             infoPIIToCheck + allowPIIFalseToCheck.forEach { regex ->
-                if (RegexMatcher(regex).matches(message)) {
-                    failCalled = true
-                    fail("PII $regex found in log message: $message") // allowPIIFalseToCheck item are now allowed to be logged when allowPII is false.
-                }
+                verifyLogDoesNotContain(regex)
             }
         }
+    }
 
-        // Count and countdown the number of logs
-        count += 1
-        latch?.countDown()
+    private fun verifyLogDoesNotContain(regex: String) {
+        verify(externalLogger, never()).log(
+            any(),
+            any(),
+            argThat(RegexMatcher(regex)),
+            any()
+        )
     }
 }
 
