@@ -231,7 +231,7 @@ class AccountState private constructor(
      */
     @Deprecated("Use the getAccessToken(forceRefresh: Boolean = false, scopes: List<String>) method")
     suspend fun getAccessToken(forceRefresh: Boolean = false): GetAccessTokenResult {
-        return getAccessTokenInternal(forceRefresh, emptyList());
+        return getAccessTokenInternal(forceRefresh, AuthenticationConstants.DEFAULT_SCOPES.toList());
     }
 
     /**
@@ -244,7 +244,8 @@ class AccountState private constructor(
      * @return [com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult] The result of the getAccessToken action
      */
     suspend fun getAccessToken(forceRefresh: Boolean = false, scopes: List<String>): GetAccessTokenResult {
-        return getAccessTokenInternal(forceRefresh, scopes)
+        return getAccessTokenInternal(forceRefresh,
+            if (!scopes.isEmpty()) scopes else AuthenticationConstants.DEFAULT_SCOPES.toList() )
     }
 
     /**
@@ -281,7 +282,6 @@ class AccountState private constructor(
             correlationId = null,
             methodName = "$TAG.getAccessToken(forceRefresh: Boolean)"
         )
-        val mergedScopes = BaseController.addDefaultScopes(scopes.toMutableSet()).toList()
 
         return withContext(Dispatchers.IO) {
             val currentAccount =
@@ -297,7 +297,7 @@ class AccountState private constructor(
                 .forAccount(currentAccount)
                 .fromAuthority(currentAccount.authority)
                 .forceRefresh(forceRefresh)
-                .withScopes(mergedScopes)
+                .withScopes(scopes)
                 .build()
 
             val accountRecord = PublicClientApplication.selectAccountRecordForTokenRequest(

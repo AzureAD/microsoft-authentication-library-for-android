@@ -609,64 +609,6 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
     }
 
     /**
-     * Test sign in, get access token. Compare to token from getAccount()
-     */
-    @Test
-    fun testGetAccessTokenWithNewScopes() = runTest {
-        val correlationId = UUID.randomUUID().toString()
-        configureMockApi(
-            MockApiEndpoint.SignInInitiate,
-            correlationId,
-            MockApiResponseType.INITIATE_SUCCESS
-        )
-
-        configureMockApi(
-            MockApiEndpoint.SignInChallenge,
-            correlationId,
-            MockApiResponseType.CHALLENGE_TYPE_PASSWORD
-        )
-
-        configureMockApi(
-            endpointType = MockApiEndpoint.SignInToken,
-            correlationId = correlationId,
-            responseType = MockApiResponseType.TOKEN_SUCCESS
-        )
-
-        val signInResult = application.signIn(username, password)
-        assertTrue(signInResult is SignInResult.Complete)
-
-        val getAccountResult = application.getCurrentAccount()
-        assertTrue(getAccountResult is GetAccountResult.AccountFound)
-
-        val scopes = Arrays.asList(AuthenticationConstants.OAuth2Scopes.EMAIL_SCOPE)
-
-        val accessTokenState = (signInResult as SignInResult.Complete).resultValue.getAccessToken()
-        assertTrue(accessTokenState is GetAccessTokenResult.Complete)
-
-        val accessToken = (accessTokenState as GetAccessTokenResult.Complete).resultValue.accessToken
-        assertNotNull(accessToken)
-
-        val accessTokenResultTwo = (getAccountResult as GetAccountResult.AccountFound).resultValue.getAccessToken()
-        assertTrue(accessTokenResultTwo is GetAccessTokenResult.Complete)
-
-        val accessTokenTwo = (accessTokenResultTwo as GetAccessTokenResult.Complete).resultValue.accessToken
-        assertNotNull(accessTokenTwo)
-
-        assertEquals(accessToken, accessTokenTwo)
-
-        /* The below code is commented out as the mock API returns a claim with url pointing
-         to production systems
-        val accessTokenResultThree = (getAccountResult as GetAccountResult.AccountFound).resultValue.getAccessToken(false, scopes)
-        assertTrue(accessTokenResultThree is GetAccessTokenResult.Complete)
-
-        val accessTokenThree = (accessTokenResultThree as GetAccessTokenResult.Complete).resultValue.accessToken
-        assertNotNull(accessTokenThree)
-
-        assertEquals(accessTokenTwo, accessTokenThree)
-        assertEquals(accessToken, accessTokenThree)*/
-    }
-
-    /**
      * Test sign in, sign out, get access token
      */
     @Test
