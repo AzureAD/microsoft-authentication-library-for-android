@@ -79,6 +79,7 @@ import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatcher
+import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
@@ -113,8 +114,8 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
     private val code = "1234"
     private val emptyString = ""
     private val sensitivePIIMessages = listOf(
-        """(?<![\[\(])["]password["][:=]?(?![\]\)\}])""", // '"password":' '"password"=' exclude 'password' '"challengeType":["password"]' '"challenge_type":"password"}'
-        """(?<![\s\?\(])(code)[:=]""", // 'code:' 'code=' exclude 'codeLength' 'error?code',
+        """(?<![\[\(])["]password["][:=]?(?![\]\)\}])""",  // '"password":' '"password"=' exclude 'password' '"challengeType":["password"]' '"challenge_type":"password"}'
+        """(?<![\s\?\(])(code)[:=]""",  // 'code:' 'code=' exclude 'codeLength' 'error?code'
         """(?<![\(])continuationToken[:=]""",
         """(?<![\(])attributes[:=]""",
         """(?i)\b(accessToken|access_token)[:=]""", // access_token, accessToken
@@ -182,9 +183,9 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
     }
 
     private fun setupLogger() {
-        Logger.getInstance().setExternalLogger(externalLogger)
         Logger.getInstance().setLogLevel(Logger.LogLevel.INFO)
         Logger.getInstance().setEnablePII(allowPII)
+        Logger.getInstance().setExternalLogger(externalLogger)
     }
 
     /**
@@ -2473,7 +2474,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
             any(),
             any(),
             argThat(RegexMatcher(regex)),
-            any()
+            anyBoolean()
         )
     }
 
