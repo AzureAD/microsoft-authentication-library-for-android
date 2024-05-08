@@ -23,13 +23,18 @@
 package com.microsoft.identity.nativeauth
 
 import com.microsoft.identity.common.java.nativeauth.providers.responses.UserAttributeOptionsApiResult
+import com.microsoft.identity.common.java.nativeauth.util.ILoggable
 
 /**
  * RequiredUserAttributeOptions contains the regular expression that the attribute value must match.
  */
 data class RequiredUserAttributeOptions(
     val regex: String?
-)
+) : ILoggable {
+    override fun toUnsanitizedString(): String = "RequiredUserAttributeOptions(regex=$regex)"
+
+    override fun toString(): String = toUnsanitizedString()
+}
 
 internal fun List<UserAttributeOptionsApiResult>.toListOfRequiredUserAttributeOptions(): List<RequiredUserAttributeOptions> {
     return this.map { it.toListOfRequiredUserAttributeOptions() }
