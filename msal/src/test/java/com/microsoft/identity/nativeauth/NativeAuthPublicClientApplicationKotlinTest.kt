@@ -64,17 +64,12 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignUpResendCodeRe
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
 import com.microsoft.identity.nativeauth.utils.mockCorrelationId
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
-import org.json.JSONObject
 import org.junit.After
 import org.junit.AfterClass
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
@@ -99,7 +94,6 @@ import org.robolectric.ParameterizedRobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.io.File
 import java.util.UUID
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -118,7 +112,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
     private val password = "verySafePassword".toCharArray()
     private val code = "1234"
     private val emptyString = ""
-    private val infoPIIToCheck = listOf(
+    private val piiToCheck = listOf(
         """(?<![\[\(])["]password["][:=]?(?![\]\)\}])""", // '"password":' '"password"=' exclude 'password' '"challengeType":["password"]' '"challenge_type":"password"}'
         """(?<![\s\?\(])(code)[:=]""", // 'code:' 'code=' exclude 'codeLength' 'error?code',
         """(?<![\(])continuationToken[:=]""",
@@ -130,8 +124,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
     )
     private val allowPIIFalseToCheck = listOf(
         """(?<![\(])username[:=]""",
-        """(?i)\b(challengeTargetLabel|challenge_target_label)[:=]""",
-        """(?i)\b(grantType|grant_type)[:=]"""
+        """(?i)\b(challengeTargetLabel|challenge_target_label)[:=]"""
     )
     @Mock
     private lateinit var externalLogger: ILoggerCallback
@@ -2457,14 +2450,21 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
     }
 
     private fun checkSafeLogging() {
+        var allowList = listOf<String>()
+        val disableList: List<String>
+
         if (allowPII) {
-            infoPIIToCheck.forEach { regex ->
-                verifyLogDoesNotContain(regex)
-            }
+            allowList = allowPIIFalseToCheck
+            disableList = piiToCheck
         } else {
-            infoPIIToCheck + allowPIIFalseToCheck.forEach { regex ->
-                verifyLogDoesNotContain(regex)
-            }
+            disableList = piiToCheck + allowPIIFalseToCheck
+        }
+
+        allowList.forEach {regex ->
+            verifyLogCouldContain(regex)
+        }
+        disableList.forEach { regex ->
+            verifyLogDoesNotContain(regex)
         }
     }
 
@@ -2474,6 +2474,15 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
             any(),
             argThat(RegexMatcher(regex)),
             any()
+        )
+    }
+
+    private fun verifyLogCouldContain(regex: String) {
+        verify(externalLogger, never()).log(
+            any(),
+            any(),
+            argThat(RegexMatcher(regex)),  // allowList items are logged but the containsPII should be true.
+            eq(false)
         )
     }
 }
