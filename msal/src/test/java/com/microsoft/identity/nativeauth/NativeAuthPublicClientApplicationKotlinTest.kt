@@ -58,7 +58,6 @@ import com.microsoft.identity.common.java.interfaces.IPlatformComponents
 import com.microsoft.identity.common.java.nativeauth.BuildValues
 import com.microsoft.identity.common.java.util.ResultFuture
 import com.microsoft.identity.internal.testutils.TestUtils
-import com.microsoft.identity.nativeauth.statemachine.errors.ClientExceptionError
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
 import com.microsoft.identity.nativeauth.utils.mockCorrelationId
@@ -2206,7 +2205,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         //Call SDK interface
         val result = application.signUp(emptyString)
         assertTrue(result is SignUpError)
-        assertTrue((result as SignUpError).error == ErrorTypes.INVALID_STATE)
+        assertTrue((result as SignUpError).errorType == ErrorTypes.INVALID_USERNAME)
     }
 
     /**
