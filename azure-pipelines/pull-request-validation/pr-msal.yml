@@ -63,10 +63,19 @@ jobs:
       jdkArchitecture: $(BuildParameters.jdkArchitecture)
       sqGradlePluginVersion: 2.0.1
   - task: CodeQL3000Finalize@0
+  - task: PowerShell@2
+    name: setvarStep
+    displayName: Set cert path
+    inputs:
+      targetType: inline
+      script: |
+        $pfxCertPath = '$(Build.SourcesDirectory)' + "\LabVaultAccessCert.pfx"
+        $certPathVar = $pfxCertPath -replace "\\", "\\\\"
+        Write-Host "##vso[task.setvariable variable=LabVaultAppCert]$($certPathVar)"  
   - task: Gradle@2
     displayName: Run Unit tests
     inputs:
-      tasks: msal:testLocalDebugUnitTest -Plabtest -PlabSecret=$(LabVaultAppSecret) -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}}
+      tasks: msal:testLocalDebugUnitTest -Plabtest -PlabSecret=${{variables.LabVaultAppCert}} -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}}
       javaHomeSelection: $(BuildParameters.javaHomeSelection)
       jdkVersion: 1.11
 - job: spotbugs
