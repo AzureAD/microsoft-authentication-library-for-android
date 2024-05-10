@@ -63,7 +63,7 @@ import kotlinx.coroutines.withContext
  *  AccountState returned as part of a successful completion of sign in flow [com.microsoft.identity.nativeauth.statemachine.results.SignInResult.Complete].
  */
 class AccountState private constructor(
-    private val account: IAccount,
+    private var account: IAccount,
     private val config: NativeAuthPublicClientApplicationConfiguration,
     val correlationId: String
 ) : Parcelable {
@@ -232,7 +232,7 @@ class AccountState private constructor(
             methodName = "$TAG.getAccessToken(forceRefresh: Boolean = false)"
         )
         return withContext(Dispatchers.IO) {
-            val account =
+            val currentAccount =
                 NativeAuthPublicClientApplication.getCurrentAccountInternal(config) as? Account
                     ?: return@withContext GetAccessTokenError(
                         errorType = GetAccessTokenErrorTypes.NO_ACCOUNT_FOUND,
@@ -242,8 +242,8 @@ class AccountState private constructor(
                     )
 
             val acquireTokenSilentParameters = AcquireTokenSilentParameters.Builder()
-                .forAccount(account)
-                .fromAuthority(account.authority)
+                .forAccount(currentAccount)
+                .fromAuthority(currentAccount.authority)
                 .build()
 
             val accountToBeUsed = PublicClientApplication.selectAccountRecordForTokenRequest(
@@ -282,8 +282,10 @@ class AccountState private constructor(
                     )
                 }
                 else -> {
+                    // Account and Id token data could change after access token refresh, update the account object in the state
+                    account = AuthenticationResultAdapter.adapt(commandResult as ILocalAuthenticationResult).account
                     GetAccessTokenResult.Complete(
-                        resultValue =  AuthenticationResultAdapter.adapt(commandResult as ILocalAuthenticationResult)
+                        resultValue =  AuthenticationResultAdapter.adapt(commandResult)
                     )
                 }
             }
