@@ -75,6 +75,7 @@ import com.microsoft.identity.common.java.interfaces.IPlatformComponents;
 import com.microsoft.identity.common.java.util.ResultFuture;
 import com.microsoft.identity.internal.testutils.TestUtils;
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpPasswordRequiredState;
+import com.microsoft.identity.nativeauth.utils.LoggerCheckHelper;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -83,26 +84,21 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.ParameterizedRobolectricTestRunner;
-import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.LooperMode;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.regex.Pattern;
 
 import androidx.annotation.NonNull;
 import androidx.test.core.app.ApplicationProvider;
@@ -113,16 +109,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 import static org.robolectric.annotation.LooperMode.Mode.LEGACY;
-
-import kotlin.jvm.JvmStatic;
 
 @RunWith(ParameterizedRobolectricTestRunner.class)
 @LooperMode(LEGACY)
@@ -133,6 +121,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     private IPlatformComponents components;
     private Activity activity;
     private INativeAuthPublicClientApplication application;
+    private LoggerCheckHelper loggerCheckHelper;
     private final String username = "user@email.com";
     private final String invalidUsername = "invalidUsername";
     private final char[] password = "verySafePassword".toCharArray();
@@ -143,22 +132,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     public NativeAuthPublicClientApplicationJavaTest(boolean allowPII) {
         this.allowPII = allowPII;
     }
-
-    private final List<String> sensitivePIIMessages = Arrays.asList(
-            "(?<![\\[\\(])[\"]password[\"][:=]?(?![\\]\\)\\}])", // '"password":' '"password"=' exclude 'password' '"challengeType":["password"]' '"challenge_type":"password"}'
-            "(?<![\\s\\?\\(])(code)[:=]",  // 'code:' 'code=' exclude 'codeLength' 'error?code'
-            "(?<![\\(])continuationToken[:=]",
-            "(?<![\\(])attributes[:=]",
-            "(?i)\\b(accessToken|access_token)[:=]",
-            "(?i)\\b(refreshToken|refresh_token)[:=]",
-            "(?i)\\b(idToken|id_token)[:=]",
-            "(?i)\\b(continuation_token)[:=]"
-    );
-
-    private final List<String> permittedPIIMessages = Arrays.asList(
-            "(?<![\\(])username[:=]",
-            "(?i)\\b(challengeTargetLabel|challenge_target_label)[:=]"
-    );
 
     @Mock
     private ILoggerCallback externalLogger;
@@ -190,14 +163,15 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         context = ApplicationProvider.getApplicationContext();
         components = AndroidPlatformComponentsFactory.createFromContext(context);
         activity = Mockito.mock(Activity.class);
+        loggerCheckHelper = new LoggerCheckHelper(externalLogger, allowPII);
         Mockito.when(activity.getApplicationContext()).thenReturn(context);
         setupPCA();
-        setupLogger();
         CommandDispatcherHelper.clear();
     }
 
     @After
     public void cleanup() {
+        loggerCheckHelper.checkSafeLogging();
         AcquireTokenTestHelper.setAccount(null);
         // remove everything from cache after test ends
         TestUtils.clearCache(SHARED_PREFERENCES_NAME);
@@ -213,12 +187,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
             e.printStackTrace();
             fail(e.getMessage());
         }
-    }
-
-    private void setupLogger() {
-        Logger.getInstance().setLogLevel(Logger.LogLevel.INFO);
-        Logger.getInstance().setEnablePII(allowPII);
-        Logger.getInstance().setExternalLogger(externalLogger);
     }
 
     /**
@@ -279,7 +247,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         );
 
         assertTrue(signInWithPasswordResult.get(10, TimeUnit.SECONDS) instanceof SignInResult.Complete);
-        checkSafeLogging();
     }
 
     /**
@@ -338,8 +305,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         SignInError error = (SignInError)result;
         assertTrue(error.isInvalidCredentials());
-
-        checkSafeLogging();
     }
 
     /**
@@ -378,8 +343,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         SignInError error = (SignInError)result;
         assertTrue(error.isUserNotFound());
-
-        checkSafeLogging();
     }
 
     /**
@@ -418,8 +381,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         SignInError error = (SignInError)result;
         assertTrue(error.isUserNotFound());
-
-        checkSafeLogging();
     }
 
     /**
@@ -528,8 +489,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         nextState.submitCode(code, submitCodeCallback2);
         // 3a. Server accepts code, returns tokens
         assertTrue(submitCodeResult2.get(30, TimeUnit.SECONDS) instanceof SignInResult.Complete);
-
-        checkSafeLogging();
     }
 
     /**
@@ -578,8 +537,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         application.signIn(username, password, null, callback);
         // 3d. Server returns InvalidAuthMethodForUser error
         assertTrue(signInResult.get(30, TimeUnit.SECONDS) instanceof SignInResult.CodeRequired);
-
-        checkSafeLogging();
     }
 
     /** Test sign in scenario 10:
@@ -626,8 +583,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 3b. Server returns BrowserRequired error
         SignInResult result = signInResult.get(30, TimeUnit.SECONDS);
         assertTrue(result instanceof SignInError);
-
-        checkSafeLogging();
     }
 
     /**
@@ -690,8 +645,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         BaseException exception = signInExceptionResult.get(10, TimeUnit.SECONDS);
         assertEquals(MsalClientException.INVALID_PARAMETER, exception.getErrorCode());
         assertEquals("An account is already signed in.", exception.getMessage());
-
-        checkSafeLogging();
     }
 
     /**
@@ -763,8 +716,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         SignInResult signInWithPasswordResult2 = signInTestCallback2.get();
         assertTrue(signInWithPasswordResult2 instanceof SignInResult.Complete);
-
-        checkSafeLogging();
     }
 
     /**
@@ -824,8 +775,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         assertNotNull(accessTokenTwo);
 
         assertEquals(accessToken, accessTokenTwo);
-
-        checkSafeLogging();
     }
 
     /**
@@ -876,8 +825,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         GetAccessTokenResult getAccessTokenResult = getAccessTokenTestCallback.get();
         assertTrue(getAccessTokenResult instanceof GetAccessTokenError);
         assertTrue(((GetAccessTokenError) getAccessTokenResult).isNoAccountFound());
-
-        checkSafeLogging();
     }
 
 
@@ -948,8 +895,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         assertEquals(MsalClientException.INVALID_PARAMETER, exception.getErrorCode());
         assertEquals("An account is already signed in.", exception.getMessage());
-
-        checkSafeLogging();
     }
 
     /**
@@ -1018,8 +963,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         BaseException exception = signUpExceptionResult.get(10, TimeUnit.SECONDS);
         assertEquals(MsalClientException.INVALID_PARAMETER, exception.getErrorCode());
         assertEquals("An account is already signed in.", exception.getMessage());
-
-        checkSafeLogging();
     }
 
     /**
@@ -1079,8 +1022,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         BaseException exception = resetPasswordExceptionResult.get(10, TimeUnit.SECONDS);
         assertEquals(MsalClientException.INVALID_PARAMETER, exception.getErrorCode());
         assertEquals("An account is already signed in.", exception.getMessage());
-
-        checkSafeLogging();
     }
 
     /**
@@ -1120,8 +1061,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         };
         signInWithSLTState.signIn(null, callback);
         assertTrue(resultFuture.get(30, TimeUnit.SECONDS) instanceof SignInResult.Complete);
-
-        checkSafeLogging();
     }
 
     /**
@@ -1163,8 +1102,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         SignInResult result = resultFuture.get(10, TimeUnit.SECONDS);
         assertTrue(result instanceof SignInContinuationError);
-
-        checkSafeLogging();
     }
 
     /**
@@ -1210,8 +1147,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         assertFalse(error.isBrowserRequired());
         assertFalse(error.isUserNotFound());
-
-        checkSafeLogging();
     }
 
     /**
@@ -1259,8 +1194,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         assertFalse(error.isBrowserRequired());
         assertFalse(error.isUserNotFound());
         assertFalse(error.isInvalidCredentials());
-
-        checkSafeLogging();
     }
 
     /**
@@ -1335,8 +1268,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 3b. Transform /submit(success) +/poll_completion(success) to Result(Complete).
         ResetPasswordSubmitPasswordResult submitPasswordResult = submitPasswordCallback.get();
         assertTrue(submitPasswordResult instanceof ResetPasswordResult.Complete);
-
-        checkSafeLogging();
     }
 
     /**
@@ -1428,8 +1359,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         SignInResult signInResult = signInCallback.get();
         assertTrue(signInResult instanceof SignInResult.Complete);
-
-        checkSafeLogging();
     }
 
     /**
@@ -1531,8 +1460,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         assertTrue(submitPasswordResult2 instanceof ResetPasswordResult.Complete);
         // 4c. Respond to Result(Complete): shifting from ResetPasswordPasswordRequired to end. SLT as resultValue will be returned after private preview.
         Object resultValue = ((ResetPasswordResult.Complete) submitPasswordResult2).getResultValue();
-
-        checkSafeLogging();
     }
 
     /**
@@ -1626,8 +1553,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         assertTrue(submitPasswordResult instanceof ResetPasswordResult.Complete);
         // 4c. Respond to Result(Complete): shifting from ResetPasswordPasswordRequired to end. SLT as resultValue will be returned after private preview.
         Object resultValue = ((ResetPasswordResult.Complete) submitPasswordResult).getResultValue();
-
-        checkSafeLogging();
     }
 
     /**
@@ -1653,8 +1578,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         ResetPasswordStartResult resetPasswordResult = resetPasswordCallback.get();
         assertTrue(resetPasswordResult instanceof ResetPasswordError);
         assertTrue(((ResetPasswordError) resetPasswordResult).isUserNotFound());
-
-        checkSafeLogging();
     }
 
     /**
@@ -1680,8 +1603,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         ResetPasswordStartResult resetPasswordResult = resetPasswordCallback.get();
         assertTrue(resetPasswordResult instanceof ResetPasswordError);
         assertTrue(((ResetPasswordError) resetPasswordResult).isBrowserRequired());
-
-        checkSafeLogging();
     }
 
     /**
@@ -1708,8 +1629,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         assertTrue(resetPasswordResult instanceof ResetPasswordError);
         assertFalse(((ResetPasswordError) resetPasswordResult).isBrowserRequired());
         assertFalse(((ResetPasswordError) resetPasswordResult).isUserNotFound());
-
-        checkSafeLogging();
     }
 
     /**
@@ -1810,8 +1729,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         assertTrue(submitPasswordResult instanceof ResetPasswordResult.Complete);
         // 4c. Respond to Result(Complete): shifting from ResetPasswordPasswordRequired to end. SLT as resultValue will be returned after private preview.
         Object resultValue = ((ResetPasswordResult.Complete) submitPasswordResult).getResultValue();
-
-        checkSafeLogging();
     }
 
     /**
@@ -1839,8 +1756,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         assertTrue(resetPasswordResult instanceof ResetPasswordError);
         assertTrue(((ResetPasswordError) resetPasswordResult).isInvalidUsername());
-
-        checkSafeLogging();
     }
 
     // Helper methods
@@ -1935,8 +1850,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         submitCodeState.submitCode(code, codeRequiredCallback);
 
         assertTrue(codeRequiredCallback.get() instanceof SignUpResult.Complete);
-
-        checkSafeLogging();
     }
 
     /**
@@ -2012,8 +1925,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 3b. Server accepts code, returns tokens
         assertTrue(codeRequiredCallback.get() instanceof SignUpResult.Complete);
-
-        checkSafeLogging();
     }
 
     /**
@@ -2069,8 +1980,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         assertTrue(codeRequiredCallback.get() instanceof SubmitCodeError);
         assertFalse(((SubmitCodeError) codeRequiredCallback.get()).isInvalidCode());
         assertFalse(((SubmitCodeError) codeRequiredCallback.get()).isBrowserRequired());
-
-        checkSafeLogging();
     }
 
     /**
@@ -2094,8 +2003,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         assertTrue(signUpTestCallback.get() instanceof SignUpError);
         assertTrue(((SignUpError) signUpTestCallback.get()).isBrowserRequired());
-
-        checkSafeLogging();
     }
 
     /**
@@ -2119,8 +2026,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         assertTrue(signUpTestCallback.get() instanceof SignUpError);
         assertTrue(((SignUpError) signUpTestCallback.get()).isAuthNotSupported());
-
-        checkSafeLogging();
     }
 
     /**
@@ -2220,8 +2125,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 4b. Server accepts password, returns tokens
         assertTrue(attributesSucceededResult instanceof SignUpResult.Complete);
-
-        checkSafeLogging();
     }
 
     /**
@@ -2271,8 +2174,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         SignUpResult signUpSuccessResult = signUpSuccessCallback.get();
 
         assertTrue(signUpSuccessResult instanceof SignUpResult.CodeRequired);
-
-        checkSafeLogging();
     }
 
     /**
@@ -2324,8 +2225,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 2b. Server accepts code, returns tokens
         assertTrue(submitCodeResult instanceof SignUpResult.Complete);
-
-        checkSafeLogging();
     }
 
     /**
@@ -2400,8 +2299,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 2b. Server accepts code, returns tokens
         assertTrue(submitCodeResult instanceof SignUpResult.Complete);
-
-        checkSafeLogging();
     }
 
     /**
@@ -2487,8 +2384,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 3b. Server accepts password, returns tokens
         assertTrue(successResult instanceof SignUpResult.Complete);
-
-        checkSafeLogging();
     }
 
     /**
@@ -2594,8 +2489,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 3b. Server accepts password, returns tokens
         assertTrue(successResult instanceof SignUpResult.Complete);
-
-        checkSafeLogging();
     }
 
     /**
@@ -2702,8 +2595,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 4b. Server accepts attributes, returns tokens
         assertTrue(successResult instanceof SignUpResult.Complete);
-
-        checkSafeLogging();
     }
 
     /**
@@ -2806,8 +2697,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 4b. Server accepts password, returns tokens
         assertTrue(successResult instanceof SignUpResult.Complete);
-
-        checkSafeLogging();
     }
 
     /**
@@ -2832,8 +2721,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         assertTrue(signUpResult instanceof SignUpError);
         assertTrue(((SignUpError) signUpResult).isBrowserRequired());
-
-        checkSafeLogging();
     }
 
     /**
@@ -2865,8 +2752,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         assertFalse(((SignUpError) signUpResult).isInvalidPassword());
         assertFalse(((SignUpError) signUpResult).isInvalidAttributes());
         assertFalse(((SignUpError) signUpResult).isUserAlreadyExists());
-
-        checkSafeLogging();
     }
 
     @Test
@@ -2886,8 +2771,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         assertTrue(signUpResult instanceof SignUpError);
         assertTrue(((SignUpError) signUpResult).isInvalidPassword());
-
-        checkSafeLogging();
     }
 
     @Test
@@ -2932,8 +2815,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         SubmitCodeError error = spy((SubmitCodeError) result);
         assertTrue(error.isInvalidCode());
-
-        checkSafeLogging();
     }
 
     @Test
@@ -2953,8 +2834,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         assertTrue(signUpResult instanceof SignUpError);
         assertTrue(((SignUpError) signUpResult).isInvalidUsername());
-
-        checkSafeLogging();
     }
 
     @Test
@@ -2974,38 +2853,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         assertTrue(signUpResult instanceof SignUpError);
         assertTrue(((SignUpError) signUpResult).isInvalidUsername());
-
-        checkSafeLogging();
-    }
-
-    private void checkSafeLogging() {
-        List<String> allowList;
-        List<String> disableList;
-
-        if (allowPII) {
-            allowList = new ArrayList<>(permittedPIIMessages);
-            disableList = new ArrayList<>(sensitivePIIMessages);
-        } else {
-            allowList = new ArrayList<>();
-            disableList = new ArrayList<>(sensitivePIIMessages);
-            disableList.addAll(permittedPIIMessages);
-        }
-
-        for (String regex : allowList) {
-            verifyLogCouldContain(regex);
-        }
-
-        for (String regex : disableList) {
-            verifyLogDoesNotContain(regex);
-        }
-    }
-
-    private void verifyLogDoesNotContain(String regex) {
-        verify(externalLogger, never()).log(any(), any(), argThat(new RegexMatcher(regex)), anyBoolean());
-    }
-
-    private void verifyLogCouldContain(String regex) {
-        verify(externalLogger, never()).log(any(), any(), argThat(new RegexMatcher(regex)), eq(false));
     }
 }
 
