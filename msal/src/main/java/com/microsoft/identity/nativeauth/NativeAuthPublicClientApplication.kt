@@ -281,7 +281,6 @@ class NativeAuthPublicClientApplication(
      * @param scopes (Optional) list of scopes to request.
      * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.SignInCallback] to receive the result.
      * @return [com.microsoft.identity.nativeauth.statemachine.results.SignInResult] see detailed possible return state under the object.
-     * @throws MsalClientException if an account is already signed in.
      */
     override fun signIn(
         username: String,
@@ -516,7 +515,6 @@ class NativeAuthPublicClientApplication(
      * @param attributes (Optional) user attributes to be used during account creation
      * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.SignUpCallback] to receive the result.
      * @return [com.microsoft.identity.nativeauth.statemachine.results.SignUpResult] see detailed possible return state under the object.
-     * @throws MsalClientException if an account is already signed in.
      */
     override fun signUp(
         username: String,
@@ -547,7 +545,6 @@ class NativeAuthPublicClientApplication(
      * @param password (Optional) password of the account to sign up.
      * @param attributes (Optional) user attributes to be used during account creation
      * @return [com.microsoft.identity.nativeauth.statemachine.results.SignUpResult] see detailed possible return state under the object.
-     * @throws MsalClientException if an account is already signed in.
      */
     override suspend fun signUp(
         username: String,
@@ -757,7 +754,6 @@ class NativeAuthPublicClientApplication(
      * @param username username of the account to reset password.
      * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.ResetPasswordCallback] to receive the result.
      * @return [com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult] see detailed possible return state under the object.
-     * @throws MsalClientException if an account is already signed in.
      */
     override fun resetPassword(username: String, callback: ResetPasswordCallback) {
         LogSession.logMethodCall(
@@ -781,7 +777,6 @@ class NativeAuthPublicClientApplication(
      *
      * @param username username of the account to reset password.
      * @return [com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult] see detailed possible return state under the object.
-     * @throws MsalClientException if an account is already signed in.
      */
     override suspend fun resetPassword(username: String): ResetPasswordStartResult {
         LogSession.logMethodCall(
