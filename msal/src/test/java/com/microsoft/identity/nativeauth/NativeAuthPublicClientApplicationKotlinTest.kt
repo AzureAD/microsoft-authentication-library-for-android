@@ -29,7 +29,6 @@ import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager
 import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper
-import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenError
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
@@ -2271,5 +2270,36 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val result = application.signUp(invalidUsername)
         assertTrue(result is SignUpError)
         assertTrue((result as SignUpError).isInvalidUsername())
+    }
+
+    @Test
+    fun testEmptyRequestParametersToGenericErrorNotThrownException() = runTest {
+        val correlationId = UUID.randomUUID().toString()
+
+        configureMockApi(
+            endpointType = MockApiEndpoint.SignUpStart,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.SIGNUP_START_SUCCESS
+        )
+
+        configureMockApi(
+            endpointType = MockApiEndpoint.SignUpChallenge,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.CHALLENGE_TYPE_OOB
+        )
+
+        val result = application.signUp(username)
+        assertTrue(result is SignUpResult.CodeRequired)
+
+        configureMockApi(
+            endpointType = MockApiEndpoint.SignUpContinue,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.INVALID_OOB_VALUE
+        )
+
+        val submitCodeState = spy((result as SignUpResult.CodeRequired).nextState)
+        val submitCodeResult = submitCodeState.submitCode(emptyString)  // Empty code will trigger ArgUtils.validateNonNullArg(oob, "oob") of the SignUpContinueRequest to thrown ClientException
+        assertTrue(submitCodeResult is SubmitCodeError)
+        assertTrue((submitCodeResult as SubmitCodeError).error.equals(ErrorTypes.UNSUCCESSFUL_COMMAND_ERROR))  // ClientException will be caught in CommandResultUtil.kt and converted to generic error in interface layer
     }
 }
