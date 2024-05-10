@@ -559,7 +559,7 @@ class SignInContinuationState(
                     correlationId = correlationId,
                     methodName = "${TAG}.signIn(scopes: List<String>)"
                 )
-                // Check if verification code was passed. If not, return an UnknownError with instructions to call the other
+                // Check if verification code was passed. If not, return a generic error with instructions to call the other
                 // sign in flows (code or password).
                 if (continuationToken.isNullOrEmpty()) {
                     Logger.warn(

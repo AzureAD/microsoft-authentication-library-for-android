@@ -203,7 +203,7 @@ class SignUpCodeRequiredState internal constructor(
                         )
                     }
 
-                    // This should be caught earlier in the flow, so throwing UnexpectedError
+                    // This should be caught earlier in the flow, so returning generic error
                     is SignUpCommandResult.UsernameAlreadyExists -> {
                         Logger.warnWithObject(
                             TAG,
@@ -507,7 +507,7 @@ class SignUpPasswordRequiredState internal constructor(
                             )
                         }
 
-                        // This should be caught earlier in the flow, so throwing UnexpectedError
+                        // This should be caught earlier in the flow, so returning generic error
                         is INativeAuthCommandResult.InvalidUsername -> {
                             Logger.warnWithObject(
                                 TAG,
@@ -699,7 +699,7 @@ class SignUpAttributesRequiredState internal constructor(
                             correlationId = result.correlationId
                         )
                     }
-                    // This should be caught earlier in the flow, so throwing UnexpectedError
+                    // This should be caught earlier in the flow, so returning generic error
                     is SignUpCommandResult.UsernameAlreadyExists -> {
                         Logger.warnWithObject(
                             TAG,
