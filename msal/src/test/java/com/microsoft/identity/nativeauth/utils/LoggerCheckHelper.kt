@@ -81,7 +81,6 @@ class LoggerCheckHelper(private val externalLogger: ILoggerCallback, private val
         )
     }
 
-
     class RegexMatcher(private val regex: String) : ArgumentMatcher<String> {
         override fun matches(argument: String?): Boolean {
             return regex.toRegex().containsMatchIn(argument ?: "")
