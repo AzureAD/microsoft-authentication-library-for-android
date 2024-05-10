@@ -1,0 +1,16 @@
+{
+  "client_id" : "601adc1f-6f6f-42d7-99ef-726961c10e3f",
+  "authorization_user_agent" : "DEFAULT",
+  "authorities" : [
+    {
+      "type": "CIAM",
+      "authority_url": "https://MSIDLABCIAM6.ciamlogin.com/fe362aec-5d43-45d1-b730-9755e60dc3b9"
+    }
+  ],
+  "challenge_types" : ["oob", "password"],
+  "logging": {
+    "pii_enabled": false,
+    "log_level": "INFO",
+    "logcat_enabled": true
+  }
+}
