@@ -20,7 +20,8 @@ class LoggerCheckHelper(private val externalLogger: ILoggerCallback, private val
         """(?i)\b(accessToken|access_token)[:=]""", // access_token, accessToken
         """(?i)\b(refreshToken|refresh_token)[:=]""",
         """(?i)\b(idToken|id_token)[:=]""",
-        """(?i)\b(continuation_token)[:=]"""
+        """(?i)\b(continuation_token)[:=]""",
+        """^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$""" // JWT token
     )
     private val permittedPIIMessages = listOf(
         """(?<![\(])username[:=]""",
