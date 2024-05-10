@@ -175,7 +175,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         AcquireTokenTestHelper.setAccount(null);
         // remove everything from cache after test ends
         TestUtils.clearCache(SHARED_PREFERENCES_NAME);
-        Logger.getInstance().removeExternalLogger();
     }
 
     private void setupPCA() {
