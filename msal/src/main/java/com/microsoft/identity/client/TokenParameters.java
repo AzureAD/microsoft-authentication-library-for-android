@@ -34,6 +34,7 @@ import com.microsoft.identity.common.internal.util.StringUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -48,6 +49,8 @@ public abstract class TokenParameters {
     private AccountRecord mAccountRecord;
     private AuthenticationScheme mAuthenticationScheme;
     private String mCorrelationId;
+    private String mDc;
+    private Map<String, String> mFlightParams;
 
     protected TokenParameters(@NonNull final TokenParameters.Builder builder) {
         mAccount = builder.mAccount;
@@ -56,6 +59,8 @@ public abstract class TokenParameters {
         mScopes = builder.mScopes;
         mAuthenticationScheme = builder.mAuthenticationScheme;
         mCorrelationId = builder.mCorrelationId;
+        mDc = builder.mDc;
+        mFlightParams = builder.mFlightParams;
     }
 
     /**
@@ -155,6 +160,24 @@ public abstract class TokenParameters {
     }
 
     /**
+     * Optional DC parameter. If set, API requests will contain a DC query parameter with the
+     * respective value.
+     * @return
+     */
+    public String getDc() {
+        return mDc;
+    }
+
+    /**
+     * Optional flight parameters. If set, API requests will contain the keys and values from the
+     * respective map set as query parameters.
+     * @return
+     */
+    public Map<String, String> getFlightParameters() {
+        return mFlightParams;
+    }
+
+    /**
      * TokenParameters builder
      *
      * @param <B>
@@ -167,6 +190,8 @@ public abstract class TokenParameters {
         private ClaimsRequest mClaimsRequest;
         private AuthenticationScheme mAuthenticationScheme;
         private String mCorrelationId;
+        private String mDc;
+        private Map<String, String> mFlightParams;
 
         public B withAuthenticationScheme(@NonNull final AuthenticationScheme scheme) {
             mAuthenticationScheme = scheme;
@@ -258,6 +283,16 @@ public abstract class TokenParameters {
 
         public B withCorrelationId(@NonNull final UUID correlationId) {
             mCorrelationId = correlationId.toString();
+            return self();
+        }
+
+        public B withDc(@NonNull final String dc) {
+            mDc = dc;
+            return self();
+        }
+
+        public B withFlightParameters(@NonNull final Map<String, String> flightParameters) {
+            mFlightParams = flightParameters;
             return self();
         }
 
