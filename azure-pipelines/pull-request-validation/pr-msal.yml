@@ -45,7 +45,6 @@ jobs:
     clean: true
     submodules: recursive
     persistCredentials: True
-  - template: azure-pipelines/templates/steps/automation-cert.yml@common
   - task: JavaToolInstaller@0
     displayName: Use Java 11
     inputs:
