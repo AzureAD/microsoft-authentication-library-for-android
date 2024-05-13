@@ -29,13 +29,12 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Test
 
-class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
+class SignUpTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     override fun getConfigFilePath(): String = NATIVE_AUTH_SIGN_IN_TEST_CONFIG_FILE_PATH
 
     @Test
-    fun testSignInSimple() = runTest {
-        // TODO set up LabsUserHelper - requires password to be moved to keyvault
+    fun testSignUpSimple() = runTest {
         val result = application.signIn("nativeauthuser1@1secmail.org", "fakepassword".toCharArray())
         Assert.assertTrue(result is SignInError)
         Assert.assertTrue((result as SignInError).isInvalidCredentials())
