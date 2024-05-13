@@ -1,15 +1,32 @@
+//  Copyright (c) Microsoft Corporation.
+//  All rights reserved.
+//
+//  This code is licensed under the MIT License.
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files(the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions :
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.passkey;
 
-import android.os.Handler;
-import android.os.Looper;
-import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.Spinner;
-import android.widget.TextView;
 
-import androidx.test.uiautomator.UiSelector;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.uiautomator.UiDevice;
 
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
@@ -18,43 +35,36 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
-import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
-import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
+import com.microsoft.identity.client.ui.automation.constants.GlobalConstants;
 import com.microsoft.identity.client.ui.automation.device.settings.GoogleSettings;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
-import com.microsoft.identity.client.ui.automation.rules.FactoryResetChromeRule;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.common.java.util.ThreadUtils;
-import com.microsoft.identity.labapi.utilities.client.LabClient;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
-import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
-public class entraTestcase extends AbstractMsalBrokerTest {
-    String TAG = "entraTestcase";
-    String systemPin = "PutPINHere";
+public class TestCase2801802 extends AbstractMsalBrokerTest {
+    String TAG = this.getClass().getSimpleName();
+    // If running locally, the systemPin variable should be updated to your device's PIN.
+    // Otherwise, the DevicePinSetupRule sets the PIN to a GlobalConstant.
+    String systemPin = GlobalConstants.PIN;
     @Test
-    public void entra_testcase() throws Throwable {
+    public void test_2801802() throws Throwable {
         final String username = mLabAccount.getUsername();
-        // When using AuthApp test accounts, replace below with TAP, since that's what's needed to add an auth method.
         final String password = mLabAccount.getPassword();
 
         // Enable Authenticator as a passkey provider.
         final GoogleSettings settings = new GoogleSettings();
         settings.launchAccountListPage();
         UiAutomatorUtils.handleButtonClick("com.android.settings:id/switchWidget");
-
-        // Will need to set PIN screen lock here, if not set already.
-        //settings.launchScreenLockPage();
-        //UiAutomatorUtils.obtainUiObjectWithTextAndClassType("Screen lock", TextView.class).click();
 
         // Add an account to AuthApp.
         mBroker.launch();
@@ -68,15 +78,19 @@ public class entraTestcase extends AbstractMsalBrokerTest {
         UiAutomatorUtils.obtainUiObjectWithClassAndIndex(EditText.class, 0).setText(password);
         //UiAutomatorUtils.handleInput("accesspass", password);
         UiAutomatorUtils.pressEnter();
-        //TODO: How can we select the "Next" button on the page that says registration is required? (and I'm guessing the "Next" on the following page will have the same issue)
-        //UiAutomatorUtils.obtainUiObjectWithUiSelector(new UiSelector().packageName("com.azure.authenticator").className(Button.class).clickable(true), 10000).click();
-        //UiAutomatorUtils.handleButtonClickForObjectWithTextSafely("Next");
-        UiAutomatorUtils.obtainUiObjectWithClassAndIndex(Button.class, 0).click();
-        UiAutomatorUtils.obtainUiObjectWithTextAndClassType("Next", Button.class).click();
+        // Adding account requires some extra linking steps.
+        // Can't find the next few objects to click using conventional methods, so need to use coordinates.
+        ThreadUtils.sleepSafely((int)TimeUnit.SECONDS.toMillis(5), TAG, "Wait a few seconds for next screen.");
+        final UiDevice device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
+        device.click(800, 850);
+        ThreadUtils.sleepSafely((int)TimeUnit.SECONDS.toMillis(10), TAG, "Wait a few seconds for next screen.");
+        device.click(820, 1275);
+        ThreadUtils.sleepSafely((int)TimeUnit.SECONDS.toMillis(5), TAG, "Wait a few seconds for next screen.");
         UiAutomatorUtils.handleButtonClickForObjectWithTextSafely("Pair your account to the app by clicking this link.");
         UiAutomatorUtils.handleButtonClickSafely("android:id/button1");
 
-        // Register a passkey.
+        // TODO: below should be steps to register a passkey.
+        // Currently these lines are based on adding an AuthApp account, but they will need to be altered when lab accounts have passkeys enabled.
         UiAutomatorUtils.handleButtonClickSafely("com.azure.authenticator:id/account_list_row_account_name");
         //UiAutomatorUtils.obtainUiObjectWithTextAndClassType("Continue", TextView.class).click();
         //UiAutomatorUtils.handleButtonClickSafely("idSIButton9");
@@ -89,6 +103,7 @@ public class entraTestcase extends AbstractMsalBrokerTest {
         ThreadUtils.sleepSafely((int)TimeUnit.SECONDS.toMillis(15), TAG, "Sleeping while adding a passkey");
 
         // Now try to use the passkey to login.
+        // TODO: sign in with UPN and without UPN.
         final MsalSdk msalSdk = new MsalSdk();
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
@@ -123,20 +138,6 @@ public class entraTestcase extends AbstractMsalBrokerTest {
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
-
-//        //Register passkey via Chrome
-//        final BrowserChrome chrome = new BrowserChrome();
-//        chrome.launch();
-//        UiAutomatorUtils.handleButtonClickForObjectWithText("Use without an account");
-//        UiAutomatorUtils.handleButtonClickForObjectWithText("Got it");
-//        chrome.navigateTo("aka.ms/mysecurityinfo");
-//        //UiAutomatorUtils.handleInput("i0116", username);
-//        UiAutomatorUtils.obtainUiObjectWithClassAndIndex(EditText.class, 0).setText(username);
-//        UiAutomatorUtils.handleButtonClickForObjectWithText("Next");
-//        UiAutomatorUtils.obtainUiObjectWithClassAndIndex(EditText.class, 0).setText(password);
-//        UiAutomatorUtils.pressEnter();
-//        UiAutomatorUtils.handleButtonClickForObjectWithText("Add sign-in method");
-//        UiAutomatorUtils.obtainUiObjectWithText("Choose a method").click();
     }
 
     @Override
@@ -161,6 +162,6 @@ public class entraTestcase extends AbstractMsalBrokerTest {
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_webview_skip_broker;
+        return R.raw.msal_config_default;
     }
 }
