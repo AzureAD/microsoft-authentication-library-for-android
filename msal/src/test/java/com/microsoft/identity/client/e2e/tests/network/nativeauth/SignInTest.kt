@@ -24,7 +24,11 @@
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
 import com.microsoft.identity.internal.testutils.TestConstants.Configurations.NATIVE_AUTH_SIGN_IN_TEST_CONFIG_FILE_PATH
+import com.microsoft.identity.internal.testutils.labutils.LabUserHelper
+//import com.microsoft.identity.internal.testutils.labutils.NativeAuthCredentialHelper
+import com.microsoft.identity.internal.testutils.labutils.NativeAuthCredentialHelper
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
+import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Test
@@ -35,9 +39,9 @@ class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     @Test
     fun testSignInSimple() = runTest {
-        // TODO set up LabsUserHelper - requires password to be moved to keyvault
-        val result = application.signIn("nativeauthuser1@1secmail.org", "fakepassword".toCharArray())
-        Assert.assertTrue(result is SignInError)
-        Assert.assertTrue((result as SignInError).isInvalidCredentials())
+        val username = NativeAuthCredentialHelper.getNativeAuthSignInUsername()
+        val password = NativeAuthCredentialHelper.getNativeAuthSignInPassword()
+        val result = application.signIn(username, password.toCharArray())
+        Assert.assertTrue(result is SignInResult.Complete)
     }
 }
