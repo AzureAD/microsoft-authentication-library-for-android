@@ -39,7 +39,6 @@ import com.microsoft.identity.common.internal.controllers.LocalMSALController
 import com.microsoft.identity.common.java.AuthenticationConstants
 import com.microsoft.identity.common.java.commands.CommandCallback
 import com.microsoft.identity.common.java.commands.SilentTokenCommand
-import com.microsoft.identity.common.java.controllers.BaseController
 import com.microsoft.identity.common.java.controllers.CommandDispatcher
 import com.microsoft.identity.common.java.controllers.ExceptionAdapter
 import com.microsoft.identity.common.java.dto.AccountRecord
@@ -204,7 +203,6 @@ class AccountState private constructor(
      * @throws [MsalClientException] If the the account doesn't exist in the cache.
      * @throws [ServiceException] If the refresh token doesn't exist in the cache/is expired, or the refreshing fails.
      */
-    @Deprecated("Use the getAccessToken(forceRefresh: Boolean = false, scopes: List<String>, callback: GetAccessTokenCallback) method")
     fun getAccessToken(forceRefresh: Boolean = false, callback: GetAccessTokenCallback) {
         LogSession.logMethodCall(
             tag = TAG,
@@ -229,7 +227,6 @@ class AccountState private constructor(
      *
      * @return [com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult] The result of the getAccessToken action
      */
-    @Deprecated("Use the getAccessToken(forceRefresh: Boolean = false, scopes: List<String>) method")
     suspend fun getAccessToken(forceRefresh: Boolean = false): GetAccessTokenResult {
         return getAccessTokenInternal(forceRefresh, AuthenticationConstants.DEFAULT_SCOPES.toList());
     }
@@ -244,8 +241,10 @@ class AccountState private constructor(
      * @return [com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult] The result of the getAccessToken action
      */
     suspend fun getAccessToken(forceRefresh: Boolean = false, scopes: List<String>): GetAccessTokenResult {
-        return getAccessTokenInternal(forceRefresh,
-            if (!scopes.isEmpty()) scopes else AuthenticationConstants.DEFAULT_SCOPES.toList() )
+        if (scopes.isEmpty()) {
+            throw MsalClientException(MsalClientException.INVALID_PARAMETER)
+        }
+        return getAccessTokenInternal(forceRefresh, scopes)
     }
 
     /**

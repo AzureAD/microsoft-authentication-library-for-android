@@ -653,14 +653,13 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
         assertEquals(accessToken, accessTokenTwo)
 
-        val accessTokenResultThree = (getAccountResult as GetAccountResult.AccountFound).resultValue.getAccessToken(false, emptyList())
-        assertTrue(accessTokenResultThree is GetAccessTokenResult.Complete)
-
-        val accessTokenThree = (accessTokenResultThree as GetAccessTokenResult.Complete).resultValue.accessToken
-        assertNotNull(accessTokenThree)
-
-        assertEquals(accessTokenTwo, accessTokenThree)
-        assertEquals(accessToken, accessTokenThree)
+        try {
+            var accessTokenState = (getAccountResult as GetAccountResult.AccountFound).resultValue.getAccessToken(false, emptyList())
+        } catch (exception: MsalClientException) {
+            assertEquals(MsalClientException.INVALID_PARAMETER, exception.errorCode)
+            return@runTest
+        }
+        fail()
     }
 
     /**
@@ -732,13 +731,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val signOutResult = accountState.signOut()
         assertTrue(signOutResult is SignOutResult.Complete)
 
-        var accessTokenState = accountState.getAccessToken(false, ArrayList<String>(AuthenticationConstants.DEFAULT_SCOPES))
-        assertTrue(accessTokenState is GetAccessTokenError)
-        assertTrue((accessTokenState as GetAccessTokenError).isNoAccountFound())
-
-
-        accessTokenState = accountState.getAccessToken(false, Arrays.asList(
-            AuthenticationConstants.OAuth2Scopes.EMAIL_SCOPE))
+        val accessTokenState = accountState.getAccessToken(false, ArrayList<String>(AuthenticationConstants.DEFAULT_SCOPES))
         assertTrue(accessTokenState is GetAccessTokenError)
         assertTrue((accessTokenState as GetAccessTokenError).isNoAccountFound())
     }
@@ -775,15 +768,13 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val signOutResult = accountState.signOut()
         assertTrue(signOutResult is SignOutResult.Complete)
 
-        var accessTokenState = accountState.getAccessToken(false, emptyList())
-        assertTrue(accessTokenState is GetAccessTokenError)
-        assertTrue((accessTokenState as GetAccessTokenError).isNoAccountFound())
-
-
-        accessTokenState = accountState.getAccessToken(false, Arrays.asList(
-            AuthenticationConstants.OAuth2Scopes.EMAIL_SCOPE))
-        assertTrue(accessTokenState is GetAccessTokenError)
-        assertTrue((accessTokenState as GetAccessTokenError).isNoAccountFound())
+        try {
+            var accessTokenState = accountState.getAccessToken(false, emptyList())
+        } catch (exception: MsalClientException) {
+            assertEquals(MsalClientException.INVALID_PARAMETER, exception.errorCode)
+            return@runTest
+        }
+        fail()
     }
 
     /**
