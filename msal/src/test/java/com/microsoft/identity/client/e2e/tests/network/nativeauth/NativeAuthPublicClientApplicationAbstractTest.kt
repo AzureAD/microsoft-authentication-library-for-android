@@ -55,7 +55,7 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
     lateinit var application: INativeAuthPublicClientApplication
 
     @Before
-    fun setup() {
+    open fun setup() {
         context = ApplicationProvider.getApplicationContext()
         activity = Mockito.mock(Activity::class.java)
         Mockito.`when`(activity.applicationContext).thenReturn(context)

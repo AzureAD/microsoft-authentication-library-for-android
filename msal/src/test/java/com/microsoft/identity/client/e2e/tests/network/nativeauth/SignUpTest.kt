@@ -24,19 +24,71 @@
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
 import com.microsoft.identity.internal.testutils.TestConstants.Configurations.NATIVE_AUTH_SIGN_IN_TEST_CONFIG_FILE_PATH
-import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
+import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
+import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError
+import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import org.junit.Assert
+import org.junit.Before
 import org.junit.Test
 
 class SignUpTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     override fun getConfigFilePath(): String = NATIVE_AUTH_SIGN_IN_TEST_CONFIG_FILE_PATH
 
+    private val tempEmailApi = TemporaryEmailService()
+
+    // Remove default Coroutine test timeout of 10 seconds.
+    private val testDispatcher = StandardTestDispatcher()
+
+    @Before
+    override fun setup() {
+        super.setup()
+        Dispatchers.setMain(testDispatcher)
+    }
+
     @Test
-    fun testSignUpSimple() = runTest {
-        val result = application.signIn("nativeauthuser1@1secmail.org", "fakepassword".toCharArray())
-        Assert.assertTrue(result is SignInError)
-        Assert.assertTrue((result as SignInError).isInvalidCredentials())
+    fun testSignUpErrorSimple() = runTest {
+        val user = tempEmailApi.generateRandomEmailAddress()
+        val result = application.signUp(user, "invalidpassword".toCharArray())
+        Assert.assertTrue(result is SignUpError)
+        Assert.assertTrue((result as SignUpError).isInvalidPassword())
+    }
+
+    /**
+     * Running with runBlocking to avoid default 10 second execution timeout.
+     */
+    @Test
+    fun testSignUpSuccessSimple() = runBlocking {
+        var retryCount = 0
+        var signUpResult: SignUpResult
+        var otp: String
+
+        while (true) {
+            try {
+                val user = tempEmailApi.generateRandomEmailAddress()
+                signUpResult = application.signUp(user, "8ZA[@Kzir!]==&3".toCharArray())
+                Assert.assertTrue(signUpResult is SignUpResult.CodeRequired)
+                otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
+                Assert.assertTrue(submitCodeResult is SignUpResult.Complete)
+                break
+            } catch (e: IllegalStateException) {
+                // Re-run this test if the OTP retrieval fails. 1SecMail is known for emails to sometimes never arrive.
+                // In that case, restart the test case with a new email address and try again, to make test less flaky.
+                if (retryCount == 3) {
+                    Assert.fail()
+                }
+                retryCount++
+            } finally {
+
+            }
+        }
+
     }
 }
