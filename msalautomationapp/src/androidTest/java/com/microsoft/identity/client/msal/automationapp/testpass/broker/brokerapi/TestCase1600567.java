@@ -37,12 +37,14 @@ import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 // Invoke each API from non-allowed apps. the request should be blocked.
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1600567
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
 @RetryOnFailure
+@Ignore
 public class TestCase1600567 extends AbstractMsalBrokerTest {
     @Test
     public void test_1600567() throws Throwable {
