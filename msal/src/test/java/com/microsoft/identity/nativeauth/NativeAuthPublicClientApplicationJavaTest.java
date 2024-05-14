@@ -27,6 +27,7 @@ import static com.microsoft.identity.common.java.nativeauth.BuildValues.*;
 import android.app.Activity;
 import android.content.Context;
 
+import com.microsoft.identity.client.ILoggerCallback;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
@@ -74,6 +75,7 @@ import com.microsoft.identity.common.java.interfaces.IPlatformComponents;
 import com.microsoft.identity.common.java.util.ResultFuture;
 import com.microsoft.identity.internal.testutils.TestUtils;
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpPasswordRequiredState;
+import com.microsoft.identity.nativeauth.utils.LoggerCheckHelper;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -82,13 +84,17 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.robolectric.RobolectricTestRunner;
+import org.mockito.MockitoAnnotations;
+import org.robolectric.ParameterizedRobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.LooperMode;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -106,7 +112,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.spy;
 import static org.robolectric.annotation.LooperMode.Mode.LEGACY;
 
-@RunWith(RobolectricTestRunner.class)
+@RunWith(ParameterizedRobolectricTestRunner.class)
 @LooperMode(LEGACY)
 @Config(shadows = {ShadowAndroidSdkStorageEncryptionManager.class})
 public class NativeAuthPublicClientApplicationJavaTest extends PublicClientApplicationAbstractTest {
@@ -115,11 +121,20 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     private IPlatformComponents components;
     private Activity activity;
     private INativeAuthPublicClientApplication application;
+    private LoggerCheckHelper loggerCheckHelper;
     private final String username = "user@email.com";
     private final String invalidUsername = "invalidUsername";
     private final char[] password = "verySafePassword".toCharArray();
     private final String code = "1234";
     private final String emptyString = "";
+    private final boolean allowPII;
+
+    public NativeAuthPublicClientApplicationJavaTest(boolean allowPII) {
+        this.allowPII = allowPII;
+    }
+
+    @Mock
+    private ILoggerCallback externalLogger;
 
 
     @Override
@@ -137,21 +152,26 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         setUseMockApiForNativeAuth(false);
     }
 
+    @ParameterizedRobolectricTestRunner.Parameters
+    public static Collection<Boolean> data() {
+        return Arrays.asList(true, false);
+    }
+
     @Before
     public void setup() {
+        MockitoAnnotations.initMocks(this);
         context = ApplicationProvider.getApplicationContext();
         components = AndroidPlatformComponentsFactory.createFromContext(context);
         activity = Mockito.mock(Activity.class);
+        loggerCheckHelper = new LoggerCheckHelper(externalLogger, allowPII);
         Mockito.when(activity.getApplicationContext()).thenReturn(context);
         setupPCA();
-        Logger.getInstance().setEnableLogcatLog(true);
-        Logger.getInstance().setEnablePII(true);
-        Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
         CommandDispatcherHelper.clear();
     }
 
     @After
     public void cleanup() {
+        loggerCheckHelper.checkSafeLogging();
         AcquireTokenTestHelper.setAccount(null);
         // remove everything from cache after test ends
         TestUtils.clearCache(SHARED_PREFERENCES_NAME);
