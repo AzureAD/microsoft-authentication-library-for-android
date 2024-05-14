@@ -26,7 +26,6 @@ import android.app.Activity
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.microsoft.identity.client.ILoggerCallback
-import com.microsoft.identity.client.Logger
 import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager
 import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest
@@ -78,18 +77,11 @@ import org.junit.BeforeClass
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.ArgumentMatcher
-import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
-import org.mockito.kotlin.any
-import org.mockito.kotlin.argThat
-import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.never
 import org.mockito.kotlin.spy
-import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.robolectric.ParameterizedRobolectricTestRunner
 import org.robolectric.annotation.Config
@@ -2327,6 +2319,6 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         val submitCodeState = spy((result as SignUpResult.CodeRequired).nextState)
         val submitCodeResult = submitCodeState.submitCode(emptyString)  // Empty code will trigger ArgUtils.validateNonNullArg(oob, "oob") of the SignUpContinueRequest to thrown ClientException
         assertTrue(submitCodeResult is SubmitCodeError)
-        assertTrue((submitCodeResult as SubmitCodeError).error.equals(ErrorTypes.UNSUCCESSFUL_COMMAND_ERROR))  // ClientException will be caught in CommandResultUtil.kt and converted to generic error in interface layer
+        assertTrue((submitCodeResult as SubmitCodeError).error.equals("unsuccessful_command")) // ClientException will be caught in CommandResultUtil.kt and converted to generic error in interface layer
     }
 }

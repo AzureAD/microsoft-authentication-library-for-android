@@ -84,8 +84,6 @@ internal class ErrorTypes {
         const val INVALID_STATE = "invalid_state"
 
         const val CLIENT_EXCEPTION = "client_exception"
-
-        const val UNSUCCESSFUL_COMMAND_ERROR = "unsuccessful_command"
     }
 }
 
