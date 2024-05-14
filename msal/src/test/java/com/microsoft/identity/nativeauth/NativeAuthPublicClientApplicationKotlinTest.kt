@@ -25,14 +25,28 @@ package com.microsoft.identity.nativeauth
 import android.app.Activity
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import com.microsoft.identity.client.ILoggerCallback
+import com.microsoft.identity.client.Logger
 import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager
 import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper
 import com.microsoft.identity.client.exception.MsalException
+import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory
+import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper
+import com.microsoft.identity.common.java.exception.BaseException
+import com.microsoft.identity.common.java.interfaces.IPlatformComponents
+import com.microsoft.identity.common.java.nativeauth.BuildValues
+import com.microsoft.identity.common.java.util.ResultFuture
+import com.microsoft.identity.common.nativeauth.MockApiEndpoint
+import com.microsoft.identity.common.nativeauth.MockApiResponseType
+import com.microsoft.identity.common.nativeauth.MockApiUtils.Companion.configureMockApi
+import com.microsoft.identity.internal.testutils.TestUtils
+import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenError
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordSubmitPasswordError
+import com.microsoft.identity.nativeauth.statemachine.errors.SignInContinuationError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpSubmitAttributesError
@@ -47,20 +61,9 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignOutResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResendCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
-import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory
-import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper
-import com.microsoft.identity.common.nativeauth.MockApiEndpoint
-import com.microsoft.identity.common.nativeauth.MockApiResponseType
-import com.microsoft.identity.common.nativeauth.MockApiUtils.Companion.configureMockApi
-import com.microsoft.identity.common.java.exception.BaseException
-import com.microsoft.identity.common.java.interfaces.IPlatformComponents
-import com.microsoft.identity.common.java.nativeauth.BuildValues
-import com.microsoft.identity.common.java.util.ResultFuture
-import com.microsoft.identity.internal.testutils.TestUtils
-import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
+import com.microsoft.identity.nativeauth.utils.LoggerCheckHelper
 import com.microsoft.identity.nativeauth.utils.mockCorrelationId
-import com.microsoft.identity.nativeauth.statemachine.errors.SignInContinuationError
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
@@ -75,11 +78,20 @@ import org.junit.BeforeClass
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.ArgumentMatcher
+import org.mockito.ArgumentMatchers.anyBoolean
+import org.mockito.Mock
 import org.mockito.Mockito
+import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argThat
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.spy
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import org.robolectric.RobolectricTestRunner
+import org.robolectric.ParameterizedRobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.io.File
 import java.util.UUID
@@ -87,23 +99,34 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
+
 @ExperimentalCoroutinesApi
-@RunWith(RobolectricTestRunner::class)
+@RunWith(ParameterizedRobolectricTestRunner::class)
 @Config(shadows = [ShadowAndroidSdkStorageEncryptionManager::class])
-class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstractTest() {
+class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean) : PublicClientApplicationAbstractTest() {
     private lateinit var context: Context
     private lateinit var components: IPlatformComponents
     private lateinit var activity: Activity
     private lateinit var application: INativeAuthPublicClientApplication
+    private lateinit var loggerCheckHelper: LoggerCheckHelper
     private val username = "user@email.com"
     private val invalidUsername = "invalidUsername"
     private val password = "verySafePassword".toCharArray()
     private val code = "1234"
     private val emptyString = ""
 
+    @Mock
+    private lateinit var externalLogger: ILoggerCallback
+
     override fun getConfigFilePath() = "src/test/res/raw/native_auth_native_only_test_config.json"
 
     companion object {
+        @JvmStatic
+        @ParameterizedRobolectricTestRunner.Parameters
+        fun data(): Collection<Boolean> {
+            return listOf(true, false)
+        }
+
         @BeforeClass
         @JvmStatic
         fun setupClass() {
@@ -119,9 +142,11 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
     @Before
     override fun setup() {
+        MockitoAnnotations.initMocks(this)
         context = ApplicationProvider.getApplicationContext()
         components = AndroidPlatformComponentsFactory.createFromContext(context)
         activity = Mockito.mock(Activity::class.java)
+        loggerCheckHelper = LoggerCheckHelper(externalLogger, allowPII)
         whenever(activity.applicationContext).thenReturn(context)
         setupPCA()
         CommandDispatcherHelper.clear()
@@ -129,6 +154,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
     @After
     fun cleanup() {
+        loggerCheckHelper.checkSafeLogging()
         AcquireTokenTestHelper.setAccount(null)
         // remove everything from cache after test ends
         TestUtils.clearCache(SHARED_PREFERENCES_NAME)
@@ -418,6 +444,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         )
         val result = continuationTokenState.signIn(scopes = null)
         assertTrue(result is SignInContinuationError)
+
     }
 
     /**
