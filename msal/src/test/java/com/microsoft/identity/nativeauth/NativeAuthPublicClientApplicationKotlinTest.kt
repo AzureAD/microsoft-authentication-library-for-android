@@ -26,12 +26,10 @@ import android.app.Activity
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.microsoft.identity.client.ILoggerCallback
-import com.microsoft.identity.client.Logger
 import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager
 import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper
-import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper
@@ -79,18 +77,11 @@ import org.junit.BeforeClass
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.ArgumentMatcher
-import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
-import org.mockito.kotlin.any
-import org.mockito.kotlin.argThat
-import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.never
 import org.mockito.kotlin.spy
-import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.robolectric.ParameterizedRobolectricTestRunner
 import org.robolectric.annotation.Config
@@ -390,14 +381,9 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         val result = application.signIn(username, password)
         assertTrue(result is SignInResult.Complete)
 
-        try {
-            application.signIn(username, password)
-        } catch (exception: MsalException) {
-            assertEquals(MsalClientException.INVALID_PARAMETER, exception.errorCode)
-            assertEquals("An account is already signed in.", exception.message)
-            return@runTest
-        }
-        fail() // An exception should happen
+        val newResult = application.signIn(username)
+        assertTrue(newResult is SignInError)
+        assertTrue((newResult as SignInError).exception?.message.equals("An account is already signed in."))
     }
 
     /**
@@ -1132,14 +1118,9 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         val result = application.signIn(username, password)
         assertTrue(result is SignInResult.Complete)
 
-        try {
-            application.signIn(username, password)
-        } catch (exception: MsalException) {
-            assertEquals(MsalClientException.INVALID_PARAMETER, exception.errorCode)
-            assertEquals("An account is already signed in.", exception.message)
-            return@runTest
-        }
-        fail() // An exception should happen
+        val newResult = application.signUp(username)
+        assertTrue(newResult is SignUpError)
+        assertTrue((newResult as SignUpError).exception?.message.equals("An account is already signed in."))
     }
 
     /**
@@ -1169,14 +1150,9 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         val result = application.signIn(username, password)
         assertTrue(result is SignInResult.Complete)
 
-        try {
-            application.signUp(username)
-        } catch (exception: MsalException) {
-            assertEquals(MsalClientException.INVALID_PARAMETER, exception.errorCode)
-            assertEquals("An account is already signed in.", exception.message)
-            return@runTest
-        }
-        fail() // An exception should happen
+        val newResult = application.signUp(username)
+        assertTrue(newResult is SignUpError)
+        assertTrue((newResult as SignUpError).exception?.message.equals("An account is already signed in."))
     }
 
     /**
@@ -1206,14 +1182,9 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         val result = application.signIn(username, password)
         assertTrue(result is SignInResult.Complete)
 
-        try {
-            application.resetPassword(username)
-        } catch (exception: MsalException) {
-            assertEquals(MsalClientException.INVALID_PARAMETER, exception.errorCode)
-            assertEquals("An account is already signed in.", exception.message)
-            return@runBlocking
-        }
-        fail() // An exception should happen
+        val newResult = application.resetPassword(username)
+        assertTrue(newResult is ResetPasswordError)
+        assertTrue((newResult as ResetPasswordError).exception?.message.equals("An account is already signed in."))
     }
 
     /**
@@ -2318,5 +2289,36 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         val result = application.signUp(invalidUsername)
         assertTrue(result is SignUpError)
         assertTrue((result as SignUpError).isInvalidUsername())
+    }
+
+    @Test
+    fun testEmptyRequestParametersToGenericErrorNotThrownException() = runTest {
+        val correlationId = UUID.randomUUID().toString()
+
+        configureMockApi(
+            endpointType = MockApiEndpoint.SignUpStart,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.SIGNUP_START_SUCCESS
+        )
+
+        configureMockApi(
+            endpointType = MockApiEndpoint.SignUpChallenge,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.CHALLENGE_TYPE_OOB
+        )
+
+        val result = application.signUp(username)
+        assertTrue(result is SignUpResult.CodeRequired)
+
+        configureMockApi(
+            endpointType = MockApiEndpoint.SignUpContinue,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.INVALID_OOB_VALUE
+        )
+
+        val submitCodeState = spy((result as SignUpResult.CodeRequired).nextState)
+        val submitCodeResult = submitCodeState.submitCode(emptyString)  // Empty code will trigger ArgUtils.validateNonNullArg(oob, "oob") of the SignUpContinueRequest to thrown ClientException
+        assertTrue(submitCodeResult is SubmitCodeError)
+        assertTrue((submitCodeResult as SubmitCodeError).error.equals("unsuccessful_command")) // ClientException will be caught in CommandResultUtil.kt and converted to generic error in interface layer
     }
 }

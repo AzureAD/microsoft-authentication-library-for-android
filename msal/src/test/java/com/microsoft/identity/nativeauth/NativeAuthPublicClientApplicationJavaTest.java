@@ -33,7 +33,6 @@ import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
 import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
-import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenError;
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError;
@@ -626,24 +625,18 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         assertTrue(signInWithPasswordResult.get(10, TimeUnit.SECONDS) instanceof SignInResult.Complete);
 
-        ResultFuture<BaseException> signInExceptionResult = new ResultFuture<>();
-        NativeAuthPublicClientApplication.SignInCallback signInWithPasswordResultCallback2
-                = new NativeAuthPublicClientApplication.SignInCallback() {
-            @Override
-            public void onResult(SignInResult result) {
+        SignInTestCallback signInWithPasswordResultTestCallback = new SignInTestCallback();
 
-            }
+        application.signIn(
+                username,
+                password,
+                null,
+                signInWithPasswordResultTestCallback
+        );
+        SignInResult signInError = signInWithPasswordResultTestCallback.get();
 
-            @Override
-            public void onError(@NonNull BaseException exception) {
-                signInExceptionResult.setResult(exception);
-            }
-        };
-
-        application.signIn(username, password, null, signInWithPasswordResultCallback2);
-        BaseException exception = signInExceptionResult.get(10, TimeUnit.SECONDS);
-        assertEquals(MsalClientException.INVALID_PARAMETER, exception.getErrorCode());
-        assertEquals("An account is already signed in.", exception.getMessage());
+        assertTrue(signInError instanceof SignInError);
+        assertEquals("An account is already signed in.", ((SignInError) signInError).getException().getMessage());
     }
 
     /**
@@ -875,25 +868,14 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         assertTrue(signInWithPasswordResult.get(10, TimeUnit.SECONDS) instanceof SignInResult.Complete);
 
-        ResultFuture<BaseException> signUpExceptionResult = new ResultFuture<>();
-        NativeAuthPublicClientApplication.SignUpCallback signUpWithPasswordResultCallback
-                = new NativeAuthPublicClientApplication.SignUpCallback() {
+        SignUpTestCallback signUpTestCallback = new SignUpTestCallback ();
 
-            @Override
-            public void onResult(SignUpResult result) {
+        application.signUp(username, password, null, signUpTestCallback);
 
-            }
+        SignUpResult signUpError = signUpTestCallback.get();
 
-            @Override
-            public void onError(@NonNull BaseException exception) {
-                signUpExceptionResult.setResult(exception);
-            }
-        };
-        application.signUp(username, password, null, signUpWithPasswordResultCallback);
-        BaseException exception = signUpExceptionResult.get(10, TimeUnit.SECONDS);
-
-        assertEquals(MsalClientException.INVALID_PARAMETER, exception.getErrorCode());
-        assertEquals("An account is already signed in.", exception.getMessage());
+        assertTrue(signUpError instanceof SignUpError);
+        assertEquals("An account is already signed in.", ((SignUpError) signUpError).getException().getMessage());
     }
 
     /**
@@ -944,24 +926,14 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         assertTrue(signInWithPasswordResult.get(10, TimeUnit.SECONDS) instanceof SignInResult.Complete);
         ResultFuture<BaseException> signUpExceptionResult = new ResultFuture<>();
 
-        NativeAuthPublicClientApplication.SignUpCallback signUpWithCodeResultCallback
-                = new NativeAuthPublicClientApplication.SignUpCallback() {
+        SignUpTestCallback signUpTestCallback = new SignUpTestCallback();
 
-            @Override
-            public void onResult(SignUpResult result) {
+        application.signUp(username, null, null, signUpTestCallback);
 
-            }
+        SignUpResult signUpError = signUpTestCallback.get();
 
-            @Override
-            public void onError(@NonNull BaseException exception) {
-                signUpExceptionResult.setResult(exception);
-            }
-        };
-        application.signUp(username, null, null, signUpWithCodeResultCallback);
-
-        BaseException exception = signUpExceptionResult.get(10, TimeUnit.SECONDS);
-        assertEquals(MsalClientException.INVALID_PARAMETER, exception.getErrorCode());
-        assertEquals("An account is already signed in.", exception.getMessage());
+        assertTrue(signUpError instanceof SignUpError);
+        assertEquals("An account is already signed in.", ((SignUpError) signUpError).getException().getMessage());
     }
 
     /**
@@ -1002,25 +974,12 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         assertTrue(signInWithPasswordResult instanceof SignInResult.Complete);
 
-        ResultFuture<BaseException> resetPasswordExceptionResult = new ResultFuture<>();
+        ResetPasswordStartTestCallback resetPasswordStartTestCallback = new ResetPasswordStartTestCallback();
+        application.resetPassword(username, resetPasswordStartTestCallback);
+        ResetPasswordStartResult resetPasswordError = resetPasswordStartTestCallback.get();
 
-        NativeAuthPublicClientApplication.ResetPasswordCallback resetPasswordCallback
-                = new NativeAuthPublicClientApplication.ResetPasswordCallback() {
-            @Override
-            public void onResult(ResetPasswordStartResult result) {
-            }
-
-            @Override
-            public void onError(@NonNull BaseException exception) {
-                resetPasswordExceptionResult.setResult(exception);
-
-            }
-        };
-        application.resetPassword(username, resetPasswordCallback);
-
-        BaseException exception = resetPasswordExceptionResult.get(10, TimeUnit.SECONDS);
-        assertEquals(MsalClientException.INVALID_PARAMETER, exception.getErrorCode());
-        assertEquals("An account is already signed in.", exception.getMessage());
+        assertTrue(resetPasswordError instanceof ResetPasswordError);
+        assertEquals("An account is already signed in.", ((ResetPasswordError) resetPasswordError).getException().getMessage());
     }
 
     /**
