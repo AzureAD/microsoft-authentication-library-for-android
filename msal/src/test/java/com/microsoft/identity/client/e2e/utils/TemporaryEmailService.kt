@@ -23,9 +23,11 @@
 
 package com.microsoft.identity.client.e2e.utils
 
+import com.google.gson.annotations.SerializedName
 import com.microsoft.identity.common.java.net.UrlConnectionHttpClient
 import com.microsoft.identity.common.nativeauth.MockApiEndpoint
 import com.microsoft.identity.common.nativeauth.MockApiResponseType
+import java.net.URL
 
 const val CORRELATION_ID =  "correlationId"
 const val ENDPOINT = "endpoint"
@@ -51,26 +53,26 @@ class TemporaryEmailService private constructor(
         }
     }
 
-    fun generateEmailAddress(): String {
-
-    }
+//    fun generateEmailAddress(): String {
+//
+//    }
 
 
     fun performRequest(endpointType: MockApiEndpoint, responseType: MockApiResponseType, correlationId: String) {
-        val addResponseUrl = URL(BASE_URL)
-        val request = Request(
-            correlationId = correlationId,
-            endpoint = endpointType.stringValue,
-            responseList = listOf(responseType.stringValue)
-        )
-        val encodedRequest = getEncodedRequest(request)
-
-        val result = httpClient.post(
-            addResponseUrl,
-            headers,
-            encodedRequest.toByteArray(charset(ObjectMapper.ENCODING_SCHEME))
-        )
-        assertTrue(result.statusCode == 200)
+//        val addResponseUrl = URL(BASE_URL)
+//        val request = Request(
+//            correlationId = correlationId,
+//            endpoint = endpointType.stringValue,
+//            responseList = listOf(responseType.stringValue)
+//        )
+//        val encodedRequest = getEncodedRequest(request)
+//
+//        val result = httpClient.post(
+//            addResponseUrl,
+//            headers,
+//            encodedRequest.toByteArray(charset(ObjectMapper.ENCODING_SCHEME))
+//        )
+//        assertTrue(result.statusCode == 200)
     }
 }
 

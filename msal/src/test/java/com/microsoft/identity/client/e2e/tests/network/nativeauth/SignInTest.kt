@@ -24,10 +24,7 @@
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
 import com.microsoft.identity.internal.testutils.TestConstants.Configurations.NATIVE_AUTH_SIGN_IN_TEST_CONFIG_FILE_PATH
-import com.microsoft.identity.internal.testutils.labutils.LabUserHelper
-//import com.microsoft.identity.internal.testutils.labutils.NativeAuthCredentialHelper
-import com.microsoft.identity.internal.testutils.labutils.NativeAuthCredentialHelper
-import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
+import com.microsoft.identity.internal.testutils.nativeauth.NativeAuthCredentialHelper
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
@@ -39,8 +36,8 @@ class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     @Test
     fun testSignInSimple() = runTest {
-        val username = NativeAuthCredentialHelper.getNativeAuthSignInUsername()
-        val password = NativeAuthCredentialHelper.getNativeAuthSignInPassword()
+        val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
+        val password = NativeAuthCredentialHelper.nativeAuthSignInPassword
         val result = application.signIn(username, password.toCharArray())
         Assert.assertTrue(result is SignInResult.Complete)
     }
