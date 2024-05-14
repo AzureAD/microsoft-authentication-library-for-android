@@ -47,7 +47,6 @@ import static junit.framework.Assert.fail;
 /**
  * Run all tests in the {@link AcquireTokenNetworkTest} class using CIAM
  */
-@Ignore
 public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
 
     private static final String CIAM_ISSUER = "ciamlogin.com";
@@ -93,6 +92,7 @@ public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
         };
     }
 
+    @Ignore
     public static class CiamTenantGUID extends AcquireTokenCIAMTest {
         @Override
         public String getConfigFilePath() {
@@ -114,6 +114,7 @@ public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
         }
     }
 
+    @Ignore
     public static class CiamTenantDomain extends AcquireTokenCIAMTest {
         @Override
         public String getConfigFilePath() {
@@ -135,6 +136,7 @@ public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
         }
     }
 
+    @Ignore
     public static class CiamTenantNoPath extends AcquireTokenCIAMTest {
         @Override
         public String getConfigFilePath() {
