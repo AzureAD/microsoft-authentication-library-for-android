@@ -3,7 +3,7 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 vNext
 ----------
 
-Version 5.3.1-RC2
+Version 5.3.1-RC3
 ---------
 - [PATCH] Safe logging of Kotlin data classes through ILoggable interface (#2081)
 - [PATCH] Update nimbus-jose-jwt 9.37.3 and junit 4.13.2 (#2084)
