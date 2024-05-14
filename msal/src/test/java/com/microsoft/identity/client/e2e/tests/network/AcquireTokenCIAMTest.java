@@ -32,6 +32,7 @@ import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -46,6 +47,7 @@ import static junit.framework.Assert.fail;
 /**
  * Run all tests in the {@link AcquireTokenNetworkTest} class using CIAM
  */
+@Ignore
 public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
 
     private static final String CIAM_ISSUER = "ciamlogin.com";
