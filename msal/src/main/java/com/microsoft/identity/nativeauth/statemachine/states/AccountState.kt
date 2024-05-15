@@ -48,6 +48,7 @@ import com.microsoft.identity.common.java.exception.ServiceException
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.result.ILocalAuthenticationResult
+import com.microsoft.identity.common.java.result.LocalAuthenticationResult
 import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
@@ -325,12 +326,12 @@ class AccountState private constructor(
                 val command = SilentTokenCommand(
                     params,
                     NativeAuthMsalController().asControllerFactory(),
-                    object : CommandCallback<Boolean?, BaseException?> {
+                    object : CommandCallback<LocalAuthenticationResult?, BaseException?> {
                         override fun onError(error: BaseException?) {
                             // Do nothing, handled by CommandDispatcher.submitSilentReturningFuture()
                         }
 
-                        override fun onTaskCompleted(result: Boolean?) {
+                        override fun onTaskCompleted(result: LocalAuthenticationResult?) {
                             // Do nothing, handled by CommandDispatcher.submitSilentReturningFuture()
                         }
 
