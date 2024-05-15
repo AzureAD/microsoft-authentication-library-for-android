@@ -208,7 +208,7 @@ class AccountState private constructor(
     interface GetAccessTokenCallback : Callback<GetAccessTokenResult>
 
     /**
-     * Retrieves the access token for the default OIDC scopes from the cache
+     * Retrieves the access token for the default OIDC(openid, offline_access, profile)  scopes from the cache
      * If the access token is expired, it will be attempted to be refreshed using the refresh token that's stored in the cache;
      * callback variant.
      *
@@ -234,7 +234,7 @@ class AccountState private constructor(
     }
 
     /**
-     * Retrieves the access token for the default OIDC scopes from the cache.
+     * Retrieves the access token for the default OIDC(openid, offline_access, profile) scopes from the cache.
      * If the access token is expired, it will be attempted to be refreshed using the refresh token that's stored in the cache;
      * Kotlin coroutines variant.
      *
