@@ -214,8 +214,6 @@ class AccountState private constructor(
      * callback variant.
      *
      * @return [com.microsoft.identity.client.IAuthenticationResult] If successful.
-     * @throws [MsalClientException] If the the account doesn't exist in the cache.
-     * @throws [ServiceException] If the refresh token doesn't exist in the cache/is expired, or the refreshing fails.
      */
     fun getAccessToken(forceRefresh: Boolean = false, callback: GetAccessTokenCallback) {
         LogSession.logMethodCall(
@@ -266,8 +264,6 @@ class AccountState private constructor(
      * callback variant.
      *
      * @return [com.microsoft.identity.client.IAuthenticationResult] If successful.
-     * @throws [MsalClientException] If the the account doesn't exist in the cache.
-     * @throws [ServiceException] If the refresh token doesn't exist in the cache/is expired, or the refreshing fails.
      */
     fun getAccessToken(forceRefresh: Boolean = false, scopes: List<String>, callback: GetAccessTokenCallback) {
         LogSession.logMethodCall(
