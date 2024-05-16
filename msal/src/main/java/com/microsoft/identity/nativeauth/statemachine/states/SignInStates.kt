@@ -128,73 +128,82 @@ class SignInCodeRequiredState internal constructor(
             methodName = "${TAG}.submitCode(code: String)"
         )
         return withContext(Dispatchers.IO) {
-            val params = CommandParametersAdapter.createSignInSubmitCodeCommandParameters(
-                config,
-                config.oAuth2TokenCache,
-                code,
-                continuationToken,
-                correlationId,
-                scopes
-            )
+            try {
+                val params = CommandParametersAdapter.createSignInSubmitCodeCommandParameters(
+                    config,
+                    config.oAuth2TokenCache,
+                    code,
+                    continuationToken,
+                    correlationId,
+                    scopes
+                )
 
-            val signInSubmitCodeCommand = SignInSubmitCodeCommand(
-                parameters = params,
-                controller = NativeAuthMsalController(),
-                publicApiId = PublicApiId.NATIVE_AUTH_SIGN_IN_SUBMIT_CODE
-            )
+                val signInSubmitCodeCommand = SignInSubmitCodeCommand(
+                    parameters = params,
+                    controller = NativeAuthMsalController(),
+                    publicApiId = PublicApiId.NATIVE_AUTH_SIGN_IN_SUBMIT_CODE
+                )
 
-            val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(signInSubmitCodeCommand).get()
+                val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(signInSubmitCodeCommand).get()
 
-            return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<SignInSubmitCodeCommandResult>()) {
-                is SignInCommandResult.IncorrectCode -> {
-                    SubmitCodeError(
-                        errorType = ErrorTypes.INVALID_CODE,
-                        error = result.error,
-                        errorMessage = result.errorDescription,
-                        correlationId = result.correlationId,
-                        errorCodes = result.errorCodes,
-                        subError = result.subError
-                    )
-
-                }
-
-                is SignInCommandResult.Complete -> {
-                    val authenticationResult =
-                        AuthenticationResultAdapter.adapt(result.authenticationResult)
-
-                    SignInResult.Complete(
-                        resultValue = AccountState.createFromAuthenticationResult(
-                            authenticationResult = authenticationResult,
+                return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<SignInSubmitCodeCommandResult>()) {
+                    is SignInCommandResult.IncorrectCode -> {
+                        SubmitCodeError(
+                            errorType = ErrorTypes.INVALID_CODE,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
-                            config = config
+                            errorCodes = result.errorCodes,
+                            subError = result.subError
                         )
-                    )
-                }
 
-                is INativeAuthCommandResult.Redirect -> {
-                    SubmitCodeError(
-                        errorType = ErrorTypes.BROWSER_REQUIRED,
-                        error = result.error,
-                        errorMessage = result.errorDescription,
-                        correlationId = result.correlationId
-                    )
-                }
+                    }
 
-                is INativeAuthCommandResult.UnknownError -> {
-                    Logger.warnWithObject(
-                        TAG,
-                        result.correlationId,
-                        "Submit code received unexpected result: ",
-                        result
-                    )
-                    SubmitCodeError(
-                        errorMessage = result.errorDescription,
-                        error = result.error,
-                        correlationId = result.correlationId,
-                        errorCodes = result.errorCodes,
-                        exception = result.exception
-                    )
+                    is SignInCommandResult.Complete -> {
+                        val authenticationResult =
+                            AuthenticationResultAdapter.adapt(result.authenticationResult)
+
+                        SignInResult.Complete(
+                            resultValue = AccountState.createFromAuthenticationResult(
+                                authenticationResult = authenticationResult,
+                                correlationId = result.correlationId,
+                                config = config
+                            )
+                        )
+                    }
+
+                    is INativeAuthCommandResult.Redirect -> {
+                        SubmitCodeError(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
+                        )
+                    }
+
+                    is INativeAuthCommandResult.UnknownError -> {
+                        Logger.warnWithObject(
+                            TAG,
+                            result.correlationId,
+                            "Submit code received unexpected result: ",
+                            result
+                        )
+                        SubmitCodeError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes,
+                            exception = result.exception
+                        )
+                    }
                 }
+            } catch (e: Exception) {
+                SubmitCodeError(
+                    errorType = ErrorTypes.CLIENT_EXCEPTION,
+                    errorMessage = "MSAL client exception occurred in submitCode.",
+                    exception = e,
+                    correlationId = correlationId
+                )
             }
         }
     }
@@ -239,51 +248,62 @@ class SignInCodeRequiredState internal constructor(
             methodName = "${TAG}.resendCode()"
         )
         return withContext(Dispatchers.IO) {
-            val params = CommandParametersAdapter.createSignInResendCodeCommandParameters(
-                config,
-                config.oAuth2TokenCache,
-                correlationId,
-                continuationToken
-            )
+            try {
+                val params = CommandParametersAdapter.createSignInResendCodeCommandParameters(
+                    config,
+                    config.oAuth2TokenCache,
+                    correlationId,
+                    continuationToken
+                )
 
-            val signInResendCodeCommand = SignInResendCodeCommand(
-                parameters = params,
-                controller = NativeAuthMsalController(),
-                publicApiId = PublicApiId.NATIVE_AUTH_SIGN_IN_RESEND_CODE
-            )
+                val signInResendCodeCommand = SignInResendCodeCommand(
+                    parameters = params,
+                    controller = NativeAuthMsalController(),
+                    publicApiId = PublicApiId.NATIVE_AUTH_SIGN_IN_RESEND_CODE
+                )
 
-            val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(signInResendCodeCommand).get()
+                val rawCommandResult =
+                    CommandDispatcher.submitSilentReturningFuture(signInResendCodeCommand).get()
 
-            return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<SignInResendCodeCommandResult>()) {
-                is SignInCommandResult.CodeRequired -> {
-                    SignInResendCodeResult.Success(
-                        nextState = SignInCodeRequiredState(
-                            continuationToken = result.continuationToken,
-                            correlationId = result.correlationId,
-                            scopes = scopes,
-                            config = config
-                        ),
-                        codeLength = result.codeLength,
-                        sentTo = result.challengeTargetLabel,
-                        channel = result.challengeChannel
-                    )
+                return@withContext when (val result =
+                    rawCommandResult.checkAndWrapCommandResultType<SignInResendCodeCommandResult>()) {
+                    is SignInCommandResult.CodeRequired -> {
+                        SignInResendCodeResult.Success(
+                            nextState = SignInCodeRequiredState(
+                                continuationToken = result.continuationToken,
+                                correlationId = result.correlationId,
+                                scopes = scopes,
+                                config = config
+                            ),
+                            codeLength = result.codeLength,
+                            sentTo = result.challengeTargetLabel,
+                            channel = result.challengeChannel
+                        )
+                    }
+
+                    is INativeAuthCommandResult.Redirect, is INativeAuthCommandResult.UnknownError -> {
+                        Logger.warnWithObject(
+                            TAG,
+                            result.correlationId,
+                            "Resend code received unexpected result: ",
+                            result
+                        )
+                        ResendCodeError(
+                            errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
+                            error = (result as INativeAuthCommandResult.Error).error,
+                            correlationId = (result as INativeAuthCommandResult.Error).correlationId,
+                            errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
+                            exception = if (result is INativeAuthCommandResult.UnknownError) result.exception else null
+                        )
+                    }
                 }
-
-                is INativeAuthCommandResult.Redirect, is INativeAuthCommandResult.UnknownError -> {
-                    Logger.warnWithObject(
-                        TAG,
-                        result.correlationId,
-                        "Resend code received unexpected result: ",
-                        result
-                    )
-                    ResendCodeError(
-                        errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
-                        error = (result as INativeAuthCommandResult.Error).error,
-                        correlationId = (result as INativeAuthCommandResult.Error).correlationId,
-                        errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
-                        exception = if (result is INativeAuthCommandResult.UnknownError) result.exception else null
-                    )
-                }
+            } catch (e: Exception) {
+                ResendCodeError(
+                    errorType = ErrorTypes.CLIENT_EXCEPTION,
+                    errorMessage = "MSAL client exception occurred in resendCode.",
+                    exception = e,
+                    correlationId = correlationId
+                )
             }
         }
     }
@@ -375,65 +395,76 @@ class SignInPasswordRequiredState(
             methodName = "${TAG}.submitPassword(password: CharArray)"
         )
         return withContext(Dispatchers.IO) {
-            val params = CommandParametersAdapter.createSignInSubmitPasswordCommandParameters(
-                config,
-                config.oAuth2TokenCache,
-                continuationToken,
-                password,
-                correlationId,
-                scopes
-            )
-
-            try
-            {
-                val signInSubmitPasswordCommand = SignInSubmitPasswordCommand(
-                    parameters = params,
-                    controller = NativeAuthMsalController(),
-                    publicApiId = PublicApiId.NATIVE_AUTH_SIGN_IN_SUBMIT_PASSWORD
+            try {
+                val params = CommandParametersAdapter.createSignInSubmitPasswordCommandParameters(
+                    config,
+                    config.oAuth2TokenCache,
+                    continuationToken,
+                    password,
+                    correlationId,
+                    scopes
                 )
 
-                val rawCommandResult =
-                    CommandDispatcher.submitSilentReturningFuture(signInSubmitPasswordCommand).get()
+                try {
+                    val signInSubmitPasswordCommand = SignInSubmitPasswordCommand(
+                        parameters = params,
+                        controller = NativeAuthMsalController(),
+                        publicApiId = PublicApiId.NATIVE_AUTH_SIGN_IN_SUBMIT_PASSWORD
+                    )
 
-                return@withContext when (val result =
-                    rawCommandResult.checkAndWrapCommandResultType<SignInSubmitPasswordCommandResult>()) {
-                    is SignInCommandResult.InvalidCredentials -> {
-                        SignInSubmitPasswordError(
-                            errorType = SignInErrorTypes.INVALID_CREDENTIALS,
-                            errorMessage = result.errorDescription,
-                            error = result.error,
-                            correlationId = result.correlationId
-                        )
-                    }
-                    is SignInCommandResult.Complete -> {
-                        val authenticationResult =
-                            AuthenticationResultAdapter.adapt(result.authenticationResult)
-                        SignInResult.Complete(
-                            resultValue = AccountState.createFromAuthenticationResult(
-                                authenticationResult = authenticationResult,
-                                correlationId = result.correlationId,
-                                config = config
+                    val rawCommandResult =
+                        CommandDispatcher.submitSilentReturningFuture(signInSubmitPasswordCommand)
+                            .get()
+
+                    return@withContext when (val result =
+                        rawCommandResult.checkAndWrapCommandResultType<SignInSubmitPasswordCommandResult>()) {
+                        is SignInCommandResult.InvalidCredentials -> {
+                            SignInSubmitPasswordError(
+                                errorType = SignInErrorTypes.INVALID_CREDENTIALS,
+                                errorMessage = result.errorDescription,
+                                error = result.error,
+                                correlationId = result.correlationId
                             )
-                        )
+                        }
+
+                        is SignInCommandResult.Complete -> {
+                            val authenticationResult =
+                                AuthenticationResultAdapter.adapt(result.authenticationResult)
+                            SignInResult.Complete(
+                                resultValue = AccountState.createFromAuthenticationResult(
+                                    authenticationResult = authenticationResult,
+                                    correlationId = result.correlationId,
+                                    config = config
+                                )
+                            )
+                        }
+
+                        is INativeAuthCommandResult.Redirect, is INativeAuthCommandResult.UnknownError -> {
+                            Logger.warnWithObject(
+                                TAG,
+                                result.correlationId,
+                                "Submit password received unexpected result: ",
+                                result
+                            )
+                            SignInSubmitPasswordError(
+                                errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
+                                error = (result as INativeAuthCommandResult.Error).error,
+                                correlationId = (result as INativeAuthCommandResult.Error).correlationId,
+                                errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
+                                exception = (result as INativeAuthCommandResult.UnknownError).exception
+                            )
+                        }
                     }
-                    is INativeAuthCommandResult.Redirect, is INativeAuthCommandResult.UnknownError -> {
-                        Logger.warnWithObject(
-                            TAG,
-                            result.correlationId,
-                            "Submit password received unexpected result: ",
-                            result
-                        )
-                        SignInSubmitPasswordError(
-                            errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
-                            error = (result as INativeAuthCommandResult.Error).error,
-                            correlationId = (result as INativeAuthCommandResult.Error).correlationId,
-                            errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
-                            exception = (result as INativeAuthCommandResult.UnknownError).exception
-                        )
-                    }
+                } finally {
+                    StringUtil.overwriteWithNull(params.password)
                 }
-            } finally {
-                StringUtil.overwriteWithNull(params.password)
+            } catch (e: Exception) {
+                SignInSubmitPasswordError(
+                    errorType = ErrorTypes.CLIENT_EXCEPTION,
+                    errorMessage = "MSAL client exception occurred in submitPassword.",
+                    exception = e,
+                    correlationId = correlationId
+                )
             }
         }
     }
@@ -502,6 +533,7 @@ class SignInContinuationState(
             correlationId = correlationId,
             methodName = "${TAG}.signIn(scopes: List<String>, callback: SignInContinuationCallback)"
         )
+
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = signIn(scopes)
@@ -525,66 +557,83 @@ class SignInContinuationState(
             correlationId = correlationId,
             methodName = "${TAG}.signIn(scopes: List<String>)"
         )
+
         return withContext(Dispatchers.IO) {
-            // Check if verification code was passed. If not, return an UnknownError with instructions to call the other
-            // sign in flows (code or password).
-            if (continuationToken.isNullOrEmpty()) {
-                Logger.warn(
-                    TAG,
-                    "Sign in after sign up received unexpected result: continuationToken was null"
+            try {
+                LogSession.logMethodCall(
+                    tag = TAG,
+                    correlationId = correlationId,
+                    methodName = "${TAG}.signIn(scopes: List<String>)"
                 )
-                return@withContext SignInContinuationError(
-                    errorMessage = "Sign In is not available through this state, please use the standalone sign in method.",
-                    error = ErrorTypes.INVALID_STATE,
-                    correlationId = "UNSET",
-                )
-            }
-
-            val commandParameters = CommandParametersAdapter.createSignInWithContinuationTokenCommandParameters(
-                config,
-                config.oAuth2TokenCache,
-                continuationToken,
-                username,
-                correlationId,
-                scopes
-            )
-
-            val command = SignInWithContinuationTokenCommand(
-                commandParameters,
-                NativeAuthMsalController(),
-                PublicApiId.NATIVE_AUTH_SIGN_IN_WITH_SLT
-            )
-
-            val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
-
-            return@withContext when (val result = rawCommandResult.checkAndWrapCommandResultType<SignInWithContinuationTokenCommandResult>()) {
-                is SignInCommandResult.Complete -> {
-                    val authenticationResult =
-                        AuthenticationResultAdapter.adapt(result.authenticationResult)
-                    SignInResult.Complete(
-                        resultValue = AccountState.createFromAuthenticationResult(
-                            authenticationResult = authenticationResult,
-                            correlationId = result.correlationId,
-                            config = config
-                        )
-                    )
-                }
-                is INativeAuthCommandResult.Redirect,
-                is INativeAuthCommandResult.UnknownError -> {
-                    Logger.warnWithObject(
+                // Check if verification code was passed. If not, return a generic error with instructions to call the other
+                // sign in flows (code or password).
+                if (continuationToken.isNullOrEmpty()) {
+                    Logger.warn(
                         TAG,
-                        result.correlationId,
-                        "Sign in after sign up received unexpected result: ",
-                        result
+                        "Sign in after sign up received unexpected result: continuationToken was null"
                     )
-                    SignInContinuationError(
-                        errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
-                        error = (result as INativeAuthCommandResult.Error).error,
-                        correlationId = (result as INativeAuthCommandResult.Error).correlationId,
-                        errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
-                        exception = (result as INativeAuthCommandResult.UnknownError).exception
+                    return@withContext SignInContinuationError(
+                        errorMessage = "Sign In is not available through this state, please use the standalone sign in method.",
+                        error = ErrorTypes.INVALID_STATE,
+                        correlationId = "UNSET",
                     )
                 }
+
+                val commandParameters =
+                    CommandParametersAdapter.createSignInWithContinuationTokenCommandParameters(
+                        config,
+                        config.oAuth2TokenCache,
+                        continuationToken,
+                        username,
+                        correlationId,
+                        scopes
+                    )
+
+                val command = SignInWithContinuationTokenCommand(
+                    commandParameters,
+                    NativeAuthMsalController(),
+                    PublicApiId.NATIVE_AUTH_SIGN_IN_WITH_SLT
+                )
+
+                val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
+
+                return@withContext when (val result =
+                    rawCommandResult.checkAndWrapCommandResultType<SignInWithContinuationTokenCommandResult>()) {
+                    is SignInCommandResult.Complete -> {
+                        val authenticationResult =
+                            AuthenticationResultAdapter.adapt(result.authenticationResult)
+                        SignInResult.Complete(
+                            resultValue = AccountState.createFromAuthenticationResult(
+                                authenticationResult = authenticationResult,
+                                correlationId = result.correlationId,
+                                config = config
+                            )
+                        )
+                    }
+
+                    is INativeAuthCommandResult.Redirect,
+                    is INativeAuthCommandResult.UnknownError -> {
+                        Logger.warnWithObject(
+                            TAG,
+                            result.correlationId,
+                            "Sign in after sign up received unexpected result: ",
+                            result
+                        )
+                        SignInContinuationError(
+                            errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
+                            error = (result as INativeAuthCommandResult.Error).error,
+                            correlationId = (result as INativeAuthCommandResult.Error).correlationId,
+                            errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
+                            exception = (result as INativeAuthCommandResult.UnknownError).exception
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                SignInContinuationError(
+                    errorMessage = "MSAL client exception occurred in signIn.",
+                    exception = e,
+                    correlationId = correlationId
+                )
             }
         }
     }
