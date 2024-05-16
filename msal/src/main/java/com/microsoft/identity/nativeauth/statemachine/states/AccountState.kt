@@ -253,6 +253,14 @@ class AccountState private constructor(
      * @return [com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult] The result of the getAccessToken action
      */
     suspend fun getAccessToken(forceRefresh: Boolean = false, scopes: List<String>): GetAccessTokenResult {
+        if (scopes.isEmpty()) {
+            return GetAccessTokenError(
+                errorType = ErrorTypes.INVALID_SCOPES,
+                errorMessage = "Empty or invalid scopes",
+                correlationId = "UNSET"
+            )
+        }
+
         return getAccessTokenInternal(forceRefresh, scopes)
     }
 

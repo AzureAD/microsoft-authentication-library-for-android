@@ -78,6 +78,12 @@ internal class ErrorTypes {
         const val INVALID_USERNAME = "invalid_username"
 
         /*
+        * The INVALID_SCOPES value indicates the scopes provided by the user are not valid
+        * If this occurs, valid scopes should be resubmitted
+        */
+        const val INVALID_SCOPES = "invalid_scopes"
+
+        /*
          * The INVALID_STATE value indicates a misconfigured or expired state, or an internal error
          * in state transitions. If this occurs, the flow should be restarted.
          */
