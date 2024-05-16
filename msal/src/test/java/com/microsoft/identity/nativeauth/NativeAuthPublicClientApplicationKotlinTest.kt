@@ -61,6 +61,7 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignOutResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResendCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import com.microsoft.identity.common.java.AuthenticationConstants
+import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
 import com.microsoft.identity.nativeauth.utils.LoggerCheckHelper
 import com.microsoft.identity.nativeauth.utils.mockCorrelationId
@@ -655,7 +656,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
 
         assertTrue(accessTokenState is GetAccessTokenError)
         assertTrue((accessTokenState as GetAccessTokenError).isInvalidScopes())
-        assertEquals((accessTokenState as GetAccessTokenError).errorType, ErrorTypes.INVALID_SCOPES)
+        assertEquals((accessTokenState as GetAccessTokenError).errorType, GetAccessTokenErrorTypes.INVALID_SCOPES)
     }
 
     /**
@@ -768,7 +769,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
 
         assertTrue(accessTokenState is GetAccessTokenError)
         assertTrue((accessTokenState as GetAccessTokenError).isInvalidScopes())
-        assertEquals((accessTokenState as GetAccessTokenError).errorType, ErrorTypes.INVALID_SCOPES)
+        assertEquals((accessTokenState as GetAccessTokenError).errorType, GetAccessTokenErrorTypes.INVALID_SCOPES)
 
     }
 

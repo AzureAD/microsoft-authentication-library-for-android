@@ -255,7 +255,7 @@ class AccountState private constructor(
     suspend fun getAccessToken(forceRefresh: Boolean = false, scopes: List<String>): GetAccessTokenResult {
         if (scopes.isEmpty()) {
             return GetAccessTokenError(
-                errorType = ErrorTypes.INVALID_SCOPES,
+                errorType = GetAccessTokenErrorTypes.INVALID_SCOPES,
                 errorMessage = "Empty or invalid scopes",
                 correlationId = "UNSET"
             )
@@ -302,7 +302,7 @@ class AccountState private constructor(
                 val currentAccount =
                     NativeAuthPublicClientApplication.getCurrentAccountInternal(config) as? Account
                         ?: return@withContext GetAccessTokenError(
-                            errorType = ErrorTypes.NO_ACCOUNT_FOUND,
+                            errorType = GetAccessTokenErrorTypes.NO_ACCOUNT_FOUND,
                             error = MsalClientException.NO_CURRENT_ACCOUNT,
                             errorMessage = MsalClientException.NO_CURRENT_ACCOUNT_ERROR_MESSAGE,
                             correlationId = "UNSET"

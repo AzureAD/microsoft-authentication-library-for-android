@@ -78,22 +78,10 @@ internal class ErrorTypes {
         const val INVALID_USERNAME = "invalid_username"
 
         /*
-        * The INVALID_SCOPES value indicates the scopes provided by the user are not valid
-        * If this occurs, valid scopes should be resubmitted
-        */
-        const val INVALID_SCOPES = "invalid_scopes"
-
-        /*
          * The INVALID_STATE value indicates a misconfigured or expired state, or an internal error
          * in state transitions. If this occurs, the flow should be restarted.
          */
         const val INVALID_STATE = "invalid_state"
-
-        /*
-        * The NO_ACCOUNT_FOUND value indicates the user is not signed in.
-        * If this occurs, the API should be called after successful sign in
-        */
-        const val NO_ACCOUNT_FOUND = "no_account_found"
 
         const val CLIENT_EXCEPTION = "client_exception"
     }
