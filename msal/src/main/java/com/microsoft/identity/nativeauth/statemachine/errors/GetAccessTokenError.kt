@@ -31,7 +31,7 @@ internal class GetAccessTokenErrorTypes {
          * The NO_ACCOUNT_FOUND value indicates the user is not signed in.
          * If this occurs, the API should be called after successful sign in
          */
-        const val NO_ACCOUNT_FOUND = "no_account_found"
+        const val NO_ACCOUNT_FOUND = ErrorTypes.NO_ACCOUNT_FOUND
     }
 }
 

@@ -302,7 +302,7 @@ class AccountState private constructor(
                 val currentAccount =
                     NativeAuthPublicClientApplication.getCurrentAccountInternal(config) as? Account
                         ?: return@withContext GetAccessTokenError(
-                            errorType = GetAccessTokenErrorTypes.NO_ACCOUNT_FOUND,
+                            errorType = ErrorTypes.NO_ACCOUNT_FOUND,
                             error = MsalClientException.NO_CURRENT_ACCOUNT,
                             errorMessage = MsalClientException.NO_CURRENT_ACCOUNT_ERROR_MESSAGE,
                             correlationId = "UNSET"

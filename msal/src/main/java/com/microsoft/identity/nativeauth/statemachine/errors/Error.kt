@@ -89,6 +89,12 @@ internal class ErrorTypes {
          */
         const val INVALID_STATE = "invalid_state"
 
+        /*
+        * The NO_ACCOUNT_FOUND value indicates the user is not signed in.
+        * If this occurs, the API should be called after successful sign in
+        */
+        const val NO_ACCOUNT_FOUND = "no_account_found"
+
         const val CLIENT_EXCEPTION = "client_exception"
     }
 }
