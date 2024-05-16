@@ -654,6 +654,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         var accessTokenState = (getAccountResult as GetAccountResult.AccountFound).resultValue.getAccessToken(false, emptyList())
 
         assertTrue(accessTokenState is GetAccessTokenError)
+        assertTrue((accessTokenState as GetAccessTokenError).isInvalidScopes())
         assertEquals((accessTokenState as GetAccessTokenError).errorType, ErrorTypes.INVALID_SCOPES)
     }
 
@@ -766,6 +767,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         var accessTokenState = accountState.getAccessToken(false, emptyList())
 
         assertTrue(accessTokenState is GetAccessTokenError)
+        assertTrue((accessTokenState as GetAccessTokenError).isInvalidScopes())
         assertEquals((accessTokenState as GetAccessTokenError).errorType, ErrorTypes.INVALID_SCOPES)
 
     }

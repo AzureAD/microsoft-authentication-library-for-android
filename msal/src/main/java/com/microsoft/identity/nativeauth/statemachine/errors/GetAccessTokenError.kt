@@ -27,6 +27,10 @@ import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResu
 
 internal class GetAccessTokenErrorTypes {
     companion object {
+        /*
+         * The NO_ACCOUNT_FOUND value indicates the user is not signed in.
+         * If this occurs, the API should be called after successful sign in
+         */
         const val NO_ACCOUNT_FOUND = "no_account_found"
     }
 }
@@ -40,4 +44,6 @@ class GetAccessTokenError(
     override var exception: Exception? = null
 ): GetAccessTokenResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
     fun isNoAccountFound() : Boolean = this.errorType == GetAccessTokenErrorTypes.NO_ACCOUNT_FOUND
+
+    fun isInvalidScopes(): Boolean = this.errorType == ErrorTypes.INVALID_SCOPES
 }
