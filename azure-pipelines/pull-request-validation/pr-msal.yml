@@ -67,7 +67,7 @@ jobs:
   - task: Gradle@2
     displayName: Run Unit tests
     inputs:
-      tasks: msal:testLocalDebugUnitTest -Plabtest -PlabSecret=$(LabVaultAppCert) -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}}
+      tasks: msal:testLocalDebugUnitTest -Plabtest -PlabSecret=$(LabVaultAppCert) -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PmockApiUrl=https://native-auth-mock-api.azurewebsites.net/
       javaHomeSelection: $(BuildParameters.javaHomeSelection)
       jdkVersion: 1.11
 - job: spotbugs
