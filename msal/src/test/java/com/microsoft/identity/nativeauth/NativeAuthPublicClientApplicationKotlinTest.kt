@@ -557,13 +557,18 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         val getAccountResult = application.getCurrentAccount()
         assertTrue(getAccountResult is GetAccountResult.AccountFound)
 
-        val accessTokenResultTwo = (getAccountResult as GetAccountResult.AccountFound).resultValue.getAccessToken()
+        val accountState = (getAccountResult as GetAccountResult.AccountFound).resultValue
+        assertEquals(accountState.correlationId, correlationId)
+
+        val accessTokenResultTwo = accountState.getAccessToken()
         assertTrue(accessTokenResultTwo is GetAccessTokenResult.Complete)
 
-        val accessTokenTwo = (accessTokenResultTwo as GetAccessTokenResult.Complete).resultValue.accessToken
+        val authResult = (accessTokenResultTwo as GetAccessTokenResult.Complete).resultValue
+        val accessTokenTwo = authResult.accessToken
         assertNotNull(accessTokenTwo)
 
         assertEquals(accessToken, accessTokenTwo)
+        assertEquals(authResult.correlationId.toString(), correlationId)
     }
 
     /**
@@ -652,11 +657,16 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         val getAccountResult = application.getCurrentAccount()
         assertTrue(getAccountResult is GetAccountResult.AccountFound)
 
-        var accessTokenState = (getAccountResult as GetAccountResult.AccountFound).resultValue.getAccessToken(false, emptyList())
+        val accountState = (getAccountResult as GetAccountResult.AccountFound).resultValue
+
+        var accessTokenState = accountState.getAccessToken(false, emptyList())
 
         assertTrue(accessTokenState is GetAccessTokenError)
         assertTrue((accessTokenState as GetAccessTokenError).isInvalidScopes())
-        assertEquals((accessTokenState as GetAccessTokenError).errorType, GetAccessTokenErrorTypes.INVALID_SCOPES)
+        val tokenError = accessTokenState as GetAccessTokenError
+        assertEquals(tokenError.errorType, GetAccessTokenErrorTypes.INVALID_SCOPES)
+        assertEquals(tokenError.correlationId, correlationId)
+
     }
 
     /**

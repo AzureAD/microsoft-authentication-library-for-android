@@ -62,6 +62,7 @@ import com.microsoft.identity.nativeauth.utils.serializable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.UUID
 
 /**
  *  AccountState returned as part of a successful completion of sign in flow [com.microsoft.identity.nativeauth.statemachine.results.SignInResult.Complete].
@@ -257,7 +258,7 @@ class AccountState private constructor(
             return GetAccessTokenError(
                 errorType = GetAccessTokenErrorTypes.INVALID_SCOPES,
                 errorMessage = "Empty or invalid scopes",
-                correlationId = "UNSET"
+                correlationId = correlationId
             )
         }
 
@@ -305,12 +306,13 @@ class AccountState private constructor(
                             errorType = GetAccessTokenErrorTypes.NO_ACCOUNT_FOUND,
                             error = MsalClientException.NO_CURRENT_ACCOUNT,
                             errorMessage = MsalClientException.NO_CURRENT_ACCOUNT_ERROR_MESSAGE,
-                            correlationId = "UNSET"
+                            correlationId = correlationId
                         )
 
                 val acquireTokenSilentParameters = AcquireTokenSilentParameters.Builder()
                     .forAccount(currentAccount)
                     .fromAuthority(currentAccount.authority)
+                    .withCorrelationId(UUID.fromString(correlationId))
                     .forceRefresh(forceRefresh)
                     .withScopes(scopes)
                     .build()
@@ -353,14 +355,14 @@ class AccountState private constructor(
                     is ServiceException -> {
                         GetAccessTokenError(
                             exception = ExceptionAdapter.convertToNativeAuthException(commandResult),
-                            correlationId = "UNSET"
+                            correlationId = correlationId
                         )
                     }
 
                     is Exception -> {
                         GetAccessTokenError(
                             exception = commandResult,
-                            correlationId = "UNSET"
+                            correlationId = correlationId
                         )
                     }
 
