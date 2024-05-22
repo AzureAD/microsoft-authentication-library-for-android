@@ -175,6 +175,11 @@ public final class Logger {
         mExternalLogger = externalLogger;
     }
 
+    public synchronized void removeExternalLogger() {
+        mExternalLogger = null;
+    }
+
+
     /**
      * Enable/Disable the Android logcat logging. By default, the sdk enables it.
      *
