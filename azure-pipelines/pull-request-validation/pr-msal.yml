@@ -15,6 +15,7 @@ variables:
 - name: robolectricSdkVersion
   value: 33
 - group: MSIDLABVARS
+- group: devex-ciam-test
 
 trigger:
   branches:
@@ -45,6 +46,7 @@ jobs:
     clean: true
     submodules: recursive
     persistCredentials: True
+  - template: azure-pipelines/templates/steps/automation-cert.yml@common
   - task: JavaToolInstaller@0
     displayName: Use Java 11
     inputs:
@@ -66,7 +68,7 @@ jobs:
   - task: Gradle@2
     displayName: Run Unit tests
     inputs:
-      tasks: msal:testLocalDebugUnitTest -Plabtest -PlabSecret=$(LabVaultAppSecret) -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}}
+      tasks: msal:testLocalDebugUnitTest -Plabtest -PlabSecret=$(LabVaultAppCert) -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PmockApiUrl=$(MOCK_API_URL)
       javaHomeSelection: $(BuildParameters.javaHomeSelection)
       jdkVersion: 1.11
 - job: spotbugs
