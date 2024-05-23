@@ -135,13 +135,6 @@ android {
         }
     }
 
-//    libraryVariants.all { variant ->
-//        variant.outputs.all {
-//            def fileName = "${archivesBaseName}-${version}.aar"
-//            outputFileName = fileName
-//        }
-//    }
-
     testOptions {
         unitTests.all {
             if (!project.hasProperty('labtest')) {
@@ -163,35 +156,6 @@ android {
         }
     }
 }
-
-//// Task to generate javadoc
-//task javadoc(type: Javadoc) {
-//    failOnError false
-//    source = android.sourceSets.main.java.srcDirs
-//    configurations.api.setCanBeResolved(true)
-//    classpath += configurations.api
-//    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-//
-//    options.memberLevel = JavadocMemberLevel.PUBLIC
-//    options.addStringOption('Xdoclint:none', '-quiet')
-//
-//    exclude '**/BuildConfig.Java'
-//    exclude '**/R.java'
-//    destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
-//}
-//
-//// Task to generate javadoc.jar
-//task javadocJar(type: Jar, dependsOn: javadoc) {
-//    from javadoc.destinationDir
-//    classifier 'javadoc'
-//    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
-//}
-//
-//task sourcesJar(type: Jar) {
-//    from android.sourceSets.main.java.srcDirs
-//    classifier 'sources'
-//    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
-//}
 
 // In dev, we want to keep the dependencies (common4j, common) to 1.0.+ to be able to be consumed by daily dev pipeline.
 // In release/*, we change these to specific versions being consumed.
@@ -312,21 +276,6 @@ task pmd(type: Pmd) {
     }
 }
 
-//afterEvaluate {
-//   // Gradle 6.1.1 and Android Gradle Plugin 4.0.1 doesn't rename the file (see 'outputFileName' above)
-//   // Adding this work around to have the file properly renamed.
-//   tasks.named("assembleDistRelease").configure {
-//       def buildFile = file("$buildDir/outputs/aar/${archivesBaseName}-dist-release.aar")
-//       print "Build file $buildFile"
-//       doLast {
-//           println "Renaming build file $buildFile to '$buildDir${File.separator}outputs${File.separator}aar${File.separator}${archivesBaseName}-${version}.aar'"
-//           if (!buildFile.renameTo("$buildDir${File.separator}outputs${File.separator}aar${File.separator}${archivesBaseName}-${version}.aar")) {
-//               println "Rename failed!"
-//           }
-//       }
-//   }
-//}
-
 publishing {
     publications {
         msal(MavenPublication) {
@@ -362,12 +311,7 @@ publishing {
                         version: project.version
                 ]
             }
-
-//            artifact(sourcesJar)
-//            artifact(javadocJar)
-//            artifact("$buildDir/outputs/aar/msal-${project.version}.aar")
         }
-
     }
 
     // Repositories to which Gradle can publish artifacts
@@ -387,16 +331,4 @@ tasks.whenTaskAdded { task ->
     if (task.name.contains('assemble')) {
         task.dependsOn 'pmd'
     }
-
-//    if (task.name.contains('assemble')
-//        && !task.name.contains('Snapshot')
-//        && !task.name.contains('Test')
-//        && !task.name.contains('Local')) {
-//        task.dependsOn 'javadocJar', 'sourcesJar'
-//    }
 }
-
-// This is used to generate the pom file for publishing to external maven in maven-release-jobs.yml
-//tasks.withType(GenerateMavenPom).all {
-//    destination = layout.buildDirectory.file("poms/${project.name}-${project.version}.pom").get().asFile
-//}
