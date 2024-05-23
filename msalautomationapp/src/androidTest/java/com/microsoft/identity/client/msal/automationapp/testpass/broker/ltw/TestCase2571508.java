@@ -37,6 +37,7 @@ import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
+import com.microsoft.identity.client.ui.automation.interaction.UiResponse;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
@@ -92,7 +93,8 @@ public class TestCase2571508  extends AbstractMsalBrokerTest {
                 .broker(mBroker)
                 .prompt(PromptParameter.LOGIN)
                 .loginHint(username)
-                .consentPageExpected(false)
+                .consentPageExpected(CONSENT_PAGE_EXPECTED_FOR_ONE_AUTH)
+                .consentPageResponse(UiResponse.ACCEPT)
                 .speedBumpExpected(false)
                 .sessionExpected(false)
                 .expectingBrokerAccountChooserActivity(false)

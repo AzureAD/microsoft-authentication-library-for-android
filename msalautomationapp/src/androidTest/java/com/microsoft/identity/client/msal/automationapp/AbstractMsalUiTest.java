@@ -69,6 +69,7 @@ import java.util.concurrent.CountDownLatch;
  */
 public abstract class AbstractMsalUiTest implements IMsalTest, ILabTest, IRuleBasedTest {
 
+    public final static boolean CONSENT_PAGE_EXPECTED_FOR_ONE_AUTH = true;
     protected Context mContext;
     protected Activity mActivity;
     protected IPublicClientApplication mApplication;
