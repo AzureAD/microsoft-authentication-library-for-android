@@ -355,7 +355,7 @@ class AccountState private constructor(
                     is ServiceException -> {
                         GetAccessTokenError(
                             exception = ExceptionAdapter.convertToNativeAuthException(commandResult),
-                            correlationId = correlationId
+                            correlationId = commandResult.correlationId ?: correlationId
                         )
                     }
 
