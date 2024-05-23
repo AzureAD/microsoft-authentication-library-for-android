@@ -2,6 +2,7 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+- [MINOR] Support for multiple access tokens in NativeAuth (#2082)
 
 Version 5.3.1
 ---------
