@@ -27,13 +27,14 @@ import static com.microsoft.identity.common.java.nativeauth.BuildValues.*;
 import android.app.Activity;
 import android.content.Context;
 
+import com.microsoft.identity.client.ILoggerCallback;
 import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
 import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest;
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
-import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.common.java.AuthenticationConstants;
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenError;
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError;
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordSubmitPasswordError;
@@ -49,6 +50,7 @@ import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResul
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult;
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitCodeResult;
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitPasswordResult;
+import com.microsoft.identity.nativeauth.statemachine.results.Result;
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult;
 import com.microsoft.identity.nativeauth.statemachine.results.SignInSubmitCodeResult;
 import com.microsoft.identity.nativeauth.statemachine.results.SignOutResult;
@@ -74,6 +76,7 @@ import com.microsoft.identity.common.java.interfaces.IPlatformComponents;
 import com.microsoft.identity.common.java.util.ResultFuture;
 import com.microsoft.identity.internal.testutils.TestUtils;
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpPasswordRequiredState;
+import com.microsoft.identity.nativeauth.utils.LoggerCheckHelper;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -82,13 +85,18 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.robolectric.RobolectricTestRunner;
+import org.mockito.MockitoAnnotations;
+import org.robolectric.ParameterizedRobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.LooperMode;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -106,7 +114,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.spy;
 import static org.robolectric.annotation.LooperMode.Mode.LEGACY;
 
-@RunWith(RobolectricTestRunner.class)
+@RunWith(ParameterizedRobolectricTestRunner.class)
 @LooperMode(LEGACY)
 @Config(shadows = {ShadowAndroidSdkStorageEncryptionManager.class})
 public class NativeAuthPublicClientApplicationJavaTest extends PublicClientApplicationAbstractTest {
@@ -115,11 +123,20 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     private IPlatformComponents components;
     private Activity activity;
     private INativeAuthPublicClientApplication application;
+    private LoggerCheckHelper loggerCheckHelper;
     private final String username = "user@email.com";
     private final String invalidUsername = "invalidUsername";
     private final char[] password = "verySafePassword".toCharArray();
     private final String code = "1234";
     private final String emptyString = "";
+    private final boolean allowPII;
+
+    public NativeAuthPublicClientApplicationJavaTest(boolean allowPII) {
+        this.allowPII = allowPII;
+    }
+
+    @Mock
+    private ILoggerCallback externalLogger;
 
 
     @Override
@@ -137,21 +154,26 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         setUseMockApiForNativeAuth(false);
     }
 
+    @ParameterizedRobolectricTestRunner.Parameters
+    public static Collection<Boolean> data() {
+        return Arrays.asList(true, false);
+    }
+
     @Before
     public void setup() {
+        MockitoAnnotations.initMocks(this);
         context = ApplicationProvider.getApplicationContext();
         components = AndroidPlatformComponentsFactory.createFromContext(context);
         activity = Mockito.mock(Activity.class);
+        loggerCheckHelper = new LoggerCheckHelper(externalLogger, allowPII);
         Mockito.when(activity.getApplicationContext()).thenReturn(context);
         setupPCA();
-        Logger.getInstance().setEnableLogcatLog(true);
-        Logger.getInstance().setEnablePII(true);
-        Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE);
         CommandDispatcherHelper.clear();
     }
 
     @After
     public void cleanup() {
+        loggerCheckHelper.checkSafeLogging();
         AcquireTokenTestHelper.setAccount(null);
         // remove everything from cache after test ends
         TestUtils.clearCache(SHARED_PREFERENCES_NAME);
@@ -606,24 +628,18 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         assertTrue(signInWithPasswordResult.get(10, TimeUnit.SECONDS) instanceof SignInResult.Complete);
 
-        ResultFuture<BaseException> signInExceptionResult = new ResultFuture<>();
-        NativeAuthPublicClientApplication.SignInCallback signInWithPasswordResultCallback2
-                = new NativeAuthPublicClientApplication.SignInCallback() {
-            @Override
-            public void onResult(SignInResult result) {
+        SignInTestCallback signInWithPasswordResultTestCallback = new SignInTestCallback();
 
-            }
+        application.signIn(
+                username,
+                password,
+                null,
+                signInWithPasswordResultTestCallback
+        );
+        SignInResult signInError = signInWithPasswordResultTestCallback.get();
 
-            @Override
-            public void onError(@NonNull BaseException exception) {
-                signInExceptionResult.setResult(exception);
-            }
-        };
-
-        application.signIn(username, password, null, signInWithPasswordResultCallback2);
-        BaseException exception = signInExceptionResult.get(10, TimeUnit.SECONDS);
-        assertEquals(MsalClientException.INVALID_PARAMETER, exception.getErrorCode());
-        assertEquals("An account is already signed in.", exception.getMessage());
+        assertTrue(signInError instanceof SignInError);
+        assertEquals("An account is already signed in.", ((SignInError) signInError).getException().getMessage());
     }
 
     /**
@@ -757,6 +773,109 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     }
 
     /**
+     * Test sign in, get access token. Compare to token from getAccount()
+     */
+    @Test
+    public void testGetAccessTokenWithSignInScopes() throws ExecutionException, InterruptedException, TimeoutException {
+        String correlationId = UUID.randomUUID().toString();
+        MockApiUtils.configureMockApi(
+                MockApiEndpoint.SignInInitiate,
+                correlationId,
+                MockApiResponseType.INITIATE_SUCCESS
+        );
+
+        MockApiUtils.configureMockApi(
+                MockApiEndpoint.SignInChallenge,
+                correlationId,
+                MockApiResponseType.CHALLENGE_TYPE_PASSWORD
+        );
+
+        MockApiUtils.configureMockApi(
+                MockApiEndpoint.SignInToken,
+                correlationId,
+                MockApiResponseType.TOKEN_SUCCESS
+        );
+
+        SignInTestCallback signInTestCallback = new SignInTestCallback();
+        application.signIn(
+                username,
+                password,
+                null,
+                signInTestCallback
+        );
+        SignInResult signInWithPasswordResult = signInTestCallback.get();
+        assertTrue(signInWithPasswordResult instanceof SignInResult.Complete);
+
+        // Get access token from sign in result
+        GetAccessTokenTestCallback getAccessTokenCallback = new GetAccessTokenTestCallback();
+        ((SignInResult.Complete) signInWithPasswordResult).getResultValue().getAccessToken(false, getAccessTokenCallback);
+        GetAccessTokenResult getAccessTokenResult = getAccessTokenCallback.get();
+        assertTrue(getAccessTokenResult instanceof GetAccessTokenResult.Complete);
+
+        String accessToken = ((GetAccessTokenResult.Complete) getAccessTokenResult).getResultValue().getAccessToken();
+        assertNotNull(accessToken);
+
+        // For comparison, get access token from getAccount()
+        GetAccountTestCallback getAccountTestCallback = new GetAccountTestCallback();
+        application.getCurrentAccount(getAccountTestCallback);
+
+        GetAccountResult getAccountResult = getAccountTestCallback.get();
+        assertTrue(getAccountResult instanceof GetAccountResult.AccountFound);
+        ((GetAccountResult.AccountFound) getAccountResult).getResultValue().getAccessToken(false,
+                new ArrayList<>(AuthenticationConstants.DEFAULT_SCOPES), getAccessTokenCallback);
+        GetAccessTokenResult getAccessTokenResultTwo = getAccessTokenCallback.get();
+        assertTrue(getAccessTokenResultTwo instanceof GetAccessTokenResult.Complete);
+
+        String accessTokenTwo = ((GetAccessTokenResult.Complete) getAccessTokenResult).getResultValue().getAccessToken();
+        assertNotNull(accessTokenTwo);
+
+        assertEquals(accessToken, accessTokenTwo);
+    }
+
+    /**
+     * Test sign in, get access token. Compare to token from getAccount()
+     */
+    @Test
+    public void testGetAccessTokenEmptyScope() throws ExecutionException, InterruptedException, TimeoutException {
+        String correlationId = UUID.randomUUID().toString();
+        MockApiUtils.configureMockApi(
+                MockApiEndpoint.SignInInitiate,
+                correlationId,
+                MockApiResponseType.INITIATE_SUCCESS
+        );
+
+        MockApiUtils.configureMockApi(
+                MockApiEndpoint.SignInChallenge,
+                correlationId,
+                MockApiResponseType.CHALLENGE_TYPE_PASSWORD
+        );
+
+        MockApiUtils.configureMockApi(
+                MockApiEndpoint.SignInToken,
+                correlationId,
+                MockApiResponseType.TOKEN_SUCCESS
+        );
+
+        SignInTestCallback signInTestCallback = new SignInTestCallback();
+        application.signIn(
+                username,
+                password,
+                null,
+                signInTestCallback
+        );
+        SignInResult signInWithPasswordResult = signInTestCallback.get();
+        assertTrue(signInWithPasswordResult instanceof SignInResult.Complete);
+
+        // Get access token from sign in result
+        GetAccessTokenTestCallback getAccessTokenCallback = new GetAccessTokenTestCallback();
+        ((SignInResult.Complete) signInWithPasswordResult).getResultValue().getAccessToken(false, new ArrayList<>(), getAccessTokenCallback);
+        GetAccessTokenResult getAccessTokenResult = getAccessTokenCallback.get();
+        assertTrue(getAccessTokenResult instanceof GetAccessTokenError);
+
+        assertTrue(((GetAccessTokenError) getAccessTokenResult).isInvalidScopes());
+    }
+
+    /**
      * Test sign in, sign out, get access token
      */
     @Test
@@ -801,6 +920,57 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // Attempt to get token
         GetAccessTokenTestCallback getAccessTokenTestCallback = new GetAccessTokenTestCallback();
         accountState.getAccessToken(false, getAccessTokenTestCallback);
+        GetAccessTokenResult getAccessTokenResult = getAccessTokenTestCallback.get();
+        assertTrue(getAccessTokenResult instanceof GetAccessTokenError);
+        assertTrue(((GetAccessTokenError) getAccessTokenResult).isNoAccountFound());
+    }
+
+    /**
+     * Test sign in, sign out, get access token
+     */
+    @Test
+    public void testSignOutGetAccessTokenTwoParams() throws ExecutionException, InterruptedException, TimeoutException {
+        String correlationId = UUID.randomUUID().toString();
+        MockApiUtils.configureMockApi(
+                MockApiEndpoint.SignInInitiate,
+                correlationId,
+                MockApiResponseType.INITIATE_SUCCESS
+        );
+
+        MockApiUtils.configureMockApi(
+                MockApiEndpoint.SignInChallenge,
+                correlationId,
+                MockApiResponseType.CHALLENGE_TYPE_PASSWORD
+        );
+
+        MockApiUtils.configureMockApi(
+                MockApiEndpoint.SignInToken,
+                correlationId,
+                MockApiResponseType.TOKEN_SUCCESS
+        );
+
+        // sign in
+        SignInTestCallback signInTestCallback = new SignInTestCallback();
+        application.signIn(
+                username,
+                password,
+                null,
+                signInTestCallback
+        );
+        SignInResult signInWithPasswordResult = signInTestCallback.get();
+        assertTrue(signInWithPasswordResult instanceof SignInResult.Complete);
+
+        // Sign out
+        AccountState accountState = ((SignInResult.Complete) signInWithPasswordResult).getResultValue();
+        SignOutTestCallback signOutTestCallback = new SignOutTestCallback();
+        accountState.signOut(signOutTestCallback);
+        SignOutResult signOutResult = signOutTestCallback.get();
+        assertNotNull(signOutResult);
+
+        // Attempt to get token
+        GetAccessTokenTestCallback getAccessTokenTestCallback = new GetAccessTokenTestCallback();
+        accountState.getAccessToken(false,
+                new ArrayList<>(AuthenticationConstants.DEFAULT_SCOPES), getAccessTokenTestCallback);
         GetAccessTokenResult getAccessTokenResult = getAccessTokenTestCallback.get();
         assertTrue(getAccessTokenResult instanceof GetAccessTokenError);
         assertTrue(((GetAccessTokenError) getAccessTokenResult).isNoAccountFound());
@@ -855,25 +1025,14 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         assertTrue(signInWithPasswordResult.get(10, TimeUnit.SECONDS) instanceof SignInResult.Complete);
 
-        ResultFuture<BaseException> signUpExceptionResult = new ResultFuture<>();
-        NativeAuthPublicClientApplication.SignUpCallback signUpWithPasswordResultCallback
-                = new NativeAuthPublicClientApplication.SignUpCallback() {
+        SignUpTestCallback signUpTestCallback = new SignUpTestCallback ();
 
-            @Override
-            public void onResult(SignUpResult result) {
+        application.signUp(username, password, null, signUpTestCallback);
 
-            }
+        SignUpResult signUpError = signUpTestCallback.get();
 
-            @Override
-            public void onError(@NonNull BaseException exception) {
-                signUpExceptionResult.setResult(exception);
-            }
-        };
-        application.signUp(username, password, null, signUpWithPasswordResultCallback);
-        BaseException exception = signUpExceptionResult.get(10, TimeUnit.SECONDS);
-
-        assertEquals(MsalClientException.INVALID_PARAMETER, exception.getErrorCode());
-        assertEquals("An account is already signed in.", exception.getMessage());
+        assertTrue(signUpError instanceof SignUpError);
+        assertEquals("An account is already signed in.", ((SignUpError) signUpError).getException().getMessage());
     }
 
     /**
@@ -924,24 +1083,14 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         assertTrue(signInWithPasswordResult.get(10, TimeUnit.SECONDS) instanceof SignInResult.Complete);
         ResultFuture<BaseException> signUpExceptionResult = new ResultFuture<>();
 
-        NativeAuthPublicClientApplication.SignUpCallback signUpWithCodeResultCallback
-                = new NativeAuthPublicClientApplication.SignUpCallback() {
+        SignUpTestCallback signUpTestCallback = new SignUpTestCallback();
 
-            @Override
-            public void onResult(SignUpResult result) {
+        application.signUp(username, null, null, signUpTestCallback);
 
-            }
+        SignUpResult signUpError = signUpTestCallback.get();
 
-            @Override
-            public void onError(@NonNull BaseException exception) {
-                signUpExceptionResult.setResult(exception);
-            }
-        };
-        application.signUp(username, null, null, signUpWithCodeResultCallback);
-
-        BaseException exception = signUpExceptionResult.get(10, TimeUnit.SECONDS);
-        assertEquals(MsalClientException.INVALID_PARAMETER, exception.getErrorCode());
-        assertEquals("An account is already signed in.", exception.getMessage());
+        assertTrue(signUpError instanceof SignUpError);
+        assertEquals("An account is already signed in.", ((SignUpError) signUpError).getException().getMessage());
     }
 
     /**
@@ -982,25 +1131,12 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         assertTrue(signInWithPasswordResult instanceof SignInResult.Complete);
 
-        ResultFuture<BaseException> resetPasswordExceptionResult = new ResultFuture<>();
+        ResetPasswordStartTestCallback resetPasswordStartTestCallback = new ResetPasswordStartTestCallback();
+        application.resetPassword(username, resetPasswordStartTestCallback);
+        ResetPasswordStartResult resetPasswordError = resetPasswordStartTestCallback.get();
 
-        NativeAuthPublicClientApplication.ResetPasswordCallback resetPasswordCallback
-                = new NativeAuthPublicClientApplication.ResetPasswordCallback() {
-            @Override
-            public void onResult(ResetPasswordStartResult result) {
-            }
-
-            @Override
-            public void onError(@NonNull BaseException exception) {
-                resetPasswordExceptionResult.setResult(exception);
-
-            }
-        };
-        application.resetPassword(username, resetPasswordCallback);
-
-        BaseException exception = resetPasswordExceptionResult.get(10, TimeUnit.SECONDS);
-        assertEquals(MsalClientException.INVALID_PARAMETER, exception.getErrorCode());
-        assertEquals("An account is already signed in.", exception.getMessage());
+        assertTrue(resetPasswordError instanceof ResetPasswordError);
+        assertEquals("An account is already signed in.", ((ResetPasswordError) resetPasswordError).getException().getMessage());
     }
 
     /**
