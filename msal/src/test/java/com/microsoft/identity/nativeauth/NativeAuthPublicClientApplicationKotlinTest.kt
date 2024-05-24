@@ -60,6 +60,8 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignOutResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResendCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
+import com.microsoft.identity.common.java.AuthenticationConstants
+import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
 import com.microsoft.identity.nativeauth.utils.LoggerCheckHelper
 import com.microsoft.identity.nativeauth.utils.mockCorrelationId
@@ -86,6 +88,7 @@ import org.mockito.kotlin.whenever
 import org.robolectric.ParameterizedRobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.io.File
+import java.util.Arrays
 import java.util.UUID
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
@@ -554,6 +557,56 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         val getAccountResult = application.getCurrentAccount()
         assertTrue(getAccountResult is GetAccountResult.AccountFound)
 
+        val accountState = (getAccountResult as GetAccountResult.AccountFound).resultValue
+        assertEquals(accountState.correlationId, correlationId)
+
+        val accessTokenResultTwo = accountState.getAccessToken()
+        assertTrue(accessTokenResultTwo is GetAccessTokenResult.Complete)
+
+        val authResult = (accessTokenResultTwo as GetAccessTokenResult.Complete).resultValue
+        val accessTokenTwo = authResult.accessToken
+        assertNotNull(accessTokenTwo)
+
+        assertEquals(accessToken, accessTokenTwo)
+        assertEquals(authResult.correlationId.toString(), correlationId)
+    }
+
+    /**
+     * Test sign in, get access token with scopes. Compare to token from getAccount() and getAccessToken()
+     */
+    @Test
+    fun testGetAccessTokenWithSignInScopes() = runTest {
+        val correlationId = UUID.randomUUID().toString()
+        configureMockApi(
+            MockApiEndpoint.SignInInitiate,
+            correlationId,
+            MockApiResponseType.INITIATE_SUCCESS
+        )
+
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_PASSWORD
+        )
+
+        configureMockApi(
+            endpointType = MockApiEndpoint.SignInToken,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.TOKEN_SUCCESS
+        )
+
+        val signInResult = application.signIn(username, password)
+        assertTrue(signInResult is SignInResult.Complete)
+
+        val accessTokenState = (signInResult as SignInResult.Complete).resultValue.getAccessToken()
+        assertTrue(accessTokenState is GetAccessTokenResult.Complete)
+
+        val accessToken = (accessTokenState as GetAccessTokenResult.Complete).resultValue.accessToken
+        assertNotNull(accessToken)
+
+        val getAccountResult = application.getCurrentAccount()
+        assertTrue(getAccountResult is GetAccountResult.AccountFound)
+
         val accessTokenResultTwo = (getAccountResult as GetAccountResult.AccountFound).resultValue.getAccessToken()
         assertTrue(accessTokenResultTwo is GetAccessTokenResult.Complete)
 
@@ -561,6 +614,59 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         assertNotNull(accessTokenTwo)
 
         assertEquals(accessToken, accessTokenTwo)
+
+        val scopes = Arrays.asList(AuthenticationConstants.OAuth2Scopes.OPEN_ID_SCOPE)
+        val accessTokenResultThree = (getAccountResult as GetAccountResult.AccountFound).resultValue.getAccessToken(false, scopes)
+        assertTrue(accessTokenResultThree is GetAccessTokenResult.Complete)
+
+        val accessTokenThree = (accessTokenResultThree as GetAccessTokenResult.Complete).resultValue.accessToken
+        assertNotNull(accessTokenThree)
+
+        assertEquals(accessTokenTwo, accessTokenThree)
+        assertEquals(accessToken, accessTokenThree)
+    }
+
+
+    /**
+     * Test sign in, get access token with empty scopes. Compare to token from getAccount() and getAccessToken()
+     */
+    @Test
+    fun testGetAccessTokenWithEmptyScopes() = runTest {
+        val correlationId = UUID.randomUUID().toString()
+        configureMockApi(
+            MockApiEndpoint.SignInInitiate,
+            correlationId,
+            MockApiResponseType.INITIATE_SUCCESS
+        )
+
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_PASSWORD
+        )
+
+        configureMockApi(
+            endpointType = MockApiEndpoint.SignInToken,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.TOKEN_SUCCESS
+        )
+
+        val signInResult = application.signIn(username, password)
+        assertTrue(signInResult is SignInResult.Complete)
+
+        val getAccountResult = application.getCurrentAccount()
+        assertTrue(getAccountResult is GetAccountResult.AccountFound)
+
+        val accountState = (getAccountResult as GetAccountResult.AccountFound).resultValue
+
+        var accessTokenState = accountState.getAccessToken(false, emptyList())
+
+        assertTrue(accessTokenState is GetAccessTokenError)
+        assertTrue((accessTokenState as GetAccessTokenError).isInvalidScopes())
+        val tokenError = accessTokenState as GetAccessTokenError
+        assertEquals(tokenError.errorType, GetAccessTokenErrorTypes.INVALID_SCOPES)
+        assertEquals(tokenError.correlationId, correlationId)
+
     }
 
     /**
@@ -598,6 +704,83 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         val accessTokenState = accountState.getAccessToken()
         assertTrue(accessTokenState is GetAccessTokenError)
         assertTrue((accessTokenState as GetAccessTokenError).isNoAccountFound())
+    }
+
+    /**
+     * Test sign in, sign out, get access token
+     */
+    @Test
+    fun testSignOutGetAccessTokenTwoParams() = runTest {
+        val correlationId = UUID.randomUUID().toString()
+        configureMockApi(
+            MockApiEndpoint.SignInInitiate,
+            correlationId,
+            MockApiResponseType.INITIATE_SUCCESS
+        )
+
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_PASSWORD
+        )
+
+        configureMockApi(
+            endpointType = MockApiEndpoint.SignInToken,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.TOKEN_SUCCESS
+        )
+
+        val signInResult = application.signIn(username, password)
+        assertTrue(signInResult is SignInResult.Complete)
+
+        val accountState = (signInResult as SignInResult.Complete).resultValue
+
+        val signOutResult = accountState.signOut()
+        assertTrue(signOutResult is SignOutResult.Complete)
+
+        val accessTokenState = accountState.getAccessToken(false, ArrayList<String>(AuthenticationConstants.DEFAULT_SCOPES))
+        assertTrue(accessTokenState is GetAccessTokenError)
+        assertTrue((accessTokenState as GetAccessTokenError).isNoAccountFound())
+    }
+
+    /**
+     * Test sign in, sign out, get access token with empty scopes
+     */
+    @Test
+    fun testSignOutGetAccessTokenTwoParamsEmptyScopes() = runTest {
+        val correlationId = UUID.randomUUID().toString()
+        configureMockApi(
+            MockApiEndpoint.SignInInitiate,
+            correlationId,
+            MockApiResponseType.INITIATE_SUCCESS
+        )
+
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_PASSWORD
+        )
+
+        configureMockApi(
+            endpointType = MockApiEndpoint.SignInToken,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.TOKEN_SUCCESS
+        )
+
+        val signInResult = application.signIn(username, password)
+        assertTrue(signInResult is SignInResult.Complete)
+
+        val accountState = (signInResult as SignInResult.Complete).resultValue
+
+        val signOutResult = accountState.signOut()
+        assertTrue(signOutResult is SignOutResult.Complete)
+
+        var accessTokenState = accountState.getAccessToken(false, emptyList())
+
+        assertTrue(accessTokenState is GetAccessTokenError)
+        assertTrue((accessTokenState as GetAccessTokenError).isInvalidScopes())
+        assertEquals((accessTokenState as GetAccessTokenError).errorType, GetAccessTokenErrorTypes.INVALID_SCOPES)
+
     }
 
     /**
