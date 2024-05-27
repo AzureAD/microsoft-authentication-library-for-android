@@ -35,6 +35,9 @@ import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTe
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.common.java.AuthenticationConstants;
+import com.microsoft.identity.internal.testutils.nativeauth.MockApiEndpoint;
+import com.microsoft.identity.internal.testutils.nativeauth.MockApiResponseType;
+import com.microsoft.identity.internal.testutils.nativeauth.MockApiUtils;
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenError;
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError;
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordSubmitPasswordError;
@@ -68,9 +71,6 @@ import com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesReq
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState;
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory;
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper;
-import com.microsoft.identity.common.nativeauth.MockApiEndpoint;
-import com.microsoft.identity.common.nativeauth.MockApiResponseType;
-import com.microsoft.identity.common.nativeauth.MockApiUtils;
 import com.microsoft.identity.common.java.exception.BaseException;
 import com.microsoft.identity.common.java.interfaces.IPlatformComponents;
 import com.microsoft.identity.common.java.util.ResultFuture;

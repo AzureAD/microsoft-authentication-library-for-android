@@ -37,9 +37,6 @@ import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.interfaces.IPlatformComponents
 import com.microsoft.identity.common.java.nativeauth.BuildValues
 import com.microsoft.identity.common.java.util.ResultFuture
-import com.microsoft.identity.common.nativeauth.MockApiEndpoint
-import com.microsoft.identity.common.nativeauth.MockApiResponseType
-import com.microsoft.identity.common.nativeauth.MockApiUtils.Companion.configureMockApi
 import com.microsoft.identity.internal.testutils.TestUtils
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenError
@@ -61,6 +58,9 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignOutResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResendCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import com.microsoft.identity.common.java.AuthenticationConstants
+import com.microsoft.identity.internal.testutils.nativeauth.MockApiEndpoint
+import com.microsoft.identity.internal.testutils.nativeauth.MockApiResponseType
+import com.microsoft.identity.internal.testutils.nativeauth.MockApiUtils.Companion.configureMockApi
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
 import com.microsoft.identity.nativeauth.utils.LoggerCheckHelper
