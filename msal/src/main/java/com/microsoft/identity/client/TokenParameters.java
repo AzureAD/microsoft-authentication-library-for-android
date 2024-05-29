@@ -136,7 +136,7 @@ public abstract class TokenParameters {
         return mClaimsRequest;
     }
 
-    void setAccountRecord(AccountRecord record) {
+    public void setAccountRecord(AccountRecord record) {
         mAccountRecord = record;
     }
 

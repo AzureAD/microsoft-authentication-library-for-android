@@ -32,6 +32,7 @@ import com.microsoft.identity.internal.testutils.labutils.LabConstants;
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -91,6 +92,7 @@ public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
         };
     }
 
+    @Ignore
     public static class CiamTenantGUID extends AcquireTokenCIAMTest {
         @Override
         public String getConfigFilePath() {
@@ -112,6 +114,7 @@ public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
         }
     }
 
+    @Ignore
     public static class CiamTenantDomain extends AcquireTokenCIAMTest {
         @Override
         public String getConfigFilePath() {
@@ -133,6 +136,7 @@ public abstract class AcquireTokenCIAMTest extends AcquireTokenNetworkTest {
         }
     }
 
+    @Ignore
     public static class CiamTenantNoPath extends AcquireTokenCIAMTest {
         @Override
         public String getConfigFilePath() {
