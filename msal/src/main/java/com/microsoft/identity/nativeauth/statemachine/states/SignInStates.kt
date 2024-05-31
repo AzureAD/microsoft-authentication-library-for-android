@@ -102,7 +102,7 @@ class SignInCodeRequiredState internal constructor(
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
-            methodName = "${TAG}.submitCode"
+            methodName = "${TAG}.submitCode(code: String, callback: SubmitCodeCallback)"
         )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
@@ -223,7 +223,7 @@ class SignInCodeRequiredState internal constructor(
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
-            methodName = "${TAG}.resendCode"
+            methodName = "${TAG}.resendCode(callback: ResendCodeCallback)"
         )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
@@ -369,7 +369,7 @@ class SignInPasswordRequiredState(
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
-            methodName = "${TAG}.submitPassword"
+            methodName = "${TAG}.submitPassword(password: CharArray, callback: SubmitPasswordCallback)"
         )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
@@ -531,7 +531,7 @@ class SignInContinuationState(
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
-            methodName = "${TAG}.signIn"
+            methodName = "${TAG}.signIn(scopes: List<String>, callback: SignInContinuationCallback)"
         )
 
         NativeAuthPublicClientApplication.pcaScope.launch {
@@ -552,6 +552,12 @@ class SignInContinuationState(
      * @return The results of the sign-in-after-sign-up action.
      */
     suspend fun signIn(scopes: List<String>? = null): SignInResult {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.signIn(scopes: List<String>)"
+        )
+
         return withContext(Dispatchers.IO) {
             try {
                 LogSession.logMethodCall(
