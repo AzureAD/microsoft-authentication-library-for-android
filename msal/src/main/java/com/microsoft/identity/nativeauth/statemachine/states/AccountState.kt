@@ -90,7 +90,7 @@ class AccountState private constructor(
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = null,
-            methodName = "$TAG.signOut"
+            methodName = "${TAG}.signOut(callback: SignOutCallback)"
         )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
@@ -112,7 +112,7 @@ class AccountState private constructor(
                 LogSession.logMethodCall(
                     tag = TAG,
                     correlationId = null,
-                    methodName = "$TAG.signOut.withContext"
+                    methodName = "${TAG}.signOut()"
                 )
 
                 val account: IAccount =
@@ -220,7 +220,7 @@ class AccountState private constructor(
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = null,
-            methodName = "$TAG.getAccessToken"
+            methodName = "${TAG}.getAccessToken(forceRefresh: Boolean = ${forceRefresh}, callback: GetAccessTokenCallback)"
         )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
@@ -278,7 +278,7 @@ class AccountState private constructor(
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = null,
-            methodName = "$TAG.getAccessToken"
+            methodName = "${TAG}.getAccessToken(forceRefresh: Boolean = ${forceRefresh}, scopes: List<String>, callback: GetAccessTokenCallback)"
         )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
@@ -295,7 +295,7 @@ class AccountState private constructor(
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = null,
-            methodName = "$TAG.getAccessToken(forceRefresh: Boolean)"
+            methodName = "${TAG}.getAccessTokenInternal(forceRefresh: Boolean = ${forceRefresh}, scopes: List<String>)"
         )
 
         return withContext(Dispatchers.IO) {
