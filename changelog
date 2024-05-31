@@ -4,6 +4,7 @@ vNext
 ----------
 - [MINOR] Support for multiple access tokens in NativeAuth (#2082)
 - [MINOR] YubiKit 2.5.0 and CredMan 1.2.2 (#2109)
+- [MINOR] Updated Pom Task (#2111)
 
 Version 5.3.1
 ---------
