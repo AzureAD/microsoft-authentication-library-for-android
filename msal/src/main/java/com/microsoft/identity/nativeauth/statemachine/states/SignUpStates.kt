@@ -101,7 +101,7 @@ class SignUpCodeRequiredState internal constructor(
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
-            methodName = "${TAG}.submitCode"
+            methodName = "${TAG}.submitCode(code: String, callback: SubmitCodeCallback)"
         )
 
         NativeAuthPublicClientApplication.pcaScope.launch {
@@ -258,7 +258,7 @@ class SignUpCodeRequiredState internal constructor(
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
-            methodName = "${TAG}.resendCode"
+            methodName = "${TAG}.resendCode(callback: SignUpWithResendCodeCallback)"
         )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
@@ -403,7 +403,7 @@ class SignUpPasswordRequiredState internal constructor(
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
-            methodName = "${TAG}.submitPassword"
+            methodName = "${TAG}.submitPassword(password: CharArray, callback: SignUpSubmitPasswordCallback)"
         )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
@@ -613,7 +613,7 @@ class SignUpAttributesRequiredState internal constructor(
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
-            methodName = "${TAG}.submitAttributes"
+            methodName = "${TAG}.submitAttributes(attributes: UserAttributes, callback: SignUpSubmitUserAttributesCallback)"
         )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {

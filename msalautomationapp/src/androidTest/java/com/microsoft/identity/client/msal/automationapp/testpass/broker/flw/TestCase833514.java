@@ -124,6 +124,9 @@ public class TestCase833514 extends AbstractMsalBrokerTest {
                         .sessionExpected(false)
                         .build();
 
+        // Give the sample a bit of time to replicate being in shared device mode
+        Thread.sleep(TimeUnit.SECONDS.toMillis(5));
+
         // sign in into Azure Sample App
         azureSampleApp.signInWithSingleAccountFragment(username2, password2, getBrowser(), false, microsoftStsPromptHandlerParameters);
 

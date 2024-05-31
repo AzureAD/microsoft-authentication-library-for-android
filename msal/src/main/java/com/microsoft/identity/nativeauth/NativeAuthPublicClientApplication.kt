@@ -120,7 +120,7 @@ class NativeAuthPublicClientApplication(
             LogSession.logMethodCall(
                 tag = TAG,
                 correlationId = null,
-                methodName = "${TAG}.getCurrentAccountInternal"
+                methodName = "${TAG}.getCurrentAccountInternal(config: NativeAuthPublicClientApplicationConfiguration)"
             )
 
             val params = CommandParametersAdapter.createCommandParameters(
@@ -164,7 +164,7 @@ class NativeAuthPublicClientApplication(
             LogSession.logMethodCall(
                 tag = TAG,
                 correlationId = null,
-                methodName = "${TAG}.getAccountFromICacheRecordsList"
+                methodName = "${TAG}.getAccountFromICacheRecordsList(cacheRecords: List<ICacheRecord?>?)"
             )
             if (cacheRecords.isNullOrEmpty()) {
                 return null
@@ -230,6 +230,11 @@ class NativeAuthPublicClientApplication(
      * @return [com.microsoft.identity.nativeauth.statemachine.states.AccountState] if there is a signed in account, null otherwise.
      */
     override fun getCurrentAccount(callback: GetCurrentAccountCallback) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.getCurrentAccount(callback: GetCurrentAccountCallback)"
+        )
         pcaScope.launch {
             try {
                 val result = getCurrentAccount()
@@ -246,6 +251,11 @@ class NativeAuthPublicClientApplication(
      * @return [com.microsoft.identity.nativeauth.statemachine.states.AccountState] if there is a signed in account, null otherwise.
      */
     override suspend fun getCurrentAccount(): GetAccountResult {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.getCurrentAccount"
+        )
         return withContext(Dispatchers.IO) {
             try {
                 val account = getCurrentAccountInternal(nativeAuthConfig)
@@ -291,7 +301,7 @@ class NativeAuthPublicClientApplication(
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = null,
-            methodName = "${TAG}.signIn"
+            methodName = "${TAG}.signIn(username: String, password: CharArray?, scopes: List<String>?, callback: SignInCallback)"
         )
         pcaScope.launch {
             try {
@@ -321,7 +331,7 @@ class NativeAuthPublicClientApplication(
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = null,
-            methodName = "${TAG}.signIn"
+            methodName = "${TAG}.signIn(username: String, password: CharArray?, scopes: List<String>?)"
         )
         return withContext(Dispatchers.IO) {
             try {
@@ -373,6 +383,7 @@ class NativeAuthPublicClientApplication(
                             } else {
                                 Logger.warnWithObject(
                                     TAG,
+                                    result.correlationId,
                                     "Sign in received unexpected result: ",
                                     result
                                 )
@@ -525,7 +536,7 @@ class NativeAuthPublicClientApplication(
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = null,
-            methodName = "${TAG}.signUp"
+            methodName = "${TAG}.signUp(username: String, password: CharArray?, attributes: UserAttributes?, callback: SignUpCallback)"
         )
         pcaScope.launch {
             try {
@@ -554,7 +565,7 @@ class NativeAuthPublicClientApplication(
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = null,
-            methodName = "${TAG}.signUp"
+            methodName = "${TAG}.signUp(username: String, password: CharArray?, attributes: UserAttributes?)"
         )
         var hasPassword = password?.isNotEmpty() == true
 
@@ -637,6 +648,7 @@ class NativeAuthPublicClientApplication(
                             if (hasPassword) {
                                 Logger.warnWithObject(
                                     TAG,
+                                    result.correlationId,
                                     "Sign up using password received unexpected result: ",
                                     result
                                 )
@@ -677,6 +689,7 @@ class NativeAuthPublicClientApplication(
                             } else {
                                 Logger.warnWithObject(
                                     TAG,
+                                    result.correlationId,
                                     "Sign up received unexpected result: ",
                                     result
                                 )
@@ -759,7 +772,7 @@ class NativeAuthPublicClientApplication(
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = null,
-            methodName = "${TAG}.resetPassword"
+            methodName = "${TAG}.resetPassword(username: String, callback: ResetPasswordCallback)"
         )
         pcaScope.launch {
             try {
