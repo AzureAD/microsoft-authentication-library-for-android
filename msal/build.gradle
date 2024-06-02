@@ -355,10 +355,6 @@ publishing {
                         version: project.version
                 ]
             }
-
-            artifact(sourcesJar)
-            artifact(javadocJar)
-            artifact("$buildDir/outputs/aar/msal-${project.version}.aar")
         }
 
     }
