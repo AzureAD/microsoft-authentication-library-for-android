@@ -306,67 +306,52 @@ task pmd(type: Pmd) {
 }
 
 afterEvaluate {
-   // Gradle 6.1.1 and Android Gradle Plugin 4.0.1 doesn't rename the file (see 'outputFileName' above)
-   // Adding this work around to have the file properly renamed.
-   tasks.named("assembleDistRelease").configure {
-       def buildFile = file("$buildDir/outputs/aar/${archivesBaseName}-dist-release.aar")
-       print "Build file $buildFile"
-       doLast {
-           println "Renaming build file $buildFile to '$buildDir${File.separator}outputs${File.separator}aar${File.separator}${archivesBaseName}-${version}.aar'"
-           if (!buildFile.renameTo("$buildDir${File.separator}outputs${File.separator}aar${File.separator}${archivesBaseName}-${version}.aar")) {
-               println "Rename failed!"
-           }
-       }
-   }
-}
-
-publishing {
-    publications {
-        msal(MavenPublication) {
-            groupId 'com.microsoft.identity.client'
-            artifactId 'msal'
-            //Edit the 'version' here for VSTS RC build
-            version = project.version
-            afterEvaluate {
+    publishing {
+        publications {
+            msal(MavenPublication) {
                 from components.distRelease
+                groupId 'com.microsoft.identity.client'
+                artifactId 'msal'
+                //Edit the 'version' here for VSTS RC build
+                version = project.version
+
+                pom {
+                    name = 'msal'
+                    description = 'Microsoft Identity library for Android gives you the ability to add authentication to your application with just a few lines of additional code. Using our MSAL SDKs you can quickly and easily extend your existing application to all the employees that use MSA, B2C, Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.'
+                    url = 'https://github.com/AzureAD/microsoft-authentication-library-for-android'
+                    developers {
+                        developer {
+                            id = 'microsoft'
+                            name = 'Microsoft'
+                        }
+                    }
+                    licenses {
+                        license {
+                            name = 'MIT License'
+                        }
+                    }
+                    inceptionYear = '2016'
+                    scm {
+                        url = 'https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/master'
+                    }
+                    properties = [
+                            branch : 'dev',
+                            version: project.version
+                    ]
+                }
             }
 
-            pom {
-                name = 'msal'
-                description = 'Microsoft Identity library for Android gives you the ability to add authentication to your application with just a few lines of additional code. Using our MSAL SDKs you can quickly and easily extend your existing application to all the employees that use MSA, B2C, Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.'
-                url = 'https://github.com/AzureAD/microsoft-authentication-library-for-android'
-                developers {
-                    developer {
-                        id = 'microsoft'
-                        name = 'Microsoft'
-                    }
-                }
-                licenses {
-                    license {
-                        name = 'MIT License'
-                    }
-                }
-                inceptionYear = '2016'
-                scm {
-                    url = 'https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/master'
-                }
-                properties = [
-                        branch : 'master',
-                        version: project.version
-                ]
-            }
         }
 
-    }
-
-    // Repositories to which Gradle can publish artifacts
-    repositories {
-        maven {
-            name "vsts-maven-adal-android"
-            url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
-            credentials {
-                username System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") : project.findProperty("vstsUsername")
-                password System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
+        // Repositories to which Gradle can publish artifacts
+        repositories {
+            maven {
+                name "vsts-maven-adal-android"
+                url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
+                credentials {
+                    username System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") : project.findProperty("vstsUsername")
+                    password System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
+                }
             }
         }
     }
