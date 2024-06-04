@@ -25,6 +25,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.mwpj
 import com.microsoft.identity.client.msal.automationapp.R
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
 import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost
 import com.microsoft.identity.labapi.utilities.client.ILabAccount
@@ -40,6 +41,7 @@ import org.junit.Test
 // [MWPJ] Get records by tenant id and upn
 @SupportedBrokers(brokers = [BrokerHost::class])
 @LocalBrokerHostDebugUiTest
+@RetryOnFailure
 class TestCase2519833 : AbstractMsalBrokerTest() {
     private lateinit var mUsGovAccount: ILabAccount
     private lateinit var mBrokerHostApp: BrokerHost

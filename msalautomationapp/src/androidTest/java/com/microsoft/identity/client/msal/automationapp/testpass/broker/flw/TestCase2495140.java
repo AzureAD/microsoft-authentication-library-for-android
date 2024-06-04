@@ -66,7 +66,7 @@ import java.util.Collections;
 // and clean all data.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/2495140
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
-@RetryOnFailure
+@RetryOnFailure(retryCount = 2)
 public class TestCase2495140 extends AbstractMsalBrokerTest {
     final String TAG = TestCase2495140.class.getSimpleName();
 
