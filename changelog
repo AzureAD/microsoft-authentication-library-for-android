@@ -2,6 +2,10 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+
+Version 5.4.0
+----------
+- [PATCH] Update common @17.5.0-RC1
 - [MINOR] Support for multiple access tokens in NativeAuth (#2082)
 - [MINOR] YubiKit 2.5.0 and CredMan 1.2.2 (#2109)
 - [MINOR] Updated Pom Task (#2111)
