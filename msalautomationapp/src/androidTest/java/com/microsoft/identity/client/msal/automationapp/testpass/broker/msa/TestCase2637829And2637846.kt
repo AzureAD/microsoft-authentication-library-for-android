@@ -45,10 +45,10 @@ import java.util.*
 @SupportedBrokers(brokers = [BrokerHost::class])
 @LocalBrokerHostDebugUiTest
 @RetryOnFailure
-class TestCase2637829 : AbstractMsaBrokerTest() {
+class TestCase2637829And2637846 : AbstractMsaBrokerTest() {
     @Test
     @Throws(Throwable::class)
-    fun test_2637829() {
+    fun test_2637829_2637846() {
         val username = mLabAccount.username
         val password = mLabAccount.password
         val msalSdk = MsalSdk()

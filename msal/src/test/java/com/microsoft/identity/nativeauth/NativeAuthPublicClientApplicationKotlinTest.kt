@@ -25,15 +25,27 @@ package com.microsoft.identity.nativeauth
 import android.app.Activity
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import com.microsoft.identity.client.ILoggerCallback
 import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager
 import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper
-import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
+import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory
+import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper
+import com.microsoft.identity.common.java.exception.BaseException
+import com.microsoft.identity.common.java.interfaces.IPlatformComponents
+import com.microsoft.identity.common.java.nativeauth.BuildValues
+import com.microsoft.identity.common.java.util.ResultFuture
+import com.microsoft.identity.common.nativeauth.MockApiEndpoint
+import com.microsoft.identity.common.nativeauth.MockApiResponseType
+import com.microsoft.identity.common.nativeauth.MockApiUtils.Companion.configureMockApi
+import com.microsoft.identity.internal.testutils.TestUtils
+import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenError
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordSubmitPasswordError
+import com.microsoft.identity.nativeauth.statemachine.errors.SignInContinuationError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpSubmitAttributesError
@@ -48,20 +60,11 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignOutResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResendCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
-import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory
-import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper
-import com.microsoft.identity.common.nativeauth.MockApiEndpoint
-import com.microsoft.identity.common.nativeauth.MockApiResponseType
-import com.microsoft.identity.common.nativeauth.MockApiUtils.Companion.configureMockApi
-import com.microsoft.identity.common.java.exception.BaseException
-import com.microsoft.identity.common.java.interfaces.IPlatformComponents
-import com.microsoft.identity.common.java.nativeauth.BuildValues
-import com.microsoft.identity.common.java.util.ResultFuture
-import com.microsoft.identity.internal.testutils.TestUtils
-import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
+import com.microsoft.identity.common.java.AuthenticationConstants
+import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
+import com.microsoft.identity.nativeauth.utils.LoggerCheckHelper
 import com.microsoft.identity.nativeauth.utils.mockCorrelationId
-import com.microsoft.identity.nativeauth.statemachine.errors.SignInContinuationError
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
@@ -76,35 +79,49 @@ import org.junit.BeforeClass
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.Mock
 import org.mockito.Mockito
+import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.spy
 import org.mockito.kotlin.whenever
-import org.robolectric.RobolectricTestRunner
+import org.robolectric.ParameterizedRobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.io.File
+import java.util.Arrays
 import java.util.UUID
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
+
 @ExperimentalCoroutinesApi
-@RunWith(RobolectricTestRunner::class)
+@RunWith(ParameterizedRobolectricTestRunner::class)
 @Config(shadows = [ShadowAndroidSdkStorageEncryptionManager::class])
-class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstractTest() {
+class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean) : PublicClientApplicationAbstractTest() {
     private lateinit var context: Context
     private lateinit var components: IPlatformComponents
     private lateinit var activity: Activity
     private lateinit var application: INativeAuthPublicClientApplication
+    private lateinit var loggerCheckHelper: LoggerCheckHelper
     private val username = "user@email.com"
     private val invalidUsername = "invalidUsername"
     private val password = "verySafePassword".toCharArray()
     private val code = "1234"
     private val emptyString = ""
 
+    @Mock
+    private lateinit var externalLogger: ILoggerCallback
+
     override fun getConfigFilePath() = "src/test/res/raw/native_auth_native_only_test_config.json"
 
     companion object {
+        @JvmStatic
+        @ParameterizedRobolectricTestRunner.Parameters
+        fun data(): Collection<Boolean> {
+            return listOf(true, false)
+        }
+
         @BeforeClass
         @JvmStatic
         fun setupClass() {
@@ -120,9 +137,11 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
     @Before
     override fun setup() {
+        MockitoAnnotations.initMocks(this)
         context = ApplicationProvider.getApplicationContext()
         components = AndroidPlatformComponentsFactory.createFromContext(context)
         activity = Mockito.mock(Activity::class.java)
+        loggerCheckHelper = LoggerCheckHelper(externalLogger, allowPII)
         whenever(activity.applicationContext).thenReturn(context)
         setupPCA()
         CommandDispatcherHelper.clear()
@@ -130,6 +149,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
 
     @After
     fun cleanup() {
+        loggerCheckHelper.checkSafeLogging()
         AcquireTokenTestHelper.setAccount(null)
         // remove everything from cache after test ends
         TestUtils.clearCache(SHARED_PREFERENCES_NAME)
@@ -364,14 +384,9 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val result = application.signIn(username, password)
         assertTrue(result is SignInResult.Complete)
 
-        try {
-            application.signIn(username, password)
-        } catch (exception: MsalException) {
-            assertEquals(MsalClientException.INVALID_PARAMETER, exception.errorCode)
-            assertEquals("An account is already signed in.", exception.message)
-            return@runTest
-        }
-        fail() // An exception should happen
+        val newResult = application.signIn(username)
+        assertTrue(newResult is SignInError)
+        assertTrue((newResult as SignInError).exception?.message.equals("An account is already signed in."))
     }
 
     /**
@@ -424,6 +439,7 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         )
         val result = continuationTokenState.signIn(scopes = null)
         assertTrue(result is SignInContinuationError)
+
     }
 
     /**
@@ -541,6 +557,56 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val getAccountResult = application.getCurrentAccount()
         assertTrue(getAccountResult is GetAccountResult.AccountFound)
 
+        val accountState = (getAccountResult as GetAccountResult.AccountFound).resultValue
+        assertEquals(accountState.correlationId, correlationId)
+
+        val accessTokenResultTwo = accountState.getAccessToken()
+        assertTrue(accessTokenResultTwo is GetAccessTokenResult.Complete)
+
+        val authResult = (accessTokenResultTwo as GetAccessTokenResult.Complete).resultValue
+        val accessTokenTwo = authResult.accessToken
+        assertNotNull(accessTokenTwo)
+
+        assertEquals(accessToken, accessTokenTwo)
+        assertEquals(authResult.correlationId.toString(), correlationId)
+    }
+
+    /**
+     * Test sign in, get access token with scopes. Compare to token from getAccount() and getAccessToken()
+     */
+    @Test
+    fun testGetAccessTokenWithSignInScopes() = runTest {
+        val correlationId = UUID.randomUUID().toString()
+        configureMockApi(
+            MockApiEndpoint.SignInInitiate,
+            correlationId,
+            MockApiResponseType.INITIATE_SUCCESS
+        )
+
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_PASSWORD
+        )
+
+        configureMockApi(
+            endpointType = MockApiEndpoint.SignInToken,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.TOKEN_SUCCESS
+        )
+
+        val signInResult = application.signIn(username, password)
+        assertTrue(signInResult is SignInResult.Complete)
+
+        val accessTokenState = (signInResult as SignInResult.Complete).resultValue.getAccessToken()
+        assertTrue(accessTokenState is GetAccessTokenResult.Complete)
+
+        val accessToken = (accessTokenState as GetAccessTokenResult.Complete).resultValue.accessToken
+        assertNotNull(accessToken)
+
+        val getAccountResult = application.getCurrentAccount()
+        assertTrue(getAccountResult is GetAccountResult.AccountFound)
+
         val accessTokenResultTwo = (getAccountResult as GetAccountResult.AccountFound).resultValue.getAccessToken()
         assertTrue(accessTokenResultTwo is GetAccessTokenResult.Complete)
 
@@ -548,6 +614,59 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         assertNotNull(accessTokenTwo)
 
         assertEquals(accessToken, accessTokenTwo)
+
+        val scopes = Arrays.asList(AuthenticationConstants.OAuth2Scopes.OPEN_ID_SCOPE)
+        val accessTokenResultThree = (getAccountResult as GetAccountResult.AccountFound).resultValue.getAccessToken(false, scopes)
+        assertTrue(accessTokenResultThree is GetAccessTokenResult.Complete)
+
+        val accessTokenThree = (accessTokenResultThree as GetAccessTokenResult.Complete).resultValue.accessToken
+        assertNotNull(accessTokenThree)
+
+        assertEquals(accessTokenTwo, accessTokenThree)
+        assertEquals(accessToken, accessTokenThree)
+    }
+
+
+    /**
+     * Test sign in, get access token with empty scopes. Compare to token from getAccount() and getAccessToken()
+     */
+    @Test
+    fun testGetAccessTokenWithEmptyScopes() = runTest {
+        val correlationId = UUID.randomUUID().toString()
+        configureMockApi(
+            MockApiEndpoint.SignInInitiate,
+            correlationId,
+            MockApiResponseType.INITIATE_SUCCESS
+        )
+
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_PASSWORD
+        )
+
+        configureMockApi(
+            endpointType = MockApiEndpoint.SignInToken,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.TOKEN_SUCCESS
+        )
+
+        val signInResult = application.signIn(username, password)
+        assertTrue(signInResult is SignInResult.Complete)
+
+        val getAccountResult = application.getCurrentAccount()
+        assertTrue(getAccountResult is GetAccountResult.AccountFound)
+
+        val accountState = (getAccountResult as GetAccountResult.AccountFound).resultValue
+
+        var accessTokenState = accountState.getAccessToken(false, emptyList())
+
+        assertTrue(accessTokenState is GetAccessTokenError)
+        assertTrue((accessTokenState as GetAccessTokenError).isInvalidScopes())
+        val tokenError = accessTokenState as GetAccessTokenError
+        assertEquals(tokenError.errorType, GetAccessTokenErrorTypes.INVALID_SCOPES)
+        assertEquals(tokenError.correlationId, correlationId)
+
     }
 
     /**
@@ -585,6 +704,83 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val accessTokenState = accountState.getAccessToken()
         assertTrue(accessTokenState is GetAccessTokenError)
         assertTrue((accessTokenState as GetAccessTokenError).isNoAccountFound())
+    }
+
+    /**
+     * Test sign in, sign out, get access token
+     */
+    @Test
+    fun testSignOutGetAccessTokenTwoParams() = runTest {
+        val correlationId = UUID.randomUUID().toString()
+        configureMockApi(
+            MockApiEndpoint.SignInInitiate,
+            correlationId,
+            MockApiResponseType.INITIATE_SUCCESS
+        )
+
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_PASSWORD
+        )
+
+        configureMockApi(
+            endpointType = MockApiEndpoint.SignInToken,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.TOKEN_SUCCESS
+        )
+
+        val signInResult = application.signIn(username, password)
+        assertTrue(signInResult is SignInResult.Complete)
+
+        val accountState = (signInResult as SignInResult.Complete).resultValue
+
+        val signOutResult = accountState.signOut()
+        assertTrue(signOutResult is SignOutResult.Complete)
+
+        val accessTokenState = accountState.getAccessToken(false, ArrayList<String>(AuthenticationConstants.DEFAULT_SCOPES))
+        assertTrue(accessTokenState is GetAccessTokenError)
+        assertTrue((accessTokenState as GetAccessTokenError).isNoAccountFound())
+    }
+
+    /**
+     * Test sign in, sign out, get access token with empty scopes
+     */
+    @Test
+    fun testSignOutGetAccessTokenTwoParamsEmptyScopes() = runTest {
+        val correlationId = UUID.randomUUID().toString()
+        configureMockApi(
+            MockApiEndpoint.SignInInitiate,
+            correlationId,
+            MockApiResponseType.INITIATE_SUCCESS
+        )
+
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_PASSWORD
+        )
+
+        configureMockApi(
+            endpointType = MockApiEndpoint.SignInToken,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.TOKEN_SUCCESS
+        )
+
+        val signInResult = application.signIn(username, password)
+        assertTrue(signInResult is SignInResult.Complete)
+
+        val accountState = (signInResult as SignInResult.Complete).resultValue
+
+        val signOutResult = accountState.signOut()
+        assertTrue(signOutResult is SignOutResult.Complete)
+
+        var accessTokenState = accountState.getAccessToken(false, emptyList())
+
+        assertTrue(accessTokenState is GetAccessTokenError)
+        assertTrue((accessTokenState as GetAccessTokenError).isInvalidScopes())
+        assertEquals((accessTokenState as GetAccessTokenError).errorType, GetAccessTokenErrorTypes.INVALID_SCOPES)
+
     }
 
     /**
@@ -1105,14 +1301,9 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val result = application.signIn(username, password)
         assertTrue(result is SignInResult.Complete)
 
-        try {
-            application.signIn(username, password)
-        } catch (exception: MsalException) {
-            assertEquals(MsalClientException.INVALID_PARAMETER, exception.errorCode)
-            assertEquals("An account is already signed in.", exception.message)
-            return@runTest
-        }
-        fail() // An exception should happen
+        val newResult = application.signUp(username)
+        assertTrue(newResult is SignUpError)
+        assertTrue((newResult as SignUpError).exception?.message.equals("An account is already signed in."))
     }
 
     /**
@@ -1142,14 +1333,9 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val result = application.signIn(username, password)
         assertTrue(result is SignInResult.Complete)
 
-        try {
-            application.signUp(username)
-        } catch (exception: MsalException) {
-            assertEquals(MsalClientException.INVALID_PARAMETER, exception.errorCode)
-            assertEquals("An account is already signed in.", exception.message)
-            return@runTest
-        }
-        fail() // An exception should happen
+        val newResult = application.signUp(username)
+        assertTrue(newResult is SignUpError)
+        assertTrue((newResult as SignUpError).exception?.message.equals("An account is already signed in."))
     }
 
     /**
@@ -1179,14 +1365,9 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val result = application.signIn(username, password)
         assertTrue(result is SignInResult.Complete)
 
-        try {
-            application.resetPassword(username)
-        } catch (exception: MsalException) {
-            assertEquals(MsalClientException.INVALID_PARAMETER, exception.errorCode)
-            assertEquals("An account is already signed in.", exception.message)
-            return@runBlocking
-        }
-        fail() // An exception should happen
+        val newResult = application.resetPassword(username)
+        assertTrue(newResult is ResetPasswordError)
+        assertTrue((newResult as ResetPasswordError).exception?.message.equals("An account is already signed in."))
     }
 
     /**
@@ -2291,5 +2472,36 @@ class NativeAuthPublicClientApplicationKotlinTest : PublicClientApplicationAbstr
         val result = application.signUp(invalidUsername)
         assertTrue(result is SignUpError)
         assertTrue((result as SignUpError).isInvalidUsername())
+    }
+
+    @Test
+    fun testEmptyRequestParametersToGenericErrorNotThrownException() = runTest {
+        val correlationId = UUID.randomUUID().toString()
+
+        configureMockApi(
+            endpointType = MockApiEndpoint.SignUpStart,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.SIGNUP_START_SUCCESS
+        )
+
+        configureMockApi(
+            endpointType = MockApiEndpoint.SignUpChallenge,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.CHALLENGE_TYPE_OOB
+        )
+
+        val result = application.signUp(username)
+        assertTrue(result is SignUpResult.CodeRequired)
+
+        configureMockApi(
+            endpointType = MockApiEndpoint.SignUpContinue,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.INVALID_OOB_VALUE
+        )
+
+        val submitCodeState = spy((result as SignUpResult.CodeRequired).nextState)
+        val submitCodeResult = submitCodeState.submitCode(emptyString)  // Empty code will trigger ArgUtils.validateNonNullArg(oob, "oob") of the SignUpContinueRequest to thrown ClientException
+        assertTrue(submitCodeResult is SubmitCodeError)
+        assertTrue((submitCodeResult as SubmitCodeError).error.equals("unsuccessful_command")) // ClientException will be caught in CommandResultUtil.kt and converted to generic error in interface layer
     }
 }
