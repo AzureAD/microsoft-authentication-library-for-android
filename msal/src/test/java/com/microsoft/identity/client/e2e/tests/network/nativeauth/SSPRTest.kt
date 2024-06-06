@@ -27,12 +27,9 @@ import com.microsoft.identity.internal.testutils.TestConstants.Configurations.NA
 import com.microsoft.identity.internal.testutils.nativeauth.NativeAuthCredentialHelper
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
-import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitCodeResult
-import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitPasswordResult
-import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
