@@ -80,7 +80,8 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (result as ResetPasswordStartResult.CodeRequired).nextState.submitCode(otp)
                 Assert.assertTrue(submitCodeResult is ResetPasswordSubmitCodeResult.PasswordRequired)
-                val submitPasswordResult = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState.submitPassword("8ZA[@Kzir!]==&3".toCharArray())
+                val password = getSafePassword()
+                val submitPasswordResult = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState.submitPassword(password.toCharArray())
                 Assert.assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
                 shouldRetry = false
                 break

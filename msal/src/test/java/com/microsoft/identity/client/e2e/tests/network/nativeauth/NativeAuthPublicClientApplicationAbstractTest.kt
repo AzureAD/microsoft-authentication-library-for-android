@@ -28,10 +28,12 @@ import androidx.test.core.app.ApplicationProvider
 import com.microsoft.identity.client.Logger
 import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.e2e.tests.IPublicClientApplicationTest
-import com.microsoft.identity.client.e2e.utils.RoboTestUtils
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper
 import com.microsoft.identity.internal.testutils.TestUtils
+import com.microsoft.identity.internal.testutils.labutils.LabConstants
+import com.microsoft.identity.internal.testutils.labutils.LabUserHelper
+import com.microsoft.identity.internal.testutils.labutils.LabUserQuery
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import org.junit.After
 import org.junit.Assert
@@ -50,8 +52,8 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         const val SHARED_PREFERENCES_NAME = "com.microsoft.identity.client.account_credential_cache"
     }
 
-    lateinit var context: Context
-    lateinit var activity: Activity
+    private lateinit var context: Context
+    private lateinit var activity: Activity
     lateinit var application: INativeAuthPublicClientApplication
 
     @Before
@@ -72,6 +74,14 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         TestUtils.clearCache(SHARED_PREFERENCES_NAME)
     }
 
+    fun getSafePassword(): String {
+        val query = LabUserQuery()
+        query.federationProvider = LabConstants.FederationProvider.CIAM_CUD
+        query.signInAudience = LabConstants.SignInAudience.AZURE_AD_MY_ORG
+        val credential = LabUserHelper.getCredentials(query)
+        return credential.password
+    }
+
     private fun setupPCA() {
         val configFile = File(configFilePath)
 
@@ -80,6 +90,5 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         } catch (e: MsalException) {
             Assert.fail(e.exceptionName)
         }
-//        RoboTestUtils.flushScheduler()
     }
 }

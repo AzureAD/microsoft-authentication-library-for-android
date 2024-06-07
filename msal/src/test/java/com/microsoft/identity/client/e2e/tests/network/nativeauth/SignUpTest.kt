@@ -72,7 +72,8 @@ class SignUpTest : NativeAuthPublicClientApplicationAbstractTest() {
         while (shouldRetry) {
             try {
                 val user = tempEmailApi.generateRandomEmailAddress()
-                signUpResult = application.signUp(user, "8ZA[@Kzir!]==&3".toCharArray())
+                val password = getSafePassword()
+                signUpResult = application.signUp(user, password.toCharArray())
                 Assert.assertTrue(signUpResult is SignUpResult.CodeRequired)
                 otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
