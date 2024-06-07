@@ -25,6 +25,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.nestedA
 
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
+import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.common.java.dto.AccountRecord;
@@ -39,6 +40,7 @@ import org.junit.Test;
 // Nested app passes deviceId claim - silent call fails
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2690048
 @SupportedBrokers(brokers = {BrokerHost.class})
+@LocalBrokerHostDebugUiTest
 public class TestCase2690048 extends AbstractMsalBrokerTest {
 
     @Test

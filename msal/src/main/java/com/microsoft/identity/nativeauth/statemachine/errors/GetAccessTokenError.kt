@@ -27,7 +27,17 @@ import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResu
 
 internal class GetAccessTokenErrorTypes {
     companion object {
-        const val NO_ACCOUNT_FOUND = "no_account_found"
+        /*
+        * The INVALID_SCOPES value indicates the scopes provided by the user are not valid
+        * If this occurs, valid scopes should be resubmitted
+        */
+        const val INVALID_SCOPES = "invalid_scopes"
+
+        /*
+         * The NO_ACCOUNT_FOUND value indicates the user is not signed in.
+         * If this occurs, the API should be called after successful sign in
+         */
+        const val NO_ACCOUNT_FOUND = "invalid_scopes"
     }
 }
 
@@ -40,4 +50,6 @@ class GetAccessTokenError(
     override var exception: Exception? = null
 ): GetAccessTokenResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
     fun isNoAccountFound() : Boolean = this.errorType == GetAccessTokenErrorTypes.NO_ACCOUNT_FOUND
+
+    fun isInvalidScopes(): Boolean = this.errorType == GetAccessTokenErrorTypes.INVALID_SCOPES
 }

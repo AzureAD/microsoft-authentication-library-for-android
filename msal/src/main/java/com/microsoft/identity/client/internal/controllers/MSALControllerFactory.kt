@@ -26,6 +26,7 @@ import android.content.Context
 import android.os.Build
 import android.os.PowerManager
 import androidx.annotation.VisibleForTesting
+import androidx.annotation.WorkerThread
 import com.microsoft.identity.client.PublicClientApplicationConfiguration
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory
 import com.microsoft.identity.common.internal.activebrokerdiscovery.BrokerDiscoveryClientFactory
@@ -34,6 +35,7 @@ import com.microsoft.identity.common.internal.controllers.LocalMSALController
 import com.microsoft.identity.common.java.authorities.Authority
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthority
 import com.microsoft.identity.common.java.controllers.BaseController
+import com.microsoft.identity.common.java.controllers.IControllerFactory
 import com.microsoft.identity.common.java.interfaces.IPlatformComponents
 import com.microsoft.identity.common.logging.Logger
 import com.microsoft.identity.msal.BuildConfig
@@ -41,17 +43,26 @@ import com.microsoft.identity.msal.BuildConfig
 class MSALControllerFactory(
     private val applicationContext: Context,
     private val platformComponents: IPlatformComponents,
-    private val applicationConfiguration: PublicClientApplicationConfiguration) {
+    private val authority: Authority,
+    private val applicationConfiguration: PublicClientApplicationConfiguration) :
+    IControllerFactory {
 
     private val discoveryClient = BrokerDiscoveryClientFactory.getInstanceForClientSdk(
         context = applicationContext,
         platformComponents = platformComponents
     )
 
+    // todo: always take in a component?
     constructor(applicationConfiguration: PublicClientApplicationConfiguration):
-        this(applicationConfiguration.appContext,
-             AndroidPlatformComponentsFactory.createFromContext(applicationConfiguration.appContext),
-             applicationConfiguration)
+        this(applicationConfiguration = applicationConfiguration,
+            authority = applicationConfiguration.defaultAuthority)
+
+    constructor(applicationConfiguration: PublicClientApplicationConfiguration,
+                authority: Authority):
+            this(applicationContext = applicationConfiguration.appContext,
+                platformComponents = AndroidPlatformComponentsFactory.createFromContext(applicationConfiguration.appContext),
+                authority = authority,
+                applicationConfiguration = applicationConfiguration)
 
     companion object {
         private val TAG = MSALControllerFactory::class.simpleName
@@ -71,7 +82,7 @@ class MSALControllerFactory(
      * 4) If broker is not installed use local controller
      * 5) Otherwise return broker controller
      */
-    fun getDefaultController(authority: Authority): BaseController {
+    override fun getDefaultController(): BaseController {
         if (BuildConfig.DEBUG) {
             injectedMockDefaultController?.let {
                 return it
@@ -79,7 +90,7 @@ class MSALControllerFactory(
         }
 
         val activeBroker = getActiveBrokerPackageName()
-        return if (!activeBroker.isNullOrEmpty() && brokerEligible(authority)) {
+        return if (!activeBroker.isNullOrEmpty() && brokerEligible()) {
             BrokerMsalController(applicationContext, platformComponents, activeBroker)
         } else {
             LocalMSALController()
@@ -89,26 +100,25 @@ class MSALControllerFactory(
     /**
      * Returns one or more controllers to address a given request.
      *
-     * The order of the response matters.  The local controller should be returned first in order to
-     * ensure that any local refresh tokens are preferred over the use of the broker
+     * If requests is eligible for broker, {@link BrokerMsalController} will be
+     * added before {@link LocalMSALController}. otherwise only {@link LocalMSALController} will
+     * be returned.
      *
-     * Only return the broker controller when the following are true:
+     * Broker eligibility is determined if following conditions are true:
      *
-     * 1) The client indicates it wants to use broker
-     * 2) The authority is AAD
-     * 3) The audience is not AnyPersonalAccount
-     * 4) The broker is installed
-     * 5) The broker redirect URI for the client is registered
+     * 1) The broker is installed
+     * 2) The client indicates it wants to use broker
+     * 3) The authority is AAD
      */
-    fun getAllControllers(authority: Authority): List<BaseController> {
+    override fun getAllControllers(): List<BaseController> {
         val activeBroker = getActiveBrokerPackageName()
         val controllers: MutableList<BaseController> = ArrayList()
-        controllers.add(LocalMSALController())
-        if (!activeBroker.isNullOrEmpty() && brokerEligible(authority)) {
+        if (!activeBroker.isNullOrEmpty() && brokerEligible()) {
             controllers.add(
                 BrokerMsalController(applicationContext, platformComponents, activeBroker)
             )
         }
+        controllers.add(LocalMSALController())
 
         return controllers.toList()
     }
@@ -117,8 +127,8 @@ class MSALControllerFactory(
      * Returns true if the request is eligible to use broker (see [brokerEligible])
      * AND if a valid broker is found.
      **/
-    fun brokerEligibleAndInstalled(authority: Authority): Boolean {
-        return getActiveBrokerPackageName() != null && brokerEligible(authority)
+    fun brokerEligibleAndInstalled(): Boolean {
+        return getActiveBrokerPackageName() != null && brokerEligible()
     }
 
     /**
@@ -130,7 +140,7 @@ class MSALControllerFactory(
      *
      * Note: This method does NOT check if broker is installed.
      */
-    private fun brokerEligible(authority: Authority): Boolean {
+    private fun brokerEligible(): Boolean {
         val methodTag = "$TAG:brokerEligible"
         val logBrokerEligibleFalse = "Eligible to call broker? [false]. "
 
@@ -166,8 +176,11 @@ class MSALControllerFactory(
         }
     }
 
+    @WorkerThread
     private fun getActiveBrokerPackageName(): String? {
         val methodTag = "$TAG:getActiveBrokerPackageName"
+
+        // This operation *might* be long running, so this method should be invoked in a background thread.
         val activeBroker = discoveryClient.getActiveBroker(shouldSkipCache = false)
         activeBroker?.let {
             return it.packageName

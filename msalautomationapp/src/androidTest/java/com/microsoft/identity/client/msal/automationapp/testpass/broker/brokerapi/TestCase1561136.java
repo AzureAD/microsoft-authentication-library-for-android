@@ -52,7 +52,6 @@ import java.util.List;
 @SupportedBrokers(brokers = BrokerHost.class)
 @RetryOnFailure(retryCount = 2)
 @LocalBrokerHostDebugUiTest
-@Ignore("Seeing an error related to encryption at the 'getAccounts()' steps")
 public class TestCase1561136 extends AbstractMsalBrokerTest {
 
     @Test

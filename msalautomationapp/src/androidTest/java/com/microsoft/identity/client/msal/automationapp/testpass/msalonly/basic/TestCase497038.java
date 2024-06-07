@@ -31,25 +31,28 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
-import com.microsoft.identity.client.ui.automation.app.AzureSampleApp;
+import com.microsoft.identity.client.ui.automation.browser.BrowserChrome;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.UiResponse;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
+import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
+import com.microsoft.identity.common.java.util.ThreadUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 
 // Cross Apps SSO with System Browser
 // https://identitydivision.visualstudio.com/DefaultCollection/DevEx/_workitems/edit/497038
 @RetryOnFailure
-@RunOnAPI29Minus("Consent Page")
+@RunOnAPI29Minus("Speed Bump")
 public class TestCase497038 extends AbstractMsalUiTest {
 
     @Test
@@ -57,22 +60,20 @@ public class TestCase497038 extends AbstractMsalUiTest {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
-        // uninstall the Azure Sample app to ensure clean state
-        AzureSampleApp azureSampleApp = new AzureSampleApp();
-        azureSampleApp.uninstall();
-
-        // install and launch the Azure Sample app
-        azureSampleApp.install();
-        azureSampleApp.launch();
-        azureSampleApp.handleFirstRun();
+        final BrowserChrome chrome = new BrowserChrome();
+        chrome.launch();
+        chrome.handleFirstRun();
+        chrome.navigateTo("outlook.com");
+        ThreadUtils.sleepSafely(5000, "", "");
+        UiAutomatorUtils.handleButtonClickForObjectWithExactText("Sign in");
 
         final MicrosoftStsPromptHandlerParameters microsoftStsPromptHandlerParameters =
                 MicrosoftStsPromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
                         .broker(null)
                         .loginHint(null)
-                        .consentPageExpected(true)
-                        .consentPageResponse(UiResponse.ACCEPT)
+                        .staySignedInPageExpected(true)
+                        .staySignedInResponse(UiResponse.ACCEPT)
                         .speedBumpExpected(false)
                         .enrollPageExpected(false)
                         .registerPageExpected(false)
@@ -82,14 +83,10 @@ public class TestCase497038 extends AbstractMsalUiTest {
                         .sessionExpected(false)
                         .build();
 
-        // sign in into the Azure Sample app
-        azureSampleApp.signInWithSingleAccountFragment(username, password, getBrowser(), true, microsoftStsPromptHandlerParameters);
+        final MicrosoftStsPromptHandler microsoftStsPromptHandler =
+                new MicrosoftStsPromptHandler(microsoftStsPromptHandlerParameters);
 
-        // Small wait to allow sign in to complete
-        Thread.sleep(TimeUnit.SECONDS.toMillis(5));
-
-        // make sure we are sign in into the Azure Sample app
-        azureSampleApp.confirmSignedIn(username);
+        microsoftStsPromptHandler.handlePrompt(username, password);
 
         // NOW LOGIN INTO MSAL AUTOMATION APP
         final MsalSdk msalSdk = new MsalSdk();
@@ -124,12 +121,14 @@ public class TestCase497038 extends AbstractMsalUiTest {
 
     @Override
     public LabQuery getLabQuery() {
-        return null;
+        return LabQuery.builder()
+                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
+                .build();
     }
 
     @Override
     public TempUserType getTempUserType() {
-        return TempUserType.BASIC;
+        return null;
     }
 
     @Override
