@@ -23,8 +23,6 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
-import com.microsoft.identity.internal.testutils.TestConstants.Configurations.NATIVE_AUTH_SIGN_IN_TEST_CONFIG_FILE_PATH
-import com.microsoft.identity.internal.testutils.labutils.LabHelper
 import com.microsoft.identity.internal.testutils.nativeauth.NativeAuthCredentialHelper
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
@@ -33,8 +31,6 @@ import org.junit.Assert
 import org.junit.Test
 
 class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
-
-    override fun getConfigFilePath(): String = NATIVE_AUTH_SIGN_IN_TEST_CONFIG_FILE_PATH
 
     @Test
     fun testSignInErrorSimple() = runTest {

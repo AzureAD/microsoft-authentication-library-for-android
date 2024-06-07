@@ -23,7 +23,6 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
-import com.microsoft.identity.internal.testutils.TestConstants.Configurations.NATIVE_AUTH_SIGN_IN_TEST_CONFIG_FILE_PATH
 import com.microsoft.identity.internal.testutils.nativeauth.NativeAuthCredentialHelper
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
@@ -40,8 +39,6 @@ import org.junit.Before
 import org.junit.Test
 
 class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
-
-    override fun getConfigFilePath(): String = NATIVE_AUTH_SIGN_IN_TEST_CONFIG_FILE_PATH
 
     private val tempEmailApi = TemporaryEmailService()
 

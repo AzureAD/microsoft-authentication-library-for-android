@@ -34,6 +34,7 @@ import com.microsoft.identity.internal.testutils.TestUtils
 import com.microsoft.identity.internal.testutils.labutils.LabConstants
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery
+import com.microsoft.identity.internal.testutils.nativeauth.NativeAuthCredentialHelper
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import org.junit.After
 import org.junit.Assert
@@ -43,6 +44,7 @@ import org.mockito.Mockito
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.LooperMode
 import java.io.File
+import java.lang.annotation.Native
 
 // TODO: move to "PAUSED". A work in RoboTestUtils will be needed though.
 @LooperMode(LooperMode.Mode.LEGACY)
@@ -55,6 +57,10 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
     private lateinit var context: Context
     private lateinit var activity: Activity
     lateinit var application: INativeAuthPublicClientApplication
+
+    override fun getConfigFilePath(): String {
+        return "" // Not needed for native auth flows
+    }
 
     @Before
     open fun setup() {
@@ -83,12 +89,20 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
     }
 
     private fun setupPCA() {
-        val configFile = File(configFilePath)
+        val clientId = NativeAuthCredentialHelper.nativeAuthLabsEmailPasswordAppId
+        val authorityUrl = NativeAuthCredentialHelper.nativeAuthLabsAuthorityUrl
+        val challengeTypes = listOf("password", "oob")
 
         try {
-            application = PublicClientApplication.createNativeAuthPublicClientApplication(context, configFile)
+            application = PublicClientApplication.createNativeAuthPublicClientApplication(
+                context,
+                clientId,
+                authorityUrl,
+                null,
+                challengeTypes
+            )
         } catch (e: MsalException) {
-            Assert.fail(e.exceptionName)
+            Assert.fail(e.message)
         }
     }
 }
