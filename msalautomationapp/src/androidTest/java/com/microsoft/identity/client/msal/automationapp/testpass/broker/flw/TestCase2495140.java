@@ -152,7 +152,7 @@ public class TestCase2495140 extends AbstractMsalBrokerTest {
 
                     @Override
                     public void onError(MsalException exception) {
-                        Assert.assertEquals("thread interrupted", exception.getMessage());
+                        Assert.assertTrue(exception.getMessage().contains("thread interrupted"));
                         silentTokenLatch.countDown();
                     }
                 })

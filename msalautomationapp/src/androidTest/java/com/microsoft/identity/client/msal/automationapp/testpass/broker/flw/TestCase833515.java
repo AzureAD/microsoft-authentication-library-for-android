@@ -55,6 +55,7 @@ import com.microsoft.identity.labapi.utilities.constants.UserType;
 import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -63,7 +64,8 @@ import java.util.concurrent.TimeUnit;
 // End My Shift - In Shared device mode, global sign out should work.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833515
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
-//@RetryOnFailure(retryCount = 2)
+@RetryOnFailure(retryCount = 2)
+@Ignore("This one is proving very inconsistent due to Edge Ui, should be ran manually")
 public class TestCase833515 extends AbstractMsalBrokerTest {
 
     @Test

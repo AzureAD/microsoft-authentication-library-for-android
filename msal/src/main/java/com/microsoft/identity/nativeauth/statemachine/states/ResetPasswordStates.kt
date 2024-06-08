@@ -95,7 +95,7 @@ class ResetPasswordCodeRequiredState internal constructor(
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
-            methodName = "${TAG}.submitCode"
+            methodName = "${TAG}.submitCode(code: String, callback: SubmitCodeCallback)"
         )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
@@ -357,7 +357,7 @@ class ResetPasswordPasswordRequiredState internal constructor(
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
-            methodName = "${TAG}.submitPassword"
+            methodName = "${TAG}.submitPassword(password: CharArray, callback: SubmitPasswordCallback)"
         )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
