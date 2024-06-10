@@ -18,13 +18,13 @@ The Microsoft Authentication Library (MSAL) for Android enables developers to ac
 
 #### Browser-delegated authentication
 
-By default, MSAL uses the standard, browser-delegated authentication flow where you rely on the user's browser to handle the sign-in experience. In this flow, users are taken to the browser for authentication and then redirected back to the app when the sign-in process is complete. This browser-based experience is the default authentication method for work and school accounts as well as personal Microsoft accounts.
+By default, MSAL uses the standard, browser-delegated authentication flow where you rely on the user's browser to handle the sign-in experience. In this flow, users are taken to the browser for authentication and then redirected back to the app when the sign-in process is complete. This browser-based experience is the default authentication method for work and school accounts as well as Microsoft personal accounts.
 
 #### Native authentication 
 
-To support Microsoft Entra External ID scenarios, MSAL Android now offers Native authentication that allows you to customize the sign-in experiences within your mobile app. With native authentication, users are guided through a rich, native, mobile-first sign-up and sign-in journey without leaving the app. The native authentication feature is only available for mobile apps on [External ID for customers](https://learn.microsoft.com/en-us/entra/external-id/customers/concept-native-authentication). 
+To support Microsoft Entra External ID scenarios, MSAL Android now offers Native authentication that allows you to customize the sign-in experiences within your mobile app. With native authentication, users are guided through a rich, native, mobile-first sign-up and sign-in journey without leaving the app. The native authentication feature is only available for mobile apps using [External ID for customers](https://learn.microsoft.com/en-us/entra/external-id/customers/concept-native-authentication). 
 
-When implementing authentication for mobile apps on External ID, you can choose between browser-delegated authentication and native authentication. Learn how you can [choose the right authentication option](https://learn.microsoft.com/en-us/entra/external-id/customers/concept-native-authentication#when-to-use-native-authentication) for your mobile app. 
+When implementing authentication for mobile apps using External ID, you can choose between browser-delegated authentication and native authentication. Learn how you can [choose the right authentication option](https://learn.microsoft.com/en-us/entra/external-id/customers/concept-native-authentication#when-to-use-native-authentication) for your mobile app. 
 
 ## Getting started
 
