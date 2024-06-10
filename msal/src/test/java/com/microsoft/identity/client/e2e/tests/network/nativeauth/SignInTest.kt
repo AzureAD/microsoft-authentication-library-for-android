@@ -35,8 +35,36 @@ class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     override fun getConfigFilePath(): String = NATIVE_AUTH_SIGN_IN_TEST_CONFIG_FILE_PATH
 
+    /**
+     * Use email and password to get token (hero scenario 15, use case 1.2.1) - Test case 37
+     */
     @Test
-    fun testSignInErrorSimple() = runTest {
+    fun testSuccessEmailPassword() = runTest {
+        val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
+        val password = NativeAuthCredentialHelper.nativeAuthSignInPassword
+        val result = application.signIn(username, password.toCharArray())
+        Assert.assertTrue(result is SignInResult.Complete)
+    }
+
+    /**
+     * Use email and password to get token while user is not registered with given email (use case 1.2.2) - Test case 38
+     */
+    @Test
+    fun testErrorEmailPasswordIsUserCancel() = runTest {
+        val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
+        val password = NativeAuthCredentialHelper.nativeAuthSignInPassword
+        // Turn an existing username to a non-existing username
+        val alteredUsername = username.replace("@", "1234@")
+        val result = application.signIn(alteredUsername, password.toCharArray())
+        Assert.assertTrue(result is SignInError)
+        Assert.assertTrue((result as SignInError).isUserNotFound())
+    }
+
+    /**
+     * Use email and password to get token while password is incorrect (use case 1.2.3) - Test case 39
+     */
+    @Test
+    fun testErrorEmailPasswordIsInvalidCredentials() = runTest {
         val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
         val password = NativeAuthCredentialHelper.nativeAuthSignInPassword
         // Turn correct password into an incorrect one
@@ -44,13 +72,5 @@ class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
         val result = application.signIn(username, alteredPassword.toCharArray())
         Assert.assertTrue(result is SignInError)
         Assert.assertTrue((result as SignInError).isInvalidCredentials())
-    }
-
-    @Test
-    fun testSignInSuccessSimple() = runTest {
-        val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
-        val password = NativeAuthCredentialHelper.nativeAuthSignInPassword
-        val result = application.signIn(username, password.toCharArray())
-        Assert.assertTrue(result is SignInResult.Complete)
     }
 }
