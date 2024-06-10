@@ -23,7 +23,6 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
-import com.microsoft.identity.internal.testutils.TestConstants.Configurations.NATIVE_AUTH_SIGN_IN_TEST_CONFIG_FILE_PATH
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
@@ -37,8 +36,6 @@ import org.junit.Before
 import org.junit.Test
 
 class SignUpTest : NativeAuthPublicClientApplicationAbstractTest() {
-
-    override fun getConfigFilePath(): String = NATIVE_AUTH_SIGN_IN_TEST_CONFIG_FILE_PATH
 
     private val tempEmailApi = TemporaryEmailService()
 
@@ -72,7 +69,8 @@ class SignUpTest : NativeAuthPublicClientApplicationAbstractTest() {
         while (shouldRetry) {
             try {
                 val user = tempEmailApi.generateRandomEmailAddress()
-                signUpResult = application.signUp(user, "8ZA[@Kzir!]==&3".toCharArray())
+                val password = getSafePassword()
+                signUpResult = application.signUp(user, password.toCharArray())
                 Assert.assertTrue(signUpResult is SignUpResult.CodeRequired)
                 otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)

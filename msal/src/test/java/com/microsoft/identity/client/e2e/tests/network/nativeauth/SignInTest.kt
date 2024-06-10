@@ -23,7 +23,6 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
-import com.microsoft.identity.internal.testutils.TestConstants.Configurations.NATIVE_AUTH_SIGN_IN_TEST_CONFIG_FILE_PATH
 import com.microsoft.identity.internal.testutils.nativeauth.NativeAuthCredentialHelper
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
@@ -66,11 +65,19 @@ class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
     @Test
     fun testErrorEmailPasswordIsInvalidCredentials() = runTest {
         val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
-        val password = NativeAuthCredentialHelper.nativeAuthSignInPassword
+        val password = getSafePassword()
         // Turn correct password into an incorrect one
         val alteredPassword = password + "1234"
         val result = application.signIn(username, alteredPassword.toCharArray())
         Assert.assertTrue(result is SignInError)
         Assert.assertTrue((result as SignInError).isInvalidCredentials())
+    }
+
+    @Test
+    fun testSignInSuccessSimple() = runTest {
+        val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
+        val password = getSafePassword()
+        val result = application.signIn(username, password.toCharArray())
+        Assert.assertTrue(result is SignInResult.Complete)
     }
 }
