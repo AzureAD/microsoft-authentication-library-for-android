@@ -51,7 +51,7 @@ import java.util.Arrays;
 
 // Cross Apps SSO with System Browser
 // https://identitydivision.visualstudio.com/DefaultCollection/DevEx/_workitems/edit/497038
-@RetryOnFailure(retryCount = 2)
+@RetryOnFailure
 @RunOnAPI29Minus("Speed Bump")
 public class TestCase497038 extends AbstractMsalUiTest {
 
