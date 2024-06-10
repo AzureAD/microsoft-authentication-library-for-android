@@ -38,7 +38,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 // Nested app auth with US Gov accunt
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2702948
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2703171
 @LocalBrokerHostDebugUiTest
 @SupportedBrokers(brokers = {BrokerHost.class})
 public class TestCase2703171 extends AbstractMsalBrokerTest {

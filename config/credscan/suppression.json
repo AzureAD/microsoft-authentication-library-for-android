@@ -1,0 +1,53 @@
+{
+    "tool": "Credential Scanner",
+    "suppressions": [
+    {
+        "file": "msalautomationapp/debug.keystore",
+        "_justification": "Not production keystore"
+    },
+    {
+        "file": "testapps/testapp/debug.keystore",
+        "_justification": "Not production keystore"
+    },
+    {
+        "file": "testapps/testapp/debug/debug.keystore",
+        "_justification": "Not production keystore"
+    },
+    {
+        "file": "common/common/src/main/res/values-da/strings.xml", 
+        "_justification": "Password string for dialog box"
+    },
+    {
+        "file": "common/common/src/main/res/values-de/strings.xml", 
+        "_justification": "Password string for dialog box"
+    },
+    {
+        "file": "common/common/src/main/res/values-et/strings.xml", 
+        "_justification": "Password string for dialog box"
+    },
+    {
+        "file": "common/common/src/main/res/values-eu/strings.xml", 
+        "_justification": "Password string for dialog box"
+    },
+    {
+        "file": "common/common/src/main/res/values-nb/strings.xml", 
+        "_justification": "Password string for dialog box"
+    },
+    {
+        "file": "common/common/src/main/res/values-nl/strings.xml", 
+        "_justification": "Password string for dialog box"
+    },
+        {
+        "file": "common/common4j/src/test/com/microsoft/identity/common/java/platform/JweResponseTests.java", 
+         "_justification": "Mock data for test case"
+    },
+    {
+        "file": "common/common4j/src/test/com/microsoft/identity/common/java/crypto/SP800108KeyGenTests.java", 
+         "_justification": "Mock data for test case"
+    },
+    {
+        "file": "common/common4j/src/test/com/microsoft/identity/common/java/crypto/SP800108KeyGenTests.java", 
+         "_justification": "Mock data for test case"
+    }
+    ]
+}   
