@@ -44,6 +44,7 @@ import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadP
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.common.java.util.ThreadUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Test;
@@ -100,6 +101,7 @@ public class TestCase2801802 extends AbstractMsalBrokerTest {
         UiAutomatorUtils.handleButtonClickForObjectWithText("Done");
         UiAutomatorUtils.handleInput("com.android.systemui:id/lockPassword", systemPin);
         UiAutomatorUtils.pressEnter();
+
         ThreadUtils.sleepSafely((int)TimeUnit.SECONDS.toMillis(15), TAG, "Sleeping while adding a passkey");
 
         // Now try to use the passkey to login.
@@ -140,14 +142,121 @@ public class TestCase2801802 extends AbstractMsalBrokerTest {
         }
     }
 
+    @Test
+    public void test_2801802_tap() throws Throwable {
+        final String username = "username";
+        final String tap = "tap";
+
+        // Enable Authenticator as a passkey provider.
+        final GoogleSettings settings = new GoogleSettings();
+        settings.launchAccountListPage();
+        UiAutomatorUtils.handleButtonClick("com.android.settings:id/switchWidget");
+
+        // Add an account to AuthApp.
+        mBroker.launch();
+        UiAutomatorUtils.handleButtonClickSafely("com.android.permissioncontroller:id/permission_allow_button");
+        mBroker.handleFirstRun();
+        UiAutomatorUtils.handleButtonClickSafely("com.azure.authenticator:id/zero_accounts_add_account_button");
+        UiAutomatorUtils.handleButtonClickSafely("com.azure.authenticator:id/add_account_work_btn");
+        UiAutomatorUtils.obtainUiObjectWithClassAndDescription(LinearLayout.class, "Sign in 2 of 2").click();
+        UiAutomatorUtils.obtainUiObjectWithClassAndIndex(EditText.class, 0).setText(username);
+        UiAutomatorUtils.handleButtonClickForObjectWithTextSafely("Next");
+        UiAutomatorUtils.obtainUiObjectWithClassAndIndex(EditText.class, 0).setText(tap);
+        UiAutomatorUtils.pressEnter();
+
+        // Passkey registration via AuthApp.
+        ThreadUtils.sleepSafely((int)TimeUnit.SECONDS.toMillis(10), TAG, "Sleeping while waiting for auth.");
+        UiAutomatorUtils.handleButtonClickForObjectWithTextSafely("Skip");
+        ThreadUtils.sleepSafely((int)TimeUnit.SECONDS.toMillis(10), TAG, "Need some time here for loading.");
+        UiAutomatorUtils.handleButtonClickForObjectWithTextSafely("Done");
+        UiAutomatorUtils.handleInput("com.android.systemui:id/lockPassword", systemPin);
+        UiAutomatorUtils.pressEnter();
+        ThreadUtils.sleepSafely((int)TimeUnit.SECONDS.toMillis(5), TAG, "Sleeping while adding a passkey");
+        UiAutomatorUtils.handleButtonClickForObjectWithTextSafely("Continue");
+
+        // Now try to use the passkey to login.
+        final MsalSdk msalSdk = new MsalSdk();
+        // With UPN.
+        final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .loginHint(username)
+                .scopes(Arrays.asList(mScopes))
+                .promptParameter(Prompt.LOGIN)
+                .msalConfigResourceId(getConfigFileResourceId())
+                .build();
+
+        final MsalAuthResult authResult;
+        try {
+            authResult = msalSdk.acquireTokenInteractive(authTestParams, new OnInteractionRequired() {
+                @Override
+                public void handleUserInteraction() {
+                    final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
+                            .prompt(PromptParameter.LOGIN)
+                            .loginHint(username)
+                            .sessionExpected(false)
+                            .consentPageExpected(false)
+                            .speedBumpExpected(false)
+                            .broker(mBroker)
+                            .passwordPageExpected(true)
+                            .expectingBrokerAccountChooserActivity(false)
+                            .choosePasskeyExpected(true)
+                            .systemPin(systemPin)
+                            .build();
+
+                    new AadPromptHandler(promptHandlerParameters)
+                            .handlePrompt(username, "N/A");
+                }
+            }, TokenRequestTimeout.MEDIUM);
+            authResult.assertSuccess();
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+
+        // Without UPN
+        final MsalAuthTestParams authTestParams2 = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .scopes(Arrays.asList(mScopes))
+                .promptParameter(Prompt.LOGIN)
+                .msalConfigResourceId(getConfigFileResourceId())
+                .build();
+
+        final MsalAuthResult authResult2;
+        try {
+            authResult2 = msalSdk.acquireTokenInteractive(authTestParams2, new OnInteractionRequired() {
+                @Override
+                public void handleUserInteraction() {
+                    final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
+                            .prompt(PromptParameter.LOGIN)
+                            .sessionExpected(false)
+                            .consentPageExpected(false)
+                            .speedBumpExpected(false)
+                            .broker(mBroker)
+                            .passwordPageExpected(true)
+                            .expectingBrokerAccountChooserActivity(false)
+                            .choosePasskeyExpected(true)
+                            .systemPin(systemPin)
+                            .build();
+
+                    new AadPromptHandler(promptHandlerParameters)
+                            .handlePrompt(username, "N/A");
+                }
+            }, TokenRequestTimeout.MEDIUM);
+            authResult2.assertSuccess();
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
     public LabQuery getLabQuery() {
-        return null;
+        return LabQuery.builder()
+                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
+                .build();
     }
 
     @Override
     public TempUserType getTempUserType() {
-        return TempUserType.GLOBAL_MFA;
+        return null;
     }
 
     @Override
