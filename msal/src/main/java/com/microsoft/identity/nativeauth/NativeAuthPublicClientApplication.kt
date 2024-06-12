@@ -53,6 +53,8 @@ import com.microsoft.identity.common.java.nativeauth.controllers.results.SignInS
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignUpCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignUpStartCommandResult
 import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
+import com.microsoft.identity.common.java.opentelemetry.OTelUtility
+import com.microsoft.identity.common.java.opentelemetry.OpenTelemetryHolder
 import com.microsoft.identity.common.java.providers.microsoft.azureactivedirectory.AzureActiveDirectory
 import com.microsoft.identity.common.java.util.ResultFuture
 import com.microsoft.identity.common.java.util.StringUtil
@@ -60,7 +62,7 @@ import com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordS
 import com.microsoft.identity.common.nativeauth.internal.commands.SignInStartCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.SignUpStartCommand
 import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
-import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.Companion.pcaScope
+import com.microsoft.identity.msal.BuildConfig
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccountError
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
@@ -81,11 +83,17 @@ import com.microsoft.identity.nativeauth.statemachine.states.SignInPasswordRequi
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpPasswordRequiredState
+import io.opentelemetry.sdk.OpenTelemetrySdk
+import io.opentelemetry.sdk.resources.Resource
+import io.opentelemetry.sdk.trace.SdkTracerProvider
+import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor
+import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
 
 /**
  * NativeAuthPublicClientApplication provides implementation for the top level interface
@@ -200,6 +208,10 @@ class NativeAuthPublicClientApplication(
         Authority.addKnownAuthorities(nativeAuthConfig.authorities)
         initializeLoggerSettings(nativeAuthConfig.loggerConfiguration)
 
+        if (!StringUtil.isNullOrEmpty(BuildConfig.otelAriaToken)) {
+            setupOtelTelemetry(context, BuildConfig.otelAriaToken)
+        }
+
         // Since network request is sent from the sdk, if calling app doesn't declare the internet
         // permission in the manifest, we cannot make the network call.
         checkInternetPermission(nativeAuthConfig)
@@ -219,6 +231,22 @@ class NativeAuthPublicClientApplication(
             NATIVE_AUTH_CREDENTIAL_SHARED_PREFERENCES,
             AndroidAuthSdkStorageEncryptionManager(context)
         )
+    }
+
+    private fun setupOtelTelemetry(context: Context, ariaToken: String) {
+        val resource = Resource.getDefault().merge(Resource.getDefault())
+        val ariaSpanExporter = AriaSpanExporter(context, ariaToken)
+
+        val sdkTracerProvider = SdkTracerProvider.builder()
+            .addSpanProcessor(SimpleSpanProcessor.create(ariaSpanExporter))
+            .setResource(resource)
+            .build()
+
+        val openTelemetry = OpenTelemetrySdk.builder()
+            .setTracerProvider(sdkTracerProvider)
+            .buildAndRegisterGlobal()
+
+        OpenTelemetryHolder.setOpenTelemetry(openTelemetry)
     }
 
     interface GetCurrentAccountCallback : Callback<GetAccountResult>
@@ -335,6 +363,8 @@ class NativeAuthPublicClientApplication(
         )
         return withContext(Dispatchers.IO) {
             try {
+                val span = OTelUtility.createSpan("SignIn")
+                span.makeCurrent()
 
                 verifyNoUserIsSignedIn()
 
@@ -502,6 +532,7 @@ class NativeAuthPublicClientApplication(
                         }
                     }
                 } finally {
+                    span.end()
                     StringUtil.overwriteWithNull(params.password)
                 }
             } catch (e: Exception) {

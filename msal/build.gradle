@@ -27,6 +27,12 @@ if (project.hasProperty("codeCoverageEnabled")) {
     enableCodeCoverage = codeCoverageEnabled.toBoolean()
 }
 
+def otelAriaToken = ""
+
+if(project.hasProperty('otelAriaToken')) {
+    otelAriaToken = project.otelAriaToken
+}
+
 codeCoverageReport {
     coverage.enabled = enableCodeCoverage
 }
@@ -78,12 +84,14 @@ android {
             testCoverageEnabled enableCodeCoverage
             debuggable true
             buildConfigField("String", "VERSION_NAME", "\"${project.version}\"")
+            buildConfigField("String", "otelAriaToken", "\"${otelAriaToken}\"" )
         }
         release {
             minifyEnabled false
             debuggable false
             consumerProguardFiles 'consumer-rules.pro'
             buildConfigField("String", "VERSION_NAME", "\"${project.version}\"")
+            buildConfigField("String", "otelAriaToken", "\"${otelAriaToken}\"" )
         }
     }
 
@@ -266,6 +274,9 @@ dependencies {
     testDistImplementation(testFixtures("com.microsoft.identity:common4j:${common4jVersion}"))
 
     implementation "io.opentelemetry:opentelemetry-api:$rootProject.ext.openTelemetryVersion"
+    implementation("io.opentelemetry:opentelemetry-sdk:$rootProject.ext.openTelemetryVersion")
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation project(':1DS-SDK')
 }
 
 def configDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')
