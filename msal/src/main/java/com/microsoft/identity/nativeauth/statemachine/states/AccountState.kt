@@ -68,6 +68,7 @@ import java.util.UUID
  *  AccountState returned as part of a successful completion of sign in flow [com.microsoft.identity.nativeauth.statemachine.results.SignInResult.Complete].
  */
 class AccountState private constructor(
+    internal var authenticationResult: IAuthenticationResult?,
     private var account: IAccount,
     private val config: NativeAuthPublicClientApplicationConfiguration,
     val correlationId: String
@@ -75,7 +76,8 @@ class AccountState private constructor(
 
     interface SignOutCallback : Callback<SignOutResult>
 
-    constructor(parcel: Parcel) : this(
+    constructor (parcel: Parcel) : this (
+        authenticationResult = null, // We don't need authenticationResult transferred from one Fragment to another.
         account = parcel.serializable<IAccount>() as IAccount,
         correlationId = parcel.readString() ?: "UNSET",
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
@@ -309,10 +311,12 @@ class AccountState private constructor(
                             correlationId = correlationId
                         )
 
+                val privateCorrelationId = if (correlationId == "UNSET") { UUID.randomUUID().toString() } else { correlationId }
+
                 val acquireTokenSilentParameters = AcquireTokenSilentParameters.Builder()
                     .forAccount(currentAccount)
                     .fromAuthority(currentAccount.authority)
-                    .withCorrelationId(UUID.fromString(correlationId))
+                    .withCorrelationId(UUID.fromString(privateCorrelationId))
                     .forceRefresh(forceRefresh)
                     .withScopes(scopes)
                     .build()
@@ -413,6 +417,7 @@ class AccountState private constructor(
             config: NativeAuthPublicClientApplicationConfiguration
         ): AccountState {
             return AccountState(
+                authenticationResult = authenticationResult,
                 account = authenticationResult.account,
                 correlationId = correlationId,
                 config = config
@@ -425,6 +430,7 @@ class AccountState private constructor(
             config: NativeAuthPublicClientApplicationConfiguration
         ): AccountState {
             return AccountState(
+                authenticationResult = null,
                 account = account,
                 correlationId = correlationId,
                 config = config
