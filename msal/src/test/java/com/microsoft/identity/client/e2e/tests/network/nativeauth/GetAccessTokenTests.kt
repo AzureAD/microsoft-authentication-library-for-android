@@ -23,22 +23,24 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
+import com.microsoft.identity.client.e2e.shadows.ShadowBaseController
 import com.microsoft.identity.client.e2e.utils.assertState
 import com.microsoft.identity.internal.testutils.nativeauth.NativeAuthCredentialHelper
-import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Test
+import org.robolectric.annotation.Config
 
+@Config(shadows = [ShadowBaseController::class])
 class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
 
     @Test
     fun test1() = runTest {
         val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
         val password = getSafePassword()
-        val scopes = listOf("")
+        val scopes = listOf("api://1e9e882d-3f7d-4b02-af06-b5db4d8466c0/Employees.Write.All")
         val result = application.signIn(
             username = username,
             password = password.toCharArray(),
@@ -46,18 +48,22 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         )
         assertState(result, SignInResult.Complete::class.java)
         val accountState = (result as SignInResult.Complete).resultValue
-        val initialAccessToken = accountState.authenticationResult!!.accessToken
 
-        // Token should be retrieved from cache, and so should be the same as the previously returned token
+        // Var to keep track of whether BaseController.renewAccessToken() was called. This method calls the API to refresh the access token, for example if it's expired or not available in cache.
+        var wasRenewAccessTokenInvoked = false
+        ShadowBaseController.setOnRenewAccessTokenInvokedCallback { wasRenewAccessTokenInvoked = true }
+
+        // Token should be retrieved from cache
         val getAccessTokenResult = accountState.getAccessToken()
         assertState(getAccessTokenResult, GetAccessTokenResult.Complete::class.java)
+        Assert.assertFalse(wasRenewAccessTokenInvoked)
         val retrievedAccessToken = (getAccessTokenResult as GetAccessTokenResult.Complete).resultValue.accessToken
-        Assert.assertEquals(retrievedAccessToken, initialAccessToken)
 
         // Token should be refreshed, and so should not be the same as the previously returned token
         val getAccessTokenResult2 = accountState.getAccessToken(forceRefresh = true)
         Assert.assertTrue(getAccessTokenResult2 is GetAccessTokenResult.Complete)
+        Assert.assertTrue(wasRenewAccessTokenInvoked)
         val refreshedAccessToken = (getAccessTokenResult2 as GetAccessTokenResult.Complete).resultValue.accessToken
-        Assert.assertNotEquals(refreshedAccessToken, initialAccessToken)
+        Assert.assertNotEquals(refreshedAccessToken, retrievedAccessToken)
     }
 }
