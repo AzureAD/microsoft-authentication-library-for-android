@@ -13,6 +13,7 @@
 # @AzureAD/NativeAuthTeam owns any files related to CIAM native authentication.
 msal/src/main/java/com/microsoft/identity/nativeauth/ @AzureAD/NativeAuthTeam
 msal/src/test/java/com/microsoft/identity/nativeauth/ @AzureAD/NativeAuthTeam
+msal/src/test/java/com/microsoft/identity/client/e2e/tests/network/nativeauth/ @AzureAD/NativeAuthTeam
 msal/src/androidTest/java/com/microsoft/identity/nativeauth/ @AzureAD/NativeAuthTeam
 msal/testapps/testapp/src/main/java/com/microsoft/identity/client/testapp/nativeauth @AzureAD/NativeAuthTeam
 
