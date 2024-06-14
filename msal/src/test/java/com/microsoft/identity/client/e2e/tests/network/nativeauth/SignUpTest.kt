@@ -48,6 +48,29 @@ class SignUpTest : NativeAuthPublicClientApplicationAbstractTest() {
         Dispatchers.setMain(testDispatcher)
     }
 
+    private fun <T> retryOperation(
+        maxRetries: Int = 3,
+        onFailure: () -> Unit = { Assert.fail() },
+        block: () -> T
+    ): T? {
+        var retryCount = 0
+        var shouldRetry = true
+
+        while (shouldRetry) {
+            try {
+                return block()
+            } catch (e: IllegalStateException) {
+                if (retryCount >= maxRetries) {
+                    onFailure()
+                    shouldRetry = false
+                } else {
+                    retryCount++
+                }
+            }
+        }
+        return null
+    }
+
     @Test
     fun testSignUpErrorSimple() = runTest {
         val user = tempEmailApi.generateRandomEmailAddress()
@@ -60,14 +83,12 @@ class SignUpTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Running with runBlocking to avoid default 10 second execution timeout.
      */
     @Test
-    fun testSignUpSuccessSimple() = runBlocking {
-        var retryCount = 0
+    fun testSignUpSuccessSimple() = runTest {
         var signUpResult: SignUpResult
         var otp: String
-        var shouldRetry = true
 
-        while (shouldRetry) {
-            try {
+        retryOperation {
+            runBlocking {
                 val user = tempEmailApi.generateRandomEmailAddress()
                 val password = getSafePassword()
                 signUpResult = application.signUp(user, password.toCharArray())
@@ -75,16 +96,7 @@ class SignUpTest : NativeAuthPublicClientApplicationAbstractTest() {
                 otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
                 Assert.assertTrue(submitCodeResult is SignUpResult.Complete)
-                shouldRetry = false
-                break
-            } catch (e: IllegalStateException) {
-                // Re-run this test if the OTP retrieval fails. 1SecMail is known for emails to sometimes never arrive.
-                // In that case, restart the test case with a new email address and try again, to make test less flaky.
-                if (retryCount == 3) {
-                    Assert.fail()
-                    shouldRetry = false
-                }
-                retryCount++
+                "Success"
             }
         }
     }
