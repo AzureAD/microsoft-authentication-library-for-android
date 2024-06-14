@@ -118,7 +118,7 @@ class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Use email and OTP to get token and sign in (hero scenario 6, use case 2.2.1) - Test case 30
      */
     @Test
-    fun testSuccessEmailOTP() = runTest {
+    fun testSuccessEmailOTP() {
         var signInResult: SignInResult
         var otp: String
 
@@ -150,7 +150,7 @@ class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Use email and OTP to get token while OTP is incorrect (use case 2.2.7) - Test case 35
      */
     @Test
-    fun testErrorEmailOTPIsInvalidCode() = runTest {
+    fun testErrorEmailOTPIsInvalidCode() {
         var signInResult: SignInResult
         var otp: String
 
