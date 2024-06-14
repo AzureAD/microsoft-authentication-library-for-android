@@ -64,6 +64,8 @@ class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
      */
     @Test
     fun testErrorEmailPasswordIsInvalidCredentials() = runTest {
+    @Test
+    fun testSignInErrorSimple() = runTest {
         val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
         val password = getSafePassword()
         // Turn correct password into an incorrect one
