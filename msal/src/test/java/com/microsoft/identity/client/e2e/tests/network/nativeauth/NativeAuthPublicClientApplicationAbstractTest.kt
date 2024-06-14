@@ -105,4 +105,27 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
             Assert.fail(e.message)
         }
     }
+
+    fun <T> retryOperation(
+        maxRetries: Int = 3,
+        onFailure: () -> Unit = { Assert.fail() },
+        block: () -> T
+    ): T? {
+        var retryCount = 0
+        var shouldRetry = true
+
+        while (shouldRetry) {
+            try {
+                return block()
+            } catch (e: IllegalStateException) {
+                if (retryCount >= maxRetries) {
+                    onFailure()
+                    shouldRetry = false
+                } else {
+                    retryCount++
+                }
+            }
+        }
+        return null
+    }
 }

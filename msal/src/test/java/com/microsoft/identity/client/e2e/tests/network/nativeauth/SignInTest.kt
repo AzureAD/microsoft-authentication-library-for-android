@@ -52,29 +52,6 @@ class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
         Dispatchers.setMain(testDispatcher)
     }
 
-    private fun <T> retryOperation(
-        maxRetries: Int = 3,
-        onFailure: () -> Unit = { Assert.fail() },
-        block: () -> T
-    ): T? {
-        var retryCount = 0
-        var shouldRetry = true
-
-        while (shouldRetry) {
-            try {
-                return block()
-            } catch (e: IllegalStateException) {
-                if (retryCount >= maxRetries) {
-                    onFailure()
-                    shouldRetry = false
-                } else {
-                    retryCount++
-                }
-            }
-        }
-        return null
-    }
-
     /**
      * Use email and password to get token (hero scenario 15, use case 1.2.1) - Test case 37
      */
@@ -124,13 +101,12 @@ class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         retryOperation {
             runBlocking {
-                val user = tempEmailApi.generateRandomEmailAddress()
+                val user = NativeAuthCredentialHelper.nativeAuthSignInUsername
                 signInResult = application.signIn(user)
                 Assert.assertTrue(signInResult is SignInResult.CodeRequired)
                 otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signInResult as SignInResult.CodeRequired).nextState.submitCode(otp)
                 Assert.assertTrue(submitCodeResult is SignInResult.Complete)
-                "Success"
             }
         }
     }
@@ -156,7 +132,7 @@ class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         retryOperation {
             runBlocking {
-                val user = tempEmailApi.generateRandomEmailAddress()
+                val user = NativeAuthCredentialHelper.nativeAuthSignInUsername
                 signInResult = application.signIn(user)
                 Assert.assertTrue(signInResult is SignInResult.CodeRequired)
                 otp = tempEmailApi.retrieveCodeFromInbox(user)
@@ -165,7 +141,6 @@ class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
                 val submitCodeResult = (signInResult as SignInResult.CodeRequired).nextState.submitCode(alteredOtp)
                 Assert.assertTrue(submitCodeResult is SubmitCodeError)
                 Assert.assertTrue((submitCodeResult as SubmitCodeError).isInvalidCode())
-                "Success"
             }
         }
     }
