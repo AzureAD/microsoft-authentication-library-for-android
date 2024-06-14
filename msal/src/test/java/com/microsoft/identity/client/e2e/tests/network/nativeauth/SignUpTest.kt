@@ -83,7 +83,7 @@ class SignUpTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Running with runBlocking to avoid default 10 second execution timeout.
      */
     @Test
-    fun testSignUpSuccessSimple() = runTest {
+    fun testSignUpSuccessSimple() {
         var signUpResult: SignUpResult
         var otp: String
 
