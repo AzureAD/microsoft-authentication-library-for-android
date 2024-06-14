@@ -218,7 +218,7 @@ class SignUpCodeRequiredState internal constructor(
                         )
                     }
 
-                    is INativeAuthCommandResult.UnknownError -> {
+                    is INativeAuthCommandResult.APIError -> {
                         Logger.warnWithObject(
                             TAG,
                             result.correlationId,
@@ -314,7 +314,7 @@ class SignUpCodeRequiredState internal constructor(
                         )
                     }
 
-                    is INativeAuthCommandResult.Redirect, is INativeAuthCommandResult.UnknownError -> {
+                    is INativeAuthCommandResult.Redirect, is INativeAuthCommandResult.APIError -> {
                         Logger.warnWithObject(
                             TAG,
                             result.correlationId,
@@ -326,7 +326,7 @@ class SignUpCodeRequiredState internal constructor(
                             error = (result as INativeAuthCommandResult.Error).error,
                             correlationId = (result as INativeAuthCommandResult.Error).correlationId,
                             errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
-                            exception = if (result is INativeAuthCommandResult.UnknownError) result.exception else null
+                            exception = if (result is INativeAuthCommandResult.APIError) result.exception else null
                         )
                     }
                 }
@@ -522,7 +522,7 @@ class SignUpPasswordRequiredState internal constructor(
                             )
                         }
 
-                        is INativeAuthCommandResult.UnknownError -> {
+                        is INativeAuthCommandResult.APIError -> {
                             Logger.warnWithObject(
                                 TAG,
                                 result.correlationId,
@@ -714,7 +714,7 @@ class SignUpAttributesRequiredState internal constructor(
                         )
                     }
 
-                    is INativeAuthCommandResult.UnknownError -> {
+                    is INativeAuthCommandResult.APIError -> {
                         Logger.warnWithObject(
                             TAG,
                             result.correlationId,

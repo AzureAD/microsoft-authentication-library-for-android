@@ -27,6 +27,7 @@ import com.microsoft.identity.client.e2e.shadows.ShadowBaseController
 import com.microsoft.identity.client.e2e.utils.assertState
 import com.microsoft.identity.internal.testutils.nativeauth.NativeAuthCredentialHelper
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenError
+import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import kotlinx.coroutines.test.runTest
@@ -37,10 +38,28 @@ import org.robolectric.annotation.Config
 @Config(shadows = [ShadowBaseController::class])
 class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
     companion object {
+        const val INVALID_SCOPE = "api://1e9e882d-3f7d-4b02-af06-b5db4d8466c0/Lorum.Ipsum"
         const val EMPLOYEE_WRITE_ALL_SCOPE = "api://1e9e882d-3f7d-4b02-af06-b5db4d8466c0/Employees.Write.All"
         const val EMPLOYEE_READ_ALL_SCOPE = "api://1e9e882d-3f7d-4b02-af06-b5db4d8466c0/Employees.Read.All"
         const val CUSTOMERS_WRITE_ALL_SCOPE = "api://a6568f2f-47a5-4b18-b2c7-25eff03d87d6/Customers.Write.All"
         const val CUSTOMERS_READ_ALL_SCOPE = "api://a6568f2f-47a5-4b18-b2c7-25eff03d87d6/Customers.Read.All"
+    }
+
+    @Test
+    fun testGetAccessTokenForInvalidScope() = runTest {
+        val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
+        val password = getSafePassword()
+        val result = application.signIn(
+            username = username,
+            password = password.toCharArray(),
+            scopes = listOf(INVALID_SCOPE)
+        )
+        assertState(result, SignInError::class.java)
+        Assert.assertTrue((result as SignInError).error == "invalid_grant")
+        Assert.assertTrue(result.errorMessage != null)
+        Assert.assertTrue(result.errorMessage!!.contains("AADSTS65001: The user or administrator has not consented to use the application"))
+        Assert.assertTrue(result.errorCodes != null)
+        Assert.assertTrue(result.errorCodes!!.contains(65001))
     }
 
     @Test
