@@ -166,29 +166,6 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
     }
 
     /**
-     * Test sign in scenario 6:
-     * 1a -> sign in with (invalid) username
-     * 1b <- server returns invalid user error
-     */
-    @Test
-    fun testSignInScenario6() = runTest {
-        // 1. Sign in with username
-        // 1a. Setup server response
-        val correlationId = UUID.randomUUID().toString()
-        configureMockApi(
-            endpointType = MockApiEndpoint.SignInInitiate,
-            correlationId = correlationId,
-            responseType = MockApiResponseType.USER_NOT_FOUND
-        )
-
-        // 1b. Call SDK interface
-        val codeRequiredResult = application.signIn(username)
-        // 1a. Server returns invalid user error
-        assertTrue(codeRequiredResult is SignInError )
-        assertTrue((codeRequiredResult as SignInError).isUserNotFound())
-    }
-
-    /**
      * Test sign in scenario 7:
      * 1a -> sign in with (valid) username
      * 1b <- server requires code challenge

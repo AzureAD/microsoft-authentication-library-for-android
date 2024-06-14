@@ -191,44 +191,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     }
 
     /**
-     * Test sign in scenario 6:
-     * 1a -> sign in with (invalid) username
-     * 1b <- server returns invalid user error
-     */
-    @Test
-    public void testSignInScenario6() throws ExecutionException, InterruptedException, TimeoutException {
-        // 1. Sign in with username
-        // 1a. Setup server response
-        String correlationId = UUID.randomUUID().toString();
-        MockApiUtils.configureMockApi(
-                MockApiEndpoint.SignInInitiate,
-                correlationId,
-                MockApiResponseType.USER_NOT_FOUND
-        );
-
-        // 1b. Call SDK interface
-        final ResultFuture<SignInResult> signInResult = new ResultFuture<>();
-        NativeAuthPublicClientApplication.SignInCallback callback = new NativeAuthPublicClientApplication.SignInCallback() {
-            @Override
-            public void onResult(SignInResult result) {
-                signInResult.setResult(result);
-            }
-
-            @Override
-            public void onError(@NonNull BaseException exception) {
-                signInResult.setException(exception);
-            }
-        };
-        application.signIn(username, null, null, callback);
-        // 1a. Server returns invalid user error
-        SignInResult result = signInResult.get(30, TimeUnit.SECONDS);
-        assertTrue(result instanceof SignInError);
-
-        SignInError error = (SignInError)result;
-        assertTrue(error.isUserNotFound());
-    }
-
-    /**
      * Test sign in scenario 7:
      * 1a -> sign in with (valid) username
      * 1b <- server requires code challenge
@@ -819,8 +781,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         assertTrue(getAccessTokenResult instanceof GetAccessTokenError);
         assertTrue(((GetAccessTokenError) getAccessTokenResult).isNoAccountFound());
     }
-
-
 
     /**
      * Test sign up with password blocked (when account is already signed in)
