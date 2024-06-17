@@ -240,7 +240,6 @@ dependencies {
     }
 
     testImplementation "io.mockk:mockk:$rootProject.ext.mockkVersion"
-    testImplementation "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
 
     testImplementation "org.powermock:powermock-module-junit4:$rootProject.ext.powerMockVersion"
     testImplementation "org.powermock:powermock-module-junit4-rule:$rootProject.ext.powerMockVersion"

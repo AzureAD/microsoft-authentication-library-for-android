@@ -23,10 +23,9 @@
 package com.microsoft.identity.client.e2e.utils
 
 import org.junit.Assert
-
-fun assertState(actual: Any, expected: Class<*>) {
-    val condition = expected.isInstance(actual)
+inline fun <reified ExpectedType> assertState(actual: Any) {
+    val condition = actual is ExpectedType
     if (!condition) {
-        Assert.fail("Type comparison failed. Expected: $expected, actual: ${actual.javaClass}")
+        Assert.fail("Type comparison failed. Expected: ${ExpectedType::class.java}, actual: ${actual.javaClass}")
     }
 }
