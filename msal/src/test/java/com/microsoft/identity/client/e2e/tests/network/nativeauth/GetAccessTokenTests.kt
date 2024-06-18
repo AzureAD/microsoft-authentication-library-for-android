@@ -28,6 +28,7 @@ import com.microsoft.identity.client.e2e.utils.assertState
 import com.microsoft.identity.internal.testutils.nativeauth.NativeAuthCredentialHelper
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
+import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import kotlinx.coroutines.test.runTest
@@ -37,14 +38,15 @@ import org.robolectric.annotation.Config
 
 @Config(shadows = [ShadowBaseController::class])
 class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
-    companion object {
-        const val INVALID_SCOPE = "api://1e9e882d-3f7d-4b02-af06-b5db4d8466c0/Lorum.Ipsum"
-        const val EMPLOYEE_WRITE_ALL_SCOPE = "api://1e9e882d-3f7d-4b02-af06-b5db4d8466c0/Employees.Write.All"
-        const val EMPLOYEE_READ_ALL_SCOPE = "api://1e9e882d-3f7d-4b02-af06-b5db4d8466c0/Employees.Read.All"
-        const val CUSTOMERS_WRITE_ALL_SCOPE = "api://a6568f2f-47a5-4b18-b2c7-25eff03d87d6/Customers.Write.All"
-        const val CUSTOMERS_READ_ALL_SCOPE = "api://a6568f2f-47a5-4b18-b2c7-25eff03d87d6/Customers.Read.All"
-    }
+    private val INVALID_SCOPE = "api://1234/Lorum.Ipsum"
+    private val EMPLOYEE_WRITE_ALL_SCOPE = NativeAuthCredentialHelper.nativeAuthEmployeeWriteAllScope
+    private val EMPLOYEE_READ_ALL_SCOPE = NativeAuthCredentialHelper.nativeAuthEmployeeReadAllScope
+    private val CUSTOMERS_WRITE_ALL_SCOPE = NativeAuthCredentialHelper.nativeAuthCustomerWriteAllScope
+    private val CUSTOMERS_READ_ALL_SCOPE = NativeAuthCredentialHelper.nativeAuthCustomerReadAllScope
 
+    /**
+     * Signing in with an invalid scope should make the API and the SDK return an error.
+     */
     @Test
     fun testGetAccessTokenForInvalidScope() = runTest {
         val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
@@ -62,6 +64,11 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         Assert.assertTrue(result.errorCodes!!.contains(65001))
     }
 
+    /**
+     * 1. Sign in with EMPLOYEE_WRITE_ALL_SCOPE scope. This should store the token in cache.
+     * 2. Fetch token for scope EMPLOYEE_WRITE_ALL_SCOPE, without forceRefresh. This should retrieve the token from cache.
+     * 3. Fetch token for scope EMPLOYEE_WRITE_ALL_SCOPE, with forceRefresh. This should retrieve the token from API.
+     */
     @Test
     fun testGetAccessTokenCompareForceRefreshBehaviour() = runTest {
         val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
@@ -71,7 +78,7 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
             password = password.toCharArray(),
             scopes = listOf(EMPLOYEE_WRITE_ALL_SCOPE)
         )
-        assertState(result, SignInResult.Complete::class.java)
+        assertState<SignInResult.Complete>(result)
         val accountState = (result as SignInResult.Complete).resultValue
 
         // Var to keep track of whether BaseController.renewAccessToken() was called. This method calls the API to refresh the access token, for example if it's expired or not available in cache.
@@ -80,7 +87,7 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
 
         // Token should be retrieved from cache
         val getAccessTokenResult = accountState.getAccessToken()
-        assertState(getAccessTokenResult, GetAccessTokenResult.Complete::class.java)
+        assertState<GetAccessTokenResult.Complete>(getAccessTokenResult)
         Assert.assertFalse(wasRenewAccessTokenInvoked)
         val retrievedAccessToken = (getAccessTokenResult as GetAccessTokenResult.Complete).resultValue.accessToken
 
@@ -95,6 +102,13 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         Assert.assertNotEquals(refreshedAccessToken, retrievedAccessToken)
     }
 
+    /**
+     * 1. Sign in with EMPLOYEE_WRITE_ALL_SCOPE scope. This should store the token in cache.
+     * 2. Fetch token without specifying explicit scopes. As there is only one token in cache, the token from sign in should be retrieved.
+     *    This is validated by ensuring the token is retrieved from cache, i.e. no API call is made.
+     * 3. Fetch token with specifying explicit scope EMPLOYEE_WRITE_ALL_SCOPE. These scopes should match the token that's in cache (due to previous sign in),
+     *    so the token should be retrieved from cache.
+     */
     @Test
     fun testGetAccessTokenFromCache() = runTest {
         val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
@@ -104,7 +118,7 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
             password = password.toCharArray(),
             scopes = listOf(EMPLOYEE_WRITE_ALL_SCOPE)
         )
-        assertState(result, SignInResult.Complete::class.java)
+        assertState<SignInResult.Complete>(result)
         val accountState = (result as SignInResult.Complete).resultValue
 
         // Var to keep track of whether BaseController.renewAccessToken() was called. This method calls the API to refresh the access token, for example if it's expired or not available in cache.
@@ -113,9 +127,11 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
 
         // Token should be retrieved from cache
         val getAccessTokenResult = accountState.getAccessToken()
-        assertState(getAccessTokenResult, GetAccessTokenResult.Complete::class.java)
+        assertState<GetAccessTokenResult.Complete>(getAccessTokenResult)
         Assert.assertFalse(wasRenewAccessTokenInvoked)
-        val retrievedAccessToken = (getAccessTokenResult as GetAccessTokenResult.Complete).resultValue.accessToken
+        val authResult = (getAccessTokenResult as GetAccessTokenResult.Complete).resultValue
+        val accessTokenForImplicitScopes = authResult.accessToken
+        Assert.assertTrue(authResult.scope.contains(EMPLOYEE_WRITE_ALL_SCOPE))
 
         // Reset
         wasRenewAccessTokenInvoked = false
@@ -124,12 +140,19 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         val getAccessTokenResult2 = accountState.getAccessToken(scopes = listOf(EMPLOYEE_WRITE_ALL_SCOPE))
         Assert.assertTrue(getAccessTokenResult2 is GetAccessTokenResult.Complete)
         Assert.assertFalse(wasRenewAccessTokenInvoked)
-        val authResult = (getAccessTokenResult2 as GetAccessTokenResult.Complete).resultValue
-        val accessTokenForExplicitScopes = authResult.accessToken
-        Assert.assertEquals(accessTokenForExplicitScopes, retrievedAccessToken)
-        Assert.assertTrue(authResult.scope.contains(EMPLOYEE_WRITE_ALL_SCOPE))
+        val authResult2 = (getAccessTokenResult2 as GetAccessTokenResult.Complete).resultValue
+        val accessTokenForExplicitScopes = authResult2.accessToken
+        Assert.assertEquals(accessTokenForExplicitScopes, accessTokenForImplicitScopes)
+        Assert.assertTrue(authResult2.scope.contains(EMPLOYEE_WRITE_ALL_SCOPE))
     }
 
+    /**
+     * 1. Sign in with EMPLOYEE_WRITE_ALL_SCOPE scope. This should store the token in cache.
+     * 2. Fetch token for scope EMPLOYEE_WRITE_ALL_SCOPE, without forceRefresh. This should retrieve the token from cache, as it was stored as part of the
+     *    previous signIn().
+     * 3. Fetch token for scope CUSTOMERS_READ_ALL_SCOPE, without forceRefresh. This should retrieve the token from API, as this token doesn't exist in the
+     *    cache yet, due to the scope being different than previous token requests.
+     */
     @Test
     fun testGetAccessTokenWith1CustomApiResource() = runTest {
         val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
@@ -139,7 +162,7 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
             password = password.toCharArray(),
             scopes = listOf(EMPLOYEE_WRITE_ALL_SCOPE)
         )
-        assertState(result, SignInResult.Complete::class.java)
+        assertState<SignInResult.Complete>(result)
         val accountState = (result as SignInResult.Complete).resultValue
 
         // Var to keep track of whether BaseController.renewAccessToken() was called. This method calls the API to refresh the access token, for example if it's expired or not available in cache.
@@ -148,7 +171,7 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
 
         // Token should be retrieved from cache
         val getAccessTokenResult1 = accountState.getAccessToken()
-        assertState(getAccessTokenResult1, GetAccessTokenResult.Complete::class.java)
+        assertState<GetAccessTokenResult.Complete>(getAccessTokenResult1)
         Assert.assertFalse(wasRenewAccessTokenInvoked)
         val authResult1 = (getAccessTokenResult1 as GetAccessTokenResult.Complete).resultValue
         Assert.assertTrue(authResult1.scope.contains(EMPLOYEE_WRITE_ALL_SCOPE))
@@ -162,7 +185,7 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
             forceRefresh = false,
             scopes = listOf(CUSTOMERS_READ_ALL_SCOPE)
         )
-        assertState(getAccessTokenResult2, GetAccessTokenResult.Complete::class.java)
+        assertState<GetAccessTokenResult.Complete>(getAccessTokenResult2)
         Assert.assertTrue(wasRenewAccessTokenInvoked)
         val authResult2 = (getAccessTokenResult2 as GetAccessTokenResult.Complete).resultValue
         Assert.assertTrue(authResult2.scope.contains(CUSTOMERS_READ_ALL_SCOPE))
@@ -170,6 +193,13 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         Assert.assertNotEquals(tokenWithEmployeeScope, tokenWithCustomerScope)
     }
 
+    /**
+     * 1. Sign in without scopes.
+     * 2. Fetch token for scope EMPLOYEE_WRITE_ALL_SCOPE, without forceRefresh. This should retrieve the token from API, as this token doesn't exist in the
+     *    cache yet, due to the scope being different than previous sign in request.
+     * 3. Fetch token for scope CUSTOMERS_READ_ALL_SCOPE, without forceRefresh. This should retrieve the token from API, as this token doesn't exist in the
+     *    cache yet, due to the scope being different than previous token requests.
+     */
     @Test
     fun testGetAccessTokenWith2CustomApiResources() = runTest {
         val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
@@ -178,7 +208,7 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
             username = username,
             password = password.toCharArray()
         )
-        assertState(result, SignInResult.Complete::class.java)
+        assertState<SignInResult.Complete>(result)
         val accountState = (result as SignInResult.Complete).resultValue
 
         // Var to keep track of whether BaseController.renewAccessToken() was called. This method calls the API to refresh the access token, for example if it's expired or not available in cache.
@@ -187,7 +217,7 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
 
         // Token should be retrieved from API
         val getAccessTokenResult1 = accountState.getAccessToken(scopes = listOf(EMPLOYEE_WRITE_ALL_SCOPE))
-        assertState(getAccessTokenResult1, GetAccessTokenResult.Complete::class.java)
+        assertState<GetAccessTokenResult.Complete>(getAccessTokenResult1)
         Assert.assertTrue(wasRenewAccessTokenInvoked)
         val authResult1 = (getAccessTokenResult1 as GetAccessTokenResult.Complete).resultValue
         Assert.assertTrue(authResult1.scope.contains(EMPLOYEE_WRITE_ALL_SCOPE))
@@ -198,7 +228,7 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
 
         // Token should be retrieved from API, as the scope belongs to a different API resource
         val getAccessTokenResult2 = accountState.getAccessToken(forceRefresh = false, scopes = listOf(CUSTOMERS_READ_ALL_SCOPE))
-        assertState(getAccessTokenResult2, GetAccessTokenResult.Complete::class.java)
+        assertState<GetAccessTokenResult.Complete>(getAccessTokenResult2)
         Assert.assertTrue(wasRenewAccessTokenInvoked)
         val authResult2 = (getAccessTokenResult2 as GetAccessTokenResult.Complete).resultValue
         Assert.assertTrue(authResult2.scope.contains(CUSTOMERS_READ_ALL_SCOPE))
@@ -206,6 +236,15 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         Assert.assertNotEquals(tokenWithEmployeeScope, tokenWithCustomerScope)
     }
 
+    /**
+     * 1. Sign in with EMPLOYEE_WRITE_ALL_SCOPE scope. This will return a token for all Employee API scopes (API returns the superset of scopes).
+     * 2. Fetch token for scope EMPLOYEE_WRITE_ALL_SCOPE, without forceRefresh. This should retrieve the token from cache, as it was stored as part of the
+     *    previous signIn().
+     * 3. Given the API's superset scope behaviour, we verify whether all Employee API scopes are present in the cached token.
+     * 4. Fetch token for scope CUSTOMERS_READ_ALL_SCOPE, without forceRefresh. This should retrieve the token from API, as this token doesn't exist in the
+     *    cache yet, due to the scope being different than previous token requests. This will return a token for all Customer API scopes (API returns the superset of scopes).
+     * 5. Given the API's superset scope behaviour, we verify whether all Customer API scopes are present in the cached token.
+     */
     @Test
     fun testSuperSetOfScopesFor1APIResource() = runTest {
         val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
@@ -216,7 +255,7 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
             scopes = listOf(EMPLOYEE_READ_ALL_SCOPE)
         )
 
-        assertState(result, SignInResult.Complete::class.java)
+        assertState<SignInResult.Complete>(result)
         val accountState = (result as SignInResult.Complete).resultValue
 
         // Var to keep track of whether BaseController.renewAccessToken() was called. This method calls the API to refresh the access token, for example if it's expired or not available in cache.
@@ -225,7 +264,7 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
 
         // Token should be retrieved from cache
         val getAccessTokenResult1 = accountState.getAccessToken(scopes = listOf(EMPLOYEE_WRITE_ALL_SCOPE))
-        assertState(getAccessTokenResult1, GetAccessTokenResult.Complete::class.java)
+        assertState<GetAccessTokenResult.Complete>(getAccessTokenResult1)
         Assert.assertFalse(wasRenewAccessTokenInvoked)
         val authResult1 = (getAccessTokenResult1 as GetAccessTokenResult.Complete).resultValue
         Assert.assertTrue(authResult1.scope.contains(EMPLOYEE_WRITE_ALL_SCOPE))
@@ -237,7 +276,7 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
 
         // Token should be retrieved from API, as the scope belongs to a different API resource
         val getAccessTokenResult2 = accountState.getAccessToken(forceRefresh = false, scopes = listOf(CUSTOMERS_READ_ALL_SCOPE))
-        assertState(getAccessTokenResult2, GetAccessTokenResult.Complete::class.java)
+        assertState<GetAccessTokenResult.Complete>(getAccessTokenResult2)
         Assert.assertTrue(wasRenewAccessTokenInvoked)
         val authResult2 = (getAccessTokenResult2 as GetAccessTokenResult.Complete).resultValue
         Assert.assertTrue(authResult2.scope.contains(CUSTOMERS_READ_ALL_SCOPE))
@@ -246,6 +285,9 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         Assert.assertNotEquals(tokenWithEmployeeScope, tokenWithCustomerScope)
     }
 
+    /**
+     * The API doesn't allow the combining of scopes, so will return an error.
+     */
     @Test
     fun testGetAccessTokenWithMultipleAPIResourceScopesShouldReturnError() = runTest {
         val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
@@ -255,7 +297,7 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
             password = password.toCharArray()
         )
 
-        assertState(result, SignInResult.Complete::class.java)
+        assertState<SignInResult.Complete>(result)
         val accountState = (result as SignInResult.Complete).resultValue
 
         // Var to keep track of whether BaseController.renewAccessToken() was called. This method calls the API to refresh the access token, for example if it's expired or not available in cache.
@@ -264,10 +306,19 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
 
         // Token should be retrieved from cache
         val getAccessTokenResult1 = accountState.getAccessToken(scopes = listOf(EMPLOYEE_WRITE_ALL_SCOPE, CUSTOMERS_WRITE_ALL_SCOPE))
-        assertState(getAccessTokenResult1, GetAccessTokenError::class.java)
+        assertState<GetAccessTokenError>(getAccessTokenResult1)
         Assert.assertTrue(wasRenewAccessTokenInvoked)
     }
 
+    /**
+     * 1. Sign in without scopes.
+     * 2. Fetch token for scope EMPLOYEE_WRITE_ALL_SCOPE, without forceRefresh. This should retrieve the token from API, as this token doesn't exist in the
+     *    cache yet, due to the scope being different than previous sign in request.
+     * 3. Fetch token for scope EMPLOYEE_WRITE_ALL_SCOPE, with forceRefresh. This should retrieve the token the API, due to force refresh.
+     * 4. Fetch token for scope CUSTOMERS_READ_ALL_SCOPE, without forceRefresh. This should retrieve the token from API, as this token doesn't exist in the
+     *    cache yet, due to the scope being different than previous token requests.
+     * 5. Fetch token for scope EMPLOYEE_WRITE_ALL_SCOPE, with forceRefresh. This should retrieve the token the API, due to force refresh.
+     */
     @Test
     fun testGetAccessTokenWith2CustomApiResourcesComplexCacheVerification() = runTest {
         val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
@@ -276,7 +327,7 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
             username = username,
             password = password.toCharArray()
         )
-        assertState(result, SignInResult.Complete::class.java)
+        assertState<SignInResult.Complete>(result)
         val accountState = (result as SignInResult.Complete).resultValue
 
         // Var to keep track of whether BaseController.renewAccessToken() was called. This method calls the API to refresh the access token, for example if it's expired or not available in cache.
@@ -285,7 +336,7 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
 
         // Token should be retrieved from API
         val getAccessTokenResult1 = accountState.getAccessToken(scopes = listOf(EMPLOYEE_WRITE_ALL_SCOPE))
-        assertState(getAccessTokenResult1, GetAccessTokenResult.Complete::class.java)
+        assertState<GetAccessTokenResult.Complete>(getAccessTokenResult1)
         Assert.assertTrue(wasRenewAccessTokenInvoked)
         val authResult1 = (getAccessTokenResult1 as GetAccessTokenResult.Complete).resultValue
         Assert.assertTrue(authResult1.scope.contains(EMPLOYEE_WRITE_ALL_SCOPE))
@@ -296,7 +347,7 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
 
         // Token should be retrieved from cache this time
         val getAccessTokenResult2 = accountState.getAccessToken(scopes = listOf(EMPLOYEE_WRITE_ALL_SCOPE))
-        assertState(getAccessTokenResult2, GetAccessTokenResult.Complete::class.java)
+        assertState<GetAccessTokenResult.Complete>(getAccessTokenResult2)
         Assert.assertFalse(wasRenewAccessTokenInvoked)
         val authResult2 = (getAccessTokenResult2 as GetAccessTokenResult.Complete).resultValue
         Assert.assertTrue(authResult2.scope.contains(EMPLOYEE_WRITE_ALL_SCOPE))
@@ -308,7 +359,7 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
 
         // Token should be retrieved from API, as the scope belongs to a different API resource
         val getAccessTokenResult3 = accountState.getAccessToken(forceRefresh = false, scopes = listOf(CUSTOMERS_READ_ALL_SCOPE))
-        assertState(getAccessTokenResult3, GetAccessTokenResult.Complete::class.java)
+        assertState<GetAccessTokenResult.Complete>(getAccessTokenResult3)
         Assert.assertTrue(wasRenewAccessTokenInvoked)
         val authResult3 = (getAccessTokenResult3 as GetAccessTokenResult.Complete).resultValue
         Assert.assertTrue(authResult3.scope.contains(CUSTOMERS_READ_ALL_SCOPE))
@@ -320,7 +371,7 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
 
         // Token should be retrieved from cache this time
         val getAccessTokenResult4 = accountState.getAccessToken(forceRefresh = false, scopes = listOf(CUSTOMERS_READ_ALL_SCOPE))
-        assertState(getAccessTokenResult4, GetAccessTokenResult.Complete::class.java)
+        assertState<GetAccessTokenResult.Complete>(getAccessTokenResult4)
         Assert.assertFalse(wasRenewAccessTokenInvoked)
         val authResult4 = (getAccessTokenResult4 as GetAccessTokenResult.Complete).resultValue
         Assert.assertTrue(authResult4.scope.contains(CUSTOMERS_READ_ALL_SCOPE))
@@ -336,7 +387,7 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
             username = username,
             password = password.toCharArray()
         )
-        assertState(result, SignInResult.Complete::class.java)
+        assertState<SignInResult.Complete>(result)
         val accountState = (result as SignInResult.Complete).resultValue
 
         // Var to keep track of whether BaseController.renewAccessToken() was called. This method calls the API to refresh the access token, for example if it's expired or not available in cache.
@@ -345,7 +396,7 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
 
         // Token should be retrieved from API
         val getAccessTokenResult1 = accountState.getAccessToken(scopes = listOf(EMPLOYEE_WRITE_ALL_SCOPE))
-        assertState(getAccessTokenResult1, GetAccessTokenResult.Complete::class.java)
+        assertState<GetAccessTokenResult.Complete>(getAccessTokenResult1)
         Assert.assertTrue(wasRenewAccessTokenInvoked)
         val authResult1 = (getAccessTokenResult1 as GetAccessTokenResult.Complete).resultValue
         Assert.assertTrue(authResult1.scope.contains(EMPLOYEE_WRITE_ALL_SCOPE))
@@ -356,7 +407,7 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
 
         // Token should be retrieved from API, due to force_refresh
         val getAccessTokenResult2 = accountState.getAccessToken(scopes = listOf(EMPLOYEE_WRITE_ALL_SCOPE), forceRefresh = true)
-        assertState(getAccessTokenResult2, GetAccessTokenResult.Complete::class.java)
+        assertState<GetAccessTokenResult.Complete>(getAccessTokenResult2)
         Assert.assertTrue(wasRenewAccessTokenInvoked)
         val authResult2 = (getAccessTokenResult2 as GetAccessTokenResult.Complete).resultValue
         Assert.assertTrue(authResult2.scope.contains(EMPLOYEE_WRITE_ALL_SCOPE))
@@ -368,7 +419,7 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
 
         // Token should be retrieved from API, as the scope belongs to a different API resource
         val getAccessTokenResult3 = accountState.getAccessToken(forceRefresh = false, scopes = listOf(CUSTOMERS_READ_ALL_SCOPE))
-        assertState(getAccessTokenResult3, GetAccessTokenResult.Complete::class.java)
+        assertState<GetAccessTokenResult.Complete>(getAccessTokenResult3)
         Assert.assertTrue(wasRenewAccessTokenInvoked)
         val authResult3 = (getAccessTokenResult3 as GetAccessTokenResult.Complete).resultValue
         Assert.assertTrue(authResult3.scope.contains(CUSTOMERS_READ_ALL_SCOPE))
@@ -380,7 +431,7 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
 
         // Token should be retrieved from API, due to force_refresh
         val getAccessTokenResult4 = accountState.getAccessToken(forceRefresh = true, scopes = listOf(CUSTOMERS_READ_ALL_SCOPE))
-        assertState(getAccessTokenResult4, GetAccessTokenResult.Complete::class.java)
+        assertState<GetAccessTokenResult.Complete>(getAccessTokenResult4)
         Assert.assertTrue(wasRenewAccessTokenInvoked)
         val authResult4 = (getAccessTokenResult4 as GetAccessTokenResult.Complete).resultValue
         Assert.assertTrue(authResult4.scope.contains(CUSTOMERS_READ_ALL_SCOPE))

@@ -40,6 +40,10 @@ class ShadowBaseController {
     @RealObject
     private lateinit var baseController: BaseController
 
+    /**
+     * Works like a (Mockito) spy. Through the onRenewAccessTokenInvokedCallback the caller is informed when this method is called,
+     * while ShadowBaseController invokes the original renewAccessToken() through Shadow.directlyOn().
+     */
     @Implementation
     fun renewAccessToken(
         parameters: SilentTokenCommandParameters,
@@ -65,10 +69,4 @@ class ShadowBaseController {
             ClassParameter(ICacheRecord::class.java, cacheRecord)
         )
     }
-
-
-}
-
-interface OnRenewAccessTokenInvoked {
-    fun alert()
 }
