@@ -68,7 +68,7 @@ jobs:
   - task: Gradle@2
     displayName: Run Unit tests
     inputs:
-      tasks: msal:testLocalDebugUnitTest -Plabtest -PlabSecret=$(LabVaultAppCert) -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PmockApiUrl=$(MOCK_API_URL) -PnativeAuthSSPRTestsUsernameValue=$(NativeAuthSSPRTestsUsernameValue) -PnativeAuthSignInTestsUsernameValue=$(NativeAuthSignInTestsUsernameValue) -PnativeAuthLabsEmailPasswordAppIdValue=$(NativeAuthLabsEmailPasswordAppId) -PnativeAuthLabsAuthorityUrlValue=$(NativeAuthLabsAuthorityUrlValue) -PnativeAuthEmployeeWriteAllScopeValue=$(NativeAuthEmployeeWriteAllScope) -PnativeAuthEmployeeReadAllScopeValue=$(NativeAuthEmployeeReadAllScopeValue) -PnativeAuthCustomerWriteAllScopeValue=$(NativeAuthCustomerWriteAllScopeValue) -PnativeAuthCustomerReadAllScopeValue=$(NativeAuthCustomerReadAllScopeValue)
+      tasks: msal:testLocalDebugUnitTest -Plabtest -PlabSecret=$(LabVaultAppCert) -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PmockApiUrl=$(MOCK_API_URL) -PnativeAuthSSPRTestsUsernameValue=$(NativeAuthSSPRTestsUsernameValue) -PnativeAuthSignInTestsUsernameValue=$(NativeAuthSignInTestsUsernameValue) -PnativeAuthLabsEmailPasswordAppIdValue=$(NativeAuthLabsEmailPasswordAppId) -PnativeAuthLabsAuthorityUrlValue=$(NativeAuthLabsAuthorityUrlValue) -PnativeAuthEmployeeWriteAllScopeValue=$(NativeAuthEmployeeWriteAllScopeValue) -PnativeAuthEmployeeReadAllScopeValue=$(NativeAuthEmployeeReadAllScopeValue) -PnativeAuthCustomerWriteAllScopeValue=$(NativeAuthCustomerWriteAllScopeValue) -PnativeAuthCustomerReadAllScopeValue=$(NativeAuthCustomerReadAllScopeValue)
       javaHomeSelection: $(BuildParameters.javaHomeSelection)
       jdkVersion: 1.11
 - job: spotbugs
