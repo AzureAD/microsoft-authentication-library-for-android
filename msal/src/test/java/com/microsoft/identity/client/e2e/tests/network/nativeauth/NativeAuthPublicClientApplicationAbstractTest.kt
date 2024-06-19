@@ -25,17 +25,25 @@ package com.microsoft.identity.client.e2e.tests.network.nativeauth
 import android.app.Activity
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.microsoft.identity.client.Logger
 import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.e2e.tests.IPublicClientApplicationTest
 import com.microsoft.identity.client.exception.MsalException
+import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer
+import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudienceDeserializer
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper
+import com.microsoft.identity.common.java.authorities.Authority
+import com.microsoft.identity.common.java.authorities.AuthorityDeserializer
+import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudience
 import com.microsoft.identity.internal.testutils.TestUtils
 import com.microsoft.identity.internal.testutils.labutils.LabConstants
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery
 import com.microsoft.identity.internal.testutils.nativeauth.NativeAuthCredentialHelper
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
@@ -43,8 +51,6 @@ import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.LooperMode
-import java.io.File
-import java.lang.annotation.Native
 
 // TODO: move to "PAUSED". A work in RoboTestUtils will be needed though.
 @LooperMode(LooperMode.Mode.LEGACY)
@@ -89,20 +95,39 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
     }
 
     private fun setupPCA() {
-        val clientId = NativeAuthCredentialHelper.nativeAuthLabsEmailPasswordAppId
-        val authorityUrl = NativeAuthCredentialHelper.nativeAuthLabsAuthorityUrl
+        val nativeConfig = getGsonForLoadingConfiguration()?.fromJson(
+            NativeAuthCredentialHelper.nativeAuthConfig,
+            NativeAuthPublicClientApplicationConfiguration::class.java
+        )
         val challengeTypes = listOf("password", "oob")
 
         try {
             application = PublicClientApplication.createNativeAuthPublicClientApplication(
                 context,
-                clientId,
-                authorityUrl,
+                nativeConfig!!.clientId,
+                nativeConfig.defaultAuthority.authorityURL.toString(),
                 null,
                 challengeTypes
             )
         } catch (e: MsalException) {
             Assert.fail(e.message)
         }
+    }
+
+    private fun getGsonForLoadingConfiguration(): Gson? {
+        return GsonBuilder()
+            .registerTypeAdapter(
+                Authority::class.java,
+                AuthorityDeserializer()
+            )
+            .registerTypeAdapter(
+                AzureActiveDirectoryAudience::class.java,
+                AzureActiveDirectoryAudienceDeserializer()
+            )
+            .registerTypeAdapter(
+                Logger.LogLevel::class.java,
+                LogLevelDeserializer()
+            )
+            .create()
     }
 }
