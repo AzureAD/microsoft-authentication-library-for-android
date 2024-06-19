@@ -16,6 +16,7 @@ variables:
   value: 33
 - group: MSIDLABVARS
 - group: devex-ciam-test
+- group: dexex-nativeauth
 
 trigger:
   branches:
@@ -42,6 +43,7 @@ jobs:
   variables:
     Codeql.Enabled: true
   steps:
+  - script: echo $(EmailOTPNoAttributes)
   - checkout: self
     clean: true
     submodules: recursive
