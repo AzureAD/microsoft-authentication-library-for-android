@@ -28,7 +28,6 @@ import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailSe
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
-import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -37,9 +36,8 @@ import kotlinx.coroutines.test.setMain
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import org.robolectric.RuntimeEnvironment.application
 
-class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
+class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 
@@ -49,6 +47,7 @@ class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
     @Before
     override fun setup() {
         super.setup()
+        setupPCA("Email Password Config from BuildConfig") // TODO: Update setupPCA() logic to use config string
         Dispatchers.setMain(testDispatcher)
     }
 
@@ -56,7 +55,7 @@ class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Use email and password to get token (hero scenario 15, use case 1.2.1) - Test case 37
      */
     @Test
-    fun testSuccessEmailPassword() = runTest {
+    fun testSuccess() = runTest {
         val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
         val password = getSafePassword()
         val result = application.signIn(username, password.toCharArray())
@@ -67,7 +66,7 @@ class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Use email and password to get token while user is not registered with given email (use case 1.2.2) - Test case 38
      */
     @Test
-    fun testErrorEmailPasswordIsUserNotFound() = runTest {
+    fun testErrorIsUserNotFound() = runTest {
         val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
         val password = getSafePassword()
         // Turn an existing username to a non-existing username
@@ -81,7 +80,7 @@ class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Use email and password to get token while password is incorrect (use case 1.2.3) - Test case 39
      */
     @Test
-    fun testErrorEmailPasswordIsInvalidCredentials() = runTest {
+    fun testErrorIsInvalidCredentials() = runTest {
         val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
         val password = getSafePassword()
         // Turn correct password into an incorrect one
@@ -89,59 +88,5 @@ class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
         val result = application.signIn(username, alteredPassword.toCharArray())
         Assert.assertTrue(result is SignInError)
         Assert.assertTrue((result as SignInError).isInvalidCredentials())
-    }
-
-    /**
-     * Use email and OTP to get token and sign in (hero scenario 6, use case 2.2.1) - Test case 30
-     */
-    @Test
-    fun testSuccessEmailOTP() {
-        var signInResult: SignInResult
-        var otp: String
-
-        retryOperation {
-            runBlocking {
-                val user = NativeAuthCredentialHelper.nativeAuthSignInUsername
-                signInResult = application.signIn(user)
-                Assert.assertTrue(signInResult is SignInResult.CodeRequired)
-                otp = tempEmailApi.retrieveCodeFromInbox(user)
-                val submitCodeResult = (signInResult as SignInResult.CodeRequired).nextState.submitCode(otp)
-                Assert.assertTrue(submitCodeResult is SignInResult.Complete)
-            }
-        }
-    }
-
-    /**
-     * Use email and OTP to get token while user is not registered with given email (use case 2.2.2) - Test case 31
-     */
-    @Test
-    fun testErrorEmailOTPIsUserNotFound() = runTest {
-        val user = tempEmailApi.generateRandomEmailAddress()
-        val signInResult = application.signIn(user)
-        Assert.assertTrue(signInResult is SignInError)
-        Assert.assertTrue((signInResult as SignInError).isUserNotFound())
-    }
-
-    /**
-     * Use email and OTP to get token while OTP is incorrect (use case 2.2.7) - Test case 35
-     */
-    @Test
-    fun testErrorEmailOTPIsInvalidCode() {
-        var signInResult: SignInResult
-        var otp: String
-
-        retryOperation {
-            runBlocking {
-                val user = NativeAuthCredentialHelper.nativeAuthSignInUsername
-                signInResult = application.signIn(user)
-                Assert.assertTrue(signInResult is SignInResult.CodeRequired)
-                otp = tempEmailApi.retrieveCodeFromInbox(user)
-                // Turn correct OTP into an incorrect one
-                val alteredOtp = otp + "1234"
-                val submitCodeResult = (signInResult as SignInResult.CodeRequired).nextState.submitCode(alteredOtp)
-                Assert.assertTrue(submitCodeResult is SubmitCodeError)
-                Assert.assertTrue((submitCodeResult as SubmitCodeError).isInvalidCode())
-            }
-        }
     }
 }

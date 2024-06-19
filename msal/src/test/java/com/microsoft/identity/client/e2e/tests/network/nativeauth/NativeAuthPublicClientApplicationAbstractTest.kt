@@ -63,11 +63,10 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
     }
 
     @Before
-    open fun setup() {
+    open fun setup(): Unit {
         context = ApplicationProvider.getApplicationContext()
         activity = Mockito.mock(Activity::class.java)
         Mockito.`when`(activity.applicationContext).thenReturn(context)
-        setupPCA()
         Logger.getInstance().setEnableLogcatLog(true)
         Logger.getInstance().setEnablePII(true)
         Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE)
@@ -88,7 +87,7 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         return credential.password
     }
 
-    private fun setupPCA() {
+    fun setupPCA(config : String) {
         val clientId = NativeAuthCredentialHelper.nativeAuthLabsEmailPasswordAppId
         val authorityUrl = NativeAuthCredentialHelper.nativeAuthLabsAuthorityUrl
         val challengeTypes = listOf("password", "oob")
