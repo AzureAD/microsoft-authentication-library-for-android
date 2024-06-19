@@ -31,7 +31,7 @@ resources:
   - repository: common
     type: github
     name: AzureAD/microsoft-authentication-library-common-for-android
-    ref: dev
+    ref: yuki/key-vault-test
     endpoint: ANDROID_GITHUB
 
 pool:
