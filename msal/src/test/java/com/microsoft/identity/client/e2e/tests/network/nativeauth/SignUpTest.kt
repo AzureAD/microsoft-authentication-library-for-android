@@ -56,36 +56,36 @@ class SignUpTest : NativeAuthPublicClientApplicationAbstractTest() {
         Assert.assertTrue((result as SignUpError).isInvalidPassword())
     }
 
-//    /**
-//     * Running with runBlocking to avoid default 10 second execution timeout.
-//     */
-//    @Test
-//    fun testSignUpSuccessSimple() = runBlocking {
-//        var retryCount = 0
-//        var signUpResult: SignUpResult
-//        var otp: String
-//        var shouldRetry = true
-//
-//        while (shouldRetry) {
-//            try {
-//                val user = tempEmailApi.generateRandomEmailAddress()
-//                val password = getSafePassword()
-//                signUpResult = application.signUp(user, password.toCharArray())
-//                Assert.assertTrue(signUpResult is SignUpResult.CodeRequired)
-//                otp = tempEmailApi.retrieveCodeFromInbox(user)
-//                val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
-//                Assert.assertTrue(submitCodeResult is SignUpResult.Complete)
-//                shouldRetry = false
-//                break
-//            } catch (e: IllegalStateException) {
-//                // Re-run this test if the OTP retrieval fails. 1SecMail is known for emails to sometimes never arrive.
-//                // In that case, restart the test case with a new email address and try again, to make test less flaky.
-//                if (retryCount == 3) {
-//                    Assert.fail()
-//                    shouldRetry = false
-//                }
-//                retryCount++
-//            }
-//        }
-//    }
+    /**
+     * Running with runBlocking to avoid default 10 second execution timeout.
+     */
+    @Test
+    fun testSignUpSuccessSimple() = runBlocking {
+        var retryCount = 0
+        var signUpResult: SignUpResult
+        var otp: String
+        var shouldRetry = true
+
+        while (shouldRetry) {
+            try {
+                val user = tempEmailApi.generateRandomEmailAddress()
+                val password = getSafePassword()
+                signUpResult = application.signUp(user, password.toCharArray())
+                Assert.assertTrue(signUpResult is SignUpResult.CodeRequired)
+                otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
+                Assert.assertTrue(submitCodeResult is SignUpResult.Complete)
+                shouldRetry = false
+                break
+            } catch (e: IllegalStateException) {
+                // Re-run this test if the OTP retrieval fails. 1SecMail is known for emails to sometimes never arrive.
+                // In that case, restart the test case with a new email address and try again, to make test less flaky.
+                if (retryCount == 3) {
+                    Assert.fail()
+                    shouldRetry = false
+                }
+                retryCount++
+            }
+        }
+    }
 }
