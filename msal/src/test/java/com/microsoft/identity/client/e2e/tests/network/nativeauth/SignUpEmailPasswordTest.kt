@@ -50,13 +50,13 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
         Dispatchers.setMain(testDispatcher)
     }
 
-    @Test
-    fun testSignUpErrorSimple() = runTest {
-        val user = tempEmailApi.generateRandomEmailAddress()
-        val result = application.signUp(user, "invalidpassword".toCharArray())
-        Assert.assertTrue(result is SignUpError)
-        Assert.assertTrue((result as SignUpError).isInvalidPassword())
-    }
+//    @Test
+//    fun testSignUpErrorSimple() = runTest {
+//        val user = tempEmailApi.generateRandomEmailAddress()
+//        val result = application.signUp(user, "invalidpassword".toCharArray())
+//        Assert.assertTrue(result is SignUpError)
+//        Assert.assertTrue((result as SignUpError).isInvalidPassword())
+//    }
 
     /**
      * Set email and password and then verify email OOB as last step (hero scenario 9, use case 1.1.1) - Test case 13

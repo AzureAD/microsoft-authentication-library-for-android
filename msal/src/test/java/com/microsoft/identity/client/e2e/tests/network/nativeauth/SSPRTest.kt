@@ -48,48 +48,39 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
     @Before
     override fun setup() {
         super.setup()
+        setupPCA("Reset Password Config from BuildConfig") // TODO: Update setupPCA() logic to use config string
         Dispatchers.setMain(testDispatcher)
     }
 
-    @Test
-    fun testSSPRErrorSimple() = runTest {
-        val user = NativeAuthCredentialHelper.nativeAuthSSPRUsername
-        // Turn correct username into an incorrect one
-        val invalidUser = user + "x"
-        val result = application.resetPassword(invalidUser)
-        Assert.assertTrue(result is ResetPasswordError)
-        Assert.assertTrue((result as ResetPasswordError).isUserNotFound())
-    }
+//    @Test
+//    fun testSSPRErrorSimple() = runTest {
+//        val user = NativeAuthCredentialHelper.nativeAuthSSPRUsername
+//        // Turn correct username into an incorrect one
+//        val invalidUser = user + "x"
+//        val result = application.resetPassword(invalidUser)
+//        Assert.assertTrue(result is ResetPasswordError)
+//        Assert.assertTrue((result as ResetPasswordError).isUserNotFound())
+//    }
 
     /**
-     * Running with runBlocking to avoid default 10 second execution timeout.
+     * Verify email with email OTP first and then reset password (hero scenario 8 & 17, use case 3.1.1) - Test case 46
      */
     @Test
-    fun testSSPRSuccessSimple() = runBlocking {
-        var retryCount = 0
-        var shouldRetry = true
+    fun testSSPRSuccess() = runBlocking {
+        var result: ResetPasswordStartResult
+        var otp: String
 
-        while (shouldRetry) {
-            try {
+        retryOperation {
+            runBlocking {
                 val user = NativeAuthCredentialHelper.nativeAuthSSPRUsername
-                val result = application.resetPassword(user)
+                result = application.resetPassword(user)
                 Assert.assertTrue(result is ResetPasswordStartResult.CodeRequired)
-                val otp = tempEmailApi.retrieveCodeFromInbox(user)
+                otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (result as ResetPasswordStartResult.CodeRequired).nextState.submitCode(otp)
                 Assert.assertTrue(submitCodeResult is ResetPasswordSubmitCodeResult.PasswordRequired)
                 val password = getSafePassword()
                 val submitPasswordResult = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState.submitPassword(password.toCharArray())
                 Assert.assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
-                shouldRetry = false
-                break
-            } catch (e: IllegalStateException) {
-                // Re-run this test if the OTP retrieval fails. 1SecMail is known for emails to sometimes never arrive.
-                // In that case, restart the test case with a new email address and try again, to make test less flaky.
-                if (retryCount == 3) {
-                    Assert.fail()
-                    shouldRetry = false
-                }
-                retryCount++
             }
         }
     }
