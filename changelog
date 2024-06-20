@@ -2,6 +2,7 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+- [MINOR] Bumping BouncyCastle version to 1.78 (#2128)
 
 Version 5.4.0
 ----------
