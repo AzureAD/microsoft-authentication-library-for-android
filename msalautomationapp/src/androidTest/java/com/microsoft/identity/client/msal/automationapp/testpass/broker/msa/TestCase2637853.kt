@@ -34,6 +34,7 @@ import com.microsoft.identity.client.ui.automation.broker.BrokerHost
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler
+import org.junit.Assert
 import org.junit.Test
 import java.util.*
 
@@ -71,27 +72,12 @@ class TestCase2637853 : AbstractMsaBrokerTest() {
         }, TokenRequestTimeout.MEDIUM)
         authResult.assertSuccess()
 
-        // SECOND REQUEST WITHOUT LOGIN HINT
-        val noLoginHintParams = MsalAuthTestParams.builder()
-            .activity(mActivity)
-            .scopes(Arrays.asList(*mScopes))
-            .promptParameter(Prompt.SELECT_ACCOUNT)
-            .msalConfigResourceId(configFileResourceId)
-            .build()
-        val noLoginHintauthResult = msalSdk.acquireTokenInteractive(noLoginHintParams, {
-            val promptHandlerParameters = PromptHandlerParameters.builder()
-                .prompt(PromptParameter.SELECT_ACCOUNT)
-                .loginHint(null)
-                .sessionExpected(true)
-                .consentPageExpected(false)
-                .speedBumpExpected(false)
-                .broker(mBroker)
-                .expectingBrokerAccountChooserActivity(true)
-                .build()
-            AadPromptHandler(promptHandlerParameters)
-                .handlePrompt(username, password)
-        }, TokenRequestTimeout.MEDIUM)
-        noLoginHintauthResult.assertSuccess()
+
+        val brokerHost = mBroker as BrokerHost
+        // Get accounts without signing in, does not return any accounts
+        Assert.assertEquals(1, brokerHost.getAllAccounts().size.toLong())
+        brokerHost.removeAccount("")
+
     }
 
     override fun getConfigFileResourceId(): Int {

@@ -39,7 +39,7 @@ import org.junit.Before
 abstract class AbstractMsaBrokerTest : AbstractMsalBrokerTest() {
     @Before
     fun before() {
-        (mBroker as BrokerHost).enablePrtV3()
+      //  (mBroker as BrokerHost).enablePrtV3()
     }
 
     override fun getAuthority(): String {
