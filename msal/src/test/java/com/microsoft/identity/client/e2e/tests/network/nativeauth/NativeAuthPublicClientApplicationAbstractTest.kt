@@ -26,24 +26,17 @@ import android.app.Activity
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import com.microsoft.identity.client.Logger
 import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.e2e.tests.IPublicClientApplicationTest
 import com.microsoft.identity.client.exception.MsalException
-import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer
-import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudienceDeserializer
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper
-import com.microsoft.identity.common.java.authorities.Authority
-import com.microsoft.identity.common.java.authorities.AuthorityDeserializer
-import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudience
 import com.microsoft.identity.internal.testutils.TestUtils
 import com.microsoft.identity.internal.testutils.labutils.LabConstants
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery
-import com.microsoft.identity.internal.testutils.nativeauth.NativeAuthCredentialHelper
+import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
-import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
@@ -73,7 +66,6 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         context = ApplicationProvider.getApplicationContext()
         activity = Mockito.mock(Activity::class.java)
         Mockito.`when`(activity.applicationContext).thenReturn(context)
-        setupPCA()
         Logger.getInstance().setEnableLogcatLog(true)
         Logger.getInstance().setEnablePII(true)
         Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE)
@@ -94,40 +86,19 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         return credential.password
     }
 
-    private fun setupPCA() {
-        val nativeConfig = getGsonForLoadingConfiguration()?.fromJson(
-            NativeAuthCredentialHelper.nativeAuthConfig,
-            NativeAuthPublicClientApplicationConfiguration::class.java
-        )
+    fun setupPCA(config: NativeAuthTestConfig.Config) {
         val challengeTypes = listOf("password", "oob")
 
         try {
             application = PublicClientApplication.createNativeAuthPublicClientApplication(
                 context,
-                nativeConfig!!.clientId,
-                nativeConfig.defaultAuthority.authorityURL.toString(),
+                config.client_id,
+                config.authority_url,
                 null,
                 challengeTypes
             )
         } catch (e: MsalException) {
             Assert.fail(e.message)
         }
-    }
-
-    private fun getGsonForLoadingConfiguration(): Gson? {
-        return GsonBuilder()
-            .registerTypeAdapter(
-                Authority::class.java,
-                AuthorityDeserializer()
-            )
-            .registerTypeAdapter(
-                AzureActiveDirectoryAudience::class.java,
-                AzureActiveDirectoryAudienceDeserializer()
-            )
-            .registerTypeAdapter(
-                Logger.LogLevel::class.java,
-                LogLevelDeserializer()
-            )
-            .create()
     }
 }

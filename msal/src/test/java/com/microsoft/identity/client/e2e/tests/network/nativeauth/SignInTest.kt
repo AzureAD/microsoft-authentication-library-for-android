@@ -23,18 +23,29 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
+import com.microsoft.identity.internal.testutils.BuildConfig
 import com.microsoft.identity.internal.testutils.nativeauth.NativeAuthCredentialHelper
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import org.junit.Assert
+import org.junit.Before
 import org.junit.Test
 
 class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
+    private val config = NativeAuthCredentialHelper.nativeAuthTestConfig.SIGN_IN_PASSWORD
+
+    @Before
+    override fun setup() {
+        super.setup()
+        setupPCA(config)
+    }
 
     @Test
     fun testSignInErrorSimple() = runTest {
-        val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
+        val username = config.email
         val password = getSafePassword()
         // Turn correct password into an incorrect one
         val alteredPassword = password + "1234"
@@ -45,7 +56,7 @@ class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     @Test
     fun testSignInSuccessSimple() = runTest {
-        val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
+        val username = config.email
         val password = getSafePassword()
         val result = application.signIn(username, password.toCharArray())
         Assert.assertTrue(result is SignInResult.Complete)

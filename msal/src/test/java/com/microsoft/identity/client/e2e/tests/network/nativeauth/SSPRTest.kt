@@ -45,15 +45,18 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
     // Remove default Coroutine test timeout of 10 seconds.
     private val testDispatcher = StandardTestDispatcher()
 
+    private val config = NativeAuthCredentialHelper.nativeAuthTestConfig.SSPR
+
     @Before
     override fun setup() {
         super.setup()
+        setupPCA(config)
         Dispatchers.setMain(testDispatcher)
     }
 
     @Test
     fun testSSPRErrorSimple() = runTest {
-        val user = NativeAuthCredentialHelper.nativeAuthSSPRUsername
+        val user = config.email
         // Turn correct username into an incorrect one
         val invalidUser = user + "x"
         val result = application.resetPassword(invalidUser)
@@ -71,7 +74,7 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         while (shouldRetry) {
             try {
-                val user = NativeAuthCredentialHelper.nativeAuthSSPRUsername
+                val user = config.email
                 val result = application.resetPassword(user)
                 Assert.assertTrue(result is ResetPasswordStartResult.CodeRequired)
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
