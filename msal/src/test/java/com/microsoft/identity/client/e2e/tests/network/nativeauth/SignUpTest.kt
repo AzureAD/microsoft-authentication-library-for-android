@@ -43,7 +43,7 @@ class SignUpTest : NativeAuthPublicClientApplicationAbstractTest() {
     // Remove default Coroutine test timeout of 10 seconds.
     private val testDispatcher = StandardTestDispatcher()
 
-    private val config = NativeAuthCredentialHelper.nativeAuthTestConfig.SIGN_UP_PASSWORD
+    private val config = NativeAuthCredentialHelper.nativeAuthTestConfig.configs["SIGN_UP_PASSWORD"]!!
 
     @Before
     override fun setup() {

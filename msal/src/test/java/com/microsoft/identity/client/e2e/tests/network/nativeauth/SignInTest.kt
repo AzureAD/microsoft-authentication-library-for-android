@@ -35,7 +35,7 @@ import org.junit.Before
 import org.junit.Test
 
 class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
-    private val config = NativeAuthCredentialHelper.nativeAuthTestConfig.SIGN_IN_PASSWORD
+    private val config = NativeAuthCredentialHelper.nativeAuthTestConfig.configs["SIGN_IN_PASSWORD"]!!
 
     @Before
     override fun setup() {

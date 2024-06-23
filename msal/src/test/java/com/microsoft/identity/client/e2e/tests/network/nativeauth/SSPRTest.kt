@@ -45,7 +45,7 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
     // Remove default Coroutine test timeout of 10 seconds.
     private val testDispatcher = StandardTestDispatcher()
 
-    private val config = NativeAuthCredentialHelper.nativeAuthTestConfig.SSPR
+    private val config = NativeAuthCredentialHelper.nativeAuthTestConfig.configs["SSPR"]!!
 
     @Before
     override fun setup() {
