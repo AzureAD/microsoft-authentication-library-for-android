@@ -66,12 +66,6 @@ jobs:
       jdkArchitecture: $(BuildParameters.jdkArchitecture)
       sqGradlePluginVersion: 2.0.1
   - task: CodeQL3000Finalize@0
-  - task: PowerShell@2
-    displayName: Print Native Auth Test Configuration
-    inputs:
-      targetType: 'inline'
-      script: |
-        Write-Host "Native Auth Test Config: $(native_auth_test_config)"
   - task: Gradle@2
     displayName: Run Unit tests
     inputs:
