@@ -75,7 +75,7 @@ class AccountState private constructor(
 
     interface SignOutCallback : Callback<SignOutResult>
 
-    constructor(parcel: Parcel) : this(
+    constructor (parcel: Parcel) : this (
         account = parcel.serializable<IAccount>() as IAccount,
         correlationId = parcel.readString() ?: "UNSET",
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
@@ -309,10 +309,12 @@ class AccountState private constructor(
                             correlationId = correlationId
                         )
 
+                val privateCorrelationId = if (correlationId == "UNSET") { UUID.randomUUID().toString() } else { correlationId }
+
                 val acquireTokenSilentParameters = AcquireTokenSilentParameters.Builder()
                     .forAccount(currentAccount)
                     .fromAuthority(currentAccount.authority)
-                    .withCorrelationId(UUID.fromString(correlationId))
+                    .withCorrelationId(UUID.fromString(privateCorrelationId))
                     .forceRefresh(forceRefresh)
                     .withScopes(scopes)
                     .build()
