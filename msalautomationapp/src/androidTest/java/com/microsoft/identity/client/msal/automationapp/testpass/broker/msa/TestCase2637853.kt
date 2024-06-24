@@ -78,6 +78,9 @@ class TestCase2637853 : AbstractMsaBrokerTest() {
         Assert.assertEquals(1, brokerHost.getAllAccounts().size.toLong())
         brokerHost.removeAccount("")
 
+        brokerHost.uninstall()
+        brokerHost.install()
+        brokerHost.removeAccount("")
     }
 
     override fun getConfigFileResourceId(): Int {
