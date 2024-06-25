@@ -46,7 +46,7 @@ class TestCase2637853 : AbstractMsaBrokerTest() {
     @Test
     @Throws(Throwable::class)
     fun test_2637853() {
-        settingsScreen.enableGoogleAccountBackup()
+        settingsScreen.enableGoogleAccountBackup(mActivity)
 //        val username = mLabAccount.username
 //        val password = mLabAccount.password
 //        val msalSdk = MsalSdk()
