@@ -102,7 +102,8 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
     }
 
     fun setupPCA(configType: String) {
-        config = getConfigsThroughSecretValue()?.get(configType) ?: throw IllegalStateException("Config not found")
+        val secretValue = getConfigsThroughSecretValue()
+        config = secretValue?.get(configType) ?: throw IllegalStateException("Config not $secretValue")
         val challengeTypes = listOf("password", "oob")
 
         try {
