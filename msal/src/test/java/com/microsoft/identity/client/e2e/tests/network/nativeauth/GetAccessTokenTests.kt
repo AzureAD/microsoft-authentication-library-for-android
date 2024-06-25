@@ -37,7 +37,7 @@ import org.robolectric.annotation.Config
 
 @Config(shadows = [ShadowBaseController::class])
 class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
-    private val INVALID_SCOPE = "api://1234/Lorum.Ipsum"
+    private val INVALID_SCOPE = NativeAuthCredentialHelper.nativeAuthInvalidScope
     private val EMPLOYEE_WRITE_ALL_SCOPE = NativeAuthCredentialHelper.nativeAuthEmployeeWriteAllScope
     private val EMPLOYEE_READ_ALL_SCOPE = NativeAuthCredentialHelper.nativeAuthEmployeeReadAllScope
     private val CUSTOMERS_WRITE_ALL_SCOPE = NativeAuthCredentialHelper.nativeAuthCustomerWriteAllScope
@@ -56,10 +56,10 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
             scopes = listOf(INVALID_SCOPE)
         )
         assertState<SignInError>(result)
-        Assert.assertTrue((result as SignInError).error == "invalid_grant")
-        Assert.assertTrue(result.errorMessage != null)
+        Assert.assertEquals("invalid_grant", (result as SignInError).error)
+        Assert.assertNotNull(result.errorMessage)
         Assert.assertTrue(result.errorMessage!!.contains("AADSTS65001: The user or administrator has not consented to use the application"))
-        Assert.assertTrue(result.errorCodes != null)
+        Assert.assertNotNull(result.errorCodes)
         Assert.assertTrue(result.errorCodes!!.contains(65001))
     }
 
