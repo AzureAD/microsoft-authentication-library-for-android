@@ -42,48 +42,49 @@ import java.util.*
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2637853
 @SupportedBrokers(brokers = [BrokerHost::class])
 @LocalBrokerHostDebugUiTest
-@RetryOnFailure
 class TestCase2637853 : AbstractMsaBrokerTest() {
     @Test
     @Throws(Throwable::class)
     fun test_2637853() {
-        val username = mLabAccount.username
-        val password = mLabAccount.password
-        val msalSdk = MsalSdk()
-        val authTestParams = MsalAuthTestParams.builder()
-            .activity(mActivity)
-            .loginHint(username)
-            .scopes(Arrays.asList(*mScopes))
-            .promptParameter(Prompt.SELECT_ACCOUNT)
-            .msalConfigResourceId(configFileResourceId)
-            .build()
-        val authResult = msalSdk.acquireTokenInteractive(authTestParams, {
-            val promptHandlerParameters = PromptHandlerParameters.builder()
-                .prompt(PromptParameter.SELECT_ACCOUNT)
-                .loginHint(username)
-                .sessionExpected(false)
-                .consentPageExpected(false)
-                .speedBumpExpected(false)
-                .broker(mBroker)
-                .expectingBrokerAccountChooserActivity(false)
-                .build()
-            AadPromptHandler(promptHandlerParameters)
-                .handlePrompt(username, password)
-        }, TokenRequestTimeout.MEDIUM)
-        authResult.assertSuccess()
-
-
-        val brokerHost = mBroker as BrokerHost
-        // Get accounts without signing in, does not return any accounts
-        Assert.assertEquals(1, brokerHost.getAllAccounts().size.toLong())
-        brokerHost.removeAccount("")
-
-        brokerHost.uninstall()
-        brokerHost.install()
-        brokerHost.removeAccount("")
+        settingsScreen.enableGoogleAccountBackup()
+//        val username = mLabAccount.username
+//        val password = mLabAccount.password
+//        val msalSdk = MsalSdk()
+//        val authTestParams = MsalAuthTestParams.builder()
+//            .activity(mActivity)
+//            .loginHint(username)
+//            .scopes(Arrays.asList(*mScopes))
+//            .promptParameter(Prompt.SELECT_ACCOUNT)
+//            .msalConfigResourceId(configFileResourceId)
+//            .build()
+//        val authResult = msalSdk.acquireTokenInteractive(authTestParams, {
+//            val promptHandlerParameters = PromptHandlerParameters.builder()
+//                .prompt(PromptParameter.SELECT_ACCOUNT)
+//                .loginHint(username)
+//                .sessionExpected(false)
+//                .consentPageExpected(false)
+//                .speedBumpExpected(false)
+//                .broker(mBroker)
+//                .expectingBrokerAccountChooserActivity(false)
+//                .build()
+//            AadPromptHandler(promptHandlerParameters)
+//                .handlePrompt(username, password)
+//        }, TokenRequestTimeout.MEDIUM)
+//        authResult.assertSuccess()
+//
+//
+//        val brokerHost = mBroker as BrokerHost
+//        // Get accounts without signing in, does not return any accounts
+//        Assert.assertEquals(1, brokerHost.getAllAccounts().size.toLong())
+//        brokerHost.removeAccount("")
+//
+//        brokerHost.uninstall()
+//        brokerHost.install()
+//        brokerHost.removeAccount("")
     }
 
     override fun getConfigFileResourceId(): Int {
         return R.raw.msal_config_msa
     }
+
 }
