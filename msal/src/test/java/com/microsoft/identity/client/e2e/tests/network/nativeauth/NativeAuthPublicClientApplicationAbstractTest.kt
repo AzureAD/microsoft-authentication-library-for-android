@@ -93,7 +93,7 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
     }
 
     private fun getConfigsThroughSecretValue(): Map<String, NativeAuthTestConfig.Config>? {
-        val secretValue = LabHelper.getSecret("msalandroidnativeauthautomationconfjsonfile")
+        val secretValue = LabHelper.getSecret("native-auth-test-config")
         val type = object : TypeToken<Map<String, NativeAuthTestConfig.Config>>() {}.type
         return Gson().fromJson(
             secretValue,
