@@ -26,13 +26,16 @@ import android.app.Activity
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.microsoft.identity.client.Logger
 import com.microsoft.identity.client.PublicClientApplication
+import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager
 import com.microsoft.identity.client.e2e.tests.IPublicClientApplicationTest
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper
 import com.microsoft.identity.internal.testutils.TestUtils
 import com.microsoft.identity.internal.testutils.labutils.LabConstants
+import com.microsoft.identity.internal.testutils.labutils.LabHelper
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
@@ -43,11 +46,13 @@ import org.junit.Before
 import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import org.robolectric.annotation.LooperMode
 
 // TODO: move to "PAUSED". A work in RoboTestUtils will be needed though.
 @LooperMode(LooperMode.Mode.LEGACY)
 @RunWith(RobolectricTestRunner::class)
+@Config(shadows = [ShadowAndroidSdkStorageEncryptionManager::class])
 abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientApplicationTest {
     companion object{
         const val SHARED_PREFERENCES_NAME = "com.microsoft.identity.client.account_credential_cache"
@@ -56,6 +61,7 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
     private lateinit var context: Context
     private lateinit var activity: Activity
     lateinit var application: INativeAuthPublicClientApplication
+    lateinit var config: NativeAuthTestConfig.Config
 
     override fun getConfigFilePath(): String {
         return "" // Not needed for native auth flows
@@ -86,7 +92,17 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         return credential.password
     }
 
-    fun setupPCA(config: NativeAuthTestConfig.Config) {
+    private fun getConfigsThroughSecretValue(): Map<String, NativeAuthTestConfig.Config>? {
+        val secretValue = LabHelper.getSecret("native-auth")
+        val type = object : TypeToken<Map<String, NativeAuthTestConfig.Config>>() {}.type
+        return Gson().fromJson(
+            secretValue,
+            type
+        )
+    }
+
+    fun setupPCA(configType: String) {
+        config = getConfigsThroughSecretValue()?.get(configType) ?: throw IllegalStateException("Config not found")
         val challengeTypes = listOf("password", "oob")
 
         try {

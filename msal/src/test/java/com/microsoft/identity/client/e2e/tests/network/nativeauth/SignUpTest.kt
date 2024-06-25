@@ -23,7 +23,6 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
-import com.microsoft.identity.internal.testutils.nativeauth.NativeAuthCredentialHelper
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
@@ -43,12 +42,10 @@ class SignUpTest : NativeAuthPublicClientApplicationAbstractTest() {
     // Remove default Coroutine test timeout of 10 seconds.
     private val testDispatcher = StandardTestDispatcher()
 
-    private val config = NativeAuthCredentialHelper.nativeAuthTestConfig.configs["SIGN_UP_PASSWORD"]!!
-
     @Before
     override fun setup() {
         super.setup()
-        setupPCA(config)
+        setupPCA("SIGN_UP_PASSWORD")
         Dispatchers.setMain(testDispatcher)
     }
 

@@ -23,24 +23,19 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
-import com.microsoft.identity.internal.testutils.BuildConfig
-import com.microsoft.identity.internal.testutils.nativeauth.NativeAuthCredentialHelper
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 
 class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
-    private val config = NativeAuthCredentialHelper.nativeAuthTestConfig.configs["SIGN_IN_PASSWORD"]!!
 
     @Before
     override fun setup() {
         super.setup()
-        setupPCA(config)
+        setupPCA("SIGN_IN_PASSWORD")
     }
 
     @Test
