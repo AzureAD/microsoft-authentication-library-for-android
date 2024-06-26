@@ -32,6 +32,11 @@ import org.junit.Test
 
 class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
 
+    override fun setup() {
+        super.setup()
+        setupPCA(EMAIL_PASSWORD_NO_ATTRIBUTES_CONFIG)
+    }
+
     @Test
     fun testSignInErrorSimple() = runTest {
         val username = NativeAuthCredentialHelper.nativeAuthSignInUsername

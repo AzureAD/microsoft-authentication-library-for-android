@@ -52,6 +52,10 @@ import java.lang.annotation.Native
 abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientApplicationTest {
     companion object{
         const val SHARED_PREFERENCES_NAME = "com.microsoft.identity.client.account_credential_cache"
+        const val EMAIL_PASSWORD_NO_ATTRIBUTES_CONFIG = "Email Password"
+        const val EMAIL_OTP_NO_ATTRIBUTES_CONFIG = "Email OTP"
+        const val EMAIL_PASSWORD_WITH_ATTRIBUTES_CONFIG = "Email Password Config with Attributes"
+        const val EMAIL_OTP_WITH_ATTRIBUTES_CONFIG = "Email OTP Config with Attributes"
     }
 
     private lateinit var context: Context
@@ -88,8 +92,15 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
     }
 
     fun setupPCA(config : String) {
-        val clientId = NativeAuthCredentialHelper.nativeAuthLabsEmailPasswordAppId
+        val clientId: String
         val authorityUrl = NativeAuthCredentialHelper.nativeAuthLabsAuthorityUrl
+        when (config) {
+            EMAIL_PASSWORD_NO_ATTRIBUTES_CONFIG -> clientId = NativeAuthCredentialHelper.nativeAuthLabsEmailPasswordAppId
+//            EMAIL_PASSWORD_WITH_ATTRIBUTES_CONFIG -> clientId = NativeAuthCredentialHelper.nativeAuthLabsEmailPasswordAttributesAppId
+//            EMAIL_OTP_NO_ATTRIBUTES_CONFIG -> clientId = NativeAuthCredentialHelper.nativeAuthLabEmailOtpClientId
+//            EMAIL_OTP_WITH_ATTRIBUTES_CONFIG -> clientId = NativeAuthCredentialHelper.nativeAuthLabEmailOtpClientId
+            else -> throw IllegalArgumentException("Invalid config")
+        }
         val challengeTypes = listOf("password", "oob")
 
         try {

@@ -46,17 +46,17 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     @Before
     override fun setup() {
         super.setup()
-        setupPCA("Email Password Config from BuildConfig") // TODO: Update setupPCA() logic to use config string
+        setupPCA(EMAIL_PASSWORD_NO_ATTRIBUTES_CONFIG) // TODO: Update setupPCA() logic to use config string
         Dispatchers.setMain(testDispatcher)
     }
 
-//    @Test
-//    fun testSignUpErrorSimple() = runTest {
-//        val user = tempEmailApi.generateRandomEmailAddress()
-//        val result = application.signUp(user, "invalidpassword".toCharArray())
-//        Assert.assertTrue(result is SignUpError)
-//        Assert.assertTrue((result as SignUpError).isInvalidPassword())
-//    }
+    @Test
+    fun testSignUpErrorSimple() = runTest {
+        val user = tempEmailApi.generateRandomEmailAddress()
+        val result = application.signUp(user, "invalidpassword".toCharArray())
+        Assert.assertTrue(result is SignUpError)
+        Assert.assertTrue((result as SignUpError).isInvalidPassword())
+    }
 
     /**
      * Set email and password and then verify email OOB as last step (hero scenario 9, use case 1.1.1) - Test case 13

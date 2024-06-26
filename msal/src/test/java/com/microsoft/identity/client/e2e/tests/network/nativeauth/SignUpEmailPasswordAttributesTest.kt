@@ -46,7 +46,7 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
     @Before
     override fun setup() {
         super.setup()
-        setupPCA("Email Password Attributes Config from BuildConfig") // TODO: Update setupPCA() logic to use config string
+        setupPCA(EMAIL_PASSWORD_WITH_ATTRIBUTES_CONFIG) // TODO: Update setupPCA() logic to use config string
         Dispatchers.setMain(testDispatcher)
     }
 

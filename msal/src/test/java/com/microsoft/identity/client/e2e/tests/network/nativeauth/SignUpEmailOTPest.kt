@@ -46,7 +46,7 @@ class SignUpEmailOTPest : NativeAuthPublicClientApplicationAbstractTest() {
     @Before
     override fun setup() {
         super.setup()
-        setupPCA("Email OTP Config from BuildConfig") // TODO: Update setupPCA() logic to use config string
+        setupPCA(EMAIL_OTP_NO_ATTRIBUTES_CONFIG) // TODO: Update setupPCA() logic to use config string
         Dispatchers.setMain(testDispatcher)
     }
 
