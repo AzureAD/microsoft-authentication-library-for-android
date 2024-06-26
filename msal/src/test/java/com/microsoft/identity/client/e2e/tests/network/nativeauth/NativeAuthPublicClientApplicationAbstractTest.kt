@@ -27,6 +27,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.microsoft.identity.client.Logger
 import com.microsoft.identity.client.PublicClientApplication
+import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager
 import com.microsoft.identity.client.e2e.tests.IPublicClientApplicationTest
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper
@@ -42,6 +43,7 @@ import org.junit.Before
 import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import org.robolectric.annotation.LooperMode
 import java.io.File
 import java.lang.annotation.Native
@@ -49,6 +51,7 @@ import java.lang.annotation.Native
 // TODO: move to "PAUSED". A work in RoboTestUtils will be needed though.
 @LooperMode(LooperMode.Mode.LEGACY)
 @RunWith(RobolectricTestRunner::class)
+@Config(shadows = [ShadowAndroidSdkStorageEncryptionManager::class])
 abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientApplicationTest {
     companion object{
         const val SHARED_PREFERENCES_NAME = "com.microsoft.identity.client.account_credential_cache"
