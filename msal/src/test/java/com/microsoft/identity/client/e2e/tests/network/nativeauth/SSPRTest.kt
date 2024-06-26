@@ -48,19 +48,19 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
     @Before
     override fun setup() {
         super.setup()
-        setupPCA("Reset Password Config from BuildConfig") // TODO: Update setupPCA() logic to use config string
+        setupPCA(EMAIL_PASSWORD_NO_ATTRIBUTES_CONFIG) // SSPR cases depends on the account type (account being created flow type) thus here reuse the config
         Dispatchers.setMain(testDispatcher)
     }
 
-//    @Test
-//    fun testSSPRErrorSimple() = runTest {
-//        val user = NativeAuthCredentialHelper.nativeAuthSSPRUsername
-//        // Turn correct username into an incorrect one
-//        val invalidUser = user + "x"
-//        val result = application.resetPassword(invalidUser)
-//        Assert.assertTrue(result is ResetPasswordError)
-//        Assert.assertTrue((result as ResetPasswordError).isUserNotFound())
-//    }
+    @Test
+    fun testSSPRErrorSimple() = runTest {
+        val user = NativeAuthCredentialHelper.nativeAuthSSPRUsername
+        // Turn correct username into an incorrect one
+        val invalidUser = user + "x"
+        val result = application.resetPassword(invalidUser)
+        Assert.assertTrue(result is ResetPasswordError)
+        Assert.assertTrue((result as ResetPasswordError).isUserNotFound())
+    }
 
     /**
      * Verify email with email OTP first and then reset password (hero scenario 8 & 17, use case 3.1.1) - Test case 46

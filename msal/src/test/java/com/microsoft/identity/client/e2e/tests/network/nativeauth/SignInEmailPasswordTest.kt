@@ -47,7 +47,7 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     @Before
     override fun setup() {
         super.setup()
-        setupPCA("Email Password Config from BuildConfig") // TODO: Update setupPCA() logic to use config string
+        setupPCA(EMAIL_PASSWORD_NO_ATTRIBUTES_CONFIG) // Sign cases depends on the account type (account being created flow type) thus here reuse the config
         Dispatchers.setMain(testDispatcher)
     }
 
