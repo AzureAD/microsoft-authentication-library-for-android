@@ -92,13 +92,12 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
     }
 
     fun setupPCA(config : String) {
-        val clientId: String
         val authorityUrl = NativeAuthCredentialHelper.nativeAuthLabsAuthorityUrl
-        when (config) {
-            EMAIL_PASSWORD_NO_ATTRIBUTES_CONFIG -> clientId = NativeAuthCredentialHelper.nativeAuthLabsEmailPasswordAppId
-//            EMAIL_PASSWORD_WITH_ATTRIBUTES_CONFIG -> clientId = NativeAuthCredentialHelper.nativeAuthLabsEmailPasswordAttributesAppId
-//            EMAIL_OTP_NO_ATTRIBUTES_CONFIG -> clientId = NativeAuthCredentialHelper.nativeAuthLabEmailOtpClientId
-//            EMAIL_OTP_WITH_ATTRIBUTES_CONFIG -> clientId = NativeAuthCredentialHelper.nativeAuthLabEmailOtpClientId
+        val clientId: String = when (config) {
+            EMAIL_PASSWORD_NO_ATTRIBUTES_CONFIG -> NativeAuthCredentialHelper.nativeAuthLabsEmailPasswordAppId
+            EMAIL_PASSWORD_WITH_ATTRIBUTES_CONFIG -> NativeAuthCredentialHelper.nativeAuthLabsEmailPasswordAttributesAppId
+            EMAIL_OTP_NO_ATTRIBUTES_CONFIG -> NativeAuthCredentialHelper.nativeAuthLabsEmailOtpAppId
+            EMAIL_OTP_WITH_ATTRIBUTES_CONFIG -> NativeAuthCredentialHelper.nativeAuthLabsEmailOtpAttributesAppId
             else -> throw IllegalArgumentException("Invalid config")
         }
         val challengeTypes = listOf("password", "oob")
