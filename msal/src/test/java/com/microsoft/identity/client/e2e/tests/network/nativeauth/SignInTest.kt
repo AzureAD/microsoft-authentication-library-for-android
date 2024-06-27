@@ -23,20 +23,16 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
+import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
-import org.junit.Before
 import org.junit.Test
 
 class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
 
-    @Before
-    override fun setup() {
-        super.setup()
-        setupPCA("SIGN_IN_PASSWORD")
-    }
+    override val configType = ConfigType.SIGN_IN_PASSWORD
 
     @Test
     fun testSignInErrorSimple() = runTest {

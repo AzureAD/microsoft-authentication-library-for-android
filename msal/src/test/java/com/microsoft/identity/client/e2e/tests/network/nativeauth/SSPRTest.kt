@@ -23,33 +23,23 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
+import com.microsoft.identity.client.e2e.utils.assertState
+import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitCodeResult
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.Assert
-import org.junit.Before
 import org.junit.Test
 
 class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 
-    // Remove default Coroutine test timeout of 10 seconds.
-    private val testDispatcher = StandardTestDispatcher()
-
-    @Before
-    override fun setup() {
-        super.setup()
-        setupPCA("SSPR")
-        Dispatchers.setMain(testDispatcher)
-    }
+    override val configType = ConfigType.SSPR
 
     @Test
     fun testSSPRErrorSimple() = runTest {
@@ -73,13 +63,13 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
             try {
                 val user = config.email
                 val result = application.resetPassword(user)
-                Assert.assertTrue(result is ResetPasswordStartResult.CodeRequired)
+                assertState<ResetPasswordStartResult.CodeRequired>(result)
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (result as ResetPasswordStartResult.CodeRequired).nextState.submitCode(otp)
-                Assert.assertTrue(submitCodeResult is ResetPasswordSubmitCodeResult.PasswordRequired)
+                assertState<ResetPasswordSubmitCodeResult.PasswordRequired>(submitCodeResult)
                 val password = getSafePassword()
                 val submitPasswordResult = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState.submitPassword(password.toCharArray())
-                Assert.assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
+                assertState<ResetPasswordResult.Complete>(submitPasswordResult)
                 shouldRetry = false
                 break
             } catch (e: IllegalStateException) {

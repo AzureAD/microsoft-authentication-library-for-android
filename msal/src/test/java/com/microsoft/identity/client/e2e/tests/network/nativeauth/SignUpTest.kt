@@ -23,31 +23,20 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
+import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.Assert
-import org.junit.Before
 import org.junit.Test
 
 class SignUpTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 
-    // Remove default Coroutine test timeout of 10 seconds.
-    private val testDispatcher = StandardTestDispatcher()
-
-    @Before
-    override fun setup() {
-        super.setup()
-        setupPCA("SIGN_UP_PASSWORD")
-        Dispatchers.setMain(testDispatcher)
-    }
+    override val configType = ConfigType.SIGN_UP_PASSWORD
 
     @Test
     fun testSignUpErrorSimple() = runTest {

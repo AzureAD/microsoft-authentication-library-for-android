@@ -38,8 +38,12 @@ import com.microsoft.identity.internal.testutils.labutils.KeyVaultHelper
 import com.microsoft.identity.internal.testutils.labutils.LabConstants
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery
+import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
@@ -63,9 +67,14 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
     lateinit var application: INativeAuthPublicClientApplication
     lateinit var config: NativeAuthTestConfig.Config
 
+    // Remove default Coroutine test timeout of 10 seconds.
+    private val testDispatcher = StandardTestDispatcher()
+
     override fun getConfigFilePath(): String {
         return "" // Not needed for native auth flows
     }
+
+    abstract val configType: ConfigType
 
     @Before
     open fun setup() {
@@ -76,6 +85,8 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         Logger.getInstance().setEnablePII(true)
         Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE)
         CommandDispatcherHelper.clear()
+        Dispatchers.setMain(testDispatcher)
+        setupPCA()
     }
 
     @After
@@ -103,16 +114,16 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         return Gson().fromJson(secretValue, type)
     }
 
-    fun setupPCA(configType: String) {
+    fun setupPCA() {
         val secretValue = getConfigsThroughSecretValue()
-        config = secretValue?.get(configType) ?: throw IllegalStateException("Config not $secretValue")
+        config = secretValue?.get(configType.stringValue) ?: throw IllegalStateException("Config not $secretValue")
         val challengeTypes = listOf("password", "oob")
 
         try {
             application = PublicClientApplication.createNativeAuthPublicClientApplication(
                 context,
-                config.client_id,
-                config.authority_url,
+                config.clientId,
+                config.authorityUrl,
                 null,
                 challengeTypes
             )
