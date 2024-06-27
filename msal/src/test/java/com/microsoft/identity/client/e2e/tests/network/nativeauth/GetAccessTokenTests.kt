@@ -28,6 +28,7 @@ import com.microsoft.identity.client.e2e.utils.assertState
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenError
+import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import kotlinx.coroutines.test.runTest
@@ -46,6 +47,26 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
     }
 
     override val configType = ConfigType.SIGN_IN_PASSWORD
+
+    /**
+     * Signing in with an invalid scope should make the API and the SDK return an error.
+     */
+    @Test
+    fun testGetAccessTokenForInvalidScope() = runTest {
+        val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
+        val password = getSafePassword()
+        val result = application.signIn(
+            username = username,
+            password = password.toCharArray(),
+            scopes = listOf(INVALID_SCOPE)
+        )
+        assertState<SignInError>(result)
+        Assert.assertEquals("invalid_grant", (result as SignInError).error)
+        Assert.assertNotNull(result.errorMessage)
+        Assert.assertTrue(result.errorMessage!!.contains("AADSTS65001: The user or administrator has not consented to use the application"))
+        Assert.assertNotNull(result.errorCodes)
+        Assert.assertTrue(result.errorCodes!!.contains(65001))
+    }
 
     /**
      * 1. Sign in with scope A. This should store the token in cache.

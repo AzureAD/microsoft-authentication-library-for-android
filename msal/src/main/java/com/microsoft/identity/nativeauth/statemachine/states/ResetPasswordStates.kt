@@ -172,7 +172,7 @@ class ResetPasswordCodeRequiredState internal constructor(
                         )
                     }
 
-                    is INativeAuthCommandResult.UnknownError -> {
+                    is INativeAuthCommandResult.APIError -> {
                         Logger.warnWithObject(
                             TAG,
                             result.correlationId,
@@ -272,7 +272,7 @@ class ResetPasswordCodeRequiredState internal constructor(
                     }
 
                     is INativeAuthCommandResult.Redirect,
-                    is INativeAuthCommandResult.UnknownError -> {
+                    is INativeAuthCommandResult.APIError -> {
                         Logger.warnWithObject(
                             TAG,
                             result.correlationId,
@@ -284,7 +284,7 @@ class ResetPasswordCodeRequiredState internal constructor(
                             error = (result as INativeAuthCommandResult.Error).error,
                             correlationId = (result as INativeAuthCommandResult.Error).correlationId,
                             errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
-                            exception = if (result is INativeAuthCommandResult.UnknownError) result.exception else null
+                            exception = if (result is INativeAuthCommandResult.APIError) result.exception else null
                         )
                     }
                 }
@@ -449,7 +449,7 @@ class ResetPasswordPasswordRequiredState internal constructor(
                             )
                         }
 
-                        is INativeAuthCommandResult.UnknownError -> {
+                        is INativeAuthCommandResult.APIError -> {
                             Logger.warnWithObject(
                                 TAG,
                                 result.correlationId,
