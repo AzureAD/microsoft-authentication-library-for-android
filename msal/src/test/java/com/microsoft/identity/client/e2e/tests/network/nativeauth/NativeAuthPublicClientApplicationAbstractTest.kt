@@ -34,8 +34,8 @@ import com.microsoft.identity.client.e2e.tests.IPublicClientApplicationTest
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper
 import com.microsoft.identity.internal.testutils.TestUtils
+import com.microsoft.identity.internal.testutils.labutils.KeyVaultHelper
 import com.microsoft.identity.internal.testutils.labutils.LabConstants
-import com.microsoft.identity.internal.testutils.labutils.LabHelper
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
@@ -93,12 +93,14 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
     }
 
     private fun getConfigsThroughSecretValue(): Map<String, NativeAuthTestConfig.Config>? {
-        val secretValue = LabHelper.getSecret("native-auth-test-config")
-        val type = object : TypeToken<Map<String, NativeAuthTestConfig.Config>>() {}.type
-        return Gson().fromJson(
-            secretValue,
-            type
-        )
+        val secretValue = KeyVaultHelper.getSecretForBuildAutomation("msalandroidnativeauthautomationconfjsonfile")
+        val type = TypeToken.getParameterized(
+            Map::class.java,
+            String::class.java,
+            NativeAuthTestConfig.Config::class.java
+        ).type
+
+        return Gson().fromJson(secretValue, type)
     }
 
     fun setupPCA(configType: String) {
