@@ -53,12 +53,14 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
      */
     @Test
     fun testGetAccessTokenForInvalidScope() = runTest {
-        val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
+        // Turn valid scope into an invalid one
+        val scopeA = resources[0].scopes[0] + "LorumIpsum"
+
         val password = getSafePassword()
         val result = application.signIn(
-            username = username,
+            username = config.email,
             password = password.toCharArray(),
-            scopes = listOf(INVALID_SCOPE)
+            scopes = listOf(scopeA)
         )
         assertState<SignInError>(result)
         Assert.assertEquals("invalid_grant", (result as SignInError).error)
