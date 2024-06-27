@@ -27,11 +27,10 @@ import org.junit.Assert
 inline fun <reified ExpectedType> assertState(actual: Any) {
     val condition = actual is ExpectedType
     if (!condition) {
-        val assertMessage: String
-        if (actual is Error) {
-            assertMessage = "Type comparison failed. Expected: ${ExpectedType::class.java}, actual: ${actual.javaClass}. Error: ${actual.error} - ${actual.errorMessage}"
+        val assertMessage: String = if (actual is Error) {
+            "Type comparison failed. Expected: ${ExpectedType::class.java}, actual: ${actual.javaClass}. Error: ${actual.error} - ${actual.errorMessage}"
         } else {
-            assertMessage = "Type comparison failed. Expected: ${ExpectedType::class.java}, actual: ${actual.javaClass}"
+            "Type comparison failed. Expected: ${ExpectedType::class.java}, actual: ${actual.javaClass}"
         }
         Assert.fail(assertMessage)
     }

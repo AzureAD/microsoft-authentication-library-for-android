@@ -9,6 +9,7 @@ Version 5.4.0
 - [MINOR] Support for multiple access tokens in NativeAuth (#2082)
 - [MINOR] YubiKit 2.5.0 and CredMan 1.2.2 (#2109)
 - [MINOR] Updated Pom Task (#2111)
+- [PATCH] Return API error and errorDescription in case of unexpected response (#2125)
 
 Version 5.3.1
 ---------
