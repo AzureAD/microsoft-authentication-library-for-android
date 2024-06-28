@@ -60,7 +60,6 @@ import com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordS
 import com.microsoft.identity.common.nativeauth.internal.commands.SignInStartCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.SignUpStartCommand
 import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
-import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.Companion.pcaScope
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccountError
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
@@ -491,7 +490,7 @@ class NativeAuthPublicClientApplication(
                             )
                         }
 
-                        is INativeAuthCommandResult.UnknownError -> {
+                        is INativeAuthCommandResult.APIError -> {
                             SignInError(
                                 errorMessage = result.errorDescription,
                                 error = result.error,
@@ -737,7 +736,7 @@ class NativeAuthPublicClientApplication(
                             )
                         }
 
-                        is INativeAuthCommandResult.UnknownError -> {
+                        is INativeAuthCommandResult.APIError -> {
                             SignUpError(
                                 errorMessage = "Unexpected state",
                                 error = ErrorTypes.INVALID_STATE,
@@ -864,7 +863,7 @@ class NativeAuthPublicClientApplication(
                        )
                    }
 
-                   is INativeAuthCommandResult.UnknownError -> {
+                   is INativeAuthCommandResult.APIError -> {
                        ResetPasswordError(
                            error = result.error,
                            errorMessage = result.errorDescription,

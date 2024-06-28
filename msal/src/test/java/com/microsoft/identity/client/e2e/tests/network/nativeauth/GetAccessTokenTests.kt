@@ -27,6 +27,7 @@ import com.microsoft.identity.client.e2e.shadows.ShadowBaseController
 import com.microsoft.identity.client.e2e.utils.assertState
 import com.microsoft.identity.internal.testutils.nativeauth.NativeAuthCredentialHelper
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenError
+import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import kotlinx.coroutines.test.runTest
@@ -36,10 +37,31 @@ import org.robolectric.annotation.Config
 
 @Config(shadows = [ShadowBaseController::class])
 class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
+    private val INVALID_SCOPE = NativeAuthCredentialHelper.nativeAuthInvalidScope
     private val EMPLOYEE_WRITE_ALL_SCOPE = NativeAuthCredentialHelper.nativeAuthEmployeeWriteAllScope
     private val EMPLOYEE_READ_ALL_SCOPE = NativeAuthCredentialHelper.nativeAuthEmployeeReadAllScope
     private val CUSTOMERS_WRITE_ALL_SCOPE = NativeAuthCredentialHelper.nativeAuthCustomerWriteAllScope
     private val CUSTOMERS_READ_ALL_SCOPE = NativeAuthCredentialHelper.nativeAuthCustomerReadAllScope
+
+    /**
+     * Signing in with an invalid scope should make the API and the SDK return an error.
+     */
+    @Test
+    fun testGetAccessTokenForInvalidScope() = runTest {
+        val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
+        val password = getSafePassword()
+        val result = application.signIn(
+            username = username,
+            password = password.toCharArray(),
+            scopes = listOf(INVALID_SCOPE)
+        )
+        assertState<SignInError>(result)
+        Assert.assertEquals("invalid_grant", (result as SignInError).error)
+        Assert.assertNotNull(result.errorMessage)
+        Assert.assertTrue(result.errorMessage!!.contains("AADSTS65001: The user or administrator has not consented to use the application"))
+        Assert.assertNotNull(result.errorCodes)
+        Assert.assertTrue(result.errorCodes!!.contains(65001))
+    }
 
     /**
      * 1. Sign in with EMPLOYEE_WRITE_ALL_SCOPE scope. This should store the token in cache.
