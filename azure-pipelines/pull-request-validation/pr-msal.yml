@@ -30,7 +30,7 @@ resources:
   - repository: common
     type: github
     name: AzureAD/microsoft-authentication-library-common-for-android
-    ref: dev
+    ref: robert/empty-correlation-id-fixes
     endpoint: ANDROID_GITHUB
 
 pool:
