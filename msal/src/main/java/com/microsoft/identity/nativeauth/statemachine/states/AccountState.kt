@@ -309,12 +309,12 @@ class AccountState private constructor(
                             correlationId = correlationId
                         )
 
-                val privateCorrelationId = if (correlationId == "UNSET") { UUID.randomUUID().toString() } else { correlationId }
+//                val privateCorrelationId = if (correlationId == "UNSET") { UUID.randomUUID().toString() } else { correlationId }
 
                 val acquireTokenSilentParameters = AcquireTokenSilentParameters.Builder()
                     .forAccount(currentAccount)
                     .fromAuthority(currentAccount.authority)
-                    .withCorrelationId(UUID.fromString(privateCorrelationId))
+                    .withCorrelationId(UUID.fromString(correlationId))
                     .forceRefresh(forceRefresh)
                     .withScopes(scopes)
                     .build()
