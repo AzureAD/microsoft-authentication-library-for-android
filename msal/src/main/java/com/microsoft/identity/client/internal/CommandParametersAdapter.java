@@ -88,6 +88,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
 
 /**
@@ -360,8 +362,8 @@ public class CommandParametersAdapter {
                 .challengeType(configuration.getChallengeTypes())
                 .userAttributes(userAttributes)
                 // Start of the flow, so there is no correlation ID to use from a previous API response.
-                // Set it to a default value.
-                .correlationId(DiagnosticContext.INSTANCE.getThreadCorrelationId())
+                // If default value "UNSET", generate a new UUID as correlationId.
+                .correlationId(Objects.equals(DiagnosticContext.INSTANCE.getThreadCorrelationId(), "UNSET") ? UUID.randomUUID().toString() : DiagnosticContext.INSTANCE.getThreadCorrelationId())
                 .build();
     }
 
@@ -563,8 +565,8 @@ public class CommandParametersAdapter {
                 .challengeType(configuration.getChallengeTypes())
                 .scopes(scopes)
                 // Start of the flow, so there is no correlation ID to use from a previous API response.
-                // Set it to a default value.
-                .correlationId(DiagnosticContext.INSTANCE.getThreadCorrelationId())
+                // If default value "UNSET", generate a new UUID as correlationId.
+                .correlationId(Objects.equals(DiagnosticContext.INSTANCE.getThreadCorrelationId(), "UNSET") ? UUID.randomUUID().toString() : DiagnosticContext.INSTANCE.getThreadCorrelationId())
                 .build();
 
         return commandParameters;
@@ -792,8 +794,8 @@ public class CommandParametersAdapter {
                         .challengeType(configuration.getChallengeTypes())
                         .clientId(configuration.getClientId())
                         // Start of the flow, so there is no correlation ID to use from a previous API response.
-                        // Set it to a default value.
-                        .correlationId(DiagnosticContext.INSTANCE.getThreadCorrelationId())
+                        // If default value "UNSET", generate a new UUID as correlationId.
+                        .correlationId(Objects.equals(DiagnosticContext.INSTANCE.getThreadCorrelationId(), "UNSET") ? UUID.randomUUID().toString() : DiagnosticContext.INSTANCE.getThreadCorrelationId())
                         .build();
 
         return commandParameters;
