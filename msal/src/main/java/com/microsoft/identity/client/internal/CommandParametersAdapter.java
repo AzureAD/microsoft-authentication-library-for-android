@@ -25,6 +25,7 @@ package com.microsoft.identity.client.internal;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -1143,10 +1144,25 @@ public class CommandParametersAdapter {
     public static List<Map.Entry<String, String>> appendToExtraQueryParametersIfWebAuthnCapable(
             @Nullable final List<Map.Entry<String, String>> queryStringParameters,
             @NonNull final PublicClientApplicationConfiguration configuration) {
-        if (configuration.isWebauthnCapable()) {
-            final Map.Entry<String, String> webauthnExtraParameter = new AbstractMap.SimpleEntry<>(
-                    FidoConstants.WEBAUTHN_QUERY_PARAMETER_FIELD,
-                    FidoConstants.WEBAUTHN_QUERY_PARAMETER_VALUE);
+        final String methodTag = TAG + ":appendToExtraQueryParametersIfWebAuthnCapable";
+        final Map.Entry<String, String> webauthnExtraParameter = new AbstractMap.SimpleEntry<>(
+                FidoConstants.WEBAUTHN_QUERY_PARAMETER_FIELD,
+                FidoConstants.WEBAUTHN_QUERY_PARAMETER_VALUE);
+        // Check the OS version. As of the time this is written, passkeys are only supported on devices that run Android 9 (API 28) or higher.
+        // https://developer.android.com/identity/sign-in/credential-manager
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+            Logger.info(methodTag, "Device is running on an Android version less than 9 (API 28), which is the minimum level for passkeys.");
+            // If we don't want to add this query string param, then we should also remove other instances of it that might be already present from MSAL/OneAuth-MSAL.
+            if (queryStringParameters != null)
+            try {
+                queryStringParameters.remove(webauthnExtraParameter);
+            } catch (final UnsupportedOperationException e) {
+                final List<Map.Entry<String, String>> result = new ArrayList<>(queryStringParameters);
+                result.remove(webauthnExtraParameter);
+                return result;
+            }
+        }
+        else if (configuration.isWebauthnCapable()) {
             if (queryStringParameters == null) {
                 return new ArrayList<>(Collections.singletonList(webauthnExtraParameter));
             }
