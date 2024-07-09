@@ -23,38 +23,27 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
-import com.microsoft.identity.internal.testutils.nativeauth.NativeAuthCredentialHelper
+import com.microsoft.identity.client.e2e.utils.assertState
+import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitCodeResult
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.Assert
-import org.junit.Before
 import org.junit.Test
 
 class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 
-    // Remove default Coroutine test timeout of 10 seconds.
-    private val testDispatcher = StandardTestDispatcher()
-
-    @Before
-    override fun setup() {
-        super.setup()
-        setupPCA(EMAIL_PASSWORD_NO_ATTRIBUTES_CONFIG) // SSPR cases depends on the account type (account being created flow type) thus here reuse the config
-        Dispatchers.setMain(testDispatcher)
-    }
+    override val configType = ConfigType.SSPR
 
     @Test
     fun testSSPRErrorSimple() = runTest {
-        val user = NativeAuthCredentialHelper.nativeAuthSSPRUsername
+        val user = config.email
         // Turn correct username into an incorrect one
         val invalidUser = user + "x"
         val result = application.resetPassword(invalidUser)

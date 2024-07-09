@@ -61,7 +61,7 @@ ext {
     junitVintageEngineVersion = "5.7.2"
     dbusJavaVersion = "3.3.0"
     dbusJavaUtilsVersion = "3.3.0"
-    bouncyCastleVersion = "1.77"
+    bouncyCastleVersion = "1.78"
     oshiCoreVersion = "5.7.5"
     tokenShare = "1.6.5"
     intuneAppSdkVersion = "8.6.3"

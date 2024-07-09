@@ -23,32 +23,21 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
+import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.nativeauth.UserAttributes
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.Assert
-import org.junit.Before
 import org.junit.Test
 
-class SignUpEmailOTPest : NativeAuthPublicClientApplicationAbstractTest() {
+class SignUpTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 
-    // Remove default Coroutine test timeout of 10 seconds.
-    private val testDispatcher = StandardTestDispatcher()
-
-    @Before
-    override fun setup() {
-        super.setup()
-        setupPCA(EMAIL_OTP_NO_ATTRIBUTES_CONFIG) // TODO: Update setupPCA() logic to use config string
-        Dispatchers.setMain(testDispatcher)
-    }
+    override val configType = ConfigType.SIGN_UP_PASSWORD
 
     /**
      * Verify email address using email OTP and sign up (hero scenario 1, use case 2.1.1) - Test case 1

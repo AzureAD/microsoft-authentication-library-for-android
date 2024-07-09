@@ -25,46 +25,56 @@ package com.microsoft.identity.client.e2e.tests.network.nativeauth
 import android.app.Activity
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.microsoft.identity.client.Logger
 import com.microsoft.identity.client.PublicClientApplication
+import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager
 import com.microsoft.identity.client.e2e.tests.IPublicClientApplicationTest
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper
 import com.microsoft.identity.internal.testutils.TestUtils
+import com.microsoft.identity.internal.testutils.labutils.KeyVaultHelper
 import com.microsoft.identity.internal.testutils.labutils.LabConstants
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery
-import com.microsoft.identity.internal.testutils.nativeauth.NativeAuthCredentialHelper
+import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
+import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import org.robolectric.annotation.LooperMode
-import java.io.File
-import java.lang.annotation.Native
 
 // TODO: move to "PAUSED". A work in RoboTestUtils will be needed though.
 @LooperMode(LooperMode.Mode.LEGACY)
 @RunWith(RobolectricTestRunner::class)
+@Config(shadows = [ShadowAndroidSdkStorageEncryptionManager::class])
 abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientApplicationTest {
     companion object{
         const val SHARED_PREFERENCES_NAME = "com.microsoft.identity.client.account_credential_cache"
-        const val EMAIL_PASSWORD_NO_ATTRIBUTES_CONFIG = "Email Password"
-        const val EMAIL_OTP_NO_ATTRIBUTES_CONFIG = "Email OTP"
-        const val EMAIL_PASSWORD_WITH_ATTRIBUTES_CONFIG = "Email Password Config with Attributes"
-        const val EMAIL_OTP_WITH_ATTRIBUTES_CONFIG = "Email OTP Config with Attributes"
     }
 
     private lateinit var context: Context
     private lateinit var activity: Activity
     lateinit var application: INativeAuthPublicClientApplication
+    lateinit var config: NativeAuthTestConfig.Config
+
+    // Remove default Coroutine test timeout of 10 seconds.
+    private val testDispatcher = StandardTestDispatcher()
 
     override fun getConfigFilePath(): String {
         return "" // Not needed for native auth flows
     }
+
+    abstract val configType: ConfigType
 
     @Before
     open fun setup() {
@@ -75,6 +85,8 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         Logger.getInstance().setEnablePII(true)
         Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE)
         CommandDispatcherHelper.clear()
+        Dispatchers.setMain(testDispatcher)
+        setupPCA()
     }
 
     @After
@@ -91,50 +103,32 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         return credential.password
     }
 
-    fun setupPCA(config : String) {
-        val authorityUrl = NativeAuthCredentialHelper.nativeAuthLabsAuthorityUrl
-        val clientId: String = when (config) {
-            EMAIL_PASSWORD_NO_ATTRIBUTES_CONFIG -> NativeAuthCredentialHelper.nativeAuthLabsEmailPasswordAppId
-            EMAIL_PASSWORD_WITH_ATTRIBUTES_CONFIG -> NativeAuthCredentialHelper.nativeAuthLabsEmailPasswordAttributesAppId
-            EMAIL_OTP_NO_ATTRIBUTES_CONFIG -> NativeAuthCredentialHelper.nativeAuthLabsEmailOtpAppId
-            EMAIL_OTP_WITH_ATTRIBUTES_CONFIG -> NativeAuthCredentialHelper.nativeAuthLabsEmailOtpAttributesAppId
-            else -> throw IllegalArgumentException("Invalid config")
-        }
+    private fun getConfigsThroughSecretValue(): Map<String, NativeAuthTestConfig.Config>? {
+        val secretValue = KeyVaultHelper.getSecretForBuildAutomation("msalandroidnativeauthautomationconfjsonfile")
+        val type = TypeToken.getParameterized(
+            Map::class.java,
+            String::class.java,
+            NativeAuthTestConfig.Config::class.java
+        ).type
+
+        return Gson().fromJson(secretValue, type)
+    }
+
+    fun setupPCA() {
+        val secretValue = getConfigsThroughSecretValue()
+        config = secretValue?.get(configType.stringValue) ?: throw IllegalStateException("Config not $secretValue")
         val challengeTypes = listOf("password", "oob")
 
         try {
             application = PublicClientApplication.createNativeAuthPublicClientApplication(
                 context,
-                clientId,
-                authorityUrl,
+                config.clientId,
+                config.authorityUrl,
                 null,
                 challengeTypes
             )
         } catch (e: MsalException) {
             Assert.fail(e.message)
-        }
-    }
-
-    fun <T> retryOperation(
-        maxRetries: Int = 3,
-        onFailure: () -> Unit = { Assert.fail() },
-        authFlow: () -> T
-    ) {
-        var retryCount = 0
-        var shouldRetry = true
-
-        while (shouldRetry) {
-            try {
-                authFlow()
-            } catch (e: IllegalStateException) {
-                // Re-run this test if the OTP retrieval fails. 1SecMail is known for emails to sometimes never arrive.
-                if (retryCount >= maxRetries) {
-                    onFailure()
-                    shouldRetry = false
-                } else {
-                    retryCount++
-                }
-            }
         }
     }
 }

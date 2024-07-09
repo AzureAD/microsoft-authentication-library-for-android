@@ -23,33 +23,16 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
-import com.microsoft.identity.internal.testutils.nativeauth.NativeAuthCredentialHelper
-import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
+import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
-import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.Assert
-import org.junit.Before
 import org.junit.Test
 
-class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() {
+class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
 
-    private val tempEmailApi = TemporaryEmailService()
-
-    // Remove default Coroutine test timeout of 10 seconds.
-    private val testDispatcher = StandardTestDispatcher()
-
-    @Before
-    override fun setup() {
-        super.setup()
-        setupPCA(EMAIL_PASSWORD_NO_ATTRIBUTES_CONFIG) // Sign cases depends on the account type (account being created flow type) thus here reuse the config
-        Dispatchers.setMain(testDispatcher)
-    }
+    override val configType = ConfigType.SIGN_IN_PASSWORD
 
     /**
      * Use email and password to get token (hero scenario 15, use case 1.2.1) - Test case 37
