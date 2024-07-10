@@ -39,7 +39,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 
-    override val configType = ConfigType.SIGN_UP_OTP
+    override val configType = ConfigType.SIGN_IN_OTP
 
     /**
      * Use email and OTP to get token and sign in (hero scenario 6, use case 2.2.1) - Test case 30

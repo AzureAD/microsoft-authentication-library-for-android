@@ -36,7 +36,7 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
 
     private val tempEmailApi = TemporaryEmailService()
 
-    override val configType = ConfigType.SIGN_UP_PASSWORD
+    override val configType = ConfigType.SIGN_UP_PASSWORD_ATTRIBUTES
 
     /**
      * Sign up with verify email OOB as first step, then set password & custom attributes at end (hero scenario 12, use case 1.1.6) - Test case 28
