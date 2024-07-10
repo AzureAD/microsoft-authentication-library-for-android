@@ -479,4 +479,24 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         val tokenWithCustomerScope2 = authResult4.accessToken
         Assert.assertNotEquals(tokenWithCustomerScope, tokenWithCustomerScope2) // New token received
     }
+
+    /**
+     * The id token is correctly updated after the access token is refreshed
+     */
+    @Test
+    fun testGetAccessTokenWithForceRefreshThenUpdateIdToken() = runTest {
+        val username = config.email
+        val password = getSafePassword()
+        val result = application.signIn(
+            username = username,
+            password = password.toCharArray()
+        )
+        assertState<SignInResult.Complete>(result)
+        val accountState = (result as SignInResult.Complete).resultValue
+        val idToken1 = accountState.getIdToken()
+        accountState.getAccessToken(forceRefresh = true)
+        val idToken2 = accountState.getIdToken()
+        Assert.assertFalse(idToken1 == idToken2)
+    }
+
 }
