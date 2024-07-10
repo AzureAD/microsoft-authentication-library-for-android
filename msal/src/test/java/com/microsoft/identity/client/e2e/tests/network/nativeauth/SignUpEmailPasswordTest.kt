@@ -23,32 +23,22 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
+import com.microsoft.identity.client.e2e.utils.assertState
+import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
-import com.microsoft.identity.nativeauth.UserAttributes
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.Assert
-import org.junit.Before
 import org.junit.Test
+import kotlin.math.sign
 
 class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 
-    // Remove default Coroutine test timeout of 10 seconds.
-    private val testDispatcher = StandardTestDispatcher()
-
-    @Before
-    override fun setup() {
-        super.setup()
-        setupPCA(EMAIL_PASSWORD_NO_ATTRIBUTES_CONFIG) // TODO: Update setupPCA() logic to use config string
-        Dispatchers.setMain(testDispatcher)
-    }
+    override val configType = ConfigType.SIGN_UP_OTP
 
     @Test
     fun testSignUpErrorSimple() = runTest {
@@ -71,7 +61,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
                 val user = tempEmailApi.generateRandomEmailAddress()
                 val password = getSafePassword()
                 signUpResult = application.signUp(user, password.toCharArray())
-                Assert.assertTrue(signUpResult is SignUpResult.CodeRequired)
+                assertState<SignUpResult.CodeRequired>(signUpResult)
                 otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
                 Assert.assertTrue(submitCodeResult is SignUpResult.Complete)
@@ -91,10 +81,10 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
                 signUpResult = application.signUp(user)
-                Assert.assertTrue(signUpResult is SignUpResult.CodeRequired)
+                assertState<SignUpResult.CodeRequired>(signUpResult)
                 otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
-                Assert.assertTrue(submitCodeResult is SignUpResult.PasswordRequired)
+                assertState<SignUpResult.PasswordRequired>(submitCodeResult)
                 val submitPasswordResult = (submitCodeResult as SignUpResult.PasswordRequired).nextState.submitPassword(getSafePassword().toCharArray())
                 Assert.assertTrue(submitPasswordResult is SignUpResult.Complete)
             }

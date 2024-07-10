@@ -39,7 +39,7 @@ class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
      */
     @Test
     fun testSuccess() = runTest {
-        val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
+        val username = config.email
         val password = getSafePassword()
         val result = application.signIn(username, password.toCharArray())
         Assert.assertTrue(result is SignInResult.Complete)
@@ -50,7 +50,7 @@ class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
      */
     @Test
     fun testErrorIsUserNotFound() = runTest {
-        val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
+        val username = config.email
         val password = getSafePassword()
         // Turn an existing username to a non-existing username
         val alteredUsername = username.replace("@", "1234@")
@@ -64,7 +64,7 @@ class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
      */
     @Test
     fun testErrorIsInvalidCredentials() = runTest {
-        val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
+        val username = config.email
         val password = getSafePassword()
         // Turn correct password into an incorrect one
         val alteredPassword = password + "1234"

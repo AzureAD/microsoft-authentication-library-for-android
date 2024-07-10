@@ -23,32 +23,20 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
+import com.microsoft.identity.client.e2e.utils.assertState
+import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.nativeauth.UserAttributes
-import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.Assert
-import org.junit.Before
 import org.junit.Test
 
 class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 
-    // Remove default Coroutine test timeout of 10 seconds.
-    private val testDispatcher = StandardTestDispatcher()
-
-    @Before
-    override fun setup() {
-        super.setup()
-        setupPCA(EMAIL_OTP_WITH_ATTRIBUTES_CONFIG) // TODO: Update setupPCA() logic to use config string
-        Dispatchers.setMain(testDispatcher)
-    }
+    override val configType = ConfigType.SIGN_UP_OTP_ATTRIBUTES
 
     /**
      * Signup user with custom attributes with verify OTP as last step (hero scenario 2, use case 2.1.2) - Test case 2
@@ -63,7 +51,7 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
                 val user = tempEmailApi.generateRandomEmailAddress()
                 val attributes = UserAttributes.country("Ireland").city("Dublin").build()
                 signUpResult = application.signUp(user, attributes = attributes)
-                Assert.assertTrue(signUpResult is SignUpResult.CodeRequired)
+                assertState<SignUpResult.CodeRequired>(signUpResult)
                 otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
                 Assert.assertTrue(submitCodeResult is SignUpResult.Complete)
@@ -83,10 +71,10 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
                 signUpResult = application.signUp(user)
-                Assert.assertTrue(signUpResult is SignUpResult.CodeRequired)
+                assertState<SignUpResult.CodeRequired>(signUpResult)
                 otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
-                Assert.assertTrue(submitCodeResult is SignUpResult.AttributesRequired)
+                assertState<SignUpResult.AttributesRequired>(submitCodeResult)
                 val attributes = UserAttributes.country("Ireland").city("Dublin").build()
                 val submitAttributesResult = (signUpResult as SignUpResult.AttributesRequired).nextState.submitAttributes(attributes)
                 Assert.assertTrue(submitAttributesResult is SignUpResult.Complete)
@@ -106,13 +94,13 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
                 signUpResult = application.signUp(user)
-                Assert.assertTrue(signUpResult is SignUpResult.CodeRequired)
+                assertState<SignUpResult.CodeRequired>(signUpResult)
                 otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
-                Assert.assertTrue(submitCodeResult is SignUpResult.AttributesRequired)
+                assertState<SignUpResult.AttributesRequired>(submitCodeResult)
                 val attributes = UserAttributes.country("Ireland").build()
                 val submitAttributesResult = (signUpResult as SignUpResult.AttributesRequired).nextState.submitAttributes(attributes)
-                Assert.assertTrue(submitAttributesResult is SignUpResult.AttributesRequired)
+                assertState<SignUpResult.AttributesRequired>(submitAttributesResult)
                 val attributes2 = UserAttributes.city("Dublin").build()
                 val submitAttributesResult2 = (signUpResult as SignUpResult.AttributesRequired).nextState.submitAttributes(attributes2)
                 Assert.assertTrue(submitAttributesResult2 is SignUpResult.Complete)

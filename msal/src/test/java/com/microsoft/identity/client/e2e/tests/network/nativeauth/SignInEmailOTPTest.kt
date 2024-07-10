@@ -23,33 +23,23 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
-import com.microsoft.identity.internal.testutils.nativeauth.NativeAuthCredentialHelper
+import com.microsoft.identity.client.e2e.utils.assertState
+import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
-import kotlinx.coroutines.Dispatchers
+import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.Assert
-import org.junit.Before
 import org.junit.Test
 
 class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 
-    // Remove default Coroutine test timeout of 10 seconds.
-    private val testDispatcher = StandardTestDispatcher()
-
-    @Before
-    override fun setup() {
-        super.setup()
-        setupPCA(EMAIL_OTP_NO_ATTRIBUTES_CONFIG) // Sign cases depends on the account type (account being created flow type) thus here reuse the config
-        Dispatchers.setMain(testDispatcher)
-    }
+    override val configType = ConfigType.SIGN_UP_OTP
 
     /**
      * Use email and OTP to get token and sign in (hero scenario 6, use case 2.2.1) - Test case 30
@@ -61,12 +51,12 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         retryOperation {
             runBlocking {
-                val user = NativeAuthCredentialHelper.nativeAuthSignInUsername
+                val user = config.email
                 signInResult = application.signIn(user)
-                Assert.assertTrue(signInResult is SignInResult.CodeRequired)
+                assertState<SignInResult.CodeRequired>(signInResult)
                 otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signInResult as SignInResult.CodeRequired).nextState.submitCode(otp)
-                Assert.assertTrue(submitCodeResult is SignInResult.Complete)
+                assertState<SignInResult.Complete>(submitCodeResult)
             }
         }
     }
@@ -92,9 +82,9 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         retryOperation {
             runBlocking {
-                val user = NativeAuthCredentialHelper.nativeAuthSignInUsername
+                val user = config.email
                 signInResult = application.signIn(user)
-                Assert.assertTrue(signInResult is SignInResult.CodeRequired)
+                assertState<SignInResult.CodeRequired>(signInResult)
                 otp = tempEmailApi.retrieveCodeFromInbox(user)
                 // Turn correct OTP into an incorrect one
                 val alteredOtp = otp + "1234"

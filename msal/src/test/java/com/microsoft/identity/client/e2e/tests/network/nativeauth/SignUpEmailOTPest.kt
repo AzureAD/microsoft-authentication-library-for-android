@@ -23,13 +23,11 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
+import com.microsoft.identity.client.e2e.utils.assertState
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
-import com.microsoft.identity.nativeauth.UserAttributes
-import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Test
 
@@ -37,7 +35,7 @@ class SignUpTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 
-    override val configType = ConfigType.SIGN_UP_PASSWORD
+    override val configType = ConfigType.SIGN_UP_OTP
 
     /**
      * Verify email address using email OTP and sign up (hero scenario 1, use case 2.1.1) - Test case 1
@@ -51,7 +49,7 @@ class SignUpTest : NativeAuthPublicClientApplicationAbstractTest() {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
                 signUpResult = application.signUp(user)
-                Assert.assertTrue(signUpResult is SignUpResult.CodeRequired)
+                assertState<SignUpResult.CodeRequired>(signUpResult)
                 otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
                 Assert.assertTrue(submitCodeResult is SignUpResult.Complete)

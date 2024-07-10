@@ -63,10 +63,10 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
             runBlocking {
                 val user = config.email
                 result = application.resetPassword(user)
-                Assert.assertTrue(result is ResetPasswordStartResult.CodeRequired)
+                assertState<ResetPasswordStartResult.CodeRequired>(result)
                 otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (result as ResetPasswordStartResult.CodeRequired).nextState.submitCode(otp)
-                Assert.assertTrue(submitCodeResult is ResetPasswordSubmitCodeResult.PasswordRequired)
+                assertState<ResetPasswordSubmitCodeResult.PasswordRequired>(submitCodeResult)
                 val password = getSafePassword()
                 val submitPasswordResult = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState.submitPassword(password.toCharArray())
                 Assert.assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
