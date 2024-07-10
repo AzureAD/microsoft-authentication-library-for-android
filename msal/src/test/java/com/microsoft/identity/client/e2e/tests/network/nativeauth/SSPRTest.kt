@@ -61,7 +61,7 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         retryOperation {
             runBlocking {
-                val user = NativeAuthCredentialHelper.nativeAuthSSPRUsername
+                val user = config.email
                 result = application.resetPassword(user)
                 Assert.assertTrue(result is ResetPasswordStartResult.CodeRequired)
                 otp = tempEmailApi.retrieveCodeFromInbox(user)
