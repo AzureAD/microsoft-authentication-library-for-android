@@ -104,6 +104,8 @@ public class TestCase850457 extends AbstractMsalBrokerTest {
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
+        final String newPassword = password + "1";
+
         final MsalAuthResult authResult2 = msalSdk.acquireTokenInteractive(msalAuthTestParams2, new com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
@@ -115,6 +117,8 @@ public class TestCase850457 extends AbstractMsalBrokerTest {
                         .speedBumpExpected(false)
                         .broker(mBroker)
                         .expectingBrokerAccountChooserActivity(false)
+                        .updateYourPasswordExpected(true)
+                        .newPasswordForUpdateScenario(newPassword)
                         .passwordPageExpected(true)
                         .build();
 
