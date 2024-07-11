@@ -120,7 +120,8 @@ class EmailPasswordSignInSignUpFragment : Fragment() {
 
                 val actionResult = authClient.signIn(
                     username = email,
-                    password = password
+                    password = password,
+                    scopes = listOf("User.Read")
                 )
 
                 password.fill('0');
@@ -146,6 +147,9 @@ class EmailPasswordSignInSignUpFragment : Fragment() {
                                         .withCallback(getAuthInteractiveCallback())
                                 )
                             )
+                        }
+                        else {
+                            displayDialog("Unexpected result", actionResult.errorMessage)
                         }
                     }
                     else -> {
@@ -278,6 +282,8 @@ class EmailPasswordSignInSignUpFragment : Fragment() {
                 val accessToken = accessTokenState.resultValue.accessToken
                 binding.resultAccessToken.text =
                     getString(R.string.result_access_token_text) + accessToken
+
+                Log.d("AccessToken", accessToken)
 
                 val idToken = accountState.getIdToken()
                 binding.resultIdToken.text = getString(R.string.result_id_token_text) + idToken
