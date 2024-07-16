@@ -132,7 +132,7 @@ class EmailAttributeSignUpFragment : Fragment() {
 
                 val actionResult = authClient.signUp(
                     username = email,
-                    password = password,
+//                    password = password,
                     attributes = attributes.build()
                 )
 

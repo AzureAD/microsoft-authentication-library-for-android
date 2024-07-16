@@ -37,6 +37,7 @@ import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResendCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
+import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState

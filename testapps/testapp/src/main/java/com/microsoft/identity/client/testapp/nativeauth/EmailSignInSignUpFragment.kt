@@ -30,11 +30,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.google.android.material.tabs.TabLayout.TabGravity
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.testapp.Constants
 import com.microsoft.identity.client.testapp.R
 import com.microsoft.identity.client.testapp.databinding.FragmentEmailSisuBinding
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
+import com.microsoft.identity.nativeauth.UserAttributes
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
@@ -112,7 +114,8 @@ class EmailSignInSignUpFragment : Fragment() {
                 val email = binding.emailText.text.toString()
 
                 val actionResult = authClient.signIn(
-                    username = email
+                    username = email,
+                    scopes = listOf("User.Read")
                 )
 
                 when (actionResult) {
@@ -249,6 +252,8 @@ class EmailSignInSignUpFragment : Fragment() {
                 val accessToken = accessTokenState.resultValue.accessToken
                 binding.resultAccessToken.text =
                     getString(R.string.result_access_token_text) + accessToken
+
+                Log.d("AccessToken", accessToken)
 
                 val idToken = accountState.getIdToken()
                 binding.resultIdToken.text = getString(R.string.result_id_token_text) + idToken
