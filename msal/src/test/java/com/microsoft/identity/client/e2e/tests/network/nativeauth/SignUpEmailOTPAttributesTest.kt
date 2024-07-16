@@ -49,7 +49,7 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
-                val attributes = UserAttributes.country("Ireland").city("Dublin").build()
+                val attributes = UserAttributes.Builder().country("Ireland").city("Dublin").build()
                 signUpResult = application.signUp(user, attributes = attributes)
                 assertState<SignUpResult.CodeRequired>(signUpResult)
                 otp = tempEmailApi.retrieveCodeFromInbox(user)
@@ -75,8 +75,13 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
                 otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
                 assertState<SignUpResult.AttributesRequired>(submitCodeResult)
-                val attributes = UserAttributes.country("Ireland").city("Dublin").build()
-                val submitAttributesResult = (signUpResult as SignUpResult.AttributesRequired).nextState.submitAttributes(attributes)
+                val requiredAttributes = (submitCodeResult as SignUpResult.AttributesRequired).requiredAttributes
+                val attributes = UserAttributes.Builder()
+                for (attr in requiredAttributes) {
+                    Assert.assertNotNull(attr.attributeName)
+                    attributes.customAttribute(attr.attributeName!!, "somevalue")
+                }
+                val submitAttributesResult = submitCodeResult.nextState.submitAttributes(attributes.build())
                 Assert.assertTrue(submitAttributesResult is SignUpResult.Complete)
             }
         }
@@ -98,12 +103,20 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
                 otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
                 assertState<SignUpResult.AttributesRequired>(submitCodeResult)
-                val attributes = UserAttributes.country("Ireland").build()
-                val submitAttributesResult = (signUpResult as SignUpResult.AttributesRequired).nextState.submitAttributes(attributes)
-                assertState<SignUpResult.AttributesRequired>(submitAttributesResult)
-                val attributes2 = UserAttributes.city("Dublin").build()
-                val submitAttributesResult2 = (signUpResult as SignUpResult.AttributesRequired).nextState.submitAttributes(attributes2)
-                Assert.assertTrue(submitAttributesResult2 is SignUpResult.Complete)
+                val requiredAttributes = (submitCodeResult as SignUpResult.AttributesRequired).requiredAttributes
+                val attributes = UserAttributes.Builder()
+                for (attr in requiredAttributes) { // Loop through all the required attributes and send them to the API one by one, mimicking a multi-screen UX.
+                    Assert.assertNotNull(attr.attributeName)
+                    attributes.customAttribute(attr.attributeName!!, "somevalue")
+                    val submitAttributesResult = submitCodeResult.nextState.submitAttributes(attributes.build())
+                    if (submitAttributesResult is SignUpResult.AttributesRequired) {
+                        continue
+                    } else if (submitAttributesResult is SignUpResult.Complete) {
+                        break // All attributes submitted, user account is now created.
+                    } else {
+                        Assert.fail("Unexpected state $submitAttributesResult")
+                    }
+                }
             }
         }
     }

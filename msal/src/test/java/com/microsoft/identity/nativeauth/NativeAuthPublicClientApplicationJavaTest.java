@@ -2019,7 +2019,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // it's value in order to make it consistent with the subsequent call to mock API.
         mockCorrelationId(attributesRequiredState, correlationId);
 
-        UserAttributes invalidAttributes = UserAttributes.Builder.customAttribute("attribute", "invalid_attribute").build();
+        UserAttributes invalidAttributes = new UserAttributes.Builder().customAttribute("attribute", "invalid_attribute").build();
         SignUpSubmitUserAttributesTestCallback failedUserAttributesCallback = new SignUpSubmitUserAttributesTestCallback();
 
         attributesRequiredState.submitAttributes(invalidAttributes, failedUserAttributesCallback);
@@ -2036,7 +2036,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
         );
 
-        UserAttributes validAttributes = UserAttributes.Builder.customAttribute("attribute", "valid_attribute").build();
+        UserAttributes validAttributes = new UserAttributes.Builder().customAttribute("attribute", "valid_attribute").build();
         SignUpSubmitUserAttributesTestCallback validUserAttributesCallback = new SignUpSubmitUserAttributesTestCallback();
 
         attributesRequiredState.submitAttributes(validAttributes, validUserAttributesCallback);
@@ -2063,7 +2063,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         );
 
         // 1b. Call SDK interface
-        UserAttributes invalidAttributes = UserAttributes.Builder.customAttribute("attribute", "valid_attribute").build();
+        UserAttributes invalidAttributes = new UserAttributes.Builder().customAttribute("attribute", "valid_attribute").build();
         SignUpTestCallback signUpTestCallback = new SignUpTestCallback();
 
         application.signUp(username, password, invalidAttributes, signUpTestCallback);
@@ -2085,7 +2085,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         );
 
         // 2b. Call SDK interface again
-        UserAttributes validAttributes = UserAttributes.Builder.customAttribute("attribute", "valid_attribute").build();
+        UserAttributes validAttributes = new UserAttributes.Builder().customAttribute("attribute", "valid_attribute").build();
 
         SignUpTestCallback signUpSuccessCallback = new SignUpTestCallback();
 
@@ -2507,7 +2507,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         mockCorrelationId(attributesRequiredState, correlationId);
 
         SignUpSubmitUserAttributesTestCallback attributesRequiredCallback = new SignUpSubmitUserAttributesTestCallback();
-        UserAttributes attributes = UserAttributes.Builder.customAttribute("attribute", "attribute").build();
+        UserAttributes attributes = new UserAttributes.Builder().customAttribute("attribute", "attribute").build();
 
         attributesRequiredState.submitAttributes(attributes, attributesRequiredCallback);
         SignUpSubmitAttributesResult successResult = attributesRequiredCallback.get();
@@ -2587,7 +2587,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // it's value in order to make it consistent with the subsequent call to mock API.
         mockCorrelationId(attributesRequiredState, correlationId);
 
-        UserAttributes incompleteAttributes = UserAttributes.Builder.customAttribute("attribute", "incomplete_attribute").build();
+        UserAttributes incompleteAttributes = new UserAttributes.Builder().customAttribute("attribute", "incomplete_attribute").build();
         SignUpSubmitUserAttributesTestCallback attributesRequiredCallback = new SignUpSubmitUserAttributesTestCallback();
 
         attributesRequiredState.submitAttributes(incompleteAttributes, attributesRequiredCallback);
@@ -2608,7 +2608,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // it's value in order to make it consistent with the subsequent call to mock API.
         mockCorrelationId(additionalAttributesRequiredState, correlationId);
 
-        UserAttributes attributes = UserAttributes.Builder.customAttribute("attribute", "attribute").build();
+        UserAttributes attributes = new UserAttributes.Builder().customAttribute("attribute", "attribute").build();
         SignUpSubmitUserAttributesTestCallback additionalAttributesRequiredCallback = new SignUpSubmitUserAttributesTestCallback();
 
         additionalAttributesRequiredState.submitAttributes(attributes, additionalAttributesRequiredCallback);

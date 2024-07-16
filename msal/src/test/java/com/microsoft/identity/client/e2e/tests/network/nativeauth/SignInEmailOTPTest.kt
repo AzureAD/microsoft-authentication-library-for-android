@@ -66,8 +66,10 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      */
     @Test
     fun testErrorIsUserNotFound() = runTest {
-        val user = tempEmailApi.generateRandomEmailAddress()
-        val signInResult = application.signIn(user)
+        val user = config.email
+        // Turn correct username into an incorrect one
+        val invalidUser = user + "x"
+        val signInResult = application.signIn(invalidUser)
         Assert.assertTrue(signInResult is SignInError)
         Assert.assertTrue((signInResult as SignInError).isUserNotFound())
     }

@@ -39,10 +39,15 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
     override val configType = ConfigType.SIGN_UP_PASSWORD_ATTRIBUTES
 
     /**
-     * Sign up with verify email OOB as first step, then set password & custom attributes at end (hero scenario 12, use case 1.1.6) - Test case 28
+     * Sign up with verify email OOB as first step, then set password & custom attributes at end.
+     * Mimic a 3-step UX:
+     * 1. Capture email address & validate
+     * 2. Set password
+     * 3. Set custom attributes.
+     * (hero scenario 12, use case 1.1.6) - Test case 28
      */
     @Test
-    fun testSuccessSameScreen() { // The difference between test case 28 & 29 is simply the way UX and code are combined. Test code is the same as testSuccessEmailPasswordAttributesMultipleScreen.
+    fun testSuccessSameScreen() {
         var signUpResult: SignUpResult
         var otp: String
 
@@ -56,14 +61,27 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
                 assertState<SignUpResult.PasswordRequired>(submitCodeResult)
                 val submitPasswordResult = (submitCodeResult as SignUpResult.PasswordRequired).nextState.submitPassword(getSafePassword().toCharArray())
                 assertState<SignUpResult.AttributesRequired>(submitPasswordResult)
-                val submitAttributesResult = (submitPasswordResult as SignUpResult.AttributesRequired).nextState.submitAttributes(UserAttributes.country("Ireland").city("Dublin").build())
+                val requiredAttributes = (submitPasswordResult as SignUpResult.AttributesRequired).requiredAttributes
+                val attributes = UserAttributes.Builder()
+                for (attr in requiredAttributes) {
+                    Assert.assertNotNull(attr.attributeName)
+                    attributes.customAttribute(attr.attributeName!!, "somevalue")
+                }
+                val submitAttributesResult = submitPasswordResult.nextState.submitAttributes(attributes.build())
                 Assert.assertTrue(submitAttributesResult is SignUpResult.Complete)
             }
         }
     }
 
     /**
-     * Sign up with verify email OOB as first step, then set password & custom attributes at end over multiple screens/API calls (hero scenario 13) - Test case 29
+     * Sign up with verify email OOB as first step, then set password & custom attributes at end across multiple screens.
+     * Mimic a 3+ step UX:
+     * 1. Capture email address & validate
+     * 2. Set password
+     * 3. Set first attribute.
+     * 4. Set second attribute.
+     * 5. etc.
+     * ((hero scenario 13) - Test case 29
      */
     @Test
     fun testSuccessMultipleScreen() {
@@ -80,8 +98,20 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
                 assertState<SignUpResult.PasswordRequired>(submitCodeResult)
                 val submitPasswordResult = (submitCodeResult as SignUpResult.PasswordRequired).nextState.submitPassword(getSafePassword().toCharArray())
                 assertState<SignUpResult.AttributesRequired>(submitPasswordResult)
-                val submitAttributesResult = (submitPasswordResult as SignUpResult.AttributesRequired).nextState.submitAttributes(UserAttributes.country("Ireland").city("Dublin").build())
-                Assert.assertTrue(submitAttributesResult is SignUpResult.Complete)
+                val requiredAttributes = (submitPasswordResult as SignUpResult.AttributesRequired).requiredAttributes
+                val attributes = UserAttributes.Builder()
+                for (attr in requiredAttributes) { // Loop through all the required attributes and send them to the API one by one, mimicking a multi-screen UX.
+                    Assert.assertNotNull(attr.attributeName)
+                    attributes.customAttribute(attr.attributeName!!, "somevalue")
+                    val submitAttributesResult = submitPasswordResult.nextState.submitAttributes(attributes.build())
+                    if (submitAttributesResult is SignUpResult.AttributesRequired) {
+                        continue
+                    } else if (submitAttributesResult is SignUpResult.Complete) {
+                        break // All attributes submitted, user account is now created.
+                    } else {
+                        Assert.fail("Unexpected state $submitAttributesResult")
+                    }
+                }
             }
         }
    }
