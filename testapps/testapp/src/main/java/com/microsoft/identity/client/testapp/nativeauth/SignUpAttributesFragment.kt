@@ -81,14 +81,14 @@ class SignUpAttributesFragment : Fragment() {
 
                 val attr1Key = binding.attr1KeyText.text.toString()
                 if (attr1Key.isNotBlank()) {
-                    val attr1Value = binding.attr1ValueText.toString()
+                    val attr1Value = binding.attr1ValueText.text.toString()
                     attributes
                         .customAttribute(attr1Key, attr1Value)
                 }
 
                 val attr2Key = binding.attr2KeyText.text.toString()
                 if (attr2Key.isNotBlank()) {
-                    val attr2Value = binding.attr2ValueText.toString()
+                    val attr2Value = binding.attr2ValueText.text.toString()
                     attributes
                         .customAttribute(attr2Key, attr2Value)
                 }
