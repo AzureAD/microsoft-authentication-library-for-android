@@ -60,7 +60,7 @@ class SignUpCodeFragment : Fragment() {
         _binding = FragmentCodeBinding.inflate(inflater, container, false)
 
         val bundle = this.arguments
-        currentState = bundle!!.getSerializable(Constants.STATE) as SignUpCodeRequiredState
+        currentState = (bundle?.getParcelable(Constants.STATE) as? SignUpCodeRequiredState)!!
         codeLength = bundle.getInt(Constants.CODE_LENGTH)
         sentTo = bundle.getString(Constants.SENT_TO)
         channel = bundle.getString(Constants.CHANNEL)

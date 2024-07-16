@@ -57,7 +57,7 @@ class SignUpAttributesFragment : Fragment() {
         _binding = FragmentAttributeBinding.inflate(inflater, container, false)
 
         val bundle = this.arguments
-        currentState = bundle!!.getSerializable(Constants.STATE) as SignUpAttributesRequiredState
+        currentState = (bundle?.getParcelable(Constants.STATE) as? SignUpAttributesRequiredState)!!
 
         init()
 
