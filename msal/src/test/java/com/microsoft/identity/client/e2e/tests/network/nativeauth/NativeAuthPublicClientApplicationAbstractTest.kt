@@ -25,6 +25,8 @@ package com.microsoft.identity.client.e2e.tests.network.nativeauth
 import android.app.Activity
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.microsoft.identity.client.Logger
 import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager
@@ -32,11 +34,16 @@ import com.microsoft.identity.client.e2e.tests.IPublicClientApplicationTest
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper
 import com.microsoft.identity.internal.testutils.TestUtils
+import com.microsoft.identity.internal.testutils.labutils.KeyVaultFetchHelper
 import com.microsoft.identity.internal.testutils.labutils.LabConstants
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery
-import com.microsoft.identity.internal.testutils.nativeauth.NativeAuthCredentialHelper
+import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
+import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
@@ -45,8 +52,6 @@ import org.mockito.Mockito
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.LooperMode
-import java.io.File
-import java.lang.annotation.Native
 
 // TODO: move to "PAUSED". A work in RoboTestUtils will be needed though.
 @LooperMode(LooperMode.Mode.LEGACY)
@@ -60,21 +65,28 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
     private lateinit var context: Context
     private lateinit var activity: Activity
     lateinit var application: INativeAuthPublicClientApplication
+    lateinit var config: NativeAuthTestConfig.Config
+
+    // Remove default Coroutine test timeout of 10 seconds.
+    private val testDispatcher = StandardTestDispatcher()
 
     override fun getConfigFilePath(): String {
         return "" // Not needed for native auth flows
     }
+
+    abstract val configType: ConfigType
 
     @Before
     open fun setup() {
         context = ApplicationProvider.getApplicationContext()
         activity = Mockito.mock(Activity::class.java)
         Mockito.`when`(activity.applicationContext).thenReturn(context)
-        setupPCA()
         Logger.getInstance().setEnableLogcatLog(true)
         Logger.getInstance().setEnablePII(true)
         Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE)
         CommandDispatcherHelper.clear()
+        Dispatchers.setMain(testDispatcher)
+        setupPCA()
     }
 
     @After
@@ -91,16 +103,27 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         return credential.password
     }
 
-    private fun setupPCA() {
-        val clientId = NativeAuthCredentialHelper.nativeAuthLabsEmailPasswordAppId
-        val authorityUrl = NativeAuthCredentialHelper.nativeAuthLabsAuthorityUrl
+    private fun getConfigsThroughSecretValue(): Map<String, NativeAuthTestConfig.Config>? {
+        val secretValue = KeyVaultFetchHelper.getSecretForBuildAutomation("msalandroidnativeauthautomationconfjsonfile")
+        val type = TypeToken.getParameterized(
+            Map::class.java,
+            String::class.java,
+            NativeAuthTestConfig.Config::class.java
+        ).type
+
+        return Gson().fromJson(secretValue, type)
+    }
+
+    fun setupPCA() {
+        val secretValue = getConfigsThroughSecretValue()
+        config = secretValue?.get(configType.stringValue) ?: throw IllegalStateException("Config not $secretValue")
         val challengeTypes = listOf("password", "oob")
 
         try {
             application = PublicClientApplication.createNativeAuthPublicClientApplication(
                 context,
-                clientId,
-                authorityUrl,
+                config.clientId,
+                config.authorityUrl,
                 null,
                 challengeTypes
             )
