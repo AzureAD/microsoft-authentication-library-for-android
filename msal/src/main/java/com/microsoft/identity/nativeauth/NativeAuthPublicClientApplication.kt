@@ -262,7 +262,7 @@ class NativeAuthPublicClientApplication(
                     GetAccountResult.AccountFound(
                         resultValue = AccountState.createFromAccountResult(
                             account = account,
-                            correlationId = DiagnosticContext.INSTANCE.threadCorrelationId,
+                            correlationId = "",
                             config = nativeAuthConfig
                         )
                     )
@@ -274,7 +274,7 @@ class NativeAuthPublicClientApplication(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in getCurrentAccount.",
                     exception = e,
-                    correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
+                    correlationId = ""
                 )
             }
         }
@@ -341,7 +341,7 @@ class NativeAuthPublicClientApplication(
                     return@withContext SignInError(
                         errorType = ErrorTypes.INVALID_USERNAME,
                         errorMessage = "Empty or blank username",
-                        correlationId = "UNSET"
+                        correlationId = ""
                     )
                 }
 
@@ -582,7 +582,7 @@ class NativeAuthPublicClientApplication(
                     return@withContext SignUpError(
                         errorType = ErrorTypes.INVALID_USERNAME,
                         errorMessage = "Empty or blank username",
-                        correlationId = "UNSET"
+                        correlationId = ""
                     )
                 }
 
@@ -810,7 +810,7 @@ class NativeAuthPublicClientApplication(
                    return@withContext ResetPasswordError(
                        errorType = ErrorTypes.INVALID_USERNAME,
                        errorMessage = "Empty or blank username",
-                       correlationId = "UNSET"
+                       correlationId = ""
                    )
                }
 

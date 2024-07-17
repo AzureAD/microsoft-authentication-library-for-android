@@ -27,8 +27,10 @@ import com.microsoft.identity.client.e2e.shadows.ShadowBaseController
 import com.microsoft.identity.client.e2e.utils.assertState
 import com.microsoft.identity.internal.testutils.nativeauth.NativeAuthCredentialHelper
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenError
+import com.microsoft.identity.nativeauth.statemachine.errors.GetAccountError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
+import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
@@ -436,5 +438,19 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         Assert.assertTrue(authResult4.scope.contains(CUSTOMERS_READ_ALL_SCOPE))
         val tokenWithCustomerScope2 = authResult4.accessToken
         Assert.assertNotEquals(tokenWithCustomerScope, tokenWithCustomerScope2) // New token received
+    }
+    @Test
+    fun getCurrentAccount() = runTest {
+        val accountResult = application.getCurrentAccount()
+        assertState<GetAccountResult.NoAccountFound>(accountResult)
+        val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
+        val password = getSafePassword()
+        val result = application.signIn(
+            username = username,
+            password = password.toCharArray()
+        )
+        assertState<SignInResult.Complete>(result)
+        val accountResult2 = application.getCurrentAccount()
+        assertState<GetAccountResult.AccountFound>(accountResult2)
     }
 }

@@ -77,7 +77,7 @@ class AccountState private constructor(
 
     constructor (parcel: Parcel) : this (
         account = parcel.serializable<IAccount>() as IAccount,
-        correlationId = parcel.readString() ?: "UNSET",
+        correlationId = parcel.readString() ?: "",
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
     )
 
