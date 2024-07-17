@@ -49,20 +49,18 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     }
 
     /**
-     * Set email and password and then verify email OOB as last step (hero scenario 9, use case 1.1.1) - Test case 13
+     * Set email and password (mimicking one combined screen for email & password collection), and then verify email OTP as last step
+     * (hero scenario 9, use case 1.1.1,  Test case 13)
      */
     @Test
     fun testSuccessOTPLast() {
-        var signUpResult: SignUpResult
-        var otp: String
-
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
                 val password = getSafePassword()
-                signUpResult = application.signUp(user, password.toCharArray())
+                val signUpResult = application.signUp(user, password.toCharArray())
                 assertState<SignUpResult.CodeRequired>(signUpResult)
-                otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
                 Assert.assertTrue(submitCodeResult is SignUpResult.Complete)
             }
@@ -70,19 +68,17 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     }
 
     /**
-     * Verify email address using email OTP and then set password (use case 1.1.4) - Test case 16
+     * Verify email address using email OTP and then set password (mimicking email and password collection on separate screens).
+     * (use case 1.1.4, Test case 16)
      */
     @Test
     fun testSuccessOTPFirst() {
-        var signUpResult: SignUpResult
-        var otp: String
-
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
-                signUpResult = application.signUp(user)
+                val signUpResult = application.signUp(user)
                 assertState<SignUpResult.CodeRequired>(signUpResult)
-                otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
                 assertState<SignUpResult.PasswordRequired>(submitCodeResult)
                 val submitPasswordResult = (submitCodeResult as SignUpResult.PasswordRequired).nextState.submitPassword(getSafePassword().toCharArray())

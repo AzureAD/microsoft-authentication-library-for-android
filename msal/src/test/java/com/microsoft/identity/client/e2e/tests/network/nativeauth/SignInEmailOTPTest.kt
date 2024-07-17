@@ -42,19 +42,17 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
     override val configType = ConfigType.SIGN_IN_OTP
 
     /**
-     * Use email and OTP to get token and sign in (hero scenario 6, use case 2.2.1) - Test case 30
+     * Use valid email and OTP to get token and sign in.
+     * (hero scenario 6, use case 2.2.1, Test case 30)
      */
     @Test
     fun testSuccess() {
-        var signInResult: SignInResult
-        var otp: String
-
         retryOperation {
-            runBlocking {
+            runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = config.email
-                signInResult = application.signIn(user)
+                val signInResult = application.signIn(user)
                 assertState<SignInResult.CodeRequired>(signInResult)
-                otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signInResult as SignInResult.CodeRequired).nextState.submitCode(otp)
                 assertState<SignInResult.Complete>(submitCodeResult)
             }
@@ -62,7 +60,8 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
     }
 
     /**
-     * Use email and OTP to get token while user is not registered with given email (use case 2.2.2) - Test case 31
+     * Use invalid email address to receive a "user not found" error.
+     * (use case 2.2.2, Test case 31)
      */
     @Test
     fun testErrorIsUserNotFound() = runTest {
@@ -75,19 +74,17 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
     }
 
     /**
-     * Use email and OTP to get token while OTP is incorrect (use case 2.2.7) - Test case 35
+     * Use valid email address, but invalid OTP to receive "invalid code" error.
+     * (use case 2.2.7, Test case 35)
      */
     @Test
     fun testErrorIsInvalidCode() {
-        var signInResult: SignInResult
-        var otp: String
-
         retryOperation {
-            runBlocking {
+            runBlocking {// Running with runBlocking to avoid default 10 second execution timeout.
                 val user = config.email
-                signInResult = application.signIn(user)
+                val signInResult = application.signIn(user)
                 assertState<SignInResult.CodeRequired>(signInResult)
-                otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 // Turn correct OTP into an incorrect one
                 val alteredOtp = otp + "1234"
                 val submitCodeResult = (signInResult as SignInResult.CodeRequired).nextState.submitCode(alteredOtp)

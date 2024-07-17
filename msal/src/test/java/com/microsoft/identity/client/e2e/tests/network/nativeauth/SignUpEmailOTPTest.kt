@@ -31,26 +31,24 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Test
 
-class SignUpOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
+class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 
     override val configType = ConfigType.SIGN_UP_OTP
 
     /**
-     * Verify email address using email OTP and sign up (hero scenario 1, use case 2.1.1) - Test case 1
+     * Sign up with email + OTP. Verify email address using email OTP and sign up.
+     * (hero scenario 1, use case 2.1.1, Test case 1)
      */
     @Test
     fun testSuccess() {
-        var signUpResult: SignUpResult
-        var otp: String
-
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
-                signUpResult = application.signUp(user)
+                val signUpResult = application.signUp(user)
                 assertState<SignUpResult.CodeRequired>(signUpResult)
-                otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
                 Assert.assertTrue(submitCodeResult is SignUpResult.Complete)
             }

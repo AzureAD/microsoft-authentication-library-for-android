@@ -39,20 +39,18 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
     override val configType = ConfigType.SIGN_UP_OTP_ATTRIBUTES
 
     /**
-     * Signup user with custom attributes with verify OTP as last step (hero scenario 2, use case 2.1.2) - Test case 2
+     * Signup user with custom attributes with verify OTP as last step.
+     * (hero scenario 2, use case 2.1.2, Test case 2)
      */
     @Test
     fun testSuccessAttributesFirst() {
-        var signUpResult: SignUpResult
-        var otp: String
-
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
                 val attributes = UserAttributes.Builder().country("Ireland").city("Dublin").build()
-                signUpResult = application.signUp(user, attributes = attributes)
+                val signUpResult = application.signUp(user, attributes = attributes)
                 assertState<SignUpResult.CodeRequired>(signUpResult)
-                otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
                 Assert.assertTrue(submitCodeResult is SignUpResult.Complete)
             }
@@ -60,19 +58,17 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
     }
 
     /**
-     * Verify email OTP first and then collect custom attributes (hero scenario 3, use case 2.1.3) - Test case 3
+     * Verify email OTP first and then collect custom attributes.
+     * (hero scenario 3, use case 2.1.3, Test case 3)
      */
     @Test
-    fun testSuccessAttributesLastSameScreen() { // The difference between test case 28 & 29 is simply the way UX and code are combined. Test code is the same as testSuccessAttributesLastMultipleScreens.
-        var signUpResult: SignUpResult
-        var otp: String
-
+    fun testSuccessAttributesLastSameScreen() {
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
-                signUpResult = application.signUp(user)
+                val signUpResult = application.signUp(user)
                 assertState<SignUpResult.CodeRequired>(signUpResult)
-                otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
                 assertState<SignUpResult.AttributesRequired>(submitCodeResult)
                 val requiredAttributes = (submitCodeResult as SignUpResult.AttributesRequired).requiredAttributes
@@ -88,19 +84,17 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
     }
 
     /**
-     * Verify email OTP first and then collect custom attributes on multiple screens (hero scenario 4, use case 2.1.4) - Test case 4
+     * Verify email OTP first and then collect custom attributes in multiple steps (mimicking a multi-screen UX).
+     * (hero scenario 4, use case 2.1.4, Test case 4)
      */
     @Test
     fun testSuccessAttributesLastMultipleScreens() {
-        var signUpResult: SignUpResult
-        var otp: String
-
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
-                signUpResult = application.signUp(user)
+                val signUpResult = application.signUp(user)
                 assertState<SignUpResult.CodeRequired>(signUpResult)
-                otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
                 assertState<SignUpResult.AttributesRequired>(submitCodeResult)
                 val requiredAttributes = (submitCodeResult as SignUpResult.AttributesRequired).requiredAttributes

@@ -52,7 +52,8 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
     }
 
     /**
-     * Verify email with email OTP first and then reset password (hero scenario 8 & 17, use case 3.1.1) - Test case 46
+     * Verify email with email OTP first and then reset password.
+     * (hero scenario 8 & 17, use case 3.1.1, Test case 46)
      */
     @Test
     fun testSSPRSuccess() = runBlocking {
@@ -60,7 +61,7 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
         var otp: String
 
         retryOperation {
-            runBlocking {
+            runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = config.email
                 result = application.resetPassword(user)
                 assertState<ResetPasswordStartResult.CodeRequired>(result)

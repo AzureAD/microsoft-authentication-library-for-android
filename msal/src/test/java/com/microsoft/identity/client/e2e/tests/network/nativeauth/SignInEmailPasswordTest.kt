@@ -30,12 +30,13 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Test
 
-class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
+class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     override val configType = ConfigType.SIGN_IN_PASSWORD
 
     /**
-     * Use email and password to get token (hero scenario 15, use case 1.2.1) - Test case 37
+     * Use valid email and password to get token.
+     * (hero scenario 15, use case 1.2.1, Test case 37)
      */
     @Test
     fun testSuccess() = runTest {
@@ -46,7 +47,8 @@ class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
     }
 
     /**
-     * Use email and password to get token while user is not registered with given email (use case 1.2.2) - Test case 38
+     * Use invalid email address to receive a "user not found" error.
+     * (use case 1.2.2, Test case 38)
      */
     @Test
     fun testErrorIsUserNotFound() = runTest {
@@ -60,7 +62,8 @@ class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
     }
 
     /**
-     * Use email and password to get token while password is incorrect (use case 1.2.3) - Test case 39
+     * Use valid email address and invalid password to receive a "invalid credentials" error.
+     * (use case 1.2.3, Test case 39)
      */
     @Test
     fun testErrorIsInvalidCredentials() = runTest {

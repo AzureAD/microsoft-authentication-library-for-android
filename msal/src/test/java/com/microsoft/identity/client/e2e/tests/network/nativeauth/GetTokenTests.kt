@@ -37,7 +37,7 @@ import org.junit.Test
 import org.robolectric.annotation.Config
 
 @Config(shadows = [ShadowBaseController::class])
-class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
+class GetTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
 
     private lateinit var resources: List<NativeAuthTestConfig.Resource>
 
@@ -481,10 +481,10 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
     }
 
     /**
-     * The id token is correctly updated after the access token is refreshed
+     * The ID token is correctly updated after the access token is refreshed
      */
     @Test
-    fun testGetAccessTokenWithForceRefreshThenUpdateIdToken() = runTest {
+    fun testGetAccessTokenWithForceRefreshShouldUpdateIDToken() = runTest {
         val username = config.email
         val password = getSafePassword()
         val result = application.signIn(
@@ -496,7 +496,6 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         val idToken1 = accountState.getIdToken()
         accountState.getAccessToken(forceRefresh = true)
         val idToken2 = accountState.getIdToken()
-        Assert.assertFalse(idToken1 == idToken2)
+        Assert.assertNotEquals(idToken1, idToken2)
     }
-
 }

@@ -39,7 +39,34 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
     override val configType = ConfigType.SIGN_UP_PASSWORD_ATTRIBUTES
 
     /**
-     * Sign up with verify email OOB as first step, then set password & custom attributes at end.
+     * Sign up with password and attributes on start, then verify OTP as last step.
+     * Mimic a 2-step UX:
+     * 1. Capture email address, password and attributes
+     * 2. Validate OTP.
+     * (hero scenario 10, use case 1.1.3, Test case 15)
+     */
+    @Test
+    fun testEmailPasswordAttributesOnSameScreen() {
+        retryOperation {
+            runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
+                val user = tempEmailApi.generateRandomEmailAddress()
+                val password = getSafePassword().toCharArray()
+                val attributes = UserAttributes.Builder().country("Ireland").city("Dublin").build()
+                val signUpResult = application.signUp(
+                    username = user,
+                    password = password,
+                    attributes = attributes
+                )
+                assertState<SignUpResult.CodeRequired>(signUpResult)
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
+                assertState<SignUpResult.Complete>(submitCodeResult)
+            }
+        }
+    }
+
+    /**
+     * Sign up with verify email OTP as first step, then set password & custom attributes at end.
      * Mimic a 3-step UX:
      * 1. Capture email address & validate
      * 2. Set password
@@ -47,16 +74,13 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
      * (hero scenario 12, use case 1.1.6) - Test case 28
      */
     @Test
-    fun testSuccessSameScreen() {
-        var signUpResult: SignUpResult
-        var otp: String
-
+    fun testSeparateEmailPasswordAndAttributesOnSameScreen() {
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
-                signUpResult = application.signUp(user)
+                val signUpResult = application.signUp(user)
                 assertState<SignUpResult.CodeRequired>(signUpResult)
-                otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
                 assertState<SignUpResult.PasswordRequired>(submitCodeResult)
                 val submitPasswordResult = (submitCodeResult as SignUpResult.PasswordRequired).nextState.submitPassword(getSafePassword().toCharArray())
@@ -74,7 +98,7 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
     }
 
     /**
-     * Sign up with verify email OOB as first step, then set password & custom attributes at end across multiple screens.
+     * Sign up with verify email OTP as first step, then set password & custom attributes at end across multiple screens.
      * Mimic a 3+ step UX:
      * 1. Capture email address & validate
      * 2. Set password
@@ -84,16 +108,13 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
      * ((hero scenario 13) - Test case 29
      */
     @Test
-    fun testSuccessMultipleScreen() {
-        var signUpResult: SignUpResult
-        var otp: String
-
+    fun testSeparateEmailPasswordAndAttributesOnMultipleScreens() {
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
-                signUpResult = application.signUp(user)
+                val signUpResult = application.signUp(user)
                 assertState<SignUpResult.CodeRequired>(signUpResult)
-                otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
                 assertState<SignUpResult.PasswordRequired>(submitCodeResult)
                 val submitPasswordResult = (submitCodeResult as SignUpResult.PasswordRequired).nextState.submitPassword(getSafePassword().toCharArray())
