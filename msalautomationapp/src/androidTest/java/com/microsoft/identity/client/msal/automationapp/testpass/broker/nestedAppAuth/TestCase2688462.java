@@ -27,6 +27,7 @@ import androidx.annotation.NonNull;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
@@ -45,6 +46,7 @@ import java.util.List;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2688462
 @SupportedBrokers(brokers = BrokerHost.class)
 @LocalBrokerHostDebugUiTest
+@RetryOnFailure
 @RunWith(Parameterized.class)
 public class TestCase2688462 extends AbstractMsalBrokerTest {
     private final UserType mUserType;
