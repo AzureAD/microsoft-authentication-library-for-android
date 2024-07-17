@@ -40,7 +40,6 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesRequiredState
-import com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -80,23 +79,15 @@ class SignUpAttributesFragment : Fragment() {
             try {
                 val attributes = UserAttributes.Builder
 
-//                val attr1Key = binding.attr1KeyText.text.toString()
-//                if (attr1Key.isNotBlank()) {
-//                    val attr1Value = binding.attr1ValueText.toString()
-//                    attributes
-//                        .customAttribute(attr1Key, attr1Value)
-//                }
-//
-//                val attr2Key = binding.attr2KeyText.text.toString()
-//                if (attr2Key.isNotBlank()) {
-//                    val attr2Value = binding.attr2ValueText.toString()
-//                    attributes
-//                        .customAttribute(attr2Key, attr2Value)
-//                }
+                val attr1Key = binding.attr1KeyText.text.toString()
+                val attr1Value = binding.attr1ValueText.text.toString()
+                attributes.customAttribute(attr1Key, attr1Value)
 
-                val testAttribute1 = UserAttributes.country("China").build()
+                val attr2Key = binding.attr2KeyText.text.toString()
+                val attr2Value = binding.attr2ValueText.text.toString()
+                attributes.customAttribute(attr2Key, attr2Value)
 
-                val actionResult = currentState.submitAttributes(testAttribute1)
+                val actionResult = currentState.submitAttributes(attributes.build())
 
                 when (actionResult) {
                     is SignUpResult.Complete -> {
@@ -108,17 +99,9 @@ class SignUpAttributesFragment : Fragment() {
                         signInAfterSignUp(actionResult.nextState)
                     }
                     is SignUpResult.AttributesRequired -> {
-                        val testAttribute2 = UserAttributes.city("Shanghai").build()
-                        val nextState = actionResult.nextState
-                        val result = nextState.submitAttributes(testAttribute2)
-                        if (result is SignUpResult.Complete) {
-                            Toast.makeText(
-                                requireContext(),
-                                getString(R.string.sign_up_successful_message),
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            signInAfterSignUp(result.nextState)
-                        }
+                        navigateToAttributes(
+                            nextState = actionResult.nextState
+                        )
                     }
                     else -> {
                         displayDialog(getString(R.string.msal_exception_title),"Unexpected result: $actionResult")
