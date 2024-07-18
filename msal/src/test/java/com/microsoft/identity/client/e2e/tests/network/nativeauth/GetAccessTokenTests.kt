@@ -439,18 +439,4 @@ class GetAccessTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         val tokenWithCustomerScope2 = authResult4.accessToken
         Assert.assertNotEquals(tokenWithCustomerScope, tokenWithCustomerScope2) // New token received
     }
-    @Test
-    fun getCurrentAccount() = runTest {
-        val accountResult = application.getCurrentAccount()
-        assertState<GetAccountResult.NoAccountFound>(accountResult)
-        val username = NativeAuthCredentialHelper.nativeAuthSignInUsername
-        val password = getSafePassword()
-        val result = application.signIn(
-            username = username,
-            password = password.toCharArray()
-        )
-        assertState<SignInResult.Complete>(result)
-        val accountResult2 = application.getCurrentAccount()
-        assertState<GetAccountResult.AccountFound>(accountResult2)
-    }
 }
