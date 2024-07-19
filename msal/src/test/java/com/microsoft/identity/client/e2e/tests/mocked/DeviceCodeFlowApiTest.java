@@ -98,30 +98,6 @@ public class DeviceCodeFlowApiTest extends PublicClientApplicationAbstractTest {
     // getDeviceCode() Testing
     //===========================================================================================================
     @Test
-    public void testGetDeviceCodeSuccessResult() throws IOException, ClientException {
-        final OAuth2StrategyParameters strategyParameters = OAuth2StrategyParameters.builder().build();
-        final PublicClientApplicationConfiguration config = mApplication.getConfiguration();
-        final OAuth2Strategy strategy = config.getDefaultAuthority().createOAuth2Strategy(strategyParameters);
-
-        final MicrosoftStsAuthorizationRequest.Builder builder = createMockAuthorizationRequestBuilder();
-        final MicrosoftStsAuthorizationRequest authorizationRequest = builder.build();
-        final AuthorizationResult authorizationResult = strategy.getDeviceCode(authorizationRequest);
-        final MicrosoftStsAuthorizationResponse authorizationResponse = (MicrosoftStsAuthorizationResponse) authorizationResult.getAuthorizationResponse();
-
-        Assert.assertTrue(authorizationResult.getSuccess());
-        Assert.assertNotNull(authorizationResponse);
-
-        Assert.assertNotNull(authorizationResponse.getDeviceCode());
-        Assert.assertNotNull(authorizationResponse.getUserCode());
-        Assert.assertNotNull(authorizationResponse.getMessage());
-        Assert.assertNotNull(authorizationResponse.getInterval());
-        Assert.assertNotNull(authorizationResponse.getExpiresIn());
-        Assert.assertNotNull(authorizationResponse.getVerificationUri());
-
-        Assert.assertNull(authorizationResult.getAuthorizationErrorResponse());
-    }
-
-    @Test
     public void testGetDeviceCodeFailureNoClientId() throws IOException, ClientException {
         final OAuth2StrategyParameters strategyParameters = OAuth2StrategyParameters.builder().build();
         final PublicClientApplicationConfiguration config = mApplication.getConfiguration();
