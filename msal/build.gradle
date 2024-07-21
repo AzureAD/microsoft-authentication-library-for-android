@@ -311,12 +311,12 @@ afterEvaluate {
     tasks.named("assembleDistRelease").configure {
         def buildFile = file("$buildDir/outputs/aar/${archivesBaseName}-dist-release.aar")
         print "Build file $buildFile"
-        doLast {
+/*        doLast {
             println "Renaming build file $buildFile to '$buildDir${File.separator}outputs${File.separator}aar${File.separator}${archivesBaseName}-${version}.aar'"
             if (!buildFile.renameTo("$buildDir${File.separator}outputs${File.separator}aar${File.separator}${archivesBaseName}-${version}.aar")) {
                 println "Rename failed!"
             }
-        }
+        }*/
     }
     publishing {
         publications {
