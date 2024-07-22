@@ -341,7 +341,7 @@ class NativeAuthPublicClientApplication(
                     return@withContext SignInError(
                         errorType = ErrorTypes.INVALID_USERNAME,
                         errorMessage = "Empty or blank username",
-                        correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
+                        correlationId = "UNSET"
                     )
                 }
 
@@ -582,7 +582,7 @@ class NativeAuthPublicClientApplication(
                     return@withContext SignUpError(
                         errorType = ErrorTypes.INVALID_USERNAME,
                         errorMessage = "Empty or blank username",
-                        correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
+                        correlationId = "UNSET"
                     )
                 }
 
@@ -810,7 +810,7 @@ class NativeAuthPublicClientApplication(
                    return@withContext ResetPasswordError(
                        errorType = ErrorTypes.INVALID_USERNAME,
                        errorMessage = "Empty or blank username",
-                       correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
+                       correlationId = "UNSET"
                    )
                }
 
