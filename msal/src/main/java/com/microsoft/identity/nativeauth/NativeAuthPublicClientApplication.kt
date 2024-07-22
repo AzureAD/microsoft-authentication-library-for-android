@@ -262,7 +262,7 @@ class NativeAuthPublicClientApplication(
                     GetAccountResult.AccountFound(
                         resultValue = AccountState.createFromAccountResult(
                             account = account,
-                            correlationId = "",
+                            correlationId = DiagnosticContext.INSTANCE.threadCorrelationId,
                             config = nativeAuthConfig
                         )
                     )
@@ -274,7 +274,7 @@ class NativeAuthPublicClientApplication(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in getCurrentAccount.",
                     exception = e,
-                    correlationId = ""
+                    correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
                 )
             }
         }
@@ -341,7 +341,7 @@ class NativeAuthPublicClientApplication(
                     return@withContext SignInError(
                         errorType = ErrorTypes.INVALID_USERNAME,
                         errorMessage = "Empty or blank username",
-                        correlationId = ""
+                        correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
                     )
                 }
 
@@ -582,7 +582,7 @@ class NativeAuthPublicClientApplication(
                     return@withContext SignUpError(
                         errorType = ErrorTypes.INVALID_USERNAME,
                         errorMessage = "Empty or blank username",
-                        correlationId = ""
+                        correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
                     )
                 }
 
@@ -810,7 +810,7 @@ class NativeAuthPublicClientApplication(
                    return@withContext ResetPasswordError(
                        errorType = ErrorTypes.INVALID_USERNAME,
                        errorMessage = "Empty or blank username",
-                       correlationId = ""
+                       correlationId = DiagnosticContext.INSTANCE.threadCorrelationId
                    )
                }
 
