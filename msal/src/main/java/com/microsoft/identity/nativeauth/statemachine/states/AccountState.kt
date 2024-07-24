@@ -309,6 +309,11 @@ class AccountState private constructor(
                             correlationId = correlationId
                         )
 
+                try {
+                    UUID.fromString(correlationId)
+                } catch (e: IllegalArgumentException) {
+                    throw IllegalArgumentException("Correlation id is not a valid UUID.")
+                }
 
                 val acquireTokenSilentParameters = AcquireTokenSilentParameters.Builder()
                     .forAccount(currentAccount)
