@@ -312,6 +312,7 @@ class AccountState private constructor(
                 try {
                     UUID.fromString(correlationId)
                 } catch (e: IllegalArgumentException) {
+                    Logger.error(TAG, "Correlation id is not a valid UUID", e)
                     throw IllegalArgumentException("Correlation id is not a valid UUID.")
                 }
 
