@@ -47,7 +47,7 @@ public class TestCase1561087 extends AbstractMsalBrokerTest {
     @Test
     public void test_1561087() {
         // Skipping this test is brokerhost is using local flights
-        Assume.assumeFalse(((BrokerHost) mBroker).isLocalFlightProviderSelected());
+        Assume.assumeFalse(((BrokerHost) mBroker).isLocalFlightProviderSelector());
 
         // Set flights and get to check if the flight information is returned
         final String flightKey = "SetFlightsTest";
