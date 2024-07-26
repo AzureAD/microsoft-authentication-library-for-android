@@ -33,6 +33,7 @@ import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.LongUIAutomationTest;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
+import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
@@ -49,6 +50,7 @@ import java.util.concurrent.TimeUnit;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1561151
 @RetryOnFailure
 @LongUIAutomationTest("Password reset test")
+@RunOnAPI29Minus
 public class TestCase1561151 extends AbstractMsalBrokerTest {
     @Test
     public void test_1561151() throws Throwable {
@@ -123,6 +125,8 @@ public class TestCase1561151 extends AbstractMsalBrokerTest {
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
+        final String newPassword = password + "1";
+
         final MsalAuthResult authResultPostPwdChange = msalSdk.acquireTokenInteractive(msalAuthTestParams2, new com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
@@ -134,6 +138,8 @@ public class TestCase1561151 extends AbstractMsalBrokerTest {
                         .speedBumpExpected(false)
                         .broker(mBroker)
                         .expectingBrokerAccountChooserActivity(false)
+                        .updateYourPasswordExpected(true)
+                        .newPasswordForUpdateScenario(newPassword)
                         .passwordPageExpected(true)
                         .build();
 
