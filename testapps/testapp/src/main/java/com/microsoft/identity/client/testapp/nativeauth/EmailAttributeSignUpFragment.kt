@@ -111,10 +111,13 @@ class EmailAttributeSignUpFragment : Fragment() {
         CoroutineScope(Dispatchers.Main).launch {
             try {
                 val email = binding.emailText.text.toString()
-                val password = CharArray(binding.passwordText.length());
-                binding.passwordText.text?.getChars(0, binding.passwordText.length(), password, 0);
+                var password: CharArray? = null
+                if (binding.passwordText.length() > 0) {
+                    password = CharArray(binding.passwordText.length())
+                }
+                binding.passwordText.text?.getChars(0, binding.passwordText.length(), password, 0)
 
-                val attributes = UserAttributes.Builder
+                val attributes = UserAttributes.Builder()
 
                 val attr1Key = binding.attr1KeyText.text.toString()
                 if (attr1Key.isNotBlank()) {
@@ -132,11 +135,11 @@ class EmailAttributeSignUpFragment : Fragment() {
 
                 val actionResult = authClient.signUp(
                     username = email,
-//                    password = password,
+                    password = password,
                     attributes = attributes.build()
                 )
 
-                password.fill('0');
+                password?.fill('0')
 
                 when (actionResult) {
                     is SignUpResult.CodeRequired -> {
