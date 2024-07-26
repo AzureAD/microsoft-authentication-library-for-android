@@ -1812,7 +1812,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         // it's value in order to make it consistent with the subsequent call to mock API.
         attributesRequiredState.mockCorrelationId(correlationId)
 
-        val invalidAttributes = UserAttributes.Builder.customAttribute("attribute", "invalid_attribute").build()
+        val invalidAttributes = UserAttributes.Builder().customAttribute("attribute", "invalid_attribute").build()
         val attributesFailedResult = attributesRequiredState.submitAttributes(invalidAttributes)
 
         assertTrue(attributesFailedResult is SignUpSubmitAttributesError)
@@ -1826,7 +1826,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
             responseType = MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
         )
 
-        val validAttributes = UserAttributes.Builder.customAttribute("attribute", "valid_attribute").build()
+        val validAttributes = UserAttributes.Builder().customAttribute("attribute", "valid_attribute").build()
         val successResult = attributesRequiredState.submitAttributes(validAttributes)
 
         // 4b. Server accepts password, returns tokens
@@ -1851,7 +1851,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         )
 
         // 1b. Call SDK interface
-        val invalidAttributes = UserAttributes.Builder.customAttribute("attribute", "invalid_attribute").build()
+        val invalidAttributes = UserAttributes.Builder().customAttribute("attribute", "invalid_attribute").build()
         val invalidAttributesResult = application.signUp(username, password, invalidAttributes)
 
         assertTrue(invalidAttributesResult is SignUpError)
@@ -1870,7 +1870,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         )
 
         // 2b. Call SDK interface again
-        val validAttributes = UserAttributes.Builder.customAttribute("attribute", "valid_attribute").build()
+        val validAttributes = UserAttributes.Builder().customAttribute("attribute", "valid_attribute").build()
         val result = application.signUp(username, password, validAttributes)
         assertTrue(result is SignUpResult.CodeRequired)
     }
@@ -2239,7 +2239,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         // it's value in order to make it consistent with the subsequent call to mock API.
         attributesRequiredState.mockCorrelationId(correlationId)
 
-        val attributes = UserAttributes.Builder.customAttribute("attribute", "attribute").build()
+        val attributes = UserAttributes.Builder().customAttribute("attribute", "attribute").build()
         val successResult = attributesRequiredState.submitAttributes(attributes)
 
         // 4b. Server accepts attributes, returns tokens
@@ -2311,7 +2311,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         // it's value in order to make it consistent with the subsequent call to mock API.
         attributesRequiredState.mockCorrelationId(correlationId)
 
-        val incompleteAttributes = UserAttributes.Builder.customAttribute("attribute", "incomplete_attribute").build()
+        val incompleteAttributes = UserAttributes.Builder().customAttribute("attribute", "incomplete_attribute").build()
         val additionalAttributesRequiredResult = attributesRequiredState.submitAttributes(incompleteAttributes)
 
         assertTrue(additionalAttributesRequiredResult is SignUpResult.AttributesRequired)
@@ -2329,7 +2329,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         // it's value in order to make it consistent with the subsequent call to mock API.
         additionalAttributesRequiredState.mockCorrelationId(correlationId)
 
-        val attributes = UserAttributes.Builder.customAttribute("attribute", "attribute").build()
+        val attributes = UserAttributes.Builder().customAttribute("attribute", "attribute").build()
         val successResult = additionalAttributesRequiredState.submitAttributes(attributes)
 
         // 4b. Server accepts password, returns tokens
