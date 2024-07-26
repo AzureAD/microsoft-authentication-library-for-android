@@ -46,7 +46,7 @@ import java.util.Arrays;
 // Interactive auth with force_login for managed account (with consent record)
 // https://identitydivision.visualstudio.com/DefaultCollection/IDDP/_workitems/edit/99652
 @RunOnAPI29Minus("Consent Page")
-//@RetryOnFailure
+@RetryOnFailure
 public class TestCase99652 extends AbstractMsalUiTest {
 
     @Test
