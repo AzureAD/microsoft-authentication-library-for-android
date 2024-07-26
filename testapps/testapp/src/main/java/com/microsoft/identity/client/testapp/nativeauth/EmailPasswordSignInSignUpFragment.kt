@@ -275,6 +275,7 @@ class EmailPasswordSignInSignUpFragment : Fragment() {
         binding.resultAccessToken.text = ""
         binding.resultIdToken.text = ""
     }
+
     private fun displayAccount(accountState: AccountState) {
         CoroutineScope(Dispatchers.Main).launch {
             val accessTokenState = accountState.getAccessToken()
@@ -282,8 +283,6 @@ class EmailPasswordSignInSignUpFragment : Fragment() {
                 val accessToken = accessTokenState.resultValue.accessToken
                 binding.resultAccessToken.text =
                     getString(R.string.result_access_token_text) + accessToken
-
-                Log.d("AccessToken", accessToken)
 
                 val idToken = accountState.getIdToken()
                 binding.resultIdToken.text = getString(R.string.result_id_token_text) + idToken
@@ -332,6 +331,7 @@ class EmailPasswordSignInSignUpFragment : Fragment() {
             }
         }
     }
+
     private fun navigateToSignUp(
         nextState: SignUpCodeRequiredState,
         codeLength: Int,
