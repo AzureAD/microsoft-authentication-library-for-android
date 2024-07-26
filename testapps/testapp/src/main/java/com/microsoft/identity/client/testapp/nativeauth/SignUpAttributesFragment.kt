@@ -77,7 +77,7 @@ class SignUpAttributesFragment : Fragment() {
     private fun create() {
         CoroutineScope(Dispatchers.Main).launch {
             try {
-                val attributes = UserAttributes.Builder
+                val attributes = UserAttributes.Builder()
 
                 val attr1Key = binding.attr1KeyText.text.toString()
                 val attr1Value = binding.attr1ValueText.text.toString()
