@@ -29,19 +29,17 @@ import com.microsoft.identity.common.java.util.ObjectMapper
  * operation in Native Auth
  */
 class UserAttributes(internal val userAttributes: Map<String, String>) {
-    class Builder {
-        companion object {
-            private const val CITY = "city"
-            private const val COUNTRY = "country"
-            private const val DISPLAY_NAME = "displayName"
-            private const val EMAIL_ADDRESS = "email"
-            private const val GIVEN_NAME = "givenName"
-            private const val JOB_TITLE = "jobTitle"
-            private const val POSTAL_CODE = "postalCode"
-            private const val STATE = "state"
-            private const val STREET_ADDRESS = "streetAddress"
-            private const val SURNAME = "surname"
-        }
+    companion object Builder {
+        private const val CITY = "city"
+        private const val COUNTRY = "country"
+        private const val DISPLAY_NAME = "displayName"
+        private const val EMAIL_ADDRESS = "email"
+        private const val GIVEN_NAME = "givenName"
+        private const val JOB_TITLE = "jobTitle"
+        private const val POSTAL_CODE = "postalCode"
+        private const val STATE = "state"
+        private const val STREET_ADDRESS = "streetAddress"
+        private const val SURNAME = "surname"
 
         private val userAttributes = mutableMapOf<String, String>()
 
