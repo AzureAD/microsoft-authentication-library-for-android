@@ -55,7 +55,7 @@ class SignUpPasswordFragment : Fragment() {
         _binding = FragmentPasswordBinding.inflate(inflater, container, false)
 
         val bundle = this.arguments
-        currentState = bundle!!.getSerializable(Constants.STATE) as SignUpPasswordRequiredState
+        currentState = (bundle?.getParcelable(Constants.STATE) as? SignUpPasswordRequiredState)!!
 
         init()
 

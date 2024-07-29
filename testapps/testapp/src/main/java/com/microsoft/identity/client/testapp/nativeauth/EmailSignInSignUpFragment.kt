@@ -24,17 +24,21 @@ package com.microsoft.identity.client.testapp.nativeauth
 
 import android.app.AlertDialog
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.microsoft.identity.client.Account
+import com.microsoft.identity.client.AcquireTokenParameters
+import com.microsoft.identity.client.AuthenticationCallback
+import com.microsoft.identity.client.IAuthenticationResult
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.testapp.Constants
 import com.microsoft.identity.client.testapp.R
 import com.microsoft.identity.client.testapp.databinding.FragmentEmailSisuBinding
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
+import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
@@ -112,7 +116,8 @@ class EmailSignInSignUpFragment : Fragment() {
                 val email = binding.emailText.text.toString()
 
                 val actionResult = authClient.signIn(
-                    username = email
+                    username = email,
+                    scopes = listOf("User.Read")
                 )
 
                 when (actionResult) {
@@ -123,6 +128,23 @@ class EmailSignInSignUpFragment : Fragment() {
                             sentTo = actionResult.sentTo,
                             channel = actionResult.channel
                         )
+                    }
+                    is SignInError -> {
+                        if (actionResult.isBrowserRequired()) {
+                            Toast.makeText(requireContext(), actionResult.errorMessage, Toast.LENGTH_SHORT).show()
+
+                            authClient.acquireToken(
+                                AcquireTokenParameters(
+                                    AcquireTokenParameters.Builder()
+                                        .startAuthorizationFromActivity(requireActivity())
+                                        .withScopes(mutableListOf("profile", "openid", "email"))
+                                        .withCallback(getAuthInteractiveCallback())
+                                )
+                            )
+                        }
+                        else {
+                            displayDialog("Unexpected result", actionResult.errorMessage)
+                        }
                     }
                     else -> {
                         displayDialog(getString(R.string.msal_exception_title), "Unexpected result: $actionResult")
@@ -163,7 +185,7 @@ class EmailSignInSignUpFragment : Fragment() {
                         )
                     }
                     else -> {
-                        displayDialog(getString(R.string.msal_exception_title), "Unexpected result: $actionResult")
+                        displayDialog( "Unexpected result", actionResult.toString())
                     }
                 }
             } catch (exception: MsalException) {
@@ -305,5 +327,39 @@ class EmailSignInSignUpFragment : Fragment() {
             .addToBackStack(fragment::class.java.name)
             .replace(R.id.scenario_fragment, fragment)
             .commit()
+    }
+
+    /**
+     * Callback used for interactive request.
+     * If succeeds we use the access token to call the Microsoft Graph.
+     * Does not check cache.
+     */
+    private fun getAuthInteractiveCallback(): AuthenticationCallback {
+        return object : AuthenticationCallback {
+
+            override fun onSuccess(authenticationResult: IAuthenticationResult) {
+                /* Successfully got a token, use it to call a protected resource - MSGraph */
+
+                val accountResult = authenticationResult.account as Account
+
+                /* Update account */
+                emptyFields()
+                updateUI(STATUS.SignedIn)
+                val idToken = accountResult.idToken
+                binding.resultIdToken.text =
+                    getString(R.string.result_id_token_text) + idToken
+
+                Toast.makeText(requireContext(), getString(R.string.sign_in_successful_message), Toast.LENGTH_SHORT).show()
+            }
+
+            override fun onError(exception: MsalException) {
+                /* Failed to acquireToken */
+                displayDialog(getString(R.string.msal_exception_title), exception.errorCode)
+            }
+
+            override fun onCancel() {
+                /* User canceled the authentication */
+            }
+        }
     }
 }

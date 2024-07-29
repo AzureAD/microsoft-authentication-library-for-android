@@ -57,7 +57,7 @@ class SignUpAttributesFragment : Fragment() {
         _binding = FragmentAttributeBinding.inflate(inflater, container, false)
 
         val bundle = this.arguments
-        currentState = bundle!!.getSerializable(Constants.STATE) as SignUpAttributesRequiredState
+        currentState = (bundle?.getParcelable(Constants.STATE) as? SignUpAttributesRequiredState)!!
 
         init()
 
@@ -77,21 +77,15 @@ class SignUpAttributesFragment : Fragment() {
     private fun create() {
         CoroutineScope(Dispatchers.Main).launch {
             try {
-                val attributes = UserAttributes.Builder
+                val attributes = UserAttributes.Builder()
 
                 val attr1Key = binding.attr1KeyText.text.toString()
-                if (attr1Key.isNotBlank()) {
-                    val attr1Value = binding.attr1ValueText.toString()
-                    attributes
-                        .customAttribute(attr1Key, attr1Value)
-                }
+                val attr1Value = binding.attr1ValueText.text.toString()
+                attributes.customAttribute(attr1Key, attr1Value)
 
                 val attr2Key = binding.attr2KeyText.text.toString()
-                if (attr2Key.isNotBlank()) {
-                    val attr2Value = binding.attr2ValueText.toString()
-                    attributes
-                        .customAttribute(attr2Key, attr2Value)
-                }
+                val attr2Value = binding.attr2ValueText.text.toString()
+                attributes.customAttribute(attr2Key, attr2Value)
 
                 val actionResult = currentState.submitAttributes(attributes.build())
 
