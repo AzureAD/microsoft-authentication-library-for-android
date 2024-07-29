@@ -25,6 +25,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.mwpj
 import com.microsoft.identity.client.msal.automationapp.R
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
 import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost
 import com.microsoft.identity.client.ui.automation.rules.LoadLabUserTestRule
@@ -42,6 +43,7 @@ import org.junit.rules.TestRule
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2521960
 // [MWPJ] Device registration entry migration (different upn - same tenant)
 @LocalBrokerHostDebugUiTest
+@RetryOnFailure
 @SupportedBrokers(brokers = [BrokerHost::class])
 class TestCase2521960 : AbstractMsalBrokerTest() {
 

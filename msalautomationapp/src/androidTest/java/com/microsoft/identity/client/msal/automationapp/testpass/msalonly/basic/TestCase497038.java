@@ -65,7 +65,14 @@ public class TestCase497038 extends AbstractMsalUiTest {
         chrome.handleFirstRun();
         chrome.navigateTo("outlook.com");
         ThreadUtils.sleepSafely(5000, "", "");
-        UiAutomatorUtils.handleButtonClickForObjectWithExactText("Sign in");
+
+        // Click sign in button for outlook in chrome browser
+        try {
+            UiAutomatorUtils.handleButtonClick("mectrl_main_trigger");
+        } catch (Exception e) {
+            // If above check fails, we can try with text
+            UiAutomatorUtils.handleButtonClickForObjectWithText("Sign in to");
+        }
 
         final MicrosoftStsPromptHandlerParameters microsoftStsPromptHandlerParameters =
                 MicrosoftStsPromptHandlerParameters.builder()
