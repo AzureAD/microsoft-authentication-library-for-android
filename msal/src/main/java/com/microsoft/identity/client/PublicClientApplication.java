@@ -113,7 +113,6 @@ import com.microsoft.identity.common.java.commands.parameters.DeviceCodeFlowComm
 import com.microsoft.identity.common.java.commands.parameters.GenerateShrCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.InteractiveTokenCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.SilentTokenCommandParameters;
-import com.microsoft.identity.common.java.controllers.BaseController;
 import com.microsoft.identity.common.java.controllers.CommandDispatcher;
 import com.microsoft.identity.common.java.controllers.CommandResult;
 import com.microsoft.identity.common.java.controllers.ExceptionAdapter;
@@ -123,6 +122,7 @@ import com.microsoft.identity.common.java.exception.BaseException;
 import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.exception.ErrorStrings;
 import com.microsoft.identity.common.java.exception.ServiceException;
+import com.microsoft.identity.common.java.nativeauth.authorities.NativeAuthCIAMAuthority;
 import com.microsoft.identity.common.java.opentelemetry.AttributeName;
 import com.microsoft.identity.common.java.opentelemetry.OTelUtility;
 import com.microsoft.identity.common.java.opentelemetry.OtelContextExtension;
@@ -1141,7 +1141,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         if (authority != null) {
             config.getAuthorities().clear();
 
-            final Authority authorityObject = Authority.getAuthorityFromAuthorityUrl(authority);
+            final NativeAuthCIAMAuthority authorityObject = NativeAuthCIAMAuthority.Companion.getAuthorityFromAuthorityUrl(authority, clientId);
             authorityObject.setDefault(true);
             config.getAuthorities().add(authorityObject);
         }
