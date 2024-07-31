@@ -7,7 +7,6 @@ Version 5.4.2
 ---------
 - [PATCH] Update common @17.6.1
 - [MINOR] Fix UserAttributesBuilder being a singleton bug (#2145)
-- [MINOR] Fix Authority data being persisted across different SDK instances (#2151)
 
 Version 5.4.0
 ----------
