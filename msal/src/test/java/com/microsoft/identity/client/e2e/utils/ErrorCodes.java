@@ -29,5 +29,4 @@ public class ErrorCodes {
     public static final String NO_ACCOUNT_FOUND_ERROR_CODE = "no_account_found";
     public static final String NO_CURRENT_ACCOUNT_ERROR_CODE = "no_current_account";
     public static final String INTERNAL_SERVER_ERROR_CODE = "internal_server_error";
-    public static final String NULL_POINTER_ERROR_CDOE = "null_pointer_error";
 }
