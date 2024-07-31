@@ -122,7 +122,6 @@ import com.microsoft.identity.common.java.exception.BaseException;
 import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.exception.ErrorStrings;
 import com.microsoft.identity.common.java.exception.ServiceException;
-import com.microsoft.identity.common.java.nativeauth.authorities.NativeAuthCIAMAuthority;
 import com.microsoft.identity.common.java.opentelemetry.AttributeName;
 import com.microsoft.identity.common.java.opentelemetry.OTelUtility;
 import com.microsoft.identity.common.java.opentelemetry.OtelContextExtension;
@@ -1141,7 +1140,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         if (authority != null) {
             config.getAuthorities().clear();
 
-            final NativeAuthCIAMAuthority authorityObject = NativeAuthCIAMAuthority.Companion.getAuthorityFromAuthorityUrl(authority, clientId);
+            final Authority authorityObject = Authority.getAuthorityFromAuthorityUrl(authority, clientId);
             authorityObject.setDefault(true);
             config.getAuthorities().add(authorityObject);
         }
