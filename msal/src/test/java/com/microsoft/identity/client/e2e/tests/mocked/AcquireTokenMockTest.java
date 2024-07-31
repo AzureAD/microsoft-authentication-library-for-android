@@ -200,7 +200,7 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                 .withLoginHint(username)
                 .withScopes(Arrays.asList(mScopes))
                 .fromAuthority(getAuthority())
-                .withCallback(AcquireTokenTestHelper.failureInteractiveCallback(ErrorCodes.UNKNOWN_ERROR_CODE))
+                .withCallback(AcquireTokenTestHelper.failureInteractiveCallback(ErrorCodes.NULL_POINTER_ERROR_CDOE))
                 .build();
 
         mApplication.acquireToken(parameters);
