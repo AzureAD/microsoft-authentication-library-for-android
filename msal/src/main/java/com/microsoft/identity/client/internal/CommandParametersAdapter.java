@@ -360,7 +360,7 @@ public class CommandParametersAdapter {
                 .challengeType(configuration.getChallengeTypes())
                 .userAttributes(userAttributes)
                 // Start of the flow, so there is no correlation ID to use from a previous API response.
-                // Set it to a default value.
+                // If default value is empty, generate a new UUID as correlationId.
                 .correlationId(DiagnosticContext.INSTANCE.getThreadCorrelationId())
                 .build();
     }
@@ -563,7 +563,7 @@ public class CommandParametersAdapter {
                 .challengeType(configuration.getChallengeTypes())
                 .scopes(scopes)
                 // Start of the flow, so there is no correlation ID to use from a previous API response.
-                // Set it to a default value.
+                // If default value is empty, generate a new UUID as correlationId.
                 .correlationId(DiagnosticContext.INSTANCE.getThreadCorrelationId())
                 .build();
 
@@ -792,7 +792,7 @@ public class CommandParametersAdapter {
                         .challengeType(configuration.getChallengeTypes())
                         .clientId(configuration.getClientId())
                         // Start of the flow, so there is no correlation ID to use from a previous API response.
-                        // Set it to a default value.
+                        // If default value is empty, generate a new UUID as correlationId.
                         .correlationId(DiagnosticContext.INSTANCE.getThreadCorrelationId())
                         .build();
 

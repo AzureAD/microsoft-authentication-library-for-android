@@ -45,6 +45,7 @@ import com.microsoft.identity.common.java.dto.AccountRecord
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.exception.ServiceException
+import com.microsoft.identity.common.java.logging.DiagnosticContext
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.result.ILocalAuthenticationResult
@@ -309,7 +310,7 @@ class AccountState private constructor(
                             correlationId = correlationId
                         )
 
-                val privateCorrelationId = if (correlationId == "UNSET") { UUID.randomUUID().toString() } else { correlationId }
+                val privateCorrelationId = if (correlationId == "UNSET") { DiagnosticContext.INSTANCE.getThreadCorrelationId() } else { correlationId }
 
                 val acquireTokenSilentParameters = AcquireTokenSilentParameters.Builder()
                     .forAccount(currentAccount)
@@ -378,6 +379,9 @@ class AccountState private constructor(
                     }
                 }
             } catch (e: Exception) {
+                if (e is IllegalArgumentException) {
+                    Logger.error(TAG, "Correlation id is not a valid UUID", e)
+                }
                 GetAccessTokenError(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in getAccessToken.",
