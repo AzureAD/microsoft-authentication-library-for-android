@@ -52,34 +52,25 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
     }
 
     /**
-     * Running with runBlocking to avoid default 10 second execution timeout.
+     * Verify email with email OTP first and then reset password.
+     * (hero scenario 8 & 17, use case 3.1.1, Test case 46)
      */
     @Test
-    fun testSSPRSuccessSimple() = runBlocking {
-        var retryCount = 0
-        var shouldRetry = true
+    fun testSSPRSuccess() = runBlocking {
+        var result: ResetPasswordStartResult
+        var otp: String
 
-        while (shouldRetry) {
-            try {
+        retryOperation {
+            runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = config.email
-                val result = application.resetPassword(user)
+                result = application.resetPassword(user)
                 assertState<ResetPasswordStartResult.CodeRequired>(result)
-                val otp = tempEmailApi.retrieveCodeFromInbox(user)
+                otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (result as ResetPasswordStartResult.CodeRequired).nextState.submitCode(otp)
                 assertState<ResetPasswordSubmitCodeResult.PasswordRequired>(submitCodeResult)
                 val password = getSafePassword()
                 val submitPasswordResult = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState.submitPassword(password.toCharArray())
-                assertState<ResetPasswordResult.Complete>(submitPasswordResult)
-                shouldRetry = false
-                break
-            } catch (e: IllegalStateException) {
-                // Re-run this test if the OTP retrieval fails. 1SecMail is known for emails to sometimes never arrive.
-                // In that case, restart the test case with a new email address and try again, to make test less flaky.
-                if (retryCount == 3) {
-                    Assert.fail()
-                    shouldRetry = false
-                }
-                retryCount++
+                Assert.assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
             }
         }
     }

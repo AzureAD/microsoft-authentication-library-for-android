@@ -23,58 +23,34 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
+import com.microsoft.identity.client.e2e.utils.assertState
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
-import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Test
 
-class SignUpTest : NativeAuthPublicClientApplicationAbstractTest() {
+class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 
-    override val configType = ConfigType.SIGN_UP_PASSWORD
-
-    @Test
-    fun testSignUpErrorSimple() = runTest {
-        val user = tempEmailApi.generateRandomEmailAddress()
-        val result = application.signUp(user, "invalidpassword".toCharArray())
-        Assert.assertTrue(result is SignUpError)
-        Assert.assertTrue((result as SignUpError).isInvalidPassword())
-    }
+    override val configType = ConfigType.SIGN_UP_OTP
 
     /**
-     * Running with runBlocking to avoid default 10 second execution timeout.
+     * Sign up with email + OTP. Verify email address using email OTP and sign up.
+     * (hero scenario 1, use case 2.1.1, Test case 1)
      */
     @Test
-    fun testSignUpSuccessSimple() = runBlocking {
-        var retryCount = 0
-        var signUpResult: SignUpResult
-        var otp: String
-        var shouldRetry = true
-
-        while (shouldRetry) {
-            try {
+    fun testSuccess() {
+        retryOperation {
+            runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
-                val password = getSafePassword()
-                signUpResult = application.signUp(user, password.toCharArray())
-                Assert.assertTrue(signUpResult is SignUpResult.CodeRequired)
-                otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val signUpResult = application.signUp(user)
+                assertState<SignUpResult.CodeRequired>(signUpResult)
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
                 Assert.assertTrue(submitCodeResult is SignUpResult.Complete)
-                shouldRetry = false
-                break
-            } catch (e: IllegalStateException) {
-                // Re-run this test if the OTP retrieval fails. 1SecMail is known for emails to sometimes never arrive.
-                // In that case, restart the test case with a new email address and try again, to make test less flaky.
-                if (retryCount == 3) {
-                    Assert.fail()
-                    shouldRetry = false
-                }
-                retryCount++
             }
         }
     }
