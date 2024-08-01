@@ -113,7 +113,6 @@ import com.microsoft.identity.common.java.commands.parameters.DeviceCodeFlowComm
 import com.microsoft.identity.common.java.commands.parameters.GenerateShrCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.InteractiveTokenCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.SilentTokenCommandParameters;
-import com.microsoft.identity.common.java.controllers.BaseController;
 import com.microsoft.identity.common.java.controllers.CommandDispatcher;
 import com.microsoft.identity.common.java.controllers.CommandResult;
 import com.microsoft.identity.common.java.controllers.ExceptionAdapter;
@@ -1141,7 +1140,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         if (authority != null) {
             config.getAuthorities().clear();
 
-            final Authority authorityObject = Authority.getAuthorityFromAuthorityUrl(authority);
+            final Authority authorityObject = Authority.getAuthorityFromAuthorityUrl(authority, clientId);
             authorityObject.setDefault(true);
             config.getAuthorities().add(authorityObject);
         }

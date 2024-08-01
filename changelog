@@ -2,6 +2,7 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+- [PATCH] Fix authority data being persisted across different SDK instances (#2151)
 
 Version 5.5.0
 ---------
