@@ -22,7 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.nativeauth
 
-import com.microsoft.identity.common.java.nativeauth.providers.responses.UserAttributeApiResult
+import com.microsoft.identity.common.java.nativeauth.providers.responses.signup.UserAttributeApiResult
 import com.microsoft.identity.common.java.nativeauth.util.ILoggable
 
 /**
