@@ -2111,39 +2111,32 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         try (final Scope scope = SpanExtension.makeCurrentSpan(span)) {
             span.setAttribute(AttributeName.application_name.name(), mPublicClientConfiguration.getAppContext().getPackageName());
 
-            // Currently this method is only supported for Teams app
-            if (!packageHelper.verifyIfValidTeamsPackage(context.getPackageName())) {
-                span.setAttribute(AttributeName.error_message.name(), "acquireTokenWithDeviceCode with claims is not supported for current package.");
-                throw new UnsupportedOperationException(ERR_UNSUPPORTED_OPERATION);
-            } else {
-                DeviceCodeFlowParameters.Builder builder = new DeviceCodeFlowParameters.Builder();
+            DeviceCodeFlowParameters.Builder builder = new DeviceCodeFlowParameters.Builder();
 
-                if (null != correlationId) {
-                    builder.withCorrelationId(correlationId);
-                    span.setAttribute(AttributeName.correlation_id.name(), correlationId.toString());
-                }
-
-                DeviceCodeFlowParameters deviceCodeFlowParameters =
-                        builder.withScopes(scopes)
-                                .withClaims(claimsRequest)
-                                .build();
-
-                final DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter
-                        .createDeviceCodeFlowWithClaimsCommandParameters(
-                                mPublicClientConfiguration,
-                                mPublicClientConfiguration.getOAuth2TokenCache(),
-                                deviceCodeFlowParameters);
-
-                final DeviceCodeFlowCommandCallback deviceCodeFlowCommandCallback = getDeviceCodeFlowCommandCallback(callback);
-                final DeviceCodeFlowCommand deviceCodeFlowCommand = new DeviceCodeFlowCommand(
-                        commandParameters,
-                        new MSALControllerFactory(mPublicClientConfiguration),
-                        deviceCodeFlowCommandCallback,
-                        PublicApiId.DEVICE_CODE_FLOW_WITH_CLAIMS_AND_CALLBACK
-                );
-
-                CommandDispatcher.submitSilent(deviceCodeFlowCommand);
+            if (null != correlationId) {
+                builder.withCorrelationId(correlationId);
+                span.setAttribute(AttributeName.correlation_id.name(), correlationId.toString());
             }
+
+            DeviceCodeFlowParameters deviceCodeFlowParameters =
+                    builder.withScopes(scopes)
+                            .withClaims(claimsRequest)
+                            .build();
+
+            final DeviceCodeFlowCommandParameters commandParameters = CommandParametersAdapter
+                    .createDeviceCodeFlowWithClaimsCommandParameters(
+                            mPublicClientConfiguration,
+                            mPublicClientConfiguration.getOAuth2TokenCache(),
+                            deviceCodeFlowParameters);
+
+            final DeviceCodeFlowCommandCallback deviceCodeFlowCommandCallback = getDeviceCodeFlowCommandCallback(callback);
+            final DeviceCodeFlowCommand deviceCodeFlowCommand = new DeviceCodeFlowCommand(
+                    commandParameters,
+                    new MSALControllerFactory(mPublicClientConfiguration),
+                    deviceCodeFlowCommandCallback,
+                    PublicApiId.DEVICE_CODE_FLOW_WITH_CLAIMS_AND_CALLBACK
+            );
+            CommandDispatcher.submitSilent(deviceCodeFlowCommand);
             span.setStatus(StatusCode.OK);
         } catch (final Throwable throwable) {
             span.setStatus(StatusCode.ERROR);
