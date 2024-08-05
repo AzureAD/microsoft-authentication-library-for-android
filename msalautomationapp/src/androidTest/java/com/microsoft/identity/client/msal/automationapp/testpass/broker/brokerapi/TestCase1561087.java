@@ -35,6 +35,7 @@ import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Test;
 
 // Flight settings
@@ -45,6 +46,9 @@ import org.junit.Test;
 public class TestCase1561087 extends AbstractMsalBrokerTest {
     @Test
     public void test_1561087() {
+        // Skipping this test is brokerhost is using local flights
+        Assume.assumeFalse(((BrokerHost) mBroker).isLocalFlightProviderSelector());
+
         // Set flights and get to check if the flight information is returned
         final String flightKey = "SetFlightsTest";
         final String flightValue = "true";

@@ -4,6 +4,11 @@ vNext
 ----------
 -[MINOR] Moving OS version check for passkeys (#2138)
 
+Version 5.4.2
+---------
+- [PATCH] Update common @17.6.1
+- [MINOR] Fix UserAttributesBuilder being a singleton bug (#2145)
+
 Version 5.4.0
 ----------
 - [PATCH] Update common @17.5.0

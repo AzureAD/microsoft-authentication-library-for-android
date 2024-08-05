@@ -37,6 +37,7 @@ import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResendCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
+import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpAttributesRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState
@@ -60,7 +61,7 @@ class SignUpCodeFragment : Fragment() {
         _binding = FragmentCodeBinding.inflate(inflater, container, false)
 
         val bundle = this.arguments
-        currentState = bundle!!.getSerializable(Constants.STATE) as SignUpCodeRequiredState
+        currentState = (bundle?.getParcelable(Constants.STATE) as? SignUpCodeRequiredState)!!
         codeLength = bundle.getInt(Constants.CODE_LENGTH)
         sentTo = bundle.getString(Constants.SENT_TO)
         channel = bundle.getString(Constants.CHANNEL)
