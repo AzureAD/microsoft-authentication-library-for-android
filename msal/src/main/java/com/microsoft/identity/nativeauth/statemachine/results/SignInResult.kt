@@ -24,7 +24,9 @@
 package com.microsoft.identity.nativeauth.statemachine.results
 
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState
+import com.microsoft.identity.nativeauth.statemachine.states.SignInAwaitingMFAState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState
+import com.microsoft.identity.nativeauth.statemachine.states.SignInMFARequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInPasswordRequiredState
 
 /**
@@ -44,6 +46,14 @@ interface SignInResult : Result {
         SignInResult,
         SignInSubmitCodeResult,
         SignInSubmitPasswordResult
+
+    // Should be removed and replaced with Complete, once we receive an authentication result from the API
+    class DummyComplete :
+        Result.CompleteResult(),
+        SignInResult,
+        SignInSubmitCodeResult,
+        SignInSubmitPasswordResult,
+        SignInMFASubmitChallengeResult
 
     /**
      * CodeRequired Result, which indicates a verification code is required from the user to continue.
@@ -68,6 +78,12 @@ interface SignInResult : Result {
     class PasswordRequired(
         override val nextState: SignInPasswordRequiredState
     ) : SignInResult, Result.SuccessResult(nextState = nextState)
+
+
+    // TODO MFARequired might be better than AwaitingMFA.
+    class MFARequired(
+        override val nextState: SignInAwaitingMFAState
+    ) : SignInResult, Result.SuccessResult(nextState = nextState), SignInSubmitCodeResult, SignInMFASubmitChallengeResult
 }
 
 /**
@@ -101,3 +117,24 @@ interface SignInResendCodeResult : Result {
         val channel: String,
     ) : SignInResendCodeResult, Result.SuccessResult(nextState = nextState)
 }
+
+// TODO should we call this SignInMFA or just MFA? MFA can only happen during sign in, so it's redundant?
+interface SignInMFARequiredResult: Result {
+    class VerificationRequired(
+        override val nextState: SignInMFARequiredState,
+        val codeLength: Int,
+        val sentTo: String,
+        val channel: String,
+    ) : SignInMFARequiredResult, Result.SuccessResult(nextState = nextState)
+
+    class SelectionRequired(
+        override val nextState: SignInMFARequiredState,
+        val authMethods: List<Int>
+    ) : SignInMFARequiredResult, Result.SuccessResult(nextState = nextState)
+}
+
+interface SignInMFASubmitChallengeResult : Result
+
+class SignInMFAGetAuthMethodsResult(
+    val authMethods: List<Int>
+)

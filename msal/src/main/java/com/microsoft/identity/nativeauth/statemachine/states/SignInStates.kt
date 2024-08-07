@@ -26,37 +26,40 @@ package com.microsoft.identity.nativeauth.statemachine.states
 import android.os.Parcel
 import android.os.Parcelable
 import com.microsoft.identity.client.AuthenticationResultAdapter
-import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
-import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
-import com.microsoft.identity.nativeauth.statemachine.results.SignInResendCodeResult
-import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
-import com.microsoft.identity.nativeauth.statemachine.results.SignInSubmitCodeResult
-import com.microsoft.identity.nativeauth.statemachine.results.SignInSubmitPasswordResult
-import com.microsoft.identity.common.nativeauth.internal.commands.SignInResendCodeCommand
-import com.microsoft.identity.common.nativeauth.internal.commands.SignInSubmitCodeCommand
-import com.microsoft.identity.common.nativeauth.internal.commands.SignInSubmitPasswordCommand
-import com.microsoft.identity.common.nativeauth.internal.commands.SignInWithContinuationTokenCommand
-import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.common.java.controllers.CommandDispatcher
+import com.microsoft.identity.common.java.eststelemetry.PublicApiId
+import com.microsoft.identity.common.java.logging.LogSession
+import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignInCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignInResendCodeCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignInSubmitCodeCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignInSubmitPasswordCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignInWithContinuationTokenCommandResult
-import com.microsoft.identity.common.java.eststelemetry.PublicApiId
-import com.microsoft.identity.common.java.logging.LogSession
-import com.microsoft.identity.common.java.logging.Logger
-import com.microsoft.identity.common.java.util.StringUtil
 import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
+import com.microsoft.identity.common.java.util.StringUtil
+import com.microsoft.identity.common.nativeauth.internal.commands.SignInResendCodeCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.SignInSubmitCodeCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.SignInSubmitPasswordCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.SignInWithContinuationTokenCommand
+import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.ResendCodeError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInContinuationError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInSubmitPasswordError
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
+import com.microsoft.identity.nativeauth.statemachine.results.SignInMFAGetAuthMethodsResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignInMFARequiredResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignInMFASubmitChallengeResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignInResendCodeResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignInSubmitCodeResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignInSubmitPasswordResult
 import com.microsoft.identity.nativeauth.utils.serializable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -325,6 +328,199 @@ class SignInCodeRequiredState internal constructor(
         }
 
         override fun newArray(size: Int): Array<SignInCodeRequiredState?> {
+            return arrayOfNulls(size)
+        }
+    }
+}
+
+class SignInAwaitingMFAState(
+    override val continuationToken: String,
+    override val correlationId: String,
+    private val scopes: List<String>?,
+    private val config: NativeAuthPublicClientApplicationConfiguration
+) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
+
+    // Challenge default auth method
+    suspend fun sendChallenge(): SignInMFARequiredResult {
+        return withContext(Dispatchers.IO) {
+            // if /challenge returns HTTP 200
+            if (true) {
+                SignInMFARequiredResult.VerificationRequired(
+                    nextState = SignInMFARequiredState(
+                        continuationToken = continuationToken,
+                        correlationId = correlationId,
+                        scopes = scopes,
+                        config = config
+                    ),
+                    codeLength = 6,
+                    sentTo = "user@contoso.com",
+                    channel = "email"
+                )
+            } else {
+                // /challenge returns introspect_required
+                // call /introspect and return authMethods
+                SignInMFARequiredResult.SelectionRequired(
+                    nextState = SignInMFARequiredState(
+                        continuationToken = continuationToken,
+                        correlationId = correlationId,
+                        scopes = scopes,
+                        config = config
+                    ),
+                    authMethods = listOf(1, 2, 3)
+                )
+            }
+        }
+    }
+
+    constructor(parcel: Parcel) : this(
+        continuationToken = parcel.readString()  ?: "",
+        correlationId = parcel.readString() ?: "UNSET",
+        scopes = parcel.createStringArrayList(),
+        config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
+    )
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(continuationToken)
+        parcel.writeString(correlationId)
+        parcel.writeStringList(scopes)
+        parcel.writeSerializable(config)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<SignInAwaitingMFAState> {
+        override fun createFromParcel(parcel: Parcel): SignInAwaitingMFAState {
+            return SignInAwaitingMFAState(parcel)
+        }
+
+        override fun newArray(size: Int): Array<SignInAwaitingMFAState?> {
+            return arrayOfNulls(size)
+        }
+    }
+}
+
+class SignInMFARequiredState(
+    override val continuationToken: String,
+    override val correlationId: String,
+    private val scopes: List<String>?,
+    private val config: NativeAuthPublicClientApplicationConfiguration
+) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
+
+    // Challenge default auth method
+    suspend fun sendChallenge(): SignInMFARequiredResult {
+        return withContext(Dispatchers.IO) {
+            // if /challenge returns HTTP 200
+            if (true) {
+                SignInMFARequiredResult.VerificationRequired(
+                    nextState = SignInMFARequiredState(
+                        continuationToken = continuationToken,
+                        correlationId = correlationId,
+                        scopes = scopes,
+                        config = config
+                    ),
+                    codeLength = 6,
+                    sentTo = "user@contoso.com",
+                    channel = "email"
+                )
+            } else {
+                // /challenge returns introspect_required
+                // call /introspect and return authMethods
+                SignInMFARequiredResult.SelectionRequired(
+                    nextState = SignInMFARequiredState(
+                        continuationToken = continuationToken,
+                        correlationId = correlationId,
+                        scopes = scopes,
+                        config = config
+                    ),
+                    authMethods = listOf(1, 2, 3)
+                )
+            }
+        }
+    }
+
+    // Challenge specified auth methods
+    suspend fun sendChallenge(authMethod: Int): SignInMFARequiredResult {
+        return withContext(Dispatchers.IO) {
+            // if /challenge returns HTTP 200
+            if (true) {
+                SignInMFARequiredResult.VerificationRequired(
+                    nextState = SignInMFARequiredState(
+                        continuationToken = continuationToken,
+                        correlationId = correlationId,
+                        scopes = scopes,
+                        config = config
+                    ),
+                    codeLength = 6,
+                    sentTo = "user@contoso.com",
+                    channel = "email"
+                )
+            } else {
+                // /challenge returns introspect_required
+                // call /introspect and return authMethods
+                SignInMFARequiredResult.SelectionRequired(
+                    nextState = SignInMFARequiredState(
+                        continuationToken = continuationToken,
+                        correlationId = correlationId,
+                        scopes = scopes,
+                        config = config
+                    ),
+                    authMethods = listOf(1, 2, 3)
+                )
+            }
+        }
+    }
+
+    // Call /introspect
+    suspend fun getAuthMethods(): SignInMFAGetAuthMethodsResult {
+        return SignInMFAGetAuthMethodsResult(
+            authMethods = listOf(1, 2, 3)
+        )
+    }
+
+    // Call /token
+    suspend fun submitChallenge(code: Int): SignInMFASubmitChallengeResult {
+        // If /token returns HTTP 200
+        return if (true) {
+            SignInResult.DummyComplete()
+        } else {
+            // If /token returns another mfa_required error
+            SignInResult.MFARequired(
+               nextState = SignInAwaitingMFAState(
+                   continuationToken = continuationToken,
+                   correlationId = correlationId,
+                   scopes = scopes,
+                   config = config
+               )
+            )
+        }
+    }
+
+    constructor(parcel: Parcel) : this(
+        continuationToken = parcel.readString()  ?: "",
+        correlationId = parcel.readString() ?: "UNSET",
+        scopes = parcel.createStringArrayList(),
+        config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
+    )
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(continuationToken)
+        parcel.writeString(correlationId)
+        parcel.writeStringList(scopes)
+        parcel.writeSerializable(config)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<SignInMFARequiredState> {
+        override fun createFromParcel(parcel: Parcel): SignInMFARequiredState {
+            return SignInMFARequiredState(parcel)
+        }
+
+        override fun newArray(size: Int): Array<SignInMFARequiredState?> {
             return arrayOfNulls(size)
         }
     }

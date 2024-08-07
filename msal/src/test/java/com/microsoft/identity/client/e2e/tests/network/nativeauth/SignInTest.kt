@@ -24,10 +24,13 @@
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
+import com.microsoft.identity.nativeauth.statemachine.errors.MFAError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
+import com.microsoft.identity.nativeauth.statemachine.results.SignInMFARequiredResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
@@ -51,5 +54,56 @@ class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
         val password = getSafePassword()
         val result = application.signIn(username, password.toCharArray())
         Assert.assertTrue(result is SignInResult.Complete)
+    }
+
+    @Test
+    fun testSignInMFASimple() = runTest {
+        val result = application.signIn("user", "password".toCharArray())
+        when (result) {
+            is SignInResult.Complete -> {
+
+            }
+            is SignInResult.MFARequired -> {
+                val nextState = result.nextState
+                // Initiate challenge, send code to email
+                val sendChallengeResult = nextState.sendChallenge()
+                when (sendChallengeResult) {
+                    is SignInMFARequiredResult.VerificationRequired -> {
+                        // Show code UI
+                        showCodeUI(
+                            sentTo = sendChallengeResult.sentTo,
+                            codeLength = sendChallengeResult.codeLength
+                        )
+
+                        // Retrieve all methods to build additional "pick MFA method UI"
+                        val authMethodsResult = sendChallengeResult.nextState.getAuthMethods()
+                        // call /challenge with specified ID
+                        sendChallengeResult.nextState.sendChallenge(authMethodsResult.authMethods[0])
+                    }
+                    is SignInMFARequiredResult.SelectionRequired -> {
+                        val authMethods = sendChallengeResult.authMethods
+                        val sendSelectedChallengeResult = sendChallengeResult.nextState.sendChallenge(authMethods[0])
+                        if (sendSelectedChallengeResult is SignInMFARequiredResult.VerificationRequired) {
+                            val submitCodeResult = sendSelectedChallengeResult.nextState.submitChallenge(1234)
+                            if (submitCodeResult is SignInResult.DummyComplete) {
+                                assertTrue(true)
+                            } else {
+                                assertTrue(false)
+                            }
+                        }
+                    }
+                    is MFAError -> {
+                        assertTrue(false)
+                    }
+                }
+            }
+            is SignInError -> {
+                assertTrue(false)
+            }
+        }
+    }
+
+    private fun showCodeUI(sentTo: String, codeLength: Int) {
+
     }
 }
