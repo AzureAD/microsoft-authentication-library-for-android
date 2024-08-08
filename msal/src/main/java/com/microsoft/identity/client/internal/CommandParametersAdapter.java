@@ -1153,13 +1153,14 @@ public class CommandParametersAdapter {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
             Logger.info(methodTag, "Device is running on an Android version less than 9 (API 28), which is the minimum level for passkeys.");
             // If we don't want to add this query string param, then we should also remove other instances of it that might be already present from MSAL/OneAuth-MSAL.
-            if (queryStringParameters != null)
-            try {
-                queryStringParameters.remove(webauthnExtraParameter);
-            } catch (final UnsupportedOperationException e) {
-                final List<Map.Entry<String, String>> result = new ArrayList<>(queryStringParameters);
-                result.remove(webauthnExtraParameter);
-                return result;
+            if (queryStringParameters != null) {
+                try {
+                    queryStringParameters.remove(webauthnExtraParameter);
+                } catch (final UnsupportedOperationException e) {
+                    final List<Map.Entry<String, String>> result = new ArrayList<>(queryStringParameters);
+                    result.remove(webauthnExtraParameter);
+                    return result;
+                }
             }
         }
         else if (configuration.isWebauthnCapable()) {
