@@ -1031,7 +1031,7 @@ public class CommandParametersAdapter {
             @NonNull final PublicClientApplicationConfiguration configuration,
             @NonNull final AcquireTokenSilentParameters parameters) {
         final String requestAuthority = parameters.getAuthority();
-        final Authority authority = Authority.getAuthorityFromAuthorityUrl(requestAuthority);
+        final Authority authority = Authority.getAuthorityFromAuthorityUrl(requestAuthority, configuration.getClientId());
 
         if (authority instanceof AzureActiveDirectoryAuthority) {
             AzureActiveDirectoryAuthority aadAuthority =

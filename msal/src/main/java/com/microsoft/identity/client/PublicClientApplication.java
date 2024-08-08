@@ -1946,7 +1946,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         if (BuildValues.shouldUseMockApiForNativeAuth()) {
             authority = new CIAMAuthority(requestAuthority);
         } else {
-            authority = Authority.getAuthorityFromAuthorityUrl(requestAuthority);
+            authority = Authority.getAuthorityFromAuthorityUrl(requestAuthority, pcaConfig.getClientId());
         }
 
         if (authority instanceof AzureActiveDirectoryB2CAuthority || authority instanceof CIAMAuthority) {
