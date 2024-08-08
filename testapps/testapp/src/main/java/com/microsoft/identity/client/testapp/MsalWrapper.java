@@ -140,12 +140,25 @@ abstract class MsalWrapper {
                 .withPrompt(requestOptions.getPrompt())
                 .withCallback(getAuthenticationCallback(callback));
 
-        // create extra query parameters list and add "is_remote_login_allowed=true"
-        if (requestOptions.isAllowSignInFromOtherDevice()) {
-            final List<Map.Entry<String, String>> extraQP = new ArrayList<>();
-            extraQP.add(new AbstractMap.SimpleEntry<>("is_remote_login_allowed", Boolean.toString(true)));
-            builder.withAuthorizationQueryStringParameters(extraQP);
+        // Create extra query parameters list
+        final List<Map.Entry<String, String>> extraQP = new ArrayList<>();
+
+        // Split given extra query parameters and add them to extra query parameter list
+        // If any were passed in the RequestOptions
+        final String[] requestGenericExtraQueryParams = requestOptions.getExtraQueryParams().split(" ");
+        for (String extraQueryParam : requestGenericExtraQueryParams) {
+            if (extraQueryParam.equals("")) {
+                continue;
+            }
+            final String[] splitParam = extraQueryParam.split("=");
+            extraQP.add(new AbstractMap.SimpleEntry<>(splitParam[0], splitParam[1]));
         }
+
+        // add "is_remote_login_allowed=true" if passed
+        if (requestOptions.isAllowSignInFromOtherDevice()) {
+            extraQP.add(new AbstractMap.SimpleEntry<>("is_remote_login_allowed", Boolean.toString(true)));
+        }
+        builder.withAuthorizationQueryStringParameters(extraQP);
 
         if (!StringUtil.isNullOrEmpty(requestOptions.getAuthority())) {
             builder.fromAuthority(requestOptions.getAuthority());
