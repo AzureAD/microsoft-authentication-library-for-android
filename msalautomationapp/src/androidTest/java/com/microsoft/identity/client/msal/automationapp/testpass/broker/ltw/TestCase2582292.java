@@ -86,7 +86,7 @@ public class TestCase2582292 extends AbstractMsalBrokerTest {
         msalTestApp.launch();
         msalTestApp.handleFirstRun();
         try {
-            Thread.sleep(3000);
+            Thread.sleep(5000);
         } catch (final InterruptedException e) {
             throw new AssertionError(e);
         }
