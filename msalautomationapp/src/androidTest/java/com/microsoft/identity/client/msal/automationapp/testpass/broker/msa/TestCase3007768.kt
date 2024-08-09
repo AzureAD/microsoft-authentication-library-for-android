@@ -26,23 +26,30 @@ import com.microsoft.identity.client.Prompt
 import com.microsoft.identity.client.msal.automationapp.R
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk
+import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout
 import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
-import com.microsoft.identity.client.ui.automation.broker.BrokerHost
+import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator
+import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters
+import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler
+import com.microsoft.identity.client.ui.automation.utils.CommonUtils
+import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils
 import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
+import org.junit.Assert
 import org.junit.Test
 import java.util.AbstractMap
 import java.util.Arrays
 
 // [Brokered] Sign up flow for MSA Accounts
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3007768
-@SupportedBrokers(brokers = [BrokerHost::class])
+@SupportedBrokers(brokers = [BrokerMicrosoftAuthenticator::class])
 @LocalBrokerHostDebugUiTest
 //@RetryOnFailure
-class TestCase3007768 : AbstractMsaBrokerTest(){
+class TestCase3007768 : AbstractMsalBrokerTest(){
     @Test
     @Throws(Throwable::class)
     fun test_3007768() {
@@ -51,7 +58,7 @@ class TestCase3007768 : AbstractMsaBrokerTest(){
         extraQP.add(AbstractMap.SimpleEntry("signup", "1"))
 
         val msalSdk = MsalSdk()
-        val authTestParams = MsalAuthTestParams.builder()
+        val createAccountParams = MsalAuthTestParams.builder()
             .activity(mActivity)
             .loginHint(null)
             .scopes(Arrays.asList(*mScopes))
@@ -60,10 +67,47 @@ class TestCase3007768 : AbstractMsaBrokerTest(){
             .msalConfigResourceId(configFileResourceId)
             .build()
 
+        // AcquireToken request should lead to sign up page
+        msalSdk.acquireTokenInteractive(createAccountParams, {
+            // Do nothing, we're just checking for create account UI
+        }, TokenRequestTimeout.SHORT)
+
+        val createAccountText = UiAutomatorUtils.obtainUiObjectWithText("Create account")
+        Assert.assertTrue(createAccountText.waitForExists(CommonUtils.FIND_UI_ELEMENT_TIMEOUT))
+
+        // Exit current auth
+        UiAutomatorUtils.pressBack()
+
+        // Now call AcquireToken with an existing MSA account
+        val username = mLabAccount.username
+        val password = mLabAccount.password
+        val authTestParams = MsalAuthTestParams.builder()
+            .activity(mActivity)
+            .loginHint(username)
+            .scopes(Arrays.asList(*mScopes))
+            .promptParameter(Prompt.SELECT_ACCOUNT)
+            .msalConfigResourceId(configFileResourceId)
+            .build()
         val authResult = msalSdk.acquireTokenInteractive(authTestParams, {
-            var x = 0;
+            val promptHandlerParameters = PromptHandlerParameters.builder()
+                .prompt(PromptParameter.SELECT_ACCOUNT)
+                .loginHint(username)
+                .sessionExpected(false)
+                .consentPageExpected(false)
+                .speedBumpExpected(false)
+                .broker(mBroker)
+                .expectingBrokerAccountChooserActivity(false)
+                .build()
+            AadPromptHandler(promptHandlerParameters)
+                .handlePrompt(username, password)
         }, TokenRequestTimeout.MEDIUM)
         authResult.assertSuccess()
+
+        // Run Create Account UI Test again, should still see ui even if logged in with another MSA account
+        msalSdk.acquireTokenInteractive(createAccountParams, {
+            // Do nothing, we're just checking for create account UI
+        }, TokenRequestTimeout.SHORT)
+        Assert.assertTrue(createAccountText.waitForExists(CommonUtils.FIND_UI_ELEMENT_TIMEOUT))
 
     }
 
