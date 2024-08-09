@@ -71,7 +71,7 @@ class TestCase3007768 : AbstractMsalBrokerTest(){
             // Do nothing, we're just checking for create account UI
         }, TokenRequestTimeout.SHORT)
 
-        val createAccountText = UiAutomatorUtils.obtainUiObjectWithText("Create account")
+        val createAccountText = UiAutomatorUtils.obtainUiObjectWithExactText("Create account")
         Assert.assertTrue(createAccountText.waitForExists(CommonUtils.FIND_UI_ELEMENT_TIMEOUT))
 
         // Exit current auth
