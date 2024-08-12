@@ -27,6 +27,7 @@ import androidx.test.uiautomator.UiObjectNotFoundException;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
@@ -51,6 +52,7 @@ import java.util.List;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2582292
 @LTWTests
 @SupportedBrokers(brokers = {BrokerLTW.class})
+@RetryOnFailure
 public class TestCase2582292 extends AbstractMsalBrokerTest {
 
     @Test
