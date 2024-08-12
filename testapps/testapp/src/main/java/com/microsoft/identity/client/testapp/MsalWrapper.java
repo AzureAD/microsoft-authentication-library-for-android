@@ -145,7 +145,7 @@ abstract class MsalWrapper {
 
         // Split given extra query parameters and add them to extra query parameter list
         // If any were passed in the RequestOptions
-        final String[] requestGenericExtraQueryParams = requestOptions.getExtraQueryParams().split(" ");
+        final String[] requestGenericExtraQueryParams = requestOptions.getExtraQueryParams().split("&");
         for (String extraQueryParam : requestGenericExtraQueryParams) {
             if (extraQueryParam.equals("")) {
                 continue;
