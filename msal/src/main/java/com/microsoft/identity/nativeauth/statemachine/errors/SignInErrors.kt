@@ -1,6 +1,6 @@
 package com.microsoft.identity.nativeauth.statemachine.errors
 
-import com.microsoft.identity.nativeauth.statemachine.results.SignInMFARequiredResult
+import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInSubmitPasswordResult
 
@@ -25,7 +25,7 @@ open class MFAError(
     override val correlationId: String,
     override val errorCodes: List<Int>? = null,
     override var exception: Exception? = null
-): SignInMFARequiredResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
+): MFARequiredResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
 
 }
 

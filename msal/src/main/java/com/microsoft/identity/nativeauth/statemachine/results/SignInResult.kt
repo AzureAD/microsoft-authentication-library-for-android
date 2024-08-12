@@ -24,9 +24,9 @@
 package com.microsoft.identity.nativeauth.statemachine.results
 
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState
+import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInAwaitingMFAState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState
-import com.microsoft.identity.nativeauth.statemachine.states.SignInMFARequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInPasswordRequiredState
 
 /**
@@ -53,7 +53,7 @@ interface SignInResult : Result {
         SignInResult,
         SignInSubmitCodeResult,
         SignInSubmitPasswordResult,
-        SignInMFASubmitChallengeResult
+        MFASubmitChallengeResult
 
     /**
      * CodeRequired Result, which indicates a verification code is required from the user to continue.
@@ -83,7 +83,7 @@ interface SignInResult : Result {
     // TODO MFARequired might be better than AwaitingMFA.
     class MFARequired(
         override val nextState: SignInAwaitingMFAState
-    ) : SignInResult, Result.SuccessResult(nextState = nextState), SignInSubmitCodeResult, SignInMFASubmitChallengeResult
+    ) : SignInResult, Result.SuccessResult(nextState = nextState), SignInSubmitPasswordResult, MFASubmitChallengeResult
 }
 
 /**
@@ -108,7 +108,7 @@ interface SignInResendCodeResult : Result {
      *
      * @param codeLength the length of the code required by the server.
      * @param sentTo the email/phone number the code was sent to.
-     * @param channel channel(email/phone) the code was sent through.
+     * @param channel channel(email/phone) the code was sent    through.
      */
     class Success(
         override val nextState: SignInCodeRequiredState,
@@ -118,23 +118,22 @@ interface SignInResendCodeResult : Result {
     ) : SignInResendCodeResult, Result.SuccessResult(nextState = nextState)
 }
 
-// TODO should we call this SignInMFA or just MFA? MFA can only happen during sign in, so it's redundant?
-interface SignInMFARequiredResult: Result {
+interface MFARequiredResult: Result {
     class VerificationRequired(
-        override val nextState: SignInMFARequiredState,
+        override val nextState: MFARequiredState,
         val codeLength: Int,
         val sentTo: String,
         val channel: String,
-    ) : SignInMFARequiredResult, Result.SuccessResult(nextState = nextState)
+    ) : MFARequiredResult, Result.SuccessResult(nextState = nextState)
 
     class SelectionRequired(
-        override val nextState: SignInMFARequiredState,
+        override val nextState: MFARequiredState,
         val authMethods: List<Int>
-    ) : SignInMFARequiredResult, Result.SuccessResult(nextState = nextState)
+    ) : MFARequiredResult, Result.SuccessResult(nextState = nextState)
 }
 
-interface SignInMFASubmitChallengeResult : Result
+interface MFASubmitChallengeResult : Result
 
-class SignInMFAGetAuthMethodsResult(
+class MFAGetAuthMethodsResult(
     val authMethods: List<Int>
 )
