@@ -1141,7 +1141,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         if (authority != null) {
             config.getAuthorities().clear();
 
-            final Authority authorityObject = Authority.getAuthorityFromAuthorityUrl(authority);
+            final Authority authorityObject = Authority.getAuthorityFromAuthorityUrl(authority, clientId);  // Get CIAMAuthority or NativeAuthCIAMAuthority
             authorityObject.setDefault(true);
             config.getAuthorities().add(authorityObject);
         }
@@ -1161,7 +1161,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         config.setIsSharedDevice(false);
 
         // Check whether account mode is SINGLE
-        config.validateConfiguration();
+        config.validateConfiguration();  // Valid configuration and convert CIAMAuthority to NativeAuthCIAMAuthority
         return new NativeAuthPublicClientApplication(config);
     }
 
