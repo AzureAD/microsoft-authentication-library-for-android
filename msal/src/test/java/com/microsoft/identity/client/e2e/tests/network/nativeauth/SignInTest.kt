@@ -61,6 +61,7 @@ class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
     fun testSignInMFASimple() = runTest {
         val result = application.signIn("user", "password".toCharArray())
         assertState<SignInResult.MFARequired>(result)
+
         // Initiate challenge, send code to email
         val sendChallengeResult = (result as SignInResult.MFARequired).nextState.sendChallenge()
         assertState<MFARequiredResult.VerificationRequired>(sendChallengeResult)
@@ -71,9 +72,12 @@ class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         // Retrieve all methods to build additional "pick MFA method UI"
         val authMethodsResult = sendChallengeResult.nextState.getAuthMethods()
+        assertState<MFARequiredResult.SelectionRequired>(authMethodsResult)
+        (authMethodsResult as MFARequiredResult.SelectionRequired)
         assertTrue(authMethodsResult.authMethods.isNotEmpty())
+
         // call /challenge with specified ID
-        val sendChallengeResult2 = sendChallengeResult.nextState.sendChallenge(authMethodsResult.authMethods[0])
+        val sendChallengeResult2 = sendChallengeResult.nextState.sendChallenge(authMethodsResult.authMethods[0].id)
         assertState<MFARequiredResult.VerificationRequired>(sendChallengeResult2)
 
         // Submit the user supplied code to the API

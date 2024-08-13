@@ -23,9 +23,10 @@
 
 package com.microsoft.identity.nativeauth.statemachine.results
 
+import com.microsoft.identity.nativeauth.AuthMethod
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState
+import com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState
 import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState
-import com.microsoft.identity.nativeauth.statemachine.states.SignInAwaitingMFAState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInPasswordRequiredState
 
@@ -80,9 +81,8 @@ interface SignInResult : Result {
     ) : SignInResult, Result.SuccessResult(nextState = nextState)
 
 
-    // TODO MFARequired might be better than AwaitingMFA.
     class MFARequired(
-        override val nextState: SignInAwaitingMFAState
+        override val nextState: AwaitingMFAState
     ) : SignInResult, Result.SuccessResult(nextState = nextState), SignInSubmitPasswordResult, MFASubmitChallengeResult
 }
 
@@ -128,12 +128,10 @@ interface MFARequiredResult: Result {
 
     class SelectionRequired(
         override val nextState: MFARequiredState,
-        val authMethods: List<Int>
-    ) : MFARequiredResult, Result.SuccessResult(nextState = nextState)
+        val authMethods: List<AuthMethod>
+    ) : MFARequiredResult, MFAGetAuthMethodsResult, Result.SuccessResult(nextState = nextState)
 }
 
 interface MFASubmitChallengeResult : Result
 
-class MFAGetAuthMethodsResult(
-    val authMethods: List<Int>
-)
+interface MFAGetAuthMethodsResult : Result
