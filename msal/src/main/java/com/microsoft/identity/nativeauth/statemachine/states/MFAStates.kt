@@ -25,6 +25,7 @@ package com.microsoft.identity.nativeauth.statemachine.states
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.microsoft.identity.nativeauth.AuthMethod
 import com.microsoft.identity.client.AuthenticationResultAdapter
 import com.microsoft.identity.client.internal.CommandParametersAdapter
 import com.microsoft.identity.common.java.controllers.CommandDispatcher

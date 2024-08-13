@@ -1,7 +1,5 @@
 package com.microsoft.identity.nativeauth.statemachine.errors
 
-import com.microsoft.identity.nativeauth.statemachine.results.MFAGetAuthMethodsResult
-import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInSubmitPasswordResult
 
