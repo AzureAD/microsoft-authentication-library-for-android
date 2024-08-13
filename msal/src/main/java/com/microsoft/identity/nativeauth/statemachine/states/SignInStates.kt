@@ -426,7 +426,16 @@ class SignInPasswordRequiredState(
                                 correlationId = result.correlationId
                             )
                         }
-
+                        is SignInCommandResult.MFARequired -> {
+                            SignInResult.MFARequired(
+                                nextState = AwaitingMFAState(
+                                    continuationToken = result.continuationToken,
+                                    correlationId = result.correlationId,
+                                    scopes = scopes,
+                                    config = config
+                                )
+                            )
+                        }
                         is SignInCommandResult.Complete -> {
                             val authenticationResult =
                                 AuthenticationResultAdapter.adapt(result.authenticationResult)
@@ -438,7 +447,6 @@ class SignInPasswordRequiredState(
                                 )
                             )
                         }
-
                         is INativeAuthCommandResult.Redirect, is INativeAuthCommandResult.APIError -> {
                             Logger.warnWithObject(
                                 TAG,

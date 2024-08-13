@@ -56,28 +56,4 @@ class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
         val result = application.signIn(username, password.toCharArray())
         Assert.assertTrue(result is SignInResult.Complete)
     }
-
-    @Test
-    fun testSignInMFASimple() = runTest {
-        val result = application.signIn("user", "password".toCharArray())
-        assertState<SignInResult.MFARequired>(result)
-        // Initiate challenge, send code to email
-        val sendChallengeResult = (result as SignInResult.MFARequired).nextState.sendChallenge()
-        assertState<MFARequiredResult.VerificationRequired>(sendChallengeResult)
-        (sendChallengeResult as MFARequiredResult.VerificationRequired)
-        assertNotNull(sendChallengeResult.sentTo)
-        assertNotNull(sendChallengeResult.codeLength)
-        assertNotNull(sendChallengeResult.channel)
-
-        // Retrieve all methods to build additional "pick MFA method UI"
-        val authMethodsResult = sendChallengeResult.nextState.getAuthMethods()
-        assertTrue(authMethodsResult.authMethods.isNotEmpty())
-        // call /challenge with specified ID
-        val sendChallengeResult2 = sendChallengeResult.nextState.sendChallenge(authMethodsResult.authMethods[0])
-        assertState<MFARequiredResult.VerificationRequired>(sendChallengeResult2)
-
-        // Submit the user supplied code to the API
-        val submitCodeResult = (sendChallengeResult2 as MFARequiredResult.VerificationRequired).nextState.submitChallenge(1234)
-        assertState<SignInResult.DummyComplete>(submitCodeResult)
-    }
 }

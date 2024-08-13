@@ -25,49 +25,94 @@ package com.microsoft.identity.nativeauth.statemachine.states
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.microsoft.identity.client.internal.CommandParametersAdapter
+import com.microsoft.identity.common.java.controllers.CommandDispatcher
+import com.microsoft.identity.common.java.eststelemetry.PublicApiId
+import com.microsoft.identity.common.java.logging.LogSession
+import com.microsoft.identity.common.java.nativeauth.controllers.results.MFACommandResult
+import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
+import com.microsoft.identity.common.nativeauth.internal.commands.GetAuthMethodsCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.MFAChallengeCommand
+import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
-import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
+import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
+import com.microsoft.identity.nativeauth.statemachine.errors.MFAError
 import com.microsoft.identity.nativeauth.statemachine.results.MFAGetAuthMethodsResult
+import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
 import com.microsoft.identity.nativeauth.statemachine.results.MFASubmitChallengeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
+import com.microsoft.identity.nativeauth.toListOfAuthMethods
 import com.microsoft.identity.nativeauth.utils.serializable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class SignInAwaitingMFAState(
+class AwaitingMFAState(
     override val continuationToken: String,
     override val correlationId: String,
     private val scopes: List<String>?,
     private val config: NativeAuthPublicClientApplicationConfiguration
 ) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
+    private val TAG: String = AwaitingMFAState::class.java.simpleName
 
     // Challenge default auth method
     suspend fun sendChallenge(): MFARequiredResult {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.sendChallenge()"
+        )
         return withContext(Dispatchers.IO) {
-            // if /challenge returns HTTP 200
-            if (true) {
-                MFARequiredResult.VerificationRequired(
-                    nextState = MFARequiredState(
-                        continuationToken = continuationToken,
-                        correlationId = correlationId,
-                        scopes = scopes,
-                        config = config
-                    ),
-                    codeLength = 6,
-                    sentTo = "user@contoso.com",
-                    channel = "email"
+            try {
+                val params = CommandParametersAdapter.createMFAChallengeCommandParameters(
+                    config,
+                    config.oAuth2TokenCache,
+                    continuationToken,
+                    correlationId,
+                    scopes
                 )
-            } else {
-                // /challenge returns introspect_required
-                // call /introspect and return authMethods
-                MFARequiredResult.SelectionRequired(
-                    nextState = MFARequiredState(
-                        continuationToken = continuationToken,
-                        correlationId = correlationId,
-                        scopes = scopes,
-                        config = config
-                    ),
-                    authMethods = listOf(1, 2, 3)
+                val command = MFAChallengeCommand(
+                    parameters = params,
+                    controller = NativeAuthMsalController(),
+                    publicApiId = PublicApiId.NATIVE_AUTH_MFA_CHALLENGE
+                )
+
+                val rawCommandResult =
+                    CommandDispatcher.submitSilentReturningFuture(command)
+                        .get()
+
+                return@withContext when (val result =
+                    rawCommandResult.checkAndWrapCommandResultType<MFACommandResult>()) {
+                    is MFACommandResult.VerificationRequired -> {
+                        MFARequiredResult.VerificationRequired(
+                            nextState = MFAVerificationRequiredState(
+                                continuationToken = result.continuationToken,
+                                correlationId = result.correlationId,
+                                scopes = scopes,
+                                config = config
+                            ),
+                            codeLength = result.codeLength,
+                            sentTo = result.challengeTargetLabel,
+                            channel = result.challengeChannel
+                        )
+                    }
+                    is MFACommandResult.SelectionRequired -> {
+                        MFARequiredResult.SelectionRequired(
+                            nextState = AwaitingMFAState(
+                                continuationToken = result.continuationToken,
+                                correlationId = result.correlationId,
+                                scopes = scopes,
+                                config = config
+                            ),
+                            authMethods = result.authMethods.toListOfAuthMethods()
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                MFAError(
+                    errorType = ErrorTypes.CLIENT_EXCEPTION,
+                    errorMessage = "MSAL client exception occurred in sendChallenge().",
+                    exception = e,
+                    correlationId = correlationId
                 )
             }
         }
@@ -91,93 +136,77 @@ class SignInAwaitingMFAState(
         return 0
     }
 
-    companion object CREATOR : Parcelable.Creator<SignInAwaitingMFAState> {
-        override fun createFromParcel(parcel: Parcel): SignInAwaitingMFAState {
-            return SignInAwaitingMFAState(parcel)
+    companion object CREATOR : Parcelable.Creator<AwaitingMFAState> {
+        override fun createFromParcel(parcel: Parcel): AwaitingMFAState {
+            return AwaitingMFAState(parcel)
         }
 
-        override fun newArray(size: Int): Array<SignInAwaitingMFAState?> {
+        override fun newArray(size: Int): Array<AwaitingMFAState?> {
             return arrayOfNulls(size)
         }
     }
 }
 
-class MFARequiredState(
+class MFAVerificationRequiredState(
     override val continuationToken: String,
     override val correlationId: String,
     private val scopes: List<String>?,
     private val config: NativeAuthPublicClientApplicationConfiguration
 ) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
-
-    // Challenge default auth method
-    suspend fun sendChallenge(): MFARequiredResult {
-        return withContext(Dispatchers.IO) {
-            // if /challenge returns HTTP 200
-            if (true) {
-                MFARequiredResult.VerificationRequired(
-                    nextState = MFARequiredState(
-                        continuationToken = continuationToken,
-                        correlationId = correlationId,
-                        scopes = scopes,
-                        config = config
-                    ),
-                    codeLength = 6,
-                    sentTo = "user@contoso.com",
-                    channel = "email"
-                )
-            } else {
-                // /challenge returns introspect_required
-                // call /introspect and return authMethods
-                MFARequiredResult.SelectionRequired(
-                    nextState = MFARequiredState(
-                        continuationToken = continuationToken,
-                        correlationId = correlationId,
-                        scopes = scopes,
-                        config = config
-                    ),
-                    authMethods = listOf(1, 2, 3)
-                )
-            }
-        }
-    }
-
-    // Challenge specified auth methods
-    suspend fun sendChallenge(authMethod: Int): MFARequiredResult {
-        return withContext(Dispatchers.IO) {
-            // if /challenge returns HTTP 200
-            if (true) {
-                MFARequiredResult.VerificationRequired(
-                    nextState = MFARequiredState(
-                        continuationToken = continuationToken,
-                        correlationId = correlationId,
-                        scopes = scopes,
-                        config = config
-                    ),
-                    codeLength = 6,
-                    sentTo = "user@contoso.com",
-                    channel = "email"
-                )
-            } else {
-                // /challenge returns introspect_required
-                // call /introspect and return authMethods
-                MFARequiredResult.SelectionRequired(
-                    nextState = MFARequiredState(
-                        continuationToken = continuationToken,
-                        correlationId = correlationId,
-                        scopes = scopes,
-                        config = config
-                    ),
-                    authMethods = listOf(1, 2, 3)
-                )
-            }
-        }
-    }
+    private val TAG: String = MFAVerificationRequiredState::class.java.simpleName
 
     // Call /introspect
     suspend fun getAuthMethods(): MFAGetAuthMethodsResult {
-        return MFAGetAuthMethodsResult(
-            authMethods = listOf(1, 2, 3)
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.getAuthMethods()"
         )
+        return withContext(Dispatchers.IO) {
+            try {
+                val params = CommandParametersAdapter.createGetAuthMethodsCommandParameters(
+                    config,
+                    config.oAuth2TokenCache,
+                    continuationToken,
+                    correlationId,
+                    scopes
+                )
+                val command = GetAuthMethodsCommand(
+                    parameters = params,
+                    controller = NativeAuthMsalController(),
+                    publicApiId = PublicApiId.NATIVE_AUTH_GET_AUTH_METHODS
+                )
+
+                val rawCommandResult =
+                    CommandDispatcher.submitSilentReturningFuture(command)
+                        .get()
+
+                return@withContext when (val result =
+                    rawCommandResult.checkAndWrapCommandResultType<MFACommandResult>()) {
+                    is MFACommandResult.VerificationRequired -> {
+                        TODO()
+                    }
+                    is MFACommandResult.SelectionRequired -> {
+                        MFARequiredResult.SelectionRequired(
+                            nextState = AwaitingMFAState(
+                                continuationToken = result.continuationToken,
+                                correlationId = result.correlationId,
+                                scopes = scopes,
+                                config = config
+                            ),
+                            authMethods = result.authMethods.toListOfAuthMethods()
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                MFAError(
+                    errorType = ErrorTypes.CLIENT_EXCEPTION,
+                    errorMessage = "MSAL client exception occurred in getAuthMethods().",
+                    exception = e,
+                    correlationId = correlationId
+                )
+            }
+        }
     }
 
     // Call /token
@@ -188,7 +217,7 @@ class MFARequiredState(
         } else {
             // If /token returns another mfa_required error
             SignInResult.MFARequired(
-               nextState = SignInAwaitingMFAState(
+               nextState = AwaitingMFAState(
                    continuationToken = continuationToken,
                    correlationId = correlationId,
                    scopes = scopes,
@@ -216,12 +245,12 @@ class MFARequiredState(
         return 0
     }
 
-    companion object CREATOR : Parcelable.Creator<MFARequiredState> {
-        override fun createFromParcel(parcel: Parcel): MFARequiredState {
-            return MFARequiredState(parcel)
+    companion object CREATOR : Parcelable.Creator<MFAVerificationRequiredState> {
+        override fun createFromParcel(parcel: Parcel): MFAVerificationRequiredState {
+            return MFAVerificationRequiredState(parcel)
         }
 
-        override fun newArray(size: Int): Array<MFARequiredState?> {
+        override fun newArray(size: Int): Array<MFAVerificationRequiredState?> {
             return arrayOfNulls(size)
         }
     }
