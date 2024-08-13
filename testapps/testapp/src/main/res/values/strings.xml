@@ -34,6 +34,8 @@
     <string name="scope_default_text">user.read</string>
     <string name="extra_scope_text">Extra Scopes</string>
     <string name="scope_text_hint">Type in scopes delimited by space</string>
+    <string name="extra_query_params_text">Extra Query Params</string>
+    <string name="extra_query_params_text_hint">Enter as param1=1234&amp;param2=abc</string>
     <string name="enable_pii_text">Enable PII</string>
     <string name="force_refresh">Force Refresh</string>
     <string name="default_browser">Default Browser</string>
