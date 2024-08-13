@@ -81,7 +81,6 @@ interface SignInResult : Result {
     ) : SignInResult, Result.SuccessResult(nextState = nextState)
 
 
-    // TODO MFARequired might be better than AwaitingMFA.
     class MFARequired(
         override val nextState: AwaitingMFAState
     ) : SignInResult, Result.SuccessResult(nextState = nextState), SignInSubmitPasswordResult, MFASubmitChallengeResult
