@@ -2,6 +2,7 @@ package com.microsoft.identity.nativeauth.statemachine.errors
 
 import com.microsoft.identity.nativeauth.statemachine.results.MFAGetAuthMethodsResult
 import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
+import com.microsoft.identity.nativeauth.statemachine.results.MFASubmitChallengeResult
 
 open class MFAError(
     override val errorType: String? = null,
@@ -10,4 +11,4 @@ open class MFAError(
     override val correlationId: String,
     override val errorCodes: List<Int>? = null,
     override var exception: Exception? = null
-): MFARequiredResult, MFAGetAuthMethodsResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception)
+): MFARequiredResult, MFAGetAuthMethodsResult, MFASubmitChallengeResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception)

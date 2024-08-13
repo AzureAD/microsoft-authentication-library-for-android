@@ -26,7 +26,7 @@ package com.microsoft.identity.nativeauth.statemachine.results
 import com.microsoft.identity.nativeauth.AuthMethod
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState
 import com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState
-import com.microsoft.identity.nativeauth.statemachine.states.MFAVerificationRequiredState
+import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInPasswordRequiredState
 
@@ -44,13 +44,6 @@ interface SignInResult : Result {
      */
     class Complete(override val resultValue: AccountState) :
         Result.CompleteResult(resultValue = resultValue),
-        SignInResult,
-        SignInSubmitCodeResult,
-        SignInSubmitPasswordResult
-
-    // Should be removed and replaced with Complete, once we receive an authentication result from the API
-    class DummyComplete :
-        Result.CompleteResult(),
         SignInResult,
         SignInSubmitCodeResult,
         SignInSubmitPasswordResult,
@@ -120,14 +113,14 @@ interface SignInResendCodeResult : Result {
 
 interface MFARequiredResult: Result {
     class VerificationRequired(
-        override val nextState: MFAVerificationRequiredState,
+        override val nextState: MFARequiredState,
         val codeLength: Int,
         val sentTo: String,
         val channel: String,
     ) : MFARequiredResult, Result.SuccessResult(nextState = nextState)
 
     class SelectionRequired(
-        override val nextState: AwaitingMFAState,
+        override val nextState: MFARequiredState,
         val authMethods: List<AuthMethod>
     ) : MFARequiredResult, MFAGetAuthMethodsResult, Result.SuccessResult(nextState = nextState)
 }
