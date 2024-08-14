@@ -45,6 +45,9 @@ import com.microsoft.identity.nativeauth.statemachine.errors.SignUpSubmitAttribu
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError;
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult;
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult;
+import com.microsoft.identity.nativeauth.statemachine.results.MFAGetAuthMethodsResult;
+import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult;
+import com.microsoft.identity.nativeauth.statemachine.results.MFASubmitChallengeResult;
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResendCodeResult;
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResult;
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult;
@@ -60,6 +63,8 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignUpSubmitAttrib
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpSubmitCodeResult;
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpSubmitPasswordResult;
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState;
+import com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState;
+import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState;
 import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordCodeRequiredState;
 import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordPasswordRequiredState;
 import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState;
@@ -105,6 +110,7 @@ import java.util.concurrent.TimeoutException;
 import androidx.annotation.NonNull;
 import androidx.test.core.app.ApplicationProvider;
 
+import static com.microsoft.identity.common.nativeauth.MockApiUtils.configureMockApi;
 import static com.microsoft.identity.nativeauth.utils.MockCorrelationIdHelperKt.mockCorrelationId;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -204,7 +210,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 1. Sign in initiate with username
         // 1a. Setup server response
         String correlationId = UUID.randomUUID().toString();
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInInitiate,
                 correlationId,
                 MockApiResponseType.INITIATE_SUCCESS
@@ -212,7 +218,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 2a. Sign in challenge
         // 2b. Setup server response with password required
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_PASSWORD
@@ -220,7 +226,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 3a. Token with password
         // 3b. Success, with tokens
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInToken,
                 correlationId,
                 MockApiResponseType.TOKEN_SUCCESS
@@ -264,7 +270,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 1. Sign in initiate with username
         // 1a. Setup server response
         String correlationId = UUID.randomUUID().toString();
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInInitiate,
                 correlationId,
                 MockApiResponseType.INITIATE_SUCCESS
@@ -272,7 +278,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 2a. Sign in challenge
         // 2b. Setup server response with password required
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_PASSWORD
@@ -280,7 +286,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 3a. Token with password
         // 3b. Invalid password
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInToken,
                 correlationId,
                 MockApiResponseType.INVALID_PASSWORD
@@ -356,7 +362,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 1. Sign in with username
         // 1a. Setup server response
         String correlationId = UUID.randomUUID().toString();
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInInitiate,
                 correlationId,
                 MockApiResponseType.USER_NOT_FOUND
@@ -398,7 +404,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 1. Sign in initiate with username
         // 1a. Setup server response
         String correlationId = UUID.randomUUID().toString();
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInInitiate,
                 correlationId,
                 MockApiResponseType.INITIATE_SUCCESS
@@ -406,7 +412,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 2a. Sign in challenge
         // 2b. Setup server response with oob required
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_OOB
@@ -436,7 +442,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 2. Submit (invalid) code
         // 2a. Setup server response
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInToken,
                 correlationId,
                 MockApiResponseType.INVALID_OOB_VALUE
@@ -468,7 +474,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 3. Submit (valid) code
         // 3a. Setup server response
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInToken,
                 correlationId,
                 MockApiResponseType.TOKEN_SUCCESS
@@ -508,7 +514,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         String correlationId = UUID.randomUUID().toString();
         // 1a. Sign in with username
         // 1b. Setup server response
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInInitiate,
                 correlationId,
                 MockApiResponseType.INITIATE_SUCCESS
@@ -516,7 +522,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 2a. Sign in challenge
         // 2b. Setup server response with oob required
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_OOB
@@ -553,7 +559,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 1. Sign in with username and password
         // 1a. Setup server response
         String correlationId = UUID.randomUUID().toString();
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInToken,
                 correlationId,
                 MockApiResponseType.INVALID_AUTHENTICATION_METHOD
@@ -561,7 +567,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 2a. Sign in with username
         // 2b. Setup server response
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInInitiate,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_REDIRECT
@@ -586,24 +592,241 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         assertTrue(result instanceof SignInError);
     }
 
+    @Test
+    public void testSignInMFAScenario1() throws ExecutionException, InterruptedException, TimeoutException {
+        String correlationId = UUID.randomUUID().toString();
+        configureMockApi(
+                MockApiEndpoint.SignInInitiate,
+                correlationId,
+                MockApiResponseType.INITIATE_SUCCESS
+        );
+
+        // 2a. Sign in challenge
+        // 2b. Setup server response with password required
+        configureMockApi(
+                MockApiEndpoint.SignInChallenge,
+                correlationId,
+                MockApiResponseType.CHALLENGE_TYPE_PASSWORD
+        );
+
+        // 3a. Token with password
+        // 3b. mfa_required
+        configureMockApi(
+                MockApiEndpoint.SignInToken,
+                correlationId,
+                MockApiResponseType.MFA_REQUIRED
+        );
+
+        SignInTestCallback signInCallback = new SignInTestCallback();
+
+        application.signIn(
+                username,
+                password,
+                null,
+                signInCallback
+        );
+
+        SignInResult result = signInCallback.get();
+        assertTrue(result instanceof SignInResult.MFARequired);
+
+        correlationId = UUID.randomUUID().toString();
+        // 4a. Sign in challenge for default auth method
+        // 4b. Setup server response with oob required
+        configureMockApi(
+                MockApiEndpoint.SignInChallenge,
+                correlationId,
+                MockApiResponseType.CHALLENGE_TYPE_OOB
+        );
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        AwaitingMFAState nextState = spy(((SignInResult.MFARequired) result).getNextState());
+        mockCorrelationId(nextState, correlationId);
+
+        AwaitingMFAStateSendChallengeTestCallback sendChallengeCallback = new AwaitingMFAStateSendChallengeTestCallback();
+        nextState.sendChallenge(sendChallengeCallback);
+
+        MFARequiredResult sendChallengeResult = sendChallengeCallback.get();
+        assertTrue(sendChallengeResult instanceof MFARequiredResult.VerificationRequired);
+
+        correlationId = UUID.randomUUID().toString();
+        // 5a. Sign in challenge for default auth method
+        // 5b. Setup server response with introspect required
+        configureMockApi(
+                MockApiEndpoint.Introspect,
+                correlationId,
+                MockApiResponseType.INTROSPECT_SUCCESS
+        );
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        MFARequiredState nextState2 = spy(((MFARequiredResult.VerificationRequired) sendChallengeResult).getNextState());
+        mockCorrelationId(nextState2, correlationId);
+
+        GetAuthMethodsTestCallback getAuthMethodsCallback = new GetAuthMethodsTestCallback();
+        nextState2.getAuthMethods(getAuthMethodsCallback);
+
+        MFAGetAuthMethodsResult getAuthMethodsResult = getAuthMethodsCallback.get();
+        assertTrue(getAuthMethodsResult instanceof MFARequiredResult.SelectionRequired);
+
+        correlationId = UUID.randomUUID().toString();
+        // 6a. Sign in challenge for specified auth method
+        // 6b. Setup server response with oob required
+        configureMockApi(
+                MockApiEndpoint.SignInChallenge,
+                correlationId,
+                MockApiResponseType.CHALLENGE_TYPE_OOB
+        );
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        MFARequiredState nextState3 = spy(((MFARequiredResult.SelectionRequired) getAuthMethodsResult).getNextState());
+        mockCorrelationId(nextState3, correlationId);
+
+        MFARequiredStateSendChallengeTestCallback sendSelectedAuthMethodCallback = new MFARequiredStateSendChallengeTestCallback();
+        String authMethodId = ((MFARequiredResult.SelectionRequired) getAuthMethodsResult).getAuthMethods().get(0).getId();
+        nextState3.sendChallenge(authMethodId, sendSelectedAuthMethodCallback);
+
+        MFARequiredResult sendSelectedAuthMethodResult = sendSelectedAuthMethodCallback.get();
+        assertTrue(sendSelectedAuthMethodResult instanceof MFARequiredResult.VerificationRequired);
+
+        correlationId = UUID.randomUUID().toString();
+        // 7a. Send challenge value to the API
+        // 7b. Sign in completed, receive tokens
+        configureMockApi(
+                MockApiEndpoint.SignInToken,
+                correlationId,
+                MockApiResponseType.TOKEN_SUCCESS
+        );
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        MFARequiredState nextState4 = spy(((MFARequiredResult.VerificationRequired) sendSelectedAuthMethodResult).getNextState());
+        mockCorrelationId(nextState4, correlationId);
+
+        SubmitChallengeTestCallback submitChallengeCallback = new SubmitChallengeTestCallback();
+        nextState4.submitChallenge(code, submitChallengeCallback);
+
+        MFASubmitChallengeResult submitChallengeResult = submitChallengeCallback.get();
+        assertTrue(submitChallengeResult instanceof SignInResult.Complete);
+    }
+
+    @Test
+    public void testSignInMFAScenario2() throws ExecutionException, InterruptedException, TimeoutException {
+        String correlationId = UUID.randomUUID().toString();
+        configureMockApi(
+                MockApiEndpoint.SignInInitiate,
+                correlationId,
+                MockApiResponseType.INITIATE_SUCCESS
+        );
+
+        // 2a. Sign in challenge
+        // 2b. Setup server response with password required
+        configureMockApi(
+                MockApiEndpoint.SignInChallenge,
+                correlationId,
+                MockApiResponseType.CHALLENGE_TYPE_PASSWORD
+        );
+
+        // 3a. Token with password
+        // 3b. mfa_required
+        configureMockApi(
+                MockApiEndpoint.SignInToken,
+                correlationId,
+                MockApiResponseType.MFA_REQUIRED
+        );
+
+        SignInTestCallback signInCallback = new SignInTestCallback();
+
+        application.signIn(
+                username,
+                password,
+                null,
+                signInCallback
+        );
+
+        SignInResult result = signInCallback.get();
+        assertTrue(result instanceof SignInResult.MFARequired);
+
+        correlationId = UUID.randomUUID().toString();
+        // 3a. Sign in challenge for default auth method
+        // 3b. Setup server response with oob required
+        configureMockApi(
+                MockApiEndpoint.SignInChallenge,
+                correlationId,
+                MockApiResponseType.INTROSPECT_REQUIRED
+        );
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        AwaitingMFAState nextState = spy(((SignInResult.MFARequired) result).getNextState());
+        mockCorrelationId(nextState, correlationId);
+
+        AwaitingMFAStateSendChallengeTestCallback sendChallengeCallback = new AwaitingMFAStateSendChallengeTestCallback();
+        nextState.sendChallenge(sendChallengeCallback);
+
+        MFARequiredResult sendChallengeResult = sendChallengeCallback.get();
+        assertTrue(sendChallengeResult instanceof MFARequiredResult.SelectionRequired);
+
+        correlationId = UUID.randomUUID().toString();
+        // 6a. Sign in challenge for specified auth method
+        // 6b. Setup server response with oob required
+        configureMockApi(
+                MockApiEndpoint.SignInChallenge,
+                correlationId,
+                MockApiResponseType.CHALLENGE_TYPE_OOB
+        );
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        MFARequiredState nextState3 = spy(((MFARequiredResult.SelectionRequired) sendChallengeResult).getNextState());
+        mockCorrelationId(nextState3, correlationId);
+
+        MFARequiredStateSendChallengeTestCallback sendSelectedAuthMethodCallback = new MFARequiredStateSendChallengeTestCallback();
+        String authMethodId = ((MFARequiredResult.SelectionRequired) sendChallengeResult).getAuthMethods().get(0).getId();
+        nextState3.sendChallenge(authMethodId, sendSelectedAuthMethodCallback);
+
+        MFARequiredResult sendSelectedAuthMethodResult = sendSelectedAuthMethodCallback.get();
+        assertTrue(sendSelectedAuthMethodResult instanceof MFARequiredResult.VerificationRequired);
+
+        correlationId = UUID.randomUUID().toString();
+        // 7a. Send challenge value to the API
+        // 7b. Sign in completed, receive tokens
+        configureMockApi(
+                MockApiEndpoint.SignInToken,
+                correlationId,
+                MockApiResponseType.TOKEN_SUCCESS
+        );
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        MFARequiredState nextState4 = spy(((MFARequiredResult.VerificationRequired) sendSelectedAuthMethodResult).getNextState());
+        mockCorrelationId(nextState4, correlationId);
+
+        SubmitChallengeTestCallback submitChallengeCallback = new SubmitChallengeTestCallback();
+        nextState4.submitChallenge(code, submitChallengeCallback);
+
+        MFASubmitChallengeResult submitChallengeResult = submitChallengeCallback.get();
+        assertTrue(submitChallengeResult instanceof SignInResult.Complete);
+    }
+
     /**
      * Test sign in blocked (when account is already signed in)
      */
     @Test
     public void testSignInBlocked() throws ExecutionException, InterruptedException, TimeoutException {
         String correlationId = UUID.randomUUID().toString();
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInInitiate,
                 correlationId,
                 MockApiResponseType.INITIATE_SUCCESS
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_PASSWORD
         );
-
 
         final ResultFuture<SignInResult> signInWithPasswordResult = new ResultFuture<>();
         NativeAuthPublicClientApplication.SignInCallback signInWithPasswordResultCallback
@@ -648,19 +871,19 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     @Test
     public void testSignInSignOutSignIn() throws ExecutionException, InterruptedException, TimeoutException {
         String correlationId = UUID.randomUUID().toString();
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInInitiate,
                 correlationId,
                 MockApiResponseType.INITIATE_SUCCESS
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_PASSWORD
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInToken,
                 correlationId,
                 MockApiResponseType.TOKEN_SUCCESS
@@ -683,19 +906,19 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         assertNotNull(signOutResult);
 
         // Sign in again
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInInitiate,
                 correlationId,
                 MockApiResponseType.INITIATE_SUCCESS
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_PASSWORD
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInToken,
                 correlationId,
                 MockApiResponseType.TOKEN_SUCCESS
@@ -719,19 +942,19 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     @Test
     public void testGetAccessToken() throws ExecutionException, InterruptedException, TimeoutException {
         String correlationId = UUID.randomUUID().toString();
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInInitiate,
                 correlationId,
                 MockApiResponseType.INITIATE_SUCCESS
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_PASSWORD
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInToken,
                 correlationId,
                 MockApiResponseType.TOKEN_SUCCESS
@@ -778,19 +1001,19 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     @Test
     public void testGetAccessTokenWithSignInScopes() throws ExecutionException, InterruptedException, TimeoutException {
         String correlationId = UUID.randomUUID().toString();
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInInitiate,
                 correlationId,
                 MockApiResponseType.INITIATE_SUCCESS
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_PASSWORD
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInToken,
                 correlationId,
                 MockApiResponseType.TOKEN_SUCCESS
@@ -838,19 +1061,19 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     @Test
     public void testGetAccessTokenEmptyScope() throws ExecutionException, InterruptedException, TimeoutException {
         String correlationId = UUID.randomUUID().toString();
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInInitiate,
                 correlationId,
                 MockApiResponseType.INITIATE_SUCCESS
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_PASSWORD
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInToken,
                 correlationId,
                 MockApiResponseType.TOKEN_SUCCESS
@@ -881,19 +1104,19 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     @Test
     public void testSignOutGetAccessToken() throws ExecutionException, InterruptedException, TimeoutException {
         String correlationId = UUID.randomUUID().toString();
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInInitiate,
                 correlationId,
                 MockApiResponseType.INITIATE_SUCCESS
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_PASSWORD
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInToken,
                 correlationId,
                 MockApiResponseType.TOKEN_SUCCESS
@@ -931,19 +1154,19 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     @Test
     public void testSignOutGetAccessTokenTwoParams() throws ExecutionException, InterruptedException, TimeoutException {
         String correlationId = UUID.randomUUID().toString();
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInInitiate,
                 correlationId,
                 MockApiResponseType.INITIATE_SUCCESS
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_PASSWORD
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInToken,
                 correlationId,
                 MockApiResponseType.TOKEN_SUCCESS
@@ -984,19 +1207,19 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     @Test
     public void testSignUpPasswordBlocked() throws ExecutionException, InterruptedException, TimeoutException {
         String correlationId = UUID.randomUUID().toString();
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInInitiate,
                 correlationId,
                 MockApiResponseType.INITIATE_SUCCESS
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_PASSWORD
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInToken,
                 correlationId,
                 MockApiResponseType.TOKEN_SUCCESS
@@ -1041,19 +1264,19 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     @Test
     public void testSignUpBlocked() throws ExecutionException, InterruptedException, TimeoutException {
         String correlationId = UUID.randomUUID().toString();
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInInitiate,
                 correlationId,
                 MockApiResponseType.INITIATE_SUCCESS
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_PASSWORD
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInToken,
                 correlationId,
                 MockApiResponseType.TOKEN_SUCCESS
@@ -1101,19 +1324,19 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         System.out.println("testResetPasswordBlocked");
 
         String correlationId = UUID.randomUUID().toString();
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInInitiate,
                 correlationId,
                 MockApiResponseType.INITIATE_SUCCESS
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_PASSWORD
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInToken,
                 correlationId,
                 MockApiResponseType.TOKEN_SUCCESS
@@ -1155,7 +1378,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 1a. sign in with (valid) SLT
         String correlationId = UUID.randomUUID().toString();
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInToken,
                 correlationId,
                 MockApiResponseType.TOKEN_SUCCESS
@@ -1187,7 +1410,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     public void testSignInWithSLTNullSLT() throws ExecutionException, InterruptedException, TimeoutException {
         // 1a. sign in with (null) SLT
         String correlationId = UUID.randomUUID().toString();
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInToken,
                 correlationId,
                 MockApiResponseType.TOKEN_SUCCESS
@@ -1234,7 +1457,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 1a. sign in with (expired) SLT
         String correlationId = UUID.randomUUID().toString();
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInToken,
                 correlationId,
                 MockApiResponseType.TOKEN_EXPIRED_SLT
@@ -1272,7 +1495,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     public void testSignInEmptyUsernameNoException() throws ExecutionException, InterruptedException, TimeoutException {
         String correlationId = UUID.randomUUID().toString();
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInInitiate,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_REDIRECT
@@ -1325,13 +1548,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         String correlationId = UUID.randomUUID().toString();
         // 1. Click reset password
         // 1_mock_api. Setup server response - endpoint: resetpassword/start - Server returns Success
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRStart,
                 correlationId,
                 MockApiResponseType.SSPR_START_SUCCESS
         );
         // 1_mock_api. Setup server response - endpoint: resetpassword/challenge - Server returns Success: challenge_type = OOB
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_OOB
@@ -1348,7 +1571,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 2. Submit valid code
         // 2_mock_api. Setup server response - endpoint: resetpassowrd/continue - Server returns Success
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRContinue,
                 correlationId,
                 MockApiResponseType.SSPR_CONTINUE_SUCCESS
@@ -1365,13 +1588,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 3. Submit valid password
         // 3_mock_api. Setup server response - endpoint: resetpassword/submit - Server returns Success
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRSubmit,
                 correlationId,
                 MockApiResponseType.SSPR_SUBMIT_SUCCESS
         );
         // 3_mock_api. Setup server response - endpoint: resetpassword/poll_completion - Server returns Success
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRPoll,
                 correlationId,
                 MockApiResponseType.SSPR_POLL_SUCCESS
@@ -1401,13 +1624,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         String correlationId = UUID.randomUUID().toString();
         // 1. Click reset password
         // 1_mock_api. Setup server response - endpoint: resetpassword/start - Server returns Success
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRStart,
                 correlationId,
                 MockApiResponseType.SSPR_START_SUCCESS
         );
         // 1_mock_api. Setup server response - endpoint: resetpassword/challenge - Server returns Success: challenge_type = OOB
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_OOB
@@ -1424,7 +1647,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 2. Submit valid code
         // 2_mock_api. Setup server response - endpoint: resetpassowrd/continue - Server returns Success
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRContinue,
                 correlationId,
                 MockApiResponseType.SSPR_CONTINUE_SUCCESS
@@ -1441,13 +1664,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 3. Submit valid password
         // 3_mock_api. Setup server response - endpoint: resetpassword/submit - Server returns Success
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRSubmit,
                 correlationId,
                 MockApiResponseType.SSPR_SUBMIT_SUCCESS
         );
         // 3_mock_api. Setup server response - endpoint: resetpassword/poll_completion - Server returns Success
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRPoll,
                 correlationId,
                 MockApiResponseType.SSPR_POLL_SUCCESS
@@ -1463,7 +1686,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         SignInContinuationState signInState = ((ResetPasswordResult.Complete) submitPasswordResult).getNextState();
 
         // 4a. Sign in with (valid) continuation token
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignInToken,
                 correlationId,
                 MockApiResponseType.TOKEN_SUCCESS
@@ -1492,13 +1715,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         String correlationId = UUID.randomUUID().toString();
         // 1. Click reset password
         // 1_mock_api. Setup server response - endpoint: resetpassword/start - Server returns Success
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRStart,
                 correlationId,
                 MockApiResponseType.SSPR_START_SUCCESS
         );
         // 1_mock_api. Setup server response - endpoint: resetpassword/challenge - Server returns Success: challenge_type = OOB
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_OOB
@@ -1518,7 +1741,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 2. Submit valid code
         // 2_mock_api. Setup server response - endpoint: resetpassowrd/continue - Server returns Success
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRContinue,
                 correlationId,
                 MockApiResponseType.SSPR_CONTINUE_SUCCESS
@@ -1538,7 +1761,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 3. Submit invalid password
         // 3_mock_api. Setup server response - endpoint: resetpassword/submit - Server returns Success
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRSubmit,
                 correlationId,
                 MockApiResponseType.PASSWORD_TOO_WEAK
@@ -1555,13 +1778,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 4. Submit valid password
         // 4_mock_api. Setup server response - endpoint: resetpassword/submit - Server returns Success
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRSubmit,
                 correlationId,
                 MockApiResponseType.SSPR_SUBMIT_SUCCESS
         );
         // 4_mock_api. Setup server response - endpoint: resetpassword/poll_completion - Server returns Success
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRPoll,
                 correlationId,
                 MockApiResponseType.SSPR_POLL_SUCCESS
@@ -1593,13 +1816,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         String correlationId = UUID.randomUUID().toString();
         // 1. Click reset password
         // 1_mock_api. Setup server response - endpoint: resetpassword/start - Server returns Success
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRStart,
                 correlationId,
                 MockApiResponseType.SSPR_START_SUCCESS
         );
         // 1_mock_api. Setup server response - endpoint: resetpassword/challenge - Server returns Success: challenge_type = OOB
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_OOB
@@ -1616,7 +1839,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 2. Click resend code
         // 2_mock_api. Setup server response - endpoint: resetpassword/challenge - Server returns Success: challenge_type = OOB
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_OOB
@@ -1631,7 +1854,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 3. Submit valid code
         // 3_mock_api. Setup server response - endpoint: resetpassword/continue - Server returns Success
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRContinue,
                 correlationId,
                 MockApiResponseType.SSPR_CONTINUE_SUCCESS
@@ -1648,13 +1871,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 4. Submit valid password
         // 4_mock_api. Setup server response - endpoint: resetpassword/submit - Server returns Success
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRSubmit,
                 correlationId,
                 MockApiResponseType.SSPR_SUBMIT_SUCCESS
         );
         // 4_mock_api. Setup server response - endpoint: resetpassword/poll_completion - Server returns Success
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRPoll,
                 correlationId,
                 MockApiResponseType.SSPR_POLL_SUCCESS
@@ -1680,7 +1903,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         String correlationId = UUID.randomUUID().toString();
         // 1. Click reset password
         // 1_mock_api. Setup server response - endpoint: resetpassword/start - Server returns Error: user not found
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRStart,
                 correlationId,
                 MockApiResponseType.USER_NOT_FOUND
@@ -1705,7 +1928,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         String correlationId = UUID.randomUUID().toString();
         // 1. Click reset password
         // 1_mock_api. Setup server response - endpoint: resetpassword/start - Server returns Error: user not found
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRStart,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_REDIRECT
@@ -1729,7 +1952,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         String correlationId = UUID.randomUUID().toString();
         // 1. Click reset password
         // 1_mock_api. Setup server response - endpoint: resetpassword/start - Server returns Error: invalid request
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRStart,
                 correlationId,
                 MockApiResponseType.UNSUPPORTED_CHALLENGE_TYPE
@@ -1762,13 +1985,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         String correlationId = UUID.randomUUID().toString();
         // 1. Click reset password
         // 1_mock_api. Setup server response - endpoint: resetpassword/start - Server returns Success
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRStart,
                 correlationId,
                 MockApiResponseType.SSPR_START_SUCCESS
         );
         // 1_mock_api. Setup server response - endpoint: resetpassword/challenge - Server returns Success: challenge_type = OOB
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_OOB
@@ -1788,7 +2011,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 2. Submit invalid code
         // 2_mock_api. Setup server response - endpoint: resetpassowrd/continue - Server returns Error: explicit invalid oob value
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRContinue,
                 correlationId,
                 MockApiResponseType.INVALID_OOB_VALUE
@@ -1804,7 +2027,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 3. Submit valid code
         // 3_mock_api. Setup server response - endpoint: resetpassowrd/continue - Server returns Success
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRContinue,
                 correlationId,
                 MockApiResponseType.SSPR_CONTINUE_SUCCESS
@@ -1824,13 +2047,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 4. Submit valid password
         // 4_mock_api. Setup server response - endpoint: resetpassword/submit - Server returns Success
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRSubmit,
                 correlationId,
                 MockApiResponseType.SSPR_SUBMIT_SUCCESS
         );
         // 4_mock_api. Setup server response - endpoint: resetpassword/poll_completion - Server returns Success
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRPoll,
                 correlationId,
                 MockApiResponseType.SSPR_POLL_SUCCESS
@@ -1858,7 +2081,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     public void testSSPREmptyUsernameNoException() throws ExecutionException, InterruptedException, TimeoutException {
         String correlationId = UUID.randomUUID().toString();
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SSPRStart,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_REDIRECT
@@ -1880,13 +2103,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 1a. Setup server response
         String correlationId = UUID.randomUUID().toString();
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
                 MockApiResponseType.SIGNUP_START_SUCCESS
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_OOB
@@ -1901,7 +2124,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 2. submit (valid) code
         // 2a. setup server response
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpContinue,
                 correlationId,
                 MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
@@ -1931,13 +2154,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 1a. Setup server response
         String correlationId = UUID.randomUUID().toString();
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
                 MockApiResponseType.SIGNUP_START_SUCCESS
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_OOB
@@ -1953,7 +2176,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 2. submit (valid) code
         // 2a. setup server response
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpContinue,
                 correlationId,
                 MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
@@ -1982,13 +2205,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 1a. Setup server response
         String correlationId = UUID.randomUUID().toString();
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
                 MockApiResponseType.SIGNUP_START_SUCCESS
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_OOB
@@ -2003,7 +2226,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         assertTrue(signUpResult instanceof SignUpResult.CodeRequired);
 
         // 2a. Setup resend code challenge
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_OOB
@@ -2024,7 +2247,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 3. submit (valid) code
         // 3a. setup server response
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpContinue,
                 correlationId,
                 MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
@@ -2055,13 +2278,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 1a. Setup server response
         String correlationId = UUID.randomUUID().toString();
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
                 MockApiResponseType.SIGNUP_START_SUCCESS
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_OOB
@@ -2077,7 +2300,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 2. submit (valid) code
         // 2a. setup server response
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpContinue,
                 correlationId,
                 MockApiResponseType.EXPIRED_TOKEN
@@ -2106,7 +2329,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     public void testSignUpScenario4() throws ExecutionException, InterruptedException, TimeoutException {
         String correlationId = UUID.randomUUID().toString();
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_REDIRECT
@@ -2129,7 +2352,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     public void testSignUpScenario5() throws ExecutionException, InterruptedException, TimeoutException {
         String correlationId = UUID.randomUUID().toString();
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
                 MockApiResponseType.AUTH_NOT_SUPPORTED
@@ -2162,13 +2385,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 1a. Setup server response
         String correlationId = UUID.randomUUID().toString();
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
                 MockApiResponseType.SIGNUP_START_SUCCESS
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_OOB
@@ -2189,7 +2412,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 3. submit (valid) code
         // 3a. setup server response
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpContinue,
                 correlationId,
                 MockApiResponseType.ATTRIBUTES_REQUIRED
@@ -2204,7 +2427,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         //4. Submit invalid attributes
         //4a. setup server response
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpContinue,
                 correlationId,
                 MockApiResponseType.VALIDATION_FAILED
@@ -2226,7 +2449,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         //4. Submit invalid attributes
         //4a. setup server response
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpContinue,
                 correlationId,
                 MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
@@ -2252,7 +2475,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     @Test
     public void testSignUpScenario7() throws ExecutionException, InterruptedException, TimeoutException {
         String correlationId = UUID.randomUUID().toString();
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
                 MockApiResponseType.VALIDATION_FAILED
@@ -2268,13 +2491,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         assertTrue(signUpResult instanceof SignUpError);
         assertTrue(((SignUpError) signUpResult).isInvalidAttributes());
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
                 MockApiResponseType.SIGNUP_START_SUCCESS
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_OOB
@@ -2304,13 +2527,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 1a. Setup server response
         String correlationId = UUID.randomUUID().toString();
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
                 MockApiResponseType.SIGNUP_START_SUCCESS
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_OOB
@@ -2325,7 +2548,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 2. submit (valid) code
         // 2a. setup server response
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpContinue,
                 correlationId,
                 MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
@@ -2357,13 +2580,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 1a. Setup server response
         String correlationId = UUID.randomUUID().toString();
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
                 MockApiResponseType.SIGNUP_START_SUCCESS
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_OOB
@@ -2378,7 +2601,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         assertTrue(signUpResult instanceof SignUpResult.CodeRequired);
 
         // 2a. Setup resend code challenge
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_OOB
@@ -2399,7 +2622,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 3. submit (valid) code
         // 3a. setup server response
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpContinue,
                 correlationId,
                 MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
@@ -2431,13 +2654,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 1a. Setup server response
         String correlationId = UUID.randomUUID().toString();
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
                 MockApiResponseType.SIGNUP_START_SUCCESS
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_OOB
@@ -2453,13 +2676,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 2. submit (valid) code
         // 2a. setup server response
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpContinue,
                 correlationId,
                 MockApiResponseType.CREDENTIAL_REQUIRED
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_PASSWORD
@@ -2480,7 +2703,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         //3. Submit valid password
         //3a. setup server response
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpContinue,
                 correlationId,
                 MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
@@ -2518,13 +2741,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 1a. Setup server response
         String correlationId = UUID.randomUUID().toString();
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
                 MockApiResponseType.SIGNUP_START_SUCCESS
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_OOB
@@ -2539,7 +2762,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         assertTrue(signUpResult instanceof SignUpResult.CodeRequired);
 
         // 2a. Setup resend code challenge
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_OOB
@@ -2560,13 +2783,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 3. submit (valid) code
         // 3a. setup server response
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpContinue,
                 correlationId,
                 MockApiResponseType.CREDENTIAL_REQUIRED
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_PASSWORD
@@ -2586,7 +2809,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         //4. Submit valid password
         //4a. setup server response
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpContinue,
                 correlationId,
                 MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
@@ -2623,13 +2846,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 1a. Setup server response
         String correlationId = UUID.randomUUID().toString();
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
                 MockApiResponseType.SIGNUP_START_SUCCESS
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_OOB
@@ -2645,13 +2868,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 2. submit (valid) code
         // 2a. setup server response
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpContinue,
                 correlationId,
                 MockApiResponseType.CREDENTIAL_REQUIRED
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_PASSWORD
@@ -2671,7 +2894,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         //3. submit required attributes
         // 3a. setup server response
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpContinue,
                 correlationId,
                 MockApiResponseType.ATTRIBUTES_REQUIRED
@@ -2691,7 +2914,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         //4. Submit valid password
         //4a. setup server response
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpContinue,
                 correlationId,
                 MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
@@ -2729,13 +2952,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 1a. Setup server response
         String correlationId = UUID.randomUUID().toString();
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
                 MockApiResponseType.SIGNUP_START_SUCCESS
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_OOB
@@ -2751,7 +2974,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // 2. submit (valid) code
         // 2a. setup server response
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpContinue,
                 correlationId,
                 MockApiResponseType.ATTRIBUTES_REQUIRED
@@ -2772,7 +2995,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         //3. submit required attributes
         // 3a. setup server response
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpContinue,
                 correlationId,
                 MockApiResponseType.ATTRIBUTES_REQUIRED
@@ -2793,7 +3016,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         //4. Submit valid password
         //4a. setup server response
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpContinue,
                 correlationId,
                 MockApiResponseType.SIGNUP_CONTINUE_SUCCESS
@@ -2823,7 +3046,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     public void testSignUpScenario14() throws ExecutionException, InterruptedException, TimeoutException {
         String correlationId = UUID.randomUUID().toString();
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_REDIRECT
@@ -2850,7 +3073,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     public void testSignUpEmptyUsernameNoException() throws ExecutionException, InterruptedException, TimeoutException {
         String correlationId = UUID.randomUUID().toString();
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_REDIRECT
@@ -2873,7 +3096,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     public void testSignUpInvalidPasswordReturnsError() throws ExecutionException, InterruptedException, TimeoutException {
         String correlationId = UUID.randomUUID().toString();
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
                 MockApiResponseType.PASSWORD_TOO_WEAK
@@ -2892,13 +3115,13 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     public void testSignUpInvalidOTPReturnsInvalidCodeError() throws ExecutionException, InterruptedException, TimeoutException {
         String correlationId = UUID.randomUUID().toString();
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
                 MockApiResponseType.SIGNUP_START_SUCCESS
         );
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpChallenge,
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_OOB
@@ -2916,7 +3139,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // it's value in order to make it consistent with the subsequent call to mock API.
         mockCorrelationId(nextState, correlationId);
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpContinue,
                 correlationId,
                 MockApiResponseType.INVALID_OOB_VALUE
@@ -2936,7 +3159,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     public void testSignUpWithPasswordInvalidEmailReturnsError() throws ExecutionException, InterruptedException, TimeoutException {
         String correlationId = UUID.randomUUID().toString();
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
                 MockApiResponseType.INVALID_USERNAME
@@ -2955,7 +3178,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     public void testSignUpInvalidEmailReturnsError() throws ExecutionException, InterruptedException, TimeoutException {
         String correlationId = UUID.randomUUID().toString();
 
-        MockApiUtils.configureMockApi(
+        configureMockApi(
                 MockApiEndpoint.SignUpStart,
                 correlationId,
                 MockApiResponseType.INVALID_USERNAME
@@ -3070,6 +3293,58 @@ class SignInContinuationTestCallback extends TestCallback<SignInResult> implemen
 
     @Override
     public void onResult(SignInResult result) {
+        future.setResult(result);
+    }
+
+    @Override
+    public void onError(@NonNull BaseException exception) {
+        future.setException(exception);
+    }
+}
+
+class AwaitingMFAStateSendChallengeTestCallback extends TestCallback<MFARequiredResult> implements AwaitingMFAState.SendChallengeCallback {
+
+    @Override
+    public void onResult(MFARequiredResult result) {
+        future.setResult(result);
+    }
+
+    @Override
+    public void onError(@NonNull BaseException exception) {
+        future.setException(exception);
+    }
+}
+
+class GetAuthMethodsTestCallback extends TestCallback<MFAGetAuthMethodsResult> implements MFARequiredState.GetAuthMethodsCallback {
+
+    @Override
+    public void onResult(MFAGetAuthMethodsResult result) {
+        future.setResult(result);
+    }
+
+    @Override
+    public void onError(@NonNull BaseException exception) {
+        future.setException(exception);
+    }
+}
+
+class MFARequiredStateSendChallengeTestCallback extends TestCallback<MFARequiredResult> implements MFARequiredState.SendChallengeCallback {
+
+    @Override
+    public void onResult(MFARequiredResult result) {
+        future.setResult(result);
+    }
+
+    @Override
+    public void onError(@NonNull BaseException exception) {
+        future.setException(exception);
+    }
+}
+
+class SubmitChallengeTestCallback extends TestCallback<MFASubmitChallengeResult> implements MFARequiredState.SubmitChallengeCallback {
+
+    @Override
+    public void onResult(MFASubmitChallengeResult result) {
         future.setResult(result);
     }
 

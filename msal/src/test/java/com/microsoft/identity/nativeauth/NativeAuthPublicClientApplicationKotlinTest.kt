@@ -3223,6 +3223,4 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         val submitChallengeResult = nextState4.submitChallenge(code)
         assertState<SignInResult.Complete>(submitChallengeResult)
     }
-
-
 }
