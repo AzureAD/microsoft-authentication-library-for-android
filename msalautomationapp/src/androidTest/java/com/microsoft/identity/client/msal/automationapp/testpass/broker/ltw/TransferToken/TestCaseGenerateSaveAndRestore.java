@@ -42,6 +42,7 @@ import org.junit.Test;
 
 
 @LTWTests
+@LocalBrokerHostDebugUiTest
 @SupportedBrokers(brokers = {BrokerHost.class})
 public class TestCaseGenerateSaveAndRestore extends AbstractMsalBrokerTest {
 
