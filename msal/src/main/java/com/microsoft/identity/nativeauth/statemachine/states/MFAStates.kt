@@ -25,12 +25,12 @@ package com.microsoft.identity.nativeauth.statemachine.states
 
 import android.os.Parcel
 import android.os.Parcelable
-import com.microsoft.identity.nativeauth.AuthMethod
 import com.microsoft.identity.client.AuthenticationResultAdapter
 import com.microsoft.identity.client.internal.CommandParametersAdapter
 import com.microsoft.identity.common.java.controllers.CommandDispatcher
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.logging.LogSession
+import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.nativeauth.controllers.results.GetAuthMethodsCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.MFAChallengeCommandResult
@@ -45,6 +45,8 @@ import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthM
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.MFAError
+import com.microsoft.identity.nativeauth.statemachine.errors.SubmitChallengeError
+import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
 import com.microsoft.identity.nativeauth.statemachine.results.MFAGetAuthMethodsResult
 import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
 import com.microsoft.identity.nativeauth.statemachine.results.MFASubmitChallengeResult
@@ -62,7 +64,6 @@ class AwaitingMFAState(
 ) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
     private val TAG: String = AwaitingMFAState::class.java.simpleName
 
-    // Challenge default auth method
     suspend fun sendChallenge(): MFARequiredResult {
         LogSession.logMethodCall(
             tag = TAG,
@@ -114,7 +115,29 @@ class AwaitingMFAState(
                             authMethods = result.authMethods.toListOfAuthMethods()
                         )
                     }
-                    is INativeAuthCommandResult.APIError -> TODO()
+                    is INativeAuthCommandResult.APIError -> {
+                        Logger.warnWithObject(
+                            TAG,
+                            result.correlationId,
+                            "sendChallenge() received unexpected result: ",
+                            result
+                        )
+                        MFAError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes,
+                            exception = result.exception
+                        )
+                    }
+                    is INativeAuthCommandResult.Redirect -> {
+                        MFAError(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
+                        )
+                    }
                 }
             } catch (e: Exception) {
                 MFAError(
@@ -164,7 +187,6 @@ class MFARequiredState(
 ) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
     private val TAG: String = MFARequiredState::class.java.simpleName
 
-    // Call /introspect
     suspend fun getAuthMethods(): MFAGetAuthMethodsResult {
         LogSession.logMethodCall(
             tag = TAG,
@@ -203,8 +225,29 @@ class MFARequiredState(
                             authMethods = result.authMethods.toListOfAuthMethods()
                         )
                     }
-
-                    is INativeAuthCommandResult.APIError -> TODO()
+                    is INativeAuthCommandResult.APIError -> {
+                        Logger.warnWithObject(
+                            TAG,
+                            result.correlationId,
+                            "getAuthMethods() received unexpected result: ",
+                            result
+                        )
+                        MFAError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes,
+                            exception = result.exception
+                        )
+                    }
+                    is INativeAuthCommandResult.Redirect -> {
+                        MFAError(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
+                        )
+                    }
                 }
             } catch (e: Exception) {
                 MFAError(
@@ -261,10 +304,39 @@ class MFARequiredState(
                         )
                     }
                     is MFACommandResult.SelectionRequired -> {
-                        TODO()
+                        MFARequiredResult.SelectionRequired(
+                            nextState = MFARequiredState(
+                                continuationToken = result.continuationToken,
+                                correlationId = result.correlationId,
+                                scopes = scopes,
+                                config = config
+                            ),
+                            authMethods = result.authMethods.toListOfAuthMethods()
+                        )
                     }
-
-                    is INativeAuthCommandResult.APIError -> TODO()
+                    is INativeAuthCommandResult.APIError -> {
+                        Logger.warnWithObject(
+                            TAG,
+                            result.correlationId,
+                            "sendChallenge(authMethodId) received unexpected result: ",
+                            result
+                        )
+                        MFAError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes,
+                            exception = result.exception
+                        )
+                    }
+                    is INativeAuthCommandResult.Redirect -> {
+                        MFAError(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
+                        )
+                    }
                 }
             } catch (e: Exception) {
                 MFAError(
@@ -277,7 +349,94 @@ class MFARequiredState(
         }
     }
 
-    // Call /token
+    suspend fun sendChallenge(): MFARequiredResult {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.sendChallenge()"
+        )
+        return withContext(Dispatchers.IO) {
+            try {
+                val params = CommandParametersAdapter.createMFADefaultChallengeCommandParameters(
+                    config,
+                    config.oAuth2TokenCache,
+                    continuationToken,
+                    correlationId,
+                    scopes
+                )
+                val command = MFAChallengeCommand(
+                    parameters = params,
+                    controller = NativeAuthMsalController(),
+                    publicApiId = PublicApiId.NATIVE_AUTH_MFA_DEFAULT_CHALLENGE
+                )
+
+                val rawCommandResult =
+                    CommandDispatcher.submitSilentReturningFuture(command)
+                        .get()
+
+                return@withContext when (val result =
+                    rawCommandResult.checkAndWrapCommandResultType<MFAChallengeCommandResult>()) {
+                    is MFACommandResult.VerificationRequired -> {
+                        MFARequiredResult.VerificationRequired(
+                            nextState = MFARequiredState(
+                                continuationToken = result.continuationToken,
+                                correlationId = result.correlationId,
+                                scopes = scopes,
+                                config = config
+                            ),
+                            codeLength = result.codeLength,
+                            sentTo = result.challengeTargetLabel,
+                            channel = result.challengeChannel
+                        )
+                    }
+
+                    is MFACommandResult.SelectionRequired -> {
+                        MFARequiredResult.SelectionRequired(
+                            nextState = MFARequiredState(
+                                continuationToken = result.continuationToken,
+                                correlationId = result.correlationId,
+                                scopes = scopes,
+                                config = config
+                            ),
+                            authMethods = result.authMethods.toListOfAuthMethods()
+                        )
+                    }
+
+                    is INativeAuthCommandResult.APIError -> {
+                        Logger.warnWithObject(
+                            TAG,
+                            result.correlationId,
+                            "sendChallenge() received unexpected result: ",
+                            result
+                        )
+                        MFAError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes,
+                            exception = result.exception
+                        )
+                    }
+                    is INativeAuthCommandResult.Redirect -> {
+                        MFAError(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                MFAError(
+                    errorType = ErrorTypes.CLIENT_EXCEPTION,
+                    errorMessage = "MSAL client exception occurred in sendChallenge().",
+                    exception = e,
+                    correlationId = correlationId
+                )
+            }
+        }
+    }
+
     suspend fun submitChallenge(challenge: String): MFASubmitChallengeResult {
         LogSession.logMethodCall(
             tag = TAG,
@@ -320,8 +479,40 @@ class MFARequiredState(
                             )
                         )
                     }
+                    is SignInCommandResult.IncorrectCode -> {
+                        SubmitChallengeError(
+                            errorType = ErrorTypes.INVALID_CODE,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes,
+                            subError = result.subError
+                        )
 
-                    is INativeAuthCommandResult.APIError -> TODO()
+                    }
+                    is INativeAuthCommandResult.APIError -> {
+                        Logger.warnWithObject(
+                            TAG,
+                            result.correlationId,
+                            "submitChallenge(challenge) received unexpected result: ",
+                            result
+                        )
+                        MFAError(
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes,
+                            exception = result.exception
+                        )
+                    }
+                    is SignInCommandResult.MFARequired -> {
+                        MFAError(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
+                        )
+                    }
                 }
             } catch (e: Exception) {
                 MFAError(
