@@ -42,6 +42,7 @@ class RequestOptions {
     private final Prompt mPrompt;
     private final String mScopes;
     private final String mExtraScope;
+    private final String mExtraQueryParams;
     private final String mClaims;
     private final boolean mEnablePII;
     private final boolean mForceRefresh;
