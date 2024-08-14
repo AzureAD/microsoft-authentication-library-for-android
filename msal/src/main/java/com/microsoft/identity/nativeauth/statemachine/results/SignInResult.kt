@@ -106,7 +106,7 @@ interface SignInResendCodeResult : Result {
      *
      * @param codeLength the length of the code required by the server.
      * @param sentTo the email/phone number the code was sent to.
-     * @param channel channel(email/phone) the code was sent    through.
+     * @param channel channel(email/phone) the code was sent through.
      */
     class Success(
         override val nextState: SignInCodeRequiredState,
