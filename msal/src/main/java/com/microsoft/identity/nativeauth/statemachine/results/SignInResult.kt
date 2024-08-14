@@ -23,10 +23,8 @@
 
 package com.microsoft.identity.nativeauth.statemachine.results
 
-import com.microsoft.identity.nativeauth.AuthMethod
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState
 import com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState
-import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInPasswordRequiredState
 
@@ -117,21 +115,3 @@ interface SignInResendCodeResult : Result {
         val channel: String,
     ) : SignInResendCodeResult, Result.SuccessResult(nextState = nextState)
 }
-
-interface MFARequiredResult: Result {
-    class VerificationRequired(
-        override val nextState: MFARequiredState,
-        val codeLength: Int,
-        val sentTo: String,
-        val channel: String,
-    ) : MFARequiredResult, Result.SuccessResult(nextState = nextState)
-
-    class SelectionRequired(
-        override val nextState: MFARequiredState,
-        val authMethods: List<AuthMethod>
-    ) : MFARequiredResult, MFAGetAuthMethodsResult, Result.SuccessResult(nextState = nextState)
-}
-
-interface MFASubmitChallengeResult : Result
-
-interface MFAGetAuthMethodsResult : Result
