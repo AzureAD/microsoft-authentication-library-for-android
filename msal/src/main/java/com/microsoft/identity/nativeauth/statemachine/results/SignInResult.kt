@@ -24,6 +24,7 @@
 package com.microsoft.identity.nativeauth.statemachine.results
 
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState
+import com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInPasswordRequiredState
 
@@ -43,7 +44,16 @@ interface SignInResult : Result {
         Result.CompleteResult(resultValue = resultValue),
         SignInResult,
         SignInSubmitCodeResult,
-        SignInSubmitPasswordResult
+        SignInSubmitPasswordResult,
+        MFASubmitChallengeResult
+
+    // Should be removed and replaced with Complete, once we receive an authentication result from the API
+    class DummyComplete :
+        Result.CompleteResult(),
+        SignInResult,
+        SignInSubmitCodeResult,
+        SignInSubmitPasswordResult,
+        MFASubmitChallengeResult
 
     /**
      * CodeRequired Result, which indicates a verification code is required from the user to continue.
@@ -68,6 +78,11 @@ interface SignInResult : Result {
     class PasswordRequired(
         override val nextState: SignInPasswordRequiredState
     ) : SignInResult, Result.SuccessResult(nextState = nextState)
+
+
+    class MFARequired(
+        override val nextState: AwaitingMFAState
+    ) : SignInResult, Result.SuccessResult(nextState = nextState), SignInSubmitPasswordResult
 }
 
 /**
