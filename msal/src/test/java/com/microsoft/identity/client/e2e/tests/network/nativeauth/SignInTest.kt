@@ -23,12 +23,25 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
+import com.microsoft.identity.client.e2e.utils.assertState
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
+import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
+import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
+import com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.mockito.Mockito
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.spy
+import org.mockito.kotlin.whenever
+import javax.net.ssl.HttpsURLConnection
 
 class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
 
@@ -51,5 +64,21 @@ class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
         val password = getSafePassword()
         val result = application.signIn(username, password.toCharArray())
         Assert.assertTrue(result is SignInResult.Complete)
+    }
+
+    @Test
+    fun testSignInMFASimple() = runTest {
+        val nativeAuthConfigField = application.javaClass.getDeclaredField("nativeAuthConfig")
+        nativeAuthConfigField.isAccessible = true
+        val config = nativeAuthConfigField.get(application) as NativeAuthPublicClientApplicationConfiguration
+
+        val mfaRequiredResult = SignInResult.MFARequired(
+            nextState = AwaitingMFAState(
+                continuationToken = "1234",
+                correlationId = "abcd",
+                scopes = null,
+                config = config
+            )
+        )
     }
 }

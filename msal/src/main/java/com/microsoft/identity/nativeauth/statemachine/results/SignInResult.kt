@@ -71,10 +71,9 @@ interface SignInResult : Result {
         override val nextState: SignInPasswordRequiredState
     ) : SignInResult, Result.SuccessResult(nextState = nextState)
 
-
     class MFARequired(
         override val nextState: AwaitingMFAState
-    ) : SignInResult, Result.SuccessResult(nextState = nextState), SignInSubmitPasswordResult, MFASubmitChallengeResult
+    ) : SignInResult, Result.SuccessResult(nextState = nextState), SignInSubmitPasswordResult
 }
 
 /**

@@ -26,7 +26,7 @@ import com.microsoft.identity.common.java.nativeauth.providers.responses.signin.
 import com.microsoft.identity.common.java.nativeauth.util.ILoggable
 
 /**
- * RequiredUserAttribute represents details about the account attributes required by the server.
+ * AuthMethod represents a user's authentication methods.
  */
 data class AuthMethod(
     // Auth method ID
@@ -55,8 +55,7 @@ internal fun List<AuthenticationMethodApiResult>.toListOfAuthMethods(): List<Aut
 }
 
 /**
- * Converts the required user attribute API received as part of signup API to
- * [RequiredUserAttribute] object
+ * Converts an [AuthenticationMethodApiResult] API response to an [AuthMethod] object
  */
 internal fun AuthenticationMethodApiResult.toAuthMethod(): AuthMethod {
     return AuthMethod(

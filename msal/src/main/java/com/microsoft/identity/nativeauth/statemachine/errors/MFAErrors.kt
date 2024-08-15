@@ -22,7 +22,7 @@ class MFAError(
     override val correlationId: String,
     override val errorCodes: List<Int>? = null,
     override var exception: Exception? = null
-): MFARequiredResult, BrowserRequiredError, MFAGetAuthMethodsResult, MFASubmitChallengeResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception)
+): MFARequiredResult, BrowserRequiredError, MFAGetAuthMethodsResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception)
 
 /**
  * MFA error. The user should use the utility methods of this class
