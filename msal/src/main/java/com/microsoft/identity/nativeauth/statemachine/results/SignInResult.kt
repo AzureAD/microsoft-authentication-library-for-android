@@ -44,7 +44,8 @@ interface SignInResult : Result {
         Result.CompleteResult(resultValue = resultValue),
         SignInResult,
         SignInSubmitCodeResult,
-        SignInSubmitPasswordResult
+        SignInSubmitPasswordResult,
+        MFASubmitChallengeResult
 
     // Should be removed and replaced with Complete, once we receive an authentication result from the API
     class DummyComplete :
@@ -81,7 +82,7 @@ interface SignInResult : Result {
 
     class MFARequired(
         override val nextState: AwaitingMFAState
-    ) : SignInResult, Result.SuccessResult(nextState = nextState), SignInSubmitPasswordResult, MFASubmitChallengeResult
+    ) : SignInResult, Result.SuccessResult(nextState = nextState), SignInSubmitPasswordResult
 }
 
 /**

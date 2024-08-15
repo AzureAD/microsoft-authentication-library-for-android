@@ -175,19 +175,7 @@ class MFARequiredState(
     // Call /token
     suspend fun submitChallenge(code: Int): MFASubmitChallengeResult {
         // If /token returns HTTP 200
-        return if (true) {
-            SignInResult.DummyComplete()
-        } else {
-            // If /token returns another mfa_required error
-            SignInResult.MFARequired(
-               nextState = AwaitingMFAState(
-                   continuationToken = continuationToken,
-                   correlationId = correlationId,
-                   scopes = scopes,
-                   config = config
-               )
-            )
-        }
+        return SignInResult.DummyComplete()
     }
 
     constructor(parcel: Parcel) : this(
