@@ -48,24 +48,14 @@ import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfig
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.MFAError
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitChallengeError
-import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
 import com.microsoft.identity.nativeauth.statemachine.results.MFAGetAuthMethodsResult
 import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
 import com.microsoft.identity.nativeauth.statemachine.results.MFASubmitChallengeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
-import com.microsoft.identity.nativeauth.statemachine.results.SignInSubmitCodeResult
 import com.microsoft.identity.nativeauth.toListOfAuthMethods
 import com.microsoft.identity.nativeauth.utils.serializable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import com.microsoft.identity.nativeauth.AuthMethod
-import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
-import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
-import com.microsoft.identity.nativeauth.statemachine.results.MFAGetAuthMethodsResult
-import com.microsoft.identity.nativeauth.statemachine.results.MFASubmitChallengeResult
-import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
-import com.microsoft.identity.nativeauth.utils.serializable
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class AwaitingMFAState(
@@ -567,7 +557,7 @@ class MFARequiredState(
                             "submitChallenge(challenge) received unexpected result: ",
                             result
                         )
-                        MFAError(
+                        SubmitChallengeError(
                             errorMessage = result.errorDescription,
                             error = result.error,
                             correlationId = result.correlationId,
@@ -576,7 +566,7 @@ class MFARequiredState(
                         )
                     }
                     is SignInCommandResult.MFARequired -> {
-                        MFAError(
+                        SubmitChallengeError(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
                             error = result.error,
                             errorMessage = result.errorDescription,
@@ -585,7 +575,7 @@ class MFARequiredState(
                     }
                 }
             } catch (e: Exception) {
-                MFAError(
+                SubmitChallengeError(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in submitChallenge(challenge)",
                     exception = e,
