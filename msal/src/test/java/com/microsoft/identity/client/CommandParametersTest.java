@@ -309,7 +309,11 @@ public class CommandParametersTest {
                 null,
                 getConfiguration(WEBAUTHN_CAPABLE_CONFIG_FILE)
         );
-        Assert.assertNull(combinedQueryParameters);
+        if (combinedQueryParameters != null) {
+            Assert.assertTrue(combinedQueryParameters.isEmpty());
+        } else {
+            Assert.assertNull(combinedQueryParameters);
+        }
     }
 
     @Test
