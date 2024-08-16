@@ -43,6 +43,7 @@ import org.junit.Test;
 
 @LTWTests
 @LocalBrokerHostDebugUiTest
+@RetryOnFailure
 @SupportedBrokers(brokers = {BrokerHost.class})
 public class TestCaseGenerateSaveAndRestore extends AbstractMsalBrokerTest {
 
@@ -56,6 +57,7 @@ public class TestCaseGenerateSaveAndRestore extends AbstractMsalBrokerTest {
         msalTestApp.install();
         msalTestApp.launch();
         msalTestApp.handleFirstRunBasedOnUserType(UserType.MSA);
+        msalTestApp.trustDebugBroker();
 
         final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
                 .prompt(PromptParameter.SELECT_ACCOUNT)
