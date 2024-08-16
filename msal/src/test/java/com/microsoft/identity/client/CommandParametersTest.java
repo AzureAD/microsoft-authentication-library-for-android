@@ -330,6 +330,34 @@ public class CommandParametersTest {
         Assert.assertEquals(combinedQueryParameters.size(), 0);
     }
 
+    @Test
+    @Config(sdk=28)
+    public void testAppendToExtraQueryParametersIfWebAuthnCapable_WebAuthnCapableFalse() {
+        final List<Map.Entry<String, String>> queryParameters = Arrays.asList(
+                new AbstractMap.SimpleEntry<>("field1", "property1"),
+                new AbstractMap.SimpleEntry<>("field2", "property2"));
+        final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
+                queryParameters,
+                getConfiguration(AAD_NONE_CONFIG_FILE)
+        );
+        Assert.assertNotNull(combinedQueryParameters);
+        Assert.assertEquals(combinedQueryParameters.size(), 2);
+    }
+
+    @Test
+    @Config(sdk=28)
+    public void testAppendToExtraQueryParametersIfWebAuthnCapable_WebAuthnCapableFalseKeepPresentParam() {
+        final List<Map.Entry<String, String>> queryParameters = Collections.singletonList(new AbstractMap.SimpleEntry<>(
+                FidoConstants.WEBAUTHN_QUERY_PARAMETER_FIELD,
+                FidoConstants.WEBAUTHN_QUERY_PARAMETER_VALUE));
+        final List<Map.Entry<String, String>> combinedQueryParameters = CommandParametersAdapter.appendToExtraQueryParametersIfWebAuthnCapable(
+                queryParameters,
+                getConfiguration(AAD_NONE_CONFIG_FILE)
+        );
+        Assert.assertNotNull(combinedQueryParameters);
+        Assert.assertEquals(combinedQueryParameters.size(), 1);
+    }
+
     private ClaimsRequest getAccessTokenClaimsRequest(@NonNull String claimName, @NonNull String claimValue) {
         ClaimsRequest cp1ClaimsRequest = new ClaimsRequest();
         RequestedClaimAdditionalInformation info = new RequestedClaimAdditionalInformation();
