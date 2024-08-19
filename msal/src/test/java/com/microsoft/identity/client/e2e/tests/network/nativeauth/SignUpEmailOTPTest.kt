@@ -29,6 +29,7 @@ import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailSe
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
+import org.junit.Ignore
 import org.junit.Test
 
 class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
@@ -42,6 +43,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * (hero scenario 1, use case 2.1.1, Test case 1)
      */
     @Test
+    @Ignore("Getting code is unstable")
     fun testSuccess() {
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.

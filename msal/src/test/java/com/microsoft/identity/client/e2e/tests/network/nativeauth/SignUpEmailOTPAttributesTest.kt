@@ -30,6 +30,7 @@ import com.microsoft.identity.nativeauth.UserAttributes
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
+import org.junit.Ignore
 import org.junit.Test
 
 class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTest() {
@@ -43,6 +44,7 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
      * (hero scenario 2, use case 2.1.2, Test case 2)
      */
     @Test
+    @Ignore("Getting code is unstable")
     fun testSuccessAttributesFirst() {
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
@@ -62,6 +64,7 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
      * (hero scenario 3, use case 2.1.3, Test case 3)
      */
     @Test
+    @Ignore("Getting code is unstable")
     fun testSuccessAttributesLastSameScreen() {
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
@@ -88,6 +91,7 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
      * (hero scenario 4, use case 2.1.4, Test case 4)
      */
     @Test
+    @Ignore("Getting code is unstable")
     fun testSuccessAttributesLastMultipleScreens() {
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
