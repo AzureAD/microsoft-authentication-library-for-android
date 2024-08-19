@@ -30,6 +30,7 @@ import com.microsoft.identity.nativeauth.UserAttributes
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
+import org.junit.Ignore
 import org.junit.Test
 
 class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstractTest() {
@@ -45,6 +46,7 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
      * 2. Validate OTP.
      * (hero scenario 10, use case 1.1.3, Test case 15)
      */
+    @Ignore("Fetching OTP code is unstable")
     @Test
     fun testEmailPasswordAttributesOnSameScreen() {
         retryOperation {
@@ -73,6 +75,7 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
      * 3. Set custom attributes.
      * (hero scenario 12, use case 1.1.6) - Test case 28
      */
+    @Ignore("Fetching OTP code is unstable")
     @Test
     fun testSeparateEmailPasswordAndAttributesOnSameScreen() {
         retryOperation {
@@ -107,6 +110,7 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
      * 5. etc.
      * ((hero scenario 13) - Test case 29
      */
+    @Ignore("Fetching OTP code is unstable")
     @Test
     fun testSeparateEmailPasswordAndAttributesOnMultipleScreens() {
         retryOperation {

@@ -29,6 +29,7 @@ import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailSe
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
+import org.junit.Ignore
 import org.junit.Test
 
 class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
@@ -41,6 +42,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Sign up with email + OTP. Verify email address using email OTP and sign up.
      * (hero scenario 1, use case 2.1.1, Test case 1)
      */
+    @Ignore("Fetching OTP code is unstable")
     @Test
     fun testSuccess() {
         retryOperation {
