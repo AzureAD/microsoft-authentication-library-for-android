@@ -78,8 +78,8 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Use valid email address, but invalid OTP to receive "invalid code" error.
      * (use case 2.2.7, Test case 35)
      */
+    @Ignore("Fetching OTP code is unstable")
     @Test
-    @Ignore("Getting code is unstable")
     fun testErrorIsInvalidCode() {
         retryOperation {
             runBlocking {// Running with runBlocking to avoid default 10 second execution timeout.

@@ -42,8 +42,8 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Sign up with email + OTP. Verify email address using email OTP and sign up.
      * (hero scenario 1, use case 2.1.1, Test case 1)
      */
+    @Ignore("Fetching OTP code is unstable")
     @Test
-    @Ignore("Getting code is unstable")
     fun testSuccess() {
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
