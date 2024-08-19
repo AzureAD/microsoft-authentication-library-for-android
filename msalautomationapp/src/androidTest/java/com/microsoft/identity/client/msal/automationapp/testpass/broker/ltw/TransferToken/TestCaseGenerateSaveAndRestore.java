@@ -84,6 +84,8 @@ public class TestCaseGenerateSaveAndRestore extends AbstractMsalBrokerTest {
         String tokenSilent = msalTestApp.acquireTokenSilent();
         Assert.assertNotNull(tokenSilent);
         final BrokerHost brokerHost = new BrokerHost();
+        brokerHost.uninstall();
+        brokerHost.install();
         brokerHost.restoreMsaAccounts(1);
     }
 
