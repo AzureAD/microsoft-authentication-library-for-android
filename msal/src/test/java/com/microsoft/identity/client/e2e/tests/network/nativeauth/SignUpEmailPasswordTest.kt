@@ -31,6 +31,7 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
+import org.junit.Ignore
 import org.junit.Test
 import kotlin.math.sign
 
@@ -52,6 +53,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
      * Set email and password (mimicking one combined screen for email & password collection), and then verify email OTP as last step
      * (hero scenario 9, use case 1.1.1,  Test case 13)
      */
+    @Ignore("Fetching OTP code is unstable")
     @Test
     fun testSuccessOTPLast() {
         retryOperation {
@@ -71,6 +73,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
      * Verify email address using email OTP and then set password (mimicking email and password collection on separate screens).
      * (use case 1.1.4, Test case 16)
      */
+    @Ignore("Fetching OTP code is unstable")
     @Test
     fun testSuccessOTPFirst() {
         retryOperation {
