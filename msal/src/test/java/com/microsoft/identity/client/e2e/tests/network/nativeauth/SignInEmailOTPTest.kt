@@ -46,6 +46,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Use valid email and OTP to get token and sign in.
      * (hero scenario 6, use case 2.2.1, Test case 30)
      */
+    @Ignore("Fetching OTP code is unstable")
     @Test
     fun testSuccess() {
         retryOperation {
