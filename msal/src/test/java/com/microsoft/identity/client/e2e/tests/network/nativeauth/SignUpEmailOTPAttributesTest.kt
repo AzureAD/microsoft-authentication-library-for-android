@@ -30,6 +30,7 @@ import com.microsoft.identity.nativeauth.UserAttributes
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
+import org.junit.Ignore
 import org.junit.Test
 
 class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTest() {
@@ -42,6 +43,7 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
      * Signup user with custom attributes with verify OTP as last step.
      * (hero scenario 2, use case 2.1.2, Test case 2)
      */
+    @Ignore("Fetching OTP code is unstable")
     @Test
     fun testSuccessAttributesFirst() {
         retryOperation {
@@ -61,6 +63,7 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
      * Verify email OTP first and then collect custom attributes.
      * (hero scenario 3, use case 2.1.3, Test case 3)
      */
+    @Ignore("Fetching OTP code is unstable")
     @Test
     fun testSuccessAttributesLastSameScreen() {
         retryOperation {
@@ -87,6 +90,7 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
      * Verify email OTP first and then collect custom attributes in multiple steps (mimicking a multi-screen UX).
      * (hero scenario 4, use case 2.1.4, Test case 4)
      */
+    @Ignore("Fetching OTP code is unstable")
     @Test
     fun testSuccessAttributesLastMultipleScreens() {
         retryOperation {

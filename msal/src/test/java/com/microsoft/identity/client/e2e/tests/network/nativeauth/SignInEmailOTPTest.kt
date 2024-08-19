@@ -33,6 +33,7 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
+import org.junit.Ignore
 import org.junit.Test
 
 class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
@@ -45,6 +46,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Use valid email and OTP to get token and sign in.
      * (hero scenario 6, use case 2.2.1, Test case 30)
      */
+    @Ignore("Fetching OTP code is unstable")
     @Test
     fun testSuccess() {
         retryOperation {
@@ -77,6 +79,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Use valid email address, but invalid OTP to receive "invalid code" error.
      * (use case 2.2.7, Test case 35)
      */
+    @Ignore("Fetching OTP code is unstable")
     @Test
     fun testErrorIsInvalidCode() {
         retryOperation {
