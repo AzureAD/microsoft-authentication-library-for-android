@@ -25,7 +25,6 @@ package com.microsoft.identity.client.internal;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -36,7 +35,7 @@ import com.microsoft.identity.client.DeviceCodeFlowParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.ITenantProfile;
 import com.microsoft.identity.client.MultiTenantAccount;
-import com.microsoft.identity.common.internal.fido.FidoUtil;
+import com.microsoft.identity.common.internal.platform.AndroidPlatformUtil;
 import com.microsoft.identity.common.java.logging.DiagnosticContext;
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.PoPAuthenticationScheme;
@@ -47,7 +46,6 @@ import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory;
 import com.microsoft.identity.common.internal.commands.parameters.AndroidActivityInteractiveTokenCommandParameters;
 import com.microsoft.identity.common.internal.util.StringUtil;
-import com.microsoft.identity.common.java.constants.FidoConstants;
 import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthority;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryB2CAuthority;
@@ -83,10 +81,8 @@ import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpS
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpSubmitCodeCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpSubmitPasswordCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignUpSubmitUserAttributesCommandParameters;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -1149,6 +1145,6 @@ public class CommandParametersAdapter {
             return null;
         }
         ArrayList<Map.Entry<String, String>> result = queryStringParameters != null ? new ArrayList<>(queryStringParameters) : new ArrayList<>();
-        return FidoUtil.updateWithOrDeleteWebAuthnParam(result, configuration.isWebauthnCapable());
+        return AndroidPlatformUtil.updateWithOrDeleteWebAuthnParam(result, configuration.isWebauthnCapable());
     }
 }
