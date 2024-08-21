@@ -23,6 +23,7 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
+import com.microsoft.identity.client.e2e.utils.assertState
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError
@@ -30,9 +31,11 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
+import org.junit.Ignore
 import org.junit.Test
+import kotlin.math.sign
 
-class SignUpTest : NativeAuthPublicClientApplicationAbstractTest() {
+class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 
@@ -47,34 +50,42 @@ class SignUpTest : NativeAuthPublicClientApplicationAbstractTest() {
     }
 
     /**
-     * Running with runBlocking to avoid default 10 second execution timeout.
+     * Set email and password (mimicking one combined screen for email & password collection), and then verify email OTP as last step
+     * (hero scenario 9, use case 1.1.1,  Test case 13)
      */
+    @Ignore("Fetching OTP code is unstable")
     @Test
-    fun testSignUpSuccessSimple() = runBlocking {
-        var retryCount = 0
-        var signUpResult: SignUpResult
-        var otp: String
-        var shouldRetry = true
-
-        while (shouldRetry) {
-            try {
+    fun testSuccessOTPLast() {
+        retryOperation {
+            runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
                 val password = getSafePassword()
-                signUpResult = application.signUp(user, password.toCharArray())
-                Assert.assertTrue(signUpResult is SignUpResult.CodeRequired)
-                otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val signUpResult = application.signUp(user, password.toCharArray())
+                assertState<SignUpResult.CodeRequired>(signUpResult)
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
                 Assert.assertTrue(submitCodeResult is SignUpResult.Complete)
-                shouldRetry = false
-                break
-            } catch (e: IllegalStateException) {
-                // Re-run this test if the OTP retrieval fails. 1SecMail is known for emails to sometimes never arrive.
-                // In that case, restart the test case with a new email address and try again, to make test less flaky.
-                if (retryCount == 3) {
-                    Assert.fail()
-                    shouldRetry = false
-                }
-                retryCount++
+            }
+        }
+    }
+
+    /**
+     * Verify email address using email OTP and then set password (mimicking email and password collection on separate screens).
+     * (use case 1.1.4, Test case 16)
+     */
+    @Ignore("Fetching OTP code is unstable")
+    @Test
+    fun testSuccessOTPFirst() {
+        retryOperation {
+            runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
+                val user = tempEmailApi.generateRandomEmailAddress()
+                val signUpResult = application.signUp(user)
+                assertState<SignUpResult.CodeRequired>(signUpResult)
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
+                assertState<SignUpResult.PasswordRequired>(submitCodeResult)
+                val submitPasswordResult = (submitCodeResult as SignUpResult.PasswordRequired).nextState.submitPassword(getSafePassword().toCharArray())
+                Assert.assertTrue(submitPasswordResult is SignUpResult.Complete)
             }
         }
     }

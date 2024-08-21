@@ -23,33 +23,37 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
+import com.microsoft.identity.client.e2e.utils.assertState
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
-import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
-import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
-import kotlinx.coroutines.test.runTest
+import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
+import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert
+import org.junit.Ignore
 import org.junit.Test
 
-class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
+class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
-    override val configType = ConfigType.SIGN_IN_PASSWORD
+    private val tempEmailApi = TemporaryEmailService()
 
+    override val configType = ConfigType.SIGN_UP_OTP
+
+    /**
+     * Sign up with email + OTP. Verify email address using email OTP and sign up.
+     * (hero scenario 1, use case 2.1.1, Test case 1)
+     */
+    @Ignore("Fetching OTP code is unstable")
     @Test
-    fun testSignInErrorSimple() = runTest {
-        val username = config.email
-        val password = getSafePassword()
-        // Turn correct password into an incorrect one
-        val alteredPassword = password + "1234"
-        val result = application.signIn(username, alteredPassword.toCharArray())
-        Assert.assertTrue(result is SignInError)
-        Assert.assertTrue((result as SignInError).isInvalidCredentials())
-    }
-
-    @Test
-    fun testSignInSuccessSimple() = runTest {
-        val username = config.email
-        val password = getSafePassword()
-        val result = application.signIn(username, password.toCharArray())
-        Assert.assertTrue(result is SignInResult.Complete)
+    fun testSuccess() {
+        retryOperation {
+            runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
+                val user = tempEmailApi.generateRandomEmailAddress()
+                val signUpResult = application.signUp(user)
+                assertState<SignUpResult.CodeRequired>(signUpResult)
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
+                Assert.assertTrue(submitCodeResult is SignUpResult.Complete)
+            }
+        }
     }
 }

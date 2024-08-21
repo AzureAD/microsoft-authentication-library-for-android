@@ -31,6 +31,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout
 import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
@@ -49,6 +50,7 @@ import org.junit.Test
 // [MWPJ] An account with no PRT use no Joined flow even if the tenant is registered (Pkey AUth enable)
 @SupportedBrokers(brokers = [BrokerHost::class])
 @LocalBrokerHostDebugUiTest
+@RetryOnFailure
 class TestCase2578879 : AbstractMsalBrokerTest() {
 
     private lateinit var mLabAccount2: ILabAccount

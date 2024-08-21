@@ -80,6 +80,7 @@ public class AcquireTokenFragment extends Fragment {
     private Spinner mPrompt;
     private EditText mScope;
     private EditText mExtraScope;
+    private EditText mExtraQueryParams;
     private EditText mClaims;
     private Button mAddDeviceIdClaimButton;
     private Button mAddNgcMfaClaimButton;
@@ -135,6 +136,7 @@ public class AcquireTokenFragment extends Fragment {
         mPrompt = view.findViewById(R.id.promptBehavior);
         mScope = view.findViewById(R.id.scope);
         mExtraScope = view.findViewById(R.id.extraScope);
+        mExtraQueryParams = view.findViewById(R.id.extraQueryParams);
         mClaims = view.findViewById(R.id.claims);
         mAddDeviceIdClaimButton = view.findViewById(R.id.btn_deviceIdClaim);
         mAddDeviceIdClaimButton.setOnClickListener(new View.OnClickListener() {
@@ -599,6 +601,7 @@ public class AcquireTokenFragment extends Fragment {
         final Prompt promptBehavior = Prompt.valueOf(mPrompt.getSelectedItem().toString());
         final String scopes = mScope.getText().toString();
         final String extraScopesToConsent = mExtraScope.getText().toString();
+        final String extraQueryParametersField = mExtraQueryParams.getText().toString();
         final String claims = mClaims.getText().toString();
         final boolean enablePII = mEnablePII.isChecked();
         final boolean forceRefresh = mForceRefresh.isChecked();
@@ -619,6 +622,7 @@ public class AcquireTokenFragment extends Fragment {
                 promptBehavior,
                 scopes,
                 extraScopesToConsent,
+                extraQueryParametersField,
                 claims,
                 enablePII,
                 forceRefresh,

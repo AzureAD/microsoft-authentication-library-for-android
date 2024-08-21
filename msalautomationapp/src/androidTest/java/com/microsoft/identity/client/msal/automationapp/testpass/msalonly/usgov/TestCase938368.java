@@ -88,12 +88,14 @@ public class TestCase938368 extends AbstractMsalUiTest {
                     ((BrowserChrome) mBrowser).reloadPage();
                 }
 
+                // Starting recently, seem to get prompted for a second speed bump on this call
                 final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
                         .loginHint(username)
                         .sessionExpected(false)
                         .consentPageExpected(false)
                         .speedBumpExpected(true)
+                        .secondSpeedBumpExpected(true)
                         .isFederated(true)
                         .build();
 
