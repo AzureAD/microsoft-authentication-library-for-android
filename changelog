@@ -2,7 +2,8 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
-- [PATCH] Fix Native Auth authority data being persisted across different SDK instances (#2159)
+-[MINOR] Moving OS version check for passkeys (#2138)
+-[PATCH] Fix Native Auth authority data being persisted across different SDK instances (#2159)
 
 Version 5.4.2
 ---------
