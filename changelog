@@ -5,10 +5,14 @@ vNext
 -[MINOR] Moving OS version check for passkeys (#2138)
 -[PATCH] Fix Native Auth authority data being persisted across different SDK instances (#2159)
 
+Version 5.5.0
+---------
+- [MINOR] Fix UserAttributesBuilder being a singleton bug (#2145)
+- [PATCH] Update common @17.7.0
+
 Version 5.4.2
 ---------
 - [PATCH] Update common @17.6.1
-- [MINOR] Fix UserAttributesBuilder being a singleton bug (#2145)
 
 Version 5.4.0
 ----------
