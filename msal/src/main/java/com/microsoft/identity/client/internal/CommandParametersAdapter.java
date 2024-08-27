@@ -32,6 +32,9 @@ import com.microsoft.identity.client.DeviceCodeFlowParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.ITenantProfile;
 import com.microsoft.identity.client.MultiTenantAccount;
+import com.microsoft.identity.common.internal.platform.AndroidPlatformUtil;
+import com.microsoft.identity.common.java.logging.DiagnosticContext;
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.PoPAuthenticationScheme;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplicationConfiguration;
@@ -86,7 +89,6 @@ import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfig
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -1310,23 +1312,10 @@ public class CommandParametersAdapter {
     public static List<Map.Entry<String, String>> appendToExtraQueryParametersIfWebAuthnCapable(
             @Nullable final List<Map.Entry<String, String>> queryStringParameters,
             @NonNull final PublicClientApplicationConfiguration configuration) {
-        if (configuration.isWebauthnCapable()) {
-            final Map.Entry<String, String> webauthnExtraParameter = new AbstractMap.SimpleEntry<>(
-                    FidoConstants.WEBAUTHN_QUERY_PARAMETER_FIELD,
-                    FidoConstants.WEBAUTHN_QUERY_PARAMETER_VALUE);
-            if (queryStringParameters == null) {
-                return new ArrayList<>(Collections.singletonList(webauthnExtraParameter));
-            }
-            if (!queryStringParameters.contains(webauthnExtraParameter)) {
-                try {
-                    queryStringParameters.add(webauthnExtraParameter);
-                } catch (final UnsupportedOperationException e) {
-                    final List<Map.Entry<String, String>> result = new ArrayList<>(queryStringParameters);
-                    result.add(webauthnExtraParameter);
-                    return result;
-                }
-            }
+        if (queryStringParameters == null && !configuration.isWebauthnCapable()) {
+            return null;
         }
-        return queryStringParameters;
+        ArrayList<Map.Entry<String, String>> result = queryStringParameters != null ? new ArrayList<>(queryStringParameters) : new ArrayList<>();
+        return AndroidPlatformUtil.updateWithOrDeleteWebAuthnParam(result, configuration.isWebauthnCapable());
     }
 }

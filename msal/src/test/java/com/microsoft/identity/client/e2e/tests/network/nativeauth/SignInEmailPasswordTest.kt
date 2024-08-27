@@ -43,12 +43,43 @@ import org.mockito.kotlin.spy
 import org.mockito.kotlin.whenever
 import javax.net.ssl.HttpsURLConnection
 
-class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
+class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     override val configType = ConfigType.SIGN_IN_PASSWORD
 
+    /**
+     * Use valid email and password to get token.
+     * (hero scenario 15, use case 1.2.1, Test case 37)
+     */
     @Test
-    fun testSignInErrorSimple() = runTest {
+    fun testSuccess() = runTest {
+        val username = config.email
+        val password = getSafePassword()
+        val result = application.signIn(username, password.toCharArray())
+        Assert.assertTrue(result is SignInResult.Complete)
+    }
+
+    /**
+     * Use invalid email address to receive a "user not found" error.
+     * (use case 1.2.2, Test case 38)
+     */
+    @Test
+    fun testErrorIsUserNotFound() = runTest {
+        val username = config.email
+        val password = getSafePassword()
+        // Turn an existing username to a non-existing username
+        val alteredUsername = username.replace("@", "1234@")
+        val result = application.signIn(alteredUsername, password.toCharArray())
+        Assert.assertTrue(result is SignInError)
+        Assert.assertTrue((result as SignInError).isUserNotFound())
+    }
+
+    /**
+     * Use valid email address and invalid password to receive a "invalid credentials" error.
+     * (use case 1.2.3, Test case 39)
+     */
+    @Test
+    fun testErrorIsInvalidCredentials() = runTest {
         val username = config.email
         val password = getSafePassword()
         // Turn correct password into an incorrect one
@@ -56,14 +87,6 @@ class SignInTest : NativeAuthPublicClientApplicationAbstractTest() {
         val result = application.signIn(username, alteredPassword.toCharArray())
         Assert.assertTrue(result is SignInError)
         Assert.assertTrue((result as SignInError).isInvalidCredentials())
-    }
-
-    @Test
-    fun testSignInSuccessSimple() = runTest {
-        val username = config.email
-        val password = getSafePassword()
-        val result = application.signIn(username, password.toCharArray())
-        Assert.assertTrue(result is SignInResult.Complete)
     }
 
     @Test

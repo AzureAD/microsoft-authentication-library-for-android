@@ -26,53 +26,33 @@ package com.microsoft.identity.client.e2e.tests.network.nativeauth
 import com.microsoft.identity.client.e2e.utils.assertState
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
-import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
-import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResult
-import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult
-import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitCodeResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Ignore
 import org.junit.Test
 
-class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
+class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 
-    override val configType = ConfigType.SSPR
-
-    @Test
-    fun testSSPRErrorSimple() = runTest {
-        val user = config.email
-        // Turn correct username into an incorrect one
-        val invalidUser = user + "x"
-        val result = application.resetPassword(invalidUser)
-        Assert.assertTrue(result is ResetPasswordError)
-        Assert.assertTrue((result as ResetPasswordError).isUserNotFound())
-    }
+    override val configType = ConfigType.SIGN_UP_OTP
 
     /**
-     * Verify email with email OTP first and then reset password.
-     * (hero scenario 8 & 17, use case 3.1.1, Test case 46)
+     * Sign up with email + OTP. Verify email address using email OTP and sign up.
+     * (hero scenario 1, use case 2.1.1, Test case 1)
      */
     @Ignore("Fetching OTP code is unstable")
     @Test
-    fun testSSPRSuccess() = runBlocking {
-        var result: ResetPasswordStartResult
-        var otp: String
-
+    fun testSuccess() {
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-                val user = config.email
-                result = application.resetPassword(user)
-                assertState<ResetPasswordStartResult.CodeRequired>(result)
-                otp = tempEmailApi.retrieveCodeFromInbox(user)
-                val submitCodeResult = (result as ResetPasswordStartResult.CodeRequired).nextState.submitCode(otp)
-                assertState<ResetPasswordSubmitCodeResult.PasswordRequired>(submitCodeResult)
-                val password = getSafePassword()
-                val submitPasswordResult = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState.submitPassword(password.toCharArray())
-                Assert.assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
+                val user = tempEmailApi.generateRandomEmailAddress()
+                val signUpResult = application.signUp(user)
+                assertState<SignUpResult.CodeRequired>(signUpResult)
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
+                Assert.assertTrue(submitCodeResult is SignUpResult.Complete)
             }
         }
     }
