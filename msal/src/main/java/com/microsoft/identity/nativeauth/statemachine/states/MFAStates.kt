@@ -565,14 +565,6 @@ class MFARequiredState(
                             exception = result.exception
                         )
                     }
-                    is SignInCommandResult.MFARequired -> {
-                        SubmitChallengeError(
-                            errorType = ErrorTypes.BROWSER_REQUIRED,
-                            error = result.error,
-                            errorMessage = result.errorDescription,
-                            correlationId = result.correlationId
-                        )
-                    }
                 }
             } catch (e: Exception) {
                 SubmitChallengeError(
