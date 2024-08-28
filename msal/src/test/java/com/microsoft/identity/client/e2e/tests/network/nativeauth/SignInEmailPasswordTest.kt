@@ -34,6 +34,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Ignore
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.spy
@@ -85,6 +86,7 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     }
 
     @Test
+    @Ignore("Ignore until MFA is available on test slice")
     fun testSignInMFASimple() = runTest {
         val nativeAuthConfigField = application.javaClass.getDeclaredField("nativeAuthConfig")
         nativeAuthConfigField.isAccessible = true
