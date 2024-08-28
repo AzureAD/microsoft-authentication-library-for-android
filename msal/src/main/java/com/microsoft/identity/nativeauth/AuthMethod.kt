@@ -22,8 +22,12 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.nativeauth
 
+import android.os.Parcel
+import android.os.Parcelable
 import com.microsoft.identity.common.java.nativeauth.providers.responses.signin.AuthenticationMethodApiResult
 import com.microsoft.identity.common.java.nativeauth.util.ILoggable
+import com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState
+import com.microsoft.identity.nativeauth.utils.serializable
 
 /**
  * AuthMethod represents a user's authentication methods.
@@ -40,11 +44,39 @@ data class AuthMethod(
 
     // Auth method login hint (email, etc.)
     val challengeChannel: String,
-) : ILoggable {
+) : ILoggable, Parcelable {
     override fun toUnsanitizedString(): String = "AuthMethod(id=$id, " +
             "challengeType=$challengeType, loginHint=$loginHint, challengeChannel=$challengeChannel)"
 
     override fun toString(): String = "AuthMethod(id=$id)"
+
+    constructor(parcel: Parcel) : this(
+        id = parcel.readString()  ?: "",
+        challengeType = parcel.readString() ?: "",
+        loginHint = parcel.readString() ?: "",
+        challengeChannel = parcel.readString() ?: ""
+    )
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(id)
+        parcel.writeString(challengeType)
+        parcel.writeString(loginHint)
+        parcel.writeString(challengeChannel)
+    }
+
+    companion object CREATOR : Parcelable.Creator<AuthMethod> {
+        override fun createFromParcel(parcel: Parcel): AuthMethod {
+            return AuthMethod(parcel)
+        }
+
+        override fun newArray(size: Int): Array<AuthMethod?> {
+            return arrayOfNulls(size)
+        }
+    }
 }
 
 /**

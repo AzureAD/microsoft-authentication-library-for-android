@@ -24,6 +24,7 @@ package com.microsoft.identity.nativeauth.utils
 
 import com.microsoft.identity.nativeauth.statemachine.errors.Error
 import com.microsoft.identity.nativeauth.statemachine.states.BaseState
+import org.mockito.kotlin.spy
 import org.mockito.kotlin.whenever
 
 /**

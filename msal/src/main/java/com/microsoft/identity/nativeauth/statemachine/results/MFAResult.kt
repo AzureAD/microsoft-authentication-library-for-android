@@ -26,7 +26,20 @@ package com.microsoft.identity.nativeauth.statemachine.results
 import com.microsoft.identity.nativeauth.AuthMethod
 import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState
 
+/**
+ * Results related to various MFA operations.
+ */
 interface MFARequiredResult: Result {
+
+    /**
+     * Verification required result, which indicates that a challenge was sent to the user's auth method,
+     * and the server expects the challenge to be verified.
+     *
+     * @param nextState [com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState] the current state of the flow with follow-on methods.
+     * @param codeLength the length of the challenge required by the server.
+     * @param sentTo the email/phone number the challenge was sent to.
+     * @param channel the channel(email/phone) the challenge was sent through.
+     */
     class VerificationRequired(
         override val nextState: MFARequiredState,
         val codeLength: Int,
@@ -34,12 +47,27 @@ interface MFARequiredResult: Result {
         val channel: String,
     ) : MFARequiredResult, Result.SuccessResult(nextState = nextState)
 
+    /**
+     * Selection required result, which indicates that a specific authentication method must be selected, which
+     * the server will send the challenge to (once sendChallenge() is called).
+     *
+     * @param nextState [com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState] the current state of the flow with follow-on methods.
+     * @param authMethods the authentication methods that can be used to complete the challenge flow.
+     */
     class SelectionRequired(
         override val nextState: MFARequiredState,
         val authMethods: List<AuthMethod>
     ) : MFARequiredResult, MFAGetAuthMethodsResult, Result.SuccessResult(nextState = nextState)
 }
 
-interface MFASubmitChallengeResult : Result
-
+/**
+ * Results related to get authentication methods operation, produced by
+ * [com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState.getAuthMethods]
+ */
 interface MFAGetAuthMethodsResult : Result
+
+/**
+ * Results related to MFA submit challenge operation, produced by
+ *  * [com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState.submitChallenge]
+ */
+interface MFASubmitChallengeResult : Result
