@@ -43,6 +43,7 @@ import com.microsoft.identity.common.nativeauth.internal.commands.GetAuthMethods
 import com.microsoft.identity.common.nativeauth.internal.commands.MFAChallengeCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.MFASubmitChallengeCommand
 import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
+import com.microsoft.identity.nativeauth.AuthMethod
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
@@ -67,43 +68,43 @@ class AwaitingMFAState(
     private val TAG: String = AwaitingMFAState::class.java.simpleName
 
     /**
-     * SendChallengeCallback receives the result for sendChallenge() in MFA flows in native authentication.
+     * RequestChallengeCallback receives the result for requestChallenge() in MFA flows in native authentication.
      */
-    interface SendChallengeCallback : Callback<MFARequiredResult>
+    interface RequestChallengeCallback : Callback<MFARequiredResult>
 
     /**
-     * Sends a challenge to the user's default authentication method; callback variant.
+     * Requests a challenge to be sent to the user's default authentication method; callback variant.
      *
-     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState.SendChallengeCallback] to receive the result on.
-     * @return The result of the send challenge action.
+     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState.RequestChallengeCallback] to receive the result on.
+     * @return The result of the request challenge action.
      */
-    fun sendChallenge(callback: SendChallengeCallback) {
+    fun requestChallenge(callback: RequestChallengeCallback) {
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
-            methodName = "${TAG}.sendChallenge(callback: SendChallengeCallback)"
+            methodName = "${TAG}.requestChallenge(callback: RequestChallengeCallback)"
         )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
-                val result = sendChallenge()
+                val result = requestChallenge()
                 callback.onResult(result)
             } catch (e: MsalException) {
-                Logger.error(TAG, "Exception thrown in sendChallenge", e)
+                Logger.error(TAG, "Exception thrown in requestChallenge", e)
                 callback.onError(e)
             }
         }
     }
 
     /**
-     * Sends a challenge to the user's default authentication method; Kotlin coroutines variant.
+     * Requests a challenge to be sent to the user's default authentication method; Kotlin coroutines variant.
      *
-     * @return The result of the send challenge action.
+     * @return The result of the request challenge action.
      */
-    suspend fun sendChallenge(): MFARequiredResult {
+    suspend fun requestChallenge(): MFARequiredResult {
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
-            methodName = "${TAG}.sendChallenge()"
+            methodName = "${TAG}.requestChallenge()"
         )
         return withContext(Dispatchers.IO) {
             try {
@@ -154,7 +155,7 @@ class AwaitingMFAState(
                         Logger.warnWithObject(
                             TAG,
                             result.correlationId,
-                            "sendChallenge() received unexpected result: ",
+                            "requestChallenge() received unexpected result: ",
                             result
                         )
                         MFAError(
@@ -177,7 +178,7 @@ class AwaitingMFAState(
             } catch (e: Exception) {
                 MFAError(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
-                    errorMessage = "MSAL client exception occurred in sendChallenge().",
+                    errorMessage = "MSAL client exception occurred in requestChallenge().",
                     exception = e,
                     correlationId = correlationId
                 )
@@ -267,8 +268,7 @@ class MFARequiredState(
                     config,
                     config.oAuth2TokenCache,
                     continuationToken,
-                    correlationId,
-                    scopes
+                    correlationId
                 )
                 val command = GetAuthMethodsCommand(
                     parameters = params,
@@ -329,59 +329,60 @@ class MFARequiredState(
     }
 
     /**
-     * SendChallengeCallback receives the result for sendChallenge() in MFA flows in native authentication.
+     * RequestChallengeCallback receives the result for requestChallenge() in MFA flows in native authentication.
      */
-    interface SendChallengeCallback : Callback<MFARequiredResult>
+    interface RequestChallengeCallback : Callback<MFARequiredResult>
 
     /**
-     * Sends a challenge to the authentication method; callback variant.
+     * Requests a challenge to be sent to the user's default authentication method; callback variant.
      * If an authentication method ID was supplied, the server will send a challenge to the specified method. If no ID is supplied,
-     * the server will send the challenge to the user's default auth method.
+     * the server will attempt to send the challenge to the user's default auth method.
      *
-     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState.SendChallengeCallback] to receive the result on.
-     * @return The result of the send challenge action.
+     * @param authMethod [com.microsoft.identity.nativeauth.AuthMethod] the authentication method used for the challenge operation.
+     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState.RequestChallengeCallback] to receive the result on.
+     * @return The result of the request challenge action.
      */
-    fun sendChallenge(authMethodId: String? = null, callback: SendChallengeCallback) {
+    fun requestChallenge(authMethod: AuthMethod? = null, callback: RequestChallengeCallback) {
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
-            methodName = "${TAG}.sendChallenge(callback: SendChallengeCallback)"
+            methodName = "${TAG}.requestChallenge(callback: RequestChallengeCallback)"
         )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
-                val result = sendChallenge(authMethodId)
+                val result = requestChallenge(authMethod)
                 callback.onResult(result)
             } catch (e: MsalException) {
-                Logger.error(TAG, "Exception thrown in sendChallenge", e)
+                Logger.error(TAG, "Exception thrown in requestChallenge", e)
                 callback.onError(e)
             }
         }
     }
 
     /**
-     * Sends a challenge to the authentication method; Kotlin coroutines variant.
+     * Requests a challenge to be sent to the user's default authentication method; Kotlin coroutines variant.
      * If an authentication method ID was supplied, the server will send a challenge to the specified method. If no ID is supplied,
-     * the server will send the challenge to the user's default auth method.
+     * the server will attempt to send the challenge to the user's default auth method.
      *
-     * @return The result of the send challenge action.
+     * @param authMethod [com.microsoft.identity.nativeauth.AuthMethod] the authentication method used for the challenge operation.
+     * @return The result of the request challenge action.
      */
-    suspend fun sendChallenge(authMethodId: String? = null): MFARequiredResult {
+    suspend fun requestChallenge(authMethod: AuthMethod? = null): MFARequiredResult {
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
-            methodName = "${TAG}.sendChallenge(authMethodId: String)"
+            methodName = "${TAG}.requestChallenge(authMethod: AuthMethod)"
         )
 
         return withContext(Dispatchers.IO) {
             try {
-                val params = if (authMethodId != null) {
+                val params = if (authMethod != null) {
                     CommandParametersAdapter.createMFASelectedChallengeCommandParameters(
                         config,
                         config.oAuth2TokenCache,
                         continuationToken,
                         correlationId,
-                        authMethodId,
-                        scopes
+                        authMethod
                     )
                 } else {
                     CommandParametersAdapter.createMFADefaultChallengeCommandParameters(
@@ -433,7 +434,7 @@ class MFARequiredState(
                         Logger.warnWithObject(
                             TAG,
                             result.correlationId,
-                            "sendChallenge(authMethodId) received unexpected result: ",
+                            "requestChallenge(authMethod) received unexpected result: ",
                             result
                         )
                         MFAError(
@@ -456,7 +457,7 @@ class MFARequiredState(
             } catch (e: Exception) {
                 MFAError(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
-                    errorMessage = "MSAL client exception occurred in sendChallenge(authMethodId).",
+                    errorMessage = "MSAL client exception occurred in requestChallenge(authMethod).",
                     exception = e,
                     correlationId = correlationId
                 )

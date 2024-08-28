@@ -2425,7 +2425,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         nextState.mockCorrelationId(correlationId)
 
         // Initiate challenge, send code to email
-        val sendChallengeResult = nextState.sendChallenge()
+        val sendChallengeResult = nextState.requestChallenge()
         assertState<MFARequiredResult.VerificationRequired>(sendChallengeResult)
         (sendChallengeResult as MFARequiredResult.VerificationRequired)
         assertNotNull(sendChallengeResult.sentTo)
@@ -2466,7 +2466,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         nextState3.mockCorrelationId(correlationId)
 
         // Call /challenge with specified ID
-        val sendSpecifiedChallengeResult = nextState3.sendChallenge(getAuthMethodsResult.authMethods[0].id)
+        val sendSpecifiedChallengeResult = nextState3.requestChallenge(getAuthMethodsResult.authMethods[0])
         assertState<MFARequiredResult.VerificationRequired>(sendSpecifiedChallengeResult)
         (sendSpecifiedChallengeResult as MFARequiredResult.VerificationRequired)
         assertNotNull(sendSpecifiedChallengeResult.sentTo)
@@ -2541,7 +2541,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         val nextState = spy((result as SignInResult.MFARequired).nextState)
 
         nextState.mockCorrelationId(correlationId)
-        val sendChallengeResult = nextState.sendChallenge()
+        val sendChallengeResult = nextState.requestChallenge()
         assertState<MFARequiredResult.SelectionRequired>(sendChallengeResult)
         (sendChallengeResult as MFARequiredResult.SelectionRequired)
         assertNotNull(sendChallengeResult.authMethods)
@@ -2561,7 +2561,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         nextState3.mockCorrelationId(correlationId)
 
         // Call /challenge with specified ID
-        val sendSpecifiedChallengeResult = nextState3.sendChallenge(sendChallengeResult.authMethods[0].id)
+        val sendSpecifiedChallengeResult = nextState3.requestChallenge(sendChallengeResult.authMethods[0])
         assertState<MFARequiredResult.VerificationRequired>(sendSpecifiedChallengeResult)
         (sendSpecifiedChallengeResult as MFARequiredResult.VerificationRequired)
         assertNotNull(sendSpecifiedChallengeResult.sentTo)
@@ -2631,7 +2631,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         val nextState = spy((result as SignInResult.MFARequired).nextState)
 
         nextState.mockCorrelationId(correlationId)
-        val sendChallengeResult = nextState.sendChallenge()
+        val sendChallengeResult = nextState.requestChallenge()
         assertState<MFARequiredResult.VerificationRequired>(sendChallengeResult)
         (sendChallengeResult as MFARequiredResult.VerificationRequired)
         assertNotNull(sendChallengeResult.sentTo)
@@ -2706,7 +2706,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         val nextState = spy((result as SignInResult.MFARequired).nextState)
 
         nextState.mockCorrelationId(correlationId)
-        val sendChallengeResult = nextState.sendChallenge()
+        val sendChallengeResult = nextState.requestChallenge()
         assertState<MFAError>(sendChallengeResult)
         assertTrue((sendChallengeResult as MFAError).isBrowserRequired())
     }
@@ -2756,7 +2756,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         nextState.mockCorrelationId(correlationId)
 
         // Initiate challenge, send code to email
-        val sendChallengeResult = nextState.sendChallenge()
+        val sendChallengeResult = nextState.requestChallenge()
         assertState<MFARequiredResult.VerificationRequired>(sendChallengeResult)
         (sendChallengeResult as MFARequiredResult.VerificationRequired)
         assertNotNull(sendChallengeResult.sentTo)
@@ -2827,7 +2827,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         val nextState = spy((result as SignInResult.MFARequired).nextState)
 
         nextState.mockCorrelationId(correlationId)
-        val sendChallengeResult = nextState.sendChallenge()
+        val sendChallengeResult = nextState.requestChallenge()
         assertState<MFARequiredResult.VerificationRequired>(sendChallengeResult)
         (sendChallengeResult as MFARequiredResult.VerificationRequired)
         assertNotNull(sendChallengeResult.sentTo)
@@ -2917,7 +2917,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         nextState.mockCorrelationId(correlationId)
 
         // Initiate challenge, send code to email
-        val sendChallengeResult = nextState.sendChallenge()
+        val sendChallengeResult = nextState.requestChallenge()
         assertState<MFARequiredResult.VerificationRequired>(sendChallengeResult)
         (sendChallengeResult as MFARequiredResult.VerificationRequired)
         assertNotNull(sendChallengeResult.sentTo)
@@ -2958,7 +2958,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         nextState3.mockCorrelationId(correlationId)
 
         // Call /challenge with specified ID
-        val sendSpecifiedChallengeResult = nextState3.sendChallenge(getAuthMethodsResult.authMethods[0].id)
+        val sendSpecifiedChallengeResult = nextState3.requestChallenge(getAuthMethodsResult.authMethods[0])
         assertState<MFARequiredResult.VerificationRequired>(sendSpecifiedChallengeResult)
         (sendSpecifiedChallengeResult as MFARequiredResult.VerificationRequired)
         assertNotNull(sendSpecifiedChallengeResult.sentTo)
@@ -3048,7 +3048,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         val nextState = spy((result as SignInResult.MFARequired).nextState)
         nextState.mockCorrelationId(correlationId)
 
-        val sendChallengeResult = nextState.sendChallenge()
+        val sendChallengeResult = nextState.requestChallenge()
         assertState<MFARequiredResult.VerificationRequired>(sendChallengeResult)
         (sendChallengeResult as MFARequiredResult.VerificationRequired)
         assertNotNull(sendChallengeResult.sentTo)
@@ -3066,11 +3066,11 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
             MockApiResponseType.CHALLENGE_TYPE_OOB
         )
 
-        val nextState2 = spy((sendChallengeResult as MFARequiredResult.VerificationRequired).nextState)
-        nextState.mockCorrelationId(correlationId)
+        val nextState2 = spy((sendChallengeResult).nextState)
+        nextState2.mockCorrelationId(correlationId)
 
         // Resend
-        val resendChallengeResult = nextState2.sendChallenge()
+        val resendChallengeResult = nextState2.requestChallenge()
         assertState<MFARequiredResult.VerificationRequired>(resendChallengeResult)
         (resendChallengeResult as MFARequiredResult.VerificationRequired)
         assertNotNull(resendChallengeResult.sentTo)

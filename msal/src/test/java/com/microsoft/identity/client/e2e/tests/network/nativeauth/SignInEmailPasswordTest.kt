@@ -25,8 +25,6 @@ package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
 import com.microsoft.identity.client.e2e.utils.assertState
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
-import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
-import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
@@ -38,10 +36,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.Mockito
-import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.spy
-import org.mockito.kotlin.whenever
-import javax.net.ssl.HttpsURLConnection
 
 class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() {
 
@@ -111,7 +106,7 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
         assertState<SignInResult.MFARequired>(result)
 
         // Initiate challenge, send code to email
-        val sendChallengeResult = (result as SignInResult.MFARequired).nextState.sendChallenge()
+        val sendChallengeResult = (result as SignInResult.MFARequired).nextState.requestChallenge()
         assertState<MFARequiredResult.VerificationRequired>(sendChallengeResult)
         (sendChallengeResult as MFARequiredResult.VerificationRequired)
         assertNotNull(sendChallengeResult.sentTo)
@@ -125,7 +120,7 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
         assertTrue(authMethodsResult.authMethods.isNotEmpty())
 
         // call /challenge with specified ID
-        val sendChallengeResult2 = sendChallengeResult.nextState.sendChallenge(authMethodsResult.authMethods[0].id)
+        val sendChallengeResult2 = sendChallengeResult.nextState.requestChallenge(authMethodsResult.authMethods[0])
         assertState<MFARequiredResult.VerificationRequired>(sendChallengeResult2)
 
         // Submit the user supplied code to the API

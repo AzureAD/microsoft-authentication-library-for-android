@@ -34,6 +34,7 @@ import com.microsoft.identity.client.ITenantProfile;
 import com.microsoft.identity.client.MultiTenantAccount;
 import com.microsoft.identity.common.internal.platform.AndroidPlatformUtil;
 import com.microsoft.identity.common.java.logging.DiagnosticContext;
+import com.microsoft.identity.nativeauth.AuthMethod;
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.PoPAuthenticationScheme;
 import com.microsoft.identity.client.PublicClientApplication;
@@ -533,7 +534,7 @@ public class CommandParametersAdapter {
      * @param tokenCache token cache for storing results
      * @param username email address of the user
      * @param password password of the user
-     * @param scopes
+     * @param scopes scopes requested during sign in flow
      * @return Command parameter object
      * @throws ClientException
      */
@@ -766,6 +767,16 @@ public class CommandParametersAdapter {
         return commandParameters;
     }
 
+    /**
+     * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.MFAChallengeCommand}] of Native Auth
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param correlationId correlation ID to use in the API request, taken from the previous request in the flow
+     * @param continuationToken continuation token
+     * @param scopes scopes requested during sign in flow
+     * @return Command parameter object
+     * @throws ClientException
+     */
     public static MFAChallengeCommandParameters createMFADefaultChallengeCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
@@ -804,13 +815,23 @@ public class CommandParametersAdapter {
         return commandParameters;
     }
 
+    /**
+     * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.MFAChallengeCommand}] of Native Auth
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param correlationId correlation ID to use in the API request, taken from the previous request in the flow
+     * @param continuationToken continuation token
+     * @param authMethod the user's authentication method that is used to perform the challenge operation
+     * @return Command parameter object
+     * @throws ClientException
+     */
     public static MFASelectedChallengeCommandParameters createMFASelectedChallengeCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String continuationToken,
             @NonNull final String correlationId,
-            @NonNull final String authMethodId,
-            final List<String> scopes) throws ClientException {
+            @NonNull final AuthMethod authMethod
+    ) throws ClientException {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
@@ -818,6 +839,8 @@ public class CommandParametersAdapter {
                 AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
                 null
         );
+
+        final String authMethodId = authMethod.getId();
 
         final MFASelectedChallengeCommandParameters commandParameters =
                 MFASelectedChallengeCommandParameters.builder()
@@ -835,7 +858,6 @@ public class CommandParametersAdapter {
                         .authority(authority)
                         .authenticationScheme(authenticationScheme)
                         .continuationToken(continuationToken)
-                        .scopes(scopes)
                         .challengeType(configuration.getChallengeTypes())
                         .authMethodId(authMethodId)
                         .correlationId(correlationId)
@@ -845,12 +867,13 @@ public class CommandParametersAdapter {
     }
 
     /**
-     * Creates command parameter for [MFASubmitChallengeCommand] of Native Auth.
+     * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.MFAChallengeCommand}] of Native Auth
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
      * @param challenge value of the challenge
      * @param correlationId correlation ID to use in the API request, taken from the previous request in the flow
      * @param continuationToken Continuation token
+     * @param scopes scopes requested during sign in flow
      * @return Command parameter object
      */
     public static MFASubmitChallengeCommandParameters createMFASubmitChallengeCommandParameters(
@@ -893,12 +916,19 @@ public class CommandParametersAdapter {
         return commandParameters;
     }
 
+    /**
+     * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.GetAuthMethodsCommand}] of Native Auth
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param correlationId correlation ID to use in the API request, taken from the previous request in the flow
+     * @param continuationToken Continuation token
+     * @return Command parameter object
+     */
     public static GetAuthMethodsCommandParameters createGetAuthMethodsCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String continuationToken,
-            @NonNull final String correlationId,
-            final List<String> scopes) throws ClientException {
+            @NonNull final String correlationId) throws ClientException {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 

@@ -28,7 +28,6 @@ import android.app.Activity;
 import android.content.Context;
 
 import com.microsoft.identity.client.ILoggerCallback;
-import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager;
 import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest;
@@ -53,7 +52,6 @@ import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResul
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult;
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitCodeResult;
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitPasswordResult;
-import com.microsoft.identity.nativeauth.statemachine.results.Result;
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult;
 import com.microsoft.identity.nativeauth.statemachine.results.SignInSubmitCodeResult;
 import com.microsoft.identity.nativeauth.statemachine.results.SignOutResult;
@@ -75,7 +73,6 @@ import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper;
 import com.microsoft.identity.common.nativeauth.MockApiEndpoint;
 import com.microsoft.identity.common.nativeauth.MockApiResponseType;
-import com.microsoft.identity.common.nativeauth.MockApiUtils;
 import com.microsoft.identity.common.java.exception.BaseException;
 import com.microsoft.identity.common.java.interfaces.IPlatformComponents;
 import com.microsoft.identity.common.java.util.ResultFuture;
@@ -449,8 +446,8 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         AwaitingMFAState nextState = spy(((SignInResult.MFARequired) result).getNextState());
         mockCorrelationId(nextState, correlationId);
 
-        AwaitingMFAStateSendChallengeTestCallback sendChallengeCallback = new AwaitingMFAStateSendChallengeTestCallback();
-        nextState.sendChallenge(sendChallengeCallback);
+        AwaitingMFAStateRequestChallengeTestCallback sendChallengeCallback = new AwaitingMFAStateRequestChallengeTestCallback();
+        nextState.requestChallenge(sendChallengeCallback);
 
         MFARequiredResult sendChallengeResult = sendChallengeCallback.get();
         assertTrue(sendChallengeResult instanceof MFARequiredResult.VerificationRequired);
@@ -489,9 +486,9 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         MFARequiredState nextState3 = spy(((MFARequiredResult.SelectionRequired) getAuthMethodsResult).getNextState());
         mockCorrelationId(nextState3, correlationId);
 
-        MFARequiredStateSendChallengeTestCallback sendSelectedAuthMethodCallback = new MFARequiredStateSendChallengeTestCallback();
-        String authMethodId = ((MFARequiredResult.SelectionRequired) getAuthMethodsResult).getAuthMethods().get(0).getId();
-        nextState3.sendChallenge(authMethodId, sendSelectedAuthMethodCallback);
+        MFARequiredStateRequestChallengeTestCallback sendSelectedAuthMethodCallback = new MFARequiredStateRequestChallengeTestCallback();
+        AuthMethod authMethod = ((MFARequiredResult.SelectionRequired) getAuthMethodsResult).getAuthMethods().get(0);
+        nextState3.requestChallenge(authMethod, sendSelectedAuthMethodCallback);
 
         MFARequiredResult sendSelectedAuthMethodResult = sendSelectedAuthMethodCallback.get();
         assertTrue(sendSelectedAuthMethodResult instanceof MFARequiredResult.VerificationRequired);
@@ -568,8 +565,8 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         AwaitingMFAState nextState = spy(((SignInResult.MFARequired) result).getNextState());
         mockCorrelationId(nextState, correlationId);
 
-        AwaitingMFAStateSendChallengeTestCallback sendChallengeCallback = new AwaitingMFAStateSendChallengeTestCallback();
-        nextState.sendChallenge(sendChallengeCallback);
+        AwaitingMFAStateRequestChallengeTestCallback sendChallengeCallback = new AwaitingMFAStateRequestChallengeTestCallback();
+        nextState.requestChallenge(sendChallengeCallback);
 
         MFARequiredResult sendChallengeResult = sendChallengeCallback.get();
         assertTrue(sendChallengeResult instanceof MFARequiredResult.SelectionRequired);
@@ -588,9 +585,9 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         MFARequiredState nextState3 = spy(((MFARequiredResult.SelectionRequired) sendChallengeResult).getNextState());
         mockCorrelationId(nextState3, correlationId);
 
-        MFARequiredStateSendChallengeTestCallback sendSelectedAuthMethodCallback = new MFARequiredStateSendChallengeTestCallback();
-        String authMethodId = ((MFARequiredResult.SelectionRequired) sendChallengeResult).getAuthMethods().get(0).getId();
-        nextState3.sendChallenge(authMethodId, sendSelectedAuthMethodCallback);
+        MFARequiredStateRequestChallengeTestCallback sendSelectedAuthMethodCallback = new MFARequiredStateRequestChallengeTestCallback();
+        AuthMethod authMethod = ((MFARequiredResult.SelectionRequired) sendChallengeResult).getAuthMethods().get(0);
+        nextState3.requestChallenge(authMethod, sendSelectedAuthMethodCallback);
 
         MFARequiredResult sendSelectedAuthMethodResult = sendSelectedAuthMethodCallback.get();
         assertTrue(sendSelectedAuthMethodResult instanceof MFARequiredResult.VerificationRequired);
@@ -3106,7 +3103,7 @@ class SignInContinuationTestCallback extends TestCallback<SignInResult> implemen
     }
 }
 
-class AwaitingMFAStateSendChallengeTestCallback extends TestCallback<MFARequiredResult> implements AwaitingMFAState.SendChallengeCallback {
+class AwaitingMFAStateRequestChallengeTestCallback extends TestCallback<MFARequiredResult> implements AwaitingMFAState.RequestChallengeCallback {
 
     @Override
     public void onResult(MFARequiredResult result) {
@@ -3132,7 +3129,7 @@ class GetAuthMethodsTestCallback extends TestCallback<MFAGetAuthMethodsResult> i
     }
 }
 
-class MFARequiredStateSendChallengeTestCallback extends TestCallback<MFARequiredResult> implements MFARequiredState.SendChallengeCallback {
+class MFARequiredStateRequestChallengeTestCallback extends TestCallback<MFARequiredResult> implements MFARequiredState.RequestChallengeCallback {
 
     @Override
     public void onResult(MFARequiredResult result) {
