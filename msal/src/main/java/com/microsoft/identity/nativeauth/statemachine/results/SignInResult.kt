@@ -47,14 +47,6 @@ interface SignInResult : Result {
         SignInSubmitPasswordResult,
         MFASubmitChallengeResult
 
-    // Should be removed and replaced with Complete, once we receive an authentication result from the API
-    class DummyComplete :
-        Result.CompleteResult(),
-        SignInResult,
-        SignInSubmitCodeResult,
-        SignInSubmitPasswordResult,
-        MFASubmitChallengeResult
-
     /**
      * CodeRequired Result, which indicates a verification code is required from the user to continue.
      *
@@ -78,7 +70,6 @@ interface SignInResult : Result {
     class PasswordRequired(
         override val nextState: SignInPasswordRequiredState
     ) : SignInResult, Result.SuccessResult(nextState = nextState)
-
 
     class MFARequired(
         override val nextState: AwaitingMFAState
@@ -107,7 +98,7 @@ interface SignInResendCodeResult : Result {
      *
      * @param codeLength the length of the code required by the server.
      * @param sentTo the email/phone number the code was sent to.
-     * @param channel channel(email/phone) the code was sent through.
+     * @param channel channel(email/phone) the code was sent    through.
      */
     class Success(
         override val nextState: SignInCodeRequiredState,

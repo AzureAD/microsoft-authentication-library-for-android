@@ -335,7 +335,6 @@ class NativeAuthPublicClientApplication(
         )
         return withContext(Dispatchers.IO) {
             try {
-
                 verifyNoUserIsSignedIn()
 
                 if (username.isBlank()) {
@@ -394,7 +393,6 @@ class NativeAuthPublicClientApplication(
                                 )
                             }
                         }
-
                         is SignInCommandResult.CodeRequired -> {
                             Logger.warn(
                                 TAG,
@@ -413,7 +411,6 @@ class NativeAuthPublicClientApplication(
                                 channel = result.challengeChannel
                             )
                         }
-
                         is INativeAuthCommandResult.InvalidUsername -> {
                             SignInError(
                                 errorType = ErrorTypes.INVALID_USERNAME,
@@ -423,7 +420,6 @@ class NativeAuthPublicClientApplication(
                                 errorCodes = result.errorCodes
                             )
                         }
-
                         is SignInCommandResult.PasswordRequired -> {
                             if (hasPassword) {
                                 Logger.warnWithObject(
@@ -447,7 +443,6 @@ class NativeAuthPublicClientApplication(
                                 )
                             }
                         }
-
                         is SignInCommandResult.UserNotFound -> {
                             SignInError(
                                 errorType = ErrorTypes.USER_NOT_FOUND,
@@ -457,7 +452,6 @@ class NativeAuthPublicClientApplication(
                                 errorCodes = result.errorCodes
                             )
                         }
-
                         is SignInCommandResult.InvalidCredentials -> {
                             if (hasPassword) {
                                 SignInError(
@@ -481,7 +475,16 @@ class NativeAuthPublicClientApplication(
                                 )
                             }
                         }
-
+                        is SignInCommandResult.MFARequired -> {
+                            SignInResult.MFARequired(
+                                nextState = AwaitingMFAState(
+                                    continuationToken = result.continuationToken,
+                                    correlationId = result.correlationId,
+                                    scopes = scopes,
+                                    config = nativeAuthConfig
+                                )
+                            )
+                        }
                         is INativeAuthCommandResult.Redirect -> {
                             SignInError(
                                 errorType = ErrorTypes.BROWSER_REQUIRED,
@@ -490,7 +493,6 @@ class NativeAuthPublicClientApplication(
                                 correlationId = result.correlationId
                             )
                         }
-
                         is INativeAuthCommandResult.APIError -> {
                             SignInError(
                                 errorMessage = result.errorDescription,
