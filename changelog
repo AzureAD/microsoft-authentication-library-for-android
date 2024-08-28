@@ -4,6 +4,7 @@ vNext
 ----------
 -[MINOR] Moving OS version check for passkeys (#2138)
 -[PATCH] Fix Native Auth authority data being persisted across different SDK instances (#2159)
+-[MINOR] Support for email OTP MFA in native authentication (#2167)
 
 Version 5.5.0
 ---------
