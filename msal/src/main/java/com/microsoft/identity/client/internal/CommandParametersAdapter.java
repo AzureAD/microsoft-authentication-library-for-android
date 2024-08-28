@@ -928,14 +928,9 @@ public class CommandParametersAdapter {
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String continuationToken,
-            @NonNull final String correlationId) throws ClientException {
+            @NonNull final String correlationId) {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
-
-        final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
-                AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
-                null
-        );
 
         final GetAuthMethodsCommandParameters commandParameters =
                 GetAuthMethodsCommandParameters.builder()
