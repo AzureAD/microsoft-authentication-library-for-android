@@ -38,26 +38,39 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
 
+
+// Transfer token generation and restore
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3026421
 @LTWTests
 @LocalBrokerHostDebugUiTest
 @RetryOnFailure
 @SupportedBrokers(brokers = {BrokerHost.class})
-public class TestCaseGenerateSaveAndRestore extends AbstractMsalBrokerTest {
+public class TestCase3026421 extends AbstractMsalBrokerTest {
+
+    @Before
+    public void before() {
+        ((BrokerHost) mBroker).enableGenerateAndSaveTransferToken();
+    }
 
     @Test
-    public void test_GenerateSaveAndRestore() throws Throwable {
+    public void test_3026421() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
         // AcquireToken Interactively in MsalTestApp
         final MsalTestApp msalTestApp = new MsalTestApp();
+        msalTestApp.uninstall();
         msalTestApp.install();
         msalTestApp.launch();
         msalTestApp.handleFirstRunBasedOnUserType(UserType.MSA);
         msalTestApp.trustDebugBroker();
+
 
         final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
                 .prompt(PromptParameter.SELECT_ACCOUNT)
@@ -81,12 +94,13 @@ public class TestCaseGenerateSaveAndRestore extends AbstractMsalBrokerTest {
         String tokenMsal = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, true);
         Assert.assertNotNull(tokenMsal);
         msalTestApp.handleBackButton();
+
         String tokenSilent = msalTestApp.acquireTokenSilent();
         Assert.assertNotNull(tokenSilent);
         final BrokerHost brokerHost = new BrokerHost();
-        brokerHost.uninstall();
-        brokerHost.install();
-        brokerHost.restoreMsaAccounts(1);
+        final List<String> expectedRestoreAccountNames = new ArrayList<>();
+        expectedRestoreAccountNames.add(username);
+        brokerHost.restoreMsaAccounts(expectedRestoreAccountNames);
     }
 
     @Override
