@@ -510,9 +510,9 @@ class MFARequiredState(
                 val params = CommandParametersAdapter.createMFASubmitChallengeCommandParameters(
                     config,
                     config.oAuth2TokenCache,
-                    continuationToken,
-                    correlationId,
                     challenge,
+                    correlationId,
+                    continuationToken,
                     scopes
                 )
 
