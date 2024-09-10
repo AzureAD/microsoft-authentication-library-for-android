@@ -71,6 +71,12 @@ interface SignInResult : Result {
         override val nextState: SignInPasswordRequiredState
     ) : SignInResult, Result.SuccessResult(nextState = nextState)
 
+    /**
+     * MFARequired Result, which indicates that the multi-factor authentication is needed.
+     *
+     * <strong><u>Warning: this class is experimental. It may be changed in the future without notice.</u></strong>
+     * @param nextState [com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState] the current state of the flow with follow-on methods.
+     */
     class MFARequired(
         override val nextState: AwaitingMFAState
     ) : SignInResult, Result.SuccessResult(nextState = nextState), SignInSubmitPasswordResult

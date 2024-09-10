@@ -25,6 +25,7 @@ package com.microsoft.identity.nativeauth.statemachine.states
 
 import android.os.Parcel
 import android.os.Parcelable
+import androidx.annotation.experimental.Experimental
 import com.microsoft.identity.client.AuthenticationResultAdapter
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
@@ -75,6 +76,7 @@ class AwaitingMFAState(
     /**
      * Requests a challenge to be sent to the user's default authentication method; callback variant.
      *
+     * <strong><u>Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
      * @param callback [com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState.RequestChallengeCallback] to receive the result on.
      * @return The result of the request challenge action.
      */
@@ -98,6 +100,7 @@ class AwaitingMFAState(
     /**
      * Requests a challenge to be sent to the user's default authentication method; Kotlin coroutines variant.
      *
+     * <strong><u>Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
      * @return The result of the request challenge action.
      */
     suspend fun requestChallenge(): MFARequiredResult {
@@ -106,6 +109,9 @@ class AwaitingMFAState(
             correlationId = correlationId,
             methodName = "${TAG}.requestChallenge()"
         )
+
+        Logger.warn(TAG, "Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.")
+
         return withContext(Dispatchers.IO) {
             try {
                 val params = CommandParametersAdapter.createMFADefaultChallengeCommandParameters(
@@ -231,6 +237,7 @@ class MFARequiredState(
     /**
      * Retrieves all authentication methods that can be used to complete the challenge flow; callback variant.
      *
+     * <strong><u>Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
      * @param callback [com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState.GetAuthMethodsCallback] to receive the result on.
      * @return The results of the get authentication methods action.
      */
@@ -254,6 +261,7 @@ class MFARequiredState(
     /**
      * Retrieves all authentication methods that can be used to complete the challenge flow; Kotlin coroutines variant.
      *
+     * <strong><u>Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
      * @return The results of the get authentication methods action.
      */
     suspend fun getAuthMethods(): MFAGetAuthMethodsResult {
@@ -262,6 +270,9 @@ class MFARequiredState(
             correlationId = correlationId,
             methodName = "${TAG}.getAuthMethods()"
         )
+
+        Logger.warn(TAG, "Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.")
+
         return withContext(Dispatchers.IO) {
             try {
                 val params = CommandParametersAdapter.createGetAuthMethodsCommandParameters(
@@ -338,6 +349,7 @@ class MFARequiredState(
      * If an authentication method ID was supplied, the server will send a challenge to the specified method. If no ID is supplied,
      * the server will attempt to send the challenge to the user's default auth method.
      *
+     * <strong><u>Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
      * @param authMethod [com.microsoft.identity.nativeauth.AuthMethod] the authentication method used for the challenge operation.
      * @param callback [com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState.RequestChallengeCallback] to receive the result on.
      * @return The result of the request challenge action.
@@ -364,6 +376,7 @@ class MFARequiredState(
      * If an authentication method ID was supplied, the server will send a challenge to the specified method. If no ID is supplied,
      * the server will attempt to send the challenge to the user's default auth method.
      *
+     * <strong><u>Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
      * @param authMethod [com.microsoft.identity.nativeauth.AuthMethod] the authentication method used for the challenge operation.
      * @return The result of the request challenge action.
      */
@@ -373,6 +386,8 @@ class MFARequiredState(
             correlationId = correlationId,
             methodName = "${TAG}.requestChallenge(authMethod: AuthMethod)"
         )
+
+        Logger.warn(TAG, "Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.")
 
         return withContext(Dispatchers.IO) {
             try {
@@ -473,6 +488,7 @@ class MFARequiredState(
     /**
      * Submits the challenge value to the server; callback variant.
      *
+     * <strong><u>Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
      * @param callback [com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState.SubmitChallengeCallback] to receive the result on.
      * @return The result of the submit challenge action.
      */
@@ -496,6 +512,7 @@ class MFARequiredState(
     /**
      * Submits the challenge value to the server; Kotlin coroutines variant.
      *
+     * <strong><u>Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
      * @return The result of the submit challenge action.
      */
     suspend fun submitChallenge(challenge: String): MFASubmitChallengeResult {
@@ -504,6 +521,8 @@ class MFARequiredState(
             correlationId = correlationId,
             methodName = "${TAG}.submitChallenge(challenge: String)"
         )
+
+        Logger.warn(TAG, "Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.")
 
         return withContext(Dispatchers.IO) {
             try {
