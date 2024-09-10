@@ -45,6 +45,7 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -53,6 +54,7 @@ import java.util.Arrays;
 // https://identitydivision.visualstudio.com/DefaultCollection/DevEx/_workitems/edit/497038
 @RetryOnFailure(retryCount = 2)
 @RunOnAPI29Minus("Speed Bump")
+@Ignore("This test relies on ui element on Outlook's mobile website's front page. It's constantly breaking as their ui changes.")
 public class TestCase497038 extends AbstractMsalUiTest {
 
     @Test
