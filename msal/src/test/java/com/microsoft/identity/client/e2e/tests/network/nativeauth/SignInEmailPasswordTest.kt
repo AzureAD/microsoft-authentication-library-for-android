@@ -23,7 +23,7 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
-import com.microsoft.identity.client.e2e.utils.assertState
+import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
@@ -41,7 +41,7 @@ import org.mockito.kotlin.spy
 
 class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() {
 
-    override val configType = ConfigType.SIGN_IN_PASSWORD
+    override val defaultConfigType = ConfigType.SIGN_IN_PASSWORD
 
     /**
      * Use valid email and password to get token.
@@ -105,11 +105,11 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
             .`when`(app).signIn("user", "password".toCharArray(), null)
 
         val result = app.signIn("user", "password".toCharArray(), null)
-        assertState<SignInResult.MFARequired>(result)
+        assertResult<SignInResult.MFARequired>(result)
 
         // Initiate challenge, send code to email
         val sendChallengeResult = (result as SignInResult.MFARequired).nextState.requestChallenge()
-        assertState<MFARequiredResult.VerificationRequired>(sendChallengeResult)
+        assertResult<MFARequiredResult.VerificationRequired>(sendChallengeResult)
         (sendChallengeResult as MFARequiredResult.VerificationRequired)
         assertNotNull(sendChallengeResult.sentTo)
         assertNotNull(sendChallengeResult.codeLength)
@@ -117,16 +117,16 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
         // Retrieve all methods to build additional "pick MFA method UI"
         val authMethodsResult = sendChallengeResult.nextState.getAuthMethods()
-        assertState<MFARequiredResult.SelectionRequired>(authMethodsResult)
+        assertResult<MFARequiredResult.SelectionRequired>(authMethodsResult)
         (authMethodsResult as MFARequiredResult.SelectionRequired)
         assertTrue(authMethodsResult.authMethods.isNotEmpty())
 
         // call /challenge with specified ID
         val sendChallengeResult2 = sendChallengeResult.nextState.requestChallenge(authMethodsResult.authMethods[0])
-        assertState<MFARequiredResult.VerificationRequired>(sendChallengeResult2)
+        assertResult<MFARequiredResult.VerificationRequired>(sendChallengeResult2)
 
         // Submit the user supplied code to the API
         val submitCodeResult = (sendChallengeResult2 as MFARequiredResult.VerificationRequired).nextState.submitChallenge("1234")
-        assertState<SignInResult.Complete>(submitCodeResult)
+        assertResult<SignInResult.Complete>(submitCodeResult)
     }
 }

@@ -23,7 +23,7 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
-import com.microsoft.identity.client.e2e.utils.assertState
+import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError
@@ -33,13 +33,12 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Ignore
 import org.junit.Test
-import kotlin.math.sign
 
 class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 
-    override val configType = ConfigType.SIGN_UP_PASSWORD
+    override val defaultConfigType = ConfigType.SIGN_UP_PASSWORD
 
     @Test
     fun testSignUpErrorSimple() = runTest {
@@ -61,7 +60,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
                 val user = tempEmailApi.generateRandomEmailAddress()
                 val password = getSafePassword()
                 val signUpResult = application.signUp(user, password.toCharArray())
-                assertState<SignUpResult.CodeRequired>(signUpResult)
+                assertResult<SignUpResult.CodeRequired>(signUpResult)
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
                 Assert.assertTrue(submitCodeResult is SignUpResult.Complete)
@@ -80,10 +79,10 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
                 val signUpResult = application.signUp(user)
-                assertState<SignUpResult.CodeRequired>(signUpResult)
+                assertResult<SignUpResult.CodeRequired>(signUpResult)
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
-                assertState<SignUpResult.PasswordRequired>(submitCodeResult)
+                assertResult<SignUpResult.PasswordRequired>(submitCodeResult)
                 val submitPasswordResult = (submitCodeResult as SignUpResult.PasswordRequired).nextState.submitPassword(getSafePassword().toCharArray())
                 Assert.assertTrue(submitPasswordResult is SignUpResult.Complete)
             }
