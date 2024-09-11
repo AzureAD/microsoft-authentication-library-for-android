@@ -23,7 +23,7 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
-import com.microsoft.identity.client.e2e.utils.assertState
+import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
@@ -66,10 +66,10 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = config.email
                 result = application.resetPassword(user)
-                assertState<ResetPasswordStartResult.CodeRequired>(result)
+                assertResult<ResetPasswordStartResult.CodeRequired>(result)
                 otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (result as ResetPasswordStartResult.CodeRequired).nextState.submitCode(otp)
-                assertState<ResetPasswordSubmitCodeResult.PasswordRequired>(submitCodeResult)
+                assertResult<ResetPasswordSubmitCodeResult.PasswordRequired>(submitCodeResult)
                 val password = getSafePassword()
                 val submitPasswordResult = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState.submitPassword(password.toCharArray())
                 Assert.assertTrue(submitPasswordResult is ResetPasswordResult.Complete)

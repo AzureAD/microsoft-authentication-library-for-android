@@ -30,7 +30,7 @@ import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager
 import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper
-import com.microsoft.identity.client.e2e.utils.assertState
+import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper
@@ -2408,7 +2408,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         )
 
         val result = application.signIn(username, password)
-        assertState<SignInResult.MFARequired>(result)
+        assertResult<SignInResult.MFARequired>(result)
 
         correlationId = UUID.randomUUID().toString()
         // 3a. Sign in challenge for default auth method
@@ -2426,7 +2426,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
 
         // Initiate challenge, send code to email
         val sendChallengeResult = nextState.requestChallenge()
-        assertState<MFARequiredResult.VerificationRequired>(sendChallengeResult)
+        assertResult<MFARequiredResult.VerificationRequired>(sendChallengeResult)
         (sendChallengeResult as MFARequiredResult.VerificationRequired)
         assertNotNull(sendChallengeResult.sentTo)
         assertNotNull(sendChallengeResult.codeLength)
@@ -2447,7 +2447,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
 
         // Call /introspect to get all auth methods
         val getAuthMethodsResult = nextState2.getAuthMethods()
-        assertState<MFARequiredResult.SelectionRequired>(getAuthMethodsResult)
+        assertResult<MFARequiredResult.SelectionRequired>(getAuthMethodsResult)
         (getAuthMethodsResult as MFARequiredResult.SelectionRequired)
         assertNotNull(getAuthMethodsResult.authMethods)
 
@@ -2467,7 +2467,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
 
         // Call /challenge with specified ID
         val sendSpecifiedChallengeResult = nextState3.requestChallenge(getAuthMethodsResult.authMethods[0])
-        assertState<MFARequiredResult.VerificationRequired>(sendSpecifiedChallengeResult)
+        assertResult<MFARequiredResult.VerificationRequired>(sendSpecifiedChallengeResult)
         (sendSpecifiedChallengeResult as MFARequiredResult.VerificationRequired)
         assertNotNull(sendSpecifiedChallengeResult.sentTo)
         assertNotNull(sendSpecifiedChallengeResult.codeLength)
@@ -2488,7 +2488,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         nextState4.mockCorrelationId(correlationId)
 
         val submitChallengeResult = nextState4.submitChallenge(code)
-        assertState<SignInResult.Complete>(submitChallengeResult)
+        assertResult<SignInResult.Complete>(submitChallengeResult)
     }
 
     @Test
@@ -2519,7 +2519,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         )
 
         val result = application.signIn(username, password)
-        assertState<SignInResult.MFARequired>(result)
+        assertResult<SignInResult.MFARequired>(result)
 
         // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
         // it's value in order to make it consistent with the subsequent call to mock API.
@@ -2542,7 +2542,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
 
         nextState.mockCorrelationId(correlationId)
         val sendChallengeResult = nextState.requestChallenge()
-        assertState<MFARequiredResult.SelectionRequired>(sendChallengeResult)
+        assertResult<MFARequiredResult.SelectionRequired>(sendChallengeResult)
         (sendChallengeResult as MFARequiredResult.SelectionRequired)
         assertNotNull(sendChallengeResult.authMethods)
 
@@ -2562,7 +2562,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
 
         // Call /challenge with specified ID
         val sendSpecifiedChallengeResult = nextState3.requestChallenge(sendChallengeResult.authMethods[0])
-        assertState<MFARequiredResult.VerificationRequired>(sendSpecifiedChallengeResult)
+        assertResult<MFARequiredResult.VerificationRequired>(sendSpecifiedChallengeResult)
         (sendSpecifiedChallengeResult as MFARequiredResult.VerificationRequired)
         assertNotNull(sendSpecifiedChallengeResult.sentTo)
         assertNotNull(sendSpecifiedChallengeResult.codeLength)
@@ -2583,7 +2583,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         nextState4.mockCorrelationId(correlationId)
 
         val submitChallengeResult = nextState4.submitChallenge(code)
-        assertState<SignInResult.Complete>(submitChallengeResult)
+        assertResult<SignInResult.Complete>(submitChallengeResult)
     }
 
     @Test
@@ -2614,7 +2614,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         )
 
         val result = application.signIn(username, password)
-        assertState<SignInResult.MFARequired>(result)
+        assertResult<SignInResult.MFARequired>(result)
 
         // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
         // it's value in order to make it consistent with the subsequent call to mock API.
@@ -2632,7 +2632,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
 
         nextState.mockCorrelationId(correlationId)
         val sendChallengeResult = nextState.requestChallenge()
-        assertState<MFARequiredResult.VerificationRequired>(sendChallengeResult)
+        assertResult<MFARequiredResult.VerificationRequired>(sendChallengeResult)
         (sendChallengeResult as MFARequiredResult.VerificationRequired)
         assertNotNull(sendChallengeResult.sentTo)
         assertNotNull(sendChallengeResult.codeLength)
@@ -2653,7 +2653,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         nextState4.mockCorrelationId(correlationId)
 
         val submitChallengeResult = nextState4.submitChallenge(code)
-        assertState<SignInResult.Complete>(submitChallengeResult)
+        assertResult<SignInResult.Complete>(submitChallengeResult)
     }
 
     @Test
@@ -2684,7 +2684,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         )
 
         val result = application.signIn(username, password)
-        assertState<SignInResult.MFARequired>(result)
+        assertResult<SignInResult.MFARequired>(result)
 
         // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
         // it's value in order to make it consistent with the subsequent call to mock API.
@@ -2707,7 +2707,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
 
         nextState.mockCorrelationId(correlationId)
         val sendChallengeResult = nextState.requestChallenge()
-        assertState<MFAError>(sendChallengeResult)
+        assertResult<MFAError>(sendChallengeResult)
         assertTrue((sendChallengeResult as MFAError).isBrowserRequired())
     }
 
@@ -2739,7 +2739,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         )
 
         val result = application.signIn(username, password)
-        assertState<SignInResult.MFARequired>(result)
+        assertResult<SignInResult.MFARequired>(result)
 
         correlationId = UUID.randomUUID().toString()
         // 3a. Sign in challenge for default auth method
@@ -2757,7 +2757,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
 
         // Initiate challenge, send code to email
         val sendChallengeResult = nextState.requestChallenge()
-        assertState<MFARequiredResult.VerificationRequired>(sendChallengeResult)
+        assertResult<MFARequiredResult.VerificationRequired>(sendChallengeResult)
         (sendChallengeResult as MFARequiredResult.VerificationRequired)
         assertNotNull(sendChallengeResult.sentTo)
         assertNotNull(sendChallengeResult.codeLength)
@@ -2778,7 +2778,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
 
         // Call /introspect to get all auth methods
         val getAuthMethodsResult = nextState2.getAuthMethods()
-        assertState<MFAError>(getAuthMethodsResult)
+        assertResult<MFAError>(getAuthMethodsResult)
         assertTrue((getAuthMethodsResult as MFAError).isBrowserRequired())
     }
 
@@ -2810,7 +2810,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         )
 
         val result = application.signIn(username, password)
-        assertState<SignInResult.MFARequired>(result)
+        assertResult<SignInResult.MFARequired>(result)
 
         // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
         // it's value in order to make it consistent with the subsequent call to mock API.
@@ -2828,7 +2828,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
 
         nextState.mockCorrelationId(correlationId)
         val sendChallengeResult = nextState.requestChallenge()
-        assertState<MFARequiredResult.VerificationRequired>(sendChallengeResult)
+        assertResult<MFARequiredResult.VerificationRequired>(sendChallengeResult)
         (sendChallengeResult as MFARequiredResult.VerificationRequired)
         assertNotNull(sendChallengeResult.sentTo)
         assertNotNull(sendChallengeResult.codeLength)
@@ -2849,7 +2849,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         nextState4.mockCorrelationId(correlationId)
 
         val submitChallengeResult = nextState4.submitChallenge(code)
-        assertState<SubmitChallengeError>(submitChallengeResult)
+        assertResult<SubmitChallengeError>(submitChallengeResult)
         assertTrue((submitChallengeResult as SubmitChallengeError).isInvalidChallenge())
 
         // 5. Submit (valid) code
@@ -2900,7 +2900,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         )
 
         val result = application.signIn(username, password)
-        assertState<SignInResult.MFARequired>(result)
+        assertResult<SignInResult.MFARequired>(result)
 
         correlationId = UUID.randomUUID().toString()
         // 3a. Sign in challenge for default auth method
@@ -2918,7 +2918,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
 
         // Initiate challenge, send code to email
         val sendChallengeResult = nextState.requestChallenge()
-        assertState<MFARequiredResult.VerificationRequired>(sendChallengeResult)
+        assertResult<MFARequiredResult.VerificationRequired>(sendChallengeResult)
         (sendChallengeResult as MFARequiredResult.VerificationRequired)
         assertNotNull(sendChallengeResult.sentTo)
         assertNotNull(sendChallengeResult.codeLength)
@@ -2939,7 +2939,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
 
         // Call /introspect to get all auth methods
         val getAuthMethodsResult = nextState2.getAuthMethods()
-        assertState<MFARequiredResult.SelectionRequired>(getAuthMethodsResult)
+        assertResult<MFARequiredResult.SelectionRequired>(getAuthMethodsResult)
         (getAuthMethodsResult as MFARequiredResult.SelectionRequired)
         assertNotNull(getAuthMethodsResult.authMethods)
 
@@ -2959,7 +2959,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
 
         // Call /challenge with specified ID
         val sendSpecifiedChallengeResult = nextState3.requestChallenge(getAuthMethodsResult.authMethods[0])
-        assertState<MFARequiredResult.VerificationRequired>(sendSpecifiedChallengeResult)
+        assertResult<MFARequiredResult.VerificationRequired>(sendSpecifiedChallengeResult)
         (sendSpecifiedChallengeResult as MFARequiredResult.VerificationRequired)
         assertNotNull(sendSpecifiedChallengeResult.sentTo)
         assertNotNull(sendSpecifiedChallengeResult.codeLength)
@@ -2980,7 +2980,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         nextState4.mockCorrelationId(correlationId)
 
         val submitChallengeResult = nextState4.submitChallenge(code)
-        assertState<SubmitChallengeError>(submitChallengeResult)
+        assertResult<SubmitChallengeError>(submitChallengeResult)
         assertTrue((submitChallengeResult as SubmitChallengeError).isInvalidChallenge())
 
         // 7. Submit (valid) code
@@ -3031,7 +3031,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         )
 
         val result = application.signIn(username, password)
-        assertState<SignInResult.MFARequired>(result)
+        assertResult<SignInResult.MFARequired>(result)
 
         // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
         // it's value in order to make it consistent with the subsequent call to mock API.
@@ -3049,7 +3049,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         nextState.mockCorrelationId(correlationId)
 
         val sendChallengeResult = nextState.requestChallenge()
-        assertState<MFARequiredResult.VerificationRequired>(sendChallengeResult)
+        assertResult<MFARequiredResult.VerificationRequired>(sendChallengeResult)
         (sendChallengeResult as MFARequiredResult.VerificationRequired)
         assertNotNull(sendChallengeResult.sentTo)
         assertNotNull(sendChallengeResult.codeLength)
@@ -3071,7 +3071,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
 
         // Resend
         val resendChallengeResult = nextState2.requestChallenge()
-        assertState<MFARequiredResult.VerificationRequired>(resendChallengeResult)
+        assertResult<MFARequiredResult.VerificationRequired>(resendChallengeResult)
         (resendChallengeResult as MFARequiredResult.VerificationRequired)
         assertNotNull(resendChallengeResult.sentTo)
         assertNotNull(resendChallengeResult.codeLength)
@@ -3092,6 +3092,6 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         nextState4.mockCorrelationId(correlationId)
 
         val submitChallengeResult = nextState4.submitChallenge(code)
-        assertState<SignInResult.Complete>(submitChallengeResult)
+        assertResult<SignInResult.Complete>(submitChallengeResult)
     }
 }

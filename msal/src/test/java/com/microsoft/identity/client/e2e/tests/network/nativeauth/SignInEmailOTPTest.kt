@@ -23,13 +23,12 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
-import com.microsoft.identity.client.e2e.utils.assertState
+import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
-import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
@@ -53,10 +52,10 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = config.email
                 val signInResult = application.signIn(user)
-                assertState<SignInResult.CodeRequired>(signInResult)
+                assertResult<SignInResult.CodeRequired>(signInResult)
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signInResult as SignInResult.CodeRequired).nextState.submitCode(otp)
-                assertState<SignInResult.Complete>(submitCodeResult)
+                assertResult<SignInResult.Complete>(submitCodeResult)
             }
         }
     }
@@ -86,7 +85,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
             runBlocking {// Running with runBlocking to avoid default 10 second execution timeout.
                 val user = config.email
                 val signInResult = application.signIn(user)
-                assertState<SignInResult.CodeRequired>(signInResult)
+                assertResult<SignInResult.CodeRequired>(signInResult)
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 // Turn correct OTP into an incorrect one
                 val alteredOtp = otp + "1234"

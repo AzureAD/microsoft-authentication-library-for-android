@@ -23,7 +23,7 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
-import com.microsoft.identity.client.e2e.utils.assertState
+import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.nativeauth.UserAttributes
@@ -59,10 +59,10 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
                     password = password,
                     attributes = attributes
                 )
-                assertState<SignUpResult.CodeRequired>(signUpResult)
+                assertResult<SignUpResult.CodeRequired>(signUpResult)
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
-                assertState<SignUpResult.Complete>(submitCodeResult)
+                assertResult<SignUpResult.Complete>(submitCodeResult)
             }
         }
     }
@@ -82,12 +82,12 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
                 val signUpResult = application.signUp(user)
-                assertState<SignUpResult.CodeRequired>(signUpResult)
+                assertResult<SignUpResult.CodeRequired>(signUpResult)
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
-                assertState<SignUpResult.PasswordRequired>(submitCodeResult)
+                assertResult<SignUpResult.PasswordRequired>(submitCodeResult)
                 val submitPasswordResult = (submitCodeResult as SignUpResult.PasswordRequired).nextState.submitPassword(getSafePassword().toCharArray())
-                assertState<SignUpResult.AttributesRequired>(submitPasswordResult)
+                assertResult<SignUpResult.AttributesRequired>(submitPasswordResult)
                 val requiredAttributes = (submitPasswordResult as SignUpResult.AttributesRequired).requiredAttributes
                 val attributes = UserAttributes.Builder()
                 for (attr in requiredAttributes) {
@@ -117,12 +117,12 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
                 val signUpResult = application.signUp(user)
-                assertState<SignUpResult.CodeRequired>(signUpResult)
+                assertResult<SignUpResult.CodeRequired>(signUpResult)
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
-                assertState<SignUpResult.PasswordRequired>(submitCodeResult)
+                assertResult<SignUpResult.PasswordRequired>(submitCodeResult)
                 val submitPasswordResult = (submitCodeResult as SignUpResult.PasswordRequired).nextState.submitPassword(getSafePassword().toCharArray())
-                assertState<SignUpResult.AttributesRequired>(submitPasswordResult)
+                assertResult<SignUpResult.AttributesRequired>(submitPasswordResult)
                 val requiredAttributes = (submitPasswordResult as SignUpResult.AttributesRequired).requiredAttributes
                 val attributes = UserAttributes.Builder()
                 for (attr in requiredAttributes) { // Loop through all the required attributes and send them to the API one by one, mimicking a multi-screen UX.
