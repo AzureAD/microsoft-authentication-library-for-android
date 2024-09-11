@@ -26,27 +26,20 @@ package com.microsoft.identity.client.e2e.tests.network.nativeauth
 import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
-import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitChallengeError
 import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
-import com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
-import org.junit.Ignore
 import org.junit.Test
-import org.mockito.Mockito
-import org.mockito.kotlin.spy
 import java.lang.Thread.sleep
 
 class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 
-    override val configType = ConfigType.SIGN_IN_PASSWORD
+    override var defaultConfigType = ConfigType.SIGN_IN_MFA_SINGLE_AUTH
 
     /**
      * Full flow:
@@ -60,8 +53,8 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
      */
     @Test
     fun `test submit invalid challenge, request new challenge, submit correct challenge and complete MFA flow`() = runTest {
-        val username = ""
-        val password = ""
+        val username = config.email
+        val password = getSafePassword()
         val result = application.signIn(username, password.toCharArray())
         assertResult<SignInResult.MFARequired>(result)
 
@@ -107,8 +100,8 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
      */
     @Test
     fun `test get other auth methods, request challenge on specific auth method and complete MFA flow`() = runTest {
-        val username = ""
-        val password = ""
+        val username = config.email
+        val password = getSafePassword()
         val result = application.signIn(username, password.toCharArray())
         assertResult<SignInResult.MFARequired>(result)
 
@@ -154,8 +147,11 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
      */
     @Test
     fun `test selection required, request challenge on specific auth method and complete MFA flow`() = runTest {
-        val username = ""
-        val password = ""
+        val configType = ConfigType.SIGN_IN_MFA_MULTI_AUTH
+        setupPCA(configType)
+
+        val username = config.email
+        val password = getSafePassword()
         val result = application.signIn(username, password.toCharArray())
         assertResult<SignInResult.MFARequired>(result)
 

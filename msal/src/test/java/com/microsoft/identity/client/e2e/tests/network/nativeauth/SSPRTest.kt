@@ -40,7 +40,7 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 
-    override val configType = ConfigType.SSPR
+    override val defaultConfigType = ConfigType.SSPR
 
     @Test
     fun testSSPRErrorSimple() = runTest {

@@ -46,7 +46,7 @@ class GetTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         resources = config.resources
     }
 
-    override val configType = ConfigType.SIGN_IN_PASSWORD
+    override val defaultConfigType = ConfigType.SIGN_IN_PASSWORD
 
     /**
      * Signing in with an invalid scope should make the API and the SDK return an error.

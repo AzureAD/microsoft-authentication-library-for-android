@@ -38,7 +38,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
     private val tempEmailApi = TemporaryEmailService()
 
-    override val configType = ConfigType.SIGN_UP_PASSWORD
+    override val defaultConfigType = ConfigType.SIGN_UP_PASSWORD
 
     @Test
     fun testSignUpErrorSimple() = runTest {

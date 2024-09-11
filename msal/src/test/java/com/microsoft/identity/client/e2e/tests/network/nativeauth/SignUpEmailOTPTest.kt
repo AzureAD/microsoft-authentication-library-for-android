@@ -36,7 +36,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 
-    override val configType = ConfigType.SIGN_UP_OTP
+    override val defaultConfigType = ConfigType.SIGN_UP_OTP
 
     /**
      * Sign up with email + OTP. Verify email address using email OTP and sign up.

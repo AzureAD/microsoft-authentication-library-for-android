@@ -41,7 +41,7 @@ import org.mockito.kotlin.spy
 
 class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() {
 
-    override val configType = ConfigType.SIGN_IN_PASSWORD
+    override val defaultConfigType = ConfigType.SIGN_IN_PASSWORD
 
     /**
      * Use valid email and password to get token.

@@ -37,7 +37,7 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
 
     private val tempEmailApi = TemporaryEmailService()
 
-    override val configType = ConfigType.SIGN_UP_OTP_ATTRIBUTES
+    override val defaultConfigType = ConfigType.SIGN_UP_OTP_ATTRIBUTES
 
     /**
      * Signup user with custom attributes with verify OTP as last step.
