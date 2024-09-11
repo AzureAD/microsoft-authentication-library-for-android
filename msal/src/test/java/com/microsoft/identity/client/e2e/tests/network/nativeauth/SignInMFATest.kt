@@ -30,6 +30,7 @@ import com.microsoft.identity.nativeauth.statemachine.errors.SubmitChallengeErro
 import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -118,6 +119,7 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
         assertResult<MFARequiredResult.SelectionRequired>(getAuthMethodsResult)
         (getAuthMethodsResult as MFARequiredResult.SelectionRequired)
         assertTrue(getAuthMethodsResult.authMethods.size == 1)
+        assertEquals("email", getAuthMethodsResult.authMethods[0].challengeType)
 
         // Request challenge for specific auth method
         val requestNewChallengeResult = sendChallengeResult.nextState.requestChallenge(getAuthMethodsResult.authMethods[0])
@@ -160,6 +162,7 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
         assertResult<MFARequiredResult.SelectionRequired>(sendChallengeResult)
         (sendChallengeResult as MFARequiredResult.SelectionRequired)
         assertTrue(sendChallengeResult.authMethods.size == 1)
+        assertEquals("email", sendChallengeResult.authMethods[0].challengeType)
 
         // Request challenge for specific auth method
         val requestNewChallengeResult = sendChallengeResult.nextState.requestChallenge(sendChallengeResult.authMethods[0])
