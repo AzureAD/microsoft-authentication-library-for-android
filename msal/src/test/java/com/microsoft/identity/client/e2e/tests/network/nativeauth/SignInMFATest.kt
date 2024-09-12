@@ -33,6 +33,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Ignore
 import org.junit.Test
 import java.lang.Thread.sleep
 
@@ -53,6 +54,7 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
      * - Complete MFA flow and complete sign in.
      */
     @Test
+    @Ignore("Skip until MFA becomes available on production")
     fun `test submit invalid challenge, request new challenge, submit correct challenge and complete MFA flow`()  {
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
@@ -105,6 +107,7 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
      * - Complete MFA flow and complete sign in.
      */
     @Test
+    @Ignore("Skip until MFA becomes available on production")
     fun `test get other auth methods, request challenge on specific auth method and complete MFA flow`() {
         retryOperation {
             runBlocking {
@@ -160,6 +163,7 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
      * - Complete MFA flow and complete sign in.
      */
     @Test
+    @Ignore("Skip until MFA becomes available on production")
     fun `test selection required, request challenge on specific auth method and complete MFA flow`() {
         retryOperation {
             runBlocking {
