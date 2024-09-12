@@ -1,9 +1,9 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
-
-vNext
+Version 5.6.0
 ----------
--[MINOR] Moving OS version check for passkeys (#2138)
--[PATCH] Fix Native Auth authority data being persisted across different SDK instances (#2159)
+- [PATCH] Update common @18.0.0
+- [MINOR] Moving OS version check for passkeys (#2138)
+- [PATCH] Fix Native Auth authority data being persisted across different SDK instances (#2159)
 
 Version 5.5.0
 ---------
