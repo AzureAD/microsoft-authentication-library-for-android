@@ -29,7 +29,7 @@ import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailSe
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitChallengeError
 import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
-import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -53,40 +53,45 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
      * - Complete MFA flow and complete sign in.
      */
     @Test
-    fun `test submit invalid challenge, request new challenge, submit correct challenge and complete MFA flow`() = runTest {
-        val username = config.email
-        val password = getSafePassword()
-        val result = application.signIn(username, password.toCharArray())
-        assertResult<SignInResult.MFARequired>(result)
+    fun `test submit invalid challenge, request new challenge, submit correct challenge and complete MFA flow`()  {
+        retryOperation {
+            runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
+                val username = config.email
+                val password = getSafePassword()
+                val result = application.signIn(username, password.toCharArray())
+                assertResult<SignInResult.MFARequired>(result)
 
-        // Initiate challenge, send code to email
-        val sendChallengeResult = (result as SignInResult.MFARequired).nextState.requestChallenge()
-        assertResult<MFARequiredResult.VerificationRequired>(sendChallengeResult)
-        (sendChallengeResult as MFARequiredResult.VerificationRequired)
-        assertNotNull(sendChallengeResult.sentTo)
-        assertNotNull(sendChallengeResult.codeLength)
-        assertNotNull(sendChallengeResult.channel)
+                // Initiate challenge, send code to email
+                val sendChallengeResult =
+                    (result as SignInResult.MFARequired).nextState.requestChallenge()
+                assertResult<MFARequiredResult.VerificationRequired>(sendChallengeResult)
+                (sendChallengeResult as MFARequiredResult.VerificationRequired)
+                assertNotNull(sendChallengeResult.sentTo)
+                assertNotNull(sendChallengeResult.codeLength)
+                assertNotNull(sendChallengeResult.channel)
 
-        // Submit incorrect challenge
-        val submitIncorrectChallengeResult = sendChallengeResult.nextState.submitChallenge("invalid")
-        assertResult<SubmitChallengeError>(submitIncorrectChallengeResult)
-        assertTrue((submitIncorrectChallengeResult as SubmitChallengeError).isInvalidChallenge())
+                // Submit incorrect challenge
+                val submitIncorrectChallengeResult = sendChallengeResult.nextState.submitChallenge("invalid")
+                assertResult<SubmitChallengeError>(submitIncorrectChallengeResult)
+                assertTrue((submitIncorrectChallengeResult as SubmitChallengeError).isInvalidChallenge())
 
-        // Request new challenge
-        val requestNewChallengeResult = sendChallengeResult.nextState.requestChallenge()
-        assertResult<MFARequiredResult.VerificationRequired>(requestNewChallengeResult)
-        (requestNewChallengeResult as MFARequiredResult.VerificationRequired)
-        assertNotNull(requestNewChallengeResult.sentTo)
-        assertNotNull(requestNewChallengeResult.codeLength)
-        assertNotNull(requestNewChallengeResult.channel)
+                // Request new challenge
+                val requestNewChallengeResult = sendChallengeResult.nextState.requestChallenge()
+                assertResult<MFARequiredResult.VerificationRequired>(requestNewChallengeResult)
+                (requestNewChallengeResult as MFARequiredResult.VerificationRequired)
+                assertNotNull(requestNewChallengeResult.sentTo)
+                assertNotNull(requestNewChallengeResult.codeLength)
+                assertNotNull(requestNewChallengeResult.channel)
 
-        // Ugly fix until https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3024168 is in place
-        sleep(3000)
+                // Ugly fix until https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3024168 is in place
+                sleep(5000)
 
-        // Retrieve challenge from mailbox and submit
-        val otp = tempEmailApi.retrieveCodeFromInbox(username)
-        val submitCorrectChallengeResult = requestNewChallengeResult.nextState.submitChallenge(otp)
-        assertResult<SignInResult.Complete>(submitCorrectChallengeResult)
+                // Retrieve challenge from mailbox and submit
+                val otp = tempEmailApi.retrieveCodeFromInbox(username)
+                val submitCorrectChallengeResult = requestNewChallengeResult.nextState.submitChallenge(otp)
+                assertResult<SignInResult.Complete>(submitCorrectChallengeResult)
+            }
+        }
     }
 
     /**
@@ -100,42 +105,49 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
      * - Complete MFA flow and complete sign in.
      */
     @Test
-    fun `test get other auth methods, request challenge on specific auth method and complete MFA flow`() = runTest {
-        val username = config.email
-        val password = getSafePassword()
-        val result = application.signIn(username, password.toCharArray())
-        assertResult<SignInResult.MFARequired>(result)
+    fun `test get other auth methods, request challenge on specific auth method and complete MFA flow`() {
+        retryOperation {
+            runBlocking {
+                val username = config.email
+                val password = getSafePassword()
+                val result = application.signIn(username, password.toCharArray())
+                assertResult<SignInResult.MFARequired>(result)
 
-        // Initiate challenge, send code to email
-        val sendChallengeResult = (result as SignInResult.MFARequired).nextState.requestChallenge()
-        assertResult<MFARequiredResult.VerificationRequired>(sendChallengeResult)
-        (sendChallengeResult as MFARequiredResult.VerificationRequired)
-        assertNotNull(sendChallengeResult.sentTo)
-        assertNotNull(sendChallengeResult.codeLength)
-        assertNotNull(sendChallengeResult.channel)
+                // Initiate challenge, send code to email
+                val sendChallengeResult =
+                    (result as SignInResult.MFARequired).nextState.requestChallenge()
+                assertResult<MFARequiredResult.VerificationRequired>(sendChallengeResult)
+                (sendChallengeResult as MFARequiredResult.VerificationRequired)
+                assertNotNull(sendChallengeResult.sentTo)
+                assertNotNull(sendChallengeResult.codeLength)
+                assertNotNull(sendChallengeResult.channel)
 
-        // Retrieve other auth methods
-        val getAuthMethodsResult = sendChallengeResult.nextState.getAuthMethods()
-        assertResult<MFARequiredResult.SelectionRequired>(getAuthMethodsResult)
-        (getAuthMethodsResult as MFARequiredResult.SelectionRequired)
-        assertTrue(getAuthMethodsResult.authMethods.size == 1)
-        assertEquals("email", getAuthMethodsResult.authMethods[0].challengeType)
+                // Retrieve other auth methods
+                val getAuthMethodsResult = sendChallengeResult.nextState.getAuthMethods()
+                assertResult<MFARequiredResult.SelectionRequired>(getAuthMethodsResult)
+                (getAuthMethodsResult as MFARequiredResult.SelectionRequired)
+                assertTrue(getAuthMethodsResult.authMethods.size == 1)
+                assertEquals("email", getAuthMethodsResult.authMethods[0].challengeChannel)
 
-        // Request challenge for specific auth method
-        val requestNewChallengeResult = sendChallengeResult.nextState.requestChallenge(getAuthMethodsResult.authMethods[0])
-        assertResult<MFARequiredResult.VerificationRequired>(requestNewChallengeResult)
-        (requestNewChallengeResult as MFARequiredResult.VerificationRequired)
-        assertNotNull(requestNewChallengeResult.sentTo)
-        assertNotNull(requestNewChallengeResult.codeLength)
-        assertNotNull(requestNewChallengeResult.channel)
+                // Request challenge for specific auth method
+                val requestNewChallengeResult =
+                    sendChallengeResult.nextState.requestChallenge(getAuthMethodsResult.authMethods[0])
+                assertResult<MFARequiredResult.VerificationRequired>(requestNewChallengeResult)
+                (requestNewChallengeResult as MFARequiredResult.VerificationRequired)
+                assertNotNull(requestNewChallengeResult.sentTo)
+                assertNotNull(requestNewChallengeResult.codeLength)
+                assertNotNull(requestNewChallengeResult.channel)
 
-        // Ugly fix until https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3024168 is in place
-        sleep(3000)
+                // Ugly fix until https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3024168 is in place
+                sleep(5000)
 
-        // Retrieve challenge from mailbox and submit
-        val otp = tempEmailApi.retrieveCodeFromInbox(username)
-        val submitCorrectChallengeResult = requestNewChallengeResult.nextState.submitChallenge(otp)
-        assertResult<SignInResult.Complete>(submitCorrectChallengeResult)
+                // Retrieve challenge from mailbox and submit
+                val otp = tempEmailApi.retrieveCodeFromInbox(username)
+                val submitCorrectChallengeResult =
+                    requestNewChallengeResult.nextState.submitChallenge(otp)
+                assertResult<SignInResult.Complete>(submitCorrectChallengeResult)
+            }
+        }
     }
 
     /**
@@ -148,36 +160,43 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
      * - Complete MFA flow and complete sign in.
      */
     @Test
-    fun `test selection required, request challenge on specific auth method and complete MFA flow`() = runTest {
-        val configType = ConfigType.SIGN_IN_MFA_MULTI_AUTH
-        setupPCA(configType)
+    fun `test selection required, request challenge on specific auth method and complete MFA flow`() {
+        retryOperation {
+            runBlocking {
+                val configType = ConfigType.SIGN_IN_MFA_MULTI_AUTH
+                setupPCA(configType)
 
-        val username = config.email
-        val password = getSafePassword()
-        val result = application.signIn(username, password.toCharArray())
-        assertResult<SignInResult.MFARequired>(result)
+                val username = config.email
+                val password = getSafePassword()
+                val result = application.signIn(username, password.toCharArray())
+                assertResult<SignInResult.MFARequired>(result)
 
-        // Initiate challenge, send code to email
-        val sendChallengeResult = (result as SignInResult.MFARequired).nextState.requestChallenge()
-        assertResult<MFARequiredResult.SelectionRequired>(sendChallengeResult)
-        (sendChallengeResult as MFARequiredResult.SelectionRequired)
-        assertTrue(sendChallengeResult.authMethods.size == 1)
-        assertEquals("email", sendChallengeResult.authMethods[0].challengeType)
+                // Initiate challenge, send code to email
+                val sendChallengeResult =
+                    (result as SignInResult.MFARequired).nextState.requestChallenge()
+                assertResult<MFARequiredResult.SelectionRequired>(sendChallengeResult)
+                (sendChallengeResult as MFARequiredResult.SelectionRequired)
+                assertTrue(sendChallengeResult.authMethods.size == 1)
+                assertEquals("email", sendChallengeResult.authMethods[0].challengeChannel)
 
-        // Request challenge for specific auth method
-        val requestNewChallengeResult = sendChallengeResult.nextState.requestChallenge(sendChallengeResult.authMethods[0])
-        assertResult<MFARequiredResult.VerificationRequired>(requestNewChallengeResult)
-        (requestNewChallengeResult as MFARequiredResult.VerificationRequired)
-        assertNotNull(requestNewChallengeResult.sentTo)
-        assertNotNull(requestNewChallengeResult.codeLength)
-        assertNotNull(requestNewChallengeResult.channel)
+                // Request challenge for specific auth method
+                val requestNewChallengeResult =
+                    sendChallengeResult.nextState.requestChallenge(sendChallengeResult.authMethods[0])
+                assertResult<MFARequiredResult.VerificationRequired>(requestNewChallengeResult)
+                (requestNewChallengeResult as MFARequiredResult.VerificationRequired)
+                assertNotNull(requestNewChallengeResult.sentTo)
+                assertNotNull(requestNewChallengeResult.codeLength)
+                assertNotNull(requestNewChallengeResult.channel)
 
-        // Ugly fix until https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3024168 is in place
-        sleep(3000)
+                // Ugly fix until https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3024168 is in place
+                sleep(5000)
 
-        // Retrieve challenge from mailbox and submit
-        val otp = tempEmailApi.retrieveCodeFromInbox(username)
-        val submitCorrectChallengeResult = requestNewChallengeResult.nextState.submitChallenge(otp)
-        assertResult<SignInResult.Complete>(submitCorrectChallengeResult)
+                // Retrieve challenge from mailbox and submit
+                val otp = tempEmailApi.retrieveCodeFromInbox(username)
+                val submitCorrectChallengeResult =
+                    requestNewChallengeResult.nextState.submitChallenge(otp)
+                assertResult<SignInResult.Complete>(submitCorrectChallengeResult)
+            }
+        }
     }
 }
