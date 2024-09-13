@@ -2,9 +2,6 @@
 # Description: Run instrumented test for MSAL.
 name: Instrumented Tests
 
-trigger:
-- dev
-
 resources:
  repositories:
  - repository: android-complete
