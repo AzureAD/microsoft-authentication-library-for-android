@@ -17,14 +17,6 @@ variables:
 - group: MSIDLABVARS
 - group: devex-ciam-test
 
-trigger:
-  branches:
-    include:
-    - dev
-    - master
-    - release/*
-  batch: True
-
 resources:
   repositories:
   - repository: common

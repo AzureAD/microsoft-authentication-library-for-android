@@ -7,7 +7,7 @@
 name: 'AB#ID Check'
 on: 
   pull_request:
-    types: [opened, reopened, edited]
+    types: [opened, reopened, edited, labeled]
 
 jobs:
 # This action checks your pull request to make sure it is linked to a work item using AB# before you can merge.
