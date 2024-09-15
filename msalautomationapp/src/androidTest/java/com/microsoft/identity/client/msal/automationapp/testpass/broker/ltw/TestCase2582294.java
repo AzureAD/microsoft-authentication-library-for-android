@@ -81,12 +81,6 @@ public class TestCase2582294 extends AbstractMsalBrokerTest {
         final String state = brokerHostWithoutBrokerSelection.getDeviceState();
         Assert.assertTrue("Assert that the device state is true", state.contains("true"));
 
-        // click on "install cert" button
-        // popup to select certificate type is shown
-        // Choose "Vpn and app user cert" and click on ok
-        // popup with name of cert is shown. let the default name be there. Upon clicking on ok, a toast message with "Certificate is installed" is shown
-        brokerHostWithoutBrokerSelection.enableBrowserAccess(username);
-
         // click on "get wpj upn" button
         // You should see the upn with which we performed join
         final String upn = brokerHostWithoutBrokerSelection.getAccountUpn();

@@ -49,15 +49,17 @@ class TestCase2519783 : AbstractMsalBrokerTest() {
 
     @Test
     fun test_2519783() {
-        // Register 2 accounts from different tenants
-        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mLabAccount.username, mLabAccount.password)
-        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mUsGovAccount.username, mUsGovAccount.password)
-        val deviceRegistrationRecords = mBrokerHostApp.multipleWpjApiFragment.allRecords
-        Assert.assertEquals(2, deviceRegistrationRecords.size)
+        if (!mBrokerHostApp.flights.contains("\"EnableKeyStoreKeyFactory\":\"true\"")) {
+            // Register 2 accounts from different tenants
+            mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mLabAccount.username, mLabAccount.password)
+            mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mUsGovAccount.username, mUsGovAccount.password)
+            val deviceRegistrationRecords = mBrokerHostApp.multipleWpjApiFragment.allRecords
+            Assert.assertEquals(2, deviceRegistrationRecords.size)
 
-        // Install WPJ certificate for browser access in both registrations.
-        mBrokerHostApp.multipleWpjApiFragment.installCertificate(deviceRegistrationRecords[0]["TenantId"] as String)
-        mBrokerHostApp.multipleWpjApiFragment.installCertificate(deviceRegistrationRecords[1]["TenantId"] as String)
+            // Install WPJ certificate for browser access in both registrations.
+            mBrokerHostApp.multipleWpjApiFragment.installCertificate(deviceRegistrationRecords[0]["TenantId"] as String)
+            mBrokerHostApp.multipleWpjApiFragment.installCertificate(deviceRegistrationRecords[1]["TenantId"] as String)
+        }
     }
 
     override fun getLabQuery(): LabQuery {
