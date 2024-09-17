@@ -1,0 +1,154 @@
+# This workflow checks if an ADO ID (AB#ID) has been set successfully (https://github.com/marketplace/actions/azure-boards-check-for-ab)
+# If so, the workflow will extract the AB ID from the message
+# then it will update the PR title adding ',Fixed AB#ID' at the end.
+# Why?
+# Adding ',Fixed AB#ID' to the PR title will make the PR to automatically resolve the associated ADO item when the PR is completed.
+
+name: 'AB#ID Check'
+on: 
+  pull_request:
+    types: [opened, reopened, edited, labeled]
+
+jobs:
+# This action checks your pull request to make sure it is linked to a work item using AB# before you can merge.
+  validation:
+    name: Check if PR has a valid ADO ID
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.pull_request.labels.*.name, 'skip AB ID validation')"
+    steps:
+      - uses: danhellem/github-actions-pr-is-linked-to-work-item@main
+        
+  # Get AB#ID
+  get_ab_id:
+    name: Get AB ID
+    runs-on: ubuntu-latest
+    needs: validation
+    outputs:
+      abid: ${{ steps.get.outputs.id }}
+    steps:
+  # Extracts the AB ID from the pull_request body using regex and store the result using outputs 
+      - name: Get AB ID from comment
+        id: get
+        run: |
+          result=$(echo "${{ github.event.pull_request.body }}" | grep -oP '(?<=#)\d+')
+          echo "id=${result}" >> "$GITHUB_OUTPUT"
+
+  # Get Pull request ID
+  get_pr_id:
+    name: Get PR ID
+    runs-on: ubuntu-latest
+    needs: validation
+    outputs:
+      prid: ${{ steps.pr.outputs.id }}
+    steps:
+  # Extracts the pull request id and store the result using outputs 
+      - name: Extract pull request id
+        id: pr
+        run: echo "id=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+
+  # Get Pull request title
+  get_pr_title:
+    name: Get PR title
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    runs-on: ubuntu-latest
+    needs: get_pr_id
+    outputs:
+      prtitle: ${{ steps.current-title.outputs.title }}
+    steps:
+      # Get current PR title
+      - name: Get the current PR title
+        id: current-title
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_ID: ${{ needs.get_pr_id.outputs.prid }}
+        run: |
+          PR_TITLE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/pulls/${{ env.PR_ID }} \
+            | jq -r .title)
+          echo "title=$PR_TITLE" >> $GITHUB_OUTPUT
+
+  # Checks if the Pull request contains Fixed AB#ID in the title,
+  # if not cretaes a new title appending ',Fixed AB#ID' to the current title
+  check_if_title_needs_to_be_updated:
+    name: Check if title needs to be updated
+    runs-on: ubuntu-latest
+    needs: [get_pr_title, get_ab_id]
+    outputs:
+      new_pr_title: ${{ steps.new-title.outputs.new_pr_title }}
+      update_required: ${{ steps.check.outputs.update_required }}
+    steps:
+      - name: Check if PR title contains fix keyword with AB# using grep
+        id: check
+        env:
+          PR_TITLE: ${{ needs.get_pr_title.outputs.prtitle }}
+        run: |
+          if echo "$PR_TITLE" | grep -i -q '\bfix\(ed\|es\)\? AB#[0-9]'; then
+            echo "Pattern found in PR title!, no need to update."
+            echo "update_required=false" >> $GITHUB_OUTPUT
+          else
+            echo "Pattern not found in PR title!"
+            echo "update_required=true" >> $GITHUB_OUTPUT
+          fi
+      - name: Generate new PR title
+        env:
+          AB_ID: ${{ needs.get_ab_id.outputs.abid }}
+          CURRENT_PR_TITLE: ${{ needs.get_pr_title.outputs.prtitle }}
+        if: steps.check.outputs.update_required == 'true'
+        id: new-title
+        run: |
+          NEW_TITLE="$CURRENT_PR_TITLE, Fixes AB#$AB_ID"
+          echo "new_pr_title=${NEW_TITLE}" >> $GITHUB_OUTPUT
+
+  # Update new title
+  update_title:
+    name: Update title
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    needs: [check_if_title_needs_to_be_updated, get_pr_id]
+    if: needs.check_if_title_needs_to_be_updated.outputs.update_required == 'true'
+    steps:
+      - name: Update the pull request title
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_ID: ${{ needs.get_pr_id.outputs.prid }}
+          NEW_TITLE:  ${{ needs.check_if_title_needs_to_be_updated.outputs.new_pr_title }}
+        run: |
+          curl -X PATCH \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/pulls/${{ env.PR_ID }} \
+            -d '{"title":"'"${{ env.NEW_TITLE }}"'"}'
+  
+  # This job will determine the final status of the workflow and can be made a requirement before merging.
+  # The job will succeed if any of the following conditions are met:
+  # 1. The pull request title was successfully updated.
+  # 2. The pull request has the 'skip AB ID validation' label.
+  # 3. The title was already updated.
+  status_report:
+    name: AB ID validation Check
+    runs-on: ubuntu-latest
+    needs: [update_title, check_if_title_needs_to_be_updated, validation]
+    if: always()
+    steps:
+      - name: Check status of job1
+        id: check_status
+        run: |
+          if [[ "${{ needs.update_title.result }}" == "success" ]] ||
+             [[ "${{ needs.validation.result }}" == "skipped" ]] ||
+             [[ "${{ needs.update_title.result }}" == "skipped" &&  "${{ needs.check_if_title_needs_to_be_updated.result }}" == "success" ]]; then
+              echo "Job succeeded or was skipped."
+          else
+              echo "Job failed or was cancelled."
+            exit 1
+          fi
