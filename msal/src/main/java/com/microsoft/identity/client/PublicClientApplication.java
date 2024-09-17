@@ -2564,10 +2564,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     /**
      * Returns active name of the broker app.
      * NOTE: Expose to Company Portal for telemetry purpose.
+     * This method will be removed. Use BrokerAppsApi.getInstance(context).getActiveBrokerPackageName() method instead.
      *
      * @param context application context.
      * @return active broker package name. Null if active broker isn't installed.
      **/
+    @Deprecated
     @Nullable
     public String getActiveBrokerPackageName(@NonNull final Context context) {
         final BrokerData activeBroker = BrokerDiscoveryClientFactory.getInstanceForClientSdk(context,
