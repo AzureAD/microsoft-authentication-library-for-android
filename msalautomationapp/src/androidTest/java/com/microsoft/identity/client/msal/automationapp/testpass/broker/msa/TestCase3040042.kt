@@ -40,7 +40,7 @@ class TestCase3040042 : AbstractMsalBrokerTest(){
 
     @Test
     @Throws(Throwable::class)
-    fun test_3007768() {
+    fun test_3040042() {
         // Word should have phone sign-up option
         val word = WordApp(LocalApkInstaller())
         word.install()
@@ -49,7 +49,7 @@ class TestCase3040042 : AbstractMsalBrokerTest(){
         // OneDrive should have phone sign-up option
         val onedrive = OneDriveApp(LocalApkInstaller())
         onedrive.install()
-        Assert.assertTrue("OneDrive should have option for phone sign-up, but doesn't...", word.checkPhoneSignUpIsAvailable())
+        Assert.assertTrue("OneDrive should have option for phone sign-up, but doesn't...", onedrive.checkPhoneSignUpIsAvailable())
 
         // Outlook should NOT have phone sign-up option
         val outlook = OutlookApp(LocalApkInstaller())
