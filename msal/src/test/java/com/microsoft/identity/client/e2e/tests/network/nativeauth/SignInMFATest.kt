@@ -26,10 +26,13 @@ package com.microsoft.identity.client.e2e.tests.network.nativeauth
 import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
+import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitChallengeError
+import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
 import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -43,6 +46,13 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
 
     override var defaultConfigType = ConfigType.SIGN_IN_MFA_SINGLE_AUTH
 
+    private lateinit var resources: List<NativeAuthTestConfig.Resource>
+
+    override fun setup() {
+        super.setup()
+        resources = config.resources
+    }
+
     /**
      * Full flow:
      * - Receive MFA required error from API.
@@ -52,6 +62,8 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
      * - Request new challenge.
      * - Submit correct challenge.
      * - Complete MFA flow and complete sign in.
+     *
+     * Note: this test also asserts whether the scopes requested at sign in are present in the token that's received at the end of the flow
      */
     @Test
     @Ignore("Skip until MFA becomes available on production")
@@ -59,8 +71,16 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val username = config.email
+
+                val scopeA = resources[0].scopes[0]
+                val scopeB = resources[0].scopes[1]
+
                 val password = getSafePassword()
-                val result = application.signIn(username, password.toCharArray())
+                val result = application.signIn(
+                    username = username,
+                    password = password.toCharArray(),
+                    scopes = listOf(scopeA, scopeB)
+                )
                 assertResult<SignInResult.MFARequired>(result)
 
                 // Initiate challenge, send code to email
@@ -92,6 +112,13 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
                 val otp = tempEmailApi.retrieveCodeFromInbox(username)
                 val submitCorrectChallengeResult = requestNewChallengeResult.nextState.submitChallenge(otp)
                 assertResult<SignInResult.Complete>(submitCorrectChallengeResult)
+
+                val accountState = (submitCorrectChallengeResult as SignInResult.Complete).resultValue
+                val getAccessTokenResult = accountState.getAccessToken()
+                assertResult<GetAccessTokenResult.Complete>(getAccessTokenResult)
+                val authResult = (getAccessTokenResult as GetAccessTokenResult.Complete).resultValue
+                assertTrue(authResult.scope.contains(scopeA))
+                assertTrue(authResult.scope.contains(scopeB))
             }
         }
     }
@@ -105,15 +132,24 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
      * - Request new challenge.
      * - Submit correct challenge.
      * - Complete MFA flow and complete sign in.
+     *
+     * Note: this test also asserts whether the scopes requested at sign in are present in the token that's received at the end of the flow
      */
     @Test
     @Ignore("Skip until MFA becomes available on production")
     fun `test get other auth methods, request challenge on specific auth method and complete MFA flow`() {
         retryOperation {
             runBlocking {
+                val scopeA = resources[0].scopes[0]
+                val scopeB = resources[0].scopes[1]
+
                 val username = config.email
                 val password = getSafePassword()
-                val result = application.signIn(username, password.toCharArray())
+                val result = application.signIn(
+                    username,
+                    password.toCharArray(),
+                    listOf(scopeA, scopeB)
+                )
                 assertResult<SignInResult.MFARequired>(result)
 
                 // Initiate challenge, send code to email
@@ -149,6 +185,13 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
                 val submitCorrectChallengeResult =
                     requestNewChallengeResult.nextState.submitChallenge(otp)
                 assertResult<SignInResult.Complete>(submitCorrectChallengeResult)
+
+                val accountState = (submitCorrectChallengeResult as SignInResult.Complete).resultValue
+                val getAccessTokenResult = accountState.getAccessToken()
+                assertResult<GetAccessTokenResult.Complete>(getAccessTokenResult)
+                val authResult = (getAccessTokenResult as GetAccessTokenResult.Complete).resultValue
+                assertTrue(authResult.scope.contains(scopeA))
+                assertTrue(authResult.scope.contains(scopeB))
             }
         }
     }
@@ -161,6 +204,8 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
      * - Request new challenge on specific auth method.
      * - Submit correct challenge.
      * - Complete MFA flow and complete sign in.
+     *
+     * Note: this test also asserts whether the scopes requested at sign in are present in the token that's received at the end of the flow
      */
     @Test
     @Ignore("Skip until MFA becomes available on production")
@@ -170,9 +215,16 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
                 val configType = ConfigType.SIGN_IN_MFA_MULTI_AUTH
                 setupPCA(configType)
 
+                val scopeA = resources[0].scopes[0]
+                val scopeB = resources[0].scopes[1]
+
                 val username = config.email
                 val password = getSafePassword()
-                val result = application.signIn(username, password.toCharArray())
+                val result = application.signIn(
+                    username,
+                    password.toCharArray(),
+                    listOf(scopeA, scopeB)
+                )
                 assertResult<SignInResult.MFARequired>(result)
 
                 // Initiate challenge, send code to email
@@ -200,6 +252,13 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
                 val submitCorrectChallengeResult =
                     requestNewChallengeResult.nextState.submitChallenge(otp)
                 assertResult<SignInResult.Complete>(submitCorrectChallengeResult)
+
+                val accountState = (submitCorrectChallengeResult as SignInResult.Complete).resultValue
+                val getAccessTokenResult = accountState.getAccessToken()
+                assertResult<GetAccessTokenResult.Complete>(getAccessTokenResult)
+                val authResult = (getAccessTokenResult as GetAccessTokenResult.Complete).resultValue
+                assertTrue(authResult.scope.contains(scopeA))
+                assertTrue(authResult.scope.contains(scopeB))
             }
         }
     }
