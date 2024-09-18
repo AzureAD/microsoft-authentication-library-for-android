@@ -99,9 +99,6 @@ public class TestCase2582296 extends AbstractMsalBrokerTest {
         final String state = brokerHostWithoutBrokerSelection.multipleWpjApiFragment.getDeviceState(username);
         Assert.assertTrue(state.contains("DEVICE_VALID"));
 
-        // Click on "Install certificate" button
-        brokerHostWithoutBrokerSelection.multipleWpjApiFragment.installCertificate(username);
-
         // Click on "Get device token" button
         final String token = brokerHostWithoutBrokerSelection.multipleWpjApiFragment.getDeviceToken(username);
         Assert.assertTrue(!TextUtils.isEmpty(token.replace("Device token:", "")));
