@@ -47,7 +47,7 @@ import com.microsoft.identity.nativeauth.AuthMethod
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
-import com.microsoft.identity.nativeauth.statemachine.errors.GetAuthMethodsError
+import com.microsoft.identity.nativeauth.statemachine.errors.MFAGetAuthMethodsError
 import com.microsoft.identity.nativeauth.statemachine.errors.MFARequestChallengeError
 import com.microsoft.identity.nativeauth.statemachine.errors.MFASubmitChallengeError
 import com.microsoft.identity.nativeauth.statemachine.results.MFAGetAuthMethodsResult
@@ -311,7 +311,7 @@ class MFARequiredState(
                             "getAuthMethods() received unexpected result: ",
                             result
                         )
-                        GetAuthMethodsError(
+                        MFAGetAuthMethodsError(
                             errorMessage = result.errorDescription,
                             error = result.error,
                             correlationId = result.correlationId,
@@ -320,7 +320,7 @@ class MFARequiredState(
                         )
                     }
                     is INativeAuthCommandResult.Redirect -> {
-                        GetAuthMethodsError(
+                        MFAGetAuthMethodsError(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
                             error = result.error,
                             errorMessage = result.errorDescription,
@@ -329,7 +329,7 @@ class MFARequiredState(
                     }
                 }
             } catch (e: Exception) {
-                GetAuthMethodsError(
+                MFAGetAuthMethodsError(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in getAuthMethods().",
                     exception = e,

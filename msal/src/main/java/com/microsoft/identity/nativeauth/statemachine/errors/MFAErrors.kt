@@ -5,7 +5,7 @@ import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
 import com.microsoft.identity.nativeauth.statemachine.results.MFASubmitChallengeResult
 
 /**
- * MFA error. Use the utility methods of this class
+ * MFA request challenge error. Use the utility methods of this class
  * to identify and handle the error. This error is produced by
  * [com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState.requestChallenge] and
  * [com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState.requestChallenge].
@@ -27,7 +27,7 @@ class MFARequestChallengeError(
 ): MFARequiredResult, BrowserRequiredError, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception)
 
 /**
- * MFA error. Use the utility methods of this class
+ * MFA get authentication methods error. Use the utility methods of this class
  * to identify and handle the error. This error is produced by
  * [com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState.getAuthMethods]
  * @param errorType the error type value of the error that occurred.
@@ -37,7 +37,7 @@ class MFARequestChallengeError(
  * @param errorCodes a list of specific error codes returned by the authentication server.
  * @param exception an internal unexpected exception that happened.
  */
-class GetAuthMethodsError(
+class MFAGetAuthMethodsError(
     override val errorType: String? = null,
     override val error: String? = null,
     override val errorMessage: String?,
@@ -48,7 +48,7 @@ class GetAuthMethodsError(
 ): MFAGetAuthMethodsResult, BrowserRequiredError, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception)
 
 /**
- * MFA error. The user should use the utility methods of this class
+ * MFA submit challenge error. The user should use the utility methods of this class
  * to identify and handle the error. This error is produced by
  * [com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState.submitChallenge]
  * @param errorType the error type value of the error that occurred.

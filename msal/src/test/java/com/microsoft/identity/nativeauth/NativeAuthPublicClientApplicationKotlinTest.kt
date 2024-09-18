@@ -46,7 +46,7 @@ import com.microsoft.identity.internal.testutils.TestUtils
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenError
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenErrorTypes
-import com.microsoft.identity.nativeauth.statemachine.errors.GetAuthMethodsError
+import com.microsoft.identity.nativeauth.statemachine.errors.MFAGetAuthMethodsError
 import com.microsoft.identity.nativeauth.statemachine.errors.MFARequestChallengeError
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordSubmitPasswordError
@@ -2779,8 +2779,8 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
 
         // Call /introspect to get all auth methods
         val getAuthMethodsResult = nextState2.getAuthMethods()
-        assertResult<GetAuthMethodsError>(getAuthMethodsResult)
-        assertTrue((getAuthMethodsResult as GetAuthMethodsError).isBrowserRequired())
+        assertResult<MFAGetAuthMethodsError>(getAuthMethodsResult)
+        assertTrue((getAuthMethodsResult as MFAGetAuthMethodsError).isBrowserRequired())
     }
 
     @Test
