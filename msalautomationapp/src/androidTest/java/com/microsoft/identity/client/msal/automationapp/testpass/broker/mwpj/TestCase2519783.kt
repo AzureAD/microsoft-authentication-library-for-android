@@ -34,6 +34,7 @@ import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Assert
+import org.junit.Assume
 import org.junit.Before
 import org.junit.Test
 
@@ -49,17 +50,15 @@ class TestCase2519783 : AbstractMsalBrokerTest() {
 
     @Test
     fun test_2519783() {
-        if (!mBrokerHostApp.flights.contains("\"EnableKeyStoreKeyFactory\":\"true\"")) {
-            // Register 2 accounts from different tenants
-            mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mLabAccount.username, mLabAccount.password)
-            mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mUsGovAccount.username, mUsGovAccount.password)
-            val deviceRegistrationRecords = mBrokerHostApp.multipleWpjApiFragment.allRecords
-            Assert.assertEquals(2, deviceRegistrationRecords.size)
+        // Register 2 accounts from different tenants
+        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mLabAccount.username, mLabAccount.password)
+        mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mUsGovAccount.username, mUsGovAccount.password)
+        val deviceRegistrationRecords = mBrokerHostApp.multipleWpjApiFragment.allRecords
+        Assert.assertEquals(2, deviceRegistrationRecords.size)
 
-            // Install WPJ certificate for browser access in both registrations.
-            mBrokerHostApp.multipleWpjApiFragment.installCertificate(deviceRegistrationRecords[0]["TenantId"] as String)
-            mBrokerHostApp.multipleWpjApiFragment.installCertificate(deviceRegistrationRecords[1]["TenantId"] as String)
-        }
+        // Install WPJ certificate for browser access in both registrations.
+        mBrokerHostApp.multipleWpjApiFragment.installCertificate(deviceRegistrationRecords[0]["TenantId"] as String)
+        mBrokerHostApp.multipleWpjApiFragment.installCertificate(deviceRegistrationRecords[1]["TenantId"] as String)
     }
 
     override fun getLabQuery(): LabQuery {
@@ -83,6 +82,8 @@ class TestCase2519783 : AbstractMsalBrokerTest() {
     fun before() {
         mUsGovAccount = mLabClient.getLabAccount(getUsGovLabQuery())
         mBrokerHostApp = broker as BrokerHost
+        Assume.assumeFalse( "EnableKeyStoreKeyFactory flight is set, Test will be skipped",
+            mBrokerHostApp.flights.contains("\"EnableKeyStoreKeyFactory\":\"true\""));
         mBrokerHostApp.enableMultipleWpj()
     }
 
