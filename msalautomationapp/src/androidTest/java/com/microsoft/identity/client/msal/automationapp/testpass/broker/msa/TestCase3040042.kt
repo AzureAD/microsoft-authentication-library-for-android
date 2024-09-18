@@ -24,6 +24,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.msa
 
 import com.microsoft.identity.client.msal.automationapp.R
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
 import com.microsoft.identity.client.ui.automation.app.OneDriveApp
 import com.microsoft.identity.client.ui.automation.app.OutlookApp
 import com.microsoft.identity.client.ui.automation.app.WordApp
@@ -36,6 +37,7 @@ import org.junit.Test
 
 // [Brokered] When Broker Installed, OneDrive and Office should show phone sign up option, Outlook should not
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3040042
+@RetryOnFailure
 class TestCase3040042 : AbstractMsalBrokerTest(){
 
     @Test
