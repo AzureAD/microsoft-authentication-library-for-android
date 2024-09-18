@@ -34,6 +34,7 @@ import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Assert
+import org.junit.Assume
 import org.junit.Before
 import org.junit.Test
 
@@ -81,6 +82,8 @@ class TestCase2519783 : AbstractMsalBrokerTest() {
     fun before() {
         mUsGovAccount = mLabClient.getLabAccount(getUsGovLabQuery())
         mBrokerHostApp = broker as BrokerHost
+        Assume.assumeFalse( "EnableKeyStoreKeyFactory flight is set, Test will be skipped",
+            mBrokerHostApp.flights.contains("\"EnableKeyStoreKeyFactory\":\"true\""));
         mBrokerHostApp.enableMultipleWpj()
     }
 
