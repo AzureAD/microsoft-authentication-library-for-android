@@ -68,6 +68,6 @@ interface MFAGetAuthMethodsResult : Result
 
 /**
  * Results related to MFA submit challenge operation, produced by
- *  * [com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState.submitChallenge]
+ * [com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState.submitChallenge]
  */
 interface MFASubmitChallengeResult : Result

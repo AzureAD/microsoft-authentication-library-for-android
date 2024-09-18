@@ -25,7 +25,6 @@ package com.microsoft.identity.nativeauth.statemachine.states
 
 import android.os.Parcel
 import android.os.Parcelable
-import androidx.annotation.experimental.Experimental
 import com.microsoft.identity.client.AuthenticationResultAdapter
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
@@ -48,8 +47,9 @@ import com.microsoft.identity.nativeauth.AuthMethod
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
-import com.microsoft.identity.nativeauth.statemachine.errors.MFAError
-import com.microsoft.identity.nativeauth.statemachine.errors.SubmitChallengeError
+import com.microsoft.identity.nativeauth.statemachine.errors.MFAGetAuthMethodsError
+import com.microsoft.identity.nativeauth.statemachine.errors.MFARequestChallengeError
+import com.microsoft.identity.nativeauth.statemachine.errors.MFASubmitChallengeError
 import com.microsoft.identity.nativeauth.statemachine.results.MFAGetAuthMethodsResult
 import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
 import com.microsoft.identity.nativeauth.statemachine.results.MFASubmitChallengeResult
@@ -164,7 +164,7 @@ class AwaitingMFAState(
                             "requestChallenge() received unexpected result: ",
                             result
                         )
-                        MFAError(
+                        MFARequestChallengeError(
                             errorMessage = result.errorDescription,
                             error = result.error,
                             correlationId = result.correlationId,
@@ -173,7 +173,7 @@ class AwaitingMFAState(
                         )
                     }
                     is INativeAuthCommandResult.Redirect -> {
-                        MFAError(
+                        MFARequestChallengeError(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
                             error = result.error,
                             errorMessage = result.errorDescription,
@@ -182,7 +182,7 @@ class AwaitingMFAState(
                     }
                 }
             } catch (e: Exception) {
-                MFAError(
+                MFARequestChallengeError(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in requestChallenge().",
                     exception = e,
@@ -311,7 +311,7 @@ class MFARequiredState(
                             "getAuthMethods() received unexpected result: ",
                             result
                         )
-                        MFAError(
+                        MFAGetAuthMethodsError(
                             errorMessage = result.errorDescription,
                             error = result.error,
                             correlationId = result.correlationId,
@@ -320,7 +320,7 @@ class MFARequiredState(
                         )
                     }
                     is INativeAuthCommandResult.Redirect -> {
-                        MFAError(
+                        MFAGetAuthMethodsError(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
                             error = result.error,
                             errorMessage = result.errorDescription,
@@ -329,7 +329,7 @@ class MFARequiredState(
                     }
                 }
             } catch (e: Exception) {
-                MFAError(
+                MFAGetAuthMethodsError(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in getAuthMethods().",
                     exception = e,
@@ -452,7 +452,7 @@ class MFARequiredState(
                             "requestChallenge(authMethod) received unexpected result: ",
                             result
                         )
-                        MFAError(
+                        MFARequestChallengeError(
                             errorMessage = result.errorDescription,
                             error = result.error,
                             correlationId = result.correlationId,
@@ -461,7 +461,7 @@ class MFARequiredState(
                         )
                     }
                     is INativeAuthCommandResult.Redirect -> {
-                        MFAError(
+                        MFARequestChallengeError(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
                             error = result.error,
                             errorMessage = result.errorDescription,
@@ -470,7 +470,7 @@ class MFARequiredState(
                     }
                 }
             } catch (e: Exception) {
-                MFAError(
+                MFARequestChallengeError(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in requestChallenge(authMethod).",
                     exception = e,
@@ -560,7 +560,7 @@ class MFARequiredState(
                         )
                     }
                     is SignInCommandResult.IncorrectCode -> {
-                        SubmitChallengeError(
+                        MFASubmitChallengeError(
                             errorType = ErrorTypes.INVALID_CODE,
                             error = result.error,
                             errorMessage = result.errorDescription,
@@ -577,7 +577,7 @@ class MFARequiredState(
                             "submitChallenge(challenge) received unexpected result: ",
                             result
                         )
-                        SubmitChallengeError(
+                        MFASubmitChallengeError(
                             errorMessage = result.errorDescription,
                             error = result.error,
                             correlationId = result.correlationId,
@@ -587,7 +587,7 @@ class MFARequiredState(
                     }
                 }
             } catch (e: Exception) {
-                SubmitChallengeError(
+                MFASubmitChallengeError(
                     errorType = ErrorTypes.CLIENT_EXCEPTION,
                     errorMessage = "MSAL client exception occurred in submitChallenge(challenge)",
                     exception = e,

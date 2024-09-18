@@ -46,14 +46,15 @@ import com.microsoft.identity.internal.testutils.TestUtils
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenError
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenErrorTypes
-import com.microsoft.identity.nativeauth.statemachine.errors.MFAError
+import com.microsoft.identity.nativeauth.statemachine.errors.MFAGetAuthMethodsError
+import com.microsoft.identity.nativeauth.statemachine.errors.MFARequestChallengeError
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordSubmitPasswordError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInContinuationError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpSubmitAttributesError
-import com.microsoft.identity.nativeauth.statemachine.errors.SubmitChallengeError
+import com.microsoft.identity.nativeauth.statemachine.errors.MFASubmitChallengeError
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
@@ -2707,8 +2708,8 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
 
         nextState.mockCorrelationId(correlationId)
         val sendChallengeResult = nextState.requestChallenge()
-        assertResult<MFAError>(sendChallengeResult)
-        assertTrue((sendChallengeResult as MFAError).isBrowserRequired())
+        assertResult<MFARequestChallengeError>(sendChallengeResult)
+        assertTrue((sendChallengeResult as MFARequestChallengeError).isBrowserRequired())
     }
 
     @Test
@@ -2778,8 +2779,8 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
 
         // Call /introspect to get all auth methods
         val getAuthMethodsResult = nextState2.getAuthMethods()
-        assertResult<MFAError>(getAuthMethodsResult)
-        assertTrue((getAuthMethodsResult as MFAError).isBrowserRequired())
+        assertResult<MFAGetAuthMethodsError>(getAuthMethodsResult)
+        assertTrue((getAuthMethodsResult as MFAGetAuthMethodsError).isBrowserRequired())
     }
 
     @Test
@@ -2849,8 +2850,8 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         nextState4.mockCorrelationId(correlationId)
 
         val submitChallengeResult = nextState4.submitChallenge(code)
-        assertResult<SubmitChallengeError>(submitChallengeResult)
-        assertTrue((submitChallengeResult as SubmitChallengeError).isInvalidChallenge())
+        assertResult<MFASubmitChallengeError>(submitChallengeResult)
+        assertTrue((submitChallengeResult as MFASubmitChallengeError).isInvalidChallenge())
 
         // 5. Submit (valid) code
         // 5a. Setup server response
@@ -2980,8 +2981,8 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         nextState4.mockCorrelationId(correlationId)
 
         val submitChallengeResult = nextState4.submitChallenge(code)
-        assertResult<SubmitChallengeError>(submitChallengeResult)
-        assertTrue((submitChallengeResult as SubmitChallengeError).isInvalidChallenge())
+        assertResult<MFASubmitChallengeError>(submitChallengeResult)
+        assertTrue((submitChallengeResult as MFASubmitChallengeError).isInvalidChallenge())
 
         // 7. Submit (valid) code
         // 7a. Setup server response

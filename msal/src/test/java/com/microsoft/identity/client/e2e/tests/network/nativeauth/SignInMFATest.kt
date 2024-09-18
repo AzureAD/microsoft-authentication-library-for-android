@@ -27,12 +27,11 @@ import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
-import com.microsoft.identity.nativeauth.statemachine.errors.SubmitChallengeError
+import com.microsoft.identity.nativeauth.statemachine.errors.MFASubmitChallengeError
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
 import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -94,8 +93,8 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
 
                 // Submit incorrect challenge
                 val submitIncorrectChallengeResult = sendChallengeResult.nextState.submitChallenge("invalid")
-                assertResult<SubmitChallengeError>(submitIncorrectChallengeResult)
-                assertTrue((submitIncorrectChallengeResult as SubmitChallengeError).isInvalidChallenge())
+                assertResult<MFASubmitChallengeError>(submitIncorrectChallengeResult)
+                assertTrue((submitIncorrectChallengeResult as MFASubmitChallengeError).isInvalidChallenge())
 
                 // Request new challenge
                 val requestNewChallengeResult = sendChallengeResult.nextState.requestChallenge()
