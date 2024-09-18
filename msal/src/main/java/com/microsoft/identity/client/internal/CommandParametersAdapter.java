@@ -56,14 +56,12 @@ import com.microsoft.identity.common.java.commands.parameters.GenerateShrCommand
 import com.microsoft.identity.common.java.commands.parameters.InteractiveTokenCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.RemoveAccountCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.SilentTokenCommandParameters;
-import com.microsoft.identity.common.java.constants.FidoConstants;
 import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.java.exception.ClientException;
-import com.microsoft.identity.common.java.logging.DiagnosticContext;
 import com.microsoft.identity.common.java.nativeauth.authorities.NativeAuthCIAMAuthority;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.GetAuthMethodsCommandParameters;
-import com.microsoft.identity.common.java.nativeauth.commands.parameters.MFAChallengeCommandParameters;
-import com.microsoft.identity.common.java.nativeauth.commands.parameters.MFASelectedChallengeCommandParameters;
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.MFADefaultChallengeCommandParameters;
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.MFASelectedDefaultChallengeCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.MFASubmitChallengeCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.ResetPasswordResendCodeCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.ResetPasswordStartCommandParameters;
@@ -85,9 +83,7 @@ import com.microsoft.identity.common.java.request.SdkType;
 import com.microsoft.identity.common.java.ui.AuthorizationAgent;
 import com.microsoft.identity.common.java.util.SchemaUtil;
 import com.microsoft.identity.common.logging.Logger;
-import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration;
 
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -777,7 +773,7 @@ public class CommandParametersAdapter {
      * @return Command parameter object
      * @throws ClientException
      */
-    public static MFAChallengeCommandParameters createMFADefaultChallengeCommandParameters(
+    public static MFADefaultChallengeCommandParameters createMFADefaultChallengeCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String continuationToken,
@@ -791,8 +787,8 @@ public class CommandParametersAdapter {
                 null
         );
 
-        final MFAChallengeCommandParameters commandParameters =
-                MFAChallengeCommandParameters.builder()
+        final MFADefaultChallengeCommandParameters commandParameters =
+                MFADefaultChallengeCommandParameters.builder()
                         .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
                         .applicationName(configuration.getAppContext().getPackageName())
                         .applicationVersion(getPackageVersion(configuration.getAppContext()))
@@ -825,7 +821,7 @@ public class CommandParametersAdapter {
      * @return Command parameter object
      * @throws ClientException
      */
-    public static MFASelectedChallengeCommandParameters createMFASelectedChallengeCommandParameters(
+    public static MFASelectedDefaultChallengeCommandParameters createMFASelectedChallengeCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String continuationToken,
@@ -842,8 +838,8 @@ public class CommandParametersAdapter {
 
         final String authMethodId = authMethod.getId();
 
-        final MFASelectedChallengeCommandParameters commandParameters =
-                MFASelectedChallengeCommandParameters.builder()
+        final MFASelectedDefaultChallengeCommandParameters commandParameters =
+                MFASelectedDefaultChallengeCommandParameters.builder()
                         .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
                         .applicationName(configuration.getAppContext().getPackageName())
                         .applicationVersion(getPackageVersion(configuration.getAppContext()))

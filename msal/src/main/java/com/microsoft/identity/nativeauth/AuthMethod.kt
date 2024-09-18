@@ -42,13 +42,13 @@ data class AuthMethod(
     // Auth method login hint (e.g. user@contoso.com)
     val loginHint: String,
 
-    // Auth method login hint (email, etc.)
+    // Auth method challenge channel (email, etc.)
     val challengeChannel: String,
 ) : ILoggable, Parcelable {
     override fun toUnsanitizedString(): String = "AuthMethod(id=$id, " +
             "challengeType=$challengeType, loginHint=$loginHint, challengeChannel=$challengeChannel)"
 
-    override fun toString(): String = "AuthMethod(id=$id)"
+    override fun toString(): String = "AuthMethod(id=$id, challengeChannel=$challengeChannel)"
 
     constructor(parcel: Parcel) : this(
         id = parcel.readString()  ?: "",
