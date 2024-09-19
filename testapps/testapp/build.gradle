@@ -43,6 +43,8 @@ if(project.hasProperty('otelAriaToken')) {
 
 android {
 
+    namespace = "com.msft.identity.client.sample"
+    buildFeatures.buildConfig = true
 // Bumping up to Java Version 8 due to the addition of YubiKit SDK,
 // which uses Version 8. Host apps that use libraries dependent on version 8
 // must also integrate version 8.

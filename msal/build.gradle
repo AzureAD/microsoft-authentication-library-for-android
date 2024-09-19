@@ -32,6 +32,8 @@ codeCoverageReport {
 }
 
 android {
+    namespace = "com.microsoft.identity.msal"
+    buildFeatures.buildConfig = true
 //    testOptions {
 //        compileOptions {
 //            // Flag to enable support for the new language APIs
@@ -158,33 +160,33 @@ android {
 }
 
 // Task to generate javadoc
-task javadoc(type: Javadoc) {
-    failOnError false
-    source = android.sourceSets.main.java.srcDirs
-    configurations.api.setCanBeResolved(true)
-    classpath += configurations.api
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-
-    options.memberLevel = JavadocMemberLevel.PUBLIC
-    options.addStringOption('Xdoclint:none', '-quiet')
-
-    exclude '**/BuildConfig.Java'
-    exclude '**/R.java'
-    destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
-}
-
-// Task to generate javadoc.jar
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    from javadoc.destinationDir
-    classifier 'javadoc'
-    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
-}
-
-task sourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
-    classifier 'sources'
-    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
-}
+//task javadoc(type: Javadoc) {
+//    failOnError false
+//    source = android.sourceSets.main.java.srcDirs
+//    configurations.api.setCanBeResolved(true)
+//    classpath += configurations.api
+//    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+//
+//    options.memberLevel = JavadocMemberLevel.PUBLIC
+//    options.addStringOption('Xdoclint:none', '-quiet')
+//
+//    exclude '**/BuildConfig.Java'
+//    exclude '**/R.java'
+//    destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
+//}
+//
+//// Task to generate javadoc.jar
+//task javadocJar(type: Jar, dependsOn: javadoc) {
+//    from javadoc.destinationDir
+//    classifier 'javadoc'
+//    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
+//}
+//
+//task sourcesJar(type: Jar) {
+//    from android.sourceSets.main.java.srcDirs
+//    classifier 'sources'
+//    destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
+//}
 
 // In dev, we want to keep the dependencies (common4j, common) to 1.0.+ to be able to be consumed by daily dev pipeline.
 // In release/*, we change these to specific versions being consumed.
@@ -268,42 +270,42 @@ dependencies {
     implementation "io.opentelemetry:opentelemetry-api:$rootProject.ext.openTelemetryVersion"
 }
 
-def configDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')
-ext.checkstyleConfigDir = "$configDir/checkstyle"
-
-checkstyle {
-    ignoreFailures = false
-    reportsDir = file("$project.buildDir/outputs/")
-}
-
-task checkstyle(type: Checkstyle) {
-    configFile file("${project.rootDir}/config/checkstyle/checkstyle.xml")
-
-    configProperties.checkstyleConfigDir = checkstyleConfigDir
-    configProperties.checkstyleSuppressionsPath = file("${project.rootDir}/config/checkstyle/suppressions.xml").absolutePath
-    source 'src'
-    include '**/*.java'
-    exclude '**/gen/**'
-    classpath = files()
-}
-
-pmd {
-    ignoreFailures = false
-    reportsDir = file("$project.buildDir/outputs/")
-}
-
-task pmd(type: Pmd) {
-    description 'Run pmd'
-    group 'verification'
-
-    ruleSets = ["java-basic", "java-braces", "java-strings", "java-unusedcode"]
-    source = fileTree('src/main/java')
-
-    reports {
-        xml.enabled = false
-        html.enabled = true
-    }
-}
+//def configDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')
+//ext.checkstyleConfigDir = "$configDir/checkstyle"
+//
+//checkstyle {
+//    ignoreFailures = false
+//    reportsDir = file("$project.buildDir/outputs/")
+//}
+//
+//task checkstyle(type: Checkstyle) {
+//    configFile file("${project.rootDir}/config/checkstyle/checkstyle.xml")
+//
+//    configProperties.checkstyleConfigDir = checkstyleConfigDir
+//    configProperties.checkstyleSuppressionsPath = file("${project.rootDir}/config/checkstyle/suppressions.xml").absolutePath
+//    source 'src'
+//    include '**/*.java'
+//    exclude '**/gen/**'
+//    classpath = files()
+//}
+//
+//pmd {
+//    ignoreFailures = false
+//    reportsDir = file("$project.buildDir/outputs/")
+//}
+//
+//task pmd(type: Pmd) {
+//    description 'Run pmd'
+//    group 'verification'
+//
+//    ruleSets = ["java-basic", "java-braces", "java-strings", "java-unusedcode"]
+//    source = fileTree('src/main/java')
+//
+//    reports {
+//        xml.enabled = false
+//        html.enabled = true
+//    }
+//}
 
 afterEvaluate {
     // Gradle 6.1.1 and Android Gradle Plugin 4.0.1 doesn't rename the file (see 'outputFileName' above)
@@ -319,55 +321,55 @@ afterEvaluate {
 //            }
 //        }
 //    }
-    publishing {
-        publications {
-            msal(MavenPublication) {
-                from components.distRelease
-                groupId 'com.microsoft.identity.client'
-                artifactId 'msal'
-                //Edit the 'version' here for VSTS RC build
-                version = project.version
-
-                pom {
-                    name = 'msal'
-                    description = 'Microsoft Identity library for Android gives you the ability to add authentication to your application with just a few lines of additional code. Using our MSAL SDKs you can quickly and easily extend your existing application to all the employees that use MSA, B2C, Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.'
-                    url = 'https://github.com/AzureAD/microsoft-authentication-library-for-android'
-                    developers {
-                        developer {
-                            id = 'microsoft'
-                            name = 'Microsoft'
-                        }
-                    }
-                    licenses {
-                        license {
-                            name = 'MIT License'
-                        }
-                    }
-                    inceptionYear = '2016'
-                    scm {
-                        url = 'https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/master'
-                    }
-                    properties = [
-                            branch : 'dev',
-                            version: project.version
-                    ]
-                }
-            }
-
-        }
-
-        // Repositories to which Gradle can publish artifacts
-        repositories {
-            maven {
-                name "vsts-maven-adal-android"
-                url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
-                credentials {
-                    username System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") : project.findProperty("vstsUsername")
-                    password System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
-                }
-            }
-        }
-    }
+//    publishing {
+//        publications {
+//            msal(MavenPublication) {
+//                from components.distRelease
+//                groupId 'com.microsoft.identity.client'
+//                artifactId 'msal'
+//                //Edit the 'version' here for VSTS RC build
+//                version = project.version
+//
+//                pom {
+//                    name = 'msal'
+//                    description = 'Microsoft Identity library for Android gives you the ability to add authentication to your application with just a few lines of additional code. Using our MSAL SDKs you can quickly and easily extend your existing application to all the employees that use MSA, B2C, Azure AD and Active Directory on-premises using Active Directory Federation Services, including Office365 customers.'
+//                    url = 'https://github.com/AzureAD/microsoft-authentication-library-for-android'
+//                    developers {
+//                        developer {
+//                            id = 'microsoft'
+//                            name = 'Microsoft'
+//                        }
+//                    }
+//                    licenses {
+//                        license {
+//                            name = 'MIT License'
+//                        }
+//                    }
+//                    inceptionYear = '2016'
+//                    scm {
+//                        url = 'https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/master'
+//                    }
+//                    properties = [
+//                            branch : 'dev',
+//                            version: project.version
+//                    ]
+//                }
+//            }
+//
+//        }
+//
+//        // Repositories to which Gradle can publish artifacts
+//        repositories {
+//            maven {
+//                name "vsts-maven-adal-android"
+//                url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
+//                credentials {
+//                    username System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") != null ? System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_USERNAME") : project.findProperty("vstsUsername")
+//                    password System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN") != null ? System.getenv("ENV_VSTS_MVN_ANDROID_MSAL_ACCESSTOKEN") : project.findProperty("vstsMavenAccessToken")
+//                }
+//            }
+//        }
+//    }
 }
 
 tasks.whenTaskAdded { task ->
