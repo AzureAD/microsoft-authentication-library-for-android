@@ -68,5 +68,5 @@ class MFASubmitChallengeError(
     override var exception: Exception? = null
 ): MFASubmitChallengeResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception)
 {
-    fun isInvalidChallenge(): Boolean = this.errorType == ErrorTypes.INVALID_CODE
+    fun isInvalidChallenge(): Boolean = this.errorType == ErrorTypes.INVALID_CHALLENGE
 }

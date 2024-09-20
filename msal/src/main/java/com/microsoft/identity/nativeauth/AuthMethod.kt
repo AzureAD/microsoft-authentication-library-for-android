@@ -48,7 +48,7 @@ data class AuthMethod(
     override fun toUnsanitizedString(): String = "AuthMethod(id=$id, " +
             "challengeType=$challengeType, loginHint=$loginHint, challengeChannel=$challengeChannel)"
 
-    override fun toString(): String = "AuthMethod(id=$id, challengeChannel=$challengeChannel)"
+    override fun toString(): String = "AuthMethod(id=$id, challengeType=$challengeType, challengeChannel=$challengeChannel)"
 
     constructor(parcel: Parcel) : this(
         id = parcel.readString()  ?: "",
