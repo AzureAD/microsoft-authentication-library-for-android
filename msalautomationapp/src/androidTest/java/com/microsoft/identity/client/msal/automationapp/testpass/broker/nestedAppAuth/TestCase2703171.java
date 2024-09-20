@@ -43,10 +43,6 @@ import org.junit.Test;
 @SupportedBrokers(brokers = {BrokerHost.class})
 public class TestCase2703171 extends AbstractMsalBrokerTest {
 
-    @Before
-    public void before() {
-        ((BrokerHost) mBroker).enablePrtV3();
-    }
     @Test
     public void test_2703171() throws Throwable {
         NestedAppHelper nestedAppHelper = new NestedAppHelper(mActivity, mLabAccount);
