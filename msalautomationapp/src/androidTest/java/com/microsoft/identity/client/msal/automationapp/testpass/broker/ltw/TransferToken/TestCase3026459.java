@@ -20,7 +20,8 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.broker.atpop;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw.TransferToken;
+
 
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
@@ -29,28 +30,80 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
+import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
+import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
+import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
+import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.constants.AuthScheme;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
-// [Non-Joined] Acquire PoP token interactive followed by Silent
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1922511
-//@RetryOnFailure(retryCount = 2)
-public class TestCase1922511 extends AbstractMsalBrokerTest {
+
+// Transfer token generation and restore
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3026421
+@LTWTests
+@LocalBrokerHostDebugUiTest
+//@RetryOnFailure
+@SupportedBrokers(brokers = {BrokerHost.class})
+public class TestCase3026459 extends AbstractMsalBrokerTest {
+
+    @Before
+    public void before() {
+        ((BrokerHost) mBroker).enableGenerateAndSaveTransferToken();
+    }
+
     @Test
-    public void test_1922511() throws Throwable {
+    public void test_3026459() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
+
+       //  AcquireToken Interactively in MsalTestApp
+//        final MsalTestApp msalTestApp = new MsalTestApp();
+//        msalTestApp.install();
+//        msalTestApp.launch();
+//        msalTestApp.handleFirstRunBasedOnUserType(UserType.MSA);
+//       // msalTestApp.trustDebugBroker();
+//
+//        final MicrosoftStsPromptHandlerParameters promptHandlerParametersMsal = MicrosoftStsPromptHandlerParameters.builder()
+//                .prompt(PromptParameter.SELECT_ACCOUNT)
+//                .loginHint(username)
+//                .sessionExpected(false)
+//                .broker(mBroker)
+//                .expectingBrokerAccountChooserActivity(false)
+//                .expectingProvidedAccountInBroker(false)
+//                .expectingLoginPageAccountPicker(false)
+//                .expectingProvidedAccountInCookie(false)
+//                .consentPageExpected(false)
+//                .passwordPageExpected(true)
+//                .speedBumpExpected(false)
+//                .registerPageExpected(false)
+//                .enrollPageExpected(false)
+//                .staySignedInPageExpected(false)
+//                .verifyYourIdentityPageExpected(false)
+//                .howWouldYouLikeToSignInExpected(false)
+//                .build();
+//
+//        String tokenMsal = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, true);
+//        Assert.assertNotNull(tokenMsal);
+//        msalTestApp.handleBackButton();
+//        String tokenSilent = msalTestApp.acquireTokenSilent();
+//        Assert.assertNotNull(tokenSilent);
 
         final MsalSdk msalSdk = new MsalSdk();
 
@@ -59,7 +112,6 @@ public class TestCase1922511 extends AbstractMsalBrokerTest {
                 .loginHint(username)
                 .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.LOGIN)
-                .authScheme(AuthScheme.POP)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
@@ -82,27 +134,19 @@ public class TestCase1922511 extends AbstractMsalBrokerTest {
         }, TokenRequestTimeout.MEDIUM);
 
         authResult.assertSuccess();
-        MsalAuthResult.verifyATForPop(authResult.getAccessToken());
-
-        // start silent token request in MSAL
-        final MsalAuthTestParams authTestSilentParams = MsalAuthTestParams.builder()
-                .activity(mActivity)
-                .loginHint(username)
-                .scopes(Arrays.asList(mScopes))
-                .authority(getAuthority())
-                .authScheme(AuthScheme.POP)
-                .msalConfigResourceId(getConfigFileResourceId())
-                .build();
-
-        final MsalAuthResult authSilentResult = msalSdk.acquireTokenSilent(authTestSilentParams, TokenRequestTimeout.MEDIUM);
-        authSilentResult.assertSuccess();
-        MsalAuthResult.verifyATForPop(authSilentResult.getAccessToken());
+        final BrokerHost brokerHost = new BrokerHost();
+        final List<String> expectedRestoreAccountNames = new ArrayList<>();
+        expectedRestoreAccountNames.add(username);
+        brokerHost.restoreMsaAccounts(expectedRestoreAccountNames);
+        brokerHost.brokerApiFragment.removeAccounts(username);
+        Thread.sleep(1000);
+        brokerHost.restoreMsaAccounts(new ArrayList<>());
     }
 
     @Override
     public LabQuery getLabQuery() {
         return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
+                .userType(UserType.MSA)
                 .build();
     }
 
@@ -110,6 +154,7 @@ public class TestCase1922511 extends AbstractMsalBrokerTest {
     public TempUserType getTempUserType() {
         return null;
     }
+
 
     @Override
     public String[] getScopes() {
@@ -123,6 +168,6 @@ public class TestCase1922511 extends AbstractMsalBrokerTest {
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_default;
+        return R.raw.msal_config_msa;
     }
 }
