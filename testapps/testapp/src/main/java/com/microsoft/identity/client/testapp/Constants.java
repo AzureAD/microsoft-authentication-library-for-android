@@ -22,6 +22,8 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.testapp;
 
+import com.msft.identity.client.sample.R;
+
 /**
  * Constants file.
  */

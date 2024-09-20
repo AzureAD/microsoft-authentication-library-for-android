@@ -22,7 +22,7 @@
 //   THE SOFTWARE.
 package com.microsoft.identity.client.testapp;
 
-import static com.microsoft.identity.client.testapp.R.id.enablePII;
+//import static com.microsoft.identity.client.sample.R.id.enablePII;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -62,6 +62,7 @@ import com.microsoft.identity.common.internal.cache.IClientActiveBrokerCache;
 import com.microsoft.identity.common.java.opentelemetry.OTelUtility;
 import com.microsoft.identity.common.java.opentelemetry.SpanExtension;
 import com.microsoft.identity.common.java.util.StringUtil;
+import com.msft.identity.client.sample.R;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -159,7 +160,7 @@ public class AcquireTokenFragment extends Fragment {
             }
         });
 
-        mEnablePII = view.findViewById(enablePII);
+//        mEnablePII = view.findViewById(enablePII);
         mForceRefresh = view.findViewById(R.id.forceRefresh);
         mAllowSignInFromOtherDevice =  view.findViewById(R.id.sign_in_from_other_device_switch);
         mSelectAccount = view.findViewById(R.id.select_user);
@@ -603,7 +604,7 @@ public class AcquireTokenFragment extends Fragment {
         final String extraScopesToConsent = mExtraScope.getText().toString();
         final String extraQueryParametersField = mExtraQueryParams.getText().toString();
         final String claims = mClaims.getText().toString();
-        final boolean enablePII = mEnablePII.isChecked();
+        final boolean enablePII = false;
         final boolean forceRefresh = mForceRefresh.isChecked();
         final boolean allowSignInFromOtherDevice = mAllowSignInFromOtherDevice.isChecked();
         final String authority = mAuthority.getText().toString();

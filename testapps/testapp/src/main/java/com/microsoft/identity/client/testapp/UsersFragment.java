@@ -43,6 +43,7 @@ import com.google.gson.JsonObject;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.ITenantProfile;
 import com.microsoft.identity.client.MultiTenantAccount;
+import com.msft.identity.client.sample.R;
 
 import java.util.ArrayList;
 import java.util.List;

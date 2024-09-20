@@ -32,6 +32,8 @@ import android.widget.Button;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.msft.identity.client.sample.R;
+
 public class StartActivity extends AppCompatActivity {
 
     //private static final String TAG = StartActivity.class.getSimpleName();

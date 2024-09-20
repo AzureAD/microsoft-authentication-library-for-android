@@ -51,6 +51,7 @@ import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
 import com.microsoft.identity.common.java.util.StringUtil;
+import com.msft.identity.client.sample.R;
 
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
@@ -160,9 +161,9 @@ public class MainActivity extends AppCompatActivity
             onNavigationItemSelected(navigationView.getMenu().getItem(0));
         }
 
-        if (!StringUtil.isNullOrEmpty(BuildConfig.otelAriaToken)) {
-            initOpenTelemetry(getApplicationContext());
-        }
+//        if (!StringUtil.isNullOrEmpty(BuildConfig.otelAriaToken)) {
+//            initOpenTelemetry(getApplicationContext());
+//        }
     }
 
     /**
@@ -226,10 +227,11 @@ public class MainActivity extends AppCompatActivity
             }
             fragment = new AcquireTokenFragment();
         } else if (menuItemId == R.id.nav_native) {
-            if (getCurrentFragment() instanceof NativeAuthFragment) {
-                return false;
-            }
-            fragment = new NativeAuthFragment();
+            fragment = new ResultFragment();
+//            if (getCurrentFragment() instanceof NativeAuthFragment) {
+//                return false;
+//            }
+//            fragment = new NativeAuthFragment();
         } else if (menuItemId == R.id.nav_result) {
             if (getCurrentFragment() instanceof ResultFragment) {
                 return false;

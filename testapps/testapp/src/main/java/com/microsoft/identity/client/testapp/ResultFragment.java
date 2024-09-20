@@ -37,6 +37,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.msft.identity.client.sample.R;
+
 /**
  * The Fragment used to display the result.
  */

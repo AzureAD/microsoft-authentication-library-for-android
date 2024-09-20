@@ -25,7 +25,6 @@
   -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.microsoft.identity.client.testapp"
           xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Camera permission is required for QR + PIN authorization method w/o broker-->
