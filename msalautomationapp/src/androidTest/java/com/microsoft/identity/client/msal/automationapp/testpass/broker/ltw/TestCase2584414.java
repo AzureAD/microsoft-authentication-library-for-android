@@ -27,6 +27,7 @@ import androidx.annotation.NonNull;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
@@ -49,6 +50,7 @@ import java.util.List;
 // Authenticator has highest priority  - Case6 (CP, LTW, Auth)
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2584414
 @LTWTests
+@RetryOnFailure
 @SupportedBrokers(brokers = {BrokerCompanyPortal.class})
 @RunWith(Parameterized.class)
 public class TestCase2584414 extends AbstractMsalBrokerTest {
