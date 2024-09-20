@@ -23,16 +23,25 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
+import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
+import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
+import com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
+import org.junit.Ignore
 import org.junit.Test
+import org.mockito.Mockito
+import org.mockito.kotlin.spy
 
 class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() {
 
-    override val configType = ConfigType.SIGN_IN_PASSWORD
+    override val defaultConfigType = ConfigType.SIGN_IN_PASSWORD
 
     /**
      * Use valid email and password to get token.
@@ -74,5 +83,50 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
         val result = application.signIn(username, alteredPassword.toCharArray())
         Assert.assertTrue(result is SignInError)
         Assert.assertTrue((result as SignInError).isInvalidCredentials())
+    }
+
+    @Test
+    @Ignore("Ignore until MFA is available on test slice")
+    fun testSignInMFASimple() = runTest {
+        val nativeAuthConfigField = application.javaClass.getDeclaredField("nativeAuthConfig")
+        nativeAuthConfigField.isAccessible = true
+        val config = nativeAuthConfigField.get(application) as NativeAuthPublicClientApplicationConfiguration
+
+        val mfaRequiredResult = SignInResult.MFARequired(
+            nextState = AwaitingMFAState(
+                continuationToken = "1234",
+                correlationId = "abcd",
+                scopes = null,
+                config = config
+            )
+        )
+        val app = spy(application)
+        Mockito.doReturn(mfaRequiredResult)
+            .`when`(app).signIn("user", "password".toCharArray(), null)
+
+        val result = app.signIn("user", "password".toCharArray(), null)
+        assertResult<SignInResult.MFARequired>(result)
+
+        // Initiate challenge, send code to email
+        val sendChallengeResult = (result as SignInResult.MFARequired).nextState.requestChallenge()
+        assertResult<MFARequiredResult.VerificationRequired>(sendChallengeResult)
+        (sendChallengeResult as MFARequiredResult.VerificationRequired)
+        assertNotNull(sendChallengeResult.sentTo)
+        assertNotNull(sendChallengeResult.codeLength)
+        assertNotNull(sendChallengeResult.channel)
+
+        // Retrieve all methods to build additional "pick MFA method UI"
+        val authMethodsResult = sendChallengeResult.nextState.getAuthMethods()
+        assertResult<MFARequiredResult.SelectionRequired>(authMethodsResult)
+        (authMethodsResult as MFARequiredResult.SelectionRequired)
+        assertTrue(authMethodsResult.authMethods.isNotEmpty())
+
+        // call /challenge with specified ID
+        val sendChallengeResult2 = sendChallengeResult.nextState.requestChallenge(authMethodsResult.authMethods[0])
+        assertResult<MFARequiredResult.VerificationRequired>(sendChallengeResult2)
+
+        // Submit the user supplied code to the API
+        val submitCodeResult = (sendChallengeResult2 as MFARequiredResult.VerificationRequired).nextState.submitChallenge("1234")
+        assertResult<SignInResult.Complete>(submitCodeResult)
     }
 }
