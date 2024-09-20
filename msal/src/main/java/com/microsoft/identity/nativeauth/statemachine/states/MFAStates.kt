@@ -561,7 +561,7 @@ class MFARequiredState(
                     }
                     is SignInCommandResult.IncorrectCode -> {
                         MFASubmitChallengeError(
-                            errorType = ErrorTypes.INVALID_CODE,
+                            errorType = ErrorTypes.INVALID_CHALLENGE,
                             error = result.error,
                             errorMessage = result.errorDescription,
                             correlationId = result.correlationId,
