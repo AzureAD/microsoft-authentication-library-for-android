@@ -318,7 +318,7 @@ afterEvaluate {
     //            println "Rename failed!"
     //        }
     //    }
-    }
+    //}
     publishing {
         publications {
             msal(MavenPublication) {
