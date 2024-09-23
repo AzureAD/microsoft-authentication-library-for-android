@@ -60,6 +60,12 @@ internal class ErrorTypes {
         const val INVALID_CODE = "invalid_code"
 
         /*
+         * The INVALID_CODE value indicates the challenge provided by user is incorrect.
+         * The code should be re-submitted.
+         */
+        const val INVALID_CHALLENGE = "invalid_challenge"
+
+        /*
          * The USER_NOT_FOUND value indicates there was no account found with the provided email.
          * The flow should be restarted.
          */
