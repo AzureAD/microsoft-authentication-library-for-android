@@ -2,9 +2,13 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+-[MINOR] Support for email OTP MFA in native authentication (#2167)
+
+Version 5.6.0
+----------
+- [PATCH] Update common @18.0.0
 -[MINOR] Moving OS version check for passkeys (#2138)
 -[PATCH] Fix Native Auth authority data being persisted across different SDK instances (#2159)
--[MINOR] Support for email OTP MFA in native authentication (#2167)
 
 Version 5.5.0
 ---------
