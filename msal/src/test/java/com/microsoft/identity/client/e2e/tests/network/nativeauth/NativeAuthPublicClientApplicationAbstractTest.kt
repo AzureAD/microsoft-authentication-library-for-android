@@ -39,8 +39,18 @@ import com.microsoft.identity.internal.testutils.labutils.LabConstants
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
+import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
+import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
+import com.microsoft.identity.nativeauth.statemachine.results.MFASubmitChallengeResult
+import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitCodeResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignInSubmitCodeResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignUpSubmitCodeResult
+import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState
+import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordCodeRequiredState
+import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState
+import com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.setMain
@@ -155,4 +165,39 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
             }
         }
     }
+}
+
+
+private suspend fun <T> getSubmitCodeResultFromCode(userEmail: String, temporaryEmailService: TemporaryEmailService, submitCode: suspend (String) -> T): T {
+    var submitCodeResult: T? = null
+
+    temporaryEmailService.retrieveValidCodeFromInbox(userEmail, codeWasValid = { otp ->
+        val result = submitCode(otp)
+
+        //only explicitly check for an invalid code error - underlying errors and exceptions should propagate to the called test
+        if (result is SubmitCodeError) {
+            return@retrieveValidCodeFromInbox result.isInvalidCode()
+        } else {
+            submitCodeResult = result
+            return@retrieveValidCodeFromInbox true
+        }
+    })
+
+    return submitCodeResult ?: throw IllegalStateException("Failed to retrieve code, throwing exception to trigger the retry test logic")
+}
+
+suspend fun MFARequiredState.submitChallengeFromInbox(userEmail: String, temporaryEmailService: TemporaryEmailService): MFASubmitChallengeResult {
+    return getSubmitCodeResultFromCode(userEmail, temporaryEmailService) { this.submitChallenge(it) }
+}
+
+suspend fun ResetPasswordCodeRequiredState.submitCodeFromInbox(userEmail: String, temporaryEmailService: TemporaryEmailService): ResetPasswordSubmitCodeResult {
+    return getSubmitCodeResultFromCode(userEmail, temporaryEmailService) { this.submitCode(it) }
+}
+
+suspend fun SignUpCodeRequiredState.submitCodeFromInbox(userEmail: String, temporaryEmailService: TemporaryEmailService): SignUpSubmitCodeResult {
+    return getSubmitCodeResultFromCode(userEmail, temporaryEmailService) { this.submitCode(it) }
+}
+
+suspend fun SignInCodeRequiredState.submitCodeFromInbox(userEmail: String, temporaryEmailService: TemporaryEmailService): SignInSubmitCodeResult {
+    return getSubmitCodeResultFromCode(userEmail, temporaryEmailService) { this.submitCode(it) }
 }

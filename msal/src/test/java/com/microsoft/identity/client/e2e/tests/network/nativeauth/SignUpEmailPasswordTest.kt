@@ -52,7 +52,6 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
      * Set email and password (mimicking one combined screen for email & password collection), and then verify email OTP as last step
      * (hero scenario 9, use case 1.1.1,  Test case 13)
      */
-    @Ignore("Fetching OTP code is unstable")
     @Test
     fun testSuccessOTPLast() {
         retryOperation {
@@ -61,8 +60,9 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
                 val password = getSafePassword()
                 val signUpResult = application.signUp(user, password.toCharArray())
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
-                val otp = tempEmailApi.retrieveCodeFromInbox(user)
-                val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
+
+                val submitCodeState = (signUpResult as SignUpResult.CodeRequired).nextState
+                val submitCodeResult = submitCodeState.submitCodeFromInbox(user, tempEmailApi)
                 Assert.assertTrue(submitCodeResult is SignUpResult.Complete)
             }
         }
@@ -72,7 +72,6 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
      * Verify email address using email OTP and then set password (mimicking email and password collection on separate screens).
      * (use case 1.1.4, Test case 16)
      */
-    @Ignore("Fetching OTP code is unstable")
     @Test
     fun testSuccessOTPFirst() {
         retryOperation {
@@ -80,9 +79,11 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
                 val user = tempEmailApi.generateRandomEmailAddress()
                 val signUpResult = application.signUp(user)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
-                val otp = tempEmailApi.retrieveCodeFromInbox(user)
-                val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
+
+                val submitCodeState = (signUpResult as SignUpResult.CodeRequired).nextState
+                val submitCodeResult = submitCodeState.submitCodeFromInbox(user, tempEmailApi)
                 assertResult<SignUpResult.PasswordRequired>(submitCodeResult)
+
                 val submitPasswordResult = (submitCodeResult as SignUpResult.PasswordRequired).nextState.submitPassword(getSafePassword().toCharArray())
                 Assert.assertTrue(submitPasswordResult is SignUpResult.Complete)
             }

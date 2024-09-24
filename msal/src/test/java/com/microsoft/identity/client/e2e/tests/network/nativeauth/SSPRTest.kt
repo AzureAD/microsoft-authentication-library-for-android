@@ -56,20 +56,20 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Verify email with email OTP first and then reset password.
      * (hero scenario 8 & 17, use case 3.1.1, Test case 46)
      */
-    @Ignore("Fetching OTP code is unstable")
     @Test
     fun testSSPRSuccess() = runBlocking {
         var result: ResetPasswordStartResult
-        var otp: String
 
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = config.email
                 result = application.resetPassword(user)
                 assertResult<ResetPasswordStartResult.CodeRequired>(result)
-                otp = tempEmailApi.retrieveCodeFromInbox(user)
-                val submitCodeResult = (result as ResetPasswordStartResult.CodeRequired).nextState.submitCode(otp)
+
+                val submitCodeState = (result as ResetPasswordStartResult.CodeRequired).nextState
+                val submitCodeResult = submitCodeState.submitCodeFromInbox(user, tempEmailApi)
                 assertResult<ResetPasswordSubmitCodeResult.PasswordRequired>(submitCodeResult)
+
                 val password = getSafePassword()
                 val submitPasswordResult = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState.submitPassword(password.toCharArray())
                 Assert.assertTrue(submitPasswordResult is ResetPasswordResult.Complete)

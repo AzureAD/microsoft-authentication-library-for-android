@@ -32,7 +32,6 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
-import org.junit.Ignore
 import org.junit.Test
 
 class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
@@ -45,7 +44,6 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Use valid email and OTP to get token and sign in.
      * (hero scenario 6, use case 2.2.1, Test case 30)
      */
-    @Ignore("Fetching OTP code is unstable")
     @Test
     fun testSuccess() {
         retryOperation {
@@ -53,8 +51,9 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
                 val user = config.email
                 val signInResult = application.signIn(user)
                 assertResult<SignInResult.CodeRequired>(signInResult)
-                val otp = tempEmailApi.retrieveCodeFromInbox(user)
-                val submitCodeResult = (signInResult as SignInResult.CodeRequired).nextState.submitCode(otp)
+
+                val submitCodeState = (signInResult as SignInResult.CodeRequired).nextState
+                val submitCodeResult = submitCodeState.submitCodeFromInbox(user, tempEmailApi)
                 assertResult<SignInResult.Complete>(submitCodeResult)
             }
         }
@@ -78,7 +77,6 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Use valid email address, but invalid OTP to receive "invalid code" error.
      * (use case 2.2.7, Test case 35)
      */
-    @Ignore("Fetching OTP code is unstable")
     @Test
     fun testErrorIsInvalidCode() {
         retryOperation {
@@ -86,10 +84,9 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
                 val user = config.email
                 val signInResult = application.signIn(user)
                 assertResult<SignInResult.CodeRequired>(signInResult)
-                val otp = tempEmailApi.retrieveCodeFromInbox(user)
-                // Turn correct OTP into an incorrect one
-                val alteredOtp = otp + "1234"
-                val submitCodeResult = (signInResult as SignInResult.CodeRequired).nextState.submitCode(alteredOtp)
+
+                val incorrectOtp = "1234"
+                val submitCodeResult = (signInResult as SignInResult.CodeRequired).nextState.submitCode(incorrectOtp)
                 Assert.assertTrue(submitCodeResult is SubmitCodeError)
                 Assert.assertTrue((submitCodeResult as SubmitCodeError).isInvalidCode())
             }
