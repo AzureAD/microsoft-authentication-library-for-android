@@ -46,7 +46,6 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
      * 2. Validate OTP.
      * (hero scenario 10, use case 1.1.3, Test case 15)
      */
-    @Ignore("Fetching OTP code is unstable")
     @Test
     fun testEmailPasswordAttributesOnSameScreen() {
         retryOperation {
@@ -60,8 +59,9 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
                     attributes = attributes
                 )
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
-                val otp = tempEmailApi.retrieveCodeFromInbox(user)
-                val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
+
+                val submitCodeState = (signUpResult as SignUpResult.CodeRequired).nextState
+                val submitCodeResult = submitCodeState.submitCodeFromInbox(user, tempEmailApi)
                 assertResult<SignUpResult.Complete>(submitCodeResult)
             }
         }
@@ -75,7 +75,6 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
      * 3. Set custom attributes.
      * (hero scenario 12, use case 1.1.6) - Test case 28
      */
-    @Ignore("Fetching OTP code is unstable")
     @Test
     fun testSeparateEmailPasswordAndAttributesOnSameScreen() {
         retryOperation {
@@ -83,9 +82,11 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
                 val user = tempEmailApi.generateRandomEmailAddress()
                 val signUpResult = application.signUp(user)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
-                val otp = tempEmailApi.retrieveCodeFromInbox(user)
-                val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
+
+                val submitCodeState = (signUpResult as SignUpResult.CodeRequired).nextState
+                val submitCodeResult = submitCodeState.submitCodeFromInbox(user, tempEmailApi)
                 assertResult<SignUpResult.PasswordRequired>(submitCodeResult)
+
                 val submitPasswordResult = (submitCodeResult as SignUpResult.PasswordRequired).nextState.submitPassword(getSafePassword().toCharArray())
                 assertResult<SignUpResult.AttributesRequired>(submitPasswordResult)
                 val requiredAttributes = (submitPasswordResult as SignUpResult.AttributesRequired).requiredAttributes
@@ -110,7 +111,6 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
      * 5. etc.
      * ((hero scenario 13) - Test case 29
      */
-    @Ignore("Fetching OTP code is unstable")
     @Test
     fun testSeparateEmailPasswordAndAttributesOnMultipleScreens() {
         retryOperation {
@@ -118,9 +118,11 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
                 val user = tempEmailApi.generateRandomEmailAddress()
                 val signUpResult = application.signUp(user)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
-                val otp = tempEmailApi.retrieveCodeFromInbox(user)
-                val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
+
+                val submitCodeState = (signUpResult as SignUpResult.CodeRequired).nextState
+                val submitCodeResult = submitCodeState.submitCodeFromInbox(user, tempEmailApi)
                 assertResult<SignUpResult.PasswordRequired>(submitCodeResult)
+
                 val submitPasswordResult = (submitCodeResult as SignUpResult.PasswordRequired).nextState.submitPassword(getSafePassword().toCharArray())
                 assertResult<SignUpResult.AttributesRequired>(submitPasswordResult)
                 val requiredAttributes = (submitPasswordResult as SignUpResult.AttributesRequired).requiredAttributes
