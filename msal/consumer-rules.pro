@@ -22,6 +22,8 @@
 
 ##---------------Begin: proguard configuration for Nimbus  ----------
 -keep class com.nimbusds.** { *; }
+-keep class !com.nimbusds.jose.jca.JCASupport, **  # Exclude `JCASupport` while keeping others
+-keep class !com.nimbusds.jose.crypto.impl.AESCBC, **  # Exclude `AESCBC` while keeping others
 
 ##---------------Begin: proguard configuration for Gson  --------
 # Gson uses generic type information stored in a class file when working with fields. Proguard
