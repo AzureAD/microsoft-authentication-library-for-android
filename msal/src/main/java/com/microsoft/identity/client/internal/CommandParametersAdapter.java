@@ -1333,10 +1333,7 @@ public class CommandParametersAdapter {
     public static List<Map.Entry<String, String>> appendToExtraQueryParametersIfWebAuthnCapable(
             @Nullable final List<Map.Entry<String, String>> queryStringParameters,
             @NonNull final PublicClientApplicationConfiguration configuration) {
-        if (queryStringParameters == null && !configuration.isWebauthnCapable()) {
-            return null;
-        }
         ArrayList<Map.Entry<String, String>> result = queryStringParameters != null ? new ArrayList<>(queryStringParameters) : new ArrayList<>();
-        return AndroidPlatformUtil.updateWithOrDeleteWebAuthnParam(result, configuration.isWebauthnCapable());
+        return AndroidPlatformUtil.updateWithOrDeleteWebAuthnParam(result, true);
     }
 }
