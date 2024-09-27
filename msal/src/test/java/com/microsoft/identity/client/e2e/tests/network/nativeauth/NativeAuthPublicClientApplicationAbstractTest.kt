@@ -74,7 +74,7 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         return "" // Not needed for native auth flows
     }
 
-    abstract val configType: ConfigType
+    abstract val defaultConfigType: ConfigType
 
     @Before
     open fun setup() {
@@ -86,7 +86,7 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE)
         CommandDispatcherHelper.clear()
         Dispatchers.setMain(testDispatcher)
-        setupPCA()
+        setupPCA(defaultConfigType)
     }
 
     @After
@@ -114,7 +114,7 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         return Gson().fromJson(secretValue, type)
     }
 
-    fun setupPCA() {
+    fun setupPCA(configType: ConfigType) {
         val secretValue = getConfigsThroughSecretValue()
         config = secretValue?.get(configType.stringValue) ?: throw IllegalStateException("Config not $secretValue")
         val challengeTypes = listOf("password", "oob")
