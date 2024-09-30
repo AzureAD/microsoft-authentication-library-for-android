@@ -51,7 +51,6 @@ import java.util.List;
 @LTWTests
 @RetryOnFailure
 @SupportedBrokers(brokers = {BrokerCompanyPortal.class})
-@RetryOnFailure
 @RunWith(Parameterized.class)
 public class TestCase2572283 extends AbstractMsalBrokerTest {
     private final UserType mUserType;
