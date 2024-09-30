@@ -43,12 +43,6 @@ import org.junit.Test;
 @LocalBrokerHostDebugUiTest
 @SupportedBrokers(brokers = {BrokerHost.class})
 public class TestCase2688468 extends AbstractMsalBrokerTest {
-
-    @Before
-    public void before() {
-        ((BrokerHost) mBroker).enablePrtV3();
-    }
-
     @Test
     public void test_2688468()  throws Throwable {
 
