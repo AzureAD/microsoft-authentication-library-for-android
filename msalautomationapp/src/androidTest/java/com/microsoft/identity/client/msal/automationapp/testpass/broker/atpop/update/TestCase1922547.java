@@ -31,6 +31,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerUpdateTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
+import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.constants.AuthScheme;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
@@ -54,6 +55,7 @@ public class TestCase1922547  extends AbstractMsalBrokerUpdateTest {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
+        ((BrokerMicrosoftAuthenticator) mBroker).setShouldUseDeviceSettingsPage(true);
         mBroker.performDeviceRegistration(username, password);
 
         final MsalSdk msalSdk = new MsalSdk();
