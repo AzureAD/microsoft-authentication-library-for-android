@@ -176,7 +176,7 @@ private suspend fun <T> getSubmitCodeResultFromCode(userEmail: String, temporary
 
         //only explicitly check for an invalid code error - underlying errors and exceptions should propagate to the called test
         if (result is SubmitCodeError) {
-            return@retrieveValidCodeFromInbox result.isInvalidCode()
+            return@retrieveValidCodeFromInbox !result.isInvalidCode()
         } else {
             submitCodeResult = result
             return@retrieveValidCodeFromInbox true
