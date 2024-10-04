@@ -144,7 +144,7 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
 
     fun <T> retryOperation(
         maxRetries: Int = 3,
-        onFailure: () -> Unit = { Assert.fail() },
+        onFailure: (IllegalStateException) -> Unit = { Assert.fail(it.message) },
         authFlow: () -> T
     ) {
         var retryCount = 0
@@ -157,7 +157,7 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
             } catch (e: IllegalStateException) {
                 // Re-run this test if the OTP retrieval fails. 1SecMail is known for emails to sometimes never arrive.
                 if (retryCount >= maxRetries) {
-                    onFailure()
+                    onFailure(e)
                     shouldRetry = false
                 } else {
                     retryCount++
