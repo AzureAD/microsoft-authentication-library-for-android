@@ -37,8 +37,8 @@ import org.junit.Test;
 
 // If LTW is the active broker, and request is made through Authenticator from Legacy WorkplaceJoin API, nothing should break
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2582294
-@SupportedBrokers(brokers = {BrokerLTW.class})
 @LTWTests
+@SupportedBrokers(brokers = {BrokerLTW.class})
 public class TestCase2582294 extends AbstractMsalBrokerTest {
 
     @Test
