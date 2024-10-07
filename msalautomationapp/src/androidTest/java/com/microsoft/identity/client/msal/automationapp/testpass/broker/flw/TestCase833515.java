@@ -32,15 +32,15 @@ import com.microsoft.identity.client.SignInParameters;
 import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.msal.automationapp.R;
+import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
-import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.AzureSampleApp;
+import com.microsoft.identity.client.ui.automation.app.OutlookApp;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
-import com.microsoft.identity.client.ui.automation.browser.BrowserEdge;
 import com.microsoft.identity.client.ui.automation.installer.LocalApkInstaller;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
@@ -55,7 +55,6 @@ import com.microsoft.identity.labapi.utilities.constants.UserType;
 import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -65,7 +64,6 @@ import java.util.concurrent.TimeUnit;
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833515
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
 @RetryOnFailure(retryCount = 2)
-@Ignore("This one is proving very inconsistent due to Edge Ui, should be ran manually")
 public class TestCase833515 extends AbstractMsalBrokerTest {
 
     @Test
@@ -144,13 +142,11 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
         azureSampleApp.launch();
         azureSampleApp.confirmSignedIn(username2);
 
-        // clearing history of edge
-        final BrowserEdge edge = new BrowserEdge(new LocalApkInstaller());
-        edge.install();
-        edge.clear();
-
-        // relaunching edge after clearing history
-        Assert.assertTrue(edge.confirmSignedIn(username2));
+        // install and launch outlookApp
+        final OutlookApp outlookApp = new OutlookApp(new LocalApkInstaller());
+        outlookApp.install();
+        outlookApp.launch();
+        outlookApp.confirmAccount(username2);
 
         final TokenRequestLatch signOutLatch = new TokenRequestLatch(1);
 
@@ -171,13 +167,11 @@ public class TestCase833515 extends AbstractMsalBrokerTest {
 
         ThreadUtils.sleepSafely(3000, "Interrupted", "Sleep failed");
 
-        edge.forceStop();
-        edge.launch();
+        outlookApp.forceStop();
+        outlookApp.launch();
 
-        // Sometime edge forces a restart when account is signed out, can continue by pressing "OK"
-        UiAutomatorUtils.handleButtonClickForObjectWithTextSafely("OK");
-        ThreadUtils.sleepSafely(3000, "Interrupted", "Sleep failed");
-        Assert.assertTrue(edge.confirmSignedIn(null));
+        // Confirming Account is signed out from outlook and it shows Add Account screen
+        Assert.assertNotNull(UiAutomatorUtils.obtainUiObjectWithResourceId("com.microsoft.office.outlook:id/btn_add_account"));
 
         // Confirming account is signed out in Azure.
         azureSampleApp.launch();
