@@ -144,7 +144,6 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
 
     fun <T> retryOperation(
         maxRetries: Int = 3,
-        onFailure: (IllegalStateException) -> Unit = { Assert.fail(it.message) },
         authFlow: () -> T
     ) {
         var retryCount = 0
@@ -154,14 +153,21 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
             try {
                 authFlow()
                 shouldRetry = false // authFlow() has succeeded, so we don't need to retry.
-            } catch (e: IllegalStateException) {
-                // Re-run this test if the OTP retrieval fails. 1SecMail is known for emails to sometimes never arrive.
-                if (retryCount >= maxRetries) {
-                    onFailure(e)
-                    shouldRetry = false
-                } else {
-                    retryCount++
+            } catch (e: Exception) {
+                when (e) {
+                    is IllegalStateException -> {
+                        // Re-run this test if the OTP retrieval fails. 1SecMail is known for emails to sometimes never arrive.
+                        if (retryCount >= maxRetries) {
+                            Assert.fail(e.message)
+                            shouldRetry = false
+                        } else {
+                            retryCount++
+                        }
+                    } else -> {
+                        Assert.fail(e.message)
+                    }
                 }
+
             }
         }
     }
