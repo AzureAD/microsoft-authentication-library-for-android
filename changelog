@@ -2,6 +2,7 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 Version 5.7.0
 ----------
+-[PATCH] Update common @18.1.0
 -[MINOR] Support for email OTP MFA in native authentication (#2167)
 -[MINOR] Add legacy FIDO2 API version (#2188)
 
