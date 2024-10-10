@@ -53,6 +53,7 @@ import java.util.List;
 @SupportedBrokers(brokers = {BrokerCompanyPortal.class})
 @RetryOnFailure
 @RunWith(Parameterized.class)
+@RetryOnFailure
 public class TestCase2584412 extends AbstractMsalBrokerTest {
     private final UserType mUserType;
 
