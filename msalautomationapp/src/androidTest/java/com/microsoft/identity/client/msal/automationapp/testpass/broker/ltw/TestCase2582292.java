@@ -53,6 +53,7 @@ import java.util.List;
 @LTWTests
 @RetryOnFailure
 @SupportedBrokers(brokers = {BrokerLTW.class})
+@RetryOnFailure
 public class TestCase2582292 extends AbstractMsalBrokerTest {
 
     @Test
