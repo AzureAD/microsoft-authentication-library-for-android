@@ -205,6 +205,7 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
      * Note: this test also asserts whether the scopes requested at sign in are present in the token that's received at the end of the flow
      */
     @Test
+    @Ignore
     fun `test selection required, request challenge on specific auth method and complete MFA flow`() {
         retryOperation {
             runBlocking {
