@@ -109,18 +109,17 @@ class TestCase2516571 : AbstractMsalUiTest(){
 
         // add account in Outlook after CP install
         outlook.launch()
-        val promptHandlerParametersWithCompanyPortal = FirstPartyAppPromptHandlerParameters.builder()
-            .broker(companyPortal)
-            .prompt(PromptParameter.SELECT_ACCOUNT)
-            .loginHint(username)
-            .consentPageExpected(false)
-            .sessionExpected(true)
-            .passwordPageExpected(false)
-            .expectingBrokerAccountChooserActivity(false)
-            .expectingLoginPageAccountPicker(false)
-            .registerPageExpected(false)
-            .build()
-        outlook.addFirstAccount(username, password, promptHandlerParametersWithCompanyPortal)
+
+        // Sometimes we get "Found account page", but sometimes it doesn't appear, let's try, and
+        // try again by going back to the previous page if it doesn't work
+        try {
+            outlook.addExistingFirstAccount(username)
+        } catch (exception: AssertionError) {
+            // Return to starting screen to try again
+            UiAutomatorUtils.pressBack()
+            outlook.addExistingFirstAccount(username)
+        }
+
         outlook.onAccountAdded()
         companyPortal.handleAppProtectionPolicy()
         outlook.confirmAccount(username)
