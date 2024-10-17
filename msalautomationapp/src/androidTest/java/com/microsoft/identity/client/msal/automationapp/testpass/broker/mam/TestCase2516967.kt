@@ -84,11 +84,13 @@ class TestCase2516967 : AbstractMsalBrokerTest(){
 
         // Log in again in outlook, should get a prompt in the snackbar
         outlook.launch()
+        outlook.forceStop()
+        outlook.launch()
         outlook.signInThroughSnackBar(username, password, promptHandlerParameters)
 
-        // Not totally sure what prompt outlook to take the snackbar away, sometimes it still appears after re-authentication
+        // Not totally sure what prompts outlook to take the snackbar away, sometimes it still appears after re-authentication
         // We wait a bit and relaunch outlook twice, this seems improve the chance of the snackbar disappearing
-        ThreadUtils.sleepSafely(6000, "sleeping", "interrupted sleep")
+        ThreadUtils.sleepSafely(20000, "sleeping", "interrupted sleep")
         outlook.forceStop()
         outlook.launch()
         outlook.forceStop()

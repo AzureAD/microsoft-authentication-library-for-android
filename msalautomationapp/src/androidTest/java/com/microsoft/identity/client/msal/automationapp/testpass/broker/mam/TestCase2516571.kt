@@ -22,10 +22,9 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.mam
 
+import com.microsoft.identity.client.msal.automationapp.AbstractMsalUiTest
 import com.microsoft.identity.client.msal.automationapp.R
-import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
-import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers
 import com.microsoft.identity.client.ui.automation.app.OutlookApp
 import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator
@@ -40,11 +39,10 @@ import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Assert
 import org.junit.Test
 
-// Using TrueMAM account when broker is Authenticator will require installation of CP
+// Using TrueMAM account will require a broker, and will require CP instead of Authenticator
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2516571
-@SupportedBrokers(brokers = [BrokerMicrosoftAuthenticator::class])
 @RetryOnFailure
-class TestCase2516571 : AbstractMsalBrokerTest(){
+class TestCase2516571 : AbstractMsalUiTest(){
 
     @Test
     fun test_2516571() {
@@ -58,7 +56,34 @@ class TestCase2516571 : AbstractMsalBrokerTest(){
         outlook.handleFirstRun()
 
         val promptHandlerParameters = FirstPartyAppPromptHandlerParameters.builder()
-            .broker(mBroker)
+            .broker(null)
+            .prompt(PromptParameter.SELECT_ACCOUNT)
+            .loginHint(username)
+            .consentPageExpected(false)
+            .sessionExpected(false)
+            .expectingBrokerAccountChooserActivity(false)
+            .expectingLoginPageAccountPicker(false)
+            .registerPageExpected(false)
+            .build()
+
+        // add first account in Outlook
+        outlook.addFirstAccount(username, password, promptHandlerParameters)
+
+        // Check for GO TO STORE button
+        val intuneRequirementDialogConfirmBtn =
+            UiAutomatorUtils.obtainUiObjectWithText("Get the app")
+        Assert.assertTrue(intuneRequirementDialogConfirmBtn.exists())
+
+        outlook.forceStop()
+
+        // Test by installing Authenticator, this will remove need for 2516613, also 831545 seems
+        // redundant if we're running this test case
+        // Install authenticator, we should still see GO TO STORE page to download Company Portal
+        val authenticator = BrokerMicrosoftAuthenticator()
+        authenticator.install()
+
+        val promptHandlerParametersWithAuthenticator = FirstPartyAppPromptHandlerParameters.builder()
+            .broker(authenticator)
             .prompt(PromptParameter.SELECT_ACCOUNT)
             .loginHint(username)
             .consentPageExpected(false)
@@ -67,21 +92,34 @@ class TestCase2516571 : AbstractMsalBrokerTest(){
             .expectingLoginPageAccountPicker(false)
             .registerPageExpected(true)
             .build()
-
         // add first account in Outlook
-        outlook.addFirstAccount(username, password, promptHandlerParameters)
+        outlook.launch()
+        outlook.addFirstAccount(username, password, promptHandlerParametersWithAuthenticator)
 
         // Check for GO TO STORE button
-        val intuneRequirementDialogConfirmBtn =
+        val intuneRequirementDialogConfirmBtnAgain =
             UiAutomatorUtils.obtainUiObjectWithText("GO TO STORE")
-        Assert.assertTrue(intuneRequirementDialogConfirmBtn.exists())
+        Assert.assertTrue(intuneRequirementDialogConfirmBtnAgain.exists())
 
+        outlook.forceStop()
+
+        // Install Company Portal, should now be able to log in with MAM account
         val companyPortal = BrokerCompanyPortal()
-        companyPortal.install();
+        companyPortal.install()
 
         // add account in Outlook after CP install
         outlook.launch()
-        outlook.addExistingFirstAccount(username)
+
+        // Sometimes we get "Found account page", but sometimes it doesn't appear, let's try, and
+        // try again by going back to the previous page if it doesn't work
+        try {
+            outlook.addExistingFirstAccount(username)
+        } catch (exception: AssertionError) {
+            // Return to starting screen to try again
+            UiAutomatorUtils.pressBack()
+            outlook.addExistingFirstAccount(username)
+        }
+
         outlook.onAccountAdded()
         companyPortal.handleAppProtectionPolicy()
         outlook.confirmAccount(username)
