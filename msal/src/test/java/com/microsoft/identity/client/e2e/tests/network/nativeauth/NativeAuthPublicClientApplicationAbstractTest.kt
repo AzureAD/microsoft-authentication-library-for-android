@@ -154,20 +154,14 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
                 authFlow()
                 shouldRetry = false // authFlow() has succeeded, so we don't need to retry.
             } catch (e: Exception) {
-                when (e) {
-                    is IllegalStateException -> {
-                        // Re-run this test if the OTP retrieval fails. 1SecMail is known for emails to sometimes never arrive.
-                        if (retryCount >= maxRetries) {
-                            Assert.fail(e.message)
-                            shouldRetry = false
-                        } else {
-                            retryCount++
-                        }
-                    } else -> {
-                        Assert.fail(e.message)
-                    }
+                //1secmail occasionally has a delay for emails to arrive / return from the API, or throws an internal server error, which causes tests to fail
+                //In this case, retry the test
+                if (retryCount >= maxRetries) {
+                    Assert.fail(e.message)
+                    shouldRetry = false
+                } else {
+                    retryCount++
                 }
-
             }
         }
     }

@@ -41,11 +41,15 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     override val defaultConfigType = ConfigType.SIGN_UP_PASSWORD
 
     @Test
-    fun testSignUpErrorSimple() = runTest {
-        val user = tempEmailApi.generateRandomEmailAddress()
-        val result = application.signUp(user, "invalidpassword".toCharArray())
-        Assert.assertTrue(result is SignUpError)
-        Assert.assertTrue((result as SignUpError).isInvalidPassword())
+    fun testSignUpErrorSimple() {
+        retryOperation {
+            runBlocking {
+                val user = tempEmailApi.generateRandomEmailAddress()
+                val result = application.signUp(user, "invalidpassword".toCharArray())
+                Assert.assertTrue(result is SignUpError)
+                Assert.assertTrue((result as SignUpError).isInvalidPassword())
+            }
+        }
     }
 
     /**
