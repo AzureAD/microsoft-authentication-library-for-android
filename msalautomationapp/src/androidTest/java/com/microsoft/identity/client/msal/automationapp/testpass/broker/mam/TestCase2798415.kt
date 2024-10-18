@@ -69,6 +69,7 @@ class TestCase2798415 : AbstractMsalBrokerTest() {
         teams.install()
         teams.launch()
         teams.handleFirstRun()
+        UiAutomatorUtils.pressBack()
 
         val username = mLabAccount.username
         val password = mLabAccount.password
