@@ -32,6 +32,7 @@ import com.microsoft.identity.client.ui.automation.broker.IMdmAgent
 import com.microsoft.identity.client.ui.automation.installer.LocalApkInstaller
 import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
+import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils
 import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
@@ -54,6 +55,7 @@ class TestCase2506936 : AbstractMsalBrokerTest(){
         teams.install()
         teams.launch()
         teams.handleFirstRun()
+        UiAutomatorUtils.pressBack()
 
         val teamsPromptHandlerParameters = FirstPartyAppPromptHandlerParameters.builder()
             .prompt(PromptParameter.SELECT_ACCOUNT)
