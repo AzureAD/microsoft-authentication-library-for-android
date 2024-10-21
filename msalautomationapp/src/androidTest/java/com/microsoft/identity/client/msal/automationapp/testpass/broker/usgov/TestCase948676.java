@@ -29,6 +29,7 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
@@ -43,6 +44,7 @@ import java.util.Arrays;
 
 // [USGOV][Broker][Joined] Acquire token with instance_aware=true
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/948676
+@RetryOnFailure
 public class TestCase948676 extends AbstractMsalBrokerTest {
 
     @Test
