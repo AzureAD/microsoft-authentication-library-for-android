@@ -35,7 +35,6 @@ import com.microsoft.identity.client.ui.automation.installer.LocalApkInstaller
 import com.microsoft.identity.client.ui.automation.interaction.FirstPartyAppPromptHandlerParameters
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter
 import com.microsoft.identity.client.ui.automation.logging.Logger
-import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils
 import com.microsoft.identity.labapi.utilities.client.ILabAccount
 import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy
@@ -69,7 +68,6 @@ class TestCase2798415 : AbstractMsalBrokerTest() {
         teams.install()
         teams.launch()
         teams.handleFirstRun()
-        UiAutomatorUtils.pressBack()
 
         val username = mLabAccount.username
         val password = mLabAccount.password
