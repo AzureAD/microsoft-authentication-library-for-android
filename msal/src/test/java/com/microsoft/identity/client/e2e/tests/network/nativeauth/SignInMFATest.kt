@@ -208,7 +208,6 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
      */
     @Ignore("Fetching OTP code is unstable")
     @Test
-    @Ignore
     fun `test selection required, request challenge on specific auth method and complete MFA flow`() {
         retryOperation {
             runBlocking {
