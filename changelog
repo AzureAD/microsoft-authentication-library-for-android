@@ -1,12 +1,14 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
-vNext
+Version 5.7.0
 ----------
+-[PATCH] Update common @18.1.0
 -[MINOR] Support for email OTP MFA in native authentication (#2167)
+-[MINOR] Add legacy FIDO2 API version (#2188)
 
 Version 5.6.0
 ----------
-- [PATCH] Update common @18.0.0
+-[PATCH] Update common @18.0.0
 -[MINOR] Moving OS version check for passkeys (#2138)
 -[PATCH] Fix Native Auth authority data being persisted across different SDK instances (#2159)
 

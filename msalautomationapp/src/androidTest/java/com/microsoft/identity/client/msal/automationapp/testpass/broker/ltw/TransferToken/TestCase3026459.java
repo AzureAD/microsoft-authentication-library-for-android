@@ -20,41 +20,55 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.broker.atpop.update;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw.TransferToken;
+
 
 import com.microsoft.identity.client.Prompt;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
-import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerUpdateTest;
+import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
+import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
-import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
-import com.microsoft.identity.client.ui.automation.constants.AuthScheme;
+import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
+import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
+import com.microsoft.identity.labapi.utilities.constants.UserType;
 
+import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
-// [Joined] [Update-old-to-V5] Acquire PoP token Silent
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1922530
+
+// Transfer token generation and restore
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3026421
+@LTWTests
+@LocalBrokerHostDebugUiTest
 @RetryOnFailure
-public class TestCase1922530  extends AbstractMsalBrokerUpdateTest {
+@SupportedBrokers(brokers = {BrokerHost.class})
+public class TestCase3026459 extends AbstractMsalBrokerTest {
+
+    @Before
+    public void before() {
+        ((BrokerHost) mBroker).enableGenerateAndSaveTransferToken();
+    }
+
     @Test
-    public void test_1922530() throws Throwable {
+    public void test_3026459() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
-        ((BrokerMicrosoftAuthenticator) mBroker).setShouldUseDeviceSettingsPage(true);
-        mBroker.performDeviceRegistration(username, password);
         final MsalSdk msalSdk = new MsalSdk();
 
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
@@ -62,7 +76,6 @@ public class TestCase1922530  extends AbstractMsalBrokerUpdateTest {
                 .loginHint(username)
                 .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.LOGIN)
-                .authScheme(AuthScheme.POP)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
@@ -85,32 +98,20 @@ public class TestCase1922530  extends AbstractMsalBrokerUpdateTest {
         }, TokenRequestTimeout.MEDIUM);
 
         authResult.assertSuccess();
-        MsalAuthResult.verifyATForPop(authResult.getAccessToken());
-
-        // Update the app
-        // TO-DO after the API to retrieve the broker version is added,
-        // we can add an assert to verify that the broker version is updated as expected
-        mBroker.update();
-
-        // start silent token request in MSAL
-        final MsalAuthTestParams authTestSilentParams = MsalAuthTestParams.builder()
-                .activity(mActivity)
-                .loginHint(username)
-                .scopes(Arrays.asList(mScopes))
-                .authority(getAuthority())
-                .authScheme(AuthScheme.POP)
-                .msalConfigResourceId(getConfigFileResourceId())
-                .build();
-
-        final MsalAuthResult authSilentResult = msalSdk.acquireTokenSilent(authTestSilentParams, TokenRequestTimeout.SILENT);
-        authSilentResult.assertSuccess();
-        MsalAuthResult.verifyATForPop(authSilentResult.getAccessToken());
+        final BrokerHost brokerHost = new BrokerHost();
+        final List<String> expectedRestoreAccountNames = new ArrayList<>();
+        expectedRestoreAccountNames.add(username);
+        brokerHost.restoreMsaAccounts(expectedRestoreAccountNames);
+        brokerHost.brokerApiFragment.removeAccounts(username);
+        Thread.sleep(1000);
+        // After removing the account, no accounts should be restored.
+        brokerHost.restoreMsaAccounts(new ArrayList<>());
     }
 
     @Override
     public LabQuery getLabQuery() {
         return LabQuery.builder()
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
+                .userType(UserType.MSA)
                 .build();
     }
 
@@ -118,6 +119,7 @@ public class TestCase1922530  extends AbstractMsalBrokerUpdateTest {
     public TempUserType getTempUserType() {
         return null;
     }
+
 
     @Override
     public String[] getScopes() {
@@ -131,6 +133,6 @@ public class TestCase1922530  extends AbstractMsalBrokerUpdateTest {
 
     @Override
     public int getConfigFileResourceId() {
-        return R.raw.msal_config_default;
+        return R.raw.msal_config_msa;
     }
 }
