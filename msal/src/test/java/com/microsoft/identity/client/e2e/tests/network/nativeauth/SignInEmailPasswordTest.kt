@@ -39,7 +39,7 @@ import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.spy
 
-class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() {
+class SignInEmailPasswordTest : _NativeAuthPublicClientApplicationAbstractTest() {
 
     override val defaultConfigType = ConfigType.SIGN_IN_PASSWORD
 
@@ -85,8 +85,8 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
         Assert.assertTrue((result as SignInError).isInvalidCredentials())
     }
 
-    @Test
     @Ignore("Ignore until MFA is available on test slice")
+    @Test
     fun testSignInMFASimple() = runTest {
         val nativeAuthConfigField = application.javaClass.getDeclaredField("nativeAuthConfig")
         nativeAuthConfigField.isAccessible = true

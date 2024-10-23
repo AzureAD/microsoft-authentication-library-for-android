@@ -37,7 +37,7 @@ import org.junit.Test
 import org.robolectric.annotation.Config
 
 @Config(shadows = [ShadowBaseController::class])
-class GetTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
+class GetTokenTests : _NativeAuthPublicClientApplicationAbstractTest() {
 
     private lateinit var resources: List<NativeAuthTestConfig.Resource>
 

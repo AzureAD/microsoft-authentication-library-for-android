@@ -39,7 +39,7 @@ import org.junit.Ignore
 import org.junit.Test
 import java.lang.Thread.sleep
 
-class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
+class SignInMFATest : _NativeAuthPublicClientApplicationAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 

@@ -36,7 +36,7 @@ import org.junit.Assert
 import org.junit.Ignore
 import org.junit.Test
 
-class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
+class SSPRTest : _NativeAuthPublicClientApplicationAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 
