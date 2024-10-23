@@ -50,8 +50,8 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
                 val signUpResult = application.signUp(user)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
 
-                val submitCodeState = (signUpResult as SignUpResult.CodeRequired).nextState
-                val submitCodeResult = submitCodeState.submitCodeFromInbox(user, tempEmailApi)
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
                 Assert.assertTrue(submitCodeResult is SignUpResult.Complete)
             }
         }

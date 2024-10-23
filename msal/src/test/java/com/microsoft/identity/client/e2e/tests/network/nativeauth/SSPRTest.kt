@@ -30,6 +30,7 @@ import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitCodeResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
@@ -66,8 +67,8 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
                 result = application.resetPassword(user)
                 assertResult<ResetPasswordStartResult.CodeRequired>(result)
 
-                val submitCodeState = (result as ResetPasswordStartResult.CodeRequired).nextState
-                val submitCodeResult = submitCodeState.submitCodeFromInbox(user, tempEmailApi)
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val submitCodeResult = (result as ResetPasswordStartResult.CodeRequired).nextState.submitCode(otp)
                 assertResult<ResetPasswordSubmitCodeResult.PasswordRequired>(submitCodeResult)
 
                 val password = getSafePassword()

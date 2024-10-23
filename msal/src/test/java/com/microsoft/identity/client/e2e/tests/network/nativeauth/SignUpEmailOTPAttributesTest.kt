@@ -27,6 +27,7 @@ import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.nativeauth.UserAttributes
+import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
@@ -51,8 +52,8 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
                 val attributes = UserAttributes.Builder().country("Ireland").city("Dublin").build()
                 val signUpResult = application.signUp(user, attributes = attributes)
 
-                val submitCodeState = (signUpResult as SignUpResult.CodeRequired).nextState
-                val submitCodeResult = submitCodeState.submitCodeFromInbox(user, tempEmailApi)
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
                 Assert.assertTrue(submitCodeResult is SignUpResult.Complete)
             }
@@ -71,8 +72,8 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
                 val signUpResult = application.signUp(user)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
 
-                val submitCodeState = (signUpResult as SignUpResult.CodeRequired).nextState
-                val submitCodeResult = submitCodeState.submitCodeFromInbox(user, tempEmailApi)
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
                 assertResult<SignUpResult.AttributesRequired>(submitCodeResult)
 
                 val requiredAttributes = (submitCodeResult as SignUpResult.AttributesRequired).requiredAttributes
@@ -99,8 +100,8 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
                 val signUpResult = application.signUp(user)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
 
-                val submitCodeState = (signUpResult as SignUpResult.CodeRequired).nextState
-                val submitCodeResult = submitCodeState.submitCodeFromInbox(user, tempEmailApi)
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
                 assertResult<SignUpResult.AttributesRequired>(submitCodeResult)
 
                 val requiredAttributes = (submitCodeResult as SignUpResult.AttributesRequired).requiredAttributes

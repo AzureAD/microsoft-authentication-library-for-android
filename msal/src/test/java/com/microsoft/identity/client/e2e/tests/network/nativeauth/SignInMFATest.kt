@@ -105,7 +105,8 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
                 assertNotNull(requestNewChallengeResult.channel)
 
                 // Retrieve challenge from mailbox and submit
-                val submitCorrectChallengeResult = requestNewChallengeResult.nextState.submitChallengeFromInbox(username, tempEmailApi)
+                val otp = tempEmailApi.retrieveCodeFromInbox(username)
+                val submitCorrectChallengeResult = requestNewChallengeResult.nextState.submitChallenge(otp)
                 assertResult<SignInResult.Complete>(submitCorrectChallengeResult)
 
                 val accountState = (submitCorrectChallengeResult as SignInResult.Complete).resultValue
@@ -173,7 +174,8 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
                 assertNotNull(requestNewChallengeResult.channel)
 
                 // Retrieve challenge from mailbox and submit
-                val submitCorrectChallengeResult = requestNewChallengeResult.nextState.submitChallengeFromInbox(username, tempEmailApi)
+                val otp = tempEmailApi.retrieveCodeFromInbox(username)
+                val submitCorrectChallengeResult = requestNewChallengeResult.nextState.submitChallenge(otp)
                 assertResult<SignInResult.Complete>(submitCorrectChallengeResult)
 
                 val accountState = (submitCorrectChallengeResult as SignInResult.Complete).resultValue
@@ -235,7 +237,8 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
                 assertNotNull(requestNewChallengeResult.channel)
 
                 // Retrieve challenge from mailbox and submit
-                val submitCorrectChallengeResult = requestNewChallengeResult.nextState.submitChallengeFromInbox(username, tempEmailApi)
+                val otp = tempEmailApi.retrieveCodeFromInbox(username)
+                val submitCorrectChallengeResult = requestNewChallengeResult.nextState.submitChallenge(otp)
                 assertResult<SignInResult.Complete>(submitCorrectChallengeResult)
 
                 val accountState = (submitCorrectChallengeResult as SignInResult.Complete).resultValue

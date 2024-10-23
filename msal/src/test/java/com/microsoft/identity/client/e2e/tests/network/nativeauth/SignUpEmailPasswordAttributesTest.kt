@@ -60,8 +60,8 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
                 )
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
 
-                val submitCodeState = (signUpResult as SignUpResult.CodeRequired).nextState
-                val submitCodeResult = submitCodeState.submitCodeFromInbox(user, tempEmailApi)
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
                 assertResult<SignUpResult.Complete>(submitCodeResult)
             }
         }
@@ -83,8 +83,8 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
                 val signUpResult = application.signUp(user)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
 
-                val submitCodeState = (signUpResult as SignUpResult.CodeRequired).nextState
-                val submitCodeResult = submitCodeState.submitCodeFromInbox(user, tempEmailApi)
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
                 assertResult<SignUpResult.PasswordRequired>(submitCodeResult)
 
                 val submitPasswordResult = (submitCodeResult as SignUpResult.PasswordRequired).nextState.submitPassword(getSafePassword().toCharArray())
@@ -119,8 +119,8 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
                 val signUpResult = application.signUp(user)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
 
-                val submitCodeState = (signUpResult as SignUpResult.CodeRequired).nextState
-                val submitCodeResult = submitCodeState.submitCodeFromInbox(user, tempEmailApi)
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
                 assertResult<SignUpResult.PasswordRequired>(submitCodeResult)
 
                 val submitPasswordResult = (submitCodeResult as SignUpResult.PasswordRequired).nextState.submitPassword(getSafePassword().toCharArray())
