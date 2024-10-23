@@ -2,22 +2,23 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
 import androidx.annotation.NonNull;
 
+import com.microsoft.identity.client.msal.automationapp.BuildConfig;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
-import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
-import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
+import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -25,11 +26,11 @@ import org.junit.runners.Parameterized;
 import java.util.Arrays;
 import java.util.List;
 
-//
+// Sign in with AAD and MSA account
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3029738
 @LTWTests
 @RetryOnFailure
-@SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
+@SupportedBrokers(brokers = {BrokerLTW.class})
 @RunWith(Parameterized.class)
 public class TestCase3029738 extends AbstractMsalBrokerTest {
 
@@ -49,6 +50,10 @@ public class TestCase3029738 extends AbstractMsalBrokerTest {
 
     @Test
     public void test() throws Throwable {
+        // Check flight, this is checking what was passed to automation app, not the broker apks
+        Assume.assumeTrue( "EnableSystemAccountManager flight is not activated, Test will be skipped",
+                BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("EnableSystemAccountManager:true"));
+
         // Fetch account credentials
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
@@ -83,6 +88,10 @@ public class TestCase3029738 extends AbstractMsalBrokerTest {
         // Make sure we get a token
         final String token = msalTestApp.acquireToken(username, password, promptHandlerParameters, true);
         Assert.assertNotNull(token);
+
+        // Launch OS Account page and make sure username shows up in account manager.
+        getSettingsScreen().launchAccountListPage();
+        Assert.assertTrue(UiAutomatorUtils.obtainUiObjectWithText(username).exists());
     }
 
     @Override
