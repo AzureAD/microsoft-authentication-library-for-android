@@ -24,6 +24,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw.Tra
 
 
 import com.microsoft.identity.client.Prompt;
+import com.microsoft.identity.client.msal.automationapp.BuildConfig;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
@@ -31,10 +32,10 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
-import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
+import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
 import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
@@ -43,7 +44,7 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
-import org.junit.Before;
+import org.junit.Assume;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -54,18 +55,17 @@ import java.util.List;
 // Transfer token generation and restore
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3026421
 @LTWTests
-@LocalBrokerHostDebugUiTest
 @RetryOnFailure
-@SupportedBrokers(brokers = {BrokerHost.class})
-public class TestCase3026459 extends AbstractMsalBrokerTest {
-
-    @Before
-    public void before() {
-        ((BrokerHost) mBroker).enableGenerateAndSaveTransferToken();
-    }
+@SupportedBrokers(brokers = {BrokerLTW.class})
+public class TestCase3026421 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_3026459() throws Throwable {
+    public void test_3026421() throws Throwable {
+        // Check flight, this is checking what was passed to automation app, not the broker apks
+        Assume.assumeTrue( " EnableGenerateAndStoreTransferTokens flight is not activated, Test will be skipped",
+                BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("EnableGenerateAndStoreTransferTokens:true"));
+
+        // Start credentials
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

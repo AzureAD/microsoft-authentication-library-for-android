@@ -7,6 +7,12 @@ if (project.hasProperty("distMsalVersion")) {
     msalVersion = distMsalVersion
 }
 
+// Used to check what flights are passed during pipeline runs
+def copyOfLocalFlights = ""
+if (project.hasProperty("localFlights")) {
+    copyOfLocalFlights = localFlights
+}
+
 android {
 
     packagingOptions {
@@ -48,7 +54,7 @@ android {
     defaultConfig {
         multiDexEnabled true
         namespace = "com.microsoft.identity.client.msal.automationapp"
-        applicationId "com.msft.identity.client.sample"
+        applicationId "com.msft.identity.client.msal.automationapp"
         minSdkVersion rootProject.ext.automationAppMinSDKVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -67,6 +73,7 @@ android {
         buildConfigField("String", BROKER_LTW, "\"$BROKER_LTW\"")
         buildConfigField("String", BROKER_HOST, "\"$BROKER_HOST\"")
         buildConfigField("String", AUTO_BROKER, "\"$AUTO_BROKER\"")
+        buildConfigField("String", "COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES", "\"$copyOfLocalFlights\"")
     }
 
     testOptions {

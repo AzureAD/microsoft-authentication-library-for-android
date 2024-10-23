@@ -1,45 +1,24 @@
-//  Copyright (c) Microsoft Corporation.
-//  All rights reserved.
-//
-//  This code is licensed under the MIT License.
-//
-//  Permission is hereby granted, free of charge, to any person obtaining a copy
-//  of this software and associated documentation files(the "Software"), to deal
-//  in the Software without restriction, including without limitation the rights
-//  to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
-//  copies of the Software, and to permit persons to whom the Software is
-//  furnished to do so, subject to the following conditions :
-//
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-//  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
 import androidx.annotation.NonNull;
 
+import com.microsoft.identity.client.msal.automationapp.BuildConfig;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
-import com.microsoft.identity.client.ui.automation.broker.BrokerCompanyPortal;
 import com.microsoft.identity.client.ui.automation.broker.BrokerLTW;
-import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
+import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -47,16 +26,17 @@ import org.junit.runners.Parameterized;
 import java.util.Arrays;
 import java.util.List;
 
-// Authenticator has highest priority  - Case5 (CP, Auth, LTW)
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2584412
+// Sign in with AAD and MSA account
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3029738
 @LTWTests
-@SupportedBrokers(brokers = {BrokerCompanyPortal.class})
-@RunWith(Parameterized.class)
 @RetryOnFailure
-public class TestCase2584412 extends AbstractMsalBrokerTest {
+@SupportedBrokers(brokers = {BrokerLTW.class})
+@RunWith(Parameterized.class)
+public class TestCase3029738 extends AbstractMsalBrokerTest {
+
     private final UserType mUserType;
 
-    public TestCase2584412(@NonNull UserType userType) {
+    public TestCase3029738(@NonNull UserType userType) {
         mUserType = userType;
     }
 
@@ -67,22 +47,25 @@ public class TestCase2584412 extends AbstractMsalBrokerTest {
                 UserType.CLOUD
         );
     }
+
     @Test
-    public void test_2584412() throws Throwable {
+    public void test() throws Throwable {
+        // Check flight, this is checking what was passed to automation app, not the broker apks
+        Assume.assumeTrue( "EnableSystemAccountManager flight is not activated, Test will be skipped",
+                BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("EnableSystemAccountManager:true"));
+
+        // Fetch account credentials
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
-        final BrokerMicrosoftAuthenticator brokerMicrosoftAuthenticator = new BrokerMicrosoftAuthenticator();
-        brokerMicrosoftAuthenticator.install();
-
-        final BrokerLTW brokerLTW = new BrokerLTW();
-        brokerLTW.install();
-
+        // Install and launch msal test app
+        // set configuration based on user type
         final MsalTestApp msalTestApp = new MsalTestApp();
         msalTestApp.install();
         msalTestApp.launch();
         msalTestApp.handleFirstRunBasedOnUserType(mUserType);
 
+        // Prompt handler for the subsequent
         final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
                 .prompt(PromptParameter.SELECT_ACCOUNT)
                 .loginHint(username)
@@ -102,12 +85,13 @@ public class TestCase2584412 extends AbstractMsalBrokerTest {
                 .howWouldYouLikeToSignInExpected(false)
                 .build();
 
-        String token = msalTestApp.acquireToken(username, password, promptHandlerParameters, true);
+        // Make sure we get a token
+        final String token = msalTestApp.acquireToken(username, password, promptHandlerParameters, true);
         Assert.assertNotNull(token);
 
-        msalTestApp.handleBackButton();
-        final String activeBroker = msalTestApp.getActiveBrokerPackageName();
-        Assert.assertEquals("Active broker pkg name : " + BrokerMicrosoftAuthenticator.AUTHENTICATOR_APP_PACKAGE_NAME, activeBroker);
+        // Launch OS Account page and make sure username shows up in account manager.
+        getSettingsScreen().launchAccountListPage();
+        Assert.assertTrue(UiAutomatorUtils.obtainUiObjectWithText(username).exists());
     }
 
     @Override
