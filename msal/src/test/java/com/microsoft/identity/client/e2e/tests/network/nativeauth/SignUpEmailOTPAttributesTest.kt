@@ -51,10 +51,11 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
                 val user = tempEmailApi.generateRandomEmailAddress()
                 val attributes = UserAttributes.Builder().country("Ireland").city("Dublin").build()
                 val signUpResult = application.signUp(user, attributes = attributes)
+                assertResult<SignUpResult.CodeRequired>(signUpResult)
 
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
-                assertResult<SignUpResult.CodeRequired>(signUpResult)
+
                 Assert.assertTrue(submitCodeResult is SignUpResult.Complete)
             }
         }
