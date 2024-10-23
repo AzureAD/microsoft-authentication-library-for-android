@@ -27,7 +27,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.microsoft.identity.client.Logger
+import com.microsoft.identity.client.ILoggerCallback
 import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager
 import com.microsoft.identity.client.e2e.tests.IPublicClientApplicationTest
@@ -48,6 +48,7 @@ import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.runner.RunWith
+import org.mockito.Mock
 import org.mockito.Mockito
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
@@ -64,6 +65,8 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
 
     private lateinit var context: Context
     private lateinit var activity: Activity
+    private lateinit var externalLogger: ILoggerCallback
+    private lateinit var loggerCheckHelper: LoggerCheckHelper
     lateinit var application: INativeAuthPublicClientApplication
     lateinit var config: NativeAuthTestConfig.Config
 
@@ -81,9 +84,8 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         context = ApplicationProvider.getApplicationContext()
         activity = Mockito.mock(Activity::class.java)
         Mockito.`when`(activity.applicationContext).thenReturn(context)
-        Logger.getInstance().setEnableLogcatLog(true)
-        Logger.getInstance().setEnablePII(true)
-        Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE)
+        externalLogger = Mockito.mock(ILoggerCallback::class.java)
+        loggerCheckHelper = LoggerCheckHelper(externalLogger, true)
         CommandDispatcherHelper.clear()
         Dispatchers.setMain(testDispatcher)
         setupPCA(defaultConfigType)
@@ -91,6 +93,7 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
 
     @After
     open fun cleanup() {
+        loggerCheckHelper.checkSafeLogging()
         // remove everything from cache after test ends
         TestUtils.clearCache(SHARED_PREFERENCES_NAME)
     }
