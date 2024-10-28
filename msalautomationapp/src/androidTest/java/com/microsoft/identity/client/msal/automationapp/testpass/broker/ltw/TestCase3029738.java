@@ -114,6 +114,13 @@ public class TestCase3029738 extends AbstractMsalBrokerTest {
         // Launch OS Account page and make sure username shows up in account manager.
         getSettingsScreen().launchAccountListPage();
         Assert.assertTrue(UiAutomatorUtils.obtainUiObjectWithText(username).exists());
+
+        // Check account type in account manager
+        if (mUserType == UserType.MSA) {
+            Assert.assertTrue(UiAutomatorUtils.obtainUiObjectWithText("Microsoft account").exists());
+        } else {
+            Assert.assertTrue(UiAutomatorUtils.obtainUiObjectWithText("Work or school account").exists());
+        }
     }
 
     @Override
