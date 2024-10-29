@@ -30,9 +30,11 @@ import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager
 import com.microsoft.identity.client.e2e.tests.PublicClientApplicationAbstractTest
 import com.microsoft.identity.client.e2e.utils.AcquireTokenTestHelper
+import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper
+import com.microsoft.identity.common.java.AuthenticationConstants
 import com.microsoft.identity.common.java.exception.BaseException
 import com.microsoft.identity.common.java.interfaces.IPlatformComponents
 import com.microsoft.identity.common.java.nativeauth.BuildValues
@@ -43,15 +45,20 @@ import com.microsoft.identity.common.nativeauth.MockApiUtils.Companion.configure
 import com.microsoft.identity.internal.testutils.TestUtils
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenError
+import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenErrorTypes
+import com.microsoft.identity.nativeauth.statemachine.errors.MFAGetAuthMethodsError
+import com.microsoft.identity.nativeauth.statemachine.errors.MFARequestChallengeError
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordSubmitPasswordError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInContinuationError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpSubmitAttributesError
+import com.microsoft.identity.nativeauth.statemachine.errors.MFASubmitChallengeError
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
+import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResendCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult
@@ -60,8 +67,6 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignOutResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResendCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
-import com.microsoft.identity.common.java.AuthenticationConstants
-import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
 import com.microsoft.identity.nativeauth.utils.LoggerCheckHelper
 import com.microsoft.identity.nativeauth.utils.mockCorrelationId
@@ -2374,5 +2379,720 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         val submitCodeResult = submitCodeState.submitCode(emptyString)  // Empty code will trigger ArgUtils.validateNonNullArg(oob, "oob") of the SignUpContinueRequest to thrown ClientException
         assertTrue(submitCodeResult is SubmitCodeError)
         assertTrue((submitCodeResult as SubmitCodeError).error.equals("unsuccessful_command")) // ClientException will be caught in CommandResultUtil.kt and converted to generic error in interface layer
+    }
+
+    @Test
+    fun testSignInMFAVerificationRequiredGetAuthMethodsComplete() = runTest {
+        // 1. Sign in initiate with username
+        // 1a. Setup server response
+        var correlationId = UUID.randomUUID().toString()
+        configureMockApi(
+            MockApiEndpoint.SignInInitiate,
+            correlationId,
+            MockApiResponseType.INITIATE_SUCCESS
+        )
+
+        // 2a. Sign in challenge
+        // 2b. Setup server response with password required
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_PASSWORD
+        )
+
+        // 3a. Token with password
+        // 3b. mfa_required
+        configureMockApi(
+            MockApiEndpoint.SignInToken,
+            correlationId,
+            MockApiResponseType.MFA_REQUIRED
+        )
+
+        val result = application.signIn(username, password)
+        assertResult<SignInResult.MFARequired>(result)
+
+        correlationId = UUID.randomUUID().toString()
+        // 3a. Sign in challenge for default auth method
+        // 3b. Setup server response with oob required
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_OOB
+        )
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        val nextState = spy((result as SignInResult.MFARequired).nextState)
+        nextState.mockCorrelationId(correlationId)
+
+        // Initiate challenge, send code to email
+        val sendChallengeResult = nextState.requestChallenge()
+        assertResult<MFARequiredResult.VerificationRequired>(sendChallengeResult)
+        (sendChallengeResult as MFARequiredResult.VerificationRequired)
+        assertNotNull(sendChallengeResult.sentTo)
+        assertNotNull(sendChallengeResult.codeLength)
+        assertNotNull(sendChallengeResult.channel)
+
+        correlationId = UUID.randomUUID().toString()
+        // 4a. Call /introspect to get additional methods
+        // 4b. Return list of auth methods
+        configureMockApi(
+            MockApiEndpoint.Introspect,
+            correlationId,
+            MockApiResponseType.INTROSPECT_SUCCESS
+        )
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        val nextState2 = spy(sendChallengeResult.nextState)
+        nextState2.mockCorrelationId(correlationId)
+
+        // Call /introspect to get all auth methods
+        val getAuthMethodsResult = nextState2.getAuthMethods()
+        assertResult<MFARequiredResult.SelectionRequired>(getAuthMethodsResult)
+        (getAuthMethodsResult as MFARequiredResult.SelectionRequired)
+        assertNotNull(getAuthMethodsResult.authMethods)
+
+        correlationId = UUID.randomUUID().toString()
+        // 5a. Sign in challenge for specified auth method
+        // 5b. Setup server response with oob required
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_OOB
+        )
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        val nextState3 = spy(getAuthMethodsResult.nextState)
+        nextState3.mockCorrelationId(correlationId)
+
+        // Call /challenge with specified ID
+        val sendSpecifiedChallengeResult = nextState3.requestChallenge(getAuthMethodsResult.authMethods[0])
+        assertResult<MFARequiredResult.VerificationRequired>(sendSpecifiedChallengeResult)
+        (sendSpecifiedChallengeResult as MFARequiredResult.VerificationRequired)
+        assertNotNull(sendSpecifiedChallengeResult.sentTo)
+        assertNotNull(sendSpecifiedChallengeResult.codeLength)
+        assertNotNull(sendSpecifiedChallengeResult.channel)
+
+        correlationId = UUID.randomUUID().toString()
+        // 6a. Token with oob
+        // 6b. Success, with tokens
+        configureMockApi(
+            MockApiEndpoint.SignInToken,
+            correlationId,
+            MockApiResponseType.TOKEN_SUCCESS
+        )
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        val nextState4 = spy(sendSpecifiedChallengeResult.nextState)
+        nextState4.mockCorrelationId(correlationId)
+
+        val submitChallengeResult = nextState4.submitChallenge(code)
+        assertResult<SignInResult.Complete>(submitChallengeResult)
+    }
+
+    @Test
+    fun testSignInMFASelectionRequiredGetAuthMethodsComplete() = runTest {
+        // 1. Sign in initiate with username
+        // 1a. Setup server response
+        var correlationId = UUID.randomUUID().toString()
+        configureMockApi(
+            MockApiEndpoint.SignInInitiate,
+            correlationId,
+            MockApiResponseType.INITIATE_SUCCESS
+        )
+
+        // 2a. Sign in challenge
+        // 2b. Setup server response with password required
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_PASSWORD
+        )
+
+        // 3a. Token with password
+        // 3b. mfa_required
+        configureMockApi(
+            MockApiEndpoint.SignInToken,
+            correlationId,
+            MockApiResponseType.MFA_REQUIRED
+        )
+
+        val result = application.signIn(username, password)
+        assertResult<SignInResult.MFARequired>(result)
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        correlationId = UUID.randomUUID().toString()
+        // 4a. Sign in challenge for default auth method
+        // 3b. Setup server response with introspect_required
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.INTROSPECT_REQUIRED
+        )
+
+        configureMockApi(
+            MockApiEndpoint.Introspect,
+            correlationId,
+            MockApiResponseType.INTROSPECT_SUCCESS
+        )
+        // Initiate challenge, send code to email
+        val nextState = spy((result as SignInResult.MFARequired).nextState)
+
+        nextState.mockCorrelationId(correlationId)
+        val sendChallengeResult = nextState.requestChallenge()
+        assertResult<MFARequiredResult.SelectionRequired>(sendChallengeResult)
+        (sendChallengeResult as MFARequiredResult.SelectionRequired)
+        assertNotNull(sendChallengeResult.authMethods)
+
+        correlationId = UUID.randomUUID().toString()
+        // 5a. Sign in challenge for specified auth method
+        // 5b. Setup server response with oob required
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_OOB
+        )
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        val nextState3 = spy(sendChallengeResult.nextState)
+        nextState3.mockCorrelationId(correlationId)
+
+        // Call /challenge with specified ID
+        val sendSpecifiedChallengeResult = nextState3.requestChallenge(sendChallengeResult.authMethods[0])
+        assertResult<MFARequiredResult.VerificationRequired>(sendSpecifiedChallengeResult)
+        (sendSpecifiedChallengeResult as MFARequiredResult.VerificationRequired)
+        assertNotNull(sendSpecifiedChallengeResult.sentTo)
+        assertNotNull(sendSpecifiedChallengeResult.codeLength)
+        assertNotNull(sendSpecifiedChallengeResult.channel)
+
+        correlationId = UUID.randomUUID().toString()
+        // 6a. Token with oob
+        // 6b. Success, with tokens
+        configureMockApi(
+            MockApiEndpoint.SignInToken,
+            correlationId,
+            MockApiResponseType.TOKEN_SUCCESS
+        )
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        val nextState4 = spy(sendSpecifiedChallengeResult.nextState)
+        nextState4.mockCorrelationId(correlationId)
+
+        val submitChallengeResult = nextState4.submitChallenge(code)
+        assertResult<SignInResult.Complete>(submitChallengeResult)
+    }
+
+    @Test
+    fun testSignInMFAVerificationRequiredComplete() = runTest {
+        // 1. Sign in initiate with username
+        // 1a. Setup server response
+        var correlationId = UUID.randomUUID().toString()
+        configureMockApi(
+            MockApiEndpoint.SignInInitiate,
+            correlationId,
+            MockApiResponseType.INITIATE_SUCCESS
+        )
+
+        // 2a. Sign in challenge
+        // 2b. Setup server response with password required
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_PASSWORD
+        )
+
+        // 3a. Token with password
+        // 3b. mfa_required
+        configureMockApi(
+            MockApiEndpoint.SignInToken,
+            correlationId,
+            MockApiResponseType.MFA_REQUIRED
+        )
+
+        val result = application.signIn(username, password)
+        assertResult<SignInResult.MFARequired>(result)
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        correlationId = UUID.randomUUID().toString()
+        // 3a. Sign in challenge for default auth method
+        // 3b. Setup server response with introspect_required
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_OOB
+        )
+
+        // Initiate challenge, send code to email
+        val nextState = spy((result as SignInResult.MFARequired).nextState)
+
+        nextState.mockCorrelationId(correlationId)
+        val sendChallengeResult = nextState.requestChallenge()
+        assertResult<MFARequiredResult.VerificationRequired>(sendChallengeResult)
+        (sendChallengeResult as MFARequiredResult.VerificationRequired)
+        assertNotNull(sendChallengeResult.sentTo)
+        assertNotNull(sendChallengeResult.codeLength)
+        assertNotNull(sendChallengeResult.channel)
+
+        correlationId = UUID.randomUUID().toString()
+        // 4a. Token with oob
+        // 4b. Success, with tokens
+        configureMockApi(
+            MockApiEndpoint.SignInToken,
+            correlationId,
+            MockApiResponseType.TOKEN_SUCCESS
+        )
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        val nextState4 = spy(sendChallengeResult.nextState)
+        nextState4.mockCorrelationId(correlationId)
+
+        val submitChallengeResult = nextState4.submitChallenge(code)
+        assertResult<SignInResult.Complete>(submitChallengeResult)
+    }
+
+    @Test
+    fun testSignInMFASelectionRequiredGetAuthMethodsRedirect() = runTest {
+        // 1. Sign in initiate with username
+        // 1a. Setup server response
+        var correlationId = UUID.randomUUID().toString()
+        configureMockApi(
+            MockApiEndpoint.SignInInitiate,
+            correlationId,
+            MockApiResponseType.INITIATE_SUCCESS
+        )
+
+        // 2a. Sign in challenge
+        // 2b. Setup server response with password required
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_PASSWORD
+        )
+
+        // 3a. Token with password
+        // 3b. mfa_required
+        configureMockApi(
+            MockApiEndpoint.SignInToken,
+            correlationId,
+            MockApiResponseType.MFA_REQUIRED
+        )
+
+        val result = application.signIn(username, password)
+        assertResult<SignInResult.MFARequired>(result)
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        correlationId = UUID.randomUUID().toString()
+        // 4a. Sign in challenge for default auth method
+        // 3b. Setup server response with introspect_required
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.INTROSPECT_REQUIRED
+        )
+
+        configureMockApi(
+            MockApiEndpoint.Introspect,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_REDIRECT
+        )
+        // Initiate challenge, send code to email
+        val nextState = spy((result as SignInResult.MFARequired).nextState)
+
+        nextState.mockCorrelationId(correlationId)
+        val sendChallengeResult = nextState.requestChallenge()
+        assertResult<MFARequestChallengeError>(sendChallengeResult)
+        assertTrue((sendChallengeResult as MFARequestChallengeError).isBrowserRequired())
+    }
+
+    @Test
+    fun testSignInMFAVerificationRequiredGetAuthMethodsRedirect() = runTest {
+        // 1. Sign in initiate with username
+        // 1a. Setup server response
+        var correlationId = UUID.randomUUID().toString()
+        configureMockApi(
+            MockApiEndpoint.SignInInitiate,
+            correlationId,
+            MockApiResponseType.INITIATE_SUCCESS
+        )
+
+        // 2a. Sign in challenge
+        // 2b. Setup server response with password required
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_PASSWORD
+        )
+
+        // 3a. Token with password
+        // 3b. mfa_required
+        configureMockApi(
+            MockApiEndpoint.SignInToken,
+            correlationId,
+            MockApiResponseType.MFA_REQUIRED
+        )
+
+        val result = application.signIn(username, password)
+        assertResult<SignInResult.MFARequired>(result)
+
+        correlationId = UUID.randomUUID().toString()
+        // 3a. Sign in challenge for default auth method
+        // 3b. Setup server response with oob required
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_OOB
+        )
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        val nextState = spy((result as SignInResult.MFARequired).nextState)
+        nextState.mockCorrelationId(correlationId)
+
+        // Initiate challenge, send code to email
+        val sendChallengeResult = nextState.requestChallenge()
+        assertResult<MFARequiredResult.VerificationRequired>(sendChallengeResult)
+        (sendChallengeResult as MFARequiredResult.VerificationRequired)
+        assertNotNull(sendChallengeResult.sentTo)
+        assertNotNull(sendChallengeResult.codeLength)
+        assertNotNull(sendChallengeResult.channel)
+
+        correlationId = UUID.randomUUID().toString()
+        // 4a. Call /introspect to get additional methods
+        // 4b. Return list of auth methods
+        configureMockApi(
+            MockApiEndpoint.Introspect,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_REDIRECT
+        )
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        val nextState2 = spy(sendChallengeResult.nextState)
+        nextState2.mockCorrelationId(correlationId)
+
+        // Call /introspect to get all auth methods
+        val getAuthMethodsResult = nextState2.getAuthMethods()
+        assertResult<MFAGetAuthMethodsError>(getAuthMethodsResult)
+        assertTrue((getAuthMethodsResult as MFAGetAuthMethodsError).isBrowserRequired())
+    }
+
+    @Test
+    fun testSignInMFAVerificationRequiredInvalidCodeComplete() = runTest {
+        // 1. Sign in initiate with username
+        // 1a. Setup server response
+        var correlationId = UUID.randomUUID().toString()
+        configureMockApi(
+            MockApiEndpoint.SignInInitiate,
+            correlationId,
+            MockApiResponseType.INITIATE_SUCCESS
+        )
+
+        // 2a. Sign in challenge
+        // 2b. Setup server response with password required
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_PASSWORD
+        )
+
+        // 3a. Token with password
+        // 3b. mfa_required
+        configureMockApi(
+            MockApiEndpoint.SignInToken,
+            correlationId,
+            MockApiResponseType.MFA_REQUIRED
+        )
+
+        val result = application.signIn(username, password)
+        assertResult<SignInResult.MFARequired>(result)
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        correlationId = UUID.randomUUID().toString()
+        // 3a. Sign in challenge for default auth method
+        // 3b. Setup server response with introspect_required
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_OOB
+        )
+
+        // Initiate challenge, send code to email
+        val nextState = spy((result as SignInResult.MFARequired).nextState)
+
+        nextState.mockCorrelationId(correlationId)
+        val sendChallengeResult = nextState.requestChallenge()
+        assertResult<MFARequiredResult.VerificationRequired>(sendChallengeResult)
+        (sendChallengeResult as MFARequiredResult.VerificationRequired)
+        assertNotNull(sendChallengeResult.sentTo)
+        assertNotNull(sendChallengeResult.codeLength)
+        assertNotNull(sendChallengeResult.channel)
+
+        correlationId = UUID.randomUUID().toString()
+        // 4a. Token with oob
+        // 4b. Success, with tokens
+        configureMockApi(
+            MockApiEndpoint.SignInToken,
+            correlationId,
+            MockApiResponseType.INVALID_OOB_VALUE
+        )
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        val nextState4 = spy(sendChallengeResult.nextState)
+        nextState4.mockCorrelationId(correlationId)
+
+        val submitChallengeResult = nextState4.submitChallenge(code)
+        assertResult<MFASubmitChallengeError>(submitChallengeResult)
+        assertTrue((submitChallengeResult as MFASubmitChallengeError).isInvalidChallenge())
+
+        // 5. Submit (valid) code
+        // 5a. Setup server response
+        correlationId = UUID.randomUUID().toString()
+        configureMockApi(
+            endpointType = MockApiEndpoint.SignInToken,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.TOKEN_SUCCESS
+        )
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        val nextState5 = spy(sendChallengeResult.nextState)
+        nextState4.mockCorrelationId(correlationId)
+
+        // 6b. Call SDK interface
+        val successResult = nextState5.submitChallenge(code)
+        // 6a. Server accepts code, returns tokens
+        assertTrue(successResult is SignInResult.Complete)
+    }
+
+    @Test
+    fun testSignInMFAVerificationRequiredGetAuthMethodsInvalidCodeComplete() = runTest {
+        // 1. Sign in initiate with username
+        // 1a. Setup server response
+        var correlationId = UUID.randomUUID().toString()
+        configureMockApi(
+            MockApiEndpoint.SignInInitiate,
+            correlationId,
+            MockApiResponseType.INITIATE_SUCCESS
+        )
+
+        // 2a. Sign in challenge
+        // 2b. Setup server response with password required
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_PASSWORD
+        )
+
+        // 3a. Token with password
+        // 3b. mfa_required
+        configureMockApi(
+            MockApiEndpoint.SignInToken,
+            correlationId,
+            MockApiResponseType.MFA_REQUIRED
+        )
+
+        val result = application.signIn(username, password)
+        assertResult<SignInResult.MFARequired>(result)
+
+        correlationId = UUID.randomUUID().toString()
+        // 3a. Sign in challenge for default auth method
+        // 3b. Setup server response with oob required
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_OOB
+        )
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        val nextState = spy((result as SignInResult.MFARequired).nextState)
+        nextState.mockCorrelationId(correlationId)
+
+        // Initiate challenge, send code to email
+        val sendChallengeResult = nextState.requestChallenge()
+        assertResult<MFARequiredResult.VerificationRequired>(sendChallengeResult)
+        (sendChallengeResult as MFARequiredResult.VerificationRequired)
+        assertNotNull(sendChallengeResult.sentTo)
+        assertNotNull(sendChallengeResult.codeLength)
+        assertNotNull(sendChallengeResult.channel)
+
+        correlationId = UUID.randomUUID().toString()
+        // 4a. Call /introspect to get additional methods
+        // 4b. Return list of auth methods
+        configureMockApi(
+            MockApiEndpoint.Introspect,
+            correlationId,
+            MockApiResponseType.INTROSPECT_SUCCESS
+        )
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        val nextState2 = spy(sendChallengeResult.nextState)
+        nextState2.mockCorrelationId(correlationId)
+
+        // Call /introspect to get all auth methods
+        val getAuthMethodsResult = nextState2.getAuthMethods()
+        assertResult<MFARequiredResult.SelectionRequired>(getAuthMethodsResult)
+        (getAuthMethodsResult as MFARequiredResult.SelectionRequired)
+        assertNotNull(getAuthMethodsResult.authMethods)
+
+        correlationId = UUID.randomUUID().toString()
+        // 5a. Sign in challenge for specified auth method
+        // 5b. Setup server response with oob required
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_OOB
+        )
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        val nextState3 = spy(getAuthMethodsResult.nextState)
+        nextState3.mockCorrelationId(correlationId)
+
+        // Call /challenge with specified ID
+        val sendSpecifiedChallengeResult = nextState3.requestChallenge(getAuthMethodsResult.authMethods[0])
+        assertResult<MFARequiredResult.VerificationRequired>(sendSpecifiedChallengeResult)
+        (sendSpecifiedChallengeResult as MFARequiredResult.VerificationRequired)
+        assertNotNull(sendSpecifiedChallengeResult.sentTo)
+        assertNotNull(sendSpecifiedChallengeResult.codeLength)
+        assertNotNull(sendSpecifiedChallengeResult.channel)
+
+        correlationId = UUID.randomUUID().toString()
+        // 6a. Token with oob
+        // 6b. Success, with tokens
+        configureMockApi(
+            MockApiEndpoint.SignInToken,
+            correlationId,
+            MockApiResponseType.INVALID_OOB_VALUE
+        )
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        val nextState4 = spy(sendSpecifiedChallengeResult.nextState)
+        nextState4.mockCorrelationId(correlationId)
+
+        val submitChallengeResult = nextState4.submitChallenge(code)
+        assertResult<MFASubmitChallengeError>(submitChallengeResult)
+        assertTrue((submitChallengeResult as MFASubmitChallengeError).isInvalidChallenge())
+
+        // 7. Submit (valid) code
+        // 7a. Setup server response
+        correlationId = UUID.randomUUID().toString()
+        configureMockApi(
+            endpointType = MockApiEndpoint.SignInToken,
+            correlationId = correlationId,
+            responseType = MockApiResponseType.TOKEN_SUCCESS
+        )
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        val nextState5 = spy(sendSpecifiedChallengeResult.nextState)
+        nextState4.mockCorrelationId(correlationId)
+
+        // 8b. Call SDK interface
+        val successResult = nextState5.submitChallenge(code)
+        // 8a. Server accepts code, returns tokens
+        assertTrue(successResult is SignInResult.Complete)
+    }
+
+    @Test
+    fun testSignInMFAVerificationRequiredResendComplete() = runTest {
+        // 1. Sign in initiate with username
+        // 1a. Setup server response
+        var correlationId = UUID.randomUUID().toString()
+        configureMockApi(
+            MockApiEndpoint.SignInInitiate,
+            correlationId,
+            MockApiResponseType.INITIATE_SUCCESS
+        )
+
+        // 2a. Sign in challenge
+        // 2b. Setup server response with password required
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_PASSWORD
+        )
+
+        // 3a. Token with password
+        // 3b. mfa_required
+        configureMockApi(
+            MockApiEndpoint.SignInToken,
+            correlationId,
+            MockApiResponseType.MFA_REQUIRED
+        )
+
+        val result = application.signIn(username, password)
+        assertResult<SignInResult.MFARequired>(result)
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        correlationId = UUID.randomUUID().toString()
+        // 3a. Sign in challenge for default auth method
+        // 3b. Setup server response with introspect_required
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_OOB
+        )
+
+        // Initiate challenge, send code to email
+        val nextState = spy((result as SignInResult.MFARequired).nextState)
+        nextState.mockCorrelationId(correlationId)
+
+        val sendChallengeResult = nextState.requestChallenge()
+        assertResult<MFARequiredResult.VerificationRequired>(sendChallengeResult)
+        (sendChallengeResult as MFARequiredResult.VerificationRequired)
+        assertNotNull(sendChallengeResult.sentTo)
+        assertNotNull(sendChallengeResult.codeLength)
+        assertNotNull(sendChallengeResult.channel)
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        correlationId = UUID.randomUUID().toString()
+        // 4a. Sign in challenge for default auth method
+        // 4b. Setup server response with introspect_required
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_OOB
+        )
+
+        val nextState2 = spy((sendChallengeResult).nextState)
+        nextState2.mockCorrelationId(correlationId)
+
+        // Resend
+        val resendChallengeResult = nextState2.requestChallenge()
+        assertResult<MFARequiredResult.VerificationRequired>(resendChallengeResult)
+        (resendChallengeResult as MFARequiredResult.VerificationRequired)
+        assertNotNull(resendChallengeResult.sentTo)
+        assertNotNull(resendChallengeResult.codeLength)
+        assertNotNull(resendChallengeResult.channel)
+
+        correlationId = UUID.randomUUID().toString()
+        // 4a. Token with oob
+        // 4b. Success, with tokens
+        configureMockApi(
+            MockApiEndpoint.SignInToken,
+            correlationId,
+            MockApiResponseType.TOKEN_SUCCESS
+        )
+
+        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
+        // it's value in order to make it consistent with the subsequent call to mock API.
+        val nextState4 = spy(resendChallengeResult.nextState)
+        nextState4.mockCorrelationId(correlationId)
+
+        val submitChallengeResult = nextState4.submitChallenge(code)
+        assertResult<SignInResult.Complete>(submitChallengeResult)
     }
 }

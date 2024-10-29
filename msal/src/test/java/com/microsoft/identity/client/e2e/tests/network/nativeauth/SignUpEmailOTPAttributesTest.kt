@@ -23,7 +23,7 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
-import com.microsoft.identity.client.e2e.utils.assertState
+import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.nativeauth.UserAttributes
@@ -37,7 +37,7 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
 
     private val tempEmailApi = TemporaryEmailService()
 
-    override val configType = ConfigType.SIGN_UP_OTP_ATTRIBUTES
+    override val defaultConfigType = ConfigType.SIGN_UP_OTP_ATTRIBUTES
 
     /**
      * Signup user with custom attributes with verify OTP as last step.
@@ -51,7 +51,7 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
                 val user = tempEmailApi.generateRandomEmailAddress()
                 val attributes = UserAttributes.Builder().country("Ireland").city("Dublin").build()
                 val signUpResult = application.signUp(user, attributes = attributes)
-                assertState<SignUpResult.CodeRequired>(signUpResult)
+                assertResult<SignUpResult.CodeRequired>(signUpResult)
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
                 Assert.assertTrue(submitCodeResult is SignUpResult.Complete)
@@ -70,10 +70,10 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
                 val signUpResult = application.signUp(user)
-                assertState<SignUpResult.CodeRequired>(signUpResult)
+                assertResult<SignUpResult.CodeRequired>(signUpResult)
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
-                assertState<SignUpResult.AttributesRequired>(submitCodeResult)
+                assertResult<SignUpResult.AttributesRequired>(submitCodeResult)
                 val requiredAttributes = (submitCodeResult as SignUpResult.AttributesRequired).requiredAttributes
                 val attributes = UserAttributes.Builder()
                 for (attr in requiredAttributes) {
@@ -97,10 +97,10 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
                 val signUpResult = application.signUp(user)
-                assertState<SignUpResult.CodeRequired>(signUpResult)
+                assertResult<SignUpResult.CodeRequired>(signUpResult)
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
-                assertState<SignUpResult.AttributesRequired>(submitCodeResult)
+                assertResult<SignUpResult.AttributesRequired>(submitCodeResult)
                 val requiredAttributes = (submitCodeResult as SignUpResult.AttributesRequired).requiredAttributes
                 val attributes = UserAttributes.Builder()
                 for (attr in requiredAttributes) { // Loop through all the required attributes and send them to the API one by one, mimicking a multi-screen UX.

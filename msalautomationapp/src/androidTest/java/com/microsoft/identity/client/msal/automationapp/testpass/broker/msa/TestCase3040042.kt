@@ -22,24 +22,53 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.msa
 
+import com.microsoft.identity.client.msal.automationapp.R
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest
-import com.microsoft.identity.client.ui.automation.broker.BrokerHost
-import com.microsoft.identity.client.ui.automation.utils.CommonUtils
-import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils
-import com.microsoft.identity.labapi.utilities.client.ILabAccount
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure
+import com.microsoft.identity.client.ui.automation.app.OneDriveApp
+import com.microsoft.identity.client.ui.automation.app.OutlookApp
+import com.microsoft.identity.client.ui.automation.app.WordApp
+import com.microsoft.identity.client.ui.automation.installer.LocalApkInstaller
 import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
 import org.junit.Assert
-import org.junit.Before
+import org.junit.Test
 
-/**
- * Parent class for Brokered MSA tests. Ensures PRTv3 is enabled before tests are run
- */
-abstract class AbstractMsaBrokerTest : AbstractMsalBrokerTest() {
+// [Brokered] When Broker Installed, OneDrive and Office should show phone sign up option, Outlook should not
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3040042
+@RetryOnFailure
+class TestCase3040042 : AbstractMsalBrokerTest(){
+
+    @Test
+    @Throws(Throwable::class)
+    fun test_3040042() {
+        // Word should have phone sign-up option
+        val word = WordApp(LocalApkInstaller())
+        word.install()
+        Assert.assertTrue("Word should have option for phone sign-up, but doesn't...", word.checkPhoneSignUpIsAvailable())
+
+        // OneDrive should have phone sign-up option
+        val onedrive = OneDriveApp(LocalApkInstaller())
+        onedrive.install()
+        Assert.assertTrue("OneDrive should have option for phone sign-up, but doesn't...", onedrive.checkPhoneSignUpIsAvailable())
+
+        // Outlook should NOT have phone sign-up option
+        val outlook = OutlookApp(LocalApkInstaller())
+        outlook.install();
+        Assert.assertTrue("Outlook should not have an option for phone sign-up, but does...", outlook.checkPhoneSignUpIsNotAvailable())
+    }
+
+    override fun getScopes(): Array<String> {
+        return arrayOf("User.read")
+    }
 
     override fun getAuthority(): String {
         return mApplication.configuration.defaultAuthority.toString()
+    }
+
+    override fun getConfigFileResourceId(): Int {
+        return R.raw.msal_config_msa_only
     }
 
     override fun getLabQuery(): LabQuery {
@@ -49,10 +78,6 @@ abstract class AbstractMsaBrokerTest : AbstractMsalBrokerTest() {
     }
 
     override fun getTempUserType(): TempUserType? {
-        return null
-    }
-
-    override fun getScopes(): Array<String> {
-        return arrayOf("User.read")
+        return null;
     }
 }

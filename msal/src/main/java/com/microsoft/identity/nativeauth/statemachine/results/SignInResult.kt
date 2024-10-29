@@ -24,6 +24,7 @@
 package com.microsoft.identity.nativeauth.statemachine.results
 
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState
+import com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInPasswordRequiredState
 
@@ -43,7 +44,8 @@ interface SignInResult : Result {
         Result.CompleteResult(resultValue = resultValue),
         SignInResult,
         SignInSubmitCodeResult,
-        SignInSubmitPasswordResult
+        SignInSubmitPasswordResult,
+        MFASubmitChallengeResult
 
     /**
      * CodeRequired Result, which indicates a verification code is required from the user to continue.
@@ -68,6 +70,16 @@ interface SignInResult : Result {
     class PasswordRequired(
         override val nextState: SignInPasswordRequiredState
     ) : SignInResult, Result.SuccessResult(nextState = nextState)
+
+    /**
+     * MFARequired Result, which indicates that the multi-factor authentication is needed.
+     *
+     * <strong><u>Warning: this class is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
+     * @param nextState [com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState] the current state of the flow with follow-on methods.
+     */
+    class MFARequired(
+        override val nextState: AwaitingMFAState
+    ) : SignInResult, Result.SuccessResult(nextState = nextState), SignInSubmitPasswordResult
 }
 
 /**
@@ -92,7 +104,7 @@ interface SignInResendCodeResult : Result {
      *
      * @param codeLength the length of the code required by the server.
      * @param sentTo the email/phone number the code was sent to.
-     * @param channel channel(email/phone) the code was sent through.
+     * @param channel channel(email/phone) the code was sent    through.
      */
     class Success(
         override val nextState: SignInCodeRequiredState,

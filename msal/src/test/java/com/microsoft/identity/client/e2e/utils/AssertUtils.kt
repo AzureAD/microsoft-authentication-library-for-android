@@ -24,7 +24,7 @@ package com.microsoft.identity.client.e2e.utils
 
 import com.microsoft.identity.nativeauth.statemachine.errors.Error
 import org.junit.Assert
-inline fun <reified ExpectedType> assertState(actual: Any) {
+inline fun <reified ExpectedType> assertResult(actual: Any) {
     val condition = actual is ExpectedType
     if (!condition) {
         val assertMessage: String = if (actual is Error) {
