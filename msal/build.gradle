@@ -254,16 +254,12 @@ dependencies {
     // 'local' flavor dependencies
     localApi(project(":common")) {
         transitive = true
-        exclude group: 'cz.msebera.android', module: 'httpclient'
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: commonVersion, changing: true) {
-        exclude group: 'cz.msebera.android', module: 'httpclient'
-    }
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: commonVersion, changing: true)
 
     distApi("com.microsoft.identity:common:${commonVersion}") {
         transitive = true
-        exclude group: 'cz.msebera.android', module: 'httpclient'
     }
 
     testLocalImplementation(testFixtures(project(":common4j")))
