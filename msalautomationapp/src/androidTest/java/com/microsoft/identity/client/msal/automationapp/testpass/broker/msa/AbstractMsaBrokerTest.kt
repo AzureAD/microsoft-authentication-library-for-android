@@ -37,10 +37,6 @@ import org.junit.Before
  * Parent class for Brokered MSA tests. Ensures PRTv3 is enabled before tests are run
  */
 abstract class AbstractMsaBrokerTest : AbstractMsalBrokerTest() {
-    @Before
-    fun before() {
-        (mBroker as BrokerHost).enablePrtV3()
-    }
 
     override fun getAuthority(): String {
         return mApplication.configuration.defaultAuthority.toString()
