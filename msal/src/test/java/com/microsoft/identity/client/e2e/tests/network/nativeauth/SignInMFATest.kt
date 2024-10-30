@@ -104,9 +104,6 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
                 assertNotNull(requestNewChallengeResult.codeLength)
                 assertNotNull(requestNewChallengeResult.channel)
 
-                // Ugly fix until https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3024168 is in place
-                sleep(5000)
-
                 // Retrieve challenge from mailbox and submit
                 val otp = tempEmailApi.retrieveCodeFromInbox(username)
                 val submitCorrectChallengeResult = requestNewChallengeResult.nextState.submitChallenge(otp)
@@ -176,13 +173,9 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
                 assertNotNull(requestNewChallengeResult.codeLength)
                 assertNotNull(requestNewChallengeResult.channel)
 
-                // Ugly fix until https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3024168 is in place
-                sleep(5000)
-
                 // Retrieve challenge from mailbox and submit
                 val otp = tempEmailApi.retrieveCodeFromInbox(username)
-                val submitCorrectChallengeResult =
-                    requestNewChallengeResult.nextState.submitChallenge(otp)
+                val submitCorrectChallengeResult = requestNewChallengeResult.nextState.submitChallenge(otp)
                 assertResult<SignInResult.Complete>(submitCorrectChallengeResult)
 
                 val accountState = (submitCorrectChallengeResult as SignInResult.Complete).resultValue
@@ -243,13 +236,9 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
                 assertNotNull(requestNewChallengeResult.codeLength)
                 assertNotNull(requestNewChallengeResult.channel)
 
-                // Ugly fix until https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3024168 is in place
-                sleep(5000)
-
                 // Retrieve challenge from mailbox and submit
                 val otp = tempEmailApi.retrieveCodeFromInbox(username)
-                val submitCorrectChallengeResult =
-                    requestNewChallengeResult.nextState.submitChallenge(otp)
+                val submitCorrectChallengeResult = requestNewChallengeResult.nextState.submitChallenge(otp)
                 assertResult<SignInResult.Complete>(submitCorrectChallengeResult)
 
                 val accountState = (submitCorrectChallengeResult as SignInResult.Complete).resultValue
