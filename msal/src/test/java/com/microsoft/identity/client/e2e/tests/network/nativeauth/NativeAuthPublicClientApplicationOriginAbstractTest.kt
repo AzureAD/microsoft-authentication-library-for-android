@@ -57,7 +57,7 @@ import org.robolectric.annotation.LooperMode
 @LooperMode(LooperMode.Mode.LEGACY)
 @RunWith(RobolectricTestRunner::class)
 @Config(shadows = [ShadowAndroidSdkStorageEncryptionManager::class])
-abstract class _NativeAuthPublicClientApplicationAbstractTest : IPublicClientApplicationTest {
+abstract class NativeAuthPublicClientApplicationOriginAbstractTest : IPublicClientApplicationTest {
     companion object{
         const val SHARED_PREFERENCES_NAME = "com.microsoft.identity.client.account_credential_cache"
     }

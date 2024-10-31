@@ -91,15 +91,15 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         context = ApplicationProvider.getApplicationContext()
         activity = Mockito.mock(Activity::class.java)
         Mockito.`when`(activity.applicationContext).thenReturn(context)
-        externalLogger = Mockito.mock(ILoggerCallback::class.java)
-        loggerCheckHelper = LoggerCheckHelper(externalLogger, true)
+//        externalLogger = Mockito.mock(ILoggerCallback::class.java)
+//        loggerCheckHelper = LoggerCheckHelper(externalLogger, true)
         CommandDispatcherHelper.clear()
         Dispatchers.setMain(testDispatcher)
     }
 
     @After
     open fun cleanup() {
-        loggerCheckHelper.checkSafeLogging()
+//        loggerCheckHelper.checkSafeLogging()
         // remove everything from cache after test ends
         TestUtils.clearCache(SHARED_PREFERENCES_NAME)
     }

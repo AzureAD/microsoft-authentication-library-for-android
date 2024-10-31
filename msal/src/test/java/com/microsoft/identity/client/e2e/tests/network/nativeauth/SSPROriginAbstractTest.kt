@@ -30,14 +30,12 @@ import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitCodeResult
-import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
-import org.junit.Ignore
 import org.junit.Test
 
-class SSPRTest : _NativeAuthPublicClientApplicationAbstractTest() {
+class SSPROriginAbstractTest : NativeAuthPublicClientApplicationOriginAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 

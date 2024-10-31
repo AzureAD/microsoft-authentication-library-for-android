@@ -30,10 +30,9 @@ import com.microsoft.identity.nativeauth.UserAttributes
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
-import org.junit.Ignore
 import org.junit.Test
 
-class SignUpEmailPasswordAttributesTest : _NativeAuthPublicClientApplicationAbstractTest() {
+class SignUpEmailPasswordAttributesOriginAbstractTest : NativeAuthPublicClientApplicationOriginAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 

@@ -39,7 +39,7 @@ import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.spy
 
-class SignInEmailPasswordTest : _NativeAuthPublicClientApplicationAbstractTest() {
+class SignInEmailPasswordOriginAbstractTest : NativeAuthPublicClientApplicationOriginAbstractTest() {
 
     override val defaultConfigType = ConfigType.SIGN_IN_PASSWORD
 
