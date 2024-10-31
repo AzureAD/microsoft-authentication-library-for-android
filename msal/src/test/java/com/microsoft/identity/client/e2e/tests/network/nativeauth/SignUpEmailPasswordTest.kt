@@ -63,6 +63,8 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstract
                 Assert.assertTrue((result as SignUpError).isInvalidPassword())
             }
         }
+
+        loggerCheckHelper.checkSafeLogging()
     }
 
     /**
@@ -97,6 +99,8 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstract
                 assertResult<SignOutResult.Complete>(signOutResult)
             }
         }
+
+        loggerCheckHelper.checkSafeLogging()
     }
 
     /**
@@ -122,6 +126,8 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstract
                 Assert.assertTrue(submitPasswordResult is SignUpResult.Complete)
             }
         }
+
+        loggerCheckHelper.checkSafeLogging()
     }
 
     /**
@@ -141,6 +147,8 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstract
             val resendCodeResult = codeRequiredState.resendCode()
             assertResult<SignUpResendCodeResult.Success>(resendCodeResult)
         }
+
+        loggerCheckHelper.checkSafeLogging()
     }
 
     /**
@@ -158,6 +166,8 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstract
             Assert.assertTrue(signUpResult is SignUpError)
             Assert.assertTrue((signUpResult as SignUpError).isUserAlreadyExists())
         }
+
+        loggerCheckHelper.checkSafeLogging()
     }
 
     /**
@@ -178,6 +188,8 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstract
             val resendCodeResult = codeRequiredState.resendCode()
             assertResult<SignUpResendCodeResult.Success>(resendCodeResult)
         }
+
+        loggerCheckHelper.checkSafeLogging()
     }
 
     /**
@@ -195,6 +207,8 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstract
             Assert.assertTrue(signUpResult is SignUpError)
             Assert.assertTrue((signUpResult as SignUpError).isInvalidUsername())
         }
+
+        loggerCheckHelper.checkSafeLogging()
     }
 
     /**
@@ -213,6 +227,8 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstract
             Assert.assertTrue(signUpResult is SignUpError)
             Assert.assertTrue((signUpResult as SignUpError).isInvalidPassword())
         }
+
+        loggerCheckHelper.checkSafeLogging()
     }
 
     /**
@@ -236,28 +252,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstract
                 assertResult<SignInResult.Complete>(signWithContinuationResult)
             }
         }
-    }
 
-    /**
-     * Sign up with email + password. Developer can opt to get AT and/or ID token (aka sign in after signup).
-     * (use case 1.1.14, Test case 34)
-     */
-    @Test
-    fun testSignInAfterSignUpWithAT() {
-        config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
-
-        retryOperation {
-            runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-                val user = tempEmailApi.generateRandomEmailAddress()
-                val signUpResult = application.signUp(user)
-                assertResult<SignUpResult.CodeRequired>(signUpResult)
-                val otp = tempEmailApi.retrieveCodeFromInbox(user)
-                val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
-                Assert.assertTrue(submitCodeResult is SignUpResult.Complete)
-                val signWithContinuationResult = (submitCodeResult as SignUpResult.Complete).nextState.signIn()
-                assertResult<SignInResult.Complete>(signWithContinuationResult)
-            }
-        }
+        loggerCheckHelper.checkSafeLogging()
     }
 }

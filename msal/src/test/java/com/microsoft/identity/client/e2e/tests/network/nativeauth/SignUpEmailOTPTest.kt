@@ -67,6 +67,8 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAnotherAbstractTest(
                 Assert.assertTrue(submitCodeResult is SignUpResult.Complete)
             }
         }
+
+        loggerCheckHelper.checkSafeLogging()
     }
 
     /**
@@ -86,6 +88,8 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAnotherAbstractTest(
             val resendCodeResult = codeRequiredState.resendCode()
             assertResult<SignUpResendCodeResult.Success>(resendCodeResult)
         }
+
+        loggerCheckHelper.checkSafeLogging()
     }
 
     /**
@@ -103,6 +107,8 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAnotherAbstractTest(
             Assert.assertTrue(signUpResult is SignUpError)
             Assert.assertTrue((signUpResult as SignUpError).isUserAlreadyExists())
         }
+
+        loggerCheckHelper.checkSafeLogging()
     }
 
     /**
@@ -120,6 +126,8 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAnotherAbstractTest(
             Assert.assertTrue(signUpResult is SignUpError)
             Assert.assertTrue((signUpResult as SignUpError).isUserAlreadyExists())
         }
+
+        loggerCheckHelper.checkSafeLogging()
     }
 
     /**
@@ -138,6 +146,8 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAnotherAbstractTest(
             Assert.assertTrue(signUpResult is SignUpError)
             Assert.assertTrue((signUpResult as SignUpError).isUserAlreadyExists())
         }
+
+        loggerCheckHelper.checkSafeLogging()
     }
 
     /**
@@ -155,6 +165,8 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAnotherAbstractTest(
             Assert.assertTrue(signUpResult is SignUpError)
             Assert.assertTrue((signUpResult as SignUpError).isInvalidUsername())
         }
+
+        loggerCheckHelper.checkSafeLogging()
     }
 
     /**
@@ -178,6 +190,8 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAnotherAbstractTest(
                 assertResult<SignInResult.Complete>(signWithContinuationResult)
             }
         }
+
+        loggerCheckHelper.checkSafeLogging()
     }
 
     /**
@@ -195,6 +209,8 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAnotherAbstractTest(
             Assert.assertTrue(signUpResult is SignUpError)
             Assert.assertTrue((signUpResult as SignUpError).isBrowserRequired())
         }
+
+        loggerCheckHelper.checkSafeLogging()
     }
 
     /**
@@ -216,5 +232,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAnotherAbstractTest(
                 assertResult<SignUpResult.PasswordRequired>(submitCodeResult)
             }
         }
+
+        loggerCheckHelper.checkSafeLogging()
     }
 }
