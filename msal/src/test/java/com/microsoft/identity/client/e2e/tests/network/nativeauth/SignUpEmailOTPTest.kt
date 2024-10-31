@@ -51,7 +51,6 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Sign up with email + OTP. Verify email address using email OTP and sign up.
      * (hero scenario 1, use case 2.1.1, Test case 1)
      */
-    @Ignore("Fetching OTP code is unstable")
     @Test
     fun testSuccess() {
         config = getConfig(defaultConfigType)
@@ -62,6 +61,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
                 val user = tempEmailApi.generateRandomEmailAddress()
                 val signUpResult = application.signUp(user)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
+
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
                 Assert.assertTrue(submitCodeResult is SignUpResult.Complete)

@@ -39,8 +39,18 @@ import com.microsoft.identity.internal.testutils.labutils.LabConstants
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
+import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
+import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
+import com.microsoft.identity.nativeauth.statemachine.results.MFASubmitChallengeResult
+import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitCodeResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignInSubmitCodeResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignUpSubmitCodeResult
+import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState
+import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordCodeRequiredState
+import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState
+import com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.setMain
@@ -135,8 +145,7 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
     }
 
     fun <T> retryOperation(
-        maxRetries: Int = 3,
-        onFailure: () -> Unit = { Assert.fail() },
+        maxRetries: Int = 5,
         authFlow: () -> T
     ) {
         var retryCount = 0
@@ -146,10 +155,11 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
             try {
                 authFlow()
                 shouldRetry = false // authFlow() has succeeded, so we don't need to retry.
-            } catch (e: IllegalStateException) {
-                // Re-run this test if the OTP retrieval fails. 1SecMail is known for emails to sometimes never arrive.
+            } catch (e: Exception) {
+                //1secmail occasionally has a delay for emails to arrive / return from the API, or throws an internal server error, which causes tests to fail
+                //In this case, retry the test
                 if (retryCount >= maxRetries) {
-                    onFailure()
+                    Assert.fail(e.message)
                     shouldRetry = false
                 } else {
                     retryCount++
