@@ -253,15 +253,13 @@ dependencies {
     androidTestImplementation "org.mockito:mockito-android:$rootProject.ext.mockitoAndroidVersion"
     // 'local' flavor dependencies
     localApi(project(":common")) {
-        transitive = false
+        transitive = true
     }
 
-    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: commonVersion, changing: true) {
-        transitive = false
-    }
+    snapshotApi(group: 'com.microsoft.identity', name: 'common', version: commonVersion, changing: true)
 
     distApi("com.microsoft.identity:common:${commonVersion}") {
-        transitive = false
+        transitive = true
     }
 
     testLocalImplementation(testFixtures(project(":common4j")))
