@@ -47,12 +47,15 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     lateinit var application: INativeAuthPublicClientApplication
     lateinit var config: NativeAuthTestConfig.Config
 
-    private val defaultConfigType = ConfigType.SIGN_UP_OTP
+    private val defaultConfigType = ConfigType.SIGN_UP_PASSWORD
     private val defaultChallengeTypes = listOf("password", "oob")
 
 
     @Test
     fun testSignUpErrorSimple() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+
         retryOperation {
             runBlocking {
                 val user = tempEmailApi.generateRandomEmailAddress()
@@ -72,9 +75,11 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
      * Sign up with email + password. Sign out from local app (no SSO).
      * (hero scenario 18)
      */
-    @Ignore("Fetching OTP code is unstable")
     @Test
     fun testSuccessOTPLast() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
@@ -101,6 +106,9 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
      */
     @Test
     fun testSuccessOTPFirst() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
@@ -121,7 +129,6 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
      * Sign up with email + password. Resend email OOB.
      * (use case 1.1.2, Test case 26)
      */
-    @Ignore("Fetching OTP code is unstable")
     @Test
     fun testResendEmailOOB() {
         config = getConfig(defaultConfigType)
