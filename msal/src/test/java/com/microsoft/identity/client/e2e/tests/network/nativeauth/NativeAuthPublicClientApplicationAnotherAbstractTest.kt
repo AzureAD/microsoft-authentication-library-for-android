@@ -27,7 +27,6 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.microsoft.identity.client.ILoggerCallback
 import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager
 import com.microsoft.identity.client.e2e.tests.IPublicClientApplicationTest
@@ -57,17 +56,15 @@ import org.robolectric.annotation.LooperMode
 @LooperMode(LooperMode.Mode.LEGACY)
 @RunWith(RobolectricTestRunner::class)
 @Config(shadows = [ShadowAndroidSdkStorageEncryptionManager::class])
-abstract class NativeAuthPublicClientApplicationOriginAbstractTest : IPublicClientApplicationTest {
+abstract class NativeAuthPublicClientApplicationAnotherAbstractTest : IPublicClientApplicationTest {
     companion object{
         const val SHARED_PREFERENCES_NAME = "com.microsoft.identity.client.account_credential_cache"
+        const val INVALID_EMAIl = "invalid_email"
+        const val INVALID_PASSWORD = "invalid_password"
     }
 
     private lateinit var context: Context
     private lateinit var activity: Activity
-    private lateinit var externalLogger: ILoggerCallback
-    private lateinit var loggerCheckHelper: LoggerCheckHelper
-    lateinit var application: INativeAuthPublicClientApplication
-    lateinit var config: NativeAuthTestConfig.Config
 
     // Remove default Coroutine test timeout of 10 seconds.
     private val testDispatcher = StandardTestDispatcher()
@@ -76,23 +73,17 @@ abstract class NativeAuthPublicClientApplicationOriginAbstractTest : IPublicClie
         return "" // Not needed for native auth flows
     }
 
-    abstract val defaultConfigType: ConfigType
-
     @Before
     open fun setup() {
         context = ApplicationProvider.getApplicationContext()
         activity = Mockito.mock(Activity::class.java)
         Mockito.`when`(activity.applicationContext).thenReturn(context)
-        externalLogger = Mockito.mock(ILoggerCallback::class.java)
-        loggerCheckHelper = LoggerCheckHelper(externalLogger, true)
         CommandDispatcherHelper.clear()
         Dispatchers.setMain(testDispatcher)
-        setupPCA(defaultConfigType)
     }
 
     @After
     open fun cleanup() {
-        loggerCheckHelper.checkSafeLogging()
         // remove everything from cache after test ends
         TestUtils.clearCache(SHARED_PREFERENCES_NAME)
     }
@@ -116,13 +107,15 @@ abstract class NativeAuthPublicClientApplicationOriginAbstractTest : IPublicClie
         return Gson().fromJson(secretValue, type)
     }
 
-    fun setupPCA(configType: ConfigType) {
+    fun getConfig(configType: ConfigType): NativeAuthTestConfig.Config {
         val secretValue = getConfigsThroughSecretValue()
-        config = secretValue?.get(configType.stringValue) ?: throw IllegalStateException("Config not $secretValue")
-        val challengeTypes = listOf("password", "oob")
+        return secretValue?.get(configType.stringValue)
+            ?: throw IllegalStateException("Config not $secretValue")
+    }
 
-        try {
-            application = PublicClientApplication.createNativeAuthPublicClientApplication(
+    fun setupPCA(config: NativeAuthTestConfig.Config, challengeTypes: List<String>): INativeAuthPublicClientApplication {
+        return try {
+            PublicClientApplication.createNativeAuthPublicClientApplication(
                 context,
                 config.clientId,
                 config.authorityUrl,
@@ -131,12 +124,12 @@ abstract class NativeAuthPublicClientApplicationOriginAbstractTest : IPublicClie
             )
         } catch (e: MsalException) {
             Assert.fail(e.message)
+            throw e
         }
     }
 
     fun <T> retryOperation(
-        maxRetries: Int = 3,
-        onFailure: () -> Unit = { Assert.fail() },
+        maxRetries: Int = 5,
         authFlow: () -> T
     ) {
         var retryCount = 0
@@ -146,10 +139,11 @@ abstract class NativeAuthPublicClientApplicationOriginAbstractTest : IPublicClie
             try {
                 authFlow()
                 shouldRetry = false // authFlow() has succeeded, so we don't need to retry.
-            } catch (e: IllegalStateException) {
-                // Re-run this test if the OTP retrieval fails. 1SecMail is known for emails to sometimes never arrive.
+            } catch (e: Exception) {
+                //1secmail occasionally has a delay for emails to arrive / return from the API, or throws an internal server error, which causes tests to fail
+                //In this case, retry the test
                 if (retryCount >= maxRetries) {
-                    onFailure()
+                    Assert.fail(e.message)
                     shouldRetry = false
                 } else {
                     retryCount++

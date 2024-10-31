@@ -35,7 +35,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Test
 
-class SSPROriginAbstractTest : NativeAuthPublicClientApplicationOriginAbstractTest() {
+class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 

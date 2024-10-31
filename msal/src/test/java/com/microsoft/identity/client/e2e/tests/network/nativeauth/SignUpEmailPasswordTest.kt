@@ -35,12 +35,11 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignOutResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResendCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Ignore
 import org.junit.Test
 
-class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() {
+class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 

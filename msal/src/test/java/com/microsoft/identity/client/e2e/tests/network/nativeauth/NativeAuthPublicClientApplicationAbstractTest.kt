@@ -39,18 +39,8 @@ import com.microsoft.identity.internal.testutils.labutils.LabConstants
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
-import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
-import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
-import com.microsoft.identity.nativeauth.statemachine.results.MFASubmitChallengeResult
-import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitCodeResult
-import com.microsoft.identity.nativeauth.statemachine.results.SignInSubmitCodeResult
-import com.microsoft.identity.nativeauth.statemachine.results.SignUpSubmitCodeResult
-import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState
-import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordCodeRequiredState
-import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState
-import com.microsoft.identity.nativeauth.statemachine.states.SignUpCodeRequiredState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.setMain
@@ -70,14 +60,14 @@ import org.robolectric.annotation.LooperMode
 abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientApplicationTest {
     companion object{
         const val SHARED_PREFERENCES_NAME = "com.microsoft.identity.client.account_credential_cache"
-        const val INVALID_EMAIl = "invalid_email"
-        const val INVALID_PASSWORD = "invalid_password"
     }
 
     private lateinit var context: Context
     private lateinit var activity: Activity
     private lateinit var externalLogger: ILoggerCallback
     private lateinit var loggerCheckHelper: LoggerCheckHelper
+    lateinit var application: INativeAuthPublicClientApplication
+    lateinit var config: NativeAuthTestConfig.Config
 
     // Remove default Coroutine test timeout of 10 seconds.
     private val testDispatcher = StandardTestDispatcher()
@@ -86,20 +76,23 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         return "" // Not needed for native auth flows
     }
 
+    abstract val defaultConfigType: ConfigType
+
     @Before
     open fun setup() {
         context = ApplicationProvider.getApplicationContext()
         activity = Mockito.mock(Activity::class.java)
         Mockito.`when`(activity.applicationContext).thenReturn(context)
-//        externalLogger = Mockito.mock(ILoggerCallback::class.java)
-//        loggerCheckHelper = LoggerCheckHelper(externalLogger, true)
+        externalLogger = Mockito.mock(ILoggerCallback::class.java)
+        loggerCheckHelper = LoggerCheckHelper(externalLogger, true)
         CommandDispatcherHelper.clear()
         Dispatchers.setMain(testDispatcher)
+        setupPCA(defaultConfigType)
     }
 
     @After
     open fun cleanup() {
-//        loggerCheckHelper.checkSafeLogging()
+        loggerCheckHelper.checkSafeLogging()
         // remove everything from cache after test ends
         TestUtils.clearCache(SHARED_PREFERENCES_NAME)
     }
@@ -123,15 +116,13 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         return Gson().fromJson(secretValue, type)
     }
 
-    fun getConfig(configType: ConfigType): NativeAuthTestConfig.Config {
+    fun setupPCA(configType: ConfigType) {
         val secretValue = getConfigsThroughSecretValue()
-        return secretValue?.get(configType.stringValue)
-            ?: throw IllegalStateException("Config not $secretValue")
-    }
+        config = secretValue?.get(configType.stringValue) ?: throw IllegalStateException("Config not $secretValue")
+        val challengeTypes = listOf("password", "oob")
 
-    fun setupPCA(config: NativeAuthTestConfig.Config, challengeTypes: List<String>): INativeAuthPublicClientApplication {
-        return try {
-            PublicClientApplication.createNativeAuthPublicClientApplication(
+        try {
+            application = PublicClientApplication.createNativeAuthPublicClientApplication(
                 context,
                 config.clientId,
                 config.authorityUrl,
@@ -140,12 +131,12 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
             )
         } catch (e: MsalException) {
             Assert.fail(e.message)
-            throw e
         }
     }
 
     fun <T> retryOperation(
-        maxRetries: Int = 5,
+        maxRetries: Int = 3,
+        onFailure: () -> Unit = { Assert.fail() },
         authFlow: () -> T
     ) {
         var retryCount = 0
@@ -155,11 +146,10 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
             try {
                 authFlow()
                 shouldRetry = false // authFlow() has succeeded, so we don't need to retry.
-            } catch (e: Exception) {
-                //1secmail occasionally has a delay for emails to arrive / return from the API, or throws an internal server error, which causes tests to fail
-                //In this case, retry the test
+            } catch (e: IllegalStateException) {
+                // Re-run this test if the OTP retrieval fails. 1SecMail is known for emails to sometimes never arrive.
                 if (retryCount >= maxRetries) {
-                    Assert.fail(e.message)
+                    onFailure()
                     shouldRetry = false
                 } else {
                     retryCount++

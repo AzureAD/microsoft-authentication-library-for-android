@@ -32,39 +32,50 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Test
 
-class SignUpEmailOTPAttributesOriginAbstractTest : NativeAuthPublicClientApplicationOriginAbstractTest() {
+class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 
-    override val defaultConfigType = ConfigType.SIGN_UP_OTP_ATTRIBUTES
+    override val defaultConfigType = ConfigType.SIGN_UP_PASSWORD_ATTRIBUTES
 
     /**
-     * Signup user with custom attributes with verify OTP as last step.
-     * (hero scenario 2, use case 2.1.2, Test case 2)
+     * Sign up with password and attributes on start, then verify OTP as last step.
+     * Mimic a 2-step UX:
+     * 1. Capture email address, password and attributes
+     * 2. Validate OTP.
+     * (hero scenario 10, use case 1.1.3, Test case 15)
      */
     @Test
-    fun testSuccessAttributesFirst() {
+    fun testEmailPasswordAttributesOnSameScreen() {
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
+                val password = getSafePassword().toCharArray()
                 val attributes = UserAttributes.Builder().country("Ireland").city("Dublin").build()
-                val signUpResult = application.signUp(user, attributes = attributes)
+                val signUpResult = application.signUp(
+                    username = user,
+                    password = password,
+                    attributes = attributes
+                )
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
 
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
-
-                Assert.assertTrue(submitCodeResult is SignUpResult.Complete)
+                assertResult<SignUpResult.Complete>(submitCodeResult)
             }
         }
     }
 
     /**
-     * Verify email OTP first and then collect custom attributes.
-     * (hero scenario 3, use case 2.1.3, Test case 3)
+     * Sign up with verify email OTP as first step, then set password & custom attributes at end.
+     * Mimic a 3-step UX:
+     * 1. Capture email address & validate
+     * 2. Set password
+     * 3. Set custom attributes.
+     * (hero scenario 12, use case 1.1.6) - Test case 28
      */
     @Test
-    fun testSuccessAttributesLastSameScreen() {
+    fun testSeparateEmailPasswordAndAttributesOnSameScreen() {
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
@@ -73,26 +84,34 @@ class SignUpEmailOTPAttributesOriginAbstractTest : NativeAuthPublicClientApplica
 
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
-                assertResult<SignUpResult.AttributesRequired>(submitCodeResult)
+                assertResult<SignUpResult.PasswordRequired>(submitCodeResult)
 
-                val requiredAttributes = (submitCodeResult as SignUpResult.AttributesRequired).requiredAttributes
+                val submitPasswordResult = (submitCodeResult as SignUpResult.PasswordRequired).nextState.submitPassword(getSafePassword().toCharArray())
+                assertResult<SignUpResult.AttributesRequired>(submitPasswordResult)
+                val requiredAttributes = (submitPasswordResult as SignUpResult.AttributesRequired).requiredAttributes
                 val attributes = UserAttributes.Builder()
                 for (attr in requiredAttributes) {
                     Assert.assertNotNull(attr.attributeName)
                     attributes.customAttribute(attr.attributeName!!, "somevalue")
                 }
-                val submitAttributesResult = submitCodeResult.nextState.submitAttributes(attributes.build())
+                val submitAttributesResult = submitPasswordResult.nextState.submitAttributes(attributes.build())
                 Assert.assertTrue(submitAttributesResult is SignUpResult.Complete)
             }
         }
     }
 
     /**
-     * Verify email OTP first and then collect custom attributes in multiple steps (mimicking a multi-screen UX).
-     * (hero scenario 4, use case 2.1.4, Test case 4)
+     * Sign up with verify email OTP as first step, then set password & custom attributes at end across multiple screens.
+     * Mimic a 3+ step UX:
+     * 1. Capture email address & validate
+     * 2. Set password
+     * 3. Set first attribute.
+     * 4. Set second attribute.
+     * 5. etc.
+     * ((hero scenario 13) - Test case 29
      */
     @Test
-    fun testSuccessAttributesLastMultipleScreens() {
+    fun testSeparateEmailPasswordAndAttributesOnMultipleScreens() {
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
@@ -101,14 +120,16 @@ class SignUpEmailOTPAttributesOriginAbstractTest : NativeAuthPublicClientApplica
 
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
-                assertResult<SignUpResult.AttributesRequired>(submitCodeResult)
+                assertResult<SignUpResult.PasswordRequired>(submitCodeResult)
 
-                val requiredAttributes = (submitCodeResult as SignUpResult.AttributesRequired).requiredAttributes
+                val submitPasswordResult = (submitCodeResult as SignUpResult.PasswordRequired).nextState.submitPassword(getSafePassword().toCharArray())
+                assertResult<SignUpResult.AttributesRequired>(submitPasswordResult)
+                val requiredAttributes = (submitPasswordResult as SignUpResult.AttributesRequired).requiredAttributes
                 val attributes = UserAttributes.Builder()
                 for (attr in requiredAttributes) { // Loop through all the required attributes and send them to the API one by one, mimicking a multi-screen UX.
                     Assert.assertNotNull(attr.attributeName)
                     attributes.customAttribute(attr.attributeName!!, "somevalue")
-                    val submitAttributesResult = submitCodeResult.nextState.submitAttributes(attributes.build())
+                    val submitAttributesResult = submitPasswordResult.nextState.submitAttributes(attributes.build())
                     if (submitAttributesResult is SignUpResult.AttributesRequired) {
                         continue
                     } else if (submitAttributesResult is SignUpResult.Complete) {
@@ -119,5 +140,5 @@ class SignUpEmailOTPAttributesOriginAbstractTest : NativeAuthPublicClientApplica
                 }
             }
         }
-    }
+   }
 }
