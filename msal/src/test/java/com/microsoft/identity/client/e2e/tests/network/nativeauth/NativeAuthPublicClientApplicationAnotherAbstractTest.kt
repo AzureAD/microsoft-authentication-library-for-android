@@ -28,6 +28,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.microsoft.identity.client.ILoggerCallback
+import com.microsoft.identity.client.Logger
 import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager
 import com.microsoft.identity.client.e2e.tests.IPublicClientApplicationTest
@@ -67,9 +68,6 @@ abstract class NativeAuthPublicClientApplicationAnotherAbstractTest : IPublicCli
     private lateinit var context: Context
     private lateinit var activity: Activity
 
-    private val externalLogger: ILoggerCallback = Mockito.mock(ILoggerCallback::class.java)
-    val loggerCheckHelper = LoggerCheckHelper(externalLogger, true)
-
     // Remove default Coroutine test timeout of 10 seconds.
     private val testDispatcher = StandardTestDispatcher()
 
@@ -82,6 +80,9 @@ abstract class NativeAuthPublicClientApplicationAnotherAbstractTest : IPublicCli
         context = ApplicationProvider.getApplicationContext()
         activity = Mockito.mock(Activity::class.java)
         Mockito.`when`(activity.applicationContext).thenReturn(context)
+        Logger.getInstance().setEnableLogcatLog(true)
+        Logger.getInstance().setEnablePII(true)
+        Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE)
         CommandDispatcherHelper.clear()
         Dispatchers.setMain(testDispatcher)
     }
@@ -130,6 +131,11 @@ abstract class NativeAuthPublicClientApplicationAnotherAbstractTest : IPublicCli
             Assert.fail(e.message)
             throw e
         }
+    }
+
+    fun setupLoggerCheckHelper(): LoggerCheckHelper {
+        val externalLogger: ILoggerCallback = Mockito.mock(ILoggerCallback::class.java)
+        return LoggerCheckHelper(externalLogger, true)
     }
 
     fun <T> retryOperation(

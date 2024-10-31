@@ -27,6 +27,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.microsoft.identity.client.Logger
 import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager
 import com.microsoft.identity.client.e2e.tests.IPublicClientApplicationTest
@@ -80,6 +81,9 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         context = ApplicationProvider.getApplicationContext()
         activity = Mockito.mock(Activity::class.java)
         Mockito.`when`(activity.applicationContext).thenReturn(context)
+        Logger.getInstance().setEnableLogcatLog(true)
+        Logger.getInstance().setEnablePII(true)
+        Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE)
         CommandDispatcherHelper.clear()
         Dispatchers.setMain(testDispatcher)
         setupPCA(defaultConfigType)
@@ -129,8 +133,7 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
     }
 
     fun <T> retryOperation(
-        maxRetries: Int = 3,
-        onFailure: () -> Unit = { Assert.fail() },
+        maxRetries: Int = 5,
         authFlow: () -> T
     ) {
         var retryCount = 0
@@ -140,10 +143,11 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
             try {
                 authFlow()
                 shouldRetry = false // authFlow() has succeeded, so we don't need to retry.
-            } catch (e: IllegalStateException) {
-                // Re-run this test if the OTP retrieval fails. 1SecMail is known for emails to sometimes never arrive.
+            } catch (e: Exception) {
+                //1secmail occasionally has a delay for emails to arrive / return from the API, or throws an internal server error, which causes tests to fail
+                //In this case, retry the test
                 if (retryCount >= maxRetries) {
-                    onFailure()
+                    Assert.fail(e.message)
                     shouldRetry = false
                 } else {
                     retryCount++
