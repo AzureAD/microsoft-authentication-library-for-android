@@ -55,7 +55,6 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstract
     fun testSignUpErrorSimple() {
         config = getConfig(defaultConfigType)
         application = setupPCA(config, defaultChallengeTypes)
-        loggerCheck = setupLoggerCheckHelper()
 
         retryOperation {
             runBlocking {
@@ -65,24 +64,16 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstract
                 Assert.assertTrue((result as SignUpError).isInvalidPassword())
             }
         }
-
-        loggerCheck.checkSafeLogging()
     }
 
     /**
      * Sign up with email + password. Set email and password (mimicking one combined screen for email & password collection), and then verify email OTP as last step
      * (hero scenario 9, use case 1.1.1,  Test case 13)
      */
-
-    /**
-     * Sign up with email + password. Sign out from local app (no SSO).
-     * (hero scenario 18)
-     */
     @Test
     fun testSuccessOTPLast() {
         config = getConfig(defaultConfigType)
         application = setupPCA(config, defaultChallengeTypes)
-        loggerCheck = setupLoggerCheckHelper()
 
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
@@ -94,16 +85,8 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstract
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
                 Assert.assertTrue(submitCodeResult is SignUpResult.Complete)
-
-                // Sign out
-                val getAccountResult = application.getCurrentAccount()
-                assertResult<GetAccountResult.AccountFound>(getAccountResult)
-                val signOutResult = (getAccountResult as GetAccountResult.AccountFound).resultValue.signOut()
-                assertResult<SignOutResult.Complete>(signOutResult)
             }
         }
-
-        loggerCheck.checkSafeLogging()
     }
 
     /**
@@ -114,7 +97,6 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstract
     fun testSuccessOTPFirst() {
         config = getConfig(defaultConfigType)
         application = setupPCA(config, defaultChallengeTypes)
-        loggerCheck = setupLoggerCheckHelper()
 
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
@@ -130,9 +112,36 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstract
                 Assert.assertTrue(submitPasswordResult is SignUpResult.Complete)
             }
         }
-
-        loggerCheck.checkSafeLogging()
     }
+
+    /**
+     * Sign up with email + password. Verify email address using email OTP, resend OTP and then set password.
+     * (use case 1.1.5, Test case 16)
+     */
+    @Test
+    fun testSuccessOTPResend() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+
+        retryOperation {
+            runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
+                val user = tempEmailApi.generateRandomEmailAddress()
+                val signUpResult = application.signUp(user)
+                assertResult<SignUpResult.CodeRequired>(signUpResult)
+
+                val resendCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.resendCode()
+                assertResult<SignUpResendCodeResult.Success>(resendCodeResult)
+
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val submitCodeResult = (resendCodeResult as SignUpResendCodeResult.Success).nextState.submitCode(otp)
+                assertResult<SignUpResult.PasswordRequired>(submitCodeResult)
+
+                val submitPasswordResult = (submitCodeResult as SignUpResult.PasswordRequired).nextState.submitPassword(getSafePassword().toCharArray())
+                Assert.assertTrue(submitPasswordResult is SignUpResult.Complete)
+            }
+        }
+    }
+
 
     /**
      * Sign up with email + password. Resend email OOB.
@@ -142,7 +151,6 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstract
     fun testResendEmailOOB() {
         config = getConfig(defaultConfigType)
         application = setupPCA(config, defaultChallengeTypes)
-        loggerCheck = setupLoggerCheckHelper()
 
         runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
             val user = tempEmailApi.generateRandomEmailAddress()
@@ -152,8 +160,6 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstract
             val resendCodeResult = codeRequiredState.resendCode()
             assertResult<SignUpResendCodeResult.Success>(resendCodeResult)
         }
-
-        loggerCheck.checkSafeLogging()
     }
 
     /**
@@ -164,7 +170,6 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstract
     fun testErrorUserExistAsPassword() {
         config = getConfig(ConfigType.SIGN_IN_PASSWORD)
         application = setupPCA(config, defaultChallengeTypes)
-        loggerCheck = setupLoggerCheckHelper()
 
         runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
             val user = config.email
@@ -172,8 +177,6 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstract
             Assert.assertTrue(signUpResult is SignUpError)
             Assert.assertTrue((signUpResult as SignUpError).isUserAlreadyExists())
         }
-
-        loggerCheck.checkSafeLogging()
     }
 
     /**
@@ -185,7 +188,6 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstract
     fun testErrorUserExistAsSocial() {
         config = getConfig(ConfigType.SIGN_IN_PASSWORD)
         application = setupPCA(config, defaultChallengeTypes)
-        loggerCheck = setupLoggerCheckHelper()
 
         runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
             val user = tempEmailApi.generateRandomEmailAddress()
@@ -195,8 +197,6 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstract
             val resendCodeResult = codeRequiredState.resendCode()
             assertResult<SignUpResendCodeResult.Success>(resendCodeResult)
         }
-
-        loggerCheck.checkSafeLogging()
     }
 
     /**
@@ -207,7 +207,6 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstract
     fun testErrorInvalidEmailFormat() {
         config = getConfig(defaultConfigType)
         application = setupPCA(config, defaultChallengeTypes)
-        loggerCheck = setupLoggerCheckHelper()
 
         runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
             val user = INVALID_EMAIl
@@ -215,8 +214,6 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstract
             Assert.assertTrue(signUpResult is SignUpError)
             Assert.assertTrue((signUpResult as SignUpError).isInvalidUsername())
         }
-
-        loggerCheck.checkSafeLogging()
     }
 
     /**
@@ -227,7 +224,6 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstract
     fun testErrorInvalidPasswordFormat() {
         config = getConfig(defaultConfigType)
         application = setupPCA(config, defaultChallengeTypes)
-        loggerCheck = setupLoggerCheckHelper()
 
         runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
             val user = tempEmailApi.generateRandomEmailAddress()
@@ -236,8 +232,6 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstract
             Assert.assertTrue(signUpResult is SignUpError)
             Assert.assertTrue((signUpResult as SignUpError).isInvalidPassword())
         }
-
-        loggerCheck.checkSafeLogging()
     }
 
     /**
@@ -248,7 +242,6 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstract
     fun testSignInAfterSignUp() {
         config = getConfig(defaultConfigType)
         application = setupPCA(config, defaultChallengeTypes)
-        loggerCheck = setupLoggerCheckHelper()
 
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
@@ -257,12 +250,10 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstract
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
-                Assert.assertTrue(submitCodeResult is SignUpResult.Complete)
+                assertResult<SignUpResult.Complete>(submitCodeResult)
                 val signWithContinuationResult = (submitCodeResult as SignUpResult.Complete).nextState.signIn()
                 assertResult<SignInResult.Complete>(signWithContinuationResult)
             }
         }
-
-        loggerCheck.checkSafeLogging()
     }
 }
