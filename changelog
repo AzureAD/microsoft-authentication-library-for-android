@@ -1,6 +1,6 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
-vNext
+Version 5.8.0-RC1
 ----------
 -[MINOR] Migrate Base64 away from Msebera (#2210)
 
