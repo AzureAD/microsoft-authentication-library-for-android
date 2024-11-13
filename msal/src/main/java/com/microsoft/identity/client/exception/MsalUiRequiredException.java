@@ -58,10 +58,9 @@ public final class MsalUiRequiredException extends MsalException {
      */
     public static final String NO_ACCOUNT_FOUND = ErrorStrings.NO_ACCOUNT_FOUND;
 
-    @Getter
-    @Accessors(prefix = "m")
-    @Nullable
-    private String mOauthSubErrorCode;
+    public String getOauthSubErrorCode(){
+        return super.getSubErrorCode();
+    }
 
     /**
      * Constructor of MsalUiRequiredException.
@@ -89,16 +88,5 @@ public final class MsalUiRequiredException extends MsalException {
      */
     public MsalUiRequiredException(final String errorCode, final String errorMessage, final Throwable throwable) {
         super(errorCode, errorMessage, throwable);
-    }
-
-    /**
-     * Constructor of MsalUiRequiredException.
-     * @param errorCode         String
-     * @param oauthSubErrorCode String
-     * @param errorMessage      String
-     */
-    public MsalUiRequiredException(final String errorCode, @Nullable final String oauthSubErrorCode, final String errorMessage) {
-        super(errorCode, errorMessage);
-        mOauthSubErrorCode = oauthSubErrorCode;
     }
 }
