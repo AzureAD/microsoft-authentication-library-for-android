@@ -118,8 +118,8 @@ public abstract class AcquireTokenMockTest extends AcquireTokenAbstractTest {
                             @NonNull HttpClient.HttpMethod httpMethod,
                             @NonNull URL requestUrl,
                             @NonNull Map<String, String> requestHeaders,
-                            @Nullable byte[] requestContent) throws IOException {
-                        throw new IOException("Sending requests to server has been disabled for mocked unit tests");
+                            @Nullable byte[] requestContent) throws ClientException {
+                        throw new ClientException("Sending requests to server has been disabled for mocked unit tests");
                     }
                 });
     }

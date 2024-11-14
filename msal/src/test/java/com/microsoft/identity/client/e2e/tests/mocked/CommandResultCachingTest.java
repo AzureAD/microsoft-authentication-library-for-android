@@ -28,6 +28,7 @@ import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.e2e.shadows.ShadowMockAuthority;
 import com.microsoft.identity.client.e2e.shadows.ShadowOpenIdProviderConfigurationClient;
+import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.net.HttpClient;
 import com.microsoft.identity.common.java.net.HttpResponse;
 import com.microsoft.identity.http.HttpRequestInterceptor;
@@ -83,8 +84,8 @@ public final class CommandResultCachingTest extends AcquireTokenAbstractTest {
                             @NonNull HttpClient.HttpMethod httpMethod,
                             @NonNull URL requestUrl,
                             @NonNull Map<String, String> requestHeaders,
-                            @Nullable byte[] requestContent) throws IOException {
-                        throw new IOException("Sending requests to server has been disabled for mocked unit tests");
+                            @Nullable byte[] requestContent) throws ClientException {
+                        throw new ClientException("Sending requests to server has been disabled for mocked unit tests");
                     }
                 });
 
