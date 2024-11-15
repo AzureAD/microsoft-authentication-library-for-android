@@ -1,5 +1,9 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
+Version 5.8.1
+----------
+-[PATCH] Update common @18.2.1
+
 Version 5.8.0
 ----------
 -[PATCH] Update common @18.2.0
