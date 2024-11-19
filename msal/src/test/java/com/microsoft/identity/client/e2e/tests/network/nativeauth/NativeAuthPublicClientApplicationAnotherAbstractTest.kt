@@ -61,7 +61,7 @@ import org.robolectric.annotation.LooperMode
 abstract class NativeAuthPublicClientApplicationAnotherAbstractTest : IPublicClientApplicationTest {
     companion object{
         const val SHARED_PREFERENCES_NAME = "com.microsoft.identity.client.account_credential_cache"
-        const val INVALID_EMAIl = "invalid_email"
+        const val INVALID_EMAIL = "invalid_email"
         const val INVALID_PASSWORD = "invalid_password"
     }
 
@@ -80,9 +80,6 @@ abstract class NativeAuthPublicClientApplicationAnotherAbstractTest : IPublicCli
         context = ApplicationProvider.getApplicationContext()
         activity = Mockito.mock(Activity::class.java)
         Mockito.`when`(activity.applicationContext).thenReturn(context)
-        Logger.getInstance().setEnableLogcatLog(true)
-        Logger.getInstance().setEnablePII(true)
-        Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE)
         CommandDispatcherHelper.clear()
         Dispatchers.setMain(testDispatcher)
     }
@@ -131,11 +128,6 @@ abstract class NativeAuthPublicClientApplicationAnotherAbstractTest : IPublicCli
             Assert.fail(e.message)
             throw e
         }
-    }
-
-    fun setupLoggerCheckHelper(): LoggerCheckHelper {
-        val externalLogger: ILoggerCallback = Mockito.mock(ILoggerCallback::class.java)
-        return LoggerCheckHelper(externalLogger, true)
     }
 
     fun <T> retryOperation(

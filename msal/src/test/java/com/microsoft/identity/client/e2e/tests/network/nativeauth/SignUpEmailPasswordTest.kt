@@ -45,7 +45,6 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstract
 
     lateinit var application: INativeAuthPublicClientApplication
     lateinit var config: NativeAuthTestConfig.Config
-    lateinit var loggerCheck: LoggerCheckHelper
 
     private val defaultConfigType = ConfigType.SIGN_UP_PASSWORD
     private val defaultChallengeTypes = listOf("password", "oob")
@@ -209,7 +208,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstract
         application = setupPCA(config, defaultChallengeTypes)
 
         runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-            val user = INVALID_EMAIl
+            val user = INVALID_EMAIL
             val signUpResult = application.signUp(user)
             Assert.assertTrue(signUpResult is SignUpError)
             Assert.assertTrue((signUpResult as SignUpError).isInvalidUsername())
