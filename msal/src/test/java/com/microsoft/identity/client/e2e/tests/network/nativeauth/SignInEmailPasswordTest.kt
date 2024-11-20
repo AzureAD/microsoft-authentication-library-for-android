@@ -85,7 +85,6 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
         Assert.assertTrue((result as SignInError).isInvalidCredentials())
     }
 
-    @Ignore("Ignore until MFA is available on test slice")
     @Test
     fun testSignInMFASimple() = runTest {
         val nativeAuthConfigField = application.javaClass.getDeclaredField("nativeAuthConfig")
