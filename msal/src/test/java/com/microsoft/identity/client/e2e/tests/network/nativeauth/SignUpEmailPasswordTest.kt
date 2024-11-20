@@ -245,7 +245,8 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstract
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
-                val signUpResult = application.signUp(user)
+                val password = getSafePassword()
+                val signUpResult = application.signUp(user, password.toCharArray())
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
