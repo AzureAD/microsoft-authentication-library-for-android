@@ -214,7 +214,6 @@ dependencies {
         exclude module: 'asm'
     }
     implementation 'org.apache.httpcomponents.core5:httpcore5:5.3'
-    implementation "cz.msebera.android:httpclient:$rootProject.ext.mseberaApacheHttpClientVersion"
     implementation "androidx.constraintlayout:constraintlayout:$rootProject.ext.constraintLayoutVersion"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$rootProject.ext.kotlinXCoroutinesVersion"
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$rootProject.ext.kotlinXCoroutinesVersion"
