@@ -78,13 +78,18 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAnotherAbstractTest(
         config = getConfig(defaultConfigType)
         application = setupPCA(config, defaultChallengeTypes)
 
-        runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-            val user = tempEmailApi.generateRandomEmailAddress()
-            val signUpResult = application.signUp(user)
-            assertResult<SignUpResult.CodeRequired>(signUpResult)
-            val codeRequiredState = (signUpResult as SignUpResult.CodeRequired).nextState
-            val resendCodeResult = codeRequiredState.resendCode()
-            assertResult<SignUpResendCodeResult.Success>(resendCodeResult)
+        retryOperation {
+            runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
+                val user = tempEmailApi.generateRandomEmailAddress()
+                val signUpResult = application.signUp(user)
+                assertResult<SignUpResult.CodeRequired>(signUpResult)
+                val otp1 = tempEmailApi.retrieveCodeFromInbox(user)
+                val codeRequiredState = (signUpResult as SignUpResult.CodeRequired).nextState
+                val resendCodeResult = codeRequiredState.resendCode()
+                assertResult<SignUpResendCodeResult.Success>(resendCodeResult)
+                val otp2 = tempEmailApi.retrieveCodeFromInbox(user)
+                Assert.assertNotEquals(otp1, otp2)
+            }
         }
     }
 
