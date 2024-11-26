@@ -56,11 +56,16 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
      * (hero scenario 15, use case 1.2.1, Test case 37)
      */
     @Test
-    fun testSuccess() = runTest {
-        val username = config.email
-        val password = getSafePassword()
-        val result = application.signIn(username, password.toCharArray())
-        Assert.assertTrue(result is SignInResult.Complete)
+    fun testSuccess() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+
+        runBlocking {
+            val username = config.email
+            val password = getSafePassword()
+            val result = application.signIn(username, password.toCharArray())
+            Assert.assertTrue(result is SignInResult.Complete)
+        }
     }
 
     /**
