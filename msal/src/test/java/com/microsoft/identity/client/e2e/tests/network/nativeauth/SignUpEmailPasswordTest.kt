@@ -29,9 +29,7 @@ import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailSe
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError
-import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
-import com.microsoft.identity.nativeauth.statemachine.results.SignOutResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResendCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import kotlinx.coroutines.runBlocking
@@ -39,7 +37,7 @@ import org.junit.Assert
 import org.junit.Ignore
 import org.junit.Test
 
-class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAnotherAbstractTest() {
+class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 

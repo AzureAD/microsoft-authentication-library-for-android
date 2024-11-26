@@ -26,6 +26,8 @@ package com.microsoft.identity.client.e2e.tests.network.nativeauth
 import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
+import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
+import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.UserAttributes
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import kotlinx.coroutines.runBlocking
@@ -36,7 +38,17 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
 
     private val tempEmailApi = TemporaryEmailService()
 
-    override val defaultConfigType = ConfigType.SIGN_UP_OTP_ATTRIBUTES
+    lateinit var application: INativeAuthPublicClientApplication
+    lateinit var config: NativeAuthTestConfig.Config
+
+    private val defaultConfigType = ConfigType.SIGN_UP_OTP_ATTRIBUTES
+    private val defaultChallengeTypes = listOf("password", "oob")
+
+    override fun setup() {
+        super.setup()
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+    }
 
     /**
      * Signup user with custom attributes with verify OTP as last step.

@@ -27,7 +27,6 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.microsoft.identity.client.Logger
 import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager
 import com.microsoft.identity.client.e2e.tests.IPublicClientApplicationTest
@@ -60,12 +59,12 @@ import org.robolectric.annotation.LooperMode
 abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientApplicationTest {
     companion object{
         const val SHARED_PREFERENCES_NAME = "com.microsoft.identity.client.account_credential_cache"
+        const val INVALID_EMAIL = "invalid_email"
+        const val INVALID_PASSWORD = "invalid_password"
     }
 
     private lateinit var context: Context
     private lateinit var activity: Activity
-    lateinit var application: INativeAuthPublicClientApplication
-    lateinit var config: NativeAuthTestConfig.Config
 
     // Remove default Coroutine test timeout of 10 seconds.
     private val testDispatcher = StandardTestDispatcher()
@@ -74,19 +73,13 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         return "" // Not needed for native auth flows
     }
 
-    abstract val defaultConfigType: ConfigType
-
     @Before
     open fun setup() {
         context = ApplicationProvider.getApplicationContext()
         activity = Mockito.mock(Activity::class.java)
         Mockito.`when`(activity.applicationContext).thenReturn(context)
-        Logger.getInstance().setEnableLogcatLog(true)
-        Logger.getInstance().setEnablePII(true)
-        Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE)
         CommandDispatcherHelper.clear()
         Dispatchers.setMain(testDispatcher)
-        setupPCA(defaultConfigType)
     }
 
     @After
@@ -114,13 +107,15 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         return Gson().fromJson(secretValue, type)
     }
 
-    fun setupPCA(configType: ConfigType) {
+    fun getConfig(configType: ConfigType): NativeAuthTestConfig.Config {
         val secretValue = getConfigsThroughSecretValue()
-        config = secretValue?.get(configType.stringValue) ?: throw IllegalStateException("Config not $secretValue")
-        val challengeTypes = listOf("password", "oob")
+        return secretValue?.get(configType.stringValue)
+            ?: throw IllegalStateException("Config not $secretValue")
+    }
 
-        try {
-            application = PublicClientApplication.createNativeAuthPublicClientApplication(
+    fun setupPCA(config: NativeAuthTestConfig.Config, challengeTypes: List<String>): INativeAuthPublicClientApplication {
+        return try {
+            PublicClientApplication.createNativeAuthPublicClientApplication(
                 context,
                 config.clientId,
                 config.authorityUrl,
@@ -129,6 +124,7 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
             )
         } catch (e: MsalException) {
             Assert.fail(e.message)
+            throw e
         }
     }
 

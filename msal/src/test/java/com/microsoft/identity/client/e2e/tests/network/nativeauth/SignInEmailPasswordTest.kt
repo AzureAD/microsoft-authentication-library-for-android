@@ -25,6 +25,8 @@ package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
 import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
+import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
+import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
@@ -41,7 +43,17 @@ import org.mockito.kotlin.spy
 
 class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() {
 
-    override val defaultConfigType = ConfigType.SIGN_IN_PASSWORD
+    lateinit var application: INativeAuthPublicClientApplication
+    lateinit var config: NativeAuthTestConfig.Config
+
+    private val defaultConfigType = ConfigType.SIGN_IN_PASSWORD
+    private val defaultChallengeTypes = listOf("password", "oob")
+
+    override fun setup() {
+        super.setup()
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+    }
 
     /**
      * Use valid email and password to get token.

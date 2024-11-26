@@ -27,6 +27,7 @@ import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
+import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.statemachine.errors.MFASubmitChallengeError
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
 import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
@@ -42,12 +43,18 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 
-    override var defaultConfigType = ConfigType.SIGN_IN_MFA_SINGLE_AUTH
-
     private lateinit var resources: List<NativeAuthTestConfig.Resource>
+
+    lateinit var application: INativeAuthPublicClientApplication
+    lateinit var config: NativeAuthTestConfig.Config
+
+    private val defaultConfigType = ConfigType.SIGN_IN_MFA_SINGLE_AUTH
+    private val defaultChallengeTypes = listOf("password", "oob")
 
     override fun setup() {
         super.setup()
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
         resources = config.resources
     }
 
@@ -203,9 +210,6 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
     fun `test selection required, request challenge on specific auth method and complete MFA flow`() {
         retryOperation {
             runBlocking {
-                val configType = ConfigType.SIGN_IN_MFA_MULTI_AUTH
-                setupPCA(configType)
-
                 val scopeA = resources[0].scopes[0]
                 val scopeB = resources[0].scopes[1]
 
