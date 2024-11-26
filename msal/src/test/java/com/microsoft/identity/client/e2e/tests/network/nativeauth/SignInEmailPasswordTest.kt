@@ -32,6 +32,7 @@ import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Assert.assertNotNull
@@ -40,6 +41,7 @@ import org.junit.Ignore
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.spy
+import org.robolectric.RuntimeEnvironment.application
 
 class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() {
 
@@ -48,12 +50,6 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
     private val defaultConfigType = ConfigType.SIGN_IN_PASSWORD
     private val defaultChallengeTypes = listOf("password", "oob")
-
-    override fun setup() {
-        super.setup()
-        config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
-    }
 
     /**
      * Use valid email and password to get token.
@@ -72,14 +68,19 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
      * (use case 1.2.2, Test case 38)
      */
     @Test
-    fun testErrorIsUserNotFound() = runTest {
-        val username = config.email
-        val password = getSafePassword()
-        // Turn an existing username to a non-existing username
-        val alteredUsername = username.replace("@", "1234@")
-        val result = application.signIn(alteredUsername, password.toCharArray())
-        Assert.assertTrue(result is SignInError)
-        Assert.assertTrue((result as SignInError).isUserNotFound())
+    fun testErrorIsUserNotFound() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+
+        runBlocking {
+            val username = config.email
+            val password = getSafePassword()
+            // Turn an existing username to a non-existing username
+            val alteredUsername = username.replace("@", "1234@")
+            val result = application.signIn(alteredUsername, password.toCharArray())
+            Assert.assertTrue(result is SignInError)
+            Assert.assertTrue((result as SignInError).isUserNotFound())
+        }
     }
 
     /**
@@ -87,58 +88,18 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
      * (use case 1.2.3, Test case 39)
      */
     @Test
-    fun testErrorIsInvalidCredentials() = runTest {
-        val username = config.email
-        val password = getSafePassword()
-        // Turn correct password into an incorrect one
-        val alteredPassword = password + "1234"
-        val result = application.signIn(username, alteredPassword.toCharArray())
-        Assert.assertTrue(result is SignInError)
-        Assert.assertTrue((result as SignInError).isInvalidCredentials())
-    }
+    fun testErrorIsInvalidCredentials() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
 
-    @Test
-    @Ignore("Ignore until MFA is available on test slice")
-    fun testSignInMFASimple() = runTest {
-        val nativeAuthConfigField = application.javaClass.getDeclaredField("nativeAuthConfig")
-        nativeAuthConfigField.isAccessible = true
-        val config = nativeAuthConfigField.get(application) as NativeAuthPublicClientApplicationConfiguration
-
-        val mfaRequiredResult = SignInResult.MFARequired(
-            nextState = AwaitingMFAState(
-                continuationToken = "1234",
-                correlationId = "abcd",
-                scopes = null,
-                config = config
-            )
-        )
-        val app = spy(application)
-        Mockito.doReturn(mfaRequiredResult)
-            .`when`(app).signIn("user", "password".toCharArray(), null)
-
-        val result = app.signIn("user", "password".toCharArray(), null)
-        assertResult<SignInResult.MFARequired>(result)
-
-        // Initiate challenge, send code to email
-        val sendChallengeResult = (result as SignInResult.MFARequired).nextState.requestChallenge()
-        assertResult<MFARequiredResult.VerificationRequired>(sendChallengeResult)
-        (sendChallengeResult as MFARequiredResult.VerificationRequired)
-        assertNotNull(sendChallengeResult.sentTo)
-        assertNotNull(sendChallengeResult.codeLength)
-        assertNotNull(sendChallengeResult.channel)
-
-        // Retrieve all methods to build additional "pick MFA method UI"
-        val authMethodsResult = sendChallengeResult.nextState.getAuthMethods()
-        assertResult<MFARequiredResult.SelectionRequired>(authMethodsResult)
-        (authMethodsResult as MFARequiredResult.SelectionRequired)
-        assertTrue(authMethodsResult.authMethods.isNotEmpty())
-
-        // call /challenge with specified ID
-        val sendChallengeResult2 = sendChallengeResult.nextState.requestChallenge(authMethodsResult.authMethods[0])
-        assertResult<MFARequiredResult.VerificationRequired>(sendChallengeResult2)
-
-        // Submit the user supplied code to the API
-        val submitCodeResult = (sendChallengeResult2 as MFARequiredResult.VerificationRequired).nextState.submitChallenge("1234")
-        assertResult<SignInResult.Complete>(submitCodeResult)
+        runBlocking {
+            val username = config.email
+            val password = getSafePassword()
+            // Turn correct password into an incorrect one
+            val alteredPassword = password + "1234"
+            val result = application.signIn(username, alteredPassword.toCharArray())
+            assertTrue(result is SignInError)
+            assertTrue((result as SignInError).isInvalidCredentials())
+        }
     }
 }
