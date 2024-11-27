@@ -51,13 +51,6 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
     private val defaultConfigType = ConfigType.SIGN_IN_MFA_SINGLE_AUTH
     private val defaultChallengeTypes = listOf("password", "oob")
 
-    override fun setup() {
-        super.setup()
-        config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
-        resources = config.resources
-    }
-
     /**
      * Full flow:
      * - Receive MFA required error from API.
@@ -72,6 +65,10 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
      */
     @Test
     fun `test submit invalid challenge, request new challenge, submit correct challenge and complete MFA flow`()  {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+        resources = config.resources
+
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val username = config.email
@@ -138,6 +135,10 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
      */
     @Test
     fun `test get other auth methods, request challenge on specific auth method and complete MFA flow`() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+        resources = config.resources
+
         retryOperation {
             runBlocking {
                 val scopeA = resources[0].scopes[0]
@@ -205,6 +206,10 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
      */
     @Test
     fun `test selection required, request challenge on specific auth method and complete MFA flow`() {
+        config = getConfig(ConfigType.SIGN_IN_MFA_MULTI_AUTH)
+        application = setupPCA(config, defaultChallengeTypes)
+        resources = config.resources
+
         retryOperation {
             runBlocking {
                 val scopeA = resources[0].scopes[0]
