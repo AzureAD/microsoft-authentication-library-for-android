@@ -53,7 +53,7 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
     /**
      * Use valid email and password to get token.
-     * (hero scenario 15, use case 1.2.1, Test case 37)
+     * (hero scenario 15, use case 1.2.1)
      */
     @Test
     fun testSuccess() {
@@ -64,13 +64,13 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
             val username = config.email
             val password = getSafePassword()
             val result = application.signIn(username, password.toCharArray())
-            Assert.assertTrue(result is SignInResult.Complete)
+            assertTrue(result is SignInResult.Complete)
         }
     }
 
     /**
      * Use invalid email address to receive a "user not found" error.
-     * (use case 1.2.2, Test case 38)
+     * (use case 1.2.2)
      */
     @Test
     fun testErrorIsUserNotFound() {
@@ -78,19 +78,17 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
         application = setupPCA(config, defaultChallengeTypes)
 
         runBlocking {
-            val username = config.email
+            val username = INVALID_EMAIL
             val password = getSafePassword()
-            // Turn an existing username to a non-existing username
-            val alteredUsername = username.replace("@", "1234@")
-            val result = application.signIn(alteredUsername, password.toCharArray())
-            Assert.assertTrue(result is SignInError)
-            Assert.assertTrue((result as SignInError).isUserNotFound())
+            val result = application.signIn(username, password.toCharArray())
+            assertTrue(result is SignInError)
+            assertTrue((result as SignInError).isUserNotFound())
         }
     }
 
     /**
      * Use valid email address and invalid password to receive a "invalid credentials" error.
-     * (use case 1.2.3, Test case 39)
+     * (use case 1.2.3)
      */
     @Test
     fun testErrorIsInvalidCredentials() {
@@ -99,10 +97,8 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
         runBlocking {
             val username = config.email
-            val password = getSafePassword()
-            // Turn correct password into an incorrect one
-            val alteredPassword = password + "1234"
-            val result = application.signIn(username, alteredPassword.toCharArray())
+            val password = INVALID_PASSWORD
+            val result = application.signIn(username, password.toCharArray())
             assertTrue(result is SignInError)
             assertTrue((result as SignInError).isInvalidCredentials())
         }

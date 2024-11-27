@@ -65,7 +65,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
     /**
      * Sign up with email + password. Set email and password (mimicking one combined screen for email & password collection), and then verify email OTP as last step
-     * (hero scenario 9, use case 1.1.1,  Test case 13)
+     * (hero scenario 9, use case 1.1.1)
      */
     @Test
     fun testSuccessOTPLast() {
@@ -87,8 +87,33 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     }
 
     /**
+     * Sign up with email + password. Resend email OOB.
+     * (use case 1.1.2)
+     */
+    @Test
+    fun testResendEmailOOB() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+
+        retryOperation {
+            runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
+                val user = tempEmailApi.generateRandomEmailAddress()
+                val password = getSafePassword()
+                val signUpResult = application.signUp(user, password.toCharArray())
+                assertResult<SignUpResult.CodeRequired>(signUpResult)
+                val otp1 = tempEmailApi.retrieveCodeFromInbox(user)
+                val codeRequiredState = (signUpResult as SignUpResult.CodeRequired).nextState
+                val resendCodeResult = codeRequiredState.resendCode()
+                assertResult<SignUpResendCodeResult.Success>(resendCodeResult)
+                val otp2 = tempEmailApi.retrieveCodeFromInbox(user)
+                Assert.assertNotEquals(otp1, otp2)
+            }
+        }
+    }
+
+    /**
      * Sign up with email + password. Verify email address using email OTP and then set password (mimicking email and password collection on separate screens).
-     * (use case 1.1.4, Test case 16)
+     * (use case 1.1.4)
      */
     @Test
     fun testSuccessOTPFirst() {
@@ -113,7 +138,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
     /**
      * Sign up with email + password. Verify email address using email OTP, resend OTP and then set password.
-     * (use case 1.1.5, Test case 16)
+     * (use case 1.1.5)
      */
     @Test
     fun testSuccessOTPResend() {
@@ -139,29 +164,9 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
         }
     }
 
-
-    /**
-     * Sign up with email + password. Resend email OOB.
-     * (use case 1.1.2, Test case 26)
-     */
-    @Test
-    fun testResendEmailOOB() {
-        config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
-
-        runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-            val user = tempEmailApi.generateRandomEmailAddress()
-            val signUpResult = application.signUp(user)
-            assertResult<SignUpResult.CodeRequired>(signUpResult)
-            val codeRequiredState = (signUpResult as SignUpResult.CodeRequired).nextState
-            val resendCodeResult = codeRequiredState.resendCode()
-            assertResult<SignUpResendCodeResult.Success>(resendCodeResult)
-        }
-    }
-
     /**
      * Sign up with email + password. User already exists with given email as email-pw account.
-     * (use case 1.1.10, Test case 28)
+     * (use case 1.1.10)
      */
     @Test
     fun testErrorUserExistAsPassword() {
@@ -170,7 +175,8 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
         runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
             val user = config.email
-            val signUpResult = application.signUp(user)
+            val password = getSafePassword()
+            val signUpResult = application.signUp(user, password.toCharArray())
             Assert.assertTrue(signUpResult is SignUpError)
             Assert.assertTrue((signUpResult as SignUpError).isUserAlreadyExists())
         }
@@ -178,7 +184,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
     /**
      * Sign up with email + password. User already exists with given email as social account.
-     * (use case 1.1.11, Test case 29)
+     * (use case 1.1.11)
      */
     @Ignore("TODO: Add social account in the tenant.")
     @Test
@@ -187,18 +193,17 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
         application = setupPCA(config, defaultChallengeTypes)
 
         runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-            val user = tempEmailApi.generateRandomEmailAddress()
-            val signUpResult = application.signUp(user)
-            assertResult<SignUpResult.CodeRequired>(signUpResult)
-            val codeRequiredState = (signUpResult as SignUpResult.CodeRequired).nextState
-            val resendCodeResult = codeRequiredState.resendCode()
-            assertResult<SignUpResendCodeResult.Success>(resendCodeResult)
+            val user = config.email
+            val password = getSafePassword()
+            val signUpResult = application.signUp(user, password.toCharArray())
+            Assert.assertTrue(signUpResult is SignUpError)
+            Assert.assertTrue((signUpResult as SignUpError).isUserAlreadyExists())
         }
     }
 
     /**
      * Sign up with email + password. Developer makes a request with invalid format email address.
-     * (use case 1.1.12, Test case 30)
+     * (use case 1.1.12)
      */
     @Test
     fun testErrorInvalidEmailFormat() {
@@ -207,7 +212,8 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
         runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
             val user = INVALID_EMAIL
-            val signUpResult = application.signUp(user)
+            val password = getSafePassword()
+            val signUpResult = application.signUp(user, password.toCharArray())
             Assert.assertTrue(signUpResult is SignUpError)
             Assert.assertTrue((signUpResult as SignUpError).isInvalidUsername())
         }
@@ -215,7 +221,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
     /**
      * Sign up with email + password. Developer makes a request with password that does not match password complexity requirements set on portal.
-     * (use case 1.1.13, Test case 31)
+     * (use case 1.1.13)
      */
     @Test
     fun testErrorInvalidPasswordFormat() {
@@ -233,7 +239,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
     /**
      * Sign up with email + password. Developer can opt to get AT and/or ID token (aka sign in after signup).
-     * (use case 1.1.14, Test case 32)
+     * (use case 1.1.14)
      */
     @Test
     fun testSignInAfterSignUp() {

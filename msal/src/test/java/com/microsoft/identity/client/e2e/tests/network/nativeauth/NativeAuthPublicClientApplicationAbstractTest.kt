@@ -59,8 +59,8 @@ import org.robolectric.annotation.LooperMode
 abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientApplicationTest {
     companion object{
         const val SHARED_PREFERENCES_NAME = "com.microsoft.identity.client.account_credential_cache"
-        const val INVALID_EMAIL = "invalid_email"
-        const val INVALID_PASSWORD = "invalid_password"
+        const val INVALID_EMAIL = "email"
+        const val INVALID_PASSWORD = "password"
     }
 
     private lateinit var context: Context

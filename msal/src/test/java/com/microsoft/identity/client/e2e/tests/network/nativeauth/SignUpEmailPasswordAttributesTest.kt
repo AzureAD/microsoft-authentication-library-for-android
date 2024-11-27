@@ -55,7 +55,7 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
      * Mimic a 2-step UX:
      * 1. Capture email address, password and attributes
      * 2. Validate OTP.
-     * (hero scenario 10, use case 1.1.3, Test case 15)
+     * (hero scenario 10, use case 1.1.3)
      */
     @Test
     fun testEmailPasswordAttributesOnSameScreen() {
@@ -84,7 +84,7 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
      * 1. Capture email address & validate
      * 2. Set password
      * 3. Set custom attributes.
-     * (hero scenario 12, use case 1.1.6) - Test case 28
+     * (hero scenario 12, use case 1.1.6)
      */
     @Test
     fun testSeparateEmailPasswordAndAttributesOnSameScreen() {
@@ -120,7 +120,7 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
      * 3. Set first attribute.
      * 4. Set second attribute.
      * 5. etc.
-     * ((hero scenario 13) - Test case 29
+     * ((hero scenario 13)
      */
     @Test
     fun testSeparateEmailPasswordAndAttributesOnMultipleScreens() {

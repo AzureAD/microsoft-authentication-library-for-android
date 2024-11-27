@@ -54,7 +54,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     /**
      * Use valid email and OTP to get token and sign in.
-     * (hero scenario 6, use case 2.2.1, Test case 30)
+     * (hero scenario 6, use case 2.2.1)
      */
     @Test
     fun testSuccess() {
@@ -72,7 +72,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     /**
      * Use invalid email address to receive a "user not found" error.
-     * (use case 2.2.2, Test case 31)
+     * (use case 2.2.2)
      */
     @Test
     fun testErrorIsUserNotFound() = runTest {
@@ -86,7 +86,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     /**
      * Use valid email address, but invalid OTP to receive "invalid code" error.
-     * (use case 2.2.7, Test case 35)
+     * (use case 2.2.7)
      */
     @Test
     fun testErrorIsInvalidCode() {

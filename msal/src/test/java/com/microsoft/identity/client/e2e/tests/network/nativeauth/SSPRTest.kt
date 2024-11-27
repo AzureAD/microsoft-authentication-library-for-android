@@ -65,7 +65,7 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     /**
      * Verify email with email OTP first and then reset password.
-     * (hero scenario 8 & 17, use case 3.1.1, Test case 46)
+     * (hero scenario 8 & 17, use case 3.1.1)
      */
     @Test
     fun testSSPRSuccess() = runBlocking {

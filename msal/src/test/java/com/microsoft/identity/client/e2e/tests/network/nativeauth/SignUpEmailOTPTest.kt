@@ -49,7 +49,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     /**
      * Sign up with email + OTP. Verify email address using email OTP and sign up.
-     * (hero scenario 1, use case 2.1.1, Test case 1)
+     * (hero scenario 1, use case 2.1.1)
      */
     @Test
     fun testSuccess() {
@@ -71,7 +71,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     /**
      * Sign up with email + OTP. Resend email OTP.
-     * (hero scenario 1, use case 2.1.5, Test case 11)
+     * (hero scenario 1, use case 2.1.5)
      */
     @Test
     fun testResendCode() {
@@ -95,7 +95,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     /**
      * Sign up with email + OTP. User already exists with given email as email-otp account.
-     * (hero scenario 1, use case 2.1.6, Test case 12)
+     * (hero scenario 1, use case 2.1.6)
      */
     @Test
     fun testErrorUserExistAsOTP() {
@@ -112,7 +112,6 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     /**
      * Sign up with email + OTP. User already exists with given email as email-pw account.
-     * (Test case 13)
      */
     @Test
     fun testErrorUserExistAsPassword() {
@@ -129,12 +128,12 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     /**
      * Sign up with email + OTP. User already exists with given email as social account.
-     * (use case 2.1.7, Test case 14)
+     * (use case 2.1.7)
      */
     @Ignore("TODO: Add social account in the tenant.")
     @Test
     fun testErrorUserExistAsSocial() {
-        config = getConfig(ConfigType.SIGN_IN_PASSWORD)
+        config = getConfig(ConfigType.SIGN_IN_OTP)
         application = setupPCA(config, defaultChallengeTypes)
 
         runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
@@ -147,7 +146,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     /**
      * Sign up with email + OTP. Developer makes a request with invalid format email address.
-     * (use case 2.1.8, Test case 15)
+     * (use case 2.1.8)
      */
     @Test
     fun testErrorInvalidEmailFormat() {
@@ -164,7 +163,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     /**
      * Sign up with email + OTP. Developer can opt to get AT and/or ID token (aka sign in after signup).
-     * (use case 2.1.9, Test case 16)
+     * (use case 2.1.9)
      */
     @Test
     fun testSignInAfterSignUp() {
@@ -187,7 +186,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     /**
      * Sign up with email + OTP. Server requires password authentication, which is not supported by the developer (aka redirect flow).
-     * (use case 2.1.10, Test case 17)
+     * (use case 2.1.10)
      */
     @Test
     fun testErrorRedirect() {
@@ -204,7 +203,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     /**
      * Sign up with email + OTP. Server requires password authentication, which is supported by the developer.
-     * (hero scenario 11, use case 2.1.11, Test case 17)
+     * (hero scenario 11, use case 2.1.11)
      */
     @Test
     fun testPasswordRequired() {

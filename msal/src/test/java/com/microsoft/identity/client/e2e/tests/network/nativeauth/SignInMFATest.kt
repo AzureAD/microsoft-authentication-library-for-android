@@ -70,7 +70,6 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
      *
      * Note: this test also asserts whether the scopes requested at sign in are present in the token that's received at the end of the flow
      */
-    @Ignore("Fetching OTP code is unstable")
     @Test
     fun `test submit invalid challenge, request new challenge, submit correct challenge and complete MFA flow`()  {
         retryOperation {
@@ -137,7 +136,6 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
      *
      * Note: this test also asserts whether the scopes requested at sign in are present in the token that's received at the end of the flow
      */
-    @Ignore("Fetching OTP code is unstable")
     @Test
     fun `test get other auth methods, request challenge on specific auth method and complete MFA flow`() {
         retryOperation {
@@ -205,7 +203,6 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
      *
      * Note: this test also asserts whether the scopes requested at sign in are present in the token that's received at the end of the flow
      */
-    @Ignore("Fetching OTP code is unstable")
     @Test
     fun `test selection required, request challenge on specific auth method and complete MFA flow`() {
         retryOperation {
