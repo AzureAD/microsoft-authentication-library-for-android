@@ -27,6 +27,7 @@ import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
+import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.statemachine.errors.MFASubmitChallengeError
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
 import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
@@ -37,20 +38,18 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Ignore
 import org.junit.Test
-import java.lang.Thread.sleep
 
 class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 
-    override var defaultConfigType = ConfigType.SIGN_IN_MFA_SINGLE_AUTH
-
     private lateinit var resources: List<NativeAuthTestConfig.Resource>
 
-    override fun setup() {
-        super.setup()
-        resources = config.resources
-    }
+    lateinit var application: INativeAuthPublicClientApplication
+    lateinit var config: NativeAuthTestConfig.Config
+
+    private val defaultConfigType = ConfigType.SIGN_IN_MFA_SINGLE_AUTH
+    private val defaultChallengeTypes = listOf("password", "oob")
 
     /**
      * Full flow:
@@ -64,9 +63,12 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
      *
      * Note: this test also asserts whether the scopes requested at sign in are present in the token that's received at the end of the flow
      */
-    @Ignore("Fetching OTP code is unstable")
     @Test
     fun `test submit invalid challenge, request new challenge, submit correct challenge and complete MFA flow`()  {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+        resources = config.resources
+
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val username = config.email
@@ -131,9 +133,12 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
      *
      * Note: this test also asserts whether the scopes requested at sign in are present in the token that's received at the end of the flow
      */
-    @Ignore("Fetching OTP code is unstable")
     @Test
     fun `test get other auth methods, request challenge on specific auth method and complete MFA flow`() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+        resources = config.resources
+
         retryOperation {
             runBlocking {
                 val scopeA = resources[0].scopes[0]
@@ -199,14 +204,14 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
      *
      * Note: this test also asserts whether the scopes requested at sign in are present in the token that's received at the end of the flow
      */
-    @Ignore("Fetching OTP code is unstable")
     @Test
     fun `test selection required, request challenge on specific auth method and complete MFA flow`() {
+        config = getConfig(ConfigType.SIGN_IN_MFA_MULTI_AUTH)
+        application = setupPCA(config, defaultChallengeTypes)
+        resources = config.resources
+
         retryOperation {
             runBlocking {
-                val configType = ConfigType.SIGN_IN_MFA_MULTI_AUTH
-                setupPCA(configType)
-
                 val scopeA = resources[0].scopes[0]
                 val scopeB = resources[0].scopes[1]
 

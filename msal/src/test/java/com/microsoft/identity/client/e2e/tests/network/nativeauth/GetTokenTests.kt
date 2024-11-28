@@ -27,6 +27,7 @@ import com.microsoft.identity.client.e2e.shadows.ShadowBaseController
 import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
+import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
@@ -41,12 +42,18 @@ class GetTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
 
     private lateinit var resources: List<NativeAuthTestConfig.Resource>
 
+    lateinit var application: INativeAuthPublicClientApplication
+    lateinit var config: NativeAuthTestConfig.Config
+
+    private val defaultConfigType = ConfigType.SIGN_IN_PASSWORD
+    private val defaultChallengeTypes = listOf("password", "oob")
+
     override fun setup() {
         super.setup()
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
         resources = config.resources
     }
-
-    override val defaultConfigType = ConfigType.SIGN_IN_PASSWORD
 
     /**
      * Signing in with an invalid scope should make the API and the SDK return an error.

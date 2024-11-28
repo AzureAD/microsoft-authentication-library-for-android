@@ -26,6 +26,8 @@ package com.microsoft.identity.client.e2e.tests.network.nativeauth
 import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
+import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
+import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
@@ -38,11 +40,21 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 
-    override val defaultConfigType = ConfigType.SIGN_IN_OTP
+    lateinit var application: INativeAuthPublicClientApplication
+    lateinit var config: NativeAuthTestConfig.Config
+
+    private val defaultConfigType = ConfigType.SIGN_IN_OTP
+    private val defaultChallengeTypes = listOf("password", "oob")
+
+    override fun setup() {
+        super.setup()
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+    }
 
     /**
      * Use valid email and OTP to get token and sign in.
-     * (hero scenario 6, use case 2.2.1, Test case 30)
+     * (hero scenario 6, use case 2.2.1)
      */
     @Test
     fun testSuccess() {
@@ -60,7 +72,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     /**
      * Use invalid email address to receive a "user not found" error.
-     * (use case 2.2.2, Test case 31)
+     * (use case 2.2.2)
      */
     @Test
     fun testErrorIsUserNotFound() = runTest {
@@ -74,7 +86,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     /**
      * Use valid email address, but invalid OTP to receive "invalid code" error.
-     * (use case 2.2.7, Test case 35)
+     * (use case 2.2.7)
      */
     @Test
     fun testErrorIsInvalidCode() {
