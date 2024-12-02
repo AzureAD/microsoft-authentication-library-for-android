@@ -3,6 +3,18 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 vNext
 ----------
 -[MINOR] Add suberror for network errors (#2218)
+
+Version 5.8.2
+----------
+-[PATCH] Update common @18.2.2
+
+Version 5.8.1
+----------
+-[PATCH] Update common @18.2.1
+
+Version 5.8.0
+----------
+-[PATCH] Update common @18.2.0
 -[MINOR] Migrate Base64 away from Msebera (#2210)
 
 Version 5.7.0

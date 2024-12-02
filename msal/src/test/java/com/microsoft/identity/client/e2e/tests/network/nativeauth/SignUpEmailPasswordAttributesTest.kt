@@ -26,25 +26,36 @@ package com.microsoft.identity.client.e2e.tests.network.nativeauth
 import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
+import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
+import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.UserAttributes
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
-import org.junit.Ignore
 import org.junit.Test
 
 class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 
-    override val defaultConfigType = ConfigType.SIGN_UP_PASSWORD_ATTRIBUTES
+    lateinit var application: INativeAuthPublicClientApplication
+    lateinit var config: NativeAuthTestConfig.Config
+
+    private val defaultConfigType = ConfigType.SIGN_UP_PASSWORD_ATTRIBUTES
+    private val defaultChallengeTypes = listOf("password", "oob")
+
+    override fun setup() {
+        super.setup()
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+    }
 
     /**
      * Sign up with password and attributes on start, then verify OTP as last step.
      * Mimic a 2-step UX:
      * 1. Capture email address, password and attributes
      * 2. Validate OTP.
-     * (hero scenario 10, use case 1.1.3, Test case 15)
+     * (hero scenario 10, use case 1.1.3)
      */
     @Test
     fun testEmailPasswordAttributesOnSameScreen() {
@@ -73,7 +84,7 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
      * 1. Capture email address & validate
      * 2. Set password
      * 3. Set custom attributes.
-     * (hero scenario 12, use case 1.1.6) - Test case 28
+     * (hero scenario 12, use case 1.1.6)
      */
     @Test
     fun testSeparateEmailPasswordAndAttributesOnSameScreen() {
@@ -109,7 +120,7 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
      * 3. Set first attribute.
      * 4. Set second attribute.
      * 5. etc.
-     * ((hero scenario 13) - Test case 29
+     * ((hero scenario 13)
      */
     @Test
     fun testSeparateEmailPasswordAndAttributesOnMultipleScreens() {
