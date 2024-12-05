@@ -42,6 +42,12 @@ import com.microsoft.identity.common.java.exception.UserCancelException;
 public class MsalExceptionAdapter {
 
     public static MsalException msalExceptionFromBaseException(final BaseException e) {
+        final MsalException result = msalExceptionFromBaseExceptionInternal(e);
+        result.setSubErrorCode(e.getSubErrorCode());
+        return result;
+    }
+
+    private static MsalException msalExceptionFromBaseExceptionInternal(final BaseException e) {
         if (e instanceof MsalException) {
             return  (MsalException) e;
         }
@@ -69,8 +75,8 @@ public class MsalExceptionAdapter {
             final UiRequiredException uiRequiredException = ((UiRequiredException) e);
             return new MsalUiRequiredException(
                     uiRequiredException.getErrorCode(),
-                    uiRequiredException.getOAuthSubErrorCode(),
-                    uiRequiredException.getMessage()
+                    uiRequiredException.getMessage(),
+                    uiRequiredException
             );
         }
 
