@@ -31,6 +31,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -65,6 +66,7 @@ import com.microsoft.identity.common.java.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
@@ -287,6 +289,7 @@ public class AcquireTokenFragment extends Fragment {
         final INotifyOperationResultCallback acquireTokenCallback = new INotifyOperationResultCallback<IAuthenticationResult>() {
             @Override
             public void onSuccess(IAuthenticationResult result) {
+                Log.d("TAG","Id token is "+ Objects.requireNonNull(result.getAccount().getIdToken())) ;
                 mOnFragmentInteractionListener.onGetAuthResult(result);
             }
 

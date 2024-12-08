@@ -157,7 +157,9 @@ abstract class MsalWrapper {
         // add "is_remote_login_allowed=true" if passed
         if (requestOptions.isAllowSignInFromOtherDevice()) {
             extraQP.add(new AbstractMap.SimpleEntry<>("is_remote_login_allowed", Boolean.toString(true)));
+            extraQP.add(new AbstractMap.SimpleEntry<>("nonce", "iRYGkjvFqucmr7wYT2E_DEOq7n67M6k2lYzvL0pHFjm"));
         }
+
         builder.withAuthorizationQueryStringParameters(extraQP);
 
         if (!StringUtil.isNullOrEmpty(requestOptions.getAuthority())) {
