@@ -107,6 +107,6 @@ jobs:
         tasks: clean msal:dependencyCheckAnalyze
         publishJUnitResults: false
         jdkVersion: 1.11
-    - publish: $(System.DefaultWorkingDirectory)/build/dependency-check-report
+    - publish: $(System.DefaultWorkingDirectory)/msal/build/dependency-check-report
       artifact: CodeAnalysisLogs
 ...
