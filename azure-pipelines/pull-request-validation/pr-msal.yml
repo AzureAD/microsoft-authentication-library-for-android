@@ -93,7 +93,7 @@ jobs:
       tasks: clean msal:lintLocalDebug
       publishJUnitResults: false
       jdkVersion: 1.11
-- job: dependency-check
+- job: dependency_check
   displayName: Dependency Check
   cancelTimeoutInMinutes: 1
   steps:
