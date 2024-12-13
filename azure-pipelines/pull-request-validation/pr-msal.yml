@@ -93,5 +93,20 @@ jobs:
       tasks: clean msal:lintLocalDebug
       publishJUnitResults: false
       jdkVersion: 1.11
-
+- job: dependency-check
+  displayName: Dependency Check
+  cancelTimeoutInMinutes: 1
+  steps:
+    - checkout: self
+      clean: true
+      submodules: recursive
+      persistCredentials: True
+    - task: Gradle@3
+      displayName: Dependency Check Analyze
+      inputs:
+        tasks: clean msal:dependencyCheckAnalyze
+        publishJUnitResults: false
+        jdkVersion: 1.11
+    - publish: $(System.DefaultWorkingDirectory)/build/dependency-check-report
+      artifact: CodeAnalysisLogs
 ...

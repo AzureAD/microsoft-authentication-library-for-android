@@ -5,6 +5,7 @@ plugins {
     id 'checkstyle'
     id 'maven-publish'
     id 'kotlin-android'
+    id 'org.owasp.dependencycheck' version '8.2.1'
 }
 
 apply from: 'versioning/version_tasks.gradle'
@@ -29,6 +30,12 @@ if (project.hasProperty("codeCoverageEnabled")) {
 
 codeCoverageReport {
     coverage.enabled = enableCodeCoverage
+}
+
+dependencyCheck {
+    // https://jeremylong.github.io/DependencyCheck/dependency-check-gradle/configuration.html
+    formats = ['HTML', 'JSON', 'SARIF'] // Output formats.
+    outputDirectory = "${buildDir}/dependency-check-report" // Report location.
 }
 
 android {
