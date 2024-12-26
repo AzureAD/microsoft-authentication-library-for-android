@@ -54,7 +54,6 @@ import java.util.List;
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
 @RetryOnFailure
 @RunWith(Parameterized.class)
-@RetryOnFailure
 public class TestCase2584411 extends AbstractMsalBrokerTest {
     private final UserType mUserType;
 
