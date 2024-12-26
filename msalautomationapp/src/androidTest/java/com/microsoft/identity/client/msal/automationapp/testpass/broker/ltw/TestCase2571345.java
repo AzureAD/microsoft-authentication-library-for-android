@@ -54,7 +54,6 @@ import java.util.List;
 @RetryOnFailure
 @RunOnAPI29Minus
 @SupportedBrokers(brokers = {BrokerLTW.class})
-@RetryOnFailure
 @RunWith(Parameterized.class)
 public class TestCase2571345 extends AbstractMsalBrokerTest {
 
