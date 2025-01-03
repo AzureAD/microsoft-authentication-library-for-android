@@ -118,7 +118,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
         runBlocking {
             val user = config.email
             val signInResult = application.signIn(user)
-            assertResult<SignInResult.CodeRequired>(signInResult)
+            assertResult<SignInResult.PasswordRequired>(signInResult)
 
             val password = getSafePassword()
             val passwordRequiredState = (signInResult as SignInResult.PasswordRequired).nextState
