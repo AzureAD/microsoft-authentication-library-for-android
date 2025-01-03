@@ -29,12 +29,14 @@ import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailSe
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
+import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordSubmitPasswordError
+import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResendCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitCodeResult
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runTest
 import org.junit.Assert
+import org.junit.Ignore
 import org.junit.Test
 
 class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
@@ -47,32 +49,19 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
     private val defaultConfigType = ConfigType.SSPR
     private val defaultChallengeTypes = listOf("password", "oob")
 
-    override fun setup() {
-        super.setup()
-        config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
-    }
-
-    @Test
-    fun testSSPRErrorSimple() = runTest {
-        val user = config.email
-        // Turn correct username into an incorrect one
-        val invalidUser = user + "x"
-        val result = application.resetPassword(invalidUser)
-        Assert.assertTrue(result is ResetPasswordError)
-        Assert.assertTrue((result as ResetPasswordError).isUserNotFound())
-    }
-
     /**
      * Verify email with email OTP first and then reset password.
      * (hero scenario 8 & 17, use case 3.1.1)
      */
     @Test
-    fun testSSPRSuccess() = runBlocking {
+    fun testSSPRSuccess() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+
         var result: ResetPasswordStartResult
 
         retryOperation {
-            runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
+            runBlocking {
                 val user = config.email
                 result = application.resetPassword(user)
                 assertResult<ResetPasswordStartResult.CodeRequired>(result)
@@ -85,6 +74,132 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
                 val submitPasswordResult = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState.submitPassword(password.toCharArray())
                 Assert.assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
             }
+        }
+    }
+
+    /**
+     * New password being set doesn’t meet password complexity requirements set on portal
+     * (use case 3.1.3)
+     */
+    @Test
+    fun testErrorSPasswordComplexity() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+
+        var result: ResetPasswordStartResult
+
+        retryOperation {
+            runBlocking {
+                val user = config.email
+                result = application.resetPassword(user)
+                assertResult<ResetPasswordStartResult.CodeRequired>(result)
+
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val submitCodeResult = (result as ResetPasswordStartResult.CodeRequired).nextState.submitCode(otp)
+                assertResult<ResetPasswordSubmitCodeResult.PasswordRequired>(submitCodeResult)
+
+                val password = INVALID_PASSWORD
+                val submitPasswordResult = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState.submitPassword(password.toCharArray())
+                Assert.assertTrue(submitPasswordResult is ResetPasswordSubmitPasswordError)
+                Assert.assertTrue((submitPasswordResult as ResetPasswordSubmitPasswordError).isInvalidPassword())
+            }
+        }
+    }
+
+    /**
+     * Resend Code.
+     * (use case 3.1.4)
+     */
+    @Test
+    fun testResendCode() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+
+        var result: ResetPasswordStartResult
+
+        retryOperation {
+            runBlocking {
+                val user = config.email
+                result = application.resetPassword(user)
+                assertResult<ResetPasswordStartResult.CodeRequired>(result)
+
+                val otp1 = tempEmailApi.retrieveCodeFromInbox(user)
+                val codeRequiredState = (result as ResetPasswordStartResult.CodeRequired).nextState
+                val resendCodeResult = codeRequiredState.resendCode()
+                assertResult<ResetPasswordResendCodeResult.Success>(resendCodeResult)
+
+                val otp2 = tempEmailApi.retrieveCodeFromInbox(user)
+                Assert.assertNotEquals(otp1, otp2)
+            }
+        }
+    }
+
+    /**
+     * Email is not found in records.
+     * (use case 3.1.5)
+     */
+    @Test
+    fun testErrorUserNotExist() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+
+        runBlocking {
+            val username = INVALID_EMAIL
+            val result = application.resetPassword(username)
+            Assert.assertTrue(result is ResetPasswordError)
+            Assert.assertTrue((result as ResetPasswordError).isUserNotFound())
+        }
+    }
+
+    /**
+     *  When SSPR requires a challenge type not supported by the client, redirect to web-fallback.
+     * (use case 3.1.6)
+     */
+    @Test
+    fun testErrorInsufficientChallengesBrowserRequired() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, listOf("password"))
+
+        runBlocking {
+            val username = config.email
+            val result = application.resetPassword(username)
+            Assert.assertTrue(result is ResetPasswordError)
+            Assert.assertTrue((result as ResetPasswordError).isBrowserRequired())
+        }
+    }
+
+    /**
+     * Email exists but not linked to any password.
+     * (use case 3.1.8)
+     */
+    @Test
+    fun testError() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+
+        runBlocking {
+            val username = config.email
+            val result = application.resetPassword(username)
+            Assert.assertTrue(result is ResetPasswordError)
+            Assert.assertTrue((result as ResetPasswordError).errorMessage!!.contains("The tenant or user does not support native credential recovery."))
+        }
+    }
+
+    /**
+     * Email exists but signup method was OTP, social, etc.
+     * (use case 3.1.9)
+     */
+    @Ignore("TODO: Add social account in the tenant.")
+    @Test
+    fun testErrorUserExistAsSocial() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+
+        runBlocking {
+            val username = INVALID_EMAIL
+            val result = application.resetPassword(username)
+            Assert.assertTrue(result is ResetPasswordError)
+            Assert.assertTrue((result as ResetPasswordError).isUserNotFound())
         }
     }
 }
