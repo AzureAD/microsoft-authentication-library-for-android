@@ -174,14 +174,14 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
      */
     @Test
     fun testErrorNoPasswordLinked() {
-        config = getConfig(defaultConfigType)
+        config = getConfig(ConfigType.SIGN_IN_OTP)
         application = setupPCA(config, defaultChallengeTypes)
 
         runBlocking {
             val username = config.email
             val result = application.resetPassword(username)
             Assert.assertTrue(result is ResetPasswordError)
-//            Assert.assertTrue((result as ResetPasswordError).errorMessage!!.contains("The tenant or user does not support native credential recovery."))
+            Assert.assertTrue((result as ResetPasswordError).errorMessage!!.contains("The tenant or user does not support native credential recovery."))
         }
     }
 
