@@ -1,8 +1,9 @@
 MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki
 
-vNext
+Version 5.9.0
 ----------
 -[MINOR] Add suberror for network errors (#2218)
+-[PATCH] Update common @19.0.0
 
 Version 5.8.2
 ----------
