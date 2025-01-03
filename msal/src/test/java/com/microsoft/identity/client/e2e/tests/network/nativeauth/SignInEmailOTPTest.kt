@@ -117,9 +117,13 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         runBlocking {
             val user = config.email
-            val password = getSafePassword()
-            val signInResult = application.signIn(user, password.toCharArray())
+            val signInResult = application.signIn(user)
             assertResult<SignInResult.PasswordRequired>(signInResult)
+
+            val password = getSafePassword()
+            val passwordRequiredState = (signInResult as SignInResult.PasswordRequired).nextState
+            val submitPasswordResult = passwordRequiredState.submitPassword(password.toCharArray())
+            assertResult<SignInResult.CodeRequired>(submitPasswordResult)
         }
     }
 
@@ -129,11 +133,11 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      */
     @Test
     fun testResendCode() {
-        config = getConfig(ConfigType.SIGN_IN_PASSWORD)
+        config = getConfig(defaultConfigType)
         application = setupPCA(config, defaultChallengeTypes)
 
         retryOperation {
-            runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
+            runBlocking {
                 val user = config.email
                 val signInResult = application.signIn(user)
                 assertResult<SignInResult.CodeRequired>(signInResult)
