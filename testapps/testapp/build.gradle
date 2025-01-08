@@ -52,11 +52,13 @@ android {
         // Sets Java compatibility to Java 8
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+        coreLibraryDesugaringEnabled true
     }
 
 
     compileSdkVersion rootProject.ext.compileSdkVersion
     defaultConfig {
+        namespace "com.microsoft.identity.client.testapp"
         multiDexEnabled true
         applicationId "com.msft.identity.client.sample"
         minSdkVersion 24
@@ -64,6 +66,7 @@ android {
         versionCode 1
         versionName "1.0"
         buildConfigField("String", "otelAriaToken", "\"${otelAriaToken}\"" )
+        buildFeatures.buildConfig true
     }
     signingConfigs {
         debug {
@@ -124,6 +127,8 @@ dependencies {
     implementation "androidx.legacy:legacy-support-v4:$rootProject.ext.legacySupportV4Version"
     implementation "com.google.android.material:material:$rootProject.ext.materialVersion"
     implementation "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
+
+    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
 
     compileOnly "org.projectlombok:lombok:$rootProject.ext.lombokVersion"
     annotationProcessor "org.projectlombok:lombok:$rootProject.ext.lombokVersion"

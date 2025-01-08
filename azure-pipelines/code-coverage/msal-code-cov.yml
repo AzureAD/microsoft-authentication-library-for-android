@@ -54,7 +54,7 @@ jobs:
     inputs:
       tasks: clean msal:assembleLocal
       publishJUnitResults: false
-      jdkVersion: $(BuildParameters.jdkVersion)
+      jdkVersion: "$(BuildParameters.jdkVersion)"
       jdkArchitecture: $(BuildParameters.jdkArchitecture)
       sqGradlePluginVersion: 2.0.1
   - task: Gradle@2
@@ -67,7 +67,7 @@ jobs:
       summaryFileLocation: '$(Build.SourcesDirectory)\msal\build\reports\jacoco\localDebugMsalUnitTestCoverageReport\localDebugMsalUnitTestCoverageReport.xml'
       reportDirectory: '$(Build.SourcesDirectory)\msal\build\reports\jacoco\localDebugMsalUnitTestCoverageReport\html'
       javaHomeSelection: $(BuildParameters.javaHomeSelection)
-      jdkVersion: 1.11
+      jdkVersion: "1.17"
   - bash: |
       curl -Os https://uploader.codecov.io/latest/windows/codecov.exe
       ./codecov.exe -v -t '$(codecovToken)' -B '$(System.PullRequest.SourceBranch)' -P '$(System.PullRequest.PullRequestNumber)' -f "./msal/build/reports/jacoco/localDebugMsalUnitTestCoverageReport/localDebugMsalUnitTestCoverageReport.xml"

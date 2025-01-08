@@ -7,7 +7,7 @@ name: $(date:yyyyMMdd)$(rev:.r)
 
 variables:
 - name: BuildParameters.jdkVersion
-  value: 1.11
+  value: 1.17
 - name: BuildParameters.jdkArchitecture
   value: x64
 - name: BuildParameters.javaHomeSelection
@@ -53,7 +53,7 @@ jobs:
       tasks: clean msal:assembleLocal
       publishJUnitResults: false
       testResultsFiles: '**/build/test-results/TEST-*.xml'
-      jdkVersion: $(BuildParameters.jdkVersion)
+      jdkVersion: "$(BuildParameters.jdkVersion)"
       jdkArchitecture: $(BuildParameters.jdkArchitecture)
       sqGradlePluginVersion: 2.0.1
   - task: CodeQL3000Finalize@0
@@ -62,7 +62,7 @@ jobs:
     inputs:
       tasks: msal:testLocalDebugUnitTest -Plabtest -PlabSecret=$(LabVaultAppCert) -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PmockApiUrl=$(MOCK_API_URL)
       javaHomeSelection: $(BuildParameters.javaHomeSelection)
-      jdkVersion: 1.11
+      jdkVersion: "1.17"
 - job: spotbugs
   displayName: SpotBugs
   cancelTimeoutInMinutes: 1
@@ -92,6 +92,6 @@ jobs:
     inputs:
       tasks: clean msal:lintLocalDebug
       publishJUnitResults: false
-      jdkVersion: 1.11
+      jdkVersion: 1.17
 
 ...

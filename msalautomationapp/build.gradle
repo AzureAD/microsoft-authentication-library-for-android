@@ -74,6 +74,7 @@ android {
         buildConfigField("String", BROKER_HOST, "\"$BROKER_HOST\"")
         buildConfigField("String", AUTO_BROKER, "\"$AUTO_BROKER\"")
         buildConfigField("String", "COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES", "\"$copyOfLocalFlights\"")
+        buildFeatures.buildConfig true
     }
 
     testOptions {

@@ -10,6 +10,7 @@ android {
     }
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
+        namespace "com.microsoft.inspector"
         multiDexEnabled true
         applicationId "com.microsoft.shatestapp"
         minSdkVersion 19
