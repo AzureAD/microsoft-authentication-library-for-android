@@ -35,9 +35,8 @@ import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.PoPAuthenticationScheme;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.claims.ClaimsRequest;
-import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.common.internal.ui.browser.BrowserSelector;
+import com.microsoft.identity.common.internal.ui.browser.AndroidBrowserSelector;
 import com.microsoft.identity.common.java.exception.ClientException;
 
 import java.util.ArrayList;
@@ -68,7 +67,7 @@ public class SingleAccountModeWrapper extends MsalWrapper {
     @Override
     public String getDefaultBrowser() {
         try {
-            return new BrowserSelector(mApp.getConfiguration().getAppContext()).select(
+            return new AndroidBrowserSelector(mApp.getConfiguration().getAppContext()).selectBrowser(
                     mApp.getConfiguration().getBrowserSafeList(),
                     mApp.getConfiguration().getPreferredBrowser()).getPackageName();
         } catch (ClientException e) {
