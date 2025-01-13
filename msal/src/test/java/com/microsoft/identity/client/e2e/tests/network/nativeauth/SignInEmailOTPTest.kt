@@ -91,18 +91,14 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * (use case 2.2.7)
      */
     @Test
-    fun testErrorIsInvalidCode() {
-        retryOperation {
-            runBlocking {// Running with runBlocking to avoid default 10 second execution timeout.
-                val user = config.email
-                val signInResult = application.signIn(user)
-                assertResult<SignInResult.CodeRequired>(signInResult)
+    fun testErrorIsInvalidCode() = runTest {
+        val user = config.email
+        val signInResult = application.signIn(user)
+        assertResult<SignInResult.CodeRequired>(signInResult)
 
-                val incorrectOtp = "12345678"
-                val submitCodeResult = (signInResult as SignInResult.CodeRequired).nextState.submitCode(incorrectOtp)
-                Assert.assertTrue(submitCodeResult is SubmitCodeError)
-                Assert.assertTrue((submitCodeResult as SubmitCodeError).isInvalidCode())
-            }
-        }
+        val incorrectOtp = "12345678"
+        val submitCodeResult = (signInResult as SignInResult.CodeRequired).nextState.submitCode(incorrectOtp)
+        Assert.assertTrue(submitCodeResult is SubmitCodeError)
+        Assert.assertTrue((submitCodeResult as SubmitCodeError).isInvalidCode())
     }
 }
