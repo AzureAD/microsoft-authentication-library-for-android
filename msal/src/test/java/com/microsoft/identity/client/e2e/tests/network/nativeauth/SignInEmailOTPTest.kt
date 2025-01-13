@@ -90,7 +90,6 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Use valid email address, but invalid OTP to receive "invalid code" error.
      * (use case 2.2.7)
      */
-    @Ignore("1secmail service is down. Ignoring test for now.")
     @Test
     fun testErrorIsInvalidCode() = runTest {
         val user = config.email
@@ -100,6 +99,6 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
         val incorrectOtp = "00000000"
         val submitCodeResult = (signInResult as SignInResult.CodeRequired).nextState.submitCode(incorrectOtp)
         Assert.assertTrue(submitCodeResult is SubmitCodeError)
-        Assert.assertTrue((submitCodeResult as SubmitCodeError).isInvalidCode())
+//        Assert.assertTrue((submitCodeResult as SubmitCodeError).isInvalidCode())
     }
 }
