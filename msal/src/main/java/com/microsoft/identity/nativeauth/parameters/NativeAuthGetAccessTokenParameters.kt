@@ -24,19 +24,14 @@
 package com.microsoft.identity.nativeauth.parameters
 
 /**
- * Encapsulates the parameters passed to the signIn methods of NativeAuthPublicClientApplication
+ * Encapsulates the parameters passed to the getAccessToken methods of AccountState
  */
-class NativeAuthSignInParameters(
-    /**
-     * username of the account to sign in
-     */
-    username: String
-) {
+class NativeAuthGetAccessTokenParameters {
 
     /**
-     * password of the account to sign in.
+     * Set to true to ignore any existing access token in the cache and force MSAL to get a new access token from the service.
      */
-    var password: CharArray? = null
+    var forceRefresh: Boolean = false
 
     /**
      * Permissions you want included in the access token received.

@@ -23,24 +23,25 @@
 
 package com.microsoft.identity.nativeauth.parameters
 
+import com.microsoft.identity.nativeauth.UserAttributes
+
 /**
- * Encapsulates the parameters passed to the signIn methods of NativeAuthPublicClientApplication
+ * Encapsulates the parameters passed to the signUp methods of NativeAuthPublicClientApplication
  */
-class NativeAuthSignInParameters(
+class NativeAuthSignUpParameters(
     /**
-     * username of the account to sign in
+     * username of the account to sign up
      */
     username: String
 ) {
 
     /**
-     * password of the account to sign in.
+     * password of the account to sign up.
      */
     var password: CharArray? = null
 
     /**
-     * Permissions you want included in the access token received.
-     * Not all scopes are guaranteed to be included in the access token returned.
+     * user attributes to be used during account creation.
      */
-    var scopes: List<String>? = null
+    var attributes: UserAttributes? = null
 }

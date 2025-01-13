@@ -24,23 +24,11 @@
 package com.microsoft.identity.nativeauth.parameters
 
 /**
- * Encapsulates the parameters passed to the signIn methods of NativeAuthPublicClientApplication
+ * Encapsulates the parameters passed to the resetPassword methods of NativeAuthPublicClientApplication
  */
-class NativeAuthSignInParameters(
+class NativeAuthResetPasswordParameters(
     /**
-     * username of the account to sign in
+     * username of the account to reset password.
      */
     username: String
-) {
-
-    /**
-     * password of the account to sign in.
-     */
-    var password: CharArray? = null
-
-    /**
-     * Permissions you want included in the access token received.
-     * Not all scopes are guaranteed to be included in the access token returned.
-     */
-    var scopes: List<String>? = null
-}
+) {}
