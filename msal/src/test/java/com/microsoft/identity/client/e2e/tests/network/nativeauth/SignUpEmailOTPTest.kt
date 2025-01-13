@@ -191,6 +191,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Sign up with email + OTP. Server requires password authentication, which is not supported by the developer (aka redirect flow).
      * (use case 2.1.10)
      */
+    @Ignore("1secmail service is down. Ignoring test for now.")
     @Test
     fun testErrorRedirect() {
         config = getConfig(ConfigType.SIGN_UP_PASSWORD)

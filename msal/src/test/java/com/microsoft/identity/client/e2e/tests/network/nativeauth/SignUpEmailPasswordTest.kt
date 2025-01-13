@@ -228,6 +228,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
      * Sign up with email + password. Developer makes a request with password that does not match password complexity requirements set on portal.
      * (use case 1.1.13)
      */
+    @Ignore("1secmail service is down. Ignoring test for now.")
     @Test
     fun testErrorInvalidPasswordFormat() {
         config = getConfig(defaultConfigType)

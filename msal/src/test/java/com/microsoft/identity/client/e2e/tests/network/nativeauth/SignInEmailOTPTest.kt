@@ -90,6 +90,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Use valid email address, but invalid OTP to receive "invalid code" error.
      * (use case 2.2.7)
      */
+    @Ignore("1secmail service is down. Ignoring test for now.")
     @Test
     fun testErrorIsInvalidCode() {
         retryOperation {
