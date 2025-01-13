@@ -51,6 +51,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Sign up with email + OTP. Verify email address using email OTP and sign up.
      * (hero scenario 1, use case 2.1.1)
      */
+    @Ignore("1secmail service is down. Ignoring test for now.")
     @Test
     fun testSuccess() {
         config = getConfig(defaultConfigType)
@@ -73,6 +74,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Sign up with email + OTP. Resend email OTP.
      * (hero scenario 1, use case 2.1.5)
      */
+    @Ignore("1secmail service is down. Ignoring test for now.")
     @Test
     fun testResendCode() {
         config = getConfig(defaultConfigType)
@@ -165,6 +167,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Sign up with email + OTP. Developer can opt to get AT and/or ID token (aka sign in after signup).
      * (use case 2.1.9)
      */
+    @Ignore("1secmail service is down. Ignoring test for now.")
     @Test
     fun testSignInAfterSignUp() {
         config = getConfig(defaultConfigType)
@@ -205,6 +208,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Sign up with email + OTP. Server requires password authentication, which is supported by the developer.
      * (hero scenario 11, use case 2.1.11)
      */
+    @Ignore("1secmail service is down. Ignoring test for now.")
     @Test
     fun testPasswordRequired() {
         config = getConfig(ConfigType.SIGN_UP_PASSWORD)

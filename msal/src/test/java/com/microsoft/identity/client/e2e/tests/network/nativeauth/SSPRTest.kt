@@ -35,6 +35,7 @@ import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
+import org.junit.Ignore
 import org.junit.Test
 
 class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
@@ -67,6 +68,7 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Verify email with email OTP first and then reset password.
      * (hero scenario 8 & 17, use case 3.1.1)
      */
+    @Ignore("1secmail service is down. Ignoring test for now.")
     @Test
     fun testSSPRSuccess() = runBlocking {
         var result: ResetPasswordStartResult

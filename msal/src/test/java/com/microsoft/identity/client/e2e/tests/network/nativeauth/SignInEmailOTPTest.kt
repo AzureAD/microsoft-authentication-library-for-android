@@ -34,6 +34,7 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
+import org.junit.Ignore
 import org.junit.Test
 
 class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
@@ -56,6 +57,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Use valid email and OTP to get token and sign in.
      * (hero scenario 6, use case 2.2.1)
      */
+    @Ignore("1secmail service is down. Ignoring test for now.")
     @Test
     fun testSuccess() {
         retryOperation {
