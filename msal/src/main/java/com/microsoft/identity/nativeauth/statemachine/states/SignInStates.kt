@@ -47,6 +47,7 @@ import com.microsoft.identity.common.nativeauth.internal.commands.SignInWithCont
 import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInContinuationParameters
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.ResendCodeError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInContinuationError
@@ -542,10 +543,35 @@ class SignInContinuationState(
             correlationId = correlationId,
             methodName = "${TAG}.signIn(scopes: List<String>, callback: SignInContinuationCallback)"
         )
+        val params = NativeAuthSignInContinuationParameters()
+        params.scopes = scopes
+        NativeAuthPublicClientApplication.pcaScope.launch {
+            try {
+                val result = internalSignIn(params)
+                callback.onResult(result)
+            } catch (e: MsalException) {
+                Logger.error(TAG, "Exception thrown in signIn", e)
+                callback.onError(e)
+            }
+        }
+    }
+
+    /**
+     * Submits the sign-in-continuation verification code to the server for a provided parameters; callback variant.
+     *
+     * @param parameters parameters used for sign-in-continuation operation.
+     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState.SignInContinuationCallback] to receive the result on.
+     */
+    fun signIn(parameters: NativeAuthSignInContinuationParameters, callback: SignInContinuationCallback) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.signIn(parameters: NativeAuthSignInContinuationParameters, callback: SignInContinuationCallback)"
+        )
 
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
-                val result = signIn(scopes)
+                val result = internalSignIn(parameters)
                 callback.onResult(result)
             } catch (e: MsalException) {
                 Logger.error(TAG, "Exception thrown in signIn", e)
@@ -567,7 +593,27 @@ class SignInContinuationState(
             correlationId = correlationId,
             methodName = "${TAG}.signIn(scopes: List<String>)"
         )
+        val params = NativeAuthSignInContinuationParameters()
+        params.scopes = scopes
+        return internalSignIn(params)
+    }
 
+    /**
+     * Submits the sign-in-continuation verification code to the server; Kotlin coroutines variant.
+     *
+     * @param parameters parameters used for sign-in-continuation operation.
+     * @return The results of the sign-in-after-sign-up action.
+     */
+    suspend fun signIn(parameters: NativeAuthSignInContinuationParameters): SignInResult {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.signIn(parameters: NativeAuthSignInContinuationParameters)"
+        )
+        return internalSignIn(parameters)
+    }
+
+    private suspend fun internalSignIn(parameters: NativeAuthSignInContinuationParameters): SignInResult {
         return withContext(Dispatchers.IO) {
             try {
                 LogSession.logMethodCall(
@@ -596,7 +642,7 @@ class SignInContinuationState(
                         continuationToken,
                         username,
                         correlationId,
-                        scopes
+                        parameters.scopes
                     )
 
                 val command = SignInWithContinuationTokenCommand(

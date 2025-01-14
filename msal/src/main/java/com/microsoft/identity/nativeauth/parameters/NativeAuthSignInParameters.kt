@@ -30,7 +30,7 @@ class NativeAuthSignInParameters(
     /**
      * username of the account to sign in
      */
-    username: String
+    val username: String
 ) {
 
     /**

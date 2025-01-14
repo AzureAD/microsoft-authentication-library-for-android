@@ -32,7 +32,7 @@ class NativeAuthSignUpParameters(
     /**
      * username of the account to sign up
      */
-    username: String
+    val username: String
 ) {
 
     /**

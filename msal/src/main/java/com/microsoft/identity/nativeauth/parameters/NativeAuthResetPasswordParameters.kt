@@ -30,5 +30,5 @@ class NativeAuthResetPasswordParameters(
     /**
      * username of the account to reset password.
      */
-    username: String
-) {}
+    val username: String
+)

@@ -60,6 +60,9 @@ import com.microsoft.identity.common.nativeauth.internal.commands.ResetPasswordS
 import com.microsoft.identity.common.nativeauth.internal.commands.SignInStartCommand
 import com.microsoft.identity.common.nativeauth.internal.commands.SignUpStartCommand
 import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
+import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParameters
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccountError
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
@@ -292,6 +295,7 @@ class NativeAuthPublicClientApplication(
      * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.SignInCallback] to receive the result.
      * @return [com.microsoft.identity.nativeauth.statemachine.results.SignInResult] see detailed possible return state under the object.
      */
+    @Deprecated("This method is now deprecated. Use the method 'signIn(parameters:, callback:)' instead.")
     override fun signIn(
         username: String,
         password: CharArray?,
@@ -305,7 +309,31 @@ class NativeAuthPublicClientApplication(
         )
         pcaScope.launch {
             try {
-                val result = signIn(username, password, scopes)
+                val result = internalSignIn(username, password, scopes)
+                callback.onResult(result)
+            } catch (e: MsalException) {
+                Logger.error(TAG, "Exception thrown in signIn", e)
+                callback.onError(e)
+            }
+        }
+    }
+
+    /**
+     * Sign in a user for a provided parameters; callback variant.
+     *
+     * @param parameters parameters used for signIn operation.
+     * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.SignInCallback] to receive the result.
+     * @throws [MsalException] if an account is already signed in.
+     */
+    override fun signIn(parameters: NativeAuthSignInParameters, callback: SignInCallback) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.signIn(parameters: NativeAuthSignInParameters, callback: SignInCallback)"
+        )
+        pcaScope.launch {
+            try {
+                val result = internalSignIn(parameters.username, parameters.password, parameters.scopes)
                 callback.onResult(result)
             } catch (e: MsalException) {
                 Logger.error(TAG, "Exception thrown in signIn", e)
@@ -323,6 +351,7 @@ class NativeAuthPublicClientApplication(
      * @return [com.microsoft.identity.nativeauth.statemachine.results.SignInResult] see detailed possible return state under the object.
      * @throws MsalClientException if an account is already signed in.
      */
+    @Deprecated("This method is now deprecated. Use the method 'signIn(parameters:)' instead.")
     override suspend fun signIn(
         username: String,
         password: CharArray?,
@@ -333,6 +362,251 @@ class NativeAuthPublicClientApplication(
             correlationId = null,
             methodName = "${TAG}.signIn(username: String, password: CharArray?, scopes: List<String>?)"
         )
+        return internalSignIn(username, password, scopes)
+    }
+
+    /**
+     * Sign in a user for a provided parameters; Kotlin coroutines variant.
+     *
+     * @param parameters parameters used for signIn operation.
+     * @return [com.microsoft.identity.nativeauth.statemachine.results.SignInResult] see detailed possible return state under the object.
+     * @throws [MsalException] if an account is already signed in.
+     */
+    override suspend fun signIn(parameters: NativeAuthSignInParameters): SignInResult {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.signIn(parameters: NativeAuthSignInParameters)"
+        )
+        return internalSignIn(parameters.username, parameters.password, parameters.scopes)
+    }
+
+
+    interface SignUpCallback : Callback<SignUpResult>
+
+    /**
+     * Sign up the account using username and password; callback variant.
+     *
+     * @param username username of the account to sign up.
+     * @param password (Optional) password of the account to sign up.
+     * @param attributes (Optional) user attributes to be used during account creation
+     * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.SignUpCallback] to receive the result.
+     * @return [com.microsoft.identity.nativeauth.statemachine.results.SignUpResult] see detailed possible return state under the object.
+     */
+    @Deprecated("This method is now deprecated. Use the method 'signUp(parameters:, callback:)' instead.")
+    override fun signUp(
+        username: String,
+        password: CharArray?,
+        attributes: UserAttributes?,
+        callback: SignUpCallback
+    ) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.signUp(username: String, password: CharArray?, attributes: UserAttributes?, callback: SignUpCallback)"
+        )
+        pcaScope.launch {
+            try {
+                val result = internalSignUp(password, username, attributes)
+                callback.onResult(result)
+            } catch (e: MsalException) {
+                Logger.error(TAG, "Exception thrown in signUp", e)
+                callback.onError(e)
+            }
+        }
+    }
+
+    /**
+     * Sign up the account for a provided parameters; callback variant.
+     *
+     * @param parameters parameters used for signUp operation.
+     * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.SignUpCallback] to receive the result.
+     * @throws MsalClientException if an account is already signed in.
+     */
+    override fun signUp(parameters: NativeAuthSignUpParameters, callback: SignUpCallback) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.signUp(parameters: NativeAuthSignUpParameters, callback: SignUpCallback)"
+        )
+        pcaScope.launch {
+            try {
+                val result = internalSignUp(parameters.password, parameters.username, parameters.attributes)
+                callback.onResult(result)
+            } catch (e: MsalException) {
+                Logger.error(TAG, "Exception thrown in signUp", e)
+                callback.onError(e)
+            }
+        }
+    }
+
+    /**
+     * Sign up the account using username and password. Kotlin coroutines variant.
+     *
+     * @param username username of the account to sign up.
+     * @param password (Optional) password of the account to sign up.
+     * @param attributes (Optional) user attributes to be used during account creation
+     * @return [com.microsoft.identity.nativeauth.statemachine.results.SignUpResult] see detailed possible return state under the object.
+     */
+    @Deprecated("This method is now deprecated. Use the method 'signUp(parameters:)' instead.")
+    override suspend fun signUp(
+        username: String,
+        password: CharArray?,
+        attributes: UserAttributes?
+    ): SignUpResult {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.signUp(username: String, password: CharArray?, attributes: UserAttributes?)"
+        )
+        return internalSignUp(password, username, attributes)
+    }
+
+
+
+    /**
+     * Sign up the account for a provided parameters; Kotlin coroutines variant.
+     *
+     * @param parameters parameters used for signUp operation.
+     * @return [com.microsoft.identity.nativeauth.statemachine.results.SignUpResult] see detailed possible return state under the object.
+     * @throws MsalClientException if an account is already signed in.
+     */
+    override suspend fun signUp(parameters: NativeAuthSignUpParameters): SignUpResult {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.signUp(parameters: NativeAuthSignUpParameters)"
+        )
+        return internalSignUp(parameters.password, parameters.username, parameters.attributes)
+    }
+
+    interface ResetPasswordCallback : Callback<ResetPasswordStartResult>
+
+    /**
+     * Reset password for the account starting from a username; callback variant.
+     *
+     * @param username username of the account to reset password.
+     * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.ResetPasswordCallback] to receive the result.
+     * @return [com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult] see detailed possible return state under the object.
+     */
+    @Deprecated("This method is now deprecated. Use the method 'resetPassword(parameters:, callback:)' instead.")
+    override fun resetPassword(username: String, callback: ResetPasswordCallback) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.resetPassword(username: String, callback: ResetPasswordCallback)"
+        )
+        pcaScope.launch {
+            try {
+                val result = internalResetPassword(username)
+                callback.onResult(result)
+            } catch (e: MsalException) {
+                Logger.error(TAG, "Exception thrown in resetPassword", e)
+                callback.onError(e)
+            }
+        }
+    }
+
+    /**
+     * Reset password for the account for a provided parameters; callback variant.
+     *
+     * @param parameters parameters used for resetPassword operation.
+     * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.ResetPasswordCallback] to receive the result.
+     * @throws MsalClientException if an account is already signed in.
+     */
+    override fun resetPassword(
+        parameters: NativeAuthResetPasswordParameters,
+        callback: ResetPasswordCallback
+    ) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.resetPassword(parameters: NativeAuthResetPasswordParameters, callback: ResetPasswordCallback)"
+        )
+        pcaScope.launch {
+            try {
+                val result = internalResetPassword(parameters.username)
+                callback.onResult(result)
+            } catch (e: MsalException) {
+                Logger.error(TAG, "Exception thrown in resetPassword", e)
+                callback.onError(e)
+            }
+        }
+    }
+
+    /**
+     * Reset password for the account starting from a username; Kotlin coroutines variant.
+     *
+     * @param username username of the account to reset password.
+     * @return [com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult] see detailed possible return state under the object.
+     */
+    @Deprecated("This method is now deprecated. Use the method 'resetPassword(parameters:)' instead.")
+    override suspend fun resetPassword(username: String): ResetPasswordStartResult {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.resetPassword(username: String)"
+        )
+        return internalResetPassword(username)
+    }
+
+    /**
+     * Reset password for the account for a provided parameters; Kotlin coroutines variant.
+     *
+     * @param parameters parameters used for resetPassword operation.
+     * @return [com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult] see detailed possible return state under the object.
+     * @throws MsalClientException if an account is already signed in.
+     */
+    override suspend fun resetPassword(parameters: NativeAuthResetPasswordParameters): ResetPasswordStartResult {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.resetPassword(parameters: NativeAuthResetPasswordParameters)"
+        )
+        return internalResetPassword(parameters.username)
+    }
+
+    private fun verifyNoUserIsSignedIn() {
+        val doesAccountExist = checkForPersistedAccount().get()
+        if (doesAccountExist) {
+            Logger.error(
+                TAG,
+                "An account is already signed in.",
+                null
+            )
+            throw MsalClientException(
+                MsalClientException.INVALID_PARAMETER,
+                "An account is already signed in."
+            )
+        }
+    }
+
+    private fun checkForPersistedAccount(): ResultFuture<Boolean> {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.checkForPersistedAccount"
+        )
+        val future = ResultFuture<Boolean>()
+        getCurrentAccount(object : NativeAuthPublicClientApplication.GetCurrentAccountCallback {
+            override fun onResult(result: GetAccountResult) {
+                future.setResult(result is GetAccountResult.AccountFound)
+            }
+
+            override fun onError(exception: BaseException) {
+                Logger.error(TAG, "Exception thrown in checkForPersistedAccount", exception)
+                future.setException(exception)
+            }
+        })
+
+        return future
+    }
+
+    private suspend fun internalSignIn(
+        username: String,
+        password: CharArray?,
+        scopes: List<String>?
+    ): SignInResult {
         return withContext(Dispatchers.IO) {
             try {
                 verifyNoUserIsSignedIn()
@@ -393,6 +667,7 @@ class NativeAuthPublicClientApplication(
                                 )
                             }
                         }
+
                         is SignInCommandResult.CodeRequired -> {
                             Logger.warn(
                                 TAG,
@@ -411,6 +686,7 @@ class NativeAuthPublicClientApplication(
                                 channel = result.challengeChannel
                             )
                         }
+
                         is INativeAuthCommandResult.InvalidUsername -> {
                             SignInError(
                                 errorType = ErrorTypes.INVALID_USERNAME,
@@ -420,6 +696,7 @@ class NativeAuthPublicClientApplication(
                                 errorCodes = result.errorCodes
                             )
                         }
+
                         is SignInCommandResult.PasswordRequired -> {
                             if (hasPassword) {
                                 Logger.warnWithObject(
@@ -443,6 +720,7 @@ class NativeAuthPublicClientApplication(
                                 )
                             }
                         }
+
                         is SignInCommandResult.UserNotFound -> {
                             SignInError(
                                 errorType = ErrorTypes.USER_NOT_FOUND,
@@ -452,6 +730,7 @@ class NativeAuthPublicClientApplication(
                                 errorCodes = result.errorCodes
                             )
                         }
+
                         is SignInCommandResult.InvalidCredentials -> {
                             if (hasPassword) {
                                 SignInError(
@@ -475,6 +754,7 @@ class NativeAuthPublicClientApplication(
                                 )
                             }
                         }
+
                         is SignInCommandResult.MFARequired -> {
                             SignInResult.MFARequired(
                                 nextState = AwaitingMFAState(
@@ -485,6 +765,7 @@ class NativeAuthPublicClientApplication(
                                 )
                             )
                         }
+
                         is INativeAuthCommandResult.Redirect -> {
                             SignInError(
                                 errorType = ErrorTypes.BROWSER_REQUIRED,
@@ -493,6 +774,7 @@ class NativeAuthPublicClientApplication(
                                 correlationId = result.correlationId
                             )
                         }
+
                         is INativeAuthCommandResult.APIError -> {
                             SignInError(
                                 errorMessage = result.errorDescription,
@@ -517,59 +799,12 @@ class NativeAuthPublicClientApplication(
         }
     }
 
-
-    interface SignUpCallback : Callback<SignUpResult>
-
-    /**
-     * Sign up the account using username and password; callback variant.
-     *
-     * @param username username of the account to sign up.
-     * @param password (Optional) password of the account to sign up.
-     * @param attributes (Optional) user attributes to be used during account creation
-     * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.SignUpCallback] to receive the result.
-     * @return [com.microsoft.identity.nativeauth.statemachine.results.SignUpResult] see detailed possible return state under the object.
-     */
-    override fun signUp(
-        username: String,
+    private suspend fun internalSignUp(
         password: CharArray?,
-        attributes: UserAttributes?,
-        callback: SignUpCallback
-    ) {
-        LogSession.logMethodCall(
-            tag = TAG,
-            correlationId = null,
-            methodName = "${TAG}.signUp(username: String, password: CharArray?, attributes: UserAttributes?, callback: SignUpCallback)"
-        )
-        pcaScope.launch {
-            try {
-                val result = signUp(username, password, attributes)
-                callback.onResult(result)
-            } catch (e: MsalException) {
-                Logger.error(TAG, "Exception thrown in signUp", e)
-                callback.onError(e)
-            }
-        }
-    }
-
-    /**
-     * Sign up the account using username and password. Kotlin coroutines variant.
-     *
-     * @param username username of the account to sign up.
-     * @param password (Optional) password of the account to sign up.
-     * @param attributes (Optional) user attributes to be used during account creation
-     * @return [com.microsoft.identity.nativeauth.statemachine.results.SignUpResult] see detailed possible return state under the object.
-     */
-    override suspend fun signUp(
         username: String,
-        password: CharArray?,
         attributes: UserAttributes?
     ): SignUpResult {
-        LogSession.logMethodCall(
-            tag = TAG,
-            correlationId = null,
-            methodName = "${TAG}.signUp(username: String, password: CharArray?, attributes: UserAttributes?)"
-        )
-        var hasPassword = password?.isNotEmpty() == true
+        val hasPassword = password?.isNotEmpty() == true
 
         return withContext(Dispatchers.IO) {
             try {
@@ -761,201 +996,128 @@ class NativeAuthPublicClientApplication(
         }
     }
 
-    interface ResetPasswordCallback : Callback<ResetPasswordStartResult>
+    private suspend fun internalResetPassword(username: String): ResetPasswordStartResult {
+        try {
+            return withContext(Dispatchers.IO) {
+                val doesAccountExist = checkForPersistedAccount().get()
+                if (doesAccountExist) {
+                    throw MsalClientException(
+                        MsalClientException.INVALID_PARAMETER,
+                        "An account is already signed in."
+                    )
+                }
 
-    /**
-     * Reset password for the account starting from a username; callback variant.
-     *
-     * @param username username of the account to reset password.
-     * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.ResetPasswordCallback] to receive the result.
-     * @return [com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult] see detailed possible return state under the object.
-     */
-    override fun resetPassword(username: String, callback: ResetPasswordCallback) {
-        LogSession.logMethodCall(
-            tag = TAG,
-            correlationId = null,
-            methodName = "${TAG}.resetPassword(username: String, callback: ResetPasswordCallback)"
-        )
-        pcaScope.launch {
-            try {
-                val result = resetPassword(username = username)
-                callback.onResult(result)
-            } catch (e: MsalException) {
-                Logger.error(TAG, "Exception thrown in resetPassword", e)
-                callback.onError(e)
+                if (username.isBlank()) {
+                    return@withContext ResetPasswordError(
+                        errorType = ErrorTypes.INVALID_USERNAME,
+                        errorMessage = "Empty or blank username",
+                        correlationId = "UNSET"
+                    )
+                }
+
+                val parameters = CommandParametersAdapter.createResetPasswordStartCommandParameters(
+                    nativeAuthConfig,
+                    nativeAuthConfig.oAuth2TokenCache,
+                    username
+                )
+
+                val command = ResetPasswordStartCommand(
+                    parameters,
+                    NativeAuthMsalController(),
+                    PublicApiId.NATIVE_AUTH_RESET_PASSWORD_START
+                )
+
+                val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
+
+                return@withContext when (val result =
+                    rawCommandResult.checkAndWrapCommandResultType<ResetPasswordStartCommandResult>()) {
+                    is ResetPasswordCommandResult.CodeRequired -> {
+                        ResetPasswordStartResult.CodeRequired(
+                            nextState = ResetPasswordCodeRequiredState(
+                                continuationToken = result.continuationToken,
+                                username = username,
+                                correlationId = result.correlationId,
+                                config = nativeAuthConfig
+                            ),
+                            codeLength = result.codeLength,
+                            sentTo = result.challengeTargetLabel,
+                            channel = result.challengeChannel
+                        )
+                    }
+
+                    is ResetPasswordCommandResult.UserNotFound -> {
+                        ResetPasswordError(
+                            errorType = ErrorTypes.USER_NOT_FOUND,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
+                        )
+                    }
+
+                    is INativeAuthCommandResult.InvalidUsername -> {
+                        ResetPasswordError(
+                            errorType = ErrorTypes.INVALID_USERNAME,
+                            errorMessage = result.errorDescription,
+                            error = result.error,
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes
+                        )
+                    }
+
+                    is INativeAuthCommandResult.APIError -> {
+                        ResetPasswordError(
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            exception = result.exception
+                        )
+                    }
+
+                    is INativeAuthCommandResult.Redirect -> {
+                        ResetPasswordError(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId
+                        )
+                    }
+
+                    is ResetPasswordCommandResult.PasswordNotSet -> {
+                        Logger.warnWithObject(
+                            TAG,
+                            result.correlationId,
+                            "Reset password received unexpected result: ",
+                            result
+                        )
+                        ResetPasswordError(
+                            error = ErrorTypes.INVALID_STATE,
+                            errorMessage = "Unexpected state",
+                            correlationId = result.correlationId,
+                        )
+                    }
+
+                    is ResetPasswordCommandResult.EmailNotVerified -> {
+                        Logger.warnWithObject(
+                            TAG,
+                            result.correlationId,
+                            "Reset password received unexpected result: ",
+                            result
+                        )
+                        ResetPasswordError(
+                            error = ErrorTypes.INVALID_STATE,
+                            errorMessage = "Unexpected state",
+                            correlationId = result.correlationId,
+                        )
+                    }
+                }
             }
-        }
-    }
-
-    /**
-     * Reset password for the account starting from a username; Kotlin coroutines variant.
-     *
-     * @param username username of the account to reset password.
-     * @return [com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult] see detailed possible return state under the object.
-     */
-    override suspend fun resetPassword(username: String): ResetPasswordStartResult {
-        LogSession.logMethodCall(
-            tag = TAG,
-            correlationId = null,
-            methodName = "${TAG}.resetPassword(username: String)"
-        )
-       try {
-           return withContext(Dispatchers.IO) {
-               val doesAccountExist = checkForPersistedAccount().get()
-               if (doesAccountExist) {
-                   throw MsalClientException(
-                       MsalClientException.INVALID_PARAMETER,
-                       "An account is already signed in."
-                   )
-               }
-
-               if (username.isBlank()) {
-                   return@withContext ResetPasswordError(
-                       errorType = ErrorTypes.INVALID_USERNAME,
-                       errorMessage = "Empty or blank username",
-                       correlationId = "UNSET"
-                   )
-               }
-
-               val parameters = CommandParametersAdapter.createResetPasswordStartCommandParameters(
-                   nativeAuthConfig,
-                   nativeAuthConfig.oAuth2TokenCache,
-                   username
-               )
-
-               val command = ResetPasswordStartCommand(
-                   parameters,
-                   NativeAuthMsalController(),
-                   PublicApiId.NATIVE_AUTH_RESET_PASSWORD_START
-               )
-
-               val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
-
-               return@withContext when (val result =
-                   rawCommandResult.checkAndWrapCommandResultType<ResetPasswordStartCommandResult>()) {
-                   is ResetPasswordCommandResult.CodeRequired -> {
-                       ResetPasswordStartResult.CodeRequired(
-                           nextState = ResetPasswordCodeRequiredState(
-                               continuationToken = result.continuationToken,
-                               username = username,
-                               correlationId = result.correlationId,
-                               config = nativeAuthConfig
-                           ),
-                           codeLength = result.codeLength,
-                           sentTo = result.challengeTargetLabel,
-                           channel = result.challengeChannel
-                       )
-                   }
-
-                   is ResetPasswordCommandResult.UserNotFound -> {
-                       ResetPasswordError(
-                           errorType = ErrorTypes.USER_NOT_FOUND,
-                           error = result.error,
-                           errorMessage = result.errorDescription,
-                           correlationId = result.correlationId
-                       )
-                   }
-
-                   is INativeAuthCommandResult.InvalidUsername -> {
-                       ResetPasswordError(
-                           errorType = ErrorTypes.INVALID_USERNAME,
-                           errorMessage = result.errorDescription,
-                           error = result.error,
-                           correlationId = result.correlationId,
-                           errorCodes = result.errorCodes
-                       )
-                   }
-
-                   is INativeAuthCommandResult.APIError -> {
-                       ResetPasswordError(
-                           error = result.error,
-                           errorMessage = result.errorDescription,
-                           correlationId = result.correlationId,
-                           exception = result.exception
-                       )
-                   }
-
-                   is INativeAuthCommandResult.Redirect -> {
-                       ResetPasswordError(
-                           errorType = ErrorTypes.BROWSER_REQUIRED,
-                           error = result.error,
-                           errorMessage = result.errorDescription,
-                           correlationId = result.correlationId
-                       )
-                   }
-
-                   is ResetPasswordCommandResult.PasswordNotSet -> {
-                       Logger.warnWithObject(
-                           TAG,
-                           result.correlationId,
-                           "Reset password received unexpected result: ",
-                           result
-                       )
-                       ResetPasswordError(
-                           error = ErrorTypes.INVALID_STATE,
-                           errorMessage = "Unexpected state",
-                           correlationId = result.correlationId,
-                       )
-                   }
-
-                   is ResetPasswordCommandResult.EmailNotVerified -> {
-                       Logger.warnWithObject(
-                           TAG,
-                           result.correlationId,
-                           "Reset password received unexpected result: ",
-                           result
-                       )
-                       ResetPasswordError(
-                           error = ErrorTypes.INVALID_STATE,
-                           errorMessage = "Unexpected state",
-                           correlationId = result.correlationId,
-                       )
-                   }
-               }
-           }
-       } catch (e: Exception) {
-           return ResetPasswordError(
-               errorType = ErrorTypes.CLIENT_EXCEPTION,
-               errorMessage = "MSAL client exception occurred in resetPassword.",
-               exception = e,
-               correlationId = "UNSET"
-           )
-       }
-    }
-    
-    private fun verifyNoUserIsSignedIn() {
-        val doesAccountExist = checkForPersistedAccount().get()
-        if (doesAccountExist) {
-            Logger.error(
-                TAG,
-                "An account is already signed in.",
-                null
-            )
-            throw MsalClientException(
-                MsalClientException.INVALID_PARAMETER,
-                "An account is already signed in."
+        } catch (e: Exception) {
+            return ResetPasswordError(
+                errorType = ErrorTypes.CLIENT_EXCEPTION,
+                errorMessage = "MSAL client exception occurred in resetPassword.",
+                exception = e,
+                correlationId = "UNSET"
             )
         }
-    }
-
-    private fun checkForPersistedAccount(): ResultFuture<Boolean> {
-        LogSession.logMethodCall(
-            tag = TAG,
-            correlationId = null,
-            methodName = "${TAG}.checkForPersistedAccount"
-        )
-        val future = ResultFuture<Boolean>()
-        getCurrentAccount(object : NativeAuthPublicClientApplication.GetCurrentAccountCallback {
-            override fun onResult(result: GetAccountResult) {
-                future.setResult(result is GetAccountResult.AccountFound)
-            }
-
-            override fun onError(exception: BaseException) {
-                Logger.error(TAG, "Exception thrown in checkForPersistedAccount", exception)
-                future.setException(exception)
-            }
-        })
-
-        return future
     }
 }

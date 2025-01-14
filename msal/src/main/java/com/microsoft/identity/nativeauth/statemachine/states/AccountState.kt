@@ -52,6 +52,7 @@ import com.microsoft.identity.common.java.result.LocalAuthenticationResult
 import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
+import com.microsoft.identity.nativeauth.parameters.NativeAuthGetAccessTokenParameters
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenError
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenErrorTypes
@@ -269,6 +270,28 @@ class AccountState private constructor(
     }
 
     /**
+     * Retrieves the access token for the currently signed in account from the cache for the provided parameters.
+     * If the access token has expired, it will be refreshed using the refresh token that's stored in the cache.
+     * If no access token matching the requested scopes is found in cache then a new access token is fetched.
+     * Kotlin coroutines variant.
+     *
+     * @param parameters parameters used for getAccessToken operation.
+     * @return [com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult] The result of the getAccessToken action
+     */
+    suspend fun getAccessToken(parameters: NativeAuthGetAccessTokenParameters): GetAccessTokenResult {
+        val scopes = parameters.scopes ?: AuthenticationConstants.DEFAULT_SCOPES.toList()
+        if (scopes.isEmpty()) {
+            return GetAccessTokenError(
+                errorType = GetAccessTokenErrorTypes.INVALID_SCOPES,
+                errorMessage = "Empty or invalid scopes",
+                correlationId = correlationId
+            )
+        }
+
+        return getAccessTokenInternal(parameters.forceRefresh, scopes)
+    }
+
+    /**
      * Retrieves the access token for the currently signed in account from the cache such that
      * the scope of retrieved access token is a superset of requested scopes. If the access token
      * has expired, it will be refreshed using the refresh token that's stored in the cache. If no
@@ -287,6 +310,32 @@ class AccountState private constructor(
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
                 val result = getAccessToken(forceRefresh, scopes)
+                callback.onResult(result)
+            } catch (e: MsalException) {
+                Logger.error(TAG, "Exception thrown in getAccessToken", e)
+                callback.onError(e)
+            }
+        }
+    }
+
+    /**
+     * Retrieves the access token for the currently signed in account from the cache for the provided parameters.
+     * If the access token has expired, it will be refreshed using the refresh token that's stored in the cache.
+     * If no access token matching the requested scopes is found in cache then a new access token is fetched.
+     * callback variant.
+     *
+     * @param parameters parameters used for getAccessToken operation.
+     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.AccountState.GetAccessTokenCallback] to receive the result on.
+     */
+    fun getAccessToken(parameters: NativeAuthGetAccessTokenParameters, callback: GetAccessTokenCallback) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = null,
+            methodName = "${TAG}.getAccessToken(parameters: NativeAuthGetAccessTokenParameters, callback: GetAccessTokenCallback)"
+        )
+        NativeAuthPublicClientApplication.pcaScope.launch {
+            try {
+                val result = getAccessToken(parameters)
                 callback.onResult(result)
             } catch (e: MsalException) {
                 Logger.error(TAG, "Exception thrown in getAccessToken", e)
