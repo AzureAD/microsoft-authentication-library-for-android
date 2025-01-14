@@ -79,9 +79,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
     @Test
     fun testErrorIsUserNotFound() = runTest {
         val user = config.email
-        // Turn correct username into an incorrect one
-        val invalidUser = user + "x"
-        val signInResult = application.signIn(invalidUser)
+        val signInResult = application.signIn(INVALID_EMAIL)
         Assert.assertTrue(signInResult is SignInError)
         Assert.assertTrue((signInResult as SignInError).isUserNotFound())
     }
@@ -97,8 +95,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
         val signInResult = application.signIn(user)
         assertResult<SignInResult.CodeRequired>(signInResult)
 
-        val incorrectOtp = "00000000"
-        val submitCodeResult = (signInResult as SignInResult.CodeRequired).nextState.submitCode(incorrectOtp)
+        val submitCodeResult = (signInResult as SignInResult.CodeRequired).nextState.submitCode(INCORRECT_CODE)
         Assert.assertTrue(submitCodeResult is SubmitCodeError)
         Assert.assertTrue((submitCodeResult as SubmitCodeError).isInvalidCode())
     }
