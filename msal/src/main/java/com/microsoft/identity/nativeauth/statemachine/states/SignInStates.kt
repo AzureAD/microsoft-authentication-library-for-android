@@ -535,6 +535,7 @@ class SignInContinuationState(
      * @param callback [com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState.SignInContinuationCallback] to receive the result on.
      * @return The results of the sign-in-continuation action.
      */
+    @Deprecated("This method is now deprecated. Use the method 'signIn(parameters:, callback:)' instead.")
     fun signIn(scopes: List<String>? = null, callback: SignInContinuationCallback) {
         LogSession.logMethodCall(
             tag = TAG,
@@ -559,6 +560,7 @@ class SignInContinuationState(
      * @param scopes (Optional) The scopes to request.
      * @return The results of the sign-in-after-sign-up action.
      */
+    @Deprecated("This method is now deprecated. Use the method 'signIn(parameters:)' instead.")
     suspend fun signIn(scopes: List<String>? = null): SignInResult {
         LogSession.logMethodCall(
             tag = TAG,

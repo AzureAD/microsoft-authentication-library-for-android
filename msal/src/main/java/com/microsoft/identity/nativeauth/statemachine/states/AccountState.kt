@@ -216,6 +216,7 @@ class AccountState private constructor(
      *
      * @return [com.microsoft.identity.client.IAuthenticationResult] If successful.
      */
+    @Deprecated("This method is now deprecated. Use the method 'getAccessToken(parameters:, callback:)' instead.")
     fun getAccessToken(forceRefresh: Boolean = false, callback: GetAccessTokenCallback) {
         LogSession.logMethodCall(
             tag = TAG,
@@ -240,6 +241,7 @@ class AccountState private constructor(
      *
      * @return [com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult] The result of the getAccessToken action
      */
+    @Deprecated("This method is now deprecated. Use the method 'getAccessToken(parameters:)' instead.")
     suspend fun getAccessToken(forceRefresh: Boolean = false): GetAccessTokenResult {
         return getAccessTokenInternal(forceRefresh, AuthenticationConstants.DEFAULT_SCOPES.toList());
     }
@@ -253,6 +255,7 @@ class AccountState private constructor(
      *
      * @return [com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult] The result of the getAccessToken action
      */
+    @Deprecated("This method is now deprecated. Use the method 'getAccessToken(parameters:)' instead.")
     suspend fun getAccessToken(forceRefresh: Boolean = false, scopes: List<String>): GetAccessTokenResult {
         if (scopes.isEmpty()) {
             return GetAccessTokenError(
@@ -274,6 +277,7 @@ class AccountState private constructor(
      *
      * @return [com.microsoft.identity.client.IAuthenticationResult] If successful.
      */
+    @Deprecated("This method is now deprecated. Use the method 'getAccessToken(parameters:, callback:)' instead.")
     fun getAccessToken(forceRefresh: Boolean = false, scopes: List<String>, callback: GetAccessTokenCallback) {
         LogSession.logMethodCall(
             tag = TAG,

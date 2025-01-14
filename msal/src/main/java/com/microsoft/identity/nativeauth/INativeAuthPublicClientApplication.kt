@@ -74,6 +74,7 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
      * @return [com.microsoft.identity.nativeauth.statemachine.results.SignInResult] see detailed possible return state under the object.
      * @throws [MsalException] if an account is already signed in.
      */
+    @Deprecated("This method is now deprecated. Use the method 'signIn(parameters:)' instead.")
     suspend fun signIn(username: String, password: CharArray? = null,  scopes: List<String>? = null): SignInResult
 
     /**
@@ -86,6 +87,7 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
      * @return [com.microsoft.identity.nativeauth.statemachine.results.SignInResult] see detailed possible return state under the object.
      * @throws [MsalException] if an account is already signed in.
      */
+    @Deprecated("This method is now deprecated. Use the method 'signIn(parameters:, callback:)' instead.")
     fun signIn(username: String, password: CharArray? = null, scopes: List<String>? = null, callback: NativeAuthPublicClientApplication.SignInCallback)
 
     /**
@@ -97,6 +99,7 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
      * @return [com.microsoft.identity.nativeauth.statemachine.results.SignUpResult] see detailed possible return state under the object.
      * @throws MsalClientException if an account is already signed in.
      */
+    @Deprecated("This method is now deprecated. Use the method 'signUp(parameters:)' instead.")
     suspend fun signUp(username: String, password: CharArray? = null, attributes: UserAttributes? = null): SignUpResult
 
     /**
@@ -109,6 +112,7 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
      * @return [com.microsoft.identity.nativeauth.statemachine.results.SignUpResult] see detailed possible return state under the object.
      * @throws MsalClientException if an account is already signed in.
      */
+    @Deprecated("This method is now deprecated. Use the method 'signUp(parameters:, callback:)' instead.")
     fun signUp(username: String, password: CharArray? = null, attributes: UserAttributes? = null, callback: NativeAuthPublicClientApplication.SignUpCallback)
 
     /**
@@ -118,6 +122,7 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
      * @return [com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult] see detailed possible return state under the object.
      * @throws MsalClientException if an account is already signed in.
      */
+    @Deprecated("This method is now deprecated. Use the method 'resetPassword(parameters:)' instead.")
     suspend fun resetPassword(username: String): ResetPasswordStartResult
 
     /**
@@ -128,5 +133,6 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
      * @return [com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult] see detailed possible return state under the object.
      * @throws MsalClientException if an account is already signed in.
      */
+    @Deprecated("This method is now deprecated. Use the method 'resetPassword(parameters:, callback:)' instead.")
     fun resetPassword(username: String, callback: NativeAuthPublicClientApplication.ResetPasswordCallback)
 }
