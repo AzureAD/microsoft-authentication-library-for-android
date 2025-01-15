@@ -59,7 +59,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-                val user = tempEmailApi.generateRandomEmailAddress()
+                val user = tempEmailApi.generateRandomEmailAddressLocally()
                 val signUpResult = application.signUp(user)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
 
@@ -82,7 +82,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-                val user = tempEmailApi.generateRandomEmailAddress()
+                val user = tempEmailApi.generateRandomEmailAddressLocally()
                 val signUpResult = application.signUp(user)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
                 val otp1 = tempEmailApi.retrieveCodeFromInbox(user)
@@ -167,7 +167,6 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Sign up with email + OTP. Developer can opt to get AT and/or ID token (aka sign in after signup).
      * (use case 2.1.9)
      */
-    @Ignore("1secmail service is down. Ignoring test for now.")
     @Test
     fun testSignInAfterSignUp() {
         config = getConfig(defaultConfigType)
@@ -175,7 +174,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-                val user = tempEmailApi.generateRandomEmailAddress()
+                val user = tempEmailApi.generateRandomEmailAddressLocally()
                 val signUpResult = application.signUp(user)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
@@ -191,14 +190,13 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Sign up with email + OTP. Server requires password authentication, which is not supported by the developer (aka redirect flow).
      * (use case 2.1.10)
      */
-    @Ignore("1secmail service is down. Ignoring test for now.")
     @Test
     fun testErrorRedirect() {
         config = getConfig(ConfigType.SIGN_UP_PASSWORD)
         application = setupPCA(config, listOf("oob"))
 
-        runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-            val user = tempEmailApi.generateRandomEmailAddress()
+        runBlocking {
+            val user = tempEmailApi.generateRandomEmailAddressLocally()
             val signUpResult = application.signUp(user)
             Assert.assertTrue(signUpResult is SignUpError)
             Assert.assertTrue((signUpResult as SignUpError).isBrowserRequired())
@@ -209,7 +207,6 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Sign up with email + OTP. Server requires password authentication, which is supported by the developer.
      * (hero scenario 11, use case 2.1.11)
      */
-    @Ignore("1secmail service is down. Ignoring test for now.")
     @Test
     fun testPasswordRequired() {
         config = getConfig(ConfigType.SIGN_UP_PASSWORD)
@@ -217,7 +214,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-                val user = tempEmailApi.generateRandomEmailAddress()
+                val user = tempEmailApi.generateRandomEmailAddressLocally()
                 val signUpResult = application.signUp(user)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
