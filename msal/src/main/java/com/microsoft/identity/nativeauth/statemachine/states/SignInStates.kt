@@ -562,6 +562,7 @@ class SignInContinuationState(
      * @param parameters parameters used for sign-in-continuation operation.
      * @param callback [com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState.SignInContinuationCallback] to receive the result on.
      */
+    @JvmName("signInWithParameters")
     fun signIn(parameters: NativeAuthSignInContinuationParameters, callback: SignInContinuationCallback) {
         LogSession.logMethodCall(
             tag = TAG,
@@ -604,6 +605,7 @@ class SignInContinuationState(
      * @param parameters parameters used for sign-in-continuation operation.
      * @return The results of the sign-in-after-sign-up action.
      */
+    @JvmName("signInWithParameters")
     suspend fun signIn(parameters: NativeAuthSignInContinuationParameters): SignInResult {
         LogSession.logMethodCall(
             tag = TAG,
