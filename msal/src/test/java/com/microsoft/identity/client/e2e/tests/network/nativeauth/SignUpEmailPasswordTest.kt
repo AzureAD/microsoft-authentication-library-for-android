@@ -56,7 +56,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
         retryOperation {
             runBlocking {
-                val user = tempEmailApi.generateRandomEmailAddress()
+                val user = tempEmailApi.generateRandomEmailAddressLocally()
                 val result = application.signUp(user, "invalidpassword".toCharArray())
                 Assert.assertTrue(result is SignUpError)
                 Assert.assertTrue((result as SignUpError).isInvalidPassword())
@@ -76,7 +76,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-                val user = tempEmailApi.generateRandomEmailAddress()
+                val user = tempEmailApi.generateRandomEmailAddressLocally()
                 val password = getSafePassword()
                 val signUpResult = application.signUp(user, password.toCharArray())
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
@@ -100,7 +100,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-                val user = tempEmailApi.generateRandomEmailAddress()
+                val user = tempEmailApi.generateRandomEmailAddressLocally()
                 val password = getSafePassword()
                 val signUpResult = application.signUp(user, password.toCharArray())
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
@@ -126,7 +126,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-                val user = tempEmailApi.generateRandomEmailAddress()
+                val user = tempEmailApi.generateRandomEmailAddressLocally()
                 val signUpResult = application.signUp(user)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
 
@@ -152,7 +152,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-                val user = tempEmailApi.generateRandomEmailAddress()
+                val user = tempEmailApi.generateRandomEmailAddressLocally()
                 val signUpResult = application.signUp(user)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
 
@@ -235,7 +235,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
         application = setupPCA(config, defaultChallengeTypes)
 
         runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-            val user = tempEmailApi.generateRandomEmailAddress()
+            val user = tempEmailApi.generateRandomEmailAddressLocally()
             val password = INVALID_PASSWORD
             val signUpResult = application.signUp(user, password.toCharArray())
             Assert.assertTrue(signUpResult is SignUpError)
@@ -255,7 +255,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-                val user = tempEmailApi.generateRandomEmailAddress()
+                val user = tempEmailApi.generateRandomEmailAddressLocally()
                 val password = getSafePassword()
                 val signUpResult = application.signUp(user, password.toCharArray())
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
