@@ -167,6 +167,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Sign up with email + OTP. Developer can opt to get AT and/or ID token (aka sign in after signup).
      * (use case 2.1.9)
      */
+    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testSignInAfterSignUp() {
         config = getConfig(defaultConfigType)
@@ -190,6 +191,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Sign up with email + OTP. Server requires password authentication, which is not supported by the developer (aka redirect flow).
      * (use case 2.1.10)
      */
+    @Ignore("Generate random email failure.")
     @Test
     fun testErrorRedirect() {
         config = getConfig(ConfigType.SIGN_UP_PASSWORD)
@@ -207,6 +209,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Sign up with email + OTP. Server requires password authentication, which is supported by the developer.
      * (hero scenario 11, use case 2.1.11)
      */
+    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testPasswordRequired() {
         config = getConfig(ConfigType.SIGN_UP_PASSWORD)
