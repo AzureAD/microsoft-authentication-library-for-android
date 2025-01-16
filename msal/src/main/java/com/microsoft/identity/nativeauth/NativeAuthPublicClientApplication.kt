@@ -636,7 +636,7 @@ class NativeAuthPublicClientApplication(
                 val command = SignInStartCommand(
                     params,
                     NativeAuthMsalController(),
-                    PublicApiId.NATIVE_AUTH_SIGN_IN_WITH_EMAIL
+                    if (hasPassword) PublicApiId.NATIVE_AUTH_SIGN_IN_WITH_EMAIL_PASSWORD else PublicApiId.NATIVE_AUTH_SIGN_IN_WITH_EMAIL
                 )
 
                 val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
