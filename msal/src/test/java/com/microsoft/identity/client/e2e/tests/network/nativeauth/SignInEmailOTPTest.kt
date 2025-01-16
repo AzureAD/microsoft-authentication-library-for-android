@@ -57,7 +57,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Use valid email and OTP to get token and sign in.
      * (hero scenario 6, use case 2.2.1)
      */
-    @Ignore("1secmail service is down. Ignoring test for now.")
+    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testSuccess() {
         retryOperation {
@@ -87,7 +87,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Use valid email address, but invalid OTP to receive "invalid code" error.
      * (use case 2.2.7)
      */
-    @Ignore("The account has been locked. Ignoring test for now.")
+    @Ignore("The test account has been locked.")
     @Test
     fun testErrorIsInvalidCode() = runTest {
         val user = config.email

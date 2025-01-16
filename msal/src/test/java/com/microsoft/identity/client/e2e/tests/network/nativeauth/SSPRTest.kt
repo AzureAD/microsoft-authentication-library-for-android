@@ -68,7 +68,7 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Verify email with email OTP first and then reset password.
      * (hero scenario 8 & 17, use case 3.1.1)
      */
-    @Ignore("1secmail service is down. Ignoring test for now.")
+    @Ignore("Retrieving OTP code failure")
     @Test
     fun testSSPRSuccess() = runBlocking {
         var result: ResetPasswordStartResult

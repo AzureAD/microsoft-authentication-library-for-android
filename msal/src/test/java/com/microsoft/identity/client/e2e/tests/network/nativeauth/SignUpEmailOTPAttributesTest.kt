@@ -55,12 +55,12 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
      * Signup user with custom attributes with verify OTP as last step.
      * (hero scenario 2, use case 2.1.2)
      */
-    @Ignore("1secmail service is down. Ignoring test for now.")
+    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testSuccessAttributesFirst() {
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-                val user = tempEmailApi.generateRandomEmailAddressLocally()
+                val user = tempEmailApi.generateRandomEmailAddress()
                 val attributes = UserAttributes.Builder().country("Ireland").city("Dublin").build()
                 val signUpResult = application.signUp(user, attributes = attributes)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
@@ -77,12 +77,12 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
      * Verify email OTP first and then collect custom attributes.
      * (hero scenario 3, use case 2.1.3)
      */
-    @Ignore("1secmail service is down. Ignoring test for now.")
+    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testSuccessAttributesLastSameScreen() {
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-                val user = tempEmailApi.generateRandomEmailAddressLocally()
+                val user = tempEmailApi.generateRandomEmailAddress()
                 val signUpResult = application.signUp(user)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
 
@@ -106,12 +106,12 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
      * Verify email OTP first and then collect custom attributes in multiple steps (mimicking a multi-screen UX).
      * (hero scenario 4, use case 2.1.4)
      */
-    @Ignore("1secmail service is down. Ignoring test for now.")
+    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testSuccessAttributesLastMultipleScreens() {
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-                val user = tempEmailApi.generateRandomEmailAddressLocally()
+                val user = tempEmailApi.generateRandomEmailAddress()
                 val signUpResult = application.signUp(user)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
 

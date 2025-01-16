@@ -58,12 +58,12 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
      * 2. Validate OTP.
      * (hero scenario 10, use case 1.1.3)
      */
-    @Ignore("1secmail service is down. Ignoring test for now.")
+    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testEmailPasswordAttributesOnSameScreen() {
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-                val user = tempEmailApi.generateRandomEmailAddressLocally()
+                val user = tempEmailApi.generateRandomEmailAddress()
                 val password = getSafePassword().toCharArray()
                 val attributes = UserAttributes.Builder().country("Ireland").city("Dublin").build()
                 val signUpResult = application.signUp(
@@ -88,12 +88,12 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
      * 3. Set custom attributes.
      * (hero scenario 12, use case 1.1.6)
      */
-    @Ignore("1secmail service is down. Ignoring test for now.")
+    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testSeparateEmailPasswordAndAttributesOnSameScreen() {
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-                val user = tempEmailApi.generateRandomEmailAddressLocally()
+                val user = tempEmailApi.generateRandomEmailAddress()
                 val signUpResult = application.signUp(user)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
 
@@ -125,12 +125,12 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
      * 5. etc.
      * ((hero scenario 13)
      */
-    @Ignore("1secmail service is down. Ignoring test for now.")
+    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testSeparateEmailPasswordAndAttributesOnMultipleScreens() {
         retryOperation {
-            runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-                val user = tempEmailApi.generateRandomEmailAddressLocally()
+            runBlocking {
+                val user = tempEmailApi.generateRandomEmailAddress()
                 val signUpResult = application.signUp(user)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
 
