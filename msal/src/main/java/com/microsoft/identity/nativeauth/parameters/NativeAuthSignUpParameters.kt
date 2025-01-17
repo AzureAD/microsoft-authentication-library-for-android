@@ -30,7 +30,7 @@ import com.microsoft.identity.nativeauth.UserAttributes
  */
 class NativeAuthSignUpParameters(
     /**
-     * username of the account to sign up
+     * username of the account to sign up.
      */
     val username: String
 ) {

@@ -28,7 +28,7 @@ package com.microsoft.identity.nativeauth.parameters
  */
 class NativeAuthSignInParameters(
     /**
-     * username of the account to sign in
+     * username of the account to sign in.
      */
     val username: String
 ) {
