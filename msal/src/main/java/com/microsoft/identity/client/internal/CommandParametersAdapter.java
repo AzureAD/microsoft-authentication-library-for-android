@@ -32,6 +32,9 @@ import com.microsoft.identity.client.DeviceCodeFlowParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.ITenantProfile;
 import com.microsoft.identity.client.MultiTenantAccount;
+import com.microsoft.identity.common.internal.msafederation.google.SignInWithGoogleApi;
+import com.microsoft.identity.common.internal.msafederation.google.SignInWithGoogleCredential;
+import com.microsoft.identity.common.internal.msafederation.google.SignInWithGoogleParameters;
 import com.microsoft.identity.common.internal.platform.AndroidPlatformUtil;
 import com.microsoft.identity.common.java.logging.DiagnosticContext;
 import com.microsoft.identity.nativeauth.AuthMethod;
@@ -42,7 +45,7 @@ import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory;
-import com.microsoft.identity.common.internal.commands.parameters.AndroidActivityInteractiveTokenCommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.AndroidInteractiveTokenCommandParameters;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthority;
@@ -166,7 +169,9 @@ public class CommandParametersAdapter {
                         authority
                 ));
 
-        final InteractiveTokenCommandParameters commandParameters = AndroidActivityInteractiveTokenCommandParameters
+        final SignInWithGoogleParameters siwgParams = new SignInWithGoogleParameters(parameters.getActivity());
+        final SignInWithGoogleCredential credential = SignInWithGoogleApi.getInstance().signInSync(siwgParams);
+        final InteractiveTokenCommandParameters commandParameters = AndroidInteractiveTokenCommandParameters
                 .builder()
                 .activity(parameters.getActivity())
                 .platformComponents(AndroidPlatformComponentsFactory.createFromActivity(
@@ -203,6 +208,7 @@ public class CommandParametersAdapter {
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .correlationId(parameters.getCorrelationId())
                 .preferredAuthMethod(parameters.getPreferredAuthMethod())
+                .signInWithGoogleCredential(credential)
                 .build();
 
         return commandParameters;
