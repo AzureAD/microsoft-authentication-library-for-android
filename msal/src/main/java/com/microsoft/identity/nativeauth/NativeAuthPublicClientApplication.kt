@@ -682,7 +682,8 @@ class NativeAuthPublicClientApplication(
                                     continuationToken = result.continuationToken,
                                     correlationId = result.correlationId,
                                     scopes = scopes,
-                                    config = nativeAuthConfig
+                                    config = nativeAuthConfig,
+                                    claimsRequestJson = params.claimsRequestJson
                                 ),
                                 codeLength = result.codeLength,
                                 sentTo = result.challengeTargetLabel,
@@ -718,7 +719,8 @@ class NativeAuthPublicClientApplication(
                                         continuationToken = result.continuationToken,
                                         correlationId = result.correlationId,
                                         scopes = scopes,
-                                        config = nativeAuthConfig
+                                        config = nativeAuthConfig,
+                                        claimsRequestJson = params.claimsRequestJson
                                     )
                                 )
                             }

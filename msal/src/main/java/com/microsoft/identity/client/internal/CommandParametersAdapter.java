@@ -644,7 +644,8 @@ public class CommandParametersAdapter {
             @NonNull final String code,
             @NonNull final String continuationToken,
             @NonNull final String correlationId,
-            final List<String> scopes) throws ClientException {
+            final List<String> scopes,
+            @Nullable final String claimsRequestJson) throws ClientException {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
@@ -672,6 +673,7 @@ public class CommandParametersAdapter {
                 .code(code)
                 .scopes(scopes)
                 .correlationId(correlationId)
+                .claimsRequestJson(claimsRequestJson)
                 .build();
 
         return commandParameters;
@@ -733,7 +735,8 @@ public class CommandParametersAdapter {
             @NonNull final String continuationToken,
             @NonNull final char[] password,
             @NonNull final String correlationId,
-            final List<String> scopes) throws ClientException {
+            final List<String> scopes,
+            @Nullable final String claimsRequestJson) throws ClientException {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
@@ -762,6 +765,7 @@ public class CommandParametersAdapter {
                         .scopes(scopes)
                         .challengeType(configuration.getChallengeTypes())
                         .correlationId(correlationId)
+                        .claimsRequestJson(claimsRequestJson)
                         .build();
 
         return commandParameters;
