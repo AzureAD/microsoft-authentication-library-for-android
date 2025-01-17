@@ -87,7 +87,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Use valid email address, but invalid OTP to receive "invalid code" error.
      * (use case 2.2.7)
      */
-    @Ignore("The test account has been locked.")
+    @Ignore("Username used for this test is currently blocked in lab tenant.")
     @Test
     fun testErrorIsInvalidCode() = runTest {
         val user = config.email
