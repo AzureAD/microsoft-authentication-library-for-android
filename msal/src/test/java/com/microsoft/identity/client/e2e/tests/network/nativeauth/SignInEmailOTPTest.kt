@@ -154,7 +154,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
     /**
      * Ability to provide scope to control auth strength of the token.
      * (use case 2.2.6)
-     * Please refer to GetTokenTests.kt (testGetAccessTokenCompareForceRefreshBehaviour) for the test.
+     * Please refer to GetTokenTests.kt (testGetAccessTokenFromCache) for the test.
      */
 
 
