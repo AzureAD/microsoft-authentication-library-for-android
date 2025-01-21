@@ -169,9 +169,7 @@ public class CommandParametersAdapter {
                         authority
                 ));
 
-        final SignInWithGoogleParameters siwgParams = new SignInWithGoogleParameters(parameters.getActivity());
-        final SignInWithGoogleCredential credential = SignInWithGoogleApi.getInstance().signInSync(siwgParams);
-        final InteractiveTokenCommandParameters commandParameters = AndroidInteractiveTokenCommandParameters
+        return AndroidInteractiveTokenCommandParameters
                 .builder()
                 .activity(parameters.getActivity())
                 .platformComponents(AndroidPlatformComponentsFactory.createFromActivity(
@@ -208,10 +206,7 @@ public class CommandParametersAdapter {
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .correlationId(parameters.getCorrelationId())
                 .preferredAuthMethod(parameters.getPreferredAuthMethod())
-                .signInWithGoogleCredential(credential)
                 .build();
-
-        return commandParameters;
     }
 
     public static SilentTokenCommandParameters createSilentTokenCommandParameters(
