@@ -3,6 +3,7 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 vNext
 ----------
 - [MINOR] Move native auth public methods to parameter class (#2245)
+- [MINOR] Add support for claims requests for native auth sign in (#2246)
 
 Version 5.9.0
 ----------

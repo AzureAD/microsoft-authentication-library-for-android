@@ -76,6 +76,7 @@ class SignInCodeRequiredState internal constructor(
     override val continuationToken: String,
     override val correlationId: String,
     private val scopes: List<String>?,
+    private val claimsRequestJson: String?,
     private val config: NativeAuthPublicClientApplicationConfiguration
 ) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
     private val TAG: String = SignInCodeRequiredState::class.java.simpleName
@@ -84,6 +85,7 @@ class SignInCodeRequiredState internal constructor(
         continuationToken = parcel.readString()  ?: "",
         correlationId = parcel.readString() ?: "UNSET",
         scopes = parcel.createStringArrayList(),
+        claimsRequestJson = parcel.readString(),
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
     )
 
@@ -136,7 +138,8 @@ class SignInCodeRequiredState internal constructor(
                     code,
                     continuationToken,
                     correlationId,
-                    scopes
+                    scopes,
+                    claimsRequestJson
                 )
 
                 val signInSubmitCodeCommand = SignInSubmitCodeCommand(
@@ -274,7 +277,8 @@ class SignInCodeRequiredState internal constructor(
                                 continuationToken = result.continuationToken,
                                 correlationId = result.correlationId,
                                 scopes = scopes,
-                                config = config
+                                config = config,
+                                claimsRequestJson = claimsRequestJson
                             ),
                             codeLength = result.codeLength,
                             sentTo = result.challengeTargetLabel,
@@ -344,6 +348,7 @@ class SignInPasswordRequiredState(
     override val continuationToken: String,
     override val correlationId: String,
     private val scopes: List<String>?,
+    private val claimsRequestJson: String?,
     private val config: NativeAuthPublicClientApplicationConfiguration
 ) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
     private val TAG: String = SignInPasswordRequiredState::class.java.simpleName
@@ -351,6 +356,7 @@ class SignInPasswordRequiredState(
         continuationToken = parcel.readString()  ?: "",
         correlationId = parcel.readString() ?: "UNSET",
         scopes = parcel.createStringArrayList(),
+        claimsRequestJson = parcel.readString(),
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
     )
 
@@ -403,7 +409,8 @@ class SignInPasswordRequiredState(
                     continuationToken,
                     password,
                     correlationId,
-                    scopes
+                    scopes,
+                    claimsRequestJson
                 )
 
                 try {
@@ -483,6 +490,7 @@ class SignInPasswordRequiredState(
         parcel.writeString(correlationId)
         parcel.writeStringList(scopes)
         parcel.writeSerializable(config)
+        parcel.writeString(claimsRequestJson)
     }
 
     override fun describeContents(): Int {

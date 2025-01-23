@@ -28,6 +28,7 @@ import com.microsoft.identity.client.AccountAdapter
 import com.microsoft.identity.client.AuthenticationResultAdapter
 import com.microsoft.identity.client.IAccount
 import com.microsoft.identity.client.PublicClientApplication
+import com.microsoft.identity.client.claims.ClaimsRequest
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
@@ -309,7 +310,7 @@ class NativeAuthPublicClientApplication(
         )
         pcaScope.launch {
             try {
-                val result = internalSignIn(username, password, scopes)
+                val result = internalSignIn(username, password, scopes, claimsRequest = null)
                 callback.onResult(result)
             } catch (e: MsalException) {
                 Logger.error(TAG, "Exception thrown in signIn", e)
@@ -333,7 +334,7 @@ class NativeAuthPublicClientApplication(
         )
         pcaScope.launch {
             try {
-                val result = internalSignIn(parameters.username, parameters.password, parameters.scopes)
+                val result = internalSignIn(parameters.username, parameters.password, parameters.scopes, parameters.claimsRequest)
                 callback.onResult(result)
             } catch (e: MsalException) {
                 Logger.error(TAG, "Exception thrown in signIn", e)
@@ -362,7 +363,7 @@ class NativeAuthPublicClientApplication(
             correlationId = null,
             methodName = "${TAG}.signIn(username: String, password: CharArray?, scopes: List<String>?)"
         )
-        return internalSignIn(username, password, scopes)
+        return internalSignIn(username, password, scopes, claimsRequest = null)
     }
 
     /**
@@ -378,7 +379,7 @@ class NativeAuthPublicClientApplication(
             correlationId = null,
             methodName = "${TAG}.signIn(parameters: NativeAuthSignInParameters)"
         )
-        return internalSignIn(parameters.username, parameters.password, parameters.scopes)
+        return internalSignIn(parameters.username, parameters.password, parameters.scopes, parameters.claimsRequest)
     }
 
 
@@ -605,7 +606,8 @@ class NativeAuthPublicClientApplication(
     private suspend fun internalSignIn(
         username: String,
         password: CharArray?,
-        scopes: List<String>?
+        scopes: List<String>?,
+        claimsRequest: ClaimsRequest?
     ): SignInResult {
         return withContext(Dispatchers.IO) {
             try {
@@ -627,13 +629,14 @@ class NativeAuthPublicClientApplication(
                         nativeAuthConfig.oAuth2TokenCache,
                         username,
                         password,
-                        scopes
+                        scopes,
+                        claimsRequest
                     )
 
                 val command = SignInStartCommand(
                     params,
                     NativeAuthMsalController(),
-                    PublicApiId.NATIVE_AUTH_SIGN_IN_WITH_EMAIL
+                    if (hasPassword) PublicApiId.NATIVE_AUTH_SIGN_IN_WITH_EMAIL_PASSWORD else PublicApiId.NATIVE_AUTH_SIGN_IN_WITH_EMAIL
                 )
 
                 val rawCommandResult = CommandDispatcher.submitSilentReturningFuture(command).get()
@@ -679,7 +682,8 @@ class NativeAuthPublicClientApplication(
                                     continuationToken = result.continuationToken,
                                     correlationId = result.correlationId,
                                     scopes = scopes,
-                                    config = nativeAuthConfig
+                                    config = nativeAuthConfig,
+                                    claimsRequestJson = params.claimsRequestJson
                                 ),
                                 codeLength = result.codeLength,
                                 sentTo = result.challengeTargetLabel,
@@ -715,7 +719,8 @@ class NativeAuthPublicClientApplication(
                                         continuationToken = result.continuationToken,
                                         correlationId = result.correlationId,
                                         scopes = scopes,
-                                        config = nativeAuthConfig
+                                        config = nativeAuthConfig,
+                                        claimsRequestJson = params.claimsRequestJson
                                     )
                                 )
                             }
