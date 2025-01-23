@@ -47,7 +47,10 @@ import com.microsoft.identity.common.java.request.SdkType;
 import com.microsoft.identity.common.java.result.AcquireTokenResult;
 import com.microsoft.identity.common.java.ui.AuthorizationAgent;
 import com.microsoft.identity.labapi.utilities.client.ILabAccount;
+import com.microsoft.identity.labapi.utilities.client.LabClient;
+import com.microsoft.identity.labapi.utilities.client.LabGuestAccount;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
+import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
 import org.junit.Assert;
 
@@ -60,16 +63,21 @@ import java.util.concurrent.TimeoutException;
 
 public class NestedAppHelper {
 
+    private final String mAuthorityUrl;
+
+    private ILabAccount mLabAccount;
+
+    private LabGuestAccount mGuestLabAccount;
+
+    private LabClient mLabClient;
+
     private AndroidActivityInteractiveTokenCommandParameters mInteractiveParameters;
 
-    private final ILabAccount mLabAccount;
     private final BrokerMsalController mController;
 
     private final IPlatformComponents mPlatformComponents;
 
     private final Activity mActivity;
-
-    private final String mAuthorityUrl;
 
     private static final String HUB_APP_CLIENT_ID_MSA = "8ec6bc83-69c8-4392-8f08-b3c986009232";
 
@@ -85,6 +93,9 @@ public class NestedAppHelper {
 
     private static final String HUB_APP_US_GOV_REDIRECT_URI = "https://login.microsoftonline.com/common/oauth2/nativeclient";
 
+    private static final String OUTLOOK_APP_CLIENT_ID = "27922004-5251-4030-b22d-91ecd9a37ea4";
+
+    private static final String OUTLOOK_APP_REDIRECT_URI = "msauth://com.microsoft.office.outlook/fcg80qvoM1YMKJZibjBwQcDfOno%3D";
     private static final String US_GOV_AUTHORITY = "https://login.microsoftonline.us/common";
 
     private static final String GRAPH_SCOPE = "https://graph.microsoft.com/.default";
@@ -100,45 +111,59 @@ public class NestedAppHelper {
     private static final String CLIENT_TEST_SDK_VERSION = "1.0.0";
 
     public NestedAppHelper(Activity activity, ILabAccount labAccount) {
-        mPlatformComponents = AndroidPlatformComponentsFactory.createFromActivity(
-                activity, null /*fragment*/);
-        mController = new BrokerMsalController(
-                activity.getApplicationContext(),
-                mPlatformComponents,
-                BrokerData.getDebugBrokerHost().getPackageName()
-        );
-
-        final String hubAppClientId;
-        if (labAccount.getUserType() == UserType.MSA) {
-            mAuthorityUrl = "https://login.microsoftonline.com/consumers";
-            hubAppClientId = HUB_APP_CLIENT_ID_MSA;
-        } else {
-            mAuthorityUrl = "https://login.microsoftonline.com/common";
-            hubAppClientId = HUB_APP_CLIENT_ID_AAD;
-        }
-        mInteractiveParameters = AndroidActivityInteractiveTokenCommandParameters
-                .builder()
-                .platformComponents(mPlatformComponents)
-                .sdkType(SdkType.MSAL_CPP)
-                .callerPackageName(activity.getPackageName())
-                .callerSignature(activity.getPackageName())
-                .applicationName(activity.getPackageName())
-                .applicationVersion(CLIENT_TEST_SDK_VERSION)
-                .sdkVersion(CLIENT_TEST_SDK_VERSION)
-                .authority(Authority.getAuthorityFromAuthorityUrl(mAuthorityUrl))
-                .scopes(Collections.singleton(GRAPH_SCOPE))
-                .redirectUri(HUB_APP_REDIRECT_URI)
-                .clientId(hubAppClientId)
-                .requiredBrokerProtocolVersion(REQUIRED_PROTOCOL_VERSION_FIFTEEN)
-                .loginHint(labAccount.getUsername())
-                .authenticationScheme(new BearerAuthenticationSchemeInternal())
-                .correlationId(UUID.randomUUID().toString())
-                .prompt(OpenIdConnectPromptParameter.UNSET)
-                .authorizationAgent(AuthorizationAgent.WEBVIEW)
-                .build();
+        this(activity, labAccount.getUsername(), null, labAccount.getUserType());
         mLabAccount = labAccount;
-        mActivity = activity;
     }
+
+    public NestedAppHelper(Activity activity, LabGuestAccount labAccount, String authorityUrl, LabClient labClient) {
+        this(activity, labAccount.getHomeUpn(), authorityUrl, UserType.GUEST);
+        mGuestLabAccount = labAccount;
+        mLabClient = labClient;
+    }
+
+     private NestedAppHelper(Activity activity, String username, String authorityUrl, UserType userType) {
+         mPlatformComponents = AndroidPlatformComponentsFactory.createFromActivity(
+                 activity, null /*fragment*/);
+         mController = new BrokerMsalController(
+                 activity.getApplicationContext(),
+                 mPlatformComponents,
+                 BrokerData.getDebugBrokerHost().getPackageName()
+         );
+
+         final String hubAppClientId;
+         if (userType == UserType.MSA) {
+             mAuthorityUrl = "https://login.microsoftonline.com/consumers";
+             hubAppClientId = HUB_APP_CLIENT_ID_MSA;
+         } else if (userType == UserType.GUEST) {
+             mAuthorityUrl = authorityUrl;
+             hubAppClientId = HUB_APP_CLIENT_ID_AAD;
+         } else {
+             mAuthorityUrl = "https://login.microsoftonline.com/common";
+             hubAppClientId = HUB_APP_CLIENT_ID_AAD;
+         }
+
+         mInteractiveParameters = AndroidActivityInteractiveTokenCommandParameters
+                 .builder()
+                 .platformComponents(mPlatformComponents)
+                 .sdkType(SdkType.MSAL_CPP)
+                 .callerPackageName(activity.getPackageName())
+                 .callerSignature(activity.getPackageName())
+                 .applicationName(activity.getPackageName())
+                 .applicationVersion(CLIENT_TEST_SDK_VERSION)
+                 .sdkVersion(CLIENT_TEST_SDK_VERSION)
+                 .authority(Authority.getAuthorityFromAuthorityUrl(mAuthorityUrl))
+                 .scopes(Collections.singleton(GRAPH_SCOPE))
+                 .redirectUri(HUB_APP_REDIRECT_URI)
+                 .clientId(hubAppClientId)
+                 .requiredBrokerProtocolVersion(REQUIRED_PROTOCOL_VERSION_FIFTEEN)
+                 .loginHint(username)
+                 .authenticationScheme(new BearerAuthenticationSchemeInternal())
+                 .correlationId(UUID.randomUUID().toString())
+                 .prompt(OpenIdConnectPromptParameter.UNSET)
+                 .authorizationAgent(AuthorizationAgent.WEBVIEW)
+                 .build();
+         mActivity = activity;
+     }
 
     protected void performATForHubApp() {
         final CompletableFuture<Void> handlePromptFuture = CompletableFuture.runAsync(() -> {
@@ -152,6 +177,25 @@ public class NestedAppHelper {
             Assert.assertNotNull(tokenResult);
             Assert.assertTrue(tokenResult.getSucceeded());
             validateAppIdIfRequired(tokenResult, HUB_APP_CLIENT_ID_AAD);
+
+        } catch (InterruptedException | ExecutionException | TimeoutException | ServiceException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+
+    protected void performATForOutlookApp() {
+        final CompletableFuture<Void> handlePromptFuture = CompletableFuture.runAsync(() -> {
+            handlePromptAsync(this::handlePrompt);
+        });
+        final CompletableFuture<AcquireTokenResult> acquireTokenFuture = CompletableFuture.supplyAsync(this::acquireTokenForOutlookAppAsync);
+
+        try {
+            CompletableFuture.allOf(handlePromptFuture, acquireTokenFuture).get(TIME_OUT_IN_SECONDS, TimeUnit.SECONDS);
+            final AcquireTokenResult tokenResult = acquireTokenFuture.get();
+            Assert.assertNotNull(tokenResult);
+            Assert.assertTrue(tokenResult.getSucceeded());
+            validateAppIdIfRequired(tokenResult, OUTLOOK_APP_CLIENT_ID);
 
         } catch (InterruptedException | ExecutionException | TimeoutException | ServiceException e) {
             throw new AssertionError(e);
@@ -173,7 +217,7 @@ public class NestedAppHelper {
                 .redirectUri(HUB_APP_US_GOV_REDIRECT_URI)
                 .clientId(HUB_APP_CLIENT_ID_AAD)
                 .requiredBrokerProtocolVersion(REQUIRED_PROTOCOL_VERSION_FIFTEEN)
-                .loginHint(mLabAccount.getUsername())
+                .loginHint(getLoginHint())
                 .authenticationScheme(new BearerAuthenticationSchemeInternal())
                 .correlationId(UUID.randomUUID().toString())
                 .prompt(OpenIdConnectPromptParameter.UNSET)
@@ -188,7 +232,7 @@ public class NestedAppHelper {
             claimsJsonString = DEVICE_ID_CLAIM;
         }
 
-        final String hubAppClientId = mLabAccount.getUserType() == UserType.MSA ? HUB_APP_CLIENT_ID_MSA : HUB_APP_CLIENT_ID_AAD;
+        final String hubAppClientId = getUserType() == UserType.MSA ? HUB_APP_CLIENT_ID_MSA : HUB_APP_CLIENT_ID_AAD;
         final SilentTokenCommandParameters mSilentTokenCommandParameters =
                 SilentTokenCommandParameters
                         .builder()
@@ -211,7 +255,7 @@ public class NestedAppHelper {
                         .claimsRequestJson(claimsJsonString)
                         .build();
 
-        Assert.assertEquals(mLabAccount.getUsername(), accountRecord.getUsername());
+        Assert.assertEquals(getLoginHint(), accountRecord.getUsername());
 
         final AcquireTokenResult acquireTokenSilentResult = mController.acquireTokenSilent(mSilentTokenCommandParameters);
         Assert.assertNotNull(acquireTokenSilentResult);
@@ -222,16 +266,77 @@ public class NestedAppHelper {
         validateAppIdIfRequired(acquireTokenSilentResult, NESTED_APP_CLIENT_ID);
     }
 
+    protected void performATSilent(AccountRecord accountRecord, boolean shouldAddDeviceIdClaim, String clientId, String redirectUri) throws BaseException {
+        String claimsJsonString = "";
+        if (shouldAddDeviceIdClaim) {
+            claimsJsonString = DEVICE_ID_CLAIM;
+        }
+        final SilentTokenCommandParameters mSilentTokenCommandParameters =
+                SilentTokenCommandParameters
+                        .builder()
+                        .platformComponents(mPlatformComponents)
+                        .requiredBrokerProtocolVersion(REQUIRED_PROTOCOL_VERSION_FIFTEEN)
+                        .sdkType(SdkType.MSAL_CPP)
+                        .applicationName(mActivity.getPackageName())
+                        .applicationVersion(CLIENT_TEST_SDK_VERSION)
+                        .sdkVersion(CLIENT_TEST_SDK_VERSION)
+                        .authority(Authority.getAuthorityFromAuthorityUrl(mAuthorityUrl))
+                        .account(accountRecord)
+                        .forceRefresh(true)
+                        .scopes(Collections.singleton(GRAPH_SCOPE))
+                        .redirectUri(redirectUri)
+                        .clientId(clientId)
+                        .authenticationScheme(new BearerAuthenticationSchemeInternal())
+                        .correlationId(UUID.randomUUID().toString())
+                        .claimsRequestJson(claimsJsonString)
+                        .build();
+
+        Assert.assertEquals(getLoginHint(), accountRecord.getUsername());
+
+        final AcquireTokenResult acquireTokenSilentResult = mController.acquireTokenSilent(mSilentTokenCommandParameters);
+        Assert.assertNotNull(acquireTokenSilentResult);
+        Assert.assertTrue(acquireTokenSilentResult.getSucceeded());
+        // NAA requests must not be serviced from cache
+        Assert.assertFalse(acquireTokenSilentResult.getLocalAuthenticationResult().isServicedFromCache());
+
+        validateAppIdIfRequired(acquireTokenSilentResult, clientId);
+    }
+
+    protected void performATSilentForHubApp(AccountRecord accountRecord, boolean shouldAddDeviceIdClaim) throws BaseException {
+        final String hubAppClientId = getUserType() == UserType.MSA ? HUB_APP_CLIENT_ID_MSA : HUB_APP_CLIENT_ID_AAD;
+      performATSilent(accountRecord, shouldAddDeviceIdClaim, hubAppClientId, HUB_APP_REDIRECT_URI);
+    }
+
+    protected void performATSilentForOutlookApp(AccountRecord accountRecord) throws BaseException {
+       performATSilent(accountRecord, false, OUTLOOK_APP_CLIENT_ID, OUTLOOK_APP_REDIRECT_URI);
+    }
+
     private void validateAppIdIfRequired(@NonNull final AcquireTokenResult acquireTokenResult, @NonNull final String expectedClientId) throws ServiceException {
         // Cannot parse jwt for MSA, so no validation for MSA
-        if (mLabAccount.getUserType() != UserType.MSA) {
+        if (getUserType() != UserType.MSA) {
             final String appId = (String) IDToken.parseJWT(acquireTokenResult.getLocalAuthenticationResult().getAccessToken()).get(APP_ID);
             Assert.assertEquals(expectedClientId, appId);
         }
     }
 
+    private String getLoginHint() {
+        return mLabAccount != null ? mLabAccount.getUsername() : mGuestLabAccount.getHomeUpn();
+    }
+
+    private UserType getUserType() {
+        return mGuestLabAccount != null ? UserType.GUEST : mLabAccount.getUserType();
+    }
+
+    private String getPassword() {
+        try {
+            return mLabAccount != null ? mLabAccount.getPassword() : mLabClient.getPasswordForGuestUser(mGuestLabAccount);
+        } catch (LabApiException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     protected void performATSilentForNestedAppInUSGovCloud(AccountRecord accountRecord) throws BaseException {
-        final String hubAppClientId = mLabAccount.getUserType() == UserType.MSA ? HUB_APP_CLIENT_ID_MSA : HUB_APP_CLIENT_ID_AAD;
+        final String hubAppClientId = getUserType() == UserType.MSA ? HUB_APP_CLIENT_ID_MSA : HUB_APP_CLIENT_ID_AAD;
         final SilentTokenCommandParameters mSilentTokenCommandParameters =
                 SilentTokenCommandParameters
                         .builder()
@@ -253,7 +358,7 @@ public class NestedAppHelper {
                         .correlationId(UUID.randomUUID().toString())
                         .build();
 
-        Assert.assertEquals(mLabAccount.getUsername(), accountRecord.getUsername());
+        Assert.assertEquals(getLoginHint(), accountRecord.getUsername());
 
         final AcquireTokenResult acquireTokenSilentResult = mController.acquireTokenSilent(mSilentTokenCommandParameters);
         Assert.assertNotNull(acquireTokenSilentResult);
@@ -268,7 +373,7 @@ public class NestedAppHelper {
         if (shouldAddDeviceIdClaim) {
             claimsJsonString = DEVICE_ID_CLAIM;
         }
-        final String hubAppClientId = mLabAccount.getUserType() == UserType.MSA ? HUB_APP_CLIENT_ID_MSA : HUB_APP_CLIENT_ID_AAD;
+        final String hubAppClientId = getUserType() == UserType.MSA ? HUB_APP_CLIENT_ID_MSA : HUB_APP_CLIENT_ID_AAD;
 
         mInteractiveParameters = AndroidActivityInteractiveTokenCommandParameters
                 .builder()
@@ -284,7 +389,7 @@ public class NestedAppHelper {
                 .redirectUri(HUB_APP_REDIRECT_URI)
                 .clientId(hubAppClientId)
                 .requiredBrokerProtocolVersion(REQUIRED_PROTOCOL_VERSION_FIFTEEN)
-                .loginHint(mLabAccount.getUsername())
+                .loginHint(getLoginHint())
                 .authenticationScheme(new BearerAuthenticationSchemeInternal())
                 .correlationId(UUID.randomUUID().toString())
                 .childRedirectUri(NESTED_APP_REDIRECT_URI)
@@ -325,8 +430,9 @@ public class NestedAppHelper {
         try {
             Assert.assertEquals(1, mController.getAccounts(mInteractiveParameters).size());
             final AccountRecord accountRecord = mController.getAccounts(mInteractiveParameters).get(0).getAccount();
-            Assert.assertEquals(mLabAccount.getUsername(), accountRecord.getUsername());
+            Assert.assertEquals(getLoginHint(), accountRecord.getUsername());
             return accountRecord;
+
         } catch (BaseException e) {
             throw new RuntimeException(e);
         }
@@ -344,7 +450,7 @@ public class NestedAppHelper {
     private void handlePrompt() {
         // perform UI action
         final AadLoginComponentHandler aadLoginComponentHandler = new AadLoginComponentHandler(CommonUtils.FIND_UI_ELEMENT_TIMEOUT_LONG);
-        aadLoginComponentHandler.handlePasswordField(mLabAccount.getPassword());
+        aadLoginComponentHandler.handlePasswordField(getPassword());
     }
 
     private void handlePromptAsync(@NonNull Runnable promptHandler) {
@@ -357,6 +463,35 @@ public class NestedAppHelper {
     private AcquireTokenResult acquireTokenAsync() {
         try {
             return mController.acquireToken(mInteractiveParameters);
+        } catch (BaseException | ExecutionException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private AcquireTokenResult acquireTokenForOutlookAppAsync() {
+        try {
+            AndroidActivityInteractiveTokenCommandParameters interactiveParameters = AndroidActivityInteractiveTokenCommandParameters
+                    .builder()
+                    .platformComponents(mPlatformComponents)
+                    .sdkType(SdkType.MSAL_CPP)
+                    .callerPackageName(mActivity.getPackageName())
+                    .callerSignature(mActivity.getPackageName())
+                    .applicationName(mActivity.getPackageName())
+                    .applicationVersion(CLIENT_TEST_SDK_VERSION)
+                    .sdkVersion(CLIENT_TEST_SDK_VERSION)
+                    .authority(Authority.getAuthorityFromAuthorityUrl(mAuthorityUrl))
+                    .scopes(Collections.singleton(GRAPH_SCOPE))
+                    .redirectUri(OUTLOOK_APP_REDIRECT_URI)
+                    .clientId(OUTLOOK_APP_CLIENT_ID)
+                    .requiredBrokerProtocolVersion(REQUIRED_PROTOCOL_VERSION_FIFTEEN)
+                    .loginHint(getLoginHint())
+                    .authenticationScheme(new BearerAuthenticationSchemeInternal())
+                    .correlationId(UUID.randomUUID().toString())
+                    .prompt(OpenIdConnectPromptParameter.UNSET)
+                    .authorizationAgent(AuthorizationAgent.WEBVIEW)
+                    .build();
+
+            return mController.acquireToken(interactiveParameters);
         } catch (BaseException | ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         }
