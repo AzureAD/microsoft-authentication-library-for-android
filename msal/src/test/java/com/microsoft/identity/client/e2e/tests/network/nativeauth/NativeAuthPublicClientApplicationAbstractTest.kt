@@ -61,6 +61,7 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         const val SHARED_PREFERENCES_NAME = "com.microsoft.identity.client.account_credential_cache"
         const val INVALID_EMAIL = "email"
         const val INVALID_PASSWORD = "password"
+        const val INCORRECT_CODE = "00000000"
     }
 
     private lateinit var context: Context
