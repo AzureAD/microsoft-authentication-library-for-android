@@ -25,6 +25,8 @@ import com.microsoft.identity.client.exception.MsalDeclinedScopeException;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
+import com.microsoft.identity.common.internal.ui.browser.AndroidBrowserSelector;
+import com.microsoft.identity.common.java.browser.Browser;
 import com.microsoft.identity.common.java.exception.BaseException;
 import com.microsoft.identity.common.java.ui.PreferredAuthMethod;
 import com.microsoft.identity.common.java.util.StringUtil;
@@ -68,7 +70,14 @@ abstract class MsalWrapper {
                 });
     }
 
-    public abstract String getDefaultBrowser();
+    public String getDefaultBrowser() {
+        final Browser browser =
+                new AndroidBrowserSelector(getApp().getConfiguration().getAppContext()).selectBrowser(
+                        getApp().getConfiguration().getBrowserSafeList(),
+                        getApp().getConfiguration().getPreferredBrowser()
+                );
+        return browser == null ? "Unknown" : browser.getPackageName();
+    }
 
     public abstract String getMode();
 
