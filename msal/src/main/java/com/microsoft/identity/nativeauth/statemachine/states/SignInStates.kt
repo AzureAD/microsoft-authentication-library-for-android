@@ -47,6 +47,7 @@ import com.microsoft.identity.common.nativeauth.internal.commands.SignInWithCont
 import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInContinuationParameters
 import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
 import com.microsoft.identity.nativeauth.statemachine.errors.ResendCodeError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInContinuationError
@@ -75,6 +76,7 @@ class SignInCodeRequiredState internal constructor(
     override val continuationToken: String,
     override val correlationId: String,
     private val scopes: List<String>?,
+    private val claimsRequestJson: String?,
     private val config: NativeAuthPublicClientApplicationConfiguration
 ) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
     private val TAG: String = SignInCodeRequiredState::class.java.simpleName
@@ -83,6 +85,7 @@ class SignInCodeRequiredState internal constructor(
         continuationToken = parcel.readString()  ?: "",
         correlationId = parcel.readString() ?: "UNSET",
         scopes = parcel.createStringArrayList(),
+        claimsRequestJson = parcel.readString(),
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
     )
 
@@ -135,7 +138,8 @@ class SignInCodeRequiredState internal constructor(
                     code,
                     continuationToken,
                     correlationId,
-                    scopes
+                    scopes,
+                    claimsRequestJson
                 )
 
                 val signInSubmitCodeCommand = SignInSubmitCodeCommand(
@@ -273,7 +277,8 @@ class SignInCodeRequiredState internal constructor(
                                 continuationToken = result.continuationToken,
                                 correlationId = result.correlationId,
                                 scopes = scopes,
-                                config = config
+                                config = config,
+                                claimsRequestJson = claimsRequestJson
                             ),
                             codeLength = result.codeLength,
                             sentTo = result.challengeTargetLabel,
@@ -343,6 +348,7 @@ class SignInPasswordRequiredState(
     override val continuationToken: String,
     override val correlationId: String,
     private val scopes: List<String>?,
+    private val claimsRequestJson: String?,
     private val config: NativeAuthPublicClientApplicationConfiguration
 ) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
     private val TAG: String = SignInPasswordRequiredState::class.java.simpleName
@@ -350,6 +356,7 @@ class SignInPasswordRequiredState(
         continuationToken = parcel.readString()  ?: "",
         correlationId = parcel.readString() ?: "UNSET",
         scopes = parcel.createStringArrayList(),
+        claimsRequestJson = parcel.readString(),
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
     )
 
@@ -402,7 +409,8 @@ class SignInPasswordRequiredState(
                     continuationToken,
                     password,
                     correlationId,
-                    scopes
+                    scopes,
+                    claimsRequestJson
                 )
 
                 try {
@@ -482,6 +490,7 @@ class SignInPasswordRequiredState(
         parcel.writeString(correlationId)
         parcel.writeStringList(scopes)
         parcel.writeSerializable(config)
+        parcel.writeString(claimsRequestJson)
     }
 
     override fun describeContents(): Int {
@@ -535,16 +544,43 @@ class SignInContinuationState(
      * @param callback [com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState.SignInContinuationCallback] to receive the result on.
      * @return The results of the sign-in-continuation action.
      */
+    @Deprecated("This method is now deprecated. Use the method 'signIn(parameters:, callback:)' instead.")
     fun signIn(scopes: List<String>? = null, callback: SignInContinuationCallback) {
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
             methodName = "${TAG}.signIn(scopes: List<String>, callback: SignInContinuationCallback)"
         )
+        val params = NativeAuthSignInContinuationParameters()
+        params.scopes = scopes
+        NativeAuthPublicClientApplication.pcaScope.launch {
+            try {
+                val result = internalSignIn(params)
+                callback.onResult(result)
+            } catch (e: MsalException) {
+                Logger.error(TAG, "Exception thrown in signIn", e)
+                callback.onError(e)
+            }
+        }
+    }
+
+    /**
+     * Submits the sign-in-continuation verification code to the server for a provided parameters; callback variant.
+     *
+     * @param parameters parameters used for sign-in-continuation operation.
+     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState.SignInContinuationCallback] to receive the result on.
+     */
+    @JvmName("signInWithParameters")
+    fun signIn(parameters: NativeAuthSignInContinuationParameters, callback: SignInContinuationCallback) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.signIn(parameters: NativeAuthSignInContinuationParameters, callback: SignInContinuationCallback)"
+        )
 
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
-                val result = signIn(scopes)
+                val result = internalSignIn(parameters)
                 callback.onResult(result)
             } catch (e: MsalException) {
                 Logger.error(TAG, "Exception thrown in signIn", e)
@@ -559,13 +595,35 @@ class SignInContinuationState(
      * @param scopes (Optional) The scopes to request.
      * @return The results of the sign-in-after-sign-up action.
      */
+    @Deprecated("This method is now deprecated. Use the method 'signIn(parameters:)' instead.")
     suspend fun signIn(scopes: List<String>? = null): SignInResult {
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
             methodName = "${TAG}.signIn(scopes: List<String>)"
         )
+        val params = NativeAuthSignInContinuationParameters()
+        params.scopes = scopes
+        return internalSignIn(params)
+    }
 
+    /**
+     * Submits the sign-in-continuation verification code to the server; Kotlin coroutines variant.
+     *
+     * @param parameters parameters used for sign-in-continuation operation.
+     * @return The results of the sign-in-after-sign-up action.
+     */
+    @JvmName("signInWithParameters")
+    suspend fun signIn(parameters: NativeAuthSignInContinuationParameters): SignInResult {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.signIn(parameters: NativeAuthSignInContinuationParameters)"
+        )
+        return internalSignIn(parameters)
+    }
+
+    private suspend fun internalSignIn(parameters: NativeAuthSignInContinuationParameters): SignInResult {
         return withContext(Dispatchers.IO) {
             try {
                 LogSession.logMethodCall(
@@ -594,7 +652,7 @@ class SignInContinuationState(
                         continuationToken,
                         username,
                         correlationId,
-                        scopes
+                        parameters.scopes
                     )
 
                 val command = SignInWithContinuationTokenCommand(
