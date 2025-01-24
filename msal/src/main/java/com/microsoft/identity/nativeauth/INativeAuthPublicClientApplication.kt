@@ -25,6 +25,9 @@ package com.microsoft.identity.nativeauth
 import com.microsoft.identity.client.IPublicClientApplication
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
+import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParameters
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
@@ -74,7 +77,17 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
      * @return [com.microsoft.identity.nativeauth.statemachine.results.SignInResult] see detailed possible return state under the object.
      * @throws [MsalException] if an account is already signed in.
      */
+    @Deprecated("This method is now deprecated. Use the method 'signIn(parameters:)' instead.")
     suspend fun signIn(username: String, password: CharArray? = null,  scopes: List<String>? = null): SignInResult
+
+    /**
+     * Sign in a user for a provided parameters; Kotlin coroutines variant.
+     *
+     * @param parameters parameters used for signIn operation.
+     * @return [com.microsoft.identity.nativeauth.statemachine.results.SignInResult] see detailed possible return state under the object.
+     * @throws [MsalException] if an account is already signed in.
+     */
+    suspend fun signIn(parameters: NativeAuthSignInParameters): SignInResult
 
     /**
      * Sign in a user with a given username; callback variant.
@@ -83,10 +96,19 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
      * @param password (Optional) password of the account to sign in.
      * @param scopes (Optional) scopes to request during the sign in.
      * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.SignInCallback] to receive the result.
-     * @return [com.microsoft.identity.nativeauth.statemachine.results.SignInResult] see detailed possible return state under the object.
      * @throws [MsalException] if an account is already signed in.
      */
+    @Deprecated("This method is now deprecated. Use the method 'signIn(parameters:, callback:)' instead.")
     fun signIn(username: String, password: CharArray? = null, scopes: List<String>? = null, callback: NativeAuthPublicClientApplication.SignInCallback)
+
+    /**
+     * Sign in a user for a provided parameters; callback variant.
+     *
+     * @param parameters parameters used for signIn operation.
+     * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.SignInCallback] to receive the result.
+     * @throws [MsalException] if an account is already signed in.
+     */
+    fun signIn(parameters: NativeAuthSignInParameters, callback: NativeAuthPublicClientApplication.SignInCallback)
 
     /**
      * Sign up the account starting from a username; Kotlin coroutines variant.
@@ -97,7 +119,17 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
      * @return [com.microsoft.identity.nativeauth.statemachine.results.SignUpResult] see detailed possible return state under the object.
      * @throws MsalClientException if an account is already signed in.
      */
+    @Deprecated("This method is now deprecated. Use the method 'signUp(parameters:)' instead.")
     suspend fun signUp(username: String, password: CharArray? = null, attributes: UserAttributes? = null): SignUpResult
+
+    /**
+     * Sign up the account for a provided parameters; Kotlin coroutines variant.
+     *
+     * @param parameters parameters used for signUp operation.
+     * @return [com.microsoft.identity.nativeauth.statemachine.results.SignUpResult] see detailed possible return state under the object.
+     * @throws MsalClientException if an account is already signed in.
+     */
+    suspend fun signUp(parameters: NativeAuthSignUpParameters): SignUpResult
 
     /**
      * Sign up the account starting from a username; callback variant.
@@ -109,7 +141,17 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
      * @return [com.microsoft.identity.nativeauth.statemachine.results.SignUpResult] see detailed possible return state under the object.
      * @throws MsalClientException if an account is already signed in.
      */
+    @Deprecated("This method is now deprecated. Use the method 'signUp(parameters:, callback:)' instead.")
     fun signUp(username: String, password: CharArray? = null, attributes: UserAttributes? = null, callback: NativeAuthPublicClientApplication.SignUpCallback)
+
+    /**
+     * Sign up the account for a provided parameters; callback variant.
+     *
+     * @param parameters parameters used for signUp operation.
+     * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.SignUpCallback] to receive the result.
+     * @throws MsalClientException if an account is already signed in.
+     */
+    fun signUp(parameters: NativeAuthSignUpParameters, callback: NativeAuthPublicClientApplication.SignUpCallback)
 
     /**
      * Reset password for the account starting from a username; Kotlin coroutines variant.
@@ -118,15 +160,34 @@ interface INativeAuthPublicClientApplication : IPublicClientApplication {
      * @return [com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult] see detailed possible return state under the object.
      * @throws MsalClientException if an account is already signed in.
      */
+    @Deprecated("This method is now deprecated. Use the method 'resetPassword(parameters:)' instead.")
     suspend fun resetPassword(username: String): ResetPasswordStartResult
+
+    /**
+     * Reset password for the account for a provided parameters; Kotlin coroutines variant.
+     *
+     * @param parameters parameters used for resetPassword operation.
+     * @return [com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult] see detailed possible return state under the object.
+     * @throws MsalClientException if an account is already signed in.
+     */
+    suspend fun resetPassword(parameters: NativeAuthResetPasswordParameters): ResetPasswordStartResult
 
     /**
      * Reset password for the account starting from a username; callback variant.
      *
      * @param username username of the account to reset password.
      * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.ResetPasswordCallback] to receive the result.
-     * @return [com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult] see detailed possible return state under the object.
      * @throws MsalClientException if an account is already signed in.
      */
+    @Deprecated("This method is now deprecated. Use the method 'resetPassword(parameters:, callback:)' instead.")
     fun resetPassword(username: String, callback: NativeAuthPublicClientApplication.ResetPasswordCallback)
+
+    /**
+     * Reset password for the account for a provided parameters; callback variant.
+     *
+     * @param parameters parameters used for resetPassword operation.
+     * @param callback [com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication.ResetPasswordCallback] to receive the result.
+     * @throws MsalClientException if an account is already signed in.
+     */
+    fun resetPassword(parameters: NativeAuthResetPasswordParameters, callback: NativeAuthPublicClientApplication.ResetPasswordCallback)
 }

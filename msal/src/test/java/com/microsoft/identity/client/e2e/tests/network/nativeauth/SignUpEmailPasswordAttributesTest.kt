@@ -32,6 +32,7 @@ import com.microsoft.identity.nativeauth.UserAttributes
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
+import org.junit.Ignore
 import org.junit.Test
 
 class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstractTest() {
@@ -57,6 +58,7 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
      * 2. Validate OTP.
      * (hero scenario 10, use case 1.1.3)
      */
+    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testEmailPasswordAttributesOnSameScreen() {
         retryOperation {
@@ -86,6 +88,7 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
      * 3. Set custom attributes.
      * (hero scenario 12, use case 1.1.6)
      */
+    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testSeparateEmailPasswordAndAttributesOnSameScreen() {
         retryOperation {
@@ -122,10 +125,11 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
      * 5. etc.
      * ((hero scenario 13)
      */
+    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testSeparateEmailPasswordAndAttributesOnMultipleScreens() {
         retryOperation {
-            runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
+            runBlocking {
                 val user = tempEmailApi.generateRandomEmailAddress()
                 val signUpResult = application.signUp(user)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)

@@ -540,13 +540,16 @@ public class CommandParametersAdapter {
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String username,
             @Nullable final char[] password,
-            final List<String> scopes) throws ClientException {
+            final List<String> scopes,
+            @Nullable final ClaimsRequest claimsRequest) throws ClientException {
         final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
                 AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
                 null
         );
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
+
+        final String claimsRequestJson = ClaimsRequest.getJsonStringFromClaimsRequest(claimsRequest);
 
         final SignInStartCommandParameters commandParameters = SignInStartCommandParameters.builder()
                 .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
@@ -566,6 +569,7 @@ public class CommandParametersAdapter {
                 .authenticationScheme(authenticationScheme)
                 .clientId(configuration.getClientId())
                 .challengeType(configuration.getChallengeTypes())
+                .claimsRequestJson(claimsRequestJson)
                 .scopes(scopes)
                 // Start of the flow, so there is no correlation ID to use from a previous API response.
                 // Set it to a default value.
@@ -641,7 +645,8 @@ public class CommandParametersAdapter {
             @NonNull final String code,
             @NonNull final String continuationToken,
             @NonNull final String correlationId,
-            final List<String> scopes) throws ClientException {
+            final List<String> scopes,
+            @Nullable final String claimsRequestJson) throws ClientException {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
@@ -669,6 +674,7 @@ public class CommandParametersAdapter {
                 .code(code)
                 .scopes(scopes)
                 .correlationId(correlationId)
+                .claimsRequestJson(claimsRequestJson)
                 .build();
 
         return commandParameters;
@@ -730,7 +736,8 @@ public class CommandParametersAdapter {
             @NonNull final String continuationToken,
             @NonNull final char[] password,
             @NonNull final String correlationId,
-            final List<String> scopes) throws ClientException {
+            final List<String> scopes,
+            @Nullable final String claimsRequestJson) throws ClientException {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
@@ -759,6 +766,7 @@ public class CommandParametersAdapter {
                         .scopes(scopes)
                         .challengeType(configuration.getChallengeTypes())
                         .correlationId(correlationId)
+                        .claimsRequestJson(claimsRequestJson)
                         .build();
 
         return commandParameters;
