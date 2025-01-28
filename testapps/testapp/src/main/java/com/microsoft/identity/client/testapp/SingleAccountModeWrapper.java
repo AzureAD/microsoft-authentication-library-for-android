@@ -35,10 +35,7 @@ import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.PoPAuthenticationScheme;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.claims.ClaimsRequest;
-import com.microsoft.identity.client.exception.MsalClientException;
 import com.microsoft.identity.client.exception.MsalException;
-import com.microsoft.identity.common.internal.ui.browser.BrowserSelector;
-import com.microsoft.identity.common.java.exception.ClientException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,17 +60,6 @@ public class SingleAccountModeWrapper extends MsalWrapper {
     @Override
     public IPublicClientApplication getApp() {
         return mApp;
-    }
-
-    @Override
-    public String getDefaultBrowser() {
-        try {
-            return BrowserSelector.select(mApp.getConfiguration().getAppContext(),
-                    mApp.getConfiguration().getBrowserSafeList(),
-                    mApp.getConfiguration().getPreferredBrowser()).getPackageName();
-        } catch (ClientException e) {
-            return "Unknown";
-        }
     }
 
     @Override
