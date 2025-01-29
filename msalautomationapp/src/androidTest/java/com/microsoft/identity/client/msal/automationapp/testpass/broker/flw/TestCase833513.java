@@ -22,9 +22,9 @@
 // THE SOFTWARE.
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.flw;
 
-import androidx.test.uiautomator.UiObject;
 import androidx.test.uiautomator.UiObjectNotFoundException;
 
+import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.MultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.SignInParameters;
@@ -32,34 +32,29 @@ import com.microsoft.identity.client.SingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
-import com.microsoft.identity.client.ui.automation.annotations.DoNotRunOnPipeline;
-import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
+import com.microsoft.identity.client.ui.automation.TokenRequestLatch;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
 import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AdfsPromptHandler;
-import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.FederationProvider;
+import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserRole;
-import com.microsoft.identity.labapi.utilities.constants.UserType;
 import com.microsoft.identity.labapi.utilities.exception.LabApiException;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 
 // End My Shift - In Shared device mode, only account from the same tenant should be able to acquire token.
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833513
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
-@RunOnAPI29Minus("Checking for text error in WebView")
-@DoNotRunOnPipeline("Getting a prompt to confirm the certificate, follow by no ESTS error. Works as expected when ran manually")
 public class TestCase833513 extends AbstractMsalBrokerTest {
 
     @Test
@@ -67,11 +62,17 @@ public class TestCase833513 extends AbstractMsalBrokerTest {
         final String username1 = mLabAccount.getUsername();
         final String password1 = mLabAccount.getPassword();
 
+        // query to load a user from a different tenant that is used for WPJ
+        final LabQuery query = LabQuery.builder()
+                .azureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT)
+                .build();
+
+        final ILabAccount difTenantAccount = mLabClient.getLabAccount(query);
+        final String username2 = difTenantAccount.getUsername();
+        final String password2 = difTenantAccount.getPassword();
+
         // pca should be in MULTIPLE account mode starting out
         Assert.assertTrue(mApplication instanceof MultipleAccountPublicClientApplication);
-
-        //we should NOT be in shared device mode
-        Assert.assertFalse(mApplication.isSharedDevice());
 
         // perform shared device registration
         mBroker.performSharedDeviceRegistration(
@@ -79,55 +80,38 @@ public class TestCase833513 extends AbstractMsalBrokerTest {
         );
 
         // re-create PCA after device registration
-        mApplication = PublicClientApplication.create(mContext, getConfigFileResourceId());
+        final IPublicClientApplication publicClientApplication = PublicClientApplication.create(mContext, getConfigFileResourceId());
 
         // pca should now be in SINGLE account mode
-        Assert.assertTrue(mApplication instanceof SingleAccountPublicClientApplication);
+        Assert.assertTrue(publicClientApplication instanceof SingleAccountPublicClientApplication);
 
         // we should be in shared device mode
-        Assert.assertTrue(mApplication.isSharedDevice());
-
-        // query to load a user from a different tenant that was used for WPJ
-        final LabQuery query = LabQuery.builder()
-                .userType(UserType.FEDERATED)
-                .federationProvider(FederationProvider.ADFS_V3)
-                .build();
-
-        final ILabAccount difTenantAccount = mLabClient.getLabAccount(query);
-        final String username2 = difTenantAccount.getUsername();
-        final String password2 = difTenantAccount.getPassword();
+        Assert.assertTrue(publicClientApplication.isSharedDevice());
 
         final SingleAccountPublicClientApplication singleAccountPCA =
-                (SingleAccountPublicClientApplication) mApplication;
+                (SingleAccountPublicClientApplication) publicClientApplication;
 
         // try sign in with an account from a different tenant
-        // passing null for latch as we don't need to receive the result from this call
-        // we just want to get into the webview and look for the error in AAD page
+        // expect failure result from Interactive call
+        final TokenRequestLatch tokenRequestLatch = new TokenRequestLatch(1);
         final SignInParameters signInParameters = SignInParameters.builder()
                 .withActivity(mActivity)
                 .withLoginHint(username2)
                 .withScopes(Arrays.asList(mScopes))
-                .withCallback(successfulInteractiveCallback(null))
+                .withCallback(failureInteractiveCallback(tokenRequestLatch, ClientException.BRT_TENANT_MISMATCH))
                 .build();
         singleAccountPCA.signIn(signInParameters);
 
         final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                 .loginHint(username2)
-                .sessionExpected(false)
-                .consentPageExpected(false)
                 .broker(mBroker)
                 .prompt(PromptParameter.SELECT_ACCOUNT)
-                .expectingBrokerAccountChooserActivity(false)
-                .howWouldYouLikeToSignInExpected(true)
-                .chooseCertificateExpected(true)
                 .build();
 
-        AdfsPromptHandler adfsPromptHandler = new AdfsPromptHandler(promptHandlerParameters);
-        adfsPromptHandler.handlePrompt(username2, password2);
+        final AadPromptHandler promptHandler = new AadPromptHandler(promptHandlerParameters);
+        promptHandler.handlePrompt(username2, password2);
 
-        // expecting error in WebView now
-        final UiObject errMsg = UiAutomatorUtils.obtainUiObjectWithText("AADSTS50020");
-        Assert.assertTrue(errMsg.waitForExists(TimeUnit.MINUTES.toMillis(1)));
+        tokenRequestLatch.await();
     }
 
     @Override
@@ -144,7 +128,7 @@ public class TestCase833513 extends AbstractMsalBrokerTest {
 
     @Override
     public String[] getScopes() {
-        return new String[]{"User.read"};
+        return new String[]{"user.read"};
     }
 
     @Override

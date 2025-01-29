@@ -2,6 +2,36 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+- [MINOR] Move native auth public methods to parameter class (#2245)
+- [MINOR] Add support for claims requests for native auth sign in (#2246)
+
+Version 5.9.0
+----------
+-[MINOR] Add suberror for network errors (#2218)
+-[PATCH] Update common @19.0.0
+
+Version 5.8.2
+----------
+-[PATCH] Update common @18.2.2
+
+Version 5.8.1
+----------
+-[PATCH] Update common @18.2.1
+
+Version 5.8.0
+----------
+-[PATCH] Update common @18.2.0
+-[MINOR] Migrate Base64 away from Msebera (#2210)
+
+Version 5.7.0
+----------
+-[PATCH] Update common @18.1.0
+-[MINOR] Support for email OTP MFA in native authentication (#2167)
+-[MINOR] Add legacy FIDO2 API version (#2188)
+
+Version 5.6.0
+----------
+-[PATCH] Update common @18.0.0
 -[MINOR] Moving OS version check for passkeys (#2138)
 -[PATCH] Fix Native Auth authority data being persisted across different SDK instances (#2159)
 

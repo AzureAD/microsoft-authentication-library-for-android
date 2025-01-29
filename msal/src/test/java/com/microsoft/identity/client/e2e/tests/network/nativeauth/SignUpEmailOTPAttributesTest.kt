@@ -23,9 +23,11 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
-import com.microsoft.identity.client.e2e.utils.assertState
+import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
+import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
+import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.UserAttributes
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import kotlinx.coroutines.runBlocking
@@ -37,13 +39,23 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
 
     private val tempEmailApi = TemporaryEmailService()
 
-    override val configType = ConfigType.SIGN_UP_OTP_ATTRIBUTES
+    lateinit var application: INativeAuthPublicClientApplication
+    lateinit var config: NativeAuthTestConfig.Config
+
+    private val defaultConfigType = ConfigType.SIGN_UP_OTP_ATTRIBUTES
+    private val defaultChallengeTypes = listOf("password", "oob")
+
+    override fun setup() {
+        super.setup()
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+    }
 
     /**
      * Signup user with custom attributes with verify OTP as last step.
-     * (hero scenario 2, use case 2.1.2, Test case 2)
+     * (hero scenario 2, use case 2.1.2)
      */
-    @Ignore("Fetching OTP code is unstable")
+    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testSuccessAttributesFirst() {
         retryOperation {
@@ -51,9 +63,11 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
                 val user = tempEmailApi.generateRandomEmailAddress()
                 val attributes = UserAttributes.Builder().country("Ireland").city("Dublin").build()
                 val signUpResult = application.signUp(user, attributes = attributes)
-                assertState<SignUpResult.CodeRequired>(signUpResult)
+                assertResult<SignUpResult.CodeRequired>(signUpResult)
+
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
+
                 Assert.assertTrue(submitCodeResult is SignUpResult.Complete)
             }
         }
@@ -61,19 +75,21 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
 
     /**
      * Verify email OTP first and then collect custom attributes.
-     * (hero scenario 3, use case 2.1.3, Test case 3)
+     * (hero scenario 3, use case 2.1.3)
      */
-    @Ignore("Fetching OTP code is unstable")
+    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testSuccessAttributesLastSameScreen() {
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
                 val signUpResult = application.signUp(user)
-                assertState<SignUpResult.CodeRequired>(signUpResult)
+                assertResult<SignUpResult.CodeRequired>(signUpResult)
+
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
-                assertState<SignUpResult.AttributesRequired>(submitCodeResult)
+                assertResult<SignUpResult.AttributesRequired>(submitCodeResult)
+
                 val requiredAttributes = (submitCodeResult as SignUpResult.AttributesRequired).requiredAttributes
                 val attributes = UserAttributes.Builder()
                 for (attr in requiredAttributes) {
@@ -88,19 +104,21 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
 
     /**
      * Verify email OTP first and then collect custom attributes in multiple steps (mimicking a multi-screen UX).
-     * (hero scenario 4, use case 2.1.4, Test case 4)
+     * (hero scenario 4, use case 2.1.4)
      */
-    @Ignore("Fetching OTP code is unstable")
+    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testSuccessAttributesLastMultipleScreens() {
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
                 val signUpResult = application.signUp(user)
-                assertState<SignUpResult.CodeRequired>(signUpResult)
+                assertResult<SignUpResult.CodeRequired>(signUpResult)
+
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
-                assertState<SignUpResult.AttributesRequired>(submitCodeResult)
+                assertResult<SignUpResult.AttributesRequired>(submitCodeResult)
+
                 val requiredAttributes = (submitCodeResult as SignUpResult.AttributesRequired).requiredAttributes
                 val attributes = UserAttributes.Builder()
                 for (attr in requiredAttributes) { // Loop through all the required attributes and send them to the API one by one, mimicking a multi-screen UX.

@@ -27,7 +27,6 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.microsoft.identity.client.Logger
 import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncryptionManager
 import com.microsoft.identity.client.e2e.tests.IPublicClientApplicationTest
@@ -60,12 +59,13 @@ import org.robolectric.annotation.LooperMode
 abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientApplicationTest {
     companion object{
         const val SHARED_PREFERENCES_NAME = "com.microsoft.identity.client.account_credential_cache"
+        const val INVALID_EMAIL = "email"
+        const val INVALID_PASSWORD = "password"
+        const val INCORRECT_CODE = "00000000"
     }
 
     private lateinit var context: Context
     private lateinit var activity: Activity
-    lateinit var application: INativeAuthPublicClientApplication
-    lateinit var config: NativeAuthTestConfig.Config
 
     // Remove default Coroutine test timeout of 10 seconds.
     private val testDispatcher = StandardTestDispatcher()
@@ -74,19 +74,13 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         return "" // Not needed for native auth flows
     }
 
-    abstract val configType: ConfigType
-
     @Before
     open fun setup() {
         context = ApplicationProvider.getApplicationContext()
         activity = Mockito.mock(Activity::class.java)
         Mockito.`when`(activity.applicationContext).thenReturn(context)
-        Logger.getInstance().setEnableLogcatLog(true)
-        Logger.getInstance().setEnablePII(true)
-        Logger.getInstance().setLogLevel(Logger.LogLevel.VERBOSE)
         CommandDispatcherHelper.clear()
         Dispatchers.setMain(testDispatcher)
-        setupPCA()
     }
 
     @After
@@ -114,13 +108,15 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         return Gson().fromJson(secretValue, type)
     }
 
-    fun setupPCA() {
+    fun getConfig(configType: ConfigType): NativeAuthTestConfig.Config {
         val secretValue = getConfigsThroughSecretValue()
-        config = secretValue?.get(configType.stringValue) ?: throw IllegalStateException("Config not $secretValue")
-        val challengeTypes = listOf("password", "oob")
+        return secretValue?.get(configType.stringValue)
+            ?: throw IllegalStateException("Config not $secretValue")
+    }
 
-        try {
-            application = PublicClientApplication.createNativeAuthPublicClientApplication(
+    fun setupPCA(config: NativeAuthTestConfig.Config, challengeTypes: List<String>): INativeAuthPublicClientApplication {
+        return try {
+            PublicClientApplication.createNativeAuthPublicClientApplication(
                 context,
                 config.clientId,
                 config.authorityUrl,
@@ -129,12 +125,12 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
             )
         } catch (e: MsalException) {
             Assert.fail(e.message)
+            throw e
         }
     }
 
     fun <T> retryOperation(
-        maxRetries: Int = 3,
-        onFailure: () -> Unit = { Assert.fail() },
+        maxRetries: Int = 5,
         authFlow: () -> T
     ) {
         var retryCount = 0
@@ -144,10 +140,11 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
             try {
                 authFlow()
                 shouldRetry = false // authFlow() has succeeded, so we don't need to retry.
-            } catch (e: IllegalStateException) {
-                // Re-run this test if the OTP retrieval fails. 1SecMail is known for emails to sometimes never arrive.
+            } catch (e: Exception) {
+                //1secmail occasionally has a delay for emails to arrive / return from the API, or throws an internal server error, which causes tests to fail
+                //In this case, retry the test
                 if (retryCount >= maxRetries) {
-                    onFailure()
+                    Assert.fail(e.message)
                     shouldRetry = false
                 } else {
                     retryCount++

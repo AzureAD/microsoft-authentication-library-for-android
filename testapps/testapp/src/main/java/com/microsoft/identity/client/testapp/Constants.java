@@ -42,6 +42,7 @@ public class Constants {
         B2C,
         MSA,
         MSA_ONLY,
+        WEBVIEW_MSA,
         NO_ADMIN_CONSENT,
         CIAM,
         PKEY_AUTH_SILENT,
@@ -53,6 +54,9 @@ public class Constants {
         PPE,
 
         WEBVIEW_WITH_PPE,
+
+        WEBVIEW_PPE_MSA,
+        ONEBOX
     }
 
     public static int getResourceIdFromConfigFile(ConfigFile configFile) {
@@ -62,6 +66,9 @@ public class Constants {
 
             case WEBVIEW:
                 return R.raw.msal_config_webview;
+
+            case WEBVIEW_MSA:
+                return R.raw.msal_config_webview_msa;
 
             case FAIRFAX:
                 return R.raw.msal_config_fairfax;
@@ -111,6 +118,12 @@ public class Constants {
                 return R.raw.msal_config_ppe;
             case WEBVIEW_WITH_PPE:
                 return R.raw.msal_config_webview_ppe;
+
+            case WEBVIEW_PPE_MSA:
+                return R.raw.msal_config_webview_ppe_msa;
+
+            case ONEBOX:
+                return R.raw.msal_config_onebox;
         }
 
         return R.raw.msal_config_default;

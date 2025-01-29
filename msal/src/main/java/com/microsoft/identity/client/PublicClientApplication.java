@@ -1647,7 +1647,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             );
         }
 
-        return new MsalClientException(exception.getErrorCode(), exception.getMessage());
+        return MsalExceptionAdapter.msalExceptionFromBaseException(exception);
     }
 
     /**

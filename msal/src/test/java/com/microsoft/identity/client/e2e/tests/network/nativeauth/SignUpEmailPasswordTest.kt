@@ -23,45 +23,64 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
-import com.microsoft.identity.client.e2e.utils.assertState
+import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
+import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
+import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError
+import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignUpResendCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Ignore
 import org.junit.Test
-import kotlin.math.sign
 
 class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 
-    override val configType = ConfigType.SIGN_UP_PASSWORD
+    lateinit var application: INativeAuthPublicClientApplication
+    lateinit var config: NativeAuthTestConfig.Config
 
+    private val defaultConfigType = ConfigType.SIGN_UP_PASSWORD
+    private val defaultChallengeTypes = listOf("password", "oob")
+
+
+    @Ignore("Retrieving OTP code failure.")
     @Test
-    fun testSignUpErrorSimple() = runTest {
-        val user = tempEmailApi.generateRandomEmailAddress()
-        val result = application.signUp(user, "invalidpassword".toCharArray())
-        Assert.assertTrue(result is SignUpError)
-        Assert.assertTrue((result as SignUpError).isInvalidPassword())
+    fun testSignUpErrorSimple() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+
+        retryOperation {
+            runBlocking {
+                val user = tempEmailApi.generateRandomEmailAddress()
+                val result = application.signUp(user, "invalidpassword".toCharArray())
+                Assert.assertTrue(result is SignUpError)
+                Assert.assertTrue((result as SignUpError).isInvalidPassword())
+            }
+        }
     }
 
     /**
-     * Set email and password (mimicking one combined screen for email & password collection), and then verify email OTP as last step
-     * (hero scenario 9, use case 1.1.1,  Test case 13)
+     * Sign up with email + password. Set email and password (mimicking one combined screen for email & password collection), and then verify email OTP as last step
+     * (hero scenario 9, use case 1.1.1)
      */
-    @Ignore("Fetching OTP code is unstable")
+    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testSuccessOTPLast() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
                 val password = getSafePassword()
                 val signUpResult = application.signUp(user, password.toCharArray())
-                assertState<SignUpResult.CodeRequired>(signUpResult)
+                assertResult<SignUpResult.CodeRequired>(signUpResult)
+
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
                 Assert.assertTrue(submitCodeResult is SignUpResult.Complete)
@@ -70,22 +89,181 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     }
 
     /**
-     * Verify email address using email OTP and then set password (mimicking email and password collection on separate screens).
-     * (use case 1.1.4, Test case 16)
+     * Sign up with email + password. Resend email OOB.
+     * (use case 1.1.2)
      */
-    @Ignore("Fetching OTP code is unstable")
+    @Ignore("Retrieving OTP code failure.")
+    @Test
+    fun testResendEmailOOB() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+
+        retryOperation {
+            runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
+                val user = tempEmailApi.generateRandomEmailAddress()
+                val password = getSafePassword()
+                val signUpResult = application.signUp(user, password.toCharArray())
+                assertResult<SignUpResult.CodeRequired>(signUpResult)
+                val otp1 = tempEmailApi.retrieveCodeFromInbox(user)
+                val codeRequiredState = (signUpResult as SignUpResult.CodeRequired).nextState
+                val resendCodeResult = codeRequiredState.resendCode()
+                assertResult<SignUpResendCodeResult.Success>(resendCodeResult)
+                val otp2 = tempEmailApi.retrieveCodeFromInbox(user)
+                Assert.assertNotEquals(otp1, otp2)
+            }
+        }
+    }
+
+    /**
+     * Sign up with email + password. Verify email address using email OTP and then set password (mimicking email and password collection on separate screens).
+     * (use case 1.1.4)
+     */
+    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testSuccessOTPFirst() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddress()
                 val signUpResult = application.signUp(user)
-                assertState<SignUpResult.CodeRequired>(signUpResult)
+                assertResult<SignUpResult.CodeRequired>(signUpResult)
+
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
-                assertState<SignUpResult.PasswordRequired>(submitCodeResult)
+                assertResult<SignUpResult.PasswordRequired>(submitCodeResult)
+
                 val submitPasswordResult = (submitCodeResult as SignUpResult.PasswordRequired).nextState.submitPassword(getSafePassword().toCharArray())
                 Assert.assertTrue(submitPasswordResult is SignUpResult.Complete)
+            }
+        }
+    }
+
+    /**
+     * Sign up with email + password. Verify email address using email OTP, resend OTP and then set password.
+     * (use case 1.1.5)
+     */
+    @Ignore("Retrieving OTP code failure.")
+    @Test
+    fun testSuccessOTPResend() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+
+        retryOperation {
+            runBlocking {
+                val user = tempEmailApi.generateRandomEmailAddress()
+                val signUpResult = application.signUp(user)
+                assertResult<SignUpResult.CodeRequired>(signUpResult)
+
+                val resendCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.resendCode()
+                assertResult<SignUpResendCodeResult.Success>(resendCodeResult)
+
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val submitCodeResult = (resendCodeResult as SignUpResendCodeResult.Success).nextState.submitCode(otp)
+                assertResult<SignUpResult.PasswordRequired>(submitCodeResult)
+
+                val submitPasswordResult = (submitCodeResult as SignUpResult.PasswordRequired).nextState.submitPassword(getSafePassword().toCharArray())
+                Assert.assertTrue(submitPasswordResult is SignUpResult.Complete)
+            }
+        }
+    }
+
+    /**
+     * Sign up with email + password. User already exists with given email as email-pw account.
+     * (use case 1.1.10)
+     */
+    @Test
+    fun testErrorUserExistAsPassword() {
+        config = getConfig(ConfigType.SIGN_IN_PASSWORD)
+        application = setupPCA(config, defaultChallengeTypes)
+
+        runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
+            val user = config.email
+            val password = getSafePassword()
+            val signUpResult = application.signUp(user, password.toCharArray())
+            Assert.assertTrue(signUpResult is SignUpError)
+            Assert.assertTrue((signUpResult as SignUpError).isUserAlreadyExists())
+        }
+    }
+
+    /**
+     * Sign up with email + password. User already exists with given email as social account.
+     * (use case 1.1.11)
+     */
+    @Ignore("TODO: Add social account in the tenant.")
+    @Test
+    fun testErrorUserExistAsSocial() {
+        config = getConfig(ConfigType.SIGN_IN_PASSWORD)
+        application = setupPCA(config, defaultChallengeTypes)
+
+        runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
+            val user = config.email
+            val password = getSafePassword()
+            val signUpResult = application.signUp(user, password.toCharArray())
+            Assert.assertTrue(signUpResult is SignUpError)
+            Assert.assertTrue((signUpResult as SignUpError).isUserAlreadyExists())
+        }
+    }
+
+    /**
+     * Sign up with email + password. Developer makes a request with invalid format email address.
+     * (use case 1.1.12)
+     */
+    @Test
+    fun testErrorInvalidEmailFormat() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+
+        runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
+            val user = INVALID_EMAIL
+            val password = getSafePassword()
+            val signUpResult = application.signUp(user, password.toCharArray())
+            Assert.assertTrue(signUpResult is SignUpError)
+            Assert.assertTrue((signUpResult as SignUpError).isInvalidUsername())
+        }
+    }
+
+    /**
+     * Sign up with email + password. Developer makes a request with password that does not match password complexity requirements set on portal.
+     * (use case 1.1.13)
+     */
+    @Ignore("Retrieving OTP code failure.")
+    @Test
+    fun testErrorInvalidPasswordFormat() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+
+        runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
+            val user = tempEmailApi.generateRandomEmailAddress()
+            val password = INVALID_PASSWORD
+            val signUpResult = application.signUp(user, password.toCharArray())
+            Assert.assertTrue(signUpResult is SignUpError)
+            Assert.assertTrue((signUpResult as SignUpError).isInvalidPassword())
+        }
+    }
+
+    /**
+     * Sign up with email + password. Developer can opt to get AT and/or ID token (aka sign in after signup).
+     * (use case 1.1.14)
+     */
+    @Ignore("Retrieving OTP code failure.")
+    @Test
+    fun testSignInAfterSignUp() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+
+        retryOperation {
+            runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
+                val user = tempEmailApi.generateRandomEmailAddress()
+                val password = getSafePassword()
+                val signUpResult = application.signUp(user, password.toCharArray())
+                assertResult<SignUpResult.CodeRequired>(signUpResult)
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
+                val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)
+                assertResult<SignUpResult.Complete>(submitCodeResult)
+                val signWithContinuationResult = (submitCodeResult as SignUpResult.Complete).nextState.signIn()
+                assertResult<SignInResult.Complete>(signWithContinuationResult)
             }
         }
     }

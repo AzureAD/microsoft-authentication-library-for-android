@@ -27,6 +27,7 @@ import androidx.annotation.NonNull;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
@@ -52,6 +53,7 @@ import java.util.List;
 @LTWTests
 @RunOnAPI29Minus
 @SupportedBrokers(brokers = {BrokerLTW.class})
+@RetryOnFailure
 @RunWith(Parameterized.class)
 public class TestCase2571345 extends AbstractMsalBrokerTest {
 

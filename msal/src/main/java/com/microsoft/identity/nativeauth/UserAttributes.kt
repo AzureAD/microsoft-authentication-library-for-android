@@ -34,7 +34,6 @@ class UserAttributes(internal val userAttributes: Map<String, String>) {
             private const val CITY = "city"
             private const val COUNTRY = "country"
             private const val DISPLAY_NAME = "displayName"
-            private const val EMAIL_ADDRESS = "email"
             private const val GIVEN_NAME = "givenName"
             private const val JOB_TITLE = "jobTitle"
             private const val POSTAL_CODE = "postalCode"
@@ -69,15 +68,6 @@ class UserAttributes(internal val userAttributes: Map<String, String>) {
          */
         fun displayName(displayName: String): Builder {
             userAttributes[DISPLAY_NAME] = displayName
-            return this
-        }
-
-        /**
-         * Sets the email address for the user
-         * @param emailAddress: Email address for the user
-         */
-        fun emailAddress(emailAddress: String): Builder {
-            userAttributes[EMAIL_ADDRESS] = emailAddress
             return this
         }
 

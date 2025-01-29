@@ -23,9 +23,11 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
-import com.microsoft.identity.client.e2e.utils.assertState
+import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
+import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
+import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult
@@ -40,7 +42,17 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val tempEmailApi = TemporaryEmailService()
 
-    override val configType = ConfigType.SSPR
+    lateinit var application: INativeAuthPublicClientApplication
+    lateinit var config: NativeAuthTestConfig.Config
+
+    private val defaultConfigType = ConfigType.SSPR
+    private val defaultChallengeTypes = listOf("password", "oob")
+
+    override fun setup() {
+        super.setup()
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+    }
 
     @Test
     fun testSSPRErrorSimple() = runTest {
@@ -54,22 +66,23 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     /**
      * Verify email with email OTP first and then reset password.
-     * (hero scenario 8 & 17, use case 3.1.1, Test case 46)
+     * (hero scenario 8 & 17, use case 3.1.1)
      */
-    @Ignore("Fetching OTP code is unstable")
+    @Ignore("Retrieving OTP code failure")
     @Test
     fun testSSPRSuccess() = runBlocking {
         var result: ResetPasswordStartResult
-        var otp: String
 
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = config.email
                 result = application.resetPassword(user)
-                assertState<ResetPasswordStartResult.CodeRequired>(result)
-                otp = tempEmailApi.retrieveCodeFromInbox(user)
+                assertResult<ResetPasswordStartResult.CodeRequired>(result)
+
+                val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (result as ResetPasswordStartResult.CodeRequired).nextState.submitCode(otp)
-                assertState<ResetPasswordSubmitCodeResult.PasswordRequired>(submitCodeResult)
+                assertResult<ResetPasswordSubmitCodeResult.PasswordRequired>(submitCodeResult)
+
                 val password = getSafePassword()
                 val submitPasswordResult = (submitCodeResult as ResetPasswordSubmitCodeResult.PasswordRequired).nextState.submitPassword(password.toCharArray())
                 Assert.assertTrue(submitPasswordResult is ResetPasswordResult.Complete)
