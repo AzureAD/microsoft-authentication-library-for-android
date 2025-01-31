@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.microsoft.inspector">
+
+    <uses-permission
+        android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission"></uses-permission>
+
 
     <application
         android:allowBackup="true"
@@ -9,7 +15,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity 
+        <activity
             android:name="com.microsoft.inspector.MainActivity"
             android:exported="true">
             <intent-filter>
@@ -19,5 +25,4 @@
             </intent-filter>
         </activity>
     </application>
-
 </manifest>
