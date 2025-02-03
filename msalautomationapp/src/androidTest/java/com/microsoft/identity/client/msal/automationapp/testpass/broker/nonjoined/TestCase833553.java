@@ -30,11 +30,14 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.labapi.utilities.client.LabGuestAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
+import com.microsoft.identity.labapi.utilities.constants.FederationProvider;
+import com.microsoft.identity.labapi.utilities.constants.GuestHomedIn;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
@@ -42,22 +45,33 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
-// [Non-joined][MSAL] Acquire Token + Acquire Token Silent (Prompt.SELECT_ACCOUNT)
-// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/850455
-@RetryOnFailure(retryCount = 2)
-public class TestCase850455 extends AbstractMsalBrokerTest {
-
+// [ADAL] Broker Auth for Non-Joined Account (Federated User)
+// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833553
+public class TestCase833553 extends AbstractMsalBrokerTest {
     @Test
-    public void test_850455() throws Throwable {
+    public void test_833546() throws Throwable {
         final String username = mLabAccount.getUsername();
-        final String password = mLabAccount.getPassword();
+
+        // query to load another user from the same tenant
+        final LabQuery queryForUserB = LabQuery.builder()
+                .userType(UserType.GUEST)
+                .guestHomedIn(GuestHomedIn.ON_PREM)
+                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
+                .federationProvider(FederationProvider.ADFS_V4)
+                .build();
+
+        // load this other user
+        final LabGuestAccount userB = mLabClient.loadGuestAccountFromLab(queryForUserB);
+
+        final String usernameB = userB.getHomeUpn();
+        final String passwordB = mLabClient.getPasswordForGuestUser(userB);
 
         final MsalSdk msalSdk = new MsalSdk();
 
         // Interactive call
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .loginHint(username)
+                .loginHint(null)
                 .scopes(Arrays.asList(getScopes()))
                 .resource("00000002-0000-0000-c000-000000000000")
                 .promptParameter(Prompt.SELECT_ACCOUNT)
@@ -78,18 +92,18 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
                         .build();
 
                 new AadPromptHandler(promptHandlerParameters)
-                        .handlePrompt(username, password);
+                        .handlePrompt(usernameB, passwordB);
             }
         }, TokenRequestTimeout.MEDIUM);
 
         authResult.assertSuccess();
 
         // Silent call
-        final IAccount account = msalSdk.getAccount(mActivity,getConfigFileResourceId(),username);
+        final IAccount account = msalSdk.getAccount(mActivity,getConfigFileResourceId(),usernameB);
 
         final MsalAuthTestParams silentParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .loginHint(username)
+                .loginHint(usernameB)
                 .authority(account.getAuthority())
                 .forceRefresh(true)
                 .scopes(Arrays.asList(getScopes()))
@@ -104,7 +118,9 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
     @Override
     public LabQuery getLabQuery() {
         return LabQuery.builder()
-                .userType(UserType.CLOUD)
+                .userType(UserType.FEDERATED)
+                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
+                .federationProvider(FederationProvider.ADFS_V4)
                 .build();
     }
 

@@ -30,7 +30,6 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
-import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
@@ -42,13 +41,11 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
-// [Non-joined][MSAL] Acquire Token + Acquire Token Silent (Prompt.SELECT_ACCOUNT)
-// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/850455
-@RetryOnFailure(retryCount = 2)
-public class TestCase850455 extends AbstractMsalBrokerTest {
-
+// [ADAL] Broker Auth for Non-Joined Account - Multiple Resources
+// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833546
+public class TestCase833546 extends AbstractMsalBrokerTest {
     @Test
-    public void test_850455() throws Throwable {
+    public void test_833546() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
@@ -59,7 +56,7 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
                 .activity(mActivity)
                 .loginHint(username)
                 .scopes(Arrays.asList(getScopes()))
-                .resource("00000002-0000-0000-c000-000000000000")
+                .resource("00000003-0000-0ff1-ce00-000000000000")
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
