@@ -34,6 +34,7 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
+import org.junit.Ignore
 import org.junit.Test
 
 class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
@@ -56,6 +57,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Use valid email and OTP to get token and sign in.
      * (hero scenario 6, use case 2.2.1)
      */
+    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testSuccess() {
         retryOperation {
@@ -76,10 +78,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      */
     @Test
     fun testErrorIsUserNotFound() = runTest {
-        val user = config.email
-        // Turn correct username into an incorrect one
-        val invalidUser = user + "x"
-        val signInResult = application.signIn(invalidUser)
+        val signInResult = application.signIn(INVALID_EMAIL)
         Assert.assertTrue(signInResult is SignInError)
         Assert.assertTrue((signInResult as SignInError).isUserNotFound())
     }
@@ -88,19 +87,15 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Use valid email address, but invalid OTP to receive "invalid code" error.
      * (use case 2.2.7)
      */
+    @Ignore("Username used for this test is currently blocked in lab tenant.")
     @Test
-    fun testErrorIsInvalidCode() {
-        retryOperation {
-            runBlocking {// Running with runBlocking to avoid default 10 second execution timeout.
-                val user = config.email
-                val signInResult = application.signIn(user)
-                assertResult<SignInResult.CodeRequired>(signInResult)
+    fun testErrorIsInvalidCode() = runTest {
+        val user = config.email
+        val signInResult = application.signIn(user)
+        assertResult<SignInResult.CodeRequired>(signInResult)
 
-                val incorrectOtp = "1234"
-                val submitCodeResult = (signInResult as SignInResult.CodeRequired).nextState.submitCode(incorrectOtp)
-                Assert.assertTrue(submitCodeResult is SubmitCodeError)
-                Assert.assertTrue((submitCodeResult as SubmitCodeError).isInvalidCode())
-            }
-        }
+        val submitCodeResult = (signInResult as SignInResult.CodeRequired).nextState.submitCode(INCORRECT_CODE)
+        Assert.assertTrue(submitCodeResult is SubmitCodeError)
+        Assert.assertTrue((submitCodeResult as SubmitCodeError).isInvalidCode())
     }
 }

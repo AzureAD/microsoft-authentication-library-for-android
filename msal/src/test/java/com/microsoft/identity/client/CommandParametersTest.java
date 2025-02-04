@@ -41,9 +41,15 @@ import com.microsoft.identity.common.java.commands.parameters.DeviceCodeFlowComm
 import com.microsoft.identity.common.java.commands.parameters.InteractiveTokenCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.SilentTokenCommandParameters;
 import com.microsoft.identity.common.java.constants.FidoConstants;
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInStartCommandParameters;
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInSubmitCodeCommandParameters;
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInSubmitPasswordCommandParameters;
 import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.ui.PreferredAuthMethod;
+import com.microsoft.identity.msal.R;
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration;
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfigurationFactory;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -356,6 +362,96 @@ public class CommandParametersTest {
         );
         Assert.assertNotNull(combinedQueryParameters);
         Assert.assertEquals(combinedQueryParameters.size(), 1);
+    }
+
+    @Test
+    public void testCreateSignInStartCommandParameters_CommandParamsContainsExpectedParams() throws ClientException {
+        List<String> challengeTypes = new ArrayList<>(Collections.singletonList("OOB"));
+        String username = "username";
+        char[] pwd = "example".toCharArray();
+        List<String> scopes = new ArrayList<>(Collections.singletonList("User.Read"));
+        ClaimsRequest claimsRequest = ClaimsRequest.getClaimsRequestFromJsonString("{\"access_token\":{\"acrs\":{\"essential\":true,\"value\":\"c4\"}}}");
+        NativeAuthPublicClientApplicationConfiguration configuration = new NativeAuthPublicClientApplicationConfiguration();
+        configuration.setChallengeTypes(challengeTypes);
+        configuration.setClientId("clientId");
+        configuration.setAppContext(mContext);
+        configuration.setPowerOptCheckEnabled(false);
+
+        final SignInStartCommandParameters commandParameters = CommandParametersAdapter.createSignInStartCommandParameters(
+                configuration,
+                null,
+                username,
+                pwd,
+                scopes,
+                claimsRequest
+        );
+        Assert.assertEquals(commandParameters.claimsRequestJson, ClaimsRequest.getJsonStringFromClaimsRequest(claimsRequest));
+        Assert.assertEquals(commandParameters.password, pwd);
+        Assert.assertEquals(commandParameters.username, username);
+        Assert.assertEquals(commandParameters.scopes, scopes);
+        Assert.assertEquals(commandParameters.challengeType, challengeTypes);
+    }
+
+    @Test
+    public void createSignInSubmitCodeCommandParameters_CommandParamsContainsExpectedParams() throws ClientException {
+        List<String> challengeTypes = new ArrayList<>(Collections.singletonList("OOB"));
+        String code = "123456";
+        String continuationToken = "continuationToken";
+        String correlationId = UUID.randomUUID().toString();
+        List<String> scopes = new ArrayList<>(Collections.singletonList("User.Read"));
+        String claimsRequestJson = "{\"access_token\":{\"acrs\":{\"essential\":true,\"value\":\"c4\"}}}";
+        NativeAuthPublicClientApplicationConfiguration configuration = new NativeAuthPublicClientApplicationConfiguration();
+        configuration.setChallengeTypes(challengeTypes);
+        configuration.setClientId("clientId");
+        configuration.setAppContext(mContext);
+        configuration.setPowerOptCheckEnabled(false);
+
+        final SignInSubmitCodeCommandParameters commandParameters = CommandParametersAdapter.createSignInSubmitCodeCommandParameters(
+                configuration,
+                null,
+                code,
+                continuationToken,
+                correlationId,
+                scopes,
+                claimsRequestJson
+        );
+        Assert.assertEquals(commandParameters.claimsRequestJson, claimsRequestJson);
+        Assert.assertEquals(commandParameters.code, code);
+        Assert.assertEquals(commandParameters.continuationToken, continuationToken);
+        Assert.assertEquals(commandParameters.scopes, scopes);
+        Assert.assertEquals(commandParameters.challengeType, challengeTypes);
+        Assert.assertEquals(commandParameters.getCorrelationId(), correlationId);
+    }
+
+    @Test
+    public void createSignInSubmitPasswordCommandParameters_CommandParamsContainsExpectedParams() throws ClientException {
+        List<String> challengeTypes = new ArrayList<>(Collections.singletonList("OOB"));
+        char[] pwd = "example".toCharArray();
+        String continuationToken = "continuationToken";
+        String correlationId = UUID.randomUUID().toString();
+        List<String> scopes = new ArrayList<>(Collections.singletonList("User.Read"));
+        String claimsRequestJson = "{\"access_token\":{\"acrs\":{\"essential\":true,\"value\":\"c4\"}}}";
+        NativeAuthPublicClientApplicationConfiguration configuration = new NativeAuthPublicClientApplicationConfiguration();
+        configuration.setChallengeTypes(challengeTypes);
+        configuration.setClientId("clientId");
+        configuration.setAppContext(mContext);
+        configuration.setPowerOptCheckEnabled(false);
+
+        final SignInSubmitPasswordCommandParameters commandParameters = CommandParametersAdapter.createSignInSubmitPasswordCommandParameters(
+                configuration,
+                null,
+                continuationToken,
+                pwd,
+                correlationId,
+                scopes,
+                claimsRequestJson
+        );
+        Assert.assertEquals(commandParameters.claimsRequestJson, claimsRequestJson);
+        Assert.assertEquals(commandParameters.password, pwd);
+        Assert.assertEquals(commandParameters.continuationToken, continuationToken);
+        Assert.assertEquals(commandParameters.scopes, scopes);
+        Assert.assertEquals(commandParameters.challengeType, challengeTypes);
+        Assert.assertEquals(commandParameters.getCorrelationId(), correlationId);
     }
 
     private ClaimsRequest getAccessTokenClaimsRequest(@NonNull String claimName, @NonNull String claimValue) {
