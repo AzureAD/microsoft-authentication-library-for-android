@@ -3,9 +3,9 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 vNext
 ----------
 
-Version 5.10.0-RC1
+Version 5.10.0-RC2
 ----------
-- [PATCH] Update common @20.0.0-RC1
+- [PATCH] Update common @20.0.0-RC2
 - [MINOR] Change AndroidActivityInteractiveTokenCommandParameters to AndroidInteractiveTokenCommandParameters (#2247)
 - [MINOR] Move native auth public methods to parameter class (#2245)
 - [MINOR] Add support for claims requests for native auth sign in (#2246)
