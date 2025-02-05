@@ -7,7 +7,7 @@ name: $(date:yyyyMMdd)$(rev:.r)
 
 variables:
 - name: BuildParameters.jdkVersion
-  value: 1.11
+  value: 1.17
 - name: BuildParameters.jdkArchitecture
   value: x64
 - name: BuildParameters.javaHomeSelection
@@ -40,9 +40,9 @@ jobs:
     persistCredentials: True
   - template: azure-pipelines/templates/steps/automation-cert.yml@common
   - task: JavaToolInstaller@0
-    displayName: Use Java 11
+    displayName: Use Java 17
     inputs:
-      versionSpec: '11'
+      versionSpec: '17'
       jdkArchitectureOption: x64
       jdkSourceOption: PreInstalled
   - task: CodeQL3000Init@0
@@ -62,7 +62,7 @@ jobs:
     inputs:
       tasks: msal:testLocalDebugUnitTest -Plabtest -PlabSecret=$(LabVaultAppCert) -ProbolectricSdkVersion=${{variables.robolectricSdkVersion}} -PmockApiUrl=$(MOCK_API_URL)
       javaHomeSelection: $(BuildParameters.javaHomeSelection)
-      jdkVersion: 1.11
+      jdkVersion: 1.17
 - job: spotbugs
   displayName: SpotBugs
   cancelTimeoutInMinutes: 1
@@ -92,6 +92,6 @@ jobs:
     inputs:
       tasks: clean msal:lintLocalDebug
       publishJUnitResults: false
-      jdkVersion: 1.11
+      jdkVersion: 1.17
 
 ...
