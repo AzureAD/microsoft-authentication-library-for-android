@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
+    namespace "com.microsoft.identity.common.internal.platform"
     compileOptions {
         // Flag to enable support for the new language APIs
         coreLibraryDesugaringEnabled true
