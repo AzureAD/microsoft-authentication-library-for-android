@@ -276,7 +276,7 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
     @Ignore("Retrieving OTP code failure and missing AC username")
     @Test
     fun `test MFA flow is triggered when authentication context is used as claim`() {
-        config = getConfig(ConfigType.SIGN_IN_MFA_AUTH_CONTEXT)
+        config = getConfig(ConfigType.SIGN_IN_MFA_SINGLE_AUTH)
         application = setupPCA(config, defaultChallengeTypes)
         resources = config.resources
         val authenticationContextId = "c4"
