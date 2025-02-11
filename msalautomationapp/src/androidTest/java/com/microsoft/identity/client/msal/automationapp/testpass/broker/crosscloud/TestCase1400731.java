@@ -27,125 +27,133 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 
 import com.microsoft.identity.client.Prompt;
+import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
-import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractGuestAccountMsalBrokerUiTest;
-import com.microsoft.identity.client.ui.automation.TestContext;
+import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
-import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
-import com.microsoft.identity.client.ui.automation.constants.GlobalConstants;
-import com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired;
-import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
-import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.labapi.utilities.client.LabGuestAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
-import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
-import com.microsoft.identity.labapi.utilities.constants.GuestHomeAzureEnvironment;
-import com.microsoft.identity.labapi.utilities.constants.GuestHomedIn;
+import com.microsoft.identity.labapi.utilities.constants.LabConstants;
+import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
-import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.concurrent.TimeUnit;
 
 // [Joined] Guest Support: Interactive and Silent Auth with MSAL Test app (Authenticator or Company Portal)
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1400731/
 @RetryOnFailure(retryCount = 2)
-@RunWith(Parameterized.class)
-@RunOnAPI29Minus("Keep me signed in")
-public class TestCase1400731 extends AbstractGuestAccountMsalBrokerUiTest {
+public class TestCase1400731 extends AbstractMsalBrokerTest {
 
-    private final GuestHomeAzureEnvironment mGuestHomeAzureEnvironment;
-
-    public TestCase1400731(final String name, final @NonNull GuestHomeAzureEnvironment guestHomeAzureEnvironment) {
-        mGuestHomeAzureEnvironment = guestHomeAzureEnvironment;
-    }
-
-    @Parameterized.Parameters(name = "{0}")
-    public static Collection guestHomeAzureEnvironment() {
-        return Arrays.asList(new Object[][]{
-                {"AZURE_US_GOV", GuestHomeAzureEnvironment.AZURE_US_GOVERNMENT},
-                {"AZURE_CHINA_CLOUD", GuestHomeAzureEnvironment.AZURE_CHINA_CLOUD},
-        });
-    }
-
-    /**
-     * Tests Acquiring token for Cross cloud Guest account with broker.
-     */
     @Test
-    public void test_1420494() throws Throwable {
-        final String userName = mGuestUser.getHomeUpn();
-        final String password = mLabClient.getPasswordForGuestUser(mGuestUser);
+    public void test_1400731() throws Throwable {
+        // load a guest user account from the Lab
+        final LabGuestAccount labGuest = mLabClient.loadGuestAccountFromLab(getLabQuery());
+
+        final String username = "gcidlab@msidlab4.onmicrosoft.com";
+        final String password = mLabClient.getPasswordForGuestUser(labGuest);
 
         //perform device registration
-        mBroker.performDeviceRegistration(userName, password);
+        mBroker.performDeviceRegistration(username, password);
 
-        // Handler for Interactive auth call
-        final OnInteractionRequired interactionHandler = () -> {
-            final PromptHandlerParameters promptHandlerParameters =
-                    PromptHandlerParameters.builder()
-                            .prompt(PromptParameter.SELECT_ACCOUNT)
-                            .loginHint(userName)
-                            .staySignedInPageExpected(GlobalConstants.IS_STAY_SIGN_IN_PAGE_EXPECTED)
-                            .broker(mBroker)
-                            .build();
-            final AadPromptHandler promptHandler = new AadPromptHandler(promptHandlerParameters);
-            promptHandler.handlePrompt(userName, password);
-        };
+        final MsalSdk msalSdk = new MsalSdk();
 
-        final MsalAuthTestParams acquireTokenAuthParams = MsalAuthTestParams.builder()
+        final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .loginHint(userName)
-                .scopes(Arrays.asList(getScopes()))
+                .loginHint(username)
+                .scopes(Arrays.asList(mScopes))
                 .promptParameter(Prompt.SELECT_ACCOUNT)
-                .authority(getAuthority())
+                .authority(LabConstants.MSID_LAB3)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
-        final MsalSdk msalSdk = new MsalSdk();
-        // Acquire token interactively
-        final MsalAuthResult acquireTokenResult = msalSdk.acquireTokenInteractive(acquireTokenAuthParams, interactionHandler, TokenRequestTimeout.SHORT);
+        // start interactive acquire token request in MSAL (should succeed)
+        final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired() {
+            @Override
+            public void handleUserInteraction() {
+                // Should be silent
+            }
+        }, TokenRequestTimeout.MEDIUM);
 
-        Assert.assertFalse("Verify accessToken is not empty", TextUtils.isEmpty(acquireTokenResult.getAccessToken()));
+        Assert.assertFalse(TextUtils.isEmpty(authResult.getAccessToken()));
 
-        // change the time on the device (without resetting to automatic time zone)
-        TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
+        final MsalAuthTestParams authTestParams2 = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .loginHint(username)
+                .scopes(Arrays.asList(mScopes))
+                .promptParameter(Prompt.SELECT_ACCOUNT)
+                .authority(LabConstants.MSID_LAB4)
+                .msalConfigResourceId(getConfigFileResourceId())
+                .build();
 
-        // Acquire token silently
-        MsalAuthResult acquireTokenSilentResult = msalSdk.acquireTokenSilent(acquireTokenAuthParams, TokenRequestTimeout.SHORT);
-        Assert.assertFalse("AccessToken is empty", TextUtils.isEmpty(acquireTokenSilentResult.getAccessToken()));
+        // start interactive acquire token request in MSAL for msidlab4 (should succeed and be silent)
+        final MsalAuthResult authResult2 = msalSdk.acquireTokenInteractive(authTestParams2, new com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired() {
+            @Override
+            public void handleUserInteraction() {
+                // Should be silent
+            }
+        }, TokenRequestTimeout.MEDIUM);
 
-        Assert.assertNotEquals("Silent request does not return a new access token", acquireTokenSilentResult.getAccessToken(), acquireTokenResult.getAccessToken());
+        authResult2.assertSuccess();
 
-        final JSONObject profileObject = getProfileObjectFromMSGraph(acquireTokenSilentResult.getAccessToken());
-        Assert.assertEquals(userName, profileObject.get("mail"));
+        // advance clock by more than an hour to expire AT in cache
+        getSettingsScreen().forwardDeviceTimeForOneDay();
+
+        final MsalAuthTestParams silentParams = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .loginHint(username)
+                .authority(LabConstants.MSID_LAB3)
+                .forceRefresh(true)
+                .scopes(Arrays.asList(mScopes))
+                .msalConfigResourceId(getConfigFileResourceId())
+                .build();
+
+        // get a token silently for msidlab3
+        final MsalAuthResult silentAuthResult = msalSdk.acquireTokenSilent(silentParams, TokenRequestTimeout.SILENT);
+        silentAuthResult.assertSuccess();
+
+        final MsalAuthTestParams silentParams2 = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .loginHint(username)
+                .authority(LabConstants.MSID_LAB4)
+                .forceRefresh(true)
+                .scopes(Arrays.asList(mScopes))
+                .msalConfigResourceId(getConfigFileResourceId())
+                .build();
+
+        // get a token silently for msidlab4
+        final MsalAuthResult silentAuthResult2 = msalSdk.acquireTokenSilent(silentParams2, TokenRequestTimeout.SILENT);
+        silentAuthResult2.assertSuccess();
     }
 
     @Override
     public LabQuery getLabQuery() {
         return LabQuery.builder()
                 .userType(UserType.GUEST)
-                .guestHomeAzureEnvironment(mGuestHomeAzureEnvironment)
-                .guestHomedIn(GuestHomedIn.HOST_AZURE_AD)
-                .azureEnvironment(AzureEnvironment.AZURE_CLOUD)
                 .build();
+    }
+
+    @Override
+    public TempUserType getTempUserType() {
+        return null;
     }
 
     @Override
     public String[] getScopes() {
         return new String[]{"User.read"};
     }
-
     @Override
     public String getAuthority() {
-        return "https://login.microsoftonline.com/" + mGuestUser.getGuestLabTenants().get(0);
+        return "https://login.microsoftonline.us/common";
+    }
+
+    @Override
+    public int getConfigFileResourceId() {
+        return R.raw.msal_config_default;
     }
 }

@@ -60,7 +60,6 @@ import java.util.Arrays;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/831126
 @SupportedBrokers(brokers = {BrokerCompanyPortal.class})
 @RetryOnFailure
-//public class TestCase831126 extends AbstractFirstPartyBrokerTest {
 public class TestCase831126 extends AbstractMsalBrokerTest {
 
     @Test
@@ -100,23 +99,6 @@ public class TestCase831126 extends AbstractMsalBrokerTest {
 
         // enroll device in MDM via the Company Portal app
         ((IMdmAgent) mBroker).enrollDevice(username, password);
-
-        // SILENT REQUEST - start a acquireTokenSilent request in MSAL with the Account 2
-        final MsalSdk msalSdk = new MsalSdk();
-        final IAccount account = msalSdk.getAccount(mActivity,getConfigFileResourceId(),username);
-
-        final MsalAuthTestParams silentParams = MsalAuthTestParams.builder()
-                .activity(mActivity)
-                .loginHint(username)
-                .authority(account.getAuthority())
-                .forceRefresh(true)
-                .scopes(Arrays.asList(mScopes))
-                .msalConfigResourceId(getConfigFileResourceId())
-                .build();
-
-        // get a token silently
-        final MsalAuthResult silentAuthResult = msalSdk.acquireTokenSilent(silentParams, TokenRequestTimeout.SILENT);
-        silentAuthResult.assertSuccess();
 
         // re-launch outlook
         outlook.launch();

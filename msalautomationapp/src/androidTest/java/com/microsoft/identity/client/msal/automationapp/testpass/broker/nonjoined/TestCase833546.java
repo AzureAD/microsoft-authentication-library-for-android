@@ -41,7 +41,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
-// [ADAL] Broker Auth for Non-Joined Account - Multiple Resources
+// [MSAL] Broker Auth for Non-Joined Account - Multiple Resources
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833546
 public class TestCase833546 extends AbstractMsalBrokerTest {
     @Test

@@ -39,7 +39,7 @@ import org.junit.Test;
 // [WPJ] Install WPJ Certificate for Browser Access
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833561
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class, BrokerHost.class})
-@RetryOnFailure(retryCount = 2)
+//@RetryOnFailure(retryCount = 2)
 public class TestCase833561 extends AbstractMsalBrokerTest {
 
     @Test

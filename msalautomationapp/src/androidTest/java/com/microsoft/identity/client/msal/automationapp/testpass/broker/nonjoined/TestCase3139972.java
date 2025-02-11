@@ -44,7 +44,7 @@ import java.util.Arrays;
 
 // [Non-joined][MSAL] Acquire Token + Acquire Token Silent, no loginhint (Prompt.SELECT_ACCOUNT)
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3139972
-//@RetryOnFailure(retryCount = 2)
+@RetryOnFailure(retryCount = 2)
 public class TestCase3139972 extends AbstractMsalBrokerTest {
 
     @Test
@@ -89,10 +89,11 @@ public class TestCase3139972 extends AbstractMsalBrokerTest {
 
         final MsalAuthTestParams silentParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .loginHint(null)
+                .loginHint(username)
                 .authority(account.getAuthority())
                 .forceRefresh(true)
-                .resource(mScopes[0])
+                .scopes(Arrays.asList(getScopes()))
+                .resource("00000002-0000-0000-c000-000000000000")
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 

@@ -30,9 +30,10 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
-import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
-import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandler;
+import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.MicrosoftStsPromptHandlerParameters;
 import com.microsoft.identity.labapi.utilities.client.LabGuestAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
@@ -45,11 +46,12 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
-// [ADAL] Broker Auth for Non-Joined Account (Federated User)
+// [MSAL] Broker Auth for Non-Joined Account (Federated User)
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833553
+@RetryOnFailure()
 public class TestCase833553 extends AbstractMsalBrokerTest {
     @Test
-    public void test_833546() throws Throwable {
+    public void test_833553() throws Throwable {
         final String username = mLabAccount.getUsername();
 
         // query to load another user from the same tenant
@@ -64,14 +66,14 @@ public class TestCase833553 extends AbstractMsalBrokerTest {
         final LabGuestAccount userB = mLabClient.loadGuestAccountFromLab(queryForUserB);
 
         final String usernameB = userB.getHomeUpn();
-        final String passwordB = mLabClient.getPasswordForGuestUser(userB);
+        final String password = mLabClient.getPasswordForGuestUser(userB);
 
         final MsalSdk msalSdk = new MsalSdk();
 
         // Interactive call
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .loginHint(null)
+                .loginHint(username)
                 .scopes(Arrays.asList(getScopes()))
                 .resource("00000002-0000-0000-c000-000000000000")
                 .promptParameter(Prompt.SELECT_ACCOUNT)
@@ -81,22 +83,54 @@ public class TestCase833553 extends AbstractMsalBrokerTest {
         final MsalAuthResult authResult = msalSdk.acquireTokenInteractive(authTestParams, new com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired() {
             @Override
             public void handleUserInteraction() {
-                final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
+                final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
                         .loginHint(username)
                         .sessionExpected(false)
                         .consentPageExpected(false)
+                        .isFederated(true)
                         .speedBumpExpected(false)
                         .broker(mBroker)
                         .expectingBrokerAccountChooserActivity(false)
                         .build();
 
-                new AadPromptHandler(promptHandlerParameters)
-                        .handlePrompt(usernameB, passwordB);
+                new MicrosoftStsPromptHandler(promptHandlerParameters)
+                        .handlePrompt(username, password);
             }
         }, TokenRequestTimeout.MEDIUM);
 
         authResult.assertSuccess();
+
+        // Interactive call for user b
+        final MsalAuthTestParams authTestParams2 = MsalAuthTestParams.builder()
+                .activity(mActivity)
+                .loginHint(username)
+                .scopes(Arrays.asList(getScopes()))
+                .resource("00000002-0000-0000-c000-000000000000")
+                .promptParameter(Prompt.LOGIN)
+                .msalConfigResourceId(getConfigFileResourceId())
+                .build();
+
+        final MsalAuthResult authResult2 = msalSdk.acquireTokenInteractive(authTestParams2, new com.microsoft.identity.client.ui.automation.interaction.OnInteractionRequired() {
+            @Override
+            public void handleUserInteraction() {
+                final MicrosoftStsPromptHandlerParameters promptHandlerParameters = MicrosoftStsPromptHandlerParameters.builder()
+                        .prompt(PromptParameter.LOGIN)
+                        .loginHint(null)
+                        .sessionExpected(false)
+                        .consentPageExpected(false)
+                        .isFederated(true)
+                        .speedBumpExpected(false)
+                        .broker(mBroker)
+                        .expectingBrokerAccountChooserActivity(false)
+                        .build();
+
+                new MicrosoftStsPromptHandler(promptHandlerParameters)
+                        .handlePrompt(usernameB, password);
+            }
+        }, TokenRequestTimeout.MEDIUM);
+
+        authResult2.assertSuccess();
 
         // Silent call
         final IAccount account = msalSdk.getAccount(mActivity,getConfigFileResourceId(),usernameB);
