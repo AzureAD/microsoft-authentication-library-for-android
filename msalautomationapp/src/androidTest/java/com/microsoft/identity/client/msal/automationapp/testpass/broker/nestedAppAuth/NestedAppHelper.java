@@ -32,7 +32,7 @@ import com.microsoft.identity.client.ui.automation.utils.CommonUtils;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory;
 import com.microsoft.identity.common.internal.broker.BrokerData;
-import com.microsoft.identity.common.internal.commands.parameters.AndroidInteractiveTokenCommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.AndroidActivityInteractiveTokenCommandParameters;
 import com.microsoft.identity.common.internal.controllers.BrokerMsalController;
 import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.authscheme.BearerAuthenticationSchemeInternal;
@@ -60,7 +60,7 @@ import java.util.concurrent.TimeoutException;
 
 public class NestedAppHelper {
 
-    private AndroidInteractiveTokenCommandParameters mInteractiveParameters;
+    private AndroidActivityInteractiveTokenCommandParameters mInteractiveParameters;
 
     private final ILabAccount mLabAccount;
     private final BrokerMsalController mController;
@@ -116,7 +116,7 @@ public class NestedAppHelper {
             mAuthorityUrl = "https://login.microsoftonline.com/common";
             hubAppClientId = HUB_APP_CLIENT_ID_AAD;
         }
-        mInteractiveParameters = AndroidInteractiveTokenCommandParameters
+        mInteractiveParameters = AndroidActivityInteractiveTokenCommandParameters
                 .builder()
                 .platformComponents(mPlatformComponents)
                 .sdkType(SdkType.MSAL_CPP)
@@ -159,7 +159,7 @@ public class NestedAppHelper {
     }
 
     protected void performATForHubAppInUSGovCloud() {
-        mInteractiveParameters = AndroidInteractiveTokenCommandParameters
+        mInteractiveParameters = AndroidActivityInteractiveTokenCommandParameters
                 .builder()
                 .platformComponents(mPlatformComponents)
                 .sdkType(SdkType.MSAL_CPP)
@@ -270,7 +270,7 @@ public class NestedAppHelper {
         }
         final String hubAppClientId = mLabAccount.getUserType() == UserType.MSA ? HUB_APP_CLIENT_ID_MSA : HUB_APP_CLIENT_ID_AAD;
 
-        mInteractiveParameters = AndroidInteractiveTokenCommandParameters
+        mInteractiveParameters = AndroidActivityInteractiveTokenCommandParameters
                 .builder()
                 .platformComponents(mPlatformComponents)
                 .sdkType(SdkType.MSAL_CPP)
