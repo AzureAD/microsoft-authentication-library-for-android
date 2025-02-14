@@ -34,6 +34,7 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignInResendCodeRe
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
+import org.junit.Ignore
 import org.junit.Test
 
 class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
@@ -46,10 +47,17 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
     private val defaultConfigType = ConfigType.SIGN_IN_OTP
     private val defaultChallengeTypes = listOf("password", "oob")
 
+    override fun setup() {
+        super.setup()
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+    }
+
     /**
      * Use valid email and OTP to get token and sign in.
      * (hero scenario 6, use case 2.2.1)
      */
+    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testSuccess() {
         config = getConfig(defaultConfigType)
@@ -162,6 +170,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Use valid email address, but invalid OTP to receive "invalid code" error.
      * (use case 2.2.7)
      */
+    @Ignore("Username used for this test is currently blocked in lab tenant.")
     @Test
     fun testErrorIsInvalidCode() {
         config = getConfig(defaultConfigType)
