@@ -147,7 +147,7 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
         application = setupPCA(config, defaultChallengeTypes)
 
         runBlocking {
-            val username = INVALID_EMAIL
+            val username = tempEmailApi.generateRandomEmailAddressLocally()
             val result = application.resetPassword(username)
             Assert.assertTrue(result is ResetPasswordError)
             Assert.assertTrue((result as ResetPasswordError).isUserNotFound())

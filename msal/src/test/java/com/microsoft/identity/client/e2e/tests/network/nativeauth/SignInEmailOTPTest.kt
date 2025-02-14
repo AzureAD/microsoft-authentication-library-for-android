@@ -86,10 +86,8 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         retryOperation {
             runBlocking {
-                val user = config.email
-                // Turn correct username into an incorrect one
-                val invalidUser = user + "x"
-                val signInResult = application.signIn(invalidUser)
+                val username = tempEmailApi.generateRandomEmailAddressLocally()
+                val signInResult = application.signIn(username)
                 Assert.assertTrue(signInResult is SignInError)
                 Assert.assertTrue((signInResult as SignInError).isUserNotFound())
             }
