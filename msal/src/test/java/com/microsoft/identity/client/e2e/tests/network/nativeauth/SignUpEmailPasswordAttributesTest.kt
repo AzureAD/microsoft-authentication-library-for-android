@@ -63,7 +63,7 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
     fun testEmailPasswordAttributesOnSameScreen() {
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-                val user = tempEmailApi.generateRandomEmailAddress()
+                val user = tempEmailApi.generateRandomEmailAddressLocally()
                 val password = getSafePassword().toCharArray()
                 val attributes = UserAttributes.Builder().country("Ireland").city("Dublin").build()
                 val signUpResult = application.signUp(
@@ -93,7 +93,7 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
     fun testSeparateEmailPasswordAndAttributesOnSameScreen() {
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-                val user = tempEmailApi.generateRandomEmailAddress()
+                val user = tempEmailApi.generateRandomEmailAddressLocally()
                 val signUpResult = application.signUp(user)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
 
@@ -130,7 +130,7 @@ class SignUpEmailPasswordAttributesTest : NativeAuthPublicClientApplicationAbstr
     fun testSeparateEmailPasswordAndAttributesOnMultipleScreens() {
         retryOperation {
             runBlocking {
-                val user = tempEmailApi.generateRandomEmailAddress()
+                val user = tempEmailApi.generateRandomEmailAddressLocally()
                 val signUpResult = application.signUp(user)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
 

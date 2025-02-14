@@ -59,7 +59,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-                val user = tempEmailApi.generateRandomEmailAddress()
+                val user = tempEmailApi.generateRandomEmailAddressLocally()
                 val signUpResult = application.signUp(user)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
 
@@ -82,7 +82,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-                val user = tempEmailApi.generateRandomEmailAddress()
+                val user = tempEmailApi.generateRandomEmailAddressLocally()
                 val signUpResult = application.signUp(user)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
                 val otp1 = tempEmailApi.retrieveCodeFromInbox(user)
@@ -175,7 +175,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-                val user = tempEmailApi.generateRandomEmailAddress()
+                val user = tempEmailApi.generateRandomEmailAddressLocally()
                 val signUpResult = application.signUp(user)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
@@ -198,7 +198,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
         application = setupPCA(config, listOf("oob"))
 
         runBlocking {
-            val user = tempEmailApi.generateRandomEmailAddress()
+            val user = tempEmailApi.generateRandomEmailAddressLocally()
             val signUpResult = application.signUp(user)
             Assert.assertTrue(signUpResult is SignUpError)
             Assert.assertTrue((signUpResult as SignUpError).isBrowserRequired())
@@ -217,7 +217,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
-                val user = tempEmailApi.generateRandomEmailAddress()
+                val user = tempEmailApi.generateRandomEmailAddressLocally()
                 val signUpResult = application.signUp(user)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
