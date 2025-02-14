@@ -33,6 +33,8 @@ import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignOutResult
 import kotlinx.coroutines.runBlocking
+import org.checkerframework.checker.units.qual.s
+import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -156,19 +158,20 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
      */
 
     /**
-     * User email is registered with email OTP auth method, which is supported by the developer.
+     * User email is registered with email OTP auth method, which is not supported by the developer (aka redirect flow)
      * (use case 1.2.9)
      */
     @Test
     fun testErrorOTPConfigBrowserRequired() {
         config = getConfig(ConfigType.SIGN_IN_OTP)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, listOf("password"))
 
         runBlocking {
             val username = config.email
             val password = getSafePassword()
             val result = application.signIn(username, password.toCharArray())
-            assertResult<SignInResult.CodeRequired>(result)
+            assertTrue(result is SignInError)
+            assertTrue((result as SignInError).isBrowserRequired())
         }
     }
 

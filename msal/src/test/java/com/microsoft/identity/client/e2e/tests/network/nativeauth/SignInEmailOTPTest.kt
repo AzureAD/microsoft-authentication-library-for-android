@@ -105,8 +105,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         runBlocking {
             val user = config.email
-            val password = getSafePassword()
-            val signInResult = application.signIn(user, password.toCharArray())
+            val signInResult = application.signIn(user)
             Assert.assertTrue(signInResult is SignInError)
             Assert.assertTrue((signInResult as SignInError).isBrowserRequired())
         }
@@ -175,17 +174,13 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
         config = getConfig(defaultConfigType)
         application = setupPCA(config, defaultChallengeTypes)
 
-        retryOperation {
-            runBlocking {// Running with runBlocking to avoid default 10 second execution timeout.
-                val user = config.email
-                val signInResult = application.signIn(user)
-                assertResult<SignInResult.CodeRequired>(signInResult)
-
-                val incorrectOtp = "1234"
-                val submitCodeResult = (signInResult as SignInResult.CodeRequired).nextState.submitCode(incorrectOtp)
-                Assert.assertTrue(submitCodeResult is SubmitCodeError)
-                Assert.assertTrue((submitCodeResult as SubmitCodeError).isInvalidCode())
-            }
+        runBlocking {
+            val user = config.email
+            val signInResult = application.signIn(user)
+            assertResult<SignInResult.CodeRequired>(signInResult)
+            val submitCodeResult = (signInResult as SignInResult.CodeRequired).nextState.submitCode(INCORRECT_CODE)
+            Assert.assertTrue(submitCodeResult is SubmitCodeError)
+            Assert.assertTrue((submitCodeResult as SubmitCodeError).isInvalidCode())
         }
     }
 }
