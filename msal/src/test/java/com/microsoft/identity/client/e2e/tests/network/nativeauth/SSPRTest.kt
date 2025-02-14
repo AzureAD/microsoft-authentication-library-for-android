@@ -84,7 +84,7 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
      */
     @Ignore("Retrieving OTP code failure.")
     @Test
-    fun testErrorSPasswordComplexity() {
+    fun testErrorPasswordComplexity() {
         config = getConfig(defaultConfigType)
         application = setupPCA(config, defaultChallengeTypes)
 
