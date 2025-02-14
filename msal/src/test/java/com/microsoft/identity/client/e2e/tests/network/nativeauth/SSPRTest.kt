@@ -82,6 +82,7 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
      * New password being set doesn’t meet password complexity requirements set on portal
      * (use case 3.1.3)
      */
+    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testErrorSPasswordComplexity() {
         config = getConfig(defaultConfigType)
@@ -111,6 +112,7 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Resend Code.
      * (use case 3.1.4)
      */
+    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testResendCode() {
         config = getConfig(defaultConfigType)
