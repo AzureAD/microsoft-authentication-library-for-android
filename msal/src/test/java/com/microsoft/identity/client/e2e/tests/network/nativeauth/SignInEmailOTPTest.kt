@@ -28,6 +28,7 @@ import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResendCodeResult
@@ -64,9 +65,10 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
         application = setupPCA(config, defaultChallengeTypes)
 
         retryOperation {
-            runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
+            runBlocking {
                 val user = config.email
-                val signInResult = application.signIn(user)
+                val param = NativeAuthSignInParameters(username = user)
+                val signInResult = application.signIn(param)
                 assertResult<SignInResult.CodeRequired>(signInResult)
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signInResult as SignInResult.CodeRequired).nextState.submitCode(otp)
@@ -87,7 +89,8 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
         retryOperation {
             runBlocking {
                 val username = tempEmailApi.generateRandomEmailAddressLocally()
-                val signInResult = application.signIn(username)
+                val param = NativeAuthSignInParameters(username = username)
+                val signInResult = application.signIn(param)
                 Assert.assertTrue(signInResult is SignInError)
                 Assert.assertTrue((signInResult as SignInError).isUserNotFound())
             }
@@ -105,7 +108,8 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         runBlocking {
             val user = config.email
-            val signInResult = application.signIn(user)
+            val param = NativeAuthSignInParameters(username = user)
+            val signInResult = application.signIn(param)
             Assert.assertTrue(signInResult is SignInError)
             Assert.assertTrue((signInResult as SignInError).isBrowserRequired())
         }
@@ -122,7 +126,8 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         runBlocking {
             val user = config.email
-            val signInResult = application.signIn(user)
+            val param = NativeAuthSignInParameters(username = user)
+            val signInResult = application.signIn(param)
             assertResult<SignInResult.PasswordRequired>(signInResult)
 
             val password = getSafePassword()
@@ -145,7 +150,8 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
         retryOperation {
             runBlocking {
                 val user = config.email
-                val signInResult = application.signIn(user)
+                val param = NativeAuthSignInParameters(username = user)
+                val signInResult = application.signIn(param)
                 assertResult<SignInResult.CodeRequired>(signInResult)
                 val otp1 = tempEmailApi.retrieveCodeFromInbox(user)
                 val codeRequiredState = (signInResult as SignInResult.CodeRequired).nextState
@@ -183,7 +189,8 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         runBlocking {
             val user = config.email
-            val signInResult = application.signIn(user)
+            val param = NativeAuthSignInParameters(username = user)
+            val signInResult = application.signIn(param)
             assertResult<SignInResult.CodeRequired>(signInResult)
             val submitCodeResult = (signInResult as SignInResult.CodeRequired).nextState.submitCode(INCORRECT_CODE)
             Assert.assertTrue(submitCodeResult is SubmitCodeError)

@@ -59,8 +59,9 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
         runBlocking {
             val username = config.email
-            val password = getSafePassword()
-            val result = application.signIn(username, password.toCharArray())
+            val param = NativeAuthSignInParameters(username = username)
+            param.password = getSafePassword().toCharArray()
+            val result = application.signIn(param)
             assertResult<SignInResult.Complete>(result)
         }
     }
@@ -76,8 +77,9 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
         runBlocking {
             val username = INVALID_EMAIL
-            val password = getSafePassword()
-            val result = application.signIn(username, password.toCharArray())
+            val param = NativeAuthSignInParameters(username = username)
+            param.password = getSafePassword().toCharArray()
+            val result = application.signIn(param)
             assertTrue(result is SignInError)
             assertTrue((result as SignInError).isUserNotFound())
         }
@@ -94,8 +96,9 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
         runBlocking {
             val username = config.email
-            val password = INVALID_PASSWORD
-            val result = application.signIn(username, password.toCharArray())
+            val param = NativeAuthSignInParameters(username = username)
+            param.password = INVALID_PASSWORD.toCharArray()
+            val result = application.signIn(param)
             assertTrue(result is SignInError)
             assertTrue((result as SignInError).isInvalidCredentials())
         }
@@ -112,11 +115,15 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
         runBlocking {
             val username = config.email
-            val password = getSafePassword()
-            val result = application.signIn(username, password.toCharArray())
+            val param1 = NativeAuthSignInParameters(username = username)
+            param1.password = getSafePassword().toCharArray()
+            val result = application.signIn(param1)
             assertTrue(result is SignInResult.Complete)
 
-            val result2 = application.signIn(username, password.toCharArray())
+            val param2 = NativeAuthSignInParameters(username = username)
+            param2.password = getSafePassword().toCharArray()
+            val result2 = application.signIn(param2)
+
             assertTrue(result2 is SignInError)
             assertTrue((result2 as SignInError).exception is MsalClientException)
             assertEquals("An account is already signed in.", result2.exception!!.message)
@@ -133,15 +140,16 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
         application = setupPCA(config, defaultChallengeTypes)
 
         runBlocking {
-            val username = config.email
-            val password = getSafePassword()
-            val result = application.signIn(username, password.toCharArray())
+            val param = NativeAuthSignInParameters(username = config.email)
+            param.password = getSafePassword().toCharArray()
+            val result = application.signIn(param)
 
             assertTrue(result is SignInResult.Complete)
 
             val config2 = getConfig(ConfigType.SIGN_IN_OTP)
-            val username2 = config2.email
-            val result2 = application.signIn(username2, password.toCharArray())
+            val param2 = NativeAuthSignInParameters(username = config2.email)
+            param.password = getSafePassword().toCharArray()
+            val result2 = application.signIn(param2)
 
             assertTrue(result2 is SignInError)
             assertTrue((result2 as SignInError).exception is MsalClientException)
@@ -172,9 +180,9 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
         application = setupPCA(config, defaultChallengeTypes)
 
         runBlocking {
-            val username = config.email
-            val password = getSafePassword()
-            val result = application.signIn(username, password.toCharArray())
+            val param = NativeAuthSignInParameters(username = config.email)
+            param.password = getSafePassword().toCharArray()
+            val result = application.signIn(param)
             assertResult<SignInResult.CodeRequired>(result)
         }
     }
@@ -198,9 +206,9 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
         application = setupPCA(config, listOf("password"))
 
         runBlocking {
-            val username = config.email
-            val password = getSafePassword()
-            val result = application.signIn(username, password.toCharArray())
+            val param = NativeAuthSignInParameters(username = config.email)
+            param.password = getSafePassword().toCharArray()
+            val result = application.signIn(param)
             assertTrue(result is SignInError)
             assertTrue((result as SignInError).isBrowserRequired())
         }
@@ -216,9 +224,9 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
         application = setupPCA(config, defaultChallengeTypes)
 
         runBlocking {
-            val username = config.email
-            val password = getSafePassword()
-            val signInResult = application.signIn(username, password.toCharArray())
+            val param = NativeAuthSignInParameters(username = config.email)
+            param.password = getSafePassword().toCharArray()
+            val signInResult = application.signIn(param)
             assertResult<SignInResult.Complete>(signInResult)
             val getAccountResult = application.getCurrentAccount()
             assertResult<GetAccountResult.AccountFound>(getAccountResult)
