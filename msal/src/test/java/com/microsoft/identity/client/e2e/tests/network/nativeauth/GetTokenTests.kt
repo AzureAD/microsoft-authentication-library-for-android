@@ -499,7 +499,7 @@ class GetTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         val accessTokenParam4 = NativeAuthGetAccessTokenParameters()
         accessTokenParam4.forceRefresh = true
         accessTokenParam4.scopes = listOf(scopeB1)
-        val getAccessTokenResult4 = accountState.getAccessToken(accessTokenParam3)
+        val getAccessTokenResult4 = accountState.getAccessToken(accessTokenParam4)
 
         assertResult<GetAccessTokenResult.Complete>(getAccessTokenResult4)
         Assert.assertTrue(wasRenewAccessTokenInvoked)
