@@ -28,6 +28,7 @@ import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
@@ -125,14 +126,41 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     /**
      * User signs in with account B, while data for account A already exists in SDK persistence.
      * (use case 1.2.5)
-     * The same as 1.2.4
      */
+    @Test
+    fun testErrorOutOfPersistenceDifferentAccount() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+
+        runBlocking {
+            val username = config.email
+            val password = getSafePassword()
+            val result = application.signIn(username, password.toCharArray())
+
+            assertTrue(result is SignInResult.Complete)
+
+            val config2 = getConfig(ConfigType.SIGN_IN_OTP)
+            val username2 = config2.email
+            val result2 = application.signIn(username2, password.toCharArray())
+
+            assertTrue(result2 is SignInError)
+            assertTrue((result2 as SignInError).exception is MsalClientException)
+            assertEquals("An account is already signed in.", result2.exception!!.message)
+        }
+    }
 
     /**
      * Ability to provide scope to control auth strength of the token.
      * (use case 1.2.6)
      * Please refer to GetTokenTests.kt (testGetAccessTokenFromCache) for the test.
      */
+    //    val result = application.signIn(
+    //        username = username,
+    //        password = password.toCharArray(),
+    //        scopes = listOf(scopeA)
+    //    )
+    //    val accessTokenForImplicitScopes = authResult.accessToken
+    //    Assert.assertTrue(authResult.scope.contains(scopeA))
 
     /**
      * User email is registered with email OTP auth method, which is supported by the developer.
@@ -154,8 +182,11 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     /**
      * User attempts to sign in with email and password, but server requires second factor authentication (MFA OTP).
      * (use case 1.2.8)
-     * Please refer to SignInMFATest.kt for the test.
+     * Please refer to SignInMFATest.kt (`test MFA flow is triggered when authentication context is used as claim`) for the test.
      */
+    // val sendChallengeResult = (result as SignInResult.MFARequired).nextState.requestChallenge()
+    // assertResult<MFARequiredResult.VerificationRequired>(sendChallengeResult)
+    // (sendChallengeResult as MFARequiredResult.VerificationRequired)
 
     /**
      * User email is registered with email OTP auth method, which is not supported by the developer (aka redirect flow)
@@ -177,6 +208,7 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
     /**
      * Sign in then sign out.
+     * (hero scenario 18)
      */
     @Test
     fun testSignOut() {

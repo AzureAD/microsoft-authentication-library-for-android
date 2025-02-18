@@ -84,7 +84,7 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
      */
     @Ignore("Retrieving OTP code failure.")
     @Test
-    fun testErrorPasswordComplexity() {
+    fun testErrorInvalidPasswordFormat() {
         config = getConfig(defaultConfigType)
         application = setupPCA(config, defaultChallengeTypes)
 
@@ -199,7 +199,7 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
         application = setupPCA(config, defaultChallengeTypes)
 
         runBlocking {
-            val username = INVALID_EMAIL
+            val username = INVALID_EMAIL // TODO: Use social accounts instead when ready
             val result = application.resetPassword(username)
             Assert.assertTrue(result is ResetPasswordError)
             Assert.assertTrue((result as ResetPasswordError).isUserNotFound())

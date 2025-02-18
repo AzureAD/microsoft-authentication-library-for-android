@@ -162,6 +162,13 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * (use case 2.2.6)
      * Please refer to GetTokenTests.kt (testGetAccessTokenFromCache) for the test.
      */
+    //    val result = application.signIn(
+    //        username = username,
+    //        password = password.toCharArray(),
+    //        scopes = listOf(scopeA)
+    //    )
+    //    val accessTokenForImplicitScopes = authResult.accessToken
+    //    Assert.assertTrue(authResult.scope.contains(scopeA))
 
 
     /**
