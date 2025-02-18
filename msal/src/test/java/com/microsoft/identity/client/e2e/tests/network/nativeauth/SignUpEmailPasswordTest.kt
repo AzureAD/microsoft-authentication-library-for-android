@@ -28,6 +28,7 @@ import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
 import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResendCodeResult
@@ -57,7 +58,9 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
         retryOperation {
             runBlocking {
                 val user = tempEmailApi.generateRandomEmailAddressLocally()
-                val result = application.signUp(user, "invalidpassword".toCharArray())
+                val param = NativeAuthSignUpParameters(username = user)
+                param.password = INVALID_PASSWORD.toCharArray()
+                val result = application.signUp(param)
                 Assert.assertTrue(result is SignUpError)
                 Assert.assertTrue((result as SignUpError).isInvalidPassword())
             }
@@ -75,10 +78,11 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
         application = setupPCA(config, defaultChallengeTypes)
 
         retryOperation {
-            runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
+            runBlocking {
                 val user = tempEmailApi.generateRandomEmailAddressLocally()
-                val password = getSafePassword()
-                val signUpResult = application.signUp(user, password.toCharArray())
+                val param = NativeAuthSignUpParameters(username = user)
+                param.password = getSafePassword().toCharArray()
+                val signUpResult = application.signUp(param)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
 
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
@@ -99,10 +103,11 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
         application = setupPCA(config, defaultChallengeTypes)
 
         retryOperation {
-            runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
+            runBlocking {
                 val user = tempEmailApi.generateRandomEmailAddressLocally()
-                val password = getSafePassword()
-                val signUpResult = application.signUp(user, password.toCharArray())
+                val param = NativeAuthSignUpParameters(username = user)
+                param.password = getSafePassword().toCharArray()
+                val signUpResult = application.signUp(param)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
                 val otp1 = tempEmailApi.retrieveCodeFromInbox(user)
                 val codeRequiredState = (signUpResult as SignUpResult.CodeRequired).nextState
@@ -127,7 +132,8 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddressLocally()
-                val signUpResult = application.signUp(user)
+                val param = NativeAuthSignUpParameters(username = user)
+                val signUpResult = application.signUp(param)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
 
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
@@ -153,7 +159,8 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
         retryOperation {
             runBlocking {
                 val user = tempEmailApi.generateRandomEmailAddressLocally()
-                val signUpResult = application.signUp(user)
+                val param = NativeAuthSignUpParameters(username = user)
+                val signUpResult = application.signUp(param)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
 
                 val resendCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.resendCode()
@@ -180,8 +187,9 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
         runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
             val user = config.email
-            val password = getSafePassword()
-            val signUpResult = application.signUp(user, password.toCharArray())
+            val param = NativeAuthSignUpParameters(username = user)
+            param.password = getSafePassword().toCharArray()
+            val signUpResult = application.signUp(param)
             Assert.assertTrue(signUpResult is SignUpError)
             Assert.assertTrue((signUpResult as SignUpError).isUserAlreadyExists())
         }
@@ -197,10 +205,11 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
         config = getConfig(ConfigType.SIGN_IN_PASSWORD)
         application = setupPCA(config, defaultChallengeTypes)
 
-        runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
+        runBlocking {
             val user = config.email
-            val password = getSafePassword()
-            val signUpResult = application.signUp(user, password.toCharArray())
+            val param = NativeAuthSignUpParameters(username = user)
+            param.password = getSafePassword().toCharArray()
+            val signUpResult = application.signUp(param)
             Assert.assertTrue(signUpResult is SignUpError)
             Assert.assertTrue((signUpResult as SignUpError).isUserAlreadyExists())
         }
@@ -215,10 +224,11 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
         config = getConfig(defaultConfigType)
         application = setupPCA(config, defaultChallengeTypes)
 
-        runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
+        runBlocking {
             val user = INVALID_EMAIL
-            val password = getSafePassword()
-            val signUpResult = application.signUp(user, password.toCharArray())
+            val param = NativeAuthSignUpParameters(username = user)
+            param.password = getSafePassword().toCharArray()
+            val signUpResult = application.signUp(param)
             Assert.assertTrue(signUpResult is SignUpError)
             Assert.assertTrue((signUpResult as SignUpError).isInvalidUsername())
         }
@@ -236,8 +246,9 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
         runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
             val user = tempEmailApi.generateRandomEmailAddressLocally()
-            val password = INVALID_PASSWORD
-            val signUpResult = application.signUp(user, password.toCharArray())
+            val param = NativeAuthSignUpParameters(username = user)
+            param.password = INVALID_PASSWORD.toCharArray()
+            val signUpResult = application.signUp(param)
             Assert.assertTrue(signUpResult is SignUpError)
             Assert.assertTrue((signUpResult as SignUpError).isInvalidPassword())
         }
@@ -256,8 +267,9 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddressLocally()
-                val password = getSafePassword()
-                val signUpResult = application.signUp(user, password.toCharArray())
+                val param = NativeAuthSignUpParameters(username = user)
+                param.password = getSafePassword().toCharArray()
+                val signUpResult = application.signUp(param)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp)

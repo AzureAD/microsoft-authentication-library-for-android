@@ -28,6 +28,7 @@ import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
+import com.microsoft.identity.nativeauth.parameters.NativeAuthResetPasswordParameters
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
 import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordSubmitPasswordError
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResendCodeResult
@@ -64,7 +65,8 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
         retryOperation {
             runBlocking {
                 val user = config.email
-                result = application.resetPassword(user)
+                val param = NativeAuthResetPasswordParameters(username = user)
+                result = application.resetPassword(param)
                 assertResult<ResetPasswordStartResult.CodeRequired>(result)
 
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
@@ -93,7 +95,8 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
         retryOperation {
             runBlocking {
                 val user = config.email
-                result = application.resetPassword(user)
+                val param = NativeAuthResetPasswordParameters(username = user)
+                result = application.resetPassword(param)
                 assertResult<ResetPasswordStartResult.CodeRequired>(result)
 
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
@@ -123,7 +126,8 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
         retryOperation {
             runBlocking {
                 val user = config.email
-                result = application.resetPassword(user)
+                val param = NativeAuthResetPasswordParameters(username = user)
+                result = application.resetPassword(param)
                 assertResult<ResetPasswordStartResult.CodeRequired>(result)
 
                 val otp1 = tempEmailApi.retrieveCodeFromInbox(user)
@@ -148,7 +152,8 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         runBlocking {
             val username = tempEmailApi.generateRandomEmailAddressLocally()
-            val result = application.resetPassword(username)
+            val param = NativeAuthResetPasswordParameters(username = username)
+            val result = application.resetPassword(param)
             Assert.assertTrue(result is ResetPasswordError)
             Assert.assertTrue((result as ResetPasswordError).isUserNotFound())
         }
@@ -165,7 +170,8 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         runBlocking {
             val username = config.email
-            val result = application.resetPassword(username)
+            val param = NativeAuthResetPasswordParameters(username = username)
+            val result = application.resetPassword(param)
             Assert.assertTrue(result is ResetPasswordError)
             Assert.assertTrue((result as ResetPasswordError).isBrowserRequired())
         }
@@ -182,7 +188,8 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         runBlocking {
             val username = config.email
-            val result = application.resetPassword(username)
+            val param = NativeAuthResetPasswordParameters(username = username)
+            val result = application.resetPassword(param)
             Assert.assertTrue(result is ResetPasswordError)
             Assert.assertTrue((result as ResetPasswordError).errorMessage!!.contains("The tenant or user does not support native credential recovery."))
         }
@@ -200,7 +207,8 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
 
         runBlocking {
             val username = INVALID_EMAIL // TODO: Use social accounts instead when ready
-            val result = application.resetPassword(username)
+            val param = NativeAuthResetPasswordParameters(username = username)
+            val result = application.resetPassword(param)
             Assert.assertTrue(result is ResetPasswordError)
             Assert.assertTrue((result as ResetPasswordError).isUserNotFound())
         }

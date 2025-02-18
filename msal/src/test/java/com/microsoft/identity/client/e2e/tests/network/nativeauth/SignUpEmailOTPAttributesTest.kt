@@ -29,6 +29,8 @@ import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailSe
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.UserAttributes
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
@@ -62,7 +64,11 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddressLocally()
                 val attributes = UserAttributes.Builder().country("Ireland").city("Dublin").build()
-                val signUpResult = application.signUp(user, attributes = attributes)
+
+                val param = NativeAuthSignUpParameters(username = user)
+                param.attributes = attributes
+
+                val signUpResult = application.signUp(param)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
 
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
@@ -83,7 +89,9 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddressLocally()
-                val signUpResult = application.signUp(user)
+                val param = NativeAuthSignUpParameters(username = user)
+
+                val signUpResult = application.signUp(param)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
 
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
@@ -112,7 +120,8 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
                 val user = tempEmailApi.generateRandomEmailAddressLocally()
-                val signUpResult = application.signUp(user)
+                val param = NativeAuthSignUpParameters(username = user)
+                val signUpResult = application.signUp(param)
                 assertResult<SignUpResult.CodeRequired>(signUpResult)
 
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
