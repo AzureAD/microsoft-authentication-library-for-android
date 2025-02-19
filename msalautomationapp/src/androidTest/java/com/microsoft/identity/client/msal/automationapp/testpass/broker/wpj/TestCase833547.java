@@ -45,6 +45,8 @@ public class TestCase833547 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_833547() {
+        getSettingsScreen().toggleNotificationsThroughSettings(mBroker.getPackageName());
+
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

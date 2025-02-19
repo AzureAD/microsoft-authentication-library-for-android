@@ -62,6 +62,8 @@ public class TestCase833544 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_833544() throws LabApiException {
+        getSettingsScreen().toggleNotificationsThroughSettings(mBroker.getPackageName());
+
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
