@@ -62,6 +62,7 @@ public class TestCase833544 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_833544() throws LabApiException {
+        // Recent build of authenticator seems to produce a notification popup on device, this blocks some ui we rely on to validate account presence. Disabling notifications will work.
         getSettingsScreen().toggleNotificationsThroughSettings(mBroker.getPackageName());
 
         final String username = mLabAccount.getUsername();
