@@ -23,12 +23,11 @@
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.brokerapi;
 
 
+import android.widget.Button;
+
 import androidx.annotation.Nullable;
-import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.uiautomator.UiDevice;
 import androidx.test.uiautomator.UiObject;
 import androidx.test.uiautomator.UiObjectNotFoundException;
-import androidx.test.uiautomator.UiSelector;
 
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
@@ -104,11 +103,7 @@ public class TestCase2110359 extends AbstractMsalBrokerTest{
 
         // Apparently, there are two UI objects with exact text "Sign-in options", one is a button the other is a view
         // Have to specify the search to button class
-        final UiDevice device =
-                UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
-
-        final UiObject optionsObject = device.findObject(new UiSelector()
-                .text("Sign-in options").className("android.widget.Button"));
+        final UiObject optionsObject = UiAutomatorUtils.obtainUiObjectWithTextAndClassType("Sign-in options", Button.class);
 
         try {
             optionsObject.click();
