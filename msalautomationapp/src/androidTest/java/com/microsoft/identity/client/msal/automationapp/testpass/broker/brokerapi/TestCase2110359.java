@@ -108,7 +108,7 @@ public class TestCase2110359 extends AbstractMsalBrokerTest{
                 UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
 
         final UiObject optionsObject = device.findObject(new UiSelector()
-                .textContains("Sign-in options").className("android.widget.Button"));
+                .text("Sign-in options").className("android.widget.Button"));
 
         try {
             optionsObject.click();
