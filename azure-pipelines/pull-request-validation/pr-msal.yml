@@ -45,8 +45,6 @@ jobs:
       versionSpec: '17'
       jdkArchitectureOption: x64
       jdkSourceOption: PreInstalled
-  - script: java -version
-    displayName: Print Java Version
   - task: CodeQL3000Init@0
   - task: Gradle@2
     name: Gradle1
