@@ -28,6 +28,8 @@ import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
+import com.microsoft.identity.nativeauth.parameters.NativeAuthGetAccessTokenParameters
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
 import com.microsoft.identity.nativeauth.statemachine.errors.GetAccessTokenError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
@@ -36,6 +38,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Test
 import org.robolectric.annotation.Config
+import java.lang.annotation.Native
 
 @Config(shadows = [ShadowBaseController::class])
 class GetTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
@@ -63,12 +66,11 @@ class GetTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         // Turn valid scope into an invalid one
         val scopeA = resources[0].scopes[0] + "LorumIpsum"
 
-        val password = getSafePassword()
-        val result = application.signIn(
-            username = config.email,
-            password = password.toCharArray(),
-            scopes = listOf(scopeA)
-        )
+        val param = NativeAuthSignInParameters(username = config.email)
+        param.password = getSafePassword().toCharArray()
+        param.scopes = listOf(scopeA)
+
+        val result = application.signIn(param)
         assertResult<SignInError>(result)
         Assert.assertEquals("invalid_grant", (result as SignInError).error)
         Assert.assertNotNull(result.errorMessage)
@@ -86,13 +88,11 @@ class GetTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
     fun testGetAccessTokenCompareForceRefreshBehaviour() = runTest {
         val scopeA = resources[0].scopes[0]
 
-        val username = config.email
-        val password = getSafePassword()
-        val result = application.signIn(
-            username = username,
-            password = password.toCharArray(),
-            scopes = listOf(scopeA)
-        )
+        val param = NativeAuthSignInParameters(username = config.email)
+        param.password = getSafePassword().toCharArray()
+        param.scopes = listOf(scopeA)
+
+        val result = application.signIn(param)
         assertResult<SignInResult.Complete>(result)
         val accountState = (result as SignInResult.Complete).resultValue
 
@@ -128,13 +128,11 @@ class GetTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
     fun testGetAccessTokenFromCache() = runTest {
         val scopeA = resources[0].scopes[0]
 
-        val username = config.email
-        val password = getSafePassword()
-        val result = application.signIn(
-            username = username,
-            password = password.toCharArray(),
-            scopes = listOf(scopeA)
-        )
+        val param = NativeAuthSignInParameters(username = config.email)
+        param.password = getSafePassword().toCharArray()
+        param.scopes = listOf(scopeA)
+
+        val result = application.signIn(param)
         assertResult<SignInResult.Complete>(result)
         val accountState = (result as SignInResult.Complete).resultValue
 
@@ -175,13 +173,11 @@ class GetTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         val scopeA1 = resources[0].scopes[0]
         val scopeB1 = resources[1].scopes[0]
 
-        val username = config.email
-        val password = getSafePassword()
-        val result = application.signIn(
-            username = username,
-            password = password.toCharArray(),
-            scopes = listOf(scopeA1)
-        )
+        val signInParam = NativeAuthSignInParameters(username = config.email)
+        signInParam.password = getSafePassword().toCharArray()
+        signInParam.scopes = listOf(scopeA1)
+
+        val result = application.signIn(signInParam)
         assertResult<SignInResult.Complete>(result)
         val accountState = (result as SignInResult.Complete).resultValue
 
@@ -201,10 +197,11 @@ class GetTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         wasRenewAccessTokenInvoked = false
 
         // Token should be retrieved from API, as the scope belongs to a different API resource
-        val getAccessTokenResult2 = accountState.getAccessToken(
-            forceRefresh = false,
-            scopes = listOf(scopeB1)
-        )
+        val accessTokenParam = NativeAuthGetAccessTokenParameters()
+        accessTokenParam.forceRefresh = false
+        accessTokenParam.scopes = listOf(scopeB1)
+        val getAccessTokenResult2 = accountState.getAccessToken(accessTokenParam)
+
         assertResult<GetAccessTokenResult.Complete>(getAccessTokenResult2)
         Assert.assertTrue(wasRenewAccessTokenInvoked)
         val authResult2 = (getAccessTokenResult2 as GetAccessTokenResult.Complete).resultValue
@@ -225,12 +222,10 @@ class GetTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         val scopeA1 = resources[0].scopes[0]
         val scopeB1 = resources[1].scopes[0]
 
-        val username = config.email
-        val password = getSafePassword()
-        val result = application.signIn(
-            username = username,
-            password = password.toCharArray()
-        )
+        val param = NativeAuthSignInParameters(username = config.email)
+        param.password = getSafePassword().toCharArray()
+
+        val result = application.signIn(param)
         assertResult<SignInResult.Complete>(result)
         val accountState = (result as SignInResult.Complete).resultValue
 
@@ -275,13 +270,10 @@ class GetTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         val scopeB1 = resources[1].scopes[0]
         val scopeB2 = resources[1].scopes[1]
 
-        val username = config.email
-        val password = getSafePassword()
-        val result = application.signIn(
-            username = username,
-            password = password.toCharArray(),
-            scopes = listOf(scopeA1)
-        )
+        val signInParam = NativeAuthSignInParameters(username = config.email)
+        signInParam.password = getSafePassword().toCharArray()
+        signInParam.scopes = listOf(scopeA1)
+        val result = application.signIn(signInParam)
 
         assertResult<SignInResult.Complete>(result)
         val accountState = (result as SignInResult.Complete).resultValue
@@ -303,7 +295,11 @@ class GetTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         wasRenewAccessTokenInvoked = false
 
         // Token should be retrieved from API, as the scope belongs to a different API resource
-        val getAccessTokenResult2 = accountState.getAccessToken(forceRefresh = false, scopes = listOf(scopeB1))
+        val accessTokenParam = NativeAuthGetAccessTokenParameters()
+        accessTokenParam.forceRefresh = false
+        accessTokenParam.scopes = listOf(scopeB1)
+        val getAccessTokenResult2 = accountState.getAccessToken(accessTokenParam)
+
         assertResult<GetAccessTokenResult.Complete>(getAccessTokenResult2)
         Assert.assertTrue(wasRenewAccessTokenInvoked)
         val authResult2 = (getAccessTokenResult2 as GetAccessTokenResult.Complete).resultValue
@@ -321,12 +317,10 @@ class GetTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         val scopeA1 = resources[0].scopes[0]
         val scopeB1 = resources[1].scopes[0]
 
-        val username = config.email
-        val password = getSafePassword()
-        val result = application.signIn(
-            username = username,
-            password = password.toCharArray()
-        )
+        val signInParam = NativeAuthSignInParameters(username = config.email)
+        signInParam.password = getSafePassword().toCharArray()
+
+        val result = application.signIn(signInParam)
 
         assertResult<SignInResult.Complete>(result)
         val accountState = (result as SignInResult.Complete).resultValue
@@ -336,7 +330,10 @@ class GetTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         ShadowBaseController.setOnRenewAccessTokenInvokedCallback { wasRenewAccessTokenInvoked = true }
 
         // Token should be retrieved from cache
-        val getAccessTokenResult1 = accountState.getAccessToken(scopes = listOf(scopeA1, scopeB1))
+        val accessTokenParam = NativeAuthGetAccessTokenParameters()
+        accessTokenParam.scopes = listOf(scopeA1, scopeB1)
+        val getAccessTokenResult1 = accountState.getAccessToken(accessTokenParam)
+
         assertResult<GetAccessTokenError>(getAccessTokenResult1)
         Assert.assertTrue(wasRenewAccessTokenInvoked)
     }
@@ -357,12 +354,10 @@ class GetTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         val scopeA1 = resources[0].scopes[0]
         val scopeB1 = resources[1].scopes[0]
 
-        val username = config.email
-        val password = getSafePassword()
-        val result = application.signIn(
-            username = username,
-            password = password.toCharArray()
-        )
+        val signInParam = NativeAuthSignInParameters(username = config.email)
+        signInParam.password = getSafePassword().toCharArray()
+        val result = application.signIn(signInParam)
+
         assertResult<SignInResult.Complete>(result)
         val accountState = (result as SignInResult.Complete).resultValue
 
@@ -371,7 +366,10 @@ class GetTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         ShadowBaseController.setOnRenewAccessTokenInvokedCallback { wasRenewAccessTokenInvoked = true }
 
         // Token should be retrieved from API
-        val getAccessTokenResult1 = accountState.getAccessToken(scopes = listOf(scopeA1))
+        val accessTokenParam1 = NativeAuthGetAccessTokenParameters()
+        accessTokenParam1.scopes = listOf(scopeA1)
+        val getAccessTokenResult1 = accountState.getAccessToken(accessTokenParam1)
+
         assertResult<GetAccessTokenResult.Complete>(getAccessTokenResult1)
         Assert.assertTrue(wasRenewAccessTokenInvoked)
         val authResult1 = (getAccessTokenResult1 as GetAccessTokenResult.Complete).resultValue
@@ -382,7 +380,10 @@ class GetTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         wasRenewAccessTokenInvoked = false
 
         // Token should be retrieved from cache this time
-        val getAccessTokenResult2 = accountState.getAccessToken(scopes = listOf(scopeA1))
+        val accessTokenParam2 = NativeAuthGetAccessTokenParameters()
+        accessTokenParam2.scopes = listOf(scopeA1)
+        val getAccessTokenResult2 = accountState.getAccessToken(accessTokenParam2)
+
         assertResult<GetAccessTokenResult.Complete>(getAccessTokenResult2)
         Assert.assertFalse(wasRenewAccessTokenInvoked)
         val authResult2 = (getAccessTokenResult2 as GetAccessTokenResult.Complete).resultValue
@@ -394,7 +395,11 @@ class GetTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         wasRenewAccessTokenInvoked = false
 
         // Token should be retrieved from API, as the scope belongs to a different API resource
-        val getAccessTokenResult3 = accountState.getAccessToken(forceRefresh = false, scopes = listOf(scopeB1))
+        val accessTokenParam3 = NativeAuthGetAccessTokenParameters()
+        accessTokenParam3.forceRefresh = false
+        accessTokenParam3.scopes = listOf(scopeB1)
+        val getAccessTokenResult3 = accountState.getAccessToken(accessTokenParam3)
+
         assertResult<GetAccessTokenResult.Complete>(getAccessTokenResult3)
         Assert.assertTrue(wasRenewAccessTokenInvoked)
         val authResult3 = (getAccessTokenResult3 as GetAccessTokenResult.Complete).resultValue
@@ -406,7 +411,11 @@ class GetTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         wasRenewAccessTokenInvoked = false
 
         // Token should be retrieved from cache this time
-        val getAccessTokenResult4 = accountState.getAccessToken(forceRefresh = false, scopes = listOf(scopeB1))
+        val accessTokenParam4 = NativeAuthGetAccessTokenParameters()
+        accessTokenParam4.forceRefresh = false
+        accessTokenParam4.scopes = listOf(scopeB1)
+        val getAccessTokenResult4 = accountState.getAccessToken(accessTokenParam4)
+
         assertResult<GetAccessTokenResult.Complete>(getAccessTokenResult4)
         Assert.assertFalse(wasRenewAccessTokenInvoked)
         val authResult4 = (getAccessTokenResult4 as GetAccessTokenResult.Complete).resultValue
@@ -429,12 +438,10 @@ class GetTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         val scopeA1 = resources[0].scopes[0]
         val scopeB1 = resources[1].scopes[0]
 
-        val username = config.email
-        val password = getSafePassword()
-        val result = application.signIn(
-            username = username,
-            password = password.toCharArray()
-        )
+        val param = NativeAuthSignInParameters(username = config.email)
+        param.password = getSafePassword().toCharArray()
+        val result = application.signIn(param)
+
         assertResult<SignInResult.Complete>(result)
         val accountState = (result as SignInResult.Complete).resultValue
 
@@ -443,7 +450,10 @@ class GetTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         ShadowBaseController.setOnRenewAccessTokenInvokedCallback { wasRenewAccessTokenInvoked = true }
 
         // Token should be retrieved from API
-        val getAccessTokenResult1 = accountState.getAccessToken(scopes = listOf(scopeA1))
+        val accessTokenParam1 = NativeAuthGetAccessTokenParameters()
+        accessTokenParam1.scopes = listOf(scopeA1)
+        val getAccessTokenResult1 = accountState.getAccessToken(accessTokenParam1)
+
         assertResult<GetAccessTokenResult.Complete>(getAccessTokenResult1)
         Assert.assertTrue(wasRenewAccessTokenInvoked)
         val authResult1 = (getAccessTokenResult1 as GetAccessTokenResult.Complete).resultValue
@@ -454,7 +464,11 @@ class GetTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         wasRenewAccessTokenInvoked = false
 
         // Token should be retrieved from API, due to force_refresh
-        val getAccessTokenResult2 = accountState.getAccessToken(scopes = listOf(scopeA1), forceRefresh = true)
+        val accessTokenParam2 = NativeAuthGetAccessTokenParameters()
+        accessTokenParam2.forceRefresh = true
+        accessTokenParam2.scopes = listOf(scopeA1)
+        val getAccessTokenResult2 = accountState.getAccessToken(accessTokenParam2)
+
         assertResult<GetAccessTokenResult.Complete>(getAccessTokenResult2)
         Assert.assertTrue(wasRenewAccessTokenInvoked)
         val authResult2 = (getAccessTokenResult2 as GetAccessTokenResult.Complete).resultValue
@@ -466,7 +480,11 @@ class GetTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         wasRenewAccessTokenInvoked = false
 
         // Token should be retrieved from API, as the scope belongs to a different API resource and wasn't requested before
-        val getAccessTokenResult3 = accountState.getAccessToken(forceRefresh = false, scopes = listOf(scopeB1))
+        val accessTokenParam3 = NativeAuthGetAccessTokenParameters()
+        accessTokenParam3.forceRefresh = false
+        accessTokenParam3.scopes = listOf(scopeB1)
+        val getAccessTokenResult3 = accountState.getAccessToken(accessTokenParam3)
+
         assertResult<GetAccessTokenResult.Complete>(getAccessTokenResult3)
         Assert.assertTrue(wasRenewAccessTokenInvoked)
         val authResult3 = (getAccessTokenResult3 as GetAccessTokenResult.Complete).resultValue
@@ -478,7 +496,11 @@ class GetTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
         wasRenewAccessTokenInvoked = false
 
         // Token should be retrieved from API, due to force_refresh
-        val getAccessTokenResult4 = accountState.getAccessToken(forceRefresh = true, scopes = listOf(scopeB1))
+        val accessTokenParam4 = NativeAuthGetAccessTokenParameters()
+        accessTokenParam4.forceRefresh = true
+        accessTokenParam4.scopes = listOf(scopeB1)
+        val getAccessTokenResult4 = accountState.getAccessToken(accessTokenParam4)
+
         assertResult<GetAccessTokenResult.Complete>(getAccessTokenResult4)
         Assert.assertTrue(wasRenewAccessTokenInvoked)
         val authResult4 = (getAccessTokenResult4 as GetAccessTokenResult.Complete).resultValue
@@ -492,12 +514,10 @@ class GetTokenTests : NativeAuthPublicClientApplicationAbstractTest() {
      */
     @Test
     fun testGetAccessTokenWithForceRefreshShouldUpdateIDToken() = runTest {
-        val username = config.email
-        val password = getSafePassword()
-        val result = application.signIn(
-            username = username,
-            password = password.toCharArray()
-        )
+        val param = NativeAuthSignInParameters(username = config.email)
+        param.password = getSafePassword().toCharArray()
+        val result = application.signIn(param)
+
         assertResult<SignInResult.Complete>(result)
         val accountState = (result as SignInResult.Complete).resultValue
         val idToken1 = accountState.getIdToken()
