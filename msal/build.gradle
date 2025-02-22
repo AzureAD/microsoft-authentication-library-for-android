@@ -338,9 +338,9 @@ afterEvaluate {
 //    }
     publishing {
         publications {
-            distRelease(MavenPublication) {
+//            distRelease(MavenPublication) {
 
-//            msal(MavenPublication) {
+            msal(MavenPublication) {
                 from components.findByName('distRelease')
                 groupId 'com.microsoft.identity.client'
                 artifactId 'msal'
