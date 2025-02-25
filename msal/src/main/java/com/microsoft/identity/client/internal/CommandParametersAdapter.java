@@ -32,6 +32,7 @@ import com.microsoft.identity.client.DeviceCodeFlowParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.ITenantProfile;
 import com.microsoft.identity.client.MultiTenantAccount;
+import com.microsoft.identity.common.internal.msafederation.MsaFederationExtensions;
 import com.microsoft.identity.common.internal.msafederation.google.SignInWithGoogleApi;
 import com.microsoft.identity.common.internal.msafederation.google.SignInWithGoogleCredential;
 import com.microsoft.identity.common.internal.msafederation.google.SignInWithGoogleParameters;
@@ -89,6 +90,7 @@ import com.microsoft.identity.common.logging.Logger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -169,6 +171,27 @@ public class CommandParametersAdapter {
                         authority
                 ));
 
+        final SignInWithGoogleParameters signInWithGoogleParameters = new SignInWithGoogleParameters(
+                parameters.getActivity(),
+                "421268256362-r39ud27ddaajrcio0c8iq6snv3po43fb.apps.googleusercontent.com"
+        );
+        List<Map.Entry<String, String>> extraQP = appendToExtraQueryParametersIfWebAuthnCapable(
+                parameters.getExtraQueryStringParameters(),
+                configuration);
+
+        if (extraQP == null) {
+            extraQP = new ArrayList<>();
+        }
+        final HashMap<String, String> requestHeaders;
+        final SignInWithGoogleCredential signInWithGoogleCredential;
+        if (configuration.isSiwgCapable()) {
+            signInWithGoogleCredential = SignInWithGoogleApi.getInstance().signInSync(signInWithGoogleParameters);
+            extraQP.add(MsaFederationExtensions.getIdProviderExtraQueryParamForAuthorization(signInWithGoogleCredential));
+            requestHeaders = new HashMap<>(MsaFederationExtensions.getIdProviderHeadersForAuthorization(signInWithGoogleCredential));
+        } else {
+            signInWithGoogleCredential = null;
+            requestHeaders = new HashMap<>();
+        }
         return AndroidInteractiveTokenCommandParameters
                 .builder()
                 .activity(parameters.getActivity())
@@ -191,9 +214,7 @@ public class CommandParametersAdapter {
                 .forceRefresh(parameters.getClaimsRequest() != null)
                 .scopes(new HashSet<>(parameters.getScopes()))
                 .extraScopesToConsent(parameters.getExtraScopesToConsent())
-                .extraQueryStringParameters(appendToExtraQueryParametersIfWebAuthnCapable(
-                        parameters.getExtraQueryStringParameters(),
-                        configuration))
+                .extraQueryStringParameters(extraQP)
                 .loginHint(getLoginHint(parameters))
                 .account(parameters.getAccountRecord())
                 .authenticationScheme(authenticationScheme)
@@ -206,6 +227,8 @@ public class CommandParametersAdapter {
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .correlationId(parameters.getCorrelationId())
                 .preferredAuthMethod(parameters.getPreferredAuthMethod())
+                .requestHeaders(requestHeaders)
+                .signInWithGoogleCredential(signInWithGoogleCredential)
                 .build();
     }
 

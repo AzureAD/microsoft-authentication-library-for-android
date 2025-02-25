@@ -38,6 +38,7 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.PREFERRED_BROWSER;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REDIRECT_URI;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.REQUIRED_BROKER_PROTOCOL_VERSION;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.SIWG_CAPABLE;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.TELEMETRY;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.USE_BROKER;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEBAUTHN_CAPABLE;
@@ -114,6 +115,8 @@ public class PublicClientApplicationConfiguration {
         static final String HANDLE_TASKS_WITH_NULL_TASKAFFINITY = "handle_null_taskaffinity";
         static final String AUTHORIZATION_IN_CURRENT_TASK = "authorization_in_current_task";
         static final String WEBAUTHN_CAPABLE = "webauthn_capable";
+
+        static final String SIWG_CAPABLE = "siwg_capable";
     }
 
     @SerializedName(CLIENT_ID)
@@ -186,6 +189,9 @@ public class PublicClientApplicationConfiguration {
      */
     @SerializedName(WEBAUTHN_CAPABLE)
     private Boolean webauthnCapable;
+
+    @SerializedName(SIWG_CAPABLE)
+    private Boolean siwgCapable;
 
     transient private OAuth2TokenCache mOAuth2TokenCache;
 
@@ -430,6 +436,10 @@ public class PublicClientApplicationConfiguration {
         return Boolean.TRUE.equals(webauthnCapable);
     }
 
+    public Boolean isSiwgCapable() {
+        return Boolean.TRUE.equals(siwgCapable);
+    }
+
     public Authority getDefaultAuthority() {
         if (mAuthorities != null) {
             if (mAuthorities.size() > 1) {
@@ -515,6 +525,7 @@ public class PublicClientApplicationConfiguration {
         this.handleNullTaskAffinity = config.handleNullTaskAffinity == null ? this.handleNullTaskAffinity : config.handleNullTaskAffinity;
         this.isAuthorizationInCurrentTask = config.isAuthorizationInCurrentTask == null ? this.isAuthorizationInCurrentTask : config.isAuthorizationInCurrentTask;
         this.webauthnCapable = config.webauthnCapable == null ? this.webauthnCapable : config.webauthnCapable;
+        this.siwgCapable = config.siwgCapable == null ? this.siwgCapable : config.siwgCapable;
     }
 
     public void validateConfiguration() {
