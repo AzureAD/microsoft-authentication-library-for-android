@@ -178,7 +178,6 @@ if(account != null){
     String authority = mMultipleAccountApp.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
 
     //Use default authority to request token from pass null
-    IAuthenticationResult result = mMultipleAccountApp.acquireTokenSilent(newScopes, account, authority);
     final AcquireTokenSilentParameters.Builder builder = new AcquireTokenSilentParameters.Builder();
     builder.forAccount(account)
             .withScopes(newScopes)
