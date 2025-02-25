@@ -29,26 +29,30 @@ import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalSdk;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
+import com.microsoft.identity.client.ui.automation.TestContext;
 import com.microsoft.identity.client.ui.automation.TokenRequestTimeout;
+import com.microsoft.identity.client.ui.automation.annotations.LongUIAutomationTest;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.interaction.PromptHandlerParameters;
 import com.microsoft.identity.client.ui.automation.interaction.PromptParameter;
 import com.microsoft.identity.client.ui.automation.interaction.microsoftsts.AadPromptHandler;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
+import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
-import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
-// [Non-joined][MSAL] Acquire Token + Acquire Token Silent (Prompt.SELECT_ACCOUNT)
-// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/850455
-@RetryOnFailure(retryCount = 2)
-public class TestCase850455 extends AbstractMsalBrokerTest {
+// Acquire Token Silent After Policy Change Should Fail
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2139526
+@RetryOnFailure
+@LongUIAutomationTest
+public class TestCase2139526 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_850455() throws Throwable {
+    public void test_2139526() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
@@ -59,7 +63,7 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
                 .activity(mActivity)
                 .loginHint(username)
                 .scopes(Arrays.asList(getScopes()))
-                .resource("00000002-0000-0000-c000-000000000000")
+                .resource("00000003-0000-0ff1-ce00-000000000000")
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
@@ -84,6 +88,16 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
 
         authResult.assertSuccess();
 
+        // Change the policy to MAM_CA
+        mLabClient.enablePolicy(username, ProtectionPolicy.MAM_CA);
+
+        // It takes some time for the policy change to reflect
+        Thread.sleep(TimeUnit.MINUTES.toMillis(3));
+
+        // advance clock by more than an hour to expire AT in cache
+        TestContext.getTestContext().getTestDevice().getSettings().forwardDeviceTimeForOneDay();
+
+        // Try silent call with sharepoint as the resource, this should fail
         // Silent call
         final IAccount account = msalSdk.getAccount(mActivity,getConfigFileResourceId(),username);
 
@@ -93,30 +107,29 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
                 .authority(account.getAuthority())
                 .forceRefresh(true)
                 .scopes(Arrays.asList(getScopes()))
-                .resource("00000002-0000-0000-c000-000000000000")
+                .resource("00000003-0000-0ff1-ce00-000000000000")
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
         final MsalAuthResult silentAuthResult = msalSdk.acquireTokenSilent(silentParams,TokenRequestTimeout.SILENT);
-        silentAuthResult.assertSuccess();
+        silentAuthResult.assertFailure();
     }
 
     @Override
     public LabQuery getLabQuery() {
-        return LabQuery.builder()
-                .userType(UserType.CLOUD)
-                .build();
+        return null;
     }
 
     @Override
     public TempUserType getTempUserType() {
-        return null;
+        return TempUserType.BASIC;
     }
 
     @Override
     public String[] getScopes() {
         return new String[]{"User.read"};
     }
+
     @Override
     public String getAuthority() {
         return "https://login.microsoftonline.us/common";

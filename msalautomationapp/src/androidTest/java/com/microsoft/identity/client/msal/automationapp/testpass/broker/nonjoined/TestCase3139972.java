@@ -42,13 +42,13 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
-// [Non-joined][MSAL] Acquire Token + Acquire Token Silent (Prompt.SELECT_ACCOUNT)
-// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/850455
+// [Non-joined][MSAL] Acquire Token + Acquire Token Silent, no loginhint (Prompt.SELECT_ACCOUNT)
+// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3139972
 @RetryOnFailure(retryCount = 2)
-public class TestCase850455 extends AbstractMsalBrokerTest {
+public class TestCase3139972 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_850455() throws Throwable {
+    public void test_3139972() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
@@ -57,7 +57,7 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
         // Interactive call
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
-                .loginHint(username)
+                .loginHint(null)
                 .scopes(Arrays.asList(getScopes()))
                 .resource("00000002-0000-0000-c000-000000000000")
                 .promptParameter(Prompt.SELECT_ACCOUNT)
@@ -69,7 +69,7 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
             public void handleUserInteraction() {
                 final PromptHandlerParameters promptHandlerParameters = PromptHandlerParameters.builder()
                         .prompt(PromptParameter.SELECT_ACCOUNT)
-                        .loginHint(username)
+                        .loginHint(null)
                         .sessionExpected(false)
                         .consentPageExpected(false)
                         .speedBumpExpected(false)
@@ -117,6 +117,7 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
     public String[] getScopes() {
         return new String[]{"User.read"};
     }
+
     @Override
     public String getAuthority() {
         return "https://login.microsoftonline.us/common";

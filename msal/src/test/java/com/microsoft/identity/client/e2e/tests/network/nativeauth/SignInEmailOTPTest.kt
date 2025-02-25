@@ -28,12 +28,14 @@ import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError
+import com.microsoft.identity.nativeauth.statemachine.results.SignInResendCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runTest
 import org.junit.Assert
+import org.junit.Ignore
 import org.junit.Test
 
 class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
@@ -56,12 +58,17 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * Use valid email and OTP to get token and sign in.
      * (hero scenario 6, use case 2.2.1)
      */
+    @Ignore("Retrieving OTP code failure.")
     @Test
     fun testSuccess() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+
         retryOperation {
-            runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
+            runBlocking {
                 val user = config.email
-                val signInResult = application.signIn(user)
+                val param = NativeAuthSignInParameters(username = user)
+                val signInResult = application.signIn(param)
                 assertResult<SignInResult.CodeRequired>(signInResult)
                 val otp = tempEmailApi.retrieveCodeFromInbox(user)
                 val submitCodeResult = (signInResult as SignInResult.CodeRequired).nextState.submitCode(otp)
@@ -75,32 +82,124 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
      * (use case 2.2.2)
      */
     @Test
-    fun testErrorIsUserNotFound() = runTest {
-        val user = config.email
-        // Turn correct username into an incorrect one
-        val invalidUser = user + "x"
-        val signInResult = application.signIn(invalidUser)
-        Assert.assertTrue(signInResult is SignInError)
-        Assert.assertTrue((signInResult as SignInError).isUserNotFound())
+    fun testErrorIsUserNotFound() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+
+        retryOperation {
+            runBlocking {
+                val username = tempEmailApi.generateRandomEmailAddressLocally()
+                val param = NativeAuthSignInParameters(username = username)
+                val signInResult = application.signIn(param)
+                Assert.assertTrue(signInResult is SignInError)
+                Assert.assertTrue((signInResult as SignInError).isUserNotFound())
+            }
+        }
     }
+
+    /**
+     * User email is registered with password method, which is not supported by client (aka redirect flow).
+     * (use case 2.2.3)
+     */
+    @Test
+    fun testErrorPasswordConfigBrowserRequired() {
+        config = getConfig(ConfigType.SIGN_IN_PASSWORD)
+        application = setupPCA(config, listOf("oob"))
+
+        runBlocking {
+            val user = config.email
+            val param = NativeAuthSignInParameters(username = user)
+            val signInResult = application.signIn(param)
+            Assert.assertTrue(signInResult is SignInError)
+            Assert.assertTrue((signInResult as SignInError).isBrowserRequired())
+        }
+    }
+
+    /**
+     * User email is registered with password method, which is supported by client.
+     * (use case 2.2.4)
+     */
+    @Test
+    fun testSuccessConfigPasswordRequired() {
+        config = getConfig(ConfigType.SIGN_IN_PASSWORD)
+        application = setupPCA(config, defaultChallengeTypes)
+
+        runBlocking {
+            val user = config.email
+            val param = NativeAuthSignInParameters(username = user)
+            val signInResult = application.signIn(param)
+            assertResult<SignInResult.PasswordRequired>(signInResult)
+
+            val password = getSafePassword()
+            val passwordRequiredState = (signInResult as SignInResult.PasswordRequired).nextState
+            val submitPasswordResult = passwordRequiredState.submitPassword(password.toCharArray())
+            assertResult<SignInResult.Complete>(submitPasswordResult)
+        }
+    }
+
+    /**
+     * Resend email OTP.
+     * (use case 2.2.5)
+     */
+    @Ignore("Retrieving OTP code failure.")
+    @Test
+    fun testResendCode() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+
+        retryOperation {
+            runBlocking {
+                val user = config.email
+                val param = NativeAuthSignInParameters(username = user)
+                val signInResult = application.signIn(param)
+                assertResult<SignInResult.CodeRequired>(signInResult)
+
+                val otp1 = tempEmailApi.retrieveCodeFromInbox(user)
+                val codeRequiredState = (signInResult as SignInResult.CodeRequired).nextState
+                val resendCodeResult = codeRequiredState.resendCode()
+                assertResult<SignInResendCodeResult.Success>(resendCodeResult)
+
+                val otp2 = tempEmailApi.retrieveCodeFromInbox(user)
+                Assert.assertNotEquals(otp1, otp2)
+
+                val submitCodeResult = signInResult.nextState.submitCode(otp2)
+                assertResult<SignInResult.Complete>(submitCodeResult)
+            }
+        }
+    }
+
+    /**
+     * Ability to provide scope to control auth strength of the token.
+     * (use case 2.2.6)
+     * Please refer to GetTokenTests.kt (testGetAccessTokenFromCache) for the test.
+     */
+    //    val result = application.signIn(
+    //        username = username,
+    //        password = password.toCharArray(),
+    //        scopes = listOf(scopeA)
+    //    )
+    //    val accessTokenForImplicitScopes = authResult.accessToken
+    //    Assert.assertTrue(authResult.scope.contains(scopeA))
+
 
     /**
      * Use valid email address, but invalid OTP to receive "invalid code" error.
      * (use case 2.2.7)
      */
+    @Ignore("Username used for this test is currently blocked in lab tenant.")
     @Test
     fun testErrorIsInvalidCode() {
-        retryOperation {
-            runBlocking {// Running with runBlocking to avoid default 10 second execution timeout.
-                val user = config.email
-                val signInResult = application.signIn(user)
-                assertResult<SignInResult.CodeRequired>(signInResult)
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
 
-                val incorrectOtp = "1234"
-                val submitCodeResult = (signInResult as SignInResult.CodeRequired).nextState.submitCode(incorrectOtp)
-                Assert.assertTrue(submitCodeResult is SubmitCodeError)
-                Assert.assertTrue((submitCodeResult as SubmitCodeError).isInvalidCode())
-            }
+        runBlocking {
+            val user = config.email
+            val param = NativeAuthSignInParameters(username = user)
+            val signInResult = application.signIn(param)
+            assertResult<SignInResult.CodeRequired>(signInResult)
+            val submitCodeResult = (signInResult as SignInResult.CodeRequired).nextState.submitCode(INCORRECT_CODE)
+            Assert.assertTrue(submitCodeResult is SubmitCodeError)
+            Assert.assertTrue((submitCodeResult as SubmitCodeError).isInvalidCode())
         }
     }
 }

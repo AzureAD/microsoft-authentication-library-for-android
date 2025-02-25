@@ -32,6 +32,9 @@ import com.microsoft.identity.client.DeviceCodeFlowParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.ITenantProfile;
 import com.microsoft.identity.client.MultiTenantAccount;
+import com.microsoft.identity.common.internal.msafederation.google.SignInWithGoogleApi;
+import com.microsoft.identity.common.internal.msafederation.google.SignInWithGoogleCredential;
+import com.microsoft.identity.common.internal.msafederation.google.SignInWithGoogleParameters;
 import com.microsoft.identity.common.internal.platform.AndroidPlatformUtil;
 import com.microsoft.identity.common.java.logging.DiagnosticContext;
 import com.microsoft.identity.nativeauth.AuthMethod;
@@ -42,7 +45,7 @@ import com.microsoft.identity.client.PublicClientApplicationConfiguration;
 import com.microsoft.identity.client.claims.ClaimsRequest;
 import com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation;
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory;
-import com.microsoft.identity.common.internal.commands.parameters.AndroidActivityInteractiveTokenCommandParameters;
+import com.microsoft.identity.common.internal.commands.parameters.AndroidInteractiveTokenCommandParameters;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.common.java.authorities.Authority;
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAuthority;
@@ -166,7 +169,7 @@ public class CommandParametersAdapter {
                         authority
                 ));
 
-        final InteractiveTokenCommandParameters commandParameters = AndroidActivityInteractiveTokenCommandParameters
+        return AndroidInteractiveTokenCommandParameters
                 .builder()
                 .activity(parameters.getActivity())
                 .platformComponents(AndroidPlatformComponentsFactory.createFromActivity(
@@ -204,8 +207,6 @@ public class CommandParametersAdapter {
                 .correlationId(parameters.getCorrelationId())
                 .preferredAuthMethod(parameters.getPreferredAuthMethod())
                 .build();
-
-        return commandParameters;
     }
 
     public static SilentTokenCommandParameters createSilentTokenCommandParameters(
@@ -539,13 +540,16 @@ public class CommandParametersAdapter {
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String username,
             @Nullable final char[] password,
-            final List<String> scopes) throws ClientException {
+            final List<String> scopes,
+            @Nullable final ClaimsRequest claimsRequest) throws ClientException {
         final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
                 AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
                 null
         );
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
+
+        final String claimsRequestJson = ClaimsRequest.getJsonStringFromClaimsRequest(claimsRequest);
 
         final SignInStartCommandParameters commandParameters = SignInStartCommandParameters.builder()
                 .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
@@ -565,6 +569,7 @@ public class CommandParametersAdapter {
                 .authenticationScheme(authenticationScheme)
                 .clientId(configuration.getClientId())
                 .challengeType(configuration.getChallengeTypes())
+                .claimsRequestJson(claimsRequestJson)
                 .scopes(scopes)
                 // Start of the flow, so there is no correlation ID to use from a previous API response.
                 // Set it to a default value.
@@ -640,7 +645,8 @@ public class CommandParametersAdapter {
             @NonNull final String code,
             @NonNull final String continuationToken,
             @NonNull final String correlationId,
-            final List<String> scopes) throws ClientException {
+            final List<String> scopes,
+            @Nullable final String claimsRequestJson) throws ClientException {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
@@ -668,6 +674,7 @@ public class CommandParametersAdapter {
                 .code(code)
                 .scopes(scopes)
                 .correlationId(correlationId)
+                .claimsRequestJson(claimsRequestJson)
                 .build();
 
         return commandParameters;
@@ -729,7 +736,8 @@ public class CommandParametersAdapter {
             @NonNull final String continuationToken,
             @NonNull final char[] password,
             @NonNull final String correlationId,
-            final List<String> scopes) throws ClientException {
+            final List<String> scopes,
+            @Nullable final String claimsRequestJson) throws ClientException {
 
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
@@ -758,6 +766,7 @@ public class CommandParametersAdapter {
                         .scopes(scopes)
                         .challengeType(configuration.getChallengeTypes())
                         .correlationId(correlationId)
+                        .claimsRequestJson(claimsRequestJson)
                         .build();
 
         return commandParameters;
