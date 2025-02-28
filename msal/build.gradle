@@ -141,6 +141,7 @@ android {
         }
         production {
             dimension "main"
+            matchingFallbacks = ['dist']
         }
     }
 
