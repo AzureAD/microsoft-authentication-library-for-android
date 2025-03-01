@@ -90,6 +90,7 @@ android {
     }
     buildFeatures {
         viewBinding true
+        buildConfig true
     }
     lintOptions {
         abortOnError false

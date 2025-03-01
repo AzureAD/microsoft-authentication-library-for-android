@@ -31,7 +31,21 @@ codeCoverageReport {
     coverage.enabled = enableCodeCoverage
 }
 
+subprojects {
+    afterEvaluate { project ->
+        if (project.hasProperty('android')) {
+            project.android {
+                if (namespace == null) {
+                    namespace project.group
+                }
+            }
+        }
+    }
+}
 android {
+    buildFeatures {
+        buildConfig = true
+    }
 //    testOptions {
 //        compileOptions {
 //            // Flag to enable support for the new language APIs
@@ -163,8 +177,10 @@ task javadoc(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
     configurations.api.setCanBeResolved(true)
     classpath += configurations.api
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-
+//    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    afterEvaluate {
+        tasks.javadoc.classpath += files(project.android.getBootClasspath())
+    }
     options.memberLevel = JavadocMemberLevel.PUBLIC
     options.addStringOption('Xdoclint:none', '-quiet')
 
@@ -302,10 +318,8 @@ task pmd(type: Pmd) {
     source = fileTree('src/main/java')
 
     reports {
-//        xml.enabled = false
-        xml.required.set(false)
-//        html.enabled = true
-        html.required.set(true)
+        xml.required = false
+        html.required = true
     }
 }
 
@@ -325,8 +339,10 @@ afterEvaluate {
 //    }
     publishing {
         publications {
+//            msal(MavenPublication) {
+//                from components.distRelease
             msal(MavenPublication) {
-                from components.distRelease
+                from components.findByName('distRelease')
                 groupId 'com.microsoft.identity.client'
                 artifactId 'msal'
                 //Edit the 'version' here for VSTS RC build
