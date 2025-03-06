@@ -193,7 +193,7 @@ if (project.hasProperty("distCommonVersion")) {
     commonVersion = project.distCommonVersion
 }
 // Used for testfixtures
-def common4jVersion = "20.1.1-RC3"
+def common4jVersion = "20.1.1"
 if (project.hasProperty("distCommon4jVersion")) {
     distCommon4jVersion = project.distCommon4jVersion
 }
