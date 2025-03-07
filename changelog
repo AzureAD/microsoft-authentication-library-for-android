@@ -3,9 +3,9 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 vNext
 ----------
 
-Version 5.10.1
+Version 5.10.2
 ----------
-- [PATCH] Update common @20.1.0
+- [PATCH] Update common @20.1.1
 
 Version 5.10.0
 ----------
