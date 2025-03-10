@@ -23,11 +23,14 @@
 
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
+import com.microsoft.identity.client.claims.ClaimsRequest
 import com.microsoft.identity.client.e2e.utils.assertResult
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.TemporaryEmailService
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
+import com.microsoft.identity.nativeauth.parameters.NativeAuthGetAccessTokenParameters
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
 import com.microsoft.identity.nativeauth.statemachine.errors.MFASubmitChallengeError
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
 import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
@@ -36,8 +39,10 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Ignore
 import org.junit.Test
+import java.util.Base64
 
 class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
 
@@ -77,12 +82,10 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
                 val scopeA = resources[0].scopes[0]
                 val scopeB = resources[0].scopes[1]
 
-                val password = getSafePassword()
-                val result = application.signIn(
-                    username = username,
-                    password = password.toCharArray(),
-                    scopes = listOf(scopeA, scopeB)
-                )
+                val param = NativeAuthSignInParameters(username = username)
+                param.password = getSafePassword().toCharArray()
+                param.scopes = listOf(scopeA, scopeB)
+                val result = application.signIn(param)
                 assertResult<SignInResult.MFARequired>(result)
 
                 // Initiate challenge, send code to email
@@ -113,7 +116,8 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
                 assertResult<SignInResult.Complete>(submitCorrectChallengeResult)
 
                 val accountState = (submitCorrectChallengeResult as SignInResult.Complete).resultValue
-                val getAccessTokenResult = accountState.getAccessToken()
+                val accessTokenParam = NativeAuthGetAccessTokenParameters()
+                val getAccessTokenResult = accountState.getAccessToken(accessTokenParam)
                 assertResult<GetAccessTokenResult.Complete>(getAccessTokenResult)
                 val authResult = (getAccessTokenResult as GetAccessTokenResult.Complete).resultValue
                 assertTrue(authResult.scope.contains(scopeA))
@@ -143,16 +147,15 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
 
         retryOperation {
             runBlocking {
+                val username = config.email
+
                 val scopeA = resources[0].scopes[0]
                 val scopeB = resources[0].scopes[1]
 
-                val username = config.email
-                val password = getSafePassword()
-                val result = application.signIn(
-                    username,
-                    password.toCharArray(),
-                    listOf(scopeA, scopeB)
-                )
+                val signInParam = NativeAuthSignInParameters(username = username)
+                signInParam.password = getSafePassword().toCharArray()
+                signInParam.scopes = listOf(scopeA, scopeB)
+                val result = application.signIn(signInParam)
                 assertResult<SignInResult.MFARequired>(result)
 
                 // Initiate challenge, send code to email
@@ -186,7 +189,8 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
                 assertResult<SignInResult.Complete>(submitCorrectChallengeResult)
 
                 val accountState = (submitCorrectChallengeResult as SignInResult.Complete).resultValue
-                val getAccessTokenResult = accountState.getAccessToken()
+                val accessTokenParam = NativeAuthGetAccessTokenParameters()
+                val getAccessTokenResult = accountState.getAccessToken(accessTokenParam)
                 assertResult<GetAccessTokenResult.Complete>(getAccessTokenResult)
                 val authResult = (getAccessTokenResult as GetAccessTokenResult.Complete).resultValue
                 assertTrue(authResult.scope.contains(scopeA))
@@ -215,16 +219,15 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
 
         retryOperation {
             runBlocking {
+                val username = config.email
+
                 val scopeA = resources[0].scopes[0]
                 val scopeB = resources[0].scopes[1]
 
-                val username = config.email
-                val password = getSafePassword()
-                val result = application.signIn(
-                    username,
-                    password.toCharArray(),
-                    listOf(scopeA, scopeB)
-                )
+                val param = NativeAuthSignInParameters(username = username)
+                param.password = getSafePassword().toCharArray()
+                param.scopes = listOf(scopeA, scopeB)
+                val result = application.signIn(param)
                 assertResult<SignInResult.MFARequired>(result)
 
                 // Initiate challenge, send code to email
@@ -250,11 +253,80 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
                 assertResult<SignInResult.Complete>(submitCorrectChallengeResult)
 
                 val accountState = (submitCorrectChallengeResult as SignInResult.Complete).resultValue
-                val getAccessTokenResult = accountState.getAccessToken()
+                val accessTokenParam = NativeAuthGetAccessTokenParameters()
+                val getAccessTokenResult = accountState.getAccessToken(accessTokenParam)
                 assertResult<GetAccessTokenResult.Complete>(getAccessTokenResult)
                 val authResult = (getAccessTokenResult as GetAccessTokenResult.Complete).resultValue
                 assertTrue(authResult.scope.contains(scopeA))
                 assertTrue(authResult.scope.contains(scopeB))
+            }
+        }
+    }
+
+    /**
+     * Full flow:
+     * - SignIn specifying authentication context as claim
+     * - Receive MFA required error from API.
+     * - Request default challenge.
+     * - Submit correct challenge.
+     * - Complete MFA flow and complete sign in.
+     * - Check that access token contains authentication context claim.
+     *
+     */
+    @Ignore("Retrieving OTP code failure and missing AC username")
+    @Test
+    fun `test MFA flow is triggered when authentication context is used as claim`() {
+        config = getConfig(ConfigType.SIGN_IN_MFA_SINGLE_AUTH)
+        application = setupPCA(config, defaultChallengeTypes)
+        resources = config.resources
+        val authenticationContextId = "c4"
+        val authenticationContextRequestClaimJson = "{\"access_token\":{\"acrs\":{\"essential\":true,\"value\":\"$authenticationContextId\"}}}"
+        val authenticationContextATClaimJson = "\"acrs\":[\"$authenticationContextId\"]"
+
+        retryOperation {
+            runBlocking {
+                val username = config.email
+                val password = getSafePassword()
+                val params = NativeAuthSignInParameters(username)
+                params.password = password.toCharArray()
+                params.claimsRequest = ClaimsRequest.getClaimsRequestFromJsonString(authenticationContextRequestClaimJson)
+
+                val result = application.signIn(params)
+                assertResult<SignInResult.MFARequired>(result)
+
+                // Initiate challenge, send code to email
+                val sendChallengeResult =
+                    (result as SignInResult.MFARequired).nextState.requestChallenge()
+                assertResult<MFARequiredResult.VerificationRequired>(sendChallengeResult)
+                (sendChallengeResult as MFARequiredResult.VerificationRequired)
+                assertNotNull(sendChallengeResult.sentTo)
+                assertNotNull(sendChallengeResult.codeLength)
+                assertNotNull(sendChallengeResult.channel)
+
+                // Retrieve challenge from mailbox and submit
+                val otp = tempEmailApi.retrieveCodeFromInbox(username)
+                val submitCorrectChallengeResult = sendChallengeResult.nextState.submitChallenge(otp)
+                assertResult<SignInResult.Complete>(submitCorrectChallengeResult)
+
+                // Retrieve access token
+                val accountState = (submitCorrectChallengeResult as SignInResult.Complete).resultValue
+                val getAccessTokenResult = accountState.getAccessToken()
+                assertResult<GetAccessTokenResult.Complete>(getAccessTokenResult)
+                val authResult = (getAccessTokenResult as GetAccessTokenResult.Complete).resultValue
+
+                // Check that AT contains authentication context claim
+                val atParts = authResult.accessToken.split(".")
+                if (atParts.size != 3) {
+                    fail("Invalid Access token received")
+                    return@runBlocking
+                }
+                val atBody = atParts[1]
+                val charset = charset("UTF-8")
+                val atDecoded = String(
+                    Base64.getUrlDecoder().decode(atBody.toByteArray(charset)),
+                    charset
+                )
+                assertTrue(atDecoded.contains(authenticationContextATClaimJson))
             }
         }
     }

@@ -20,41 +20,47 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-package com.microsoft.identity.client.msal.automationapp.testpass.broker.brokerapi;
+package com.microsoft.identity.client.msal.automationapp.testpass.broker.wpj;
 
-
-import android.widget.Button;
-
-import androidx.annotation.Nullable;
 import androidx.test.uiautomator.UiObject;
-import androidx.test.uiautomator.UiObjectNotFoundException;
 
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
-import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest;
+import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
-import com.microsoft.identity.client.ui.automation.broker.BrokerHost;
+import com.microsoft.identity.client.ui.automation.broker.BrokerMicrosoftAuthenticator;
 import com.microsoft.identity.client.ui.automation.utils.UiAutomatorUtils;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
+import org.junit.Assert;
 import org.junit.Test;
 
-// Check DCF Option UI (Join Tenant)
-// Currently, other broker apps do not have a way to call AcquireToken with the "is_remote_login_allowed=true" parameter
-// BrokerHost got a new button to facilitate this particular flow.
-// https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2110359
-@SupportedBrokers(brokers = BrokerHost.class)
-@LocalBrokerHostDebugUiTest
-public class TestCase2110359 extends AbstractMsalBrokerTest{
-    // tenant id where lab api and key vault api is registered
-    private final static String LAB_API_TENANT_ID = "72f988bf-86f1-41af-91ab-2d7cd011db47";
+// Broker Add Account via Account Manager
+// https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833547
+@SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
+@RetryOnFailure
+public class TestCase833547 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_2110359() {
-        checkForDcfOption(null);
+    public void test_833547() {
+        // Recent build of authenticator seems to produce a notification popup on device, this blocks some ui we rely on to validate account presence. Disabling notifications will work.
+        getSettingsScreen().toggleNotificationsThroughSettings(mBroker.getPackageName());
+
+        final String username = mLabAccount.getUsername();
+        final String password = mLabAccount.getPassword();
+
+        getSettingsScreen().addWorkAccount(mBroker, username, password);
+
+        // Assert Authenticator Account screen has account
+        mBroker.launch(); // open Authenticator App
+        mBroker.handleFirstRun();
+
+        final UiObject account1 = UiAutomatorUtils.obtainUiObjectWithText(username);
+        Assert.assertTrue(account1.exists()); // make sure account 1 is there
     }
+
 
     @Override
     public LabQuery getLabQuery() {
@@ -82,38 +88,4 @@ public class TestCase2110359 extends AbstractMsalBrokerTest{
     public int getConfigFileResourceId() {
         return R.raw.msal_config_default;
     }
-
-    /**
-     * Check if the Device Code Flow option shows up in sign in flow.
-     *
-     * @param tenantId tenant ID to use in Join Tenant
-     */
-    public void checkForDcfOption(@Nullable final String tenantId) {
-        final String tenantIdToUse;
-
-        // If no tenant ID is specified, default to microsoft tenant
-        if (tenantId == null) {
-            tenantIdToUse = LAB_API_TENANT_ID;
-        } else {
-            tenantIdToUse = tenantId;
-        }
-        BrokerHost brokerHost = (BrokerHost) mBroker;
-        brokerHost.launch();
-        brokerHost.clickJoinTenant(tenantIdToUse);
-
-        // Apparently, there are two UI objects with exact text "Sign-in options", one is a button the other is a view
-        // Have to specify the search to button class
-        final UiObject optionsObject = UiAutomatorUtils.obtainUiObjectWithTextAndClassType("Sign-in options", Button.class);
-
-        try {
-            optionsObject.click();
-        } catch (UiObjectNotFoundException e) {
-            throw new AssertionError(e);
-        }
-        UiAutomatorUtils.handleButtonClickForObjectWithText("Sign in from another device");
-
-        // Doesn't look like the page with the device code is readable to the UI automation,
-        // this is a sufficient stopping point
-    }
-
 }
