@@ -70,7 +70,7 @@ public class TestCase3178175 extends AbstractMsalBrokerTest {
                 .expectingLoginPageAccountPicker(false)
                 .expectingProvidedAccountInCookie(false)
                 .consentPageExpected(false)
-                .passwordPageExpected(false)
+                .passwordPageExpected(true)
                 .speedBumpExpected(false)
                 .registerPageExpected(false)
                 .enrollPageExpected(false)
@@ -79,10 +79,8 @@ public class TestCase3178175 extends AbstractMsalBrokerTest {
                 .howWouldYouLikeToSignInExpected(false)
                 .build();
 
-        // Add login hint as the username and Click on AcquireToken button
-        // NOT prompted for credentials.
-        msalTestApp.handleUserNameInput(username);
-        final String token = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, false);
+        // Acquire Token with MSAL Test App
+        final String token = msalTestApp.acquireToken(username, password, promptHandlerParametersMsal, true);
 
         // Install new OneAuthTestApp
         final OneAuthTestApp oneAuthTestApp = new OneAuthTestApp();
@@ -90,19 +88,9 @@ public class TestCase3178175 extends AbstractMsalBrokerTest {
         oneAuthTestApp.launch();
         oneAuthTestApp.handleFirstRun();
 
-        final FirstPartyAppPromptHandlerParameters promptHandlerParametersOneAuth = FirstPartyAppPromptHandlerParameters.builder()
-                .broker(mBroker)
-                .prompt(PromptParameter.LOGIN)
-                .loginHint(username)
-                .consentPageExpected(false)
-                .speedBumpExpected(false)
-                .sessionExpected(false)
-                .expectingBrokerAccountChooserActivity(false)
-                .expectingLoginPageAccountPicker(false)
-                .enrollPageExpected(false)
-                .build();
         // Click on sign in button, prompted to enter username and password
-        oneAuthTestApp.handleSignInWithoutPrompt();
+//        oneAuthTestApp.handleSignInWithoutPrompt();
+        oneAuthTestApp.getAllAccounts();
         oneAuthTestApp.confirmAccount(username);
 
         Assert.assertNotNull(token);
