@@ -55,11 +55,11 @@ public class TestCase1400731 extends AbstractMsalBrokerTest {
         // load a guest user account from the Lab
         final LabGuestAccount labGuest = mLabClient.loadGuestAccountFromLab(getLabQuery());
 
-        final String username = "gcidlab@msidlab4.onmicrosoft.com";
+        final String username = labGuest.getHomeUpn();
         final String password = mLabClient.getPasswordForGuestUser(labGuest);
 
         //perform device registration
-        mBroker.performDeviceRegistration(username, password);
+        mBroker.performDeviceRegistration(username, password, true);
 
         final MsalSdk msalSdk = new MsalSdk();
 
