@@ -47,7 +47,7 @@ import java.util.Arrays;
 
 // [Joined] Guest Support: Interactive and Silent Auth with MSAL Test app (Authenticator or Company Portal)
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1400731/
-@RetryOnFailure(retryCount = 2)
+//@RetryOnFailure(retryCount = 2)
 public class TestCase1400731 extends AbstractMsalBrokerTest {
 
     @Test
@@ -55,11 +55,11 @@ public class TestCase1400731 extends AbstractMsalBrokerTest {
         // load a guest user account from the Lab
         final LabGuestAccount labGuest = mLabClient.loadGuestAccountFromLab(getLabQuery());
 
-        final String username = labGuest.getHomeUpn();
+        final String username = "gcidlab@msidlab4.onmicrosoft.com";
         final String password = mLabClient.getPasswordForGuestUser(labGuest);
 
         //perform device registration
-        mBroker.performDeviceRegistration(username, password, true);
+        mBroker.performDeviceRegistration(username, password);
 
         final MsalSdk msalSdk = new MsalSdk();
 
