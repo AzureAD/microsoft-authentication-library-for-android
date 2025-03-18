@@ -47,7 +47,7 @@ import java.util.Arrays;
 
 // [Joined] Guest Support: Interactive and Silent Auth with MSAL Test app (Authenticator or Company Portal)
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1400731/
-//@RetryOnFailure(retryCount = 2)
+@RetryOnFailure(retryCount = 2)
 public class TestCase1400731 extends AbstractMsalBrokerTest {
 
     @Test
