@@ -125,15 +125,15 @@ public class TestCase833544 extends AbstractMsalBrokerTest {
         azureSample.confirmSignedIn("None");
 
         // fetch another account from lab - someone from a different tenant
-        final LabQuery guestAccountQuery = LabQuery.builder()
+        final LabQuery govAccountQuery = LabQuery.builder()
                 .userType(UserType.CLOUD)
                 .azureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT)
                 .build();
 
-        final ILabAccount guestAccount = mLabClient.getLabAccount(guestAccountQuery);
+        final ILabAccount govAccount = mLabClient.getLabAccount(govAccountQuery);
 
-        final String usernameGuest = guestAccount.getUsername();
-        final String passwordGuest = guestAccount.getPassword();
+        final String usernameGov = govAccount.getUsername();
+        final String passwordGov = govAccount.getPassword();
 
         // relaunch Outlook
         outlook.forceStop();
@@ -151,13 +151,13 @@ public class TestCase833544 extends AbstractMsalBrokerTest {
                         .expectingBrokerAccountChooserActivity(true)
                         .expectingLoginPageAccountPicker(false)
                         .howWouldYouLikeToSignInExpected(true)
-                        .loginHint(usernameGuest)
+                        .loginHint(usernameGov)
                         .sessionExpected(false)
                         .speedBumpExpected(false)
                         .build();
 
         // add another account in Outlook
-        outlook.addAnotherAccount(usernameGuest, passwordGuest, outlookPromptParameters);
+        outlook.addAnotherAccount(usernameGov, passwordGov, outlookPromptParameters);
 
         // Relaunching word right after outlook sign in is pressed leads to issues, sometimes the user is not signed in
         ThreadUtils.sleepSafely(5000, "Sleep failed", "Interrupted");
@@ -193,16 +193,16 @@ public class TestCase833544 extends AbstractMsalBrokerTest {
                         .isFederated(true)
                         .expectingBrokerAccountChooserActivity(true)
                         .expectingLoginPageAccountPicker(false)
-                        .loginHint(usernameGuest)
+                        .loginHint(usernameGov)
                         .sessionExpected(true)
                         .speedBumpExpected(false)
                         .build();
 
         // add another account in Word
-        wordApp.addAnotherAccount(usernameGuest, passwordGuest, wordPromptParameters);
+        wordApp.addAnotherAccount(usernameGov, passwordGov, wordPromptParameters);
 
         // make sure this other account is in Word
-        wordApp.confirmAccount(usernameGuest);
+        wordApp.confirmAccount(usernameGov);
     }
 
     @Override
