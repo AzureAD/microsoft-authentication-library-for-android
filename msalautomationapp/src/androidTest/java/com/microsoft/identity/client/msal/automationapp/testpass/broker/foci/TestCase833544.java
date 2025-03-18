@@ -55,7 +55,7 @@ import java.util.concurrent.TimeUnit;
 // [Non-joined][FoCl] FoCl (Multi-users) with Outlook and Word
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/833544
 @SupportedBrokers(brokers = {BrokerMicrosoftAuthenticator.class})
-@RetryOnFailure
+//@RetryOnFailure
 @LongUIAutomationTest
 public class TestCase833544 extends AbstractMsalBrokerTest {
 
@@ -190,7 +190,7 @@ public class TestCase833544 extends AbstractMsalBrokerTest {
                         .consentPageExpected(false)
                         .enrollPageExpected(false)
                         .registerPageExpected(false)
-                        .isFederated(true)
+                        .isFederated(false)
                         .expectingBrokerAccountChooserActivity(true)
                         .expectingLoginPageAccountPicker(false)
                         .loginHint(usernameGov)
