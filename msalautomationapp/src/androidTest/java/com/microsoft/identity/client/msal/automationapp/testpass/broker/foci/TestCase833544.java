@@ -43,7 +43,6 @@ import com.microsoft.identity.common.java.util.ThreadUtils;
 import com.microsoft.identity.labapi.utilities.client.ILabAccount;
 import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.AzureEnvironment;
-import com.microsoft.identity.labapi.utilities.constants.FederationProvider;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 import com.microsoft.identity.labapi.utilities.exception.LabApiException;
@@ -126,15 +125,15 @@ public class TestCase833544 extends AbstractMsalBrokerTest {
         azureSample.confirmSignedIn("None");
 
         // fetch another account from lab - someone from a different tenant
-        final LabQuery queryForAdfsV3Account = LabQuery.builder()
-                .userType(UserType.FEDERATED)
-                .federationProvider(FederationProvider.ADFS_V3)
+        final LabQuery guestAccountQuery = LabQuery.builder()
+                .userType(UserType.CLOUD)
+                .azureEnvironment(AzureEnvironment.AZURE_US_GOVERNMENT)
                 .build();
 
-        final ILabAccount labAccountAdfsV3 = mLabClient.getLabAccount(queryForAdfsV3Account);
+        final ILabAccount guestAccount = mLabClient.getLabAccount(guestAccountQuery);
 
-        final String usernameV3 = labAccountAdfsV3.getUsername();
-        final String passwordV3 = labAccountAdfsV3.getPassword();
+        final String usernameGuest = guestAccount.getUsername();
+        final String passwordGuest = guestAccount.getPassword();
 
         // relaunch Outlook
         outlook.forceStop();
@@ -148,17 +147,17 @@ public class TestCase833544 extends AbstractMsalBrokerTest {
                         .consentPageExpected(false)
                         .enrollPageExpected(false)
                         .registerPageExpected(false)
-                        .isFederated(true)
+                        .isFederated(false)
                         .expectingBrokerAccountChooserActivity(true)
                         .expectingLoginPageAccountPicker(false)
                         .howWouldYouLikeToSignInExpected(true)
-                        .loginHint(usernameV3)
+                        .loginHint(usernameGuest)
                         .sessionExpected(false)
                         .speedBumpExpected(false)
                         .build();
 
         // add another account in Outlook
-        outlook.addAnotherAccount(usernameV3, passwordV3, outlookPromptParameters);
+        outlook.addAnotherAccount(usernameGuest, passwordGuest, outlookPromptParameters);
 
         // Relaunching word right after outlook sign in is pressed leads to issues, sometimes the user is not signed in
         ThreadUtils.sleepSafely(5000, "Sleep failed", "Interrupted");
@@ -194,16 +193,16 @@ public class TestCase833544 extends AbstractMsalBrokerTest {
                         .isFederated(true)
                         .expectingBrokerAccountChooserActivity(true)
                         .expectingLoginPageAccountPicker(false)
-                        .loginHint(usernameV3)
+                        .loginHint(usernameGuest)
                         .sessionExpected(true)
                         .speedBumpExpected(false)
                         .build();
 
         // add another account in Word
-        wordApp.addAnotherAccount(usernameV3, passwordV3, wordPromptParameters);
+        wordApp.addAnotherAccount(usernameGuest, passwordGuest, wordPromptParameters);
 
         // make sure this other account is in Word
-        wordApp.confirmAccount(usernameV3);
+        wordApp.confirmAccount(usernameGuest);
     }
 
     @Override
