@@ -46,6 +46,7 @@ class TestCase2516571 : AbstractMsalUiTest(){
 
     @Test
     fun test_2516571() {
+        Assert.fail("Testing pipeline report 2, MSAL Ui 30+ Test")
         // Fetch credentials
         val username: String = mLabAccount.username
         val password: String = mLabAccount.password

@@ -25,6 +25,7 @@ package com.microsoft.identity.client;
 
 import com.microsoft.identity.common.java.net.HttpUrlConnectionFactory;
 
+import org.junit.Assert;
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -42,6 +43,7 @@ public final class AndroidTestMockUtil {
     }
 
     static HttpsURLConnection getMockedConnectionWithSuccessResponse(final String message) throws IOException {
+        Assert.fail("Testing pipeline report 1, MSAL Instrumented Test");
         final HttpsURLConnection mockedHttpUrlConnection = getCommonHttpUrlConnection();
 
         Mockito.when(mockedHttpUrlConnection.getInputStream()).thenReturn(AndroidTestUtil.createInputStream(message));
@@ -52,6 +54,7 @@ public final class AndroidTestMockUtil {
 
     static HttpsURLConnection getMockedConnectionWithFailureResponse(final int statusCode, final String errorMessage)
             throws IOException {
+        Assert.fail("Testing pipeline report 2, MSAL Instrumented Test");
         final HttpsURLConnection mockedHttpUrlConnection = getCommonHttpUrlConnection();
 
         Mockito.when(mockedHttpUrlConnection.getInputStream()).thenThrow(IOException.class);

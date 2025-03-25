@@ -50,8 +50,6 @@ public class TestCase2836426 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_2836426() throws Throwable {
-        Assert.fail("Testing pipeline report, Ui test");
-
         final MsalSdk msalSdk = new MsalSdk();
 
         // don't pass "is_remote_login_allowed=true" query parameter

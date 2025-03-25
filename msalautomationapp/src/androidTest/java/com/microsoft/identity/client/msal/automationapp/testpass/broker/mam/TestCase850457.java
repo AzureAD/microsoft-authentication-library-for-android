@@ -54,6 +54,7 @@ public class TestCase850457 extends AbstractMsalBrokerTest {
 
     @Test
     public void test_850457() throws Throwable {
+        Assert.fail("Testing pipeline report 1, MSAL Ui 29 Test");
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

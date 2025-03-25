@@ -66,6 +66,7 @@ public class AuthenticationResultTest {
 
     @Test
     public void testAuthenticationResultHasCorrelationIdIfValidCorrelationIdWasProvided() {
+        Assert.fail("Testing pipeline report 1, MSAL Unit Test");
         final UUID correlationId = UUID.randomUUID();
 
         AuthenticationResult authenticationResult = new AuthenticationResult(
@@ -80,6 +81,7 @@ public class AuthenticationResultTest {
 
     @Test
     public void testAuthenticationResultHasNullCorrelationIdIfNullProvided() {
+        Assert.fail("Testing pipeline report 2, MSAL Unit Test");
         AuthenticationResult authenticationResult = new AuthenticationResult(
                 mCacheRecords,
                 null

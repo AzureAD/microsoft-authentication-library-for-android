@@ -36,6 +36,7 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery
 import com.microsoft.identity.labapi.utilities.constants.ProtectionPolicy
 import com.microsoft.identity.labapi.utilities.constants.TempUserType
 import com.microsoft.identity.labapi.utilities.constants.UserType
+import org.junit.Assert
 import org.junit.Test
 
 // TrueMAM: Sign In with Teams and then SignOut and Sign Back In
@@ -46,6 +47,7 @@ class TestCase2506936 : AbstractMsalBrokerTest(){
 
     @Test
     fun test_2506936() {
+        Assert.fail("Testing pipeline report 1, MSAL Ui 30+ Test")
         // Fetch credentials
         val username: String = mLabAccount.username
         val password: String = mLabAccount.password
