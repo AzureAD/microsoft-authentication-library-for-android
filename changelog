@@ -2,6 +2,7 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+- [MINOR] Update minSDK to 21
 
 Version 5.10.0
 ----------
