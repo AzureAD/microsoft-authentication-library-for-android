@@ -12,17 +12,17 @@ def copyOfLocalFlights = ""
 if (project.hasProperty("localFlights")) {
     copyOfLocalFlights = localFlights
 }
-subprojects {
-    afterEvaluate { project ->
-        if (project.hasProperty('android')) {
-            project.android {
-                if (namespace == null) {
-                    namespace project.group
-                }
-            }
-        }
-    }
-}
+//subprojects {
+//    afterEvaluate { project ->
+//        if (project.hasProperty('android')) {
+//            project.android {
+//                if (namespace == null) {
+//                    namespace project.group
+//                }
+//            }
+//        }
+//    }
+//}
 android {
     namespace "com.microsoft.identity.client.msal.automationapp"
     packagingOptions {
