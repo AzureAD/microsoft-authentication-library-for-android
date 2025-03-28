@@ -64,7 +64,7 @@ jobs:
       javaHomeSelection: $(BuildParameters.javaHomeSelection)
       jdkVersion: 1.17
 - job: spotbugs
-  displayName: SpotBugsTEST
+  displayName: SpotBugs
   cancelTimeoutInMinutes: 1
   steps:
   - checkout: self
