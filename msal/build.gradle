@@ -30,17 +30,7 @@ if (project.hasProperty("codeCoverageEnabled")) {
 codeCoverageReport {
     coverage.enabled = enableCodeCoverage
 }
-//subprojects {
-//    afterEvaluate { project ->
-//        if (project.hasProperty('android')) {
-//            project.android {
-//                if (namespace == null) {
-//                    namespace project.group
-//                }
-//            }
-//        }
-//    }
-//}
+
 android {
 //    testOptions {
 //        compileOptions {

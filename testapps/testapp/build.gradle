@@ -40,17 +40,7 @@ def otelAriaToken = ""
 if(project.hasProperty('otelAriaToken')) {
     otelAriaToken = project.otelAriaToken;
 }
-//subprojects {
-//    afterEvaluate { project ->
-//        if (project.hasProperty('android')) {
-//            project.android {
-//                if (namespace == null) {
-//                    namespace project.group
-//                }
-//            }
-//        }
-//    }
-//}
+
 android {
     namespace "com.microsoft.identity.client.testapp"
 // Bumping up to Java Version 8 due to the addition of YubiKit SDK,
