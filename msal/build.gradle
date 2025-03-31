@@ -129,10 +129,6 @@ android {
         dist {
             dimension "main"
         }
-        production {
-            dimension "main"
-            matchingFallbacks = ['dist']
-        }
     }
 
     sourceSets {
@@ -170,7 +166,6 @@ task javadoc(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
     configurations.api.setCanBeResolved(true)
     classpath += configurations.api
-//    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
 
     options.memberLevel = JavadocMemberLevel.PUBLIC
     options.addStringOption('Xdoclint:none', '-quiet')
