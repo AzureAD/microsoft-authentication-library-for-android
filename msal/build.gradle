@@ -180,14 +180,12 @@ afterEvaluate {
 // Task to generate javadoc.jar
 task javadocJar(type: Jar, dependsOn: javadoc) {
     from javadoc.destinationDir
-//    classifier 'javadoc'
     archiveClassifier.set('javadoc')
     destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
 }
 
 task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
-//    classifier 'sources'
     archiveClassifier.set('sources')
     destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
 }
@@ -327,8 +325,6 @@ afterEvaluate {
 //    }
     publishing {
         publications {
-//            distRelease(MavenPublication) {
-
             msal(MavenPublication) {
                 from components.findByName('distRelease')
                 groupId 'com.microsoft.identity.client'
