@@ -45,7 +45,9 @@ interface SignInResult : Result {
         SignInResult,
         SignInSubmitCodeResult,
         SignInSubmitPasswordResult,
-        MFASubmitChallengeResult
+        MFASubmitChallengeResult,
+        RegisterStrongAuthChallengeResult,
+        RegisterStrongAuthSubmitChallengeResult
 
     /**
      * CodeRequired Result, which indicates a verification code is required from the user to continue.

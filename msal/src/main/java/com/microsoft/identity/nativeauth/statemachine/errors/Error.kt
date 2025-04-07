@@ -84,6 +84,12 @@ internal class ErrorTypes {
         const val INVALID_USERNAME = "invalid_username"
 
         /*
+         * The INVALID_INPUT value indicates the input provided by the user is incorrect.
+         * The input needs be re-submitted.
+         */
+        const val INVALID_INPUT = "invalid_input"
+
+        /*
          * The INVALID_STATE value indicates a misconfigured or expired state, or an internal error
          * in state transitions. If this occurs, the flow should be restarted.
          */
