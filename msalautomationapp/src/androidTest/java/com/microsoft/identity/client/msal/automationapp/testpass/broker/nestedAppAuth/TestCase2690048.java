@@ -35,12 +35,14 @@ import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 // Nested app passes deviceId claim - silent call fails
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2690048
 @SupportedBrokers(brokers = {BrokerHost.class})
 @LocalBrokerHostDebugUiTest
+@Ignore("Ignoring until the fix on eSTS side reaches production")
 public class TestCase2690048 extends AbstractMsalBrokerTest {
 
     @Test
