@@ -29,6 +29,7 @@ public final class AuthorityTest {
 
     @Test
     public void testGetAuthorityFromAuthorityUrlAllAccounts() {
+        Assert.fail("Testing pipeline report 3, MSAL Instrumented Test");
         Authority authority = Authority.getAuthorityFromAuthorityUrl(COMMON_AUTHORITY_URL);
         Assert.assertEquals(COMMON_AUTHORITY_URL, authority.getAuthorityURL().toString());
     }
