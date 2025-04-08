@@ -71,10 +71,7 @@ public class TestCase3029738 extends AbstractMsalBrokerTest {
     }
 
     @Test
-    public void test() throws Throwable {
-        // Check flight, this is checking what was passed to automation app, not the broker apks
-        Assume.assumeTrue( "EnableSystemAccountManager flight is not activated, Test will be skipped",
-                BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("EnableSystemAccountManager:true"));
+    public void test_3029738() throws Throwable {
 
         // Fetch account credentials
         final String username = mLabAccount.getUsername();
