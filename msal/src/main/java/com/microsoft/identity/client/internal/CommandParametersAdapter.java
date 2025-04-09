@@ -532,6 +532,7 @@ public class CommandParametersAdapter {
      * @param username email address of the user
      * @param password password of the user
      * @param scopes scopes requested during sign in flow
+     * @param claimsRequest claims request object. Nullable object
      * @return Command parameter object
      * @throws ClientException
      */
@@ -587,6 +588,7 @@ public class CommandParametersAdapter {
      * @param username email address of the user
      * @param correlationId correlation ID to use in the API request, taken from the previous API response in the flow
      * @param scopes scopes requested during sign in flow
+     * @param claimsRequest claims request object. Nullable object
      * @return Command parameter object
      * @throws ClientException
      */
@@ -596,13 +598,15 @@ public class CommandParametersAdapter {
             @Nullable final String continuationToken,
             @Nullable final String username,
             @NonNull final String correlationId,
-            final List<String> scopes) throws ClientException {
+            final List<String> scopes,
+            @Nullable final ClaimsRequest claimsRequest) throws ClientException {
         final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
                 AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
                 null
         );
-
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
+
+        final String claimsRequestJson = ClaimsRequest.getJsonStringFromClaimsRequest(claimsRequest);
 
         final SignInWithContinuationTokenCommandParameters commandParameters = SignInWithContinuationTokenCommandParameters.builder()
                 .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
@@ -621,6 +625,7 @@ public class CommandParametersAdapter {
                 .username(username)
                 .challengeType(configuration.getChallengeTypes())
                 .authenticationScheme(authenticationScheme)
+                .claimsRequestJson(claimsRequestJson)
                 .scopes(scopes)
                 .correlationId(correlationId)
                 .build();

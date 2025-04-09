@@ -31,6 +31,7 @@ import com.microsoft.identity.client.AuthenticationResultAdapter
 import com.microsoft.identity.client.IAccount
 import com.microsoft.identity.client.IAuthenticationResult
 import com.microsoft.identity.client.PublicClientApplication
+import com.microsoft.identity.client.claims.ClaimsRequest
 import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.internal.CommandParametersAdapter
@@ -244,7 +245,7 @@ class AccountState private constructor(
      */
     @Deprecated("This method is now deprecated. Use the method 'getAccessToken(parameters:)' instead.")
     suspend fun getAccessToken(forceRefresh: Boolean = false): GetAccessTokenResult {
-        return getAccessTokenInternal(forceRefresh, AuthenticationConstants.DEFAULT_SCOPES.toList());
+        return getAccessTokenInternal(forceRefresh, AuthenticationConstants.DEFAULT_SCOPES.toList(), null);
     }
 
     /**
@@ -266,7 +267,7 @@ class AccountState private constructor(
             )
         }
 
-        return getAccessTokenInternal(forceRefresh, scopes)
+        return getAccessTokenInternal(forceRefresh, scopes, null)
     }
 
     /**
@@ -288,7 +289,7 @@ class AccountState private constructor(
             )
         }
 
-        return getAccessTokenInternal(parameters.forceRefresh, scopes)
+        return getAccessTokenInternal(parameters.forceRefresh, scopes, parameters.claimsRequest)
     }
 
     /**
@@ -344,7 +345,7 @@ class AccountState private constructor(
         }
     }
 
-    private suspend fun getAccessTokenInternal(forceRefresh: Boolean, scopes: List<String>): GetAccessTokenResult {
+    private suspend fun getAccessTokenInternal(forceRefresh: Boolean, scopes: List<String>, claimsRequest: ClaimsRequest?): GetAccessTokenResult {
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = null,
@@ -370,6 +371,7 @@ class AccountState private constructor(
                     .withCorrelationId(UUID.fromString(privateCorrelationId))
                     .forceRefresh(forceRefresh)
                     .withScopes(scopes)
+                    .withClaims(claimsRequest)
                     .build()
 
                 val accountRecord = PublicClientApplication.selectAccountRecordForTokenRequest(
