@@ -25,6 +25,7 @@ package com.microsoft.identity.nativeauth.statemachine.results
 
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState
 import com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState
+import com.microsoft.identity.nativeauth.statemachine.states.RegisterStrongAuthState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInPasswordRequiredState
 
@@ -45,7 +46,9 @@ interface SignInResult : Result {
         SignInResult,
         SignInSubmitCodeResult,
         SignInSubmitPasswordResult,
-        MFASubmitChallengeResult
+        MFASubmitChallengeResult,
+        RegisterStrongAuthChallengeResult,
+        RegisterStrongAuthSubmitChallengeResult
 
     /**
      * CodeRequired Result, which indicates a verification code is required from the user to continue.
@@ -80,6 +83,16 @@ interface SignInResult : Result {
     class MFARequired(
         override val nextState: AwaitingMFAState
     ) : SignInResult, Result.SuccessResult(nextState = nextState), SignInSubmitPasswordResult
+
+    /**
+     * StrongAuthMethodRegistration Result, which indicates that a registration of a strong authentication method is required to continue.
+     *
+     * <strong><u>Warning: this class is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
+     * @param nextState [com.microsoft.identity.nativeauth.statemachine.states.RegisterStrongAuthState] the current state of the flow with follow-on methods.
+     */
+    class StrongAuthMethodRegistrationRequired(
+        override val nextState: RegisterStrongAuthState
+    ) : SignInResult, SignInSubmitPasswordResult, Result.SuccessResult(nextState = nextState)
 }
 
 /**
