@@ -174,9 +174,9 @@ task javadoc(type: Javadoc) {
     exclude '**/R.java'
     destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
 }
-afterEvaluate {
-    tasks.javadoc.classpath += files(project.android.getBootClasspath())
-}
+//afterEvaluate {
+//    tasks.javadoc.classpath += files(project.android.getBootClasspath())
+//}
 // Task to generate javadoc.jar
 task javadocJar(type: Jar, dependsOn: javadoc) {
     from javadoc.destinationDir
