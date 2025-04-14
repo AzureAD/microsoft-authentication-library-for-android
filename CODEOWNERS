@@ -6,6 +6,9 @@
 
 *       @AzureAD/androididentity
 
+# Shared Ownership
+#---------------------
+changelog.txt @AzureAD/androididentity @AzureAD/NativeAuthTeam
 
 # Area Owners
 #---------------------
