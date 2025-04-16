@@ -652,7 +652,8 @@ class SignInContinuationState(
                         continuationToken,
                         username,
                         correlationId,
-                        parameters.scopes
+                        parameters.scopes,
+                        parameters.claimsRequest
                     )
 
                 val command = SignInWithContinuationTokenCommand(
