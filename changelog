@@ -8,7 +8,7 @@ Version 6.0.0
 - [PATCH] Update common @21.0.0
 - [MAJOR] Update minSDK to 21
 - [MINOR] Native auth: Add claimsRequest also to getAccessToken and signIn after signUp/SSPR flows (#2278)
-- [MINOR] Update AGP Version to 8.1.0 (#2254)
+- [MINOR] Update AGP Version to 8.1.1 (#2254)
 Version 5.10.2
 ----------
 - [PATCH] Update common @20.1.1
