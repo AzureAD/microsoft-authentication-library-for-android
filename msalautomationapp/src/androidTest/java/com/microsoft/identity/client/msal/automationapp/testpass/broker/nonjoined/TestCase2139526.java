@@ -52,7 +52,7 @@ import java.util.concurrent.TimeUnit;
 public class TestCase2139526 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_2139526() throws Throwable {
+    public void test_2139526_NonJoined_PolicyChangeFailesATS() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

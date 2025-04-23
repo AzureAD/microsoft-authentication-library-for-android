@@ -52,7 +52,7 @@ class TestCase2798415 : AbstractMsalBrokerTest() {
     private val TAG = TestCase2798415::class.java.simpleName
     @Test
     @Throws(MsalException::class, InterruptedException::class, LabApiException::class)
-    fun test_2798415() {
+    fun test_2506936_SDM_MAM_TeamsSignInThenOutThenInAgain() {
         val adminUserLabQuery = getAdminAccountLabQuery()
 
         val admin: ILabAccount = mLabClient.getLabAccount(adminUserLabQuery)

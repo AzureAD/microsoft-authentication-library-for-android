@@ -67,7 +67,7 @@ import java.util.concurrent.TimeUnit;
 public class TestCase833515 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_833515() throws MsalException, InterruptedException, LabApiException {
+    public void test_833515_FLW_SDMGlobalSignOut() throws MsalException, InterruptedException, LabApiException {
         final String username1 = mLabAccount.getUsername();
         final String password1 = mLabAccount.getPassword();
 

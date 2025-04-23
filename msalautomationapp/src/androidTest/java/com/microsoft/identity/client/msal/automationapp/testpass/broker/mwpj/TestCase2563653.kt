@@ -40,7 +40,7 @@ import org.junit.Test
 class TestCase2563653 : AbstractMsalBrokerTest() {
 
     @Test
-    fun test_2563653() {
+    fun test_2563653_MWPJ_LegacyApiGetAccount() {
         val brokerHostApp = broker as BrokerHost
 
         // Register tenant with new WPJ API

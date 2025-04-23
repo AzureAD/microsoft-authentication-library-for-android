@@ -74,7 +74,7 @@ public class TestCase2571508  extends AbstractMsalBrokerTest {
     }
 
     @Test
-    public void test_2571508() throws Throwable {
+    public void test_2571508_LTW_IfBrokerlessLTWInstalledMsalShouldHaveSSO() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

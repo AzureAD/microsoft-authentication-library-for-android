@@ -55,7 +55,7 @@ import java.util.List;
 public class TestCase1561136 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_1561136() throws Throwable {
+    public void test_1561136_brokerhostGetAccounts() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

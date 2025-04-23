@@ -49,7 +49,7 @@ import java.util.Arrays;
 public class TestCase2836426 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_2836426() throws Throwable {
+    public void test_2836426_DCF_CheckSignInFromOtherDeviceOptionNotAvailableWithoutParameter() throws Throwable {
         final MsalSdk msalSdk = new MsalSdk();
 
         // don't pass "is_remote_login_allowed=true" query parameter

@@ -57,7 +57,7 @@ import java.util.Map;
 public class TestCase940421 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_940421() throws Throwable {
+    public void test_940421_USGov_Joined_ATWithDeviceIDClaimInstanceAware() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

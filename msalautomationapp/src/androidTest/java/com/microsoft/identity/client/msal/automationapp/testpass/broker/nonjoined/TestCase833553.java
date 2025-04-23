@@ -51,7 +51,7 @@ import java.util.Arrays;
 @RetryOnFailure()
 public class TestCase833553 extends AbstractMsalBrokerTest {
     @Test
-    public void test_833553() throws Throwable {
+    public void test_833553_NonJoined_Federated() throws Throwable {
         final String username = mLabAccount.getUsername();
 
         // query to load another user from the same tenant

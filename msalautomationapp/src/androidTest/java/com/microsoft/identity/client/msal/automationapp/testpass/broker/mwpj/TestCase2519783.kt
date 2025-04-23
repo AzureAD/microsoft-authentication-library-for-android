@@ -49,7 +49,7 @@ class TestCase2519783 : AbstractMsalBrokerTest() {
     private lateinit var mBrokerHostApp: BrokerHost
 
     @Test
-    fun test_2519783() {
+    fun test_2519783_MWPJ_BrowserAccess() {
         // Register 2 accounts from different tenants
         mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mLabAccount.username, mLabAccount.password)
         mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mUsGovAccount.username, mUsGovAccount.password)

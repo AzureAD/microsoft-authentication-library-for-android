@@ -48,7 +48,7 @@ import java.util.Arrays;
 public class TestCase948676 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_948676() throws Throwable {
+    public void test_948676_USGOV_Joined_ATWithInstanceAware() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

@@ -71,7 +71,7 @@ public class TestCase3029738 extends AbstractMsalBrokerTest {
     }
 
     @Test
-    public void test_3029738() throws Throwable {
+    public void test_3029738_LTW_AT() throws Throwable {
 
         // Fetch account credentials
         final String username = mLabAccount.getUsername();

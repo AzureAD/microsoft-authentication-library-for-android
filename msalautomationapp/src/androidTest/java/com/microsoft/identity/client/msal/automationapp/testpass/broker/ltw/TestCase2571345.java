@@ -71,7 +71,7 @@ public class TestCase2571345 extends AbstractMsalBrokerTest {
         );
     }
     @Test
-    public void test_2571345() throws Throwable{
+    public void test_2571345_LTW_SamsungGACoverage() throws Throwable{
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

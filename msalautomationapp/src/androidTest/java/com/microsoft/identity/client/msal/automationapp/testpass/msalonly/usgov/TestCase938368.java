@@ -60,7 +60,7 @@ import java.util.concurrent.TimeUnit;
 public class TestCase938368 extends AbstractMsalUiTest {
 
     @Test
-    public void test_938368() throws Throwable {
+    public void test_938368_USGov_MsalOnlyFederatedATWithInstanceAware() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

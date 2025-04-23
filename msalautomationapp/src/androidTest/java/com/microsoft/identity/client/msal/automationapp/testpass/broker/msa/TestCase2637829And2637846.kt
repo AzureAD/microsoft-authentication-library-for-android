@@ -48,7 +48,7 @@ import java.util.*
 class TestCase2637829And2637846 : AbstractMsaBrokerTest() {
     @Test
     @Throws(Throwable::class)
-    fun test_2637829_2637846() {
+    fun test_2637829_2637846_BasicMSAAuthWithPromptLogin() {
         val username = mLabAccount.username
         val password = mLabAccount.password
         val msalSdk = MsalSdk()

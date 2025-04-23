@@ -82,7 +82,7 @@ public class TestCase1420484 extends AbstractGuestAccountMsalUiTest {
      * Tests Acquiring token for Cross cloud Guest account without broker.
      */
     @Test
-    public void test_1420484() throws Throwable {
+    public void test_1420484_CrossCloud_MsalOnlyATForGuestAccount() throws Throwable {
         // Clearing browser seems to help with this case
         mBrowser.clear();
 

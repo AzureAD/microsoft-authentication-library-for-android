@@ -49,7 +49,7 @@ import java.util.Arrays;
 @RetryOnFailure
 public class TestCase1954183 extends AbstractMsalUiTest {
     @Test
-    public void test_1954183() throws Throwable {
+    public void test_1954183_Pop_MsalOnly_GenerateSHR() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

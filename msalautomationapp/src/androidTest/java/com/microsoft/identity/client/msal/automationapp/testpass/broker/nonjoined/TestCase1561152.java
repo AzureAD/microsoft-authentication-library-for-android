@@ -55,7 +55,7 @@ import java.util.concurrent.TimeUnit;
 public class TestCase1561152 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_1561152() throws Throwable {
+    public void test_1561152_NonJoined_PasswordChange() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

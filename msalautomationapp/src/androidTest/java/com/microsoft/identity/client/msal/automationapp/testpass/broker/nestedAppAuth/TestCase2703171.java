@@ -37,14 +37,14 @@ import com.microsoft.identity.labapi.utilities.constants.UserType;
 import org.junit.Before;
 import org.junit.Test;
 
-// Nested app auth with US Gov accunt
+// Nested app auth with US Gov account
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2703171
 @LocalBrokerHostDebugUiTest
 @SupportedBrokers(brokers = {BrokerHost.class})
 public class TestCase2703171 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_2703171() throws Throwable {
+    public void test_2703171_NAA_USGov_AT() throws Throwable {
         NestedAppHelper nestedAppHelper = new NestedAppHelper(mActivity, mLabAccount);
         // perform AT interactive request for hub app
         nestedAppHelper.performATForHubAppInUSGovCloud();

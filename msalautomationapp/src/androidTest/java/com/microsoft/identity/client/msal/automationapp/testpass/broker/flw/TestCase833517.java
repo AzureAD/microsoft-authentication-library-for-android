@@ -69,7 +69,7 @@ import java.util.Arrays;
 public class TestCase833517 extends AbstractMsalBrokerTest {
     final String TAG = TestCase833517.class.getSimpleName();
     @Test
-    public void test_833517() throws Throwable{
+    public void test_833517_FLW_SDMAccountSignOutNotification() throws Throwable{
         final String deviceAdminUsername = mLabAccount.getUsername();
         final String deviceAdminPassword = mLabAccount.getPassword();
 

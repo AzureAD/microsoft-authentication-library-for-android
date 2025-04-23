@@ -63,7 +63,7 @@ import java.util.Arrays;
 public class TestCase831126 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_831126() throws Throwable {
+    public void test_831126_MDM_FirstPartyAppSignIn() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

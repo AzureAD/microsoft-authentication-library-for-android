@@ -54,7 +54,7 @@ import java.util.Arrays;
 public class TestCase833526 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_833526() throws Throwable {
+    public void test_833526_MDM_BrokerAuthAndPkeyAuthFlow() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

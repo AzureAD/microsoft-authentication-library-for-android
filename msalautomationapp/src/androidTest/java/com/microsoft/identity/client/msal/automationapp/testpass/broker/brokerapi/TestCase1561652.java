@@ -50,7 +50,7 @@ import java.util.Set;
 @RetryOnFailure
 public class TestCase1561652 extends AbstractMsalBrokerTest {
     @Test
-    public void test_1561652() {
+    public void test_1561652_brokerhostSSOToken() {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

@@ -45,7 +45,7 @@ import org.junit.Test;
 @RetryOnFailure
 public class TestCase1561087 extends AbstractMsalBrokerTest {
     @Test
-    public void test_1561087() {
+    public void test_1561087_brokerhostFlightingTest() {
         // Skipping this test is brokerhost is using local flights
         Assume.assumeFalse(((BrokerHost) mBroker).isLocalFlightProviderSelector());
 

@@ -60,7 +60,7 @@ public class TestCase1561080 extends AbstractMsalBrokerTest {
     final String MY_ACCOUNT_MICROSOFT_URL = "https://myaccount.microsoft.com/";
 
     @Test
-    public void test_1561080() throws Throwable {
+    public void test_1561080_WPJ_DeviceState() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

@@ -83,7 +83,7 @@ public class TestCase532736 extends AbstractMsalUiTest {
     }
 
     @Test
-    public void test_532736() throws Throwable {
+    public void test_532736_MsalOnly_WebviewFallback() throws Throwable {
         final String username = mLabAccount.getUsername();
 
         // Disable Chrome

@@ -51,7 +51,7 @@ import java.util.Arrays
 class TestCase3007768 : AbstractMsalBrokerTest(){
     @Test
     @Throws(Throwable::class)
-    fun test_3007768() {
+    fun test_3007768_MSASignUpFlow() {
         // Passing this parameter will enable sign up page
         val extraQP: MutableList<Map.Entry<String, String>> = ArrayList()
         extraQP.add(AbstractMap.SimpleEntry("signup", "1"))

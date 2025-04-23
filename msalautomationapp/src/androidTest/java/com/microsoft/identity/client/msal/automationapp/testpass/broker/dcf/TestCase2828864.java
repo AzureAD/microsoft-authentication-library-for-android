@@ -38,7 +38,7 @@ public class TestCase2828864 extends AbstractSignInFromOtherDeviceTest {
     }
 
     @Test
-    public void test_2828864() throws Throwable {
+    public void test_2828864_DCF_CheckSignInFromOtherDeviceOptionAvailable() throws Throwable {
         this.testSignInFromOtherDevice();
     }
 

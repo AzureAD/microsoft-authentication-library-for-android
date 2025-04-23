@@ -61,7 +61,7 @@ import java.util.List;
 public class TestCase3026421 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_3026421() throws Throwable {
+    public void test_3026421_LTW_TransferToken() throws Throwable {
         // Check flight, this is checking what was passed to automation app, not the broker apks
         Assume.assumeTrue( " EnableGenerateAndStoreTransferTokens flight is not activated, Test will be skipped",
                 BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("EnableGenerateAndStoreTransferTokens:true"));

@@ -51,7 +51,7 @@ import java.util.Arrays;
 public class TestCase1600592 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_1600592() throws Throwable{
+    public void test_1600592_NonJoined_SingleTenantAppATFailsWithCommonAuthority() throws Throwable{
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

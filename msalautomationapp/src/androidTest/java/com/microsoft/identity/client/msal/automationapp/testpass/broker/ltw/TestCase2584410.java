@@ -69,7 +69,7 @@ public class TestCase2584410 extends AbstractMsalBrokerTest {
     }
 
     @Test
-    public void test_2584410() throws Throwable {
+    public void test_2584410_LTW_AuthenticatorHighestPriorityAuthLTWCP() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

@@ -42,7 +42,7 @@ import org.junit.Test;
 public class TestCase2582294 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_2582294() throws Throwable{
+    public void test_2582294_LTW_LTWActiveBrokerShouldNotBreakNLegacyWPJAuthenticatorRequest() throws Throwable{
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
         final String homeTenantId = mLabAccount.getHomeTenantId();

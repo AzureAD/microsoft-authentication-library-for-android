@@ -50,7 +50,7 @@ import java.util.Arrays;
 public class TestCase99563 extends AbstractMsalUiTest {
 
     @Test
-    public void test_99563() throws Throwable {
+    public void test_99563_MsalOnly_ATSWithForceRefresh() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

@@ -67,7 +67,7 @@ public class TestCase2572283 extends AbstractMsalBrokerTest {
         );
     }
     @Test
-    public void test_2572283() throws Throwable {
+    public void test_2572283_LTW_LTWHasHigherPriorityThanCP2() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

@@ -63,7 +63,7 @@ public class TestCase2688459 extends AbstractMsalBrokerTest {
     }
 
     @Test
-    public void test_2688459() throws Throwable {
+    public void test_2688459_NAA_ATS() throws Throwable {
         NestedAppHelper nestedAppHelper = new NestedAppHelper(mActivity, mLabAccount);
         // perform AT interactive request for hub app
         nestedAppHelper.performATForHubApp();

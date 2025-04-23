@@ -58,7 +58,7 @@ import java.util.Arrays;
 public class TestCase497038 extends AbstractMsalUiTest {
 
     @Test
-    public void test_497038() throws Throwable {
+    public void test_497038_MsalOnly_CrossAppSSOWithSystemBrowser() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

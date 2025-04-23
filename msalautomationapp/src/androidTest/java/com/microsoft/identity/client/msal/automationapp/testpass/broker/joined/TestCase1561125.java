@@ -52,7 +52,7 @@ import java.util.Map;
 @RetryOnFailure(retryCount = 2)
 public class TestCase1561125 extends AbstractMsalBrokerTest {
     @Test
-    public void test_1561125() throws Throwable {
+    public void test_1561125_Joined_DeviceIdClaimWPJ() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

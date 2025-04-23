@@ -70,7 +70,7 @@ public class TestCase2582289 extends AbstractMsalBrokerTest {
     }
 
     @Test
-    public void test_2582289() throws Throwable {
+    public void test_2582289_LTW_LTWActiveBrokerShouldNotBreakOneAuthCPRequest() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

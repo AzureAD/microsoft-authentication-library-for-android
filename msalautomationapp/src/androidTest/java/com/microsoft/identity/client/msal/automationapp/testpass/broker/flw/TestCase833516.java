@@ -59,7 +59,7 @@ import java.util.Arrays;
 public class TestCase833516 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_833516() throws MsalException, InterruptedException, LabApiException {
+    public void test_833516_FLW_SDMOnlyOneAccount() throws MsalException, InterruptedException, LabApiException {
         final String username1 = mLabAccount.getUsername();
         final String password1 = mLabAccount.getPassword();
 

@@ -64,7 +64,7 @@ public class TestCase2688462 extends AbstractMsalBrokerTest {
     }
 
     @Test
-    public void test_2688462() {
+    public void test_2688462_NAA_ATSucceedsThenNoAccountRecords() {
         NestedAppHelper nestedAppHelper = new NestedAppHelper(mActivity, mLabAccount);
         // perform AT interactive request for nested app
         nestedAppHelper.performInteractiveATForNestedApp(false);
