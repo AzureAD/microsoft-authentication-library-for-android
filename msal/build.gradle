@@ -1,5 +1,5 @@
 plugins {
-    id 'com.microsoft.identity.buildsystem' version '0.2.4'
+    id 'com.microsoft.identity.buildsystem' version '0.2.5'
     id 'com.android.library'
     id 'pmd'
     id 'checkstyle'
@@ -339,8 +339,6 @@ afterEvaluate {
 //    }
     publishing {
         publications {
-//            msal(MavenPublication) {
-//                from components.distRelease
             msal(MavenPublication) {
                 from components.findByName('distRelease')
                 groupId 'com.microsoft.identity.client'
