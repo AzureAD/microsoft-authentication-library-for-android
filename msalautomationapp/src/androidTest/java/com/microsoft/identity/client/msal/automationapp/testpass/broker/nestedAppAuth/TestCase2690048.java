@@ -46,7 +46,7 @@ import org.junit.Test;
 public class TestCase2690048 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_2690048() {
+    public void test_2690048_NAA_DeviceIdClaimFailsATS() {
         NestedAppHelper nestedAppHelper = new NestedAppHelper(mActivity, mLabAccount);
         // perform AT interactive request for hub app
         nestedAppHelper.performATForHubApp();

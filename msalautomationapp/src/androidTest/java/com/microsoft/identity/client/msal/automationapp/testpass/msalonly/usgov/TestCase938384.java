@@ -49,7 +49,7 @@ import java.util.Arrays;
 public class TestCase938384 extends AbstractMsalUiTest {
 
     @Test
-    public void test_938384() throws Throwable {
+    public void test_938384_USGov_MsalOnlyATGovAuthority() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

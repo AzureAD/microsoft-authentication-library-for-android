@@ -43,7 +43,7 @@ import org.junit.Test;
 public class TestCase831655 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_831655() {
+    public void test_831655_WPJ_CertInstallation() {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

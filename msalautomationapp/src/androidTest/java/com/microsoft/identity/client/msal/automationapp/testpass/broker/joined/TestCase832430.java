@@ -49,7 +49,7 @@ import org.junit.Test;
 public class TestCase832430 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_832430() throws Throwable {
+    public void test_832430_Joined_ATThenATS() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

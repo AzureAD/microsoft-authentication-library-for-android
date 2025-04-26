@@ -51,7 +51,7 @@ import java.util.Arrays;
 public class TestCase1400731 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_1400731() throws Throwable {
+    public void test_1400731_CrossCloud_Joined_GuestATThenATS() throws Throwable {
         // load a guest user account from the Lab
         final LabGuestAccount labGuest = mLabClient.loadGuestAccountFromLab(getLabQuery());
 
