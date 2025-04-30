@@ -71,7 +71,7 @@ public class TestCase2571565 extends AbstractMsalBrokerTest {
     }
 
     @Test
-    public void test_2571565() throws Throwable {
+    public void test_2571565_LTW_SSOLostIfLegacyAuthenticatorIsUninstalledAsActiveBroker() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

@@ -48,7 +48,7 @@ import java.util.Map;
 @SupportedBrokers(brokers = {BrokerLTW.class})
 public class TestCase2582297 extends AbstractMsalBrokerTest {
     @Test
-    public void test_2582297() throws Throwable {
+    public void test_2582297_LTW_AuthenticatorHighestPriorityCPLTWAuth() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
         final String tenantId = mLabAccount.getHomeTenantId();

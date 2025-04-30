@@ -70,7 +70,7 @@ public class TestCase2572249 extends AbstractMsalBrokerTest {
     }
 
     @Test
-    public void test_2572249() throws Throwable {
+    public void test_2572249_LTW_SSOAfterLTWUninstallIfAuthenticatorPresent() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

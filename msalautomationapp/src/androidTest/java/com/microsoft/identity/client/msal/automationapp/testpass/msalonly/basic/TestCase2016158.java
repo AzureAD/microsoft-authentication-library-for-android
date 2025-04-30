@@ -51,7 +51,7 @@ import java.util.Arrays;
 public class TestCase2016158 extends AbstractMsalUiTest {
 
     @Test
-    public void test_2016158() throws Throwable{
+    public void test_2016158_MsalOnly_SingleTenantAppUsingCommonAuthorityShouldFail() throws Throwable{
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

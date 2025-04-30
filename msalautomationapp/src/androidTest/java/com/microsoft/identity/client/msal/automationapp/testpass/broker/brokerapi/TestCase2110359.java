@@ -52,7 +52,7 @@ public class TestCase2110359 extends AbstractMsalBrokerTest{
     private final static String LAB_API_TENANT_ID = "72f988bf-86f1-41af-91ab-2d7cd011db47";
 
     @Test
-    public void test_2110359() {
+    public void test_2110359_brokerhostCheckDCFOptionIsAvailable() {
         checkForDcfOption(null);
     }
 

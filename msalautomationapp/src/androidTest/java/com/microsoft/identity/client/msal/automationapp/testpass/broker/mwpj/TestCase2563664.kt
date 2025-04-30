@@ -45,7 +45,7 @@ class TestCase2563664 : AbstractMsalBrokerTest() {
     private lateinit var mBrokerHostApp: BrokerHost
 
     @Test
-    fun test_2563664() {
+    fun test_2563664_MWPJ_LegacyAPICanOnlySeeLegacyEntries() {
         // Register tenant A with legacy WPJ API
         mBrokerHostApp.performDeviceRegistration(mLabAccount.username, mLabAccount.password)
         // Register tenant B with new WPJ API

@@ -48,7 +48,7 @@ import org.junit.Test
 class TestCase2516967 : AbstractMsalBrokerTest(){
 
     @Test
-    fun test_2516967() {
+    fun test_2516967_MAM_CanUseOutlookAfterRegistration() {
         // Fetch credentials
         val username: String = mLabAccount.username
         val password: String = mLabAccount.password

@@ -48,7 +48,7 @@ import org.junit.Test;
 public class TestCase833511 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_833511() {
+    public void test_833511_FLW_SDMFailsForNonAdminAccount() {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

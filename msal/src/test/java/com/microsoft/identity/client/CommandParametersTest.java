@@ -44,6 +44,7 @@ import com.microsoft.identity.common.java.constants.FidoConstants;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInStartCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInSubmitCodeCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInSubmitPasswordCommandParameters;
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInWithContinuationTokenCommandParameters;
 import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.ui.PreferredAuthMethod;
@@ -452,6 +453,38 @@ public class CommandParametersTest {
         Assert.assertEquals(commandParameters.scopes, scopes);
         Assert.assertEquals(commandParameters.challengeType, challengeTypes);
         Assert.assertEquals(commandParameters.getCorrelationId(), correlationId);
+    }
+
+    @Test
+    public void createSignInWithContinuationCommandParameters_CommandParamsContainsExpectedParams() throws ClientException {
+        List<String> challengeTypes = new ArrayList<>(Collections.singletonList("OOB"));
+        String continuationToken = "continuationToken";
+        String username = "username";
+        String correlationId = UUID.randomUUID().toString();
+        List<String> scopes = new ArrayList<>(Collections.singletonList("User.Read"));
+        ClaimsRequest claimsRequest = ClaimsRequest.getClaimsRequestFromJsonString("{\"access_token\":{\"acrs\":{\"essential\":true,\"value\":\"c4\"}}}");
+        NativeAuthPublicClientApplicationConfiguration configuration = new NativeAuthPublicClientApplicationConfiguration();
+        configuration.setChallengeTypes(challengeTypes);
+        configuration.setClientId("clientId");
+        configuration.setAppContext(mContext);
+        configuration.setPowerOptCheckEnabled(false);
+
+        final SignInWithContinuationTokenCommandParameters commandParameters = CommandParametersAdapter.createSignInWithContinuationTokenCommandParameters(
+                configuration,
+                null,
+                continuationToken,
+                username,
+                correlationId,
+                scopes,
+                claimsRequest
+        );
+        Assert.assertEquals(commandParameters.claimsRequestJson, ClaimsRequest.getJsonStringFromClaimsRequest(claimsRequest));
+        Assert.assertEquals(commandParameters.continuationToken, continuationToken);
+        Assert.assertEquals(commandParameters.scopes, scopes);
+        Assert.assertEquals(commandParameters.challengeType, challengeTypes);
+        Assert.assertEquals(commandParameters.getCorrelationId(), correlationId);
+        Assert.assertEquals(commandParameters.username, username);
+
     }
 
     private ClaimsRequest getAccessTokenClaimsRequest(@NonNull String claimName, @NonNull String claimValue) {
