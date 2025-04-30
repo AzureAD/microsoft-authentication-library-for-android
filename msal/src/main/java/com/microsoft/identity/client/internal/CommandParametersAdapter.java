@@ -1125,7 +1125,7 @@ public class CommandParametersAdapter {
         return commandParameters;
     }
 
-    private static String getPackageVersion(@NonNull final Context context) {
+    public static String getPackageVersion(@NonNull final Context context) {
         final String packageName = context.getPackageName();
         try {
             final PackageInfo packageInfo = context.getPackageManager().getPackageInfo(packageName, 0);
