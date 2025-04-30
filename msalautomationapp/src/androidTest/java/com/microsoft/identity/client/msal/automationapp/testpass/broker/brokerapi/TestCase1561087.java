@@ -24,6 +24,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.brokera
 
 import androidx.annotation.NonNull;
 
+import com.microsoft.identity.client.msal.automationapp.BuildConfig;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LocalBrokerHostDebugUiTest;
@@ -47,7 +48,7 @@ public class TestCase1561087 extends AbstractMsalBrokerTest {
     @Test
     public void test_1561087_brokerhostFlightingTest() {
         // Skipping this test is brokerhost is using local flights
-        Assume.assumeFalse(((BrokerHost) mBroker).isLocalFlightProviderSelector());
+        Assume.assumeTrue(BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.isEmpty());
 
         // Set flights and get to check if the flight information is returned
         final String flightKey = "SetFlightsTest";
