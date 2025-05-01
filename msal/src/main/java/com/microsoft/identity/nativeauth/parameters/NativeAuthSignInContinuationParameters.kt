@@ -23,6 +23,8 @@
 
 package com.microsoft.identity.nativeauth.parameters
 
+import com.microsoft.identity.client.claims.ClaimsRequest
+
 /**
  * Encapsulates the parameters passed to the signIn methods after signUp or resetPassword
  */
@@ -33,4 +35,9 @@ class NativeAuthSignInContinuationParameters {
      * Not all scopes are guaranteed to be included in the access token returned.
      */
     var scopes: List<String>? = null
+
+    /**
+     *  The claims parameter that needs to be sent to the service.
+     */
+    var claimsRequest: ClaimsRequest? = null
 }

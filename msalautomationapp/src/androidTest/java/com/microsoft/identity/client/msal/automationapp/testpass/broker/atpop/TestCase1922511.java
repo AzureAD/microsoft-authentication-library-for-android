@@ -48,7 +48,7 @@ import java.util.Arrays;
 @RetryOnFailure(retryCount = 2)
 public class TestCase1922511 extends AbstractMsalBrokerTest {
     @Test
-    public void test_1922511() throws Throwable {
+    public void test_1922511_Pop_NonJoined_ATPopTokenThenATS() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

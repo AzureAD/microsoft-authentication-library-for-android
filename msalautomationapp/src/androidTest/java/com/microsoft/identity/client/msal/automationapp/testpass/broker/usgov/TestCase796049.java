@@ -47,7 +47,7 @@ import org.junit.Test;
 public class TestCase796049 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_796049() throws Throwable {
+    public void test_796049_USGov_NonJoined_ATWithResource() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

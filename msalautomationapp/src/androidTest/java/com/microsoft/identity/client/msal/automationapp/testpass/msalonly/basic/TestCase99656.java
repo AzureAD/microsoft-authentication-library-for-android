@@ -57,7 +57,7 @@ public class TestCase99656 extends AbstractMsalUiTest {
     private final String TAG = TestCase99656.class.getSimpleName();
 
     @Test
-    public void test_99656() throws Throwable {
+    public void test_99656_MsalOnly_ATSetupMFAThenLoginPrompt() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

@@ -123,7 +123,14 @@ PublicClientApplication.createMultipleAccountPublicClientApplication(getContext(
 
 ```java
 
-mMultipleAccountApp.acquireToken(this, SCOPES, getAuthInteractiveCallback());
+final AcquireTokenParameters.Builder builder = new AcquireTokenParameters.Builder();
+builder.startAuthorizationFromActivity(activity)
+        .withScopes(scopes)
+        .withCallback(getAuthInteractiveCallback());
+final AcquireTokenParameters parameters = builder.build();
+mMultipleAccountApp.acquireToken(parameters);
+
+...
 
 private AuthenticationCallback getAuthInteractiveCallback() {
     return new AuthenticationCallback() {
@@ -137,7 +144,7 @@ private AuthenticationCallback getAuthInteractiveCallback() {
         @Override
         public void onError(MsalException exception) {
             if (exception instanceof MsalClientException) {
-                //And exception from the client (MSAL)
+                //An exception from the client (MSAL)
             } else if (exception instanceof MsalServiceException) {
                 //An exception from the server
             }
@@ -156,7 +163,6 @@ private AuthenticationCallback getAuthInteractiveCallback() {
 
 /*
     Before getting a token silently for the account used to previously acquire a token interactively, we recommend that you verify that the account is still present in the local cache or on the device in case of brokered auth
-
     Let's use the synchronous methods here which can only be invoked from a Worker thread
 */
 
@@ -172,7 +178,12 @@ if(account != null){
     String authority = mMultipleAccountApp.getConfiguration().getDefaultAuthority().getAuthorityURL().toString();
 
     //Use default authority to request token from pass null
-    IAuthenticationResult result = mMultipleAccountApp.acquireTokenSilent(newScopes, account, authority);
+    final AcquireTokenSilentParameters.Builder builder = new AcquireTokenSilentParameters.Builder();
+    builder.forAccount(account)
+            .withScopes(newScopes)
+            .fromAuthority(authority);
+    final AcquireTokenSilentParameters parameters = builder.build();
+    final IAuthenticationResult result = mMultipleAccountApp.acquireTokenSilent(parameters);
 }
 
 ```
@@ -180,14 +191,10 @@ if(account != null){
 ## ProGuard
 MSAL uses reflection and generic type information stored in `.class` files at runtime to support various persistence and serialization related functionalities. Accordingly, library support for minification and obfuscation is limited. A default configuration is shipped with this library; please [file an issue](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/new/choose) if you find any issues.
 
-## Community Help and Support
+## Support
 
-We use [StackOverflow](http://stackoverflow.com/questions/tagged/msal) with the community to provide support. You should browse existing issues to see if someone has asked about your issue before. If there are workable solutions to your issue then try out those solutions. If not, ask your question and let the community help you out. We're part of the community too and watch for new questions. We help with answers when the community cannot give you a solution.
-
-If you find and bug or have a feature request, please raise the issue on [GitHub Issues](../../issues).
-
-## Submit Feedback
-We'd like your thoughts on this library. Please complete [this short survey](https://forms.office.com/r/3J8pAAqAcj).
+If you have any questions regarding the usage of MSAL Android, please utilize Chat with Copilot for assistance.
+If you would like to report any bugs or feature requests, please create a support ticket with your Microsoft representative.
 
 ## Contribute
 
@@ -196,7 +203,7 @@ We enthusiastically welcome contributions and feedback. You should [clone the re
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
 ## Android Studio Build Requirement
-Please note that this project uses [Lombok](https://projectlombok.org/) internally and while using Android Studio you will need to install [Lombmok Plugin](https://plugins.jetbrains.com/plugin/6317-lombok) to get the project to build successfully within Android Studio.
+Please note that this project uses [Lombok](https://projectlombok.org/) internally and while using Android Studio you will need to install [Lombok Plugin](https://plugins.jetbrains.com/plugin/6317-lombok) to get the project to build successfully within Android Studio.
 
 
 ## Recommendation

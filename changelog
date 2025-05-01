@@ -2,6 +2,20 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+
+Version 6.0.0
+----------
+- [PATCH] Update common @21.0.0
+- [MAJOR] Update minSDK to 21
+- [MINOR] Native auth: Add claimsRequest also to getAccessToken and signIn after signUp/SSPR flows (#2278)
+
+Version 5.10.2
+----------
+- [PATCH] Update common @20.1.1
+
+Version 5.10.0
+----------
+- [PATCH] Update common @20.0.0
 - [MINOR] Change AndroidActivityInteractiveTokenCommandParameters to AndroidInteractiveTokenCommandParameters (#2247)
 - [MINOR] Move native auth public methods to parameter class (#2245)
 - [MINOR] Add support for claims requests for native auth sign in (#2246)

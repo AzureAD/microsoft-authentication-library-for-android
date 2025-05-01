@@ -4,7 +4,7 @@
 # Variable: 'mvnAccessToken' was defined in the Variables tab
 # https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate
 name: $(date:yyyyMMdd)$(rev:.r)
-
+trigger: none
 variables:
 - name: BuildParameters.jdkVersion
   value: 1.11

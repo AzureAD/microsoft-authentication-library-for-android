@@ -48,7 +48,7 @@ class TestCase2563668 : AbstractMsalBrokerTest() , ICustomBrokerInstallationTest
     private lateinit var mBrokerHostApp: BrokerHost
 
     @Test
-    fun test_2563668() {
+    fun test_2563668_MWPJ_LegacyEntryWorksWithNewBroker() {
         // Register tenant using legacy broker
         mBrokerHostApp.performDeviceRegistrationLegacyApp(mLabAccount.username, mLabAccount.password)
 

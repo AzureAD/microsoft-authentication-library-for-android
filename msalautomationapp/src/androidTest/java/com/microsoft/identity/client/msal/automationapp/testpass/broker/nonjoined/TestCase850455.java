@@ -40,13 +40,15 @@ import com.microsoft.identity.labapi.utilities.constants.UserType;
 
 import org.junit.Test;
 
+import java.util.Arrays;
+
 // [Non-joined][MSAL] Acquire Token + Acquire Token Silent (Prompt.SELECT_ACCOUNT)
 // https://identitydivision.visualstudio.com/DevEx/_workitems/edit/850455
 @RetryOnFailure(retryCount = 2)
 public class TestCase850455 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_850455() throws Throwable {
+    public void test_850455_NonJoined_ATThenATS() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
@@ -56,7 +58,8 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
         final MsalAuthTestParams authTestParams = MsalAuthTestParams.builder()
                 .activity(mActivity)
                 .loginHint(username)
-                .resource(mScopes[0])
+                .scopes(Arrays.asList(getScopes()))
+                .resource("00000002-0000-0000-c000-000000000000")
                 .promptParameter(Prompt.SELECT_ACCOUNT)
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
@@ -89,7 +92,8 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
                 .loginHint(username)
                 .authority(account.getAuthority())
                 .forceRefresh(true)
-                .resource(mScopes[0])
+                .scopes(Arrays.asList(getScopes()))
+                .resource("00000002-0000-0000-c000-000000000000")
                 .msalConfigResourceId(getConfigFileResourceId())
                 .build();
 
@@ -111,9 +115,8 @@ public class TestCase850455 extends AbstractMsalBrokerTest {
 
     @Override
     public String[] getScopes() {
-        return new String[]{"00000002-0000-0000-c000-000000000000"};
+        return new String[]{"User.read"};
     }
-
     @Override
     public String getAuthority() {
         return "https://login.microsoftonline.us/common";

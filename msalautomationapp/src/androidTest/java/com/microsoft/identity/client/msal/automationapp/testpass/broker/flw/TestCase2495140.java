@@ -71,7 +71,7 @@ public class TestCase2495140 extends AbstractMsalBrokerTest {
     final String TAG = TestCase2495140.class.getSimpleName();
 
     @Test
-    public void test_2495140() throws MsalException, InterruptedException, LabApiException {
+    public void test_2495140_FLW_SDMGlobalSignoutClearsDataAndExistingRequests() throws MsalException, InterruptedException, LabApiException {
         final String username1 = mLabAccount.getUsername();
         final String password1 = mLabAccount.getPassword();
         Logger.i(TAG, "Performing Shared Device Registration.");

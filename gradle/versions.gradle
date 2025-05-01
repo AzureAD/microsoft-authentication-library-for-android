@@ -2,7 +2,7 @@
 // Taken from android-complete.
 ext {
     // SDK
-    minSdkVersion = 16
+    minSdkVersion = 21
     brokerProjectMinSdkVersion = 24
     automationAppMinSDKVersion = 21
     targetSdkVersion = 33

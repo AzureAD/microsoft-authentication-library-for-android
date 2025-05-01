@@ -24,24 +24,21 @@
 package com.microsoft.identity.client.e2e.tests.network.nativeauth
 
 import com.microsoft.identity.client.e2e.utils.assertResult
+import com.microsoft.identity.client.exception.MsalClientException
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
-import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
+import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
-import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
+import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
-import com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState
+import com.microsoft.identity.nativeauth.statemachine.results.SignOutResult
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runTest
+import org.checkerframework.checker.units.qual.s
 import org.junit.Assert
-import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Ignore
 import org.junit.Test
-import org.mockito.Mockito
-import org.mockito.kotlin.spy
-import org.robolectric.RuntimeEnvironment.application
 
 class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() {
 
@@ -62,9 +59,10 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
         runBlocking {
             val username = config.email
-            val password = getSafePassword()
-            val result = application.signIn(username, password.toCharArray())
-            assertTrue(result is SignInResult.Complete)
+            val param = NativeAuthSignInParameters(username = username)
+            param.password = getSafePassword().toCharArray()
+            val result = application.signIn(param)
+            assertResult<SignInResult.Complete>(result)
         }
     }
 
@@ -79,8 +77,9 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
         runBlocking {
             val username = INVALID_EMAIL
-            val password = getSafePassword()
-            val result = application.signIn(username, password.toCharArray())
+            val param = NativeAuthSignInParameters(username = username)
+            param.password = getSafePassword().toCharArray()
+            val result = application.signIn(param)
             assertTrue(result is SignInError)
             assertTrue((result as SignInError).isUserNotFound())
         }
@@ -97,10 +96,142 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
         runBlocking {
             val username = config.email
-            val password = INVALID_PASSWORD
-            val result = application.signIn(username, password.toCharArray())
+            val param = NativeAuthSignInParameters(username = username)
+            param.password = INVALID_PASSWORD.toCharArray()
+            val result = application.signIn(param)
             assertTrue(result is SignInError)
             assertTrue((result as SignInError).isInvalidCredentials())
+        }
+    }
+
+    /**
+     * User signs in with account A, while data for account A already exists in SDK persistence.
+     * (use case 1.2.4)
+     */
+    @Test
+    fun testErrorOutOfPersistence() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+
+        runBlocking {
+            val username = config.email
+            val param1 = NativeAuthSignInParameters(username = username)
+            param1.password = getSafePassword().toCharArray()
+            val result = application.signIn(param1)
+            assertTrue(result is SignInResult.Complete)
+
+            val param2 = NativeAuthSignInParameters(username = username)
+            param2.password = getSafePassword().toCharArray()
+            val result2 = application.signIn(param2)
+
+            assertTrue(result2 is SignInError)
+            assertTrue((result2 as SignInError).exception is MsalClientException)
+            assertEquals("An account is already signed in.", result2.exception!!.message)
+        }
+    }
+
+    /**
+     * User signs in with account B, while data for account A already exists in SDK persistence.
+     * (use case 1.2.5)
+     */
+    @Test
+    fun testErrorOutOfPersistenceDifferentAccount() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+
+        runBlocking {
+            val param = NativeAuthSignInParameters(username = config.email)
+            param.password = getSafePassword().toCharArray()
+            val result = application.signIn(param)
+
+            assertTrue(result is SignInResult.Complete)
+
+            val config2 = getConfig(ConfigType.SIGN_IN_OTP)
+            val param2 = NativeAuthSignInParameters(username = config2.email)
+            param.password = getSafePassword().toCharArray()
+            val result2 = application.signIn(param2)
+
+            assertTrue(result2 is SignInError)
+            assertTrue((result2 as SignInError).exception is MsalClientException)
+            assertEquals("An account is already signed in.", result2.exception!!.message)
+        }
+    }
+
+    /**
+     * Ability to provide scope to control auth strength of the token.
+     * (use case 1.2.6)
+     * Please refer to GetTokenTests.kt (testGetAccessTokenFromCache) for the test.
+     */
+    //    val result = application.signIn(
+    //        username = username,
+    //        password = password.toCharArray(),
+    //        scopes = listOf(scopeA)
+    //    )
+    //    val accessTokenForImplicitScopes = authResult.accessToken
+    //    Assert.assertTrue(authResult.scope.contains(scopeA))
+
+    /**
+     * User email is registered with email OTP auth method, which is supported by the developer.
+     * (use case 1.2.7)
+     */
+    @Test
+    fun testSuccessOTPConfigCodeRequired() {
+        config = getConfig(ConfigType.SIGN_IN_OTP)
+        application = setupPCA(config, defaultChallengeTypes)
+
+        runBlocking {
+            val param = NativeAuthSignInParameters(username = config.email)
+            param.password = getSafePassword().toCharArray()
+            val result = application.signIn(param)
+            assertResult<SignInResult.CodeRequired>(result)
+        }
+    }
+
+    /**
+     * User attempts to sign in with email and password, but server requires second factor authentication (MFA OTP).
+     * (use case 1.2.8)
+     * Please refer to SignInMFATest.kt (`test MFA flow is triggered when authentication context is used as claim`) for the test.
+     */
+    // val sendChallengeResult = (result as SignInResult.MFARequired).nextState.requestChallenge()
+    // assertResult<MFARequiredResult.VerificationRequired>(sendChallengeResult)
+    // (sendChallengeResult as MFARequiredResult.VerificationRequired)
+
+    /**
+     * User email is registered with email OTP auth method, which is not supported by the developer (aka redirect flow)
+     * (use case 1.2.9)
+     */
+    @Test
+    fun testErrorOTPConfigBrowserRequired() {
+        config = getConfig(ConfigType.SIGN_IN_OTP)
+        application = setupPCA(config, listOf("password"))
+
+        runBlocking {
+            val param = NativeAuthSignInParameters(username = config.email)
+            param.password = getSafePassword().toCharArray()
+            val result = application.signIn(param)
+            assertTrue(result is SignInError)
+            assertTrue((result as SignInError).isBrowserRequired())
+        }
+    }
+
+    /**
+     * Sign in then sign out.
+     * (hero scenario 18)
+     */
+    @Test
+    fun testSignOut() {
+        config = getConfig(defaultConfigType)
+        application = setupPCA(config, defaultChallengeTypes)
+
+        runBlocking {
+            val param = NativeAuthSignInParameters(username = config.email)
+            param.password = getSafePassword().toCharArray()
+            val signInResult = application.signIn(param)
+            assertResult<SignInResult.Complete>(signInResult)
+            val getAccountResult = application.getCurrentAccount()
+            assertResult<GetAccountResult.AccountFound>(getAccountResult)
+            val signOutResult = (getAccountResult as GetAccountResult.AccountFound).resultValue.signOut()
+            assertResult<SignOutResult.Complete>(signOutResult)
         }
     }
 }
