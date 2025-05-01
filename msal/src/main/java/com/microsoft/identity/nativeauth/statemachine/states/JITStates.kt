@@ -2,22 +2,34 @@ package com.microsoft.identity.nativeauth.statemachine.states
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.microsoft.identity.client.AuthenticationResultAdapter
 import com.microsoft.identity.client.exception.MsalException
+import com.microsoft.identity.common.java.controllers.CommandDispatcher
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
+import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.JITChallengeAuthMethodCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.JITCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.SignInCommandResult
+import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
 import com.microsoft.identity.common.nativeauth.internal.commands.JITChallengeAuthMethodCommand
 import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.parameters.NativeAuthChallengeAuthMethodParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthRegisterStrongAuthVerificationRequiredResultParameter
+import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
+import com.microsoft.identity.nativeauth.statemachine.errors.RegisterStrongAuthChallengeError
 import com.microsoft.identity.nativeauth.statemachine.errors.RegisterStrongAuthSubmitChallengeError
 import com.microsoft.identity.nativeauth.statemachine.results.RegisterStrongAuthChallengeResult
 import com.microsoft.identity.nativeauth.statemachine.results.RegisterStrongAuthSubmitChallengeResult
+import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.utils.NativeAuthCommandParametersAdapter
 import com.microsoft.identity.nativeauth.utils.serializable
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class RegisterStrongAuthState(
     override val continuationToken: String,
@@ -74,21 +86,6 @@ class RegisterStrongAuthState(
             "Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications."
         )
 
-        val nextState = RegisterStrongAuthVerificationRequiredState(
-            continuationToken = "continuationToken",
-            correlationId = "correlationId",
-            scopes = emptyList(),
-            config = config
-        )
-        val paramsOld = NativeAuthRegisterStrongAuthVerificationRequiredResultParameter(
-            nextState = nextState,
-            codeLength = 8,
-            sentTo = "sentTo",
-            channel = "email"
-        )
-
-        return RegisterStrongAuthChallengeResult.VerificationRequired(result = paramsOld)
-
         val verificationContact = parameters.verificationContact ?: parameters.authMethod.loginHint
         val params =
             NativeAuthCommandParametersAdapter.createChallengeAuthMethodCommandParameters(
@@ -104,8 +101,65 @@ class RegisterStrongAuthState(
                     controller = NativeAuthMsalController(),
                     publicApiId = PublicApiId.NATIVE_AUTH_JIT_CHALLENGE_AUTH_METHOD
                 )
+        val rawCommandResult =
+                    CommandDispatcher.submitSilentReturningFuture(command)
+                        .get()
+        return withContext(Dispatchers.IO) {
+            return@withContext when (val result =
+                rawCommandResult.checkAndWrapCommandResultType<JITChallengeAuthMethodCommandResult>()) {
+                is INativeAuthCommandResult.APIError -> {
+                    Logger.warnWithObject(
+                        TAG,
+                        result.correlationId,
+                        "Challenge auth method received unexpected result: ",
+                        result
+                    )
+                    RegisterStrongAuthChallengeError(
+                        errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
+                        error = (result as INativeAuthCommandResult.Error).error,
+                        correlationId = (result as INativeAuthCommandResult.Error).correlationId,
+                        errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
+                        exception = (result as INativeAuthCommandResult.APIError).exception
+                    )
 
+                }
+                is SignInCommandResult.Complete -> {
+                    val authenticationResult =
+                        AuthenticationResultAdapter.adapt(result.authenticationResult)
+                    SignInResult.Complete(
+                        resultValue = AccountState.createFromAuthenticationResult(
+                            authenticationResult = authenticationResult,
+                            correlationId = result.correlationId,
+                            config = config
+                        )
+                    )
+                }
+                is JITCommandResult.IncorrectVerificationContact -> {
+                    RegisterStrongAuthChallengeError(
+                        errorType = ErrorTypes.INVALID_INPUT,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId,
+                        errorCodes = result.errorCodes
+                    )
+                }
+                is JITCommandResult.VerificationRequired -> {
+                    RegisterStrongAuthChallengeResult.VerificationRequired(
+                        result = NativeAuthRegisterStrongAuthVerificationRequiredResultParameter(
+                            nextState = RegisterStrongAuthVerificationRequiredState(
+                                continuationToken = result.continuationToken,
+                                correlationId = result.correlationId,
+                                config = config
+                            ),
+                            codeLength = result.codeLength,
+                            sentTo = result.challengeTargetLabel,
+                            channel = result.challengeChannel
+                        )
+                    )
+                }
+            }
 
+        }
 //        return withContext(Dispatchers.IO) {
 //            try {
 //                val params =
@@ -220,7 +274,6 @@ class RegisterStrongAuthState(
 class RegisterStrongAuthVerificationRequiredState(
     override val continuationToken: String,
     override val correlationId: String,
-    private val scopes: List<String>?,
     private val config: NativeAuthPublicClientApplicationConfiguration
 ) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
 
@@ -293,7 +346,6 @@ class RegisterStrongAuthVerificationRequiredState(
         val nextState = RegisterStrongAuthVerificationRequiredState(
             continuationToken = "continuationToken",
             correlationId = "correlationId",
-            scopes = emptyList(),
             config = config
         )
         val params = NativeAuthRegisterStrongAuthVerificationRequiredResultParameter(
@@ -308,14 +360,12 @@ class RegisterStrongAuthVerificationRequiredState(
     constructor(parcel: Parcel) : this(
         continuationToken = parcel.readString() ?: "",
         correlationId = parcel.readString() ?: "UNSET",
-        scopes = parcel.createStringArrayList(),
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(continuationToken)
         parcel.writeString(correlationId)
-        parcel.writeStringList(scopes)
         parcel.writeSerializable(config)
     }
 
