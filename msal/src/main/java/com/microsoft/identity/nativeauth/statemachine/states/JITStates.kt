@@ -34,58 +34,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class RegisterStrongAuthState(
+/**
+ * BaseState is the base class for JIT state that needs to challenge auth method.
+ */
+abstract class BaseJITSubmitChallengeState(
     override val continuationToken: String,
     override val correlationId: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
 ) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
-    private val TAG: String = RegisterStrongAuthState::class.java.simpleName
-
-    /**
-     * ChallengeAuthMethodCallback receives the result for challengeAuthMethod() in strong authentication method registration flows in native authentication.
-     */
-    interface ChallengeAuthMethodCallback : Callback<RegisterStrongAuthChallengeResult>
-
-    /**
-     * Requests the server to send the challenge to the default authentication method
-     *
-     * <strong><u>Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
-     * @param parameters [com.microsoft.identity.nativeauth.parameters.NativeAuthChallengeAuthMethodParameters] Parameters used to challenge an authentication method.
-     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.RegisterStrongAuthState.ChallengeAuthMethodCallback] to receive the result on.
-     */
-    fun challengeAuthMethod(parameters: NativeAuthChallengeAuthMethodParameters, callback: ChallengeAuthMethodCallback) {
-        LogSession.logMethodCall(
-            tag = TAG,
-            correlationId = correlationId,
-            methodName = "${TAG}.challengeAuthMethod(callback: ChallengeAuthMethodCallback)"
-        )
-        NativeAuthPublicClientApplication.pcaScope.launch {
-            try {
-                val result = challengeAuthMethod(parameters)
-                callback.onResult(result)
-            } catch (e: MsalException) {
-                Logger.error(TAG, "Exception thrown in challengeAuthMethod", e)
-                callback.onError(e)
-            }
-        }
-    }
-
-    /**
-     * Requests the server to send the challenge to the default authentication method; Kotlin coroutines variant.
-     *
-     * <strong><u>Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
-     * @param parameters [com.microsoft.identity.nativeauth.parameters.NativeAuthChallengeAuthMethodParameters] Parameters used to challenge an authentication method.
-     * @return The result of the challenge authentication method action.
-     */
-    suspend fun challengeAuthMethod(parameters: NativeAuthChallengeAuthMethodParameters): RegisterStrongAuthChallengeResult {
-        LogSession.logMethodCall(
-            tag = TAG,
-            correlationId = correlationId,
-            methodName = "${TAG}.challengeAuthMethod(parameters: NativeAuthChallengeAuthMethodParameters)"
-        )
-
+    suspend fun internalSubmitChallenge(parameters: NativeAuthChallengeAuthMethodParameters, tag: String): RegisterStrongAuthChallengeResult {
         Logger.warn(
-            TAG,
+            tag,
             "Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications."
         )
         // if external developer does not provide a verification contact, we use the login hint
@@ -100,19 +59,19 @@ class RegisterStrongAuthState(
                 correlationId = correlationId
             )
         val command = JITChallengeAuthMethodCommand(
-                    parameters = params,
-                    controller = NativeAuthMsalController(),
-                    publicApiId = PublicApiId.NATIVE_AUTH_JIT_CHALLENGE_AUTH_METHOD
-                )
+            parameters = params,
+            controller = NativeAuthMsalController(),
+            publicApiId = PublicApiId.NATIVE_AUTH_JIT_CHALLENGE_AUTH_METHOD
+        )
         val rawCommandResult =
-                    CommandDispatcher.submitSilentReturningFuture(command)
-                        .get()
+            CommandDispatcher.submitSilentReturningFuture(command)
+                .get()
         return withContext(Dispatchers.IO) {
             return@withContext when (val result =
                 rawCommandResult.checkAndWrapCommandResultType<JITChallengeAuthMethodCommandResult>()) {
                 is INativeAuthCommandResult.APIError -> {
                     Logger.warnWithObject(
-                        TAG,
+                        tag,
                         result.correlationId,
                         "Challenge auth method received unexpected result: ",
                         result
@@ -162,6 +121,62 @@ class RegisterStrongAuthState(
             }
         }
     }
+}
+
+class RegisterStrongAuthState(
+    override val continuationToken: String,
+    override val correlationId: String,
+    private val config: NativeAuthPublicClientApplicationConfiguration
+) : BaseJITSubmitChallengeState(continuationToken = continuationToken, correlationId = correlationId, config = config), State, Parcelable {
+    private val TAG: String = RegisterStrongAuthState::class.java.simpleName
+
+    /**
+     * ChallengeAuthMethodCallback receives the result for challengeAuthMethod() in strong authentication method registration flows in native authentication.
+     */
+    interface ChallengeAuthMethodCallback : Callback<RegisterStrongAuthChallengeResult>
+
+    /**
+     * Requests the server to send the challenge to the default authentication method
+     *
+     * <strong><u>Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
+     * @param parameters [com.microsoft.identity.nativeauth.parameters.NativeAuthChallengeAuthMethodParameters] Parameters used to challenge an authentication method.
+     * @param callback [com.microsoft.identity.nativeauth.statemachine.states.RegisterStrongAuthState.ChallengeAuthMethodCallback] to receive the result on.
+     */
+    fun challengeAuthMethod(parameters: NativeAuthChallengeAuthMethodParameters, callback: ChallengeAuthMethodCallback) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.challengeAuthMethod(callback: ChallengeAuthMethodCallback)"
+        )
+        NativeAuthPublicClientApplication.pcaScope.launch {
+            try {
+                val result = challengeAuthMethod(parameters)
+                callback.onResult(result)
+            } catch (e: MsalException) {
+                Logger.error(TAG, "Exception thrown in challengeAuthMethod", e)
+                callback.onError(e)
+            }
+        }
+    }
+
+    /**
+     * Requests the server to send the challenge to the default authentication method; Kotlin coroutines variant.
+     *
+     * <strong><u>Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
+     * @param parameters [com.microsoft.identity.nativeauth.parameters.NativeAuthChallengeAuthMethodParameters] Parameters used to challenge an authentication method.
+     * @return The result of the challenge authentication method action.
+     */
+    suspend fun challengeAuthMethod(parameters: NativeAuthChallengeAuthMethodParameters): RegisterStrongAuthChallengeResult {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.challengeAuthMethod(parameters: NativeAuthChallengeAuthMethodParameters)"
+        )
+        return internalSubmitChallenge(
+            parameters = parameters,
+            tag = TAG
+        )
+    }
 
     constructor(parcel: Parcel) : this(
         continuationToken = parcel.readString() ?: "",
@@ -194,7 +209,7 @@ class RegisterStrongAuthVerificationRequiredState(
     override val continuationToken: String,
     override val correlationId: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
+) : BaseJITSubmitChallengeState(continuationToken = continuationToken, correlationId = correlationId, config = config) {
 
     private val TAG: String = RegisterStrongAuthVerificationRequiredState::class.java.simpleName
 
@@ -319,9 +334,19 @@ class RegisterStrongAuthVerificationRequiredState(
      * @param callback [com.microsoft.identity.nativeauth.statemachine.states.RegisterStrongAuthState.ChallengeAuthMethodCallback] to receive the result on.
      */
     fun challengeAuthMethod(parameters: NativeAuthChallengeAuthMethodParameters, callback: ChallengeAuthMethodCallback) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.challengeAuthMethod(parameters: NativeAuthChallengeAuthMethodParameters, callback: ChallengeAuthMethodCallback)"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
-            val result = challengeAuthMethod(parameters)
-            callback.onResult(result)
+            try {
+                val result = challengeAuthMethod(parameters)
+                callback.onResult(result)
+            } catch (e: MsalException) {
+                Logger.error(TAG, "Exception thrown in challengeAuthMethod", e)
+                callback.onError(e)
+            }
         }
     }
 
@@ -333,18 +358,15 @@ class RegisterStrongAuthVerificationRequiredState(
      * @return The result of the challenge authentication method action.
      */
     suspend fun challengeAuthMethod(parameters: NativeAuthChallengeAuthMethodParameters): RegisterStrongAuthChallengeResult {
-        val nextState = RegisterStrongAuthVerificationRequiredState(
-            continuationToken = "continuationToken",
-            correlationId = "correlationId",
-            config = config
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.challengeAuthMethod(parameters: NativeAuthChallengeAuthMethodParameters)"
         )
-        val params = NativeAuthRegisterStrongAuthVerificationRequiredResultParameter(
-            nextState = nextState,
-            codeLength = 8,
-            sentTo = "sentTo",
-            channel = "email"
+        return internalSubmitChallenge(
+            parameters = parameters,
+            tag = TAG
         )
-        return RegisterStrongAuthChallengeResult.VerificationRequired(result = params)
     }
 
     constructor(parcel: Parcel) : this(
