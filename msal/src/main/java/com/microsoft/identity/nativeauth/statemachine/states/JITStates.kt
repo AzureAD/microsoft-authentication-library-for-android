@@ -3,32 +3,21 @@ package com.microsoft.identity.nativeauth.statemachine.states
 import android.os.Parcel
 import android.os.Parcelable
 import com.microsoft.identity.client.exception.MsalException
-import com.microsoft.identity.client.internal.CommandParametersAdapter
-import com.microsoft.identity.common.java.controllers.CommandDispatcher
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.logging.LogSession
 import com.microsoft.identity.common.java.logging.Logger
-import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
-import com.microsoft.identity.common.java.nativeauth.controllers.results.MFAChallengeCommandResult
-import com.microsoft.identity.common.java.nativeauth.controllers.results.MFACommandResult
-import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
-import com.microsoft.identity.common.nativeauth.internal.commands.MFAChallengeCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.JITChallengeAuthMethodCommand
 import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
 import com.microsoft.identity.nativeauth.parameters.NativeAuthChallengeAuthMethodParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthRegisterStrongAuthVerificationRequiredResultParameter
-import com.microsoft.identity.nativeauth.statemachine.errors.ErrorTypes
-import com.microsoft.identity.nativeauth.statemachine.errors.MFARequestChallengeError
 import com.microsoft.identity.nativeauth.statemachine.errors.RegisterStrongAuthSubmitChallengeError
-import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
 import com.microsoft.identity.nativeauth.statemachine.results.RegisterStrongAuthChallengeResult
 import com.microsoft.identity.nativeauth.statemachine.results.RegisterStrongAuthSubmitChallengeResult
-import com.microsoft.identity.nativeauth.toListOfAuthMethods
+import com.microsoft.identity.nativeauth.utils.NativeAuthCommandParametersAdapter
 import com.microsoft.identity.nativeauth.utils.serializable
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class RegisterStrongAuthState(
     override val continuationToken: String,
@@ -75,19 +64,131 @@ class RegisterStrongAuthState(
      * @return The result of the challenge authentication method action.
      */
     suspend fun challengeAuthMethod(parameters: NativeAuthChallengeAuthMethodParameters): RegisterStrongAuthChallengeResult {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.challengeAuthMethod(parameters: NativeAuthChallengeAuthMethodParameters)"
+        )
+
+        Logger.warn(
+            TAG,
+            "Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications."
+        )
+
         val nextState = RegisterStrongAuthVerificationRequiredState(
             continuationToken = "continuationToken",
             correlationId = "correlationId",
             scopes = emptyList(),
             config = config
         )
-        val params = NativeAuthRegisterStrongAuthVerificationRequiredResultParameter(
+        val paramsOld = NativeAuthRegisterStrongAuthVerificationRequiredResultParameter(
             nextState = nextState,
             codeLength = 8,
             sentTo = "sentTo",
             channel = "email"
         )
-        return RegisterStrongAuthChallengeResult.VerificationRequired(result = params)
+
+        return RegisterStrongAuthChallengeResult.VerificationRequired(result = paramsOld)
+
+        val verificationContact = parameters.verificationContact ?: parameters.authMethod.loginHint
+        val params =
+            NativeAuthCommandParametersAdapter.createChallengeAuthMethodCommandParameters(
+                configuration = config,
+                tokenCache = config.oAuth2TokenCache,
+                verificationContact = verificationContact,
+                challengeType = parameters.authMethod.challengeType,
+                continuationToken = continuationToken,
+                correlationId = correlationId
+            )
+        val command = JITChallengeAuthMethodCommand(
+                    parameters = params,
+                    controller = NativeAuthMsalController(),
+                    publicApiId = PublicApiId.NATIVE_AUTH_JIT_CHALLENGE_AUTH_METHOD
+                )
+
+
+//        return withContext(Dispatchers.IO) {
+//            try {
+//                val params =
+//                    NativeAuthCommandParametersAdapter.createChallengeAuthMethodCommandParameters(
+//                        config,
+//                        config.oAuth2TokenCache,
+//                        continuationToken,
+//                        correlationId,
+//                        scopes
+//                    )
+//                val command = MFAChallengeCommand(
+//                    parameters = params,
+//                    controller = NativeAuthMsalController(),
+//                    publicApiId = PublicApiId.NATIVE_AUTH_MFA_DEFAULT_CHALLENGE
+//                )
+//
+//                val rawCommandResult =
+//                    CommandDispatcher.submitSilentReturningFuture(command)
+//                        .get()
+//
+//                return@withContext when (val result =
+//                    rawCommandResult.checkAndWrapCommandResultType<MFAChallengeCommandResult>()) {
+//                    is MFACommandResult.VerificationRequired -> {
+//                        MFARequiredResult.VerificationRequired(
+//                            nextState = MFARequiredState(
+//                                continuationToken = result.continuationToken,
+//                                correlationId = result.correlationId,
+//                                scopes = scopes,
+//                                config = config
+//                            ),
+//                            codeLength = result.codeLength,
+//                            sentTo = result.challengeTargetLabel,
+//                            channel = result.challengeChannel
+//                        )
+//                    }
+//
+//                    is MFACommandResult.SelectionRequired -> {
+//                        MFARequiredResult.SelectionRequired(
+//                            nextState = MFARequiredState(
+//                                continuationToken = result.continuationToken,
+//                                correlationId = result.correlationId,
+//                                scopes = scopes,
+//                                config = config
+//                            ),
+//                            authMethods = result.authMethods.toListOfAuthMethods()
+//                        )
+//                    }
+//
+//                    is INativeAuthCommandResult.APIError -> {
+//                        Logger.warnWithObject(
+//                            TAG,
+//                            result.correlationId,
+//                            "requestChallenge() received unexpected result: ",
+//                            result
+//                        )
+//                        MFARequestChallengeError(
+//                            errorMessage = result.errorDescription,
+//                            error = result.error,
+//                            correlationId = result.correlationId,
+//                            errorCodes = result.errorCodes,
+//                            exception = result.exception
+//                        )
+//                    }
+//
+//                    is INativeAuthCommandResult.Redirect -> {
+//                        MFARequestChallengeError(
+//                            errorType = ErrorTypes.BROWSER_REQUIRED,
+//                            error = result.error,
+//                            errorMessage = result.errorDescription,
+//                            correlationId = result.correlationId
+//                        )
+//                    }
+//                }
+//            } catch (e: Exception) {
+//                MFARequestChallengeError(
+//                    errorType = ErrorTypes.CLIENT_EXCEPTION,
+//                    errorMessage = "MSAL client exception occurred in requestChallenge().",
+//                    exception = e,
+//                    correlationId = correlationId
+//                )
+//            }
+//        }
     }
 
     constructor(parcel: Parcel) : this(
