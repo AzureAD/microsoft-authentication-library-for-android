@@ -22,7 +22,6 @@ import kotlinx.coroutines.launch
 class RegisterStrongAuthState(
     override val continuationToken: String,
     override val correlationId: String,
-    private val scopes: List<String>?,
     private val config: NativeAuthPublicClientApplicationConfiguration
 ) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
     private val TAG: String = RegisterStrongAuthState::class.java.simpleName
@@ -194,14 +193,12 @@ class RegisterStrongAuthState(
     constructor(parcel: Parcel) : this(
         continuationToken = parcel.readString() ?: "",
         correlationId = parcel.readString() ?: "UNSET",
-        scopes = parcel.createStringArrayList(),
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(continuationToken)
         parcel.writeString(correlationId)
-        parcel.writeStringList(scopes)
         parcel.writeSerializable(config)
     }
 

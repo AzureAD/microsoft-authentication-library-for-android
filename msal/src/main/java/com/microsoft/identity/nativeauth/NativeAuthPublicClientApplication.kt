@@ -777,7 +777,6 @@ class NativeAuthPublicClientApplication(
                                 nextState = RegisterStrongAuthState(
                                     continuationToken = result.continuationToken,
                                     correlationId = result.correlationId,
-                                    scopes = null,
                                     config = nativeAuthConfig
                                 ),
                                 authMethods = result.authMethods.toListOfAuthMethods()

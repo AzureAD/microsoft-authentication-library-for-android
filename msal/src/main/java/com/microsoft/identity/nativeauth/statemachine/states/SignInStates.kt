@@ -450,7 +450,6 @@ class SignInPasswordRequiredState(
                                 nextState = RegisterStrongAuthState(
                                     continuationToken = result.continuationToken,
                                     correlationId = result.correlationId,
-                                    scopes = null,
                                     config = config
                                 ),
                                 authMethods = result.authMethods.toListOfAuthMethods()
@@ -694,7 +693,6 @@ class SignInContinuationState(
                             nextState = RegisterStrongAuthState(
                                 continuationToken = result.continuationToken,
                                 correlationId = result.correlationId,
-                                scopes = null,
                                 config = config
                             ),
                             authMethods = result.authMethods.toListOfAuthMethods()
