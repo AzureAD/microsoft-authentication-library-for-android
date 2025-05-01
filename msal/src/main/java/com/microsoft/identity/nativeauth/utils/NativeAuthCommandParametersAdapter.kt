@@ -32,6 +32,7 @@ import com.microsoft.identity.common.java.logging.DiagnosticContext
 import com.microsoft.identity.common.java.nativeauth.authorities.NativeAuthCIAMAuthority
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.GetAuthMethodsCommandParameters
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.JITChallengeAuthMethodCommandParameters
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.JITSubmitChallengeCommandParameters
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.MFADefaultChallengeCommandParameters
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.MFASelectedDefaultChallengeCommandParameters
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.MFASubmitChallengeCommandParameters
@@ -712,7 +713,7 @@ class NativeAuthCommandParametersAdapter {
          * @param continuationToken Continuation token
          * @return Command parameter object
          */
-        fun createChallengeAuthMethodCommandParameters(
+        fun createJITChallengeAuthMethodCommandParameters(
             configuration: NativeAuthPublicClientApplicationConfiguration,
             tokenCache: OAuth2TokenCache<*, *, *>,
             verificationContact: String,
@@ -739,6 +740,47 @@ class NativeAuthCommandParametersAdapter {
                 .authMethodChallengeType(challengeType)
                 .continuationToken(continuationToken)
                 .clientId(configuration.clientId)
+                .correlationId(correlationId)
+                .build()
+        }
+
+        /**
+         * Creates command parameter for [[com.microsoft.identity.common.nativeauth.internal.commands.JITContinueCommandParameters]] of Native Auth
+         * @param configuration PCA configuration
+         * @param tokenCache token cache for storing results
+         * @param verificationContact verification contact
+         * @param challengeType challenge type
+         * @param correlationId correlation ID to use in the API request, taken from the previous request in the flow
+         * @param continuationToken Continuation token
+         * @return Command parameter object
+         */
+        fun createJITSubmitChallengeCommandParameters(
+            configuration: NativeAuthPublicClientApplicationConfiguration,
+            tokenCache: OAuth2TokenCache<*, *, *>,
+            grantType: String,
+            code: String,
+            correlationId: String,
+            continuationToken: String
+        ): JITSubmitChallengeCommandParameters {
+            val authority =
+                configuration.defaultAuthority as NativeAuthCIAMAuthority
+            return JITSubmitChallengeCommandParameters.builder()
+                .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.appContext))
+                .applicationName(configuration.appContext.packageName)
+                .applicationVersion(CommandParametersAdapter.getPackageVersion(configuration.appContext))
+                .clientId(configuration.clientId)
+                .isSharedDevice(configuration.isSharedDevice)
+                .redirectUri(configuration.redirectUri)
+                .oAuth2TokenCache(tokenCache)
+                .requiredBrokerProtocolVersion(configuration.requiredBrokerProtocolVersion)
+                .sdkType(SdkType.MSAL)
+                .sdkVersion(PublicClientApplication.getSdkVersion())
+                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled)
+                .authority(authority)
+                .grantType(grantType)
+                .continuationToken(continuationToken)
+                .clientId(configuration.clientId)
+                .code(code)
                 .correlationId(correlationId)
                 .build()
         }

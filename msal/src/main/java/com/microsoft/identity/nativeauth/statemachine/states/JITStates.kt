@@ -11,9 +11,12 @@ import com.microsoft.identity.common.java.logging.Logger
 import com.microsoft.identity.common.java.nativeauth.controllers.results.INativeAuthCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.JITChallengeAuthMethodCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.JITCommandResult
+import com.microsoft.identity.common.java.nativeauth.controllers.results.JITSubmitChallengeCommandResult
 import com.microsoft.identity.common.java.nativeauth.controllers.results.SignInCommandResult
+import com.microsoft.identity.common.java.nativeauth.providers.NativeAuthConstants
 import com.microsoft.identity.common.java.nativeauth.util.checkAndWrapCommandResultType
 import com.microsoft.identity.common.nativeauth.internal.commands.JITChallengeAuthMethodCommand
+import com.microsoft.identity.common.nativeauth.internal.commands.JITSubmitChallengeCommand
 import com.microsoft.identity.common.nativeauth.internal.controllers.NativeAuthMsalController
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
@@ -85,10 +88,10 @@ class RegisterStrongAuthState(
             TAG,
             "Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications."
         )
-
+        // if external developer does not provide a verification contact, we use the login hint
         val verificationContact = parameters.verificationContact ?: parameters.authMethod.loginHint
         val params =
-            NativeAuthCommandParametersAdapter.createChallengeAuthMethodCommandParameters(
+            NativeAuthCommandParametersAdapter.createJITChallengeAuthMethodCommandParameters(
                 configuration = config,
                 tokenCache = config.oAuth2TokenCache,
                 verificationContact = verificationContact,
@@ -119,9 +122,8 @@ class RegisterStrongAuthState(
                         error = (result as INativeAuthCommandResult.Error).error,
                         correlationId = (result as INativeAuthCommandResult.Error).correlationId,
                         errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
-                        exception = (result as INativeAuthCommandResult.APIError).exception
+                        exception = result.exception
                     )
-
                 }
                 is SignInCommandResult.Complete -> {
                     val authenticationResult =
@@ -158,90 +160,7 @@ class RegisterStrongAuthState(
                     )
                 }
             }
-
         }
-//        return withContext(Dispatchers.IO) {
-//            try {
-//                val params =
-//                    NativeAuthCommandParametersAdapter.createChallengeAuthMethodCommandParameters(
-//                        config,
-//                        config.oAuth2TokenCache,
-//                        continuationToken,
-//                        correlationId,
-//                        scopes
-//                    )
-//                val command = MFAChallengeCommand(
-//                    parameters = params,
-//                    controller = NativeAuthMsalController(),
-//                    publicApiId = PublicApiId.NATIVE_AUTH_MFA_DEFAULT_CHALLENGE
-//                )
-//
-//                val rawCommandResult =
-//                    CommandDispatcher.submitSilentReturningFuture(command)
-//                        .get()
-//
-//                return@withContext when (val result =
-//                    rawCommandResult.checkAndWrapCommandResultType<MFAChallengeCommandResult>()) {
-//                    is MFACommandResult.VerificationRequired -> {
-//                        MFARequiredResult.VerificationRequired(
-//                            nextState = MFARequiredState(
-//                                continuationToken = result.continuationToken,
-//                                correlationId = result.correlationId,
-//                                scopes = scopes,
-//                                config = config
-//                            ),
-//                            codeLength = result.codeLength,
-//                            sentTo = result.challengeTargetLabel,
-//                            channel = result.challengeChannel
-//                        )
-//                    }
-//
-//                    is MFACommandResult.SelectionRequired -> {
-//                        MFARequiredResult.SelectionRequired(
-//                            nextState = MFARequiredState(
-//                                continuationToken = result.continuationToken,
-//                                correlationId = result.correlationId,
-//                                scopes = scopes,
-//                                config = config
-//                            ),
-//                            authMethods = result.authMethods.toListOfAuthMethods()
-//                        )
-//                    }
-//
-//                    is INativeAuthCommandResult.APIError -> {
-//                        Logger.warnWithObject(
-//                            TAG,
-//                            result.correlationId,
-//                            "requestChallenge() received unexpected result: ",
-//                            result
-//                        )
-//                        MFARequestChallengeError(
-//                            errorMessage = result.errorDescription,
-//                            error = result.error,
-//                            correlationId = result.correlationId,
-//                            errorCodes = result.errorCodes,
-//                            exception = result.exception
-//                        )
-//                    }
-//
-//                    is INativeAuthCommandResult.Redirect -> {
-//                        MFARequestChallengeError(
-//                            errorType = ErrorTypes.BROWSER_REQUIRED,
-//                            error = result.error,
-//                            errorMessage = result.errorDescription,
-//                            correlationId = result.correlationId
-//                        )
-//                    }
-//                }
-//            } catch (e: Exception) {
-//                MFARequestChallengeError(
-//                    errorType = ErrorTypes.CLIENT_EXCEPTION,
-//                    errorMessage = "MSAL client exception occurred in requestChallenge().",
-//                    exception = e,
-//                    correlationId = correlationId
-//                )
-//            }
-//        }
     }
 
     constructor(parcel: Parcel) : this(
@@ -292,9 +211,19 @@ class RegisterStrongAuthVerificationRequiredState(
      * @param callback [com.microsoft.identity.nativeauth.statemachine.states.RegisterStrongAuthState.SubmitChallengeCallback] to receive the result on.
      */
     fun submitChallenge(challenge: String, callback: SubmitChallengeCallback) {
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitChallenge(callback: SubmitChallengeCallback)"
+        )
         NativeAuthPublicClientApplication.pcaScope.launch {
-            val result = submitChallenge(challenge)
-            callback.onResult(result)
+            try {
+                val result = submitChallenge(challenge)
+                callback.onResult(result)
+            } catch (e: MsalException) {
+                Logger.error(TAG, "Exception thrown in submitChallenge", e)
+                callback.onError(e)
+            }
         }
     }
 
@@ -306,14 +235,75 @@ class RegisterStrongAuthVerificationRequiredState(
      * @return The results of the submit challenge action.
      */
     suspend fun submitChallenge(challenge: String): RegisterStrongAuthSubmitChallengeResult {
-        return RegisterStrongAuthSubmitChallengeError(
-            errorType = "errorType",
-            error = "error",
-            errorMessage = "errorMessage",
-            correlationId = "correlationId",
-            errorCodes = listOf(500123),
-            exception = null
+        LogSession.logMethodCall(
+            tag = TAG,
+            correlationId = correlationId,
+            methodName = "${TAG}.submitChallenge(challenge: String)"
         )
+
+        Logger.warn(
+            TAG,
+            "Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications."
+        )
+        // Currently, only oob is supported for the grant type. Continuation token grant type is used only for "preverified" flow.
+        val grantType = NativeAuthConstants.GrantType.OOB
+        val params =
+            NativeAuthCommandParametersAdapter.createJITSubmitChallengeCommandParameters(
+                configuration = config,
+                tokenCache = config.oAuth2TokenCache,
+                grantType = grantType,
+                code = challenge,
+                continuationToken = continuationToken,
+                correlationId = correlationId
+            )
+        val command = JITSubmitChallengeCommand(
+            parameters = params,
+            controller = NativeAuthMsalController(),
+            publicApiId = PublicApiId.NATIVE_AUTH_JIT_CHALLENGE_AUTH_METHOD
+        )
+        val rawCommandResult =
+            CommandDispatcher.submitSilentReturningFuture(command)
+                .get()
+        return withContext(Dispatchers.IO) {
+            return@withContext when (val result =
+                rawCommandResult.checkAndWrapCommandResultType<JITSubmitChallengeCommandResult>()) {
+                is SignInCommandResult.Complete -> {
+                    val authenticationResult =
+                        AuthenticationResultAdapter.adapt(result.authenticationResult)
+                    SignInResult.Complete(
+                        resultValue = AccountState.createFromAuthenticationResult(
+                            authenticationResult = authenticationResult,
+                            correlationId = result.correlationId,
+                            config = config
+                        )
+                    )
+                }
+                is JITCommandResult.IncorrectChallenge -> {
+                    RegisterStrongAuthSubmitChallengeError(
+                        errorType = ErrorTypes.INVALID_CHALLENGE,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId,
+                        errorCodes = result.errorCodes
+                    )
+                }
+                is INativeAuthCommandResult.APIError -> {
+                    Logger.warnWithObject(
+                        TAG,
+                        result.correlationId,
+                        "Submit challenge received unexpected result: ",
+                        result
+                    )
+                    RegisterStrongAuthSubmitChallengeError(
+                        errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
+                        error = (result as INativeAuthCommandResult.Error).error,
+                        correlationId = (result as INativeAuthCommandResult.Error).correlationId,
+                        errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
+                        exception = result.exception
+                    )
+                }
+            }
+        }
     }
 
     /**
