@@ -274,7 +274,7 @@ class RegisterStrongAuthVerificationRequiredState(
         val command = JITSubmitChallengeCommand(
             parameters = params,
             controller = NativeAuthMsalController(),
-            publicApiId = PublicApiId.NATIVE_AUTH_JIT_CHALLENGE_AUTH_METHOD
+            publicApiId = PublicApiId.NATIVE_AUTH_JIT_SUBMIT_CHALLENGE
         )
         val rawCommandResult =
             CommandDispatcher.submitSilentReturningFuture(command)
