@@ -32,7 +32,7 @@ import com.microsoft.identity.common.java.logging.DiagnosticContext
 import com.microsoft.identity.common.java.nativeauth.authorities.NativeAuthCIAMAuthority
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.GetAuthMethodsCommandParameters
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.JITChallengeAuthMethodCommandParameters
-import com.microsoft.identity.common.java.nativeauth.commands.parameters.JITSubmitChallengeCommandParameters
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.JITContinueCommandParameters
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.MFADefaultChallengeCommandParameters
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.MFASelectedDefaultChallengeCommandParameters
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.MFASubmitChallengeCommandParameters
@@ -761,10 +761,10 @@ class NativeAuthCommandParametersAdapter {
             code: String,
             correlationId: String,
             continuationToken: String
-        ): JITSubmitChallengeCommandParameters {
+        ): JITContinueCommandParameters {
             val authority =
                 configuration.defaultAuthority as NativeAuthCIAMAuthority
-            return JITSubmitChallengeCommandParameters.builder()
+            return JITContinueCommandParameters.builder()
                 .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.appContext))
                 .applicationName(configuration.appContext.packageName)
                 .applicationVersion(CommandParametersAdapter.getPackageVersion(configuration.appContext))
