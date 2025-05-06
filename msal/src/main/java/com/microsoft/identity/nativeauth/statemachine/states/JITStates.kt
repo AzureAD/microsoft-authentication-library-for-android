@@ -260,6 +260,14 @@ class RegisterStrongAuthVerificationRequiredState(
             TAG,
             "Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications."
         )
+        if (challenge.isBlank()) {
+          return RegisterStrongAuthSubmitChallengeError(
+              errorMessage = "Empty challenge provided.",
+              error = ErrorTypes.INVALID_CHALLENGE,
+              correlationId = correlationId
+          )
+        }
+
         // Currently, only oob is supported for the grant type. Continuation token grant type is used only for "preverified" flow.
         val grantType = NativeAuthConstants.GrantType.OOB
         val params =
