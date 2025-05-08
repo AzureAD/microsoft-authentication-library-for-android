@@ -4,6 +4,7 @@ import android.os.Parcel
 import android.os.Parcelable
 import com.microsoft.identity.client.AuthenticationResultAdapter
 import com.microsoft.identity.client.exception.MsalException
+import com.microsoft.identity.client.internal.CommandParametersAdapter
 import com.microsoft.identity.common.java.controllers.CommandDispatcher
 import com.microsoft.identity.common.java.eststelemetry.PublicApiId
 import com.microsoft.identity.common.java.logging.LogSession
@@ -28,7 +29,6 @@ import com.microsoft.identity.nativeauth.statemachine.errors.RegisterStrongAuthS
 import com.microsoft.identity.nativeauth.statemachine.results.RegisterStrongAuthChallengeResult
 import com.microsoft.identity.nativeauth.statemachine.results.RegisterStrongAuthSubmitChallengeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
-import com.microsoft.identity.nativeauth.utils.NativeAuthCommandParametersAdapter
 import com.microsoft.identity.nativeauth.utils.serializable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -49,14 +49,17 @@ abstract class BaseJITSubmitChallengeState(
         )
         // if external developer does not provide a verification contact, we use the login hint
         val verificationContact = parameters.verificationContact ?: parameters.authMethod.loginHint
+        // Currently, only email is supported for the challengeChannel. Continuation token grant type is used only for "preverified" flow.
+        val challengeChannel = NativeAuthConstants.ChallengeChannel.EMAIL
         val params =
-            NativeAuthCommandParametersAdapter.createJITChallengeAuthMethodCommandParameters(
-                configuration = config,
-                tokenCache = config.oAuth2TokenCache,
-                verificationContact = verificationContact,
-                challengeType = parameters.authMethod.challengeType,
-                continuationToken = continuationToken,
-                correlationId = correlationId
+            CommandParametersAdapter.createJITChallengeAuthMethodCommandParameters(
+                config,
+                config.oAuth2TokenCache,
+                verificationContact,
+                challengeChannel,
+                parameters.authMethod.challengeType,
+                correlationId,
+                continuationToken,
             )
         val command = JITChallengeAuthMethodCommand(
             parameters = params,
@@ -271,13 +274,13 @@ class RegisterStrongAuthVerificationRequiredState(
         // Currently, only oob is supported for the grant type. Continuation token grant type is used only for "preverified" flow.
         val grantType = NativeAuthConstants.GrantType.OOB
         val params =
-            NativeAuthCommandParametersAdapter.createJITSubmitChallengeCommandParameters(
-                configuration = config,
-                tokenCache = config.oAuth2TokenCache,
-                grantType = grantType,
-                code = challenge,
-                continuationToken = continuationToken,
-                correlationId = correlationId
+            CommandParametersAdapter.createJITSubmitChallengeCommandParameters(
+                config,
+                config.oAuth2TokenCache,
+                grantType,
+                challenge,
+                correlationId,
+                continuationToken
             )
         val command = JITSubmitChallengeCommand(
             parameters = params,
