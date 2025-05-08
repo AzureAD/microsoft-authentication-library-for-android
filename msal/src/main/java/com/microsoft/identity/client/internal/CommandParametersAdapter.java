@@ -1181,7 +1181,7 @@ public class CommandParametersAdapter {
      * @param grantType grant type
      * @param code the code provided by the user
      * @param correlationId correlation ID to use in the API request, taken from the previous request in the flow
-     * @param continuationToken Continuation token
+     * @param continuationToken continuation token
      * @return Command parameter object
      * @throws ClientException
      */
