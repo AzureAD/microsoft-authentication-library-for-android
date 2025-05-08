@@ -1131,8 +1131,9 @@ public class CommandParametersAdapter {
      * Creates command parameter for [[com.microsoft.identity.common.nativeauth.internal.commands.JITChallengeAuthMethodCommand]] of Native Auth
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
-     * @param verificationContact verification contact
-     * @param challengeType challenge type
+     * @param verificationContact the email/phone to send the challenge to
+     * @param challengeChannel the channel used to send the challenge
+     * @param challengeType the type of challenge
      * @param correlationId correlation ID to use in the API request, taken from the previous request in the flow
      * @param continuationToken Continuation token
      * @return Command parameter object
@@ -1173,8 +1174,8 @@ public class CommandParametersAdapter {
      * Creates command parameter for [[com.microsoft.identity.common.nativeauth.internal.commands.JITContinueCommandParameters]] of Native Auth
      * @param configuration PCA configuration
      * @param tokenCache token cache for storing results
-     * @param verificationContact verification contact
-     * @param challengeType challenge type
+     * @param grantType grant type
+     * @param code the code provided by the user
      * @param correlationId correlation ID to use in the API request, taken from the previous request in the flow
      * @param continuationToken Continuation token
      * @return Command parameter object
@@ -1210,7 +1211,7 @@ public class CommandParametersAdapter {
     }
 
 
-    public static String getPackageVersion(@NonNull final Context context) {
+    private static String getPackageVersion(@NonNull final Context context) {
         final String packageName = context.getPackageName();
         try {
             final PackageInfo packageInfo = context.getPackageManager().getPackageInfo(packageName, 0);

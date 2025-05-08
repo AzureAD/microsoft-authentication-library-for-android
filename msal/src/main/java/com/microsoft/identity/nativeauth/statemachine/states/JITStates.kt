@@ -42,7 +42,7 @@ abstract class BaseJITSubmitChallengeState(
     override val correlationId: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
 ) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
-    suspend fun internalSubmitChallenge(parameters: NativeAuthChallengeAuthMethodParameters, tag: String): RegisterStrongAuthChallengeResult {
+    suspend fun internalChallengeAuthMethod(parameters: NativeAuthChallengeAuthMethodParameters, tag: String): RegisterStrongAuthChallengeResult {
         Logger.warn(
             tag,
             "Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications."
@@ -79,11 +79,12 @@ abstract class BaseJITSubmitChallengeState(
                         "Challenge auth method received unexpected result: ",
                         result
                     )
+                    val errorResult = result as INativeAuthCommandResult.Error
                     RegisterStrongAuthChallengeError(
-                        errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
-                        error = (result as INativeAuthCommandResult.Error).error,
-                        correlationId = (result as INativeAuthCommandResult.Error).correlationId,
-                        errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
+                        errorMessage = errorResult.errorDescription,
+                        error = errorResult.error,
+                        correlationId = errorResult.correlationId,
+                        errorCodes = errorResult.errorCodes,
                         exception = result.exception
                     )
                 }
@@ -139,7 +140,7 @@ class RegisterStrongAuthState(
     interface ChallengeAuthMethodCallback : Callback<RegisterStrongAuthChallengeResult>
 
     /**
-     * Requests the server to send the challenge to the default authentication method
+     * Requests the server to send the challenge to the default authentication method; callback variant
      *
      * <strong><u>Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
      * @param parameters [com.microsoft.identity.nativeauth.parameters.NativeAuthChallengeAuthMethodParameters] Parameters used to challenge an authentication method.
@@ -175,7 +176,7 @@ class RegisterStrongAuthState(
             correlationId = correlationId,
             methodName = "${TAG}.challengeAuthMethod(parameters: NativeAuthChallengeAuthMethodParameters)"
         )
-        return internalSubmitChallenge(
+        return internalChallengeAuthMethod(
             parameters = parameters,
             tag = TAG
         )
@@ -320,11 +321,12 @@ class RegisterStrongAuthVerificationRequiredState(
                         "Submit challenge received unexpected result: ",
                         result
                     )
+                    val errorResult = result as INativeAuthCommandResult.Error
                     RegisterStrongAuthSubmitChallengeError(
-                        errorMessage = (result as INativeAuthCommandResult.Error).errorDescription,
-                        error = (result as INativeAuthCommandResult.Error).error,
-                        correlationId = (result as INativeAuthCommandResult.Error).correlationId,
-                        errorCodes = (result as INativeAuthCommandResult.Error).errorCodes,
+                        errorMessage = errorResult.errorDescription,
+                        error = errorResult.error,
+                        correlationId = errorResult.correlationId,
+                        errorCodes = errorResult.errorCodes,
                         exception = result.exception
                     )
                 }
@@ -374,7 +376,7 @@ class RegisterStrongAuthVerificationRequiredState(
             correlationId = correlationId,
             methodName = "${TAG}.challengeAuthMethod(parameters: NativeAuthChallengeAuthMethodParameters)"
         )
-        return internalSubmitChallenge(
+        return internalChallengeAuthMethod(
             parameters = parameters,
             tag = TAG
         )
