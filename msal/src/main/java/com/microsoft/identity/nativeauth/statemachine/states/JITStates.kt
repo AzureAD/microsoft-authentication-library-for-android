@@ -48,7 +48,7 @@ abstract class BaseJITSubmitChallengeState(
             "Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications."
         )
         // if external developer does not provide a verification contact, we use the login hint
-        val verificationContact = parameters.verificationContact ?: parameters.authMethod.loginHint
+        val verificationContact: String = parameters.verificationContact.takeIf { !it.isNullOrBlank() } ?: parameters.authMethod.loginHint
         // Currently, only email is supported for the challengeChannel. Continuation token grant type is used only for "preverified" flow.
         val challengeChannel = NativeAuthConstants.ChallengeChannel.EMAIL
         val params =

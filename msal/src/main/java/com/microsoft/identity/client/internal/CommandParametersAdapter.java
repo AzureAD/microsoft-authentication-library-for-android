@@ -32,9 +32,6 @@ import com.microsoft.identity.client.DeviceCodeFlowParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.ITenantProfile;
 import com.microsoft.identity.client.MultiTenantAccount;
-import com.microsoft.identity.common.internal.msafederation.google.SignInWithGoogleApi;
-import com.microsoft.identity.common.internal.msafederation.google.SignInWithGoogleCredential;
-import com.microsoft.identity.common.internal.msafederation.google.SignInWithGoogleParameters;
 import com.microsoft.identity.common.internal.platform.AndroidPlatformUtil;
 import com.microsoft.identity.common.java.logging.DiagnosticContext;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.JITChallengeAuthMethodCommandParameters;
@@ -1137,6 +1134,7 @@ public class CommandParametersAdapter {
      * @param correlationId correlation ID to use in the API request, taken from the previous request in the flow
      * @param continuationToken Continuation token
      * @return Command parameter object
+     * @throws ClientException
      */
     public static JITChallengeAuthMethodCommandParameters createJITChallengeAuthMethodCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
@@ -1146,10 +1144,16 @@ public class CommandParametersAdapter {
             @NonNull final String challengeType,
             @NonNull final String correlationId,
             @NonNull final String continuationToken
-    ) {
+    ) throws ClientException {
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
+        final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
+                AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
+                null
+        );
+
         return JITChallengeAuthMethodCommandParameters.builder()
+                .authenticationScheme(authenticationScheme)
                 .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
                 .applicationName(configuration.getAppContext().getPackageName())
                 .applicationVersion(getPackageVersion(configuration.getAppContext()))
@@ -1179,6 +1183,7 @@ public class CommandParametersAdapter {
      * @param correlationId correlation ID to use in the API request, taken from the previous request in the flow
      * @param continuationToken Continuation token
      * @return Command parameter object
+     * @throws ClientException
      */
     public static JITContinueCommandParameters createJITSubmitChallengeCommandParameters(
              @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
@@ -1187,10 +1192,16 @@ public class CommandParametersAdapter {
              @NonNull final String code,
              @NonNull final String correlationId,
              @NonNull final String continuationToken
-    ) {
+    ) throws ClientException {
         final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
 
+        final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
+                AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
+                null
+        );
+
         return JITContinueCommandParameters.builder()
+                .authenticationScheme(authenticationScheme)
                 .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
                 .applicationName(configuration.getAppContext().getPackageName())
                 .applicationVersion(getPackageVersion(configuration.getAppContext()))
