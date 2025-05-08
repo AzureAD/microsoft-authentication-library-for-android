@@ -23,6 +23,7 @@
 
 package com.microsoft.identity.nativeauth.statemachine.results
 
+import com.microsoft.identity.nativeauth.AuthMethod
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState
 import com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState
 import com.microsoft.identity.nativeauth.statemachine.states.RegisterStrongAuthState
@@ -91,7 +92,8 @@ interface SignInResult : Result {
      * @param nextState [com.microsoft.identity.nativeauth.statemachine.states.RegisterStrongAuthState] the current state of the flow with follow-on methods.
      */
     class StrongAuthMethodRegistrationRequired(
-        override val nextState: RegisterStrongAuthState
+        override val nextState: RegisterStrongAuthState,
+        val authMethods: List<AuthMethod>
     ) : SignInResult, SignInSubmitPasswordResult, Result.SuccessResult(nextState = nextState)
 }
 

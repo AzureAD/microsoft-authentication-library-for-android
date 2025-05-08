@@ -78,6 +78,7 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
 import com.microsoft.identity.nativeauth.statemachine.states.AccountState
 import com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState
 import com.microsoft.identity.nativeauth.statemachine.states.Callback
+import com.microsoft.identity.nativeauth.statemachine.states.RegisterStrongAuthState
 import com.microsoft.identity.nativeauth.statemachine.states.ResetPasswordCodeRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInCodeRequiredState
 import com.microsoft.identity.nativeauth.statemachine.states.SignInContinuationState
@@ -768,6 +769,17 @@ class NativeAuthPublicClientApplication(
                                     scopes = scopes,
                                     config = nativeAuthConfig
                                 )
+                            )
+                        }
+
+                        is SignInCommandResult.StrongAuthMethodRegistrationRequired -> {
+                            SignInResult.StrongAuthMethodRegistrationRequired(
+                                nextState = RegisterStrongAuthState(
+                                    continuationToken = result.continuationToken,
+                                    correlationId = result.correlationId,
+                                    config = nativeAuthConfig
+                                ),
+                                authMethods = result.authMethods.toListOfAuthMethods()
                             )
                         }
 
