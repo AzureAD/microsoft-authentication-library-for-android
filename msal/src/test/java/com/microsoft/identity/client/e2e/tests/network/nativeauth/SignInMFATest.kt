@@ -310,7 +310,8 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
 
                 // Retrieve access token
                 val accountState = (submitCorrectChallengeResult as SignInResult.Complete).resultValue
-                val getAccessTokenResult = accountState.getAccessToken()
+                val accountParam = NativeAuthGetAccessTokenParameters()
+                val getAccessTokenResult = accountState.getAccessToken(accountParam)
                 assertResult<GetAccessTokenResult.Complete>(getAccessTokenResult)
                 val authResult = (getAccessTokenResult as GetAccessTokenResult.Complete).resultValue
 
