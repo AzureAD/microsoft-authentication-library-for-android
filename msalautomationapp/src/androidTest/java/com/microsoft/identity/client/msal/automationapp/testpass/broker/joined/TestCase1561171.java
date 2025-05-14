@@ -46,7 +46,7 @@ import java.util.Arrays;
 @RetryOnFailure(retryCount = 2)
 public class TestCase1561171 extends AbstractMsalBrokerTest {
     @Test
-    public void test_1561171() throws Throwable {
+    public void test_1561171_Joined_PromptLogin() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

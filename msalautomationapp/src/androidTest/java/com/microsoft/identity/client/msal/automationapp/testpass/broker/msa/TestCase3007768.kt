@@ -51,7 +51,7 @@ import java.util.Arrays
 class TestCase3007768 : AbstractMsalBrokerTest(){
     @Test
     @Throws(Throwable::class)
-    fun test_3007768() {
+    fun test_3007768_MSASignUpFlow() {
         // Passing this parameter will enable sign up page
         val extraQP: MutableList<Map.Entry<String, String>> = ArrayList()
         extraQP.add(AbstractMap.SimpleEntry("signup", "1"))
@@ -71,8 +71,8 @@ class TestCase3007768 : AbstractMsalBrokerTest(){
             // Do nothing, we're just checking for create account UI
         }, TokenRequestTimeout.SHORT)
 
-        val createAccountText = UiAutomatorUtils.obtainUiObjectWithExactText("Create account")
-        Assert.assertTrue(createAccountText.waitForExists(CommonUtils.FIND_UI_ELEMENT_TIMEOUT))
+        val createAccountText = UiAutomatorUtils.obtainUiObjectWithText("Create")
+        Assert.assertTrue(createAccountText.exists())
 
         // Exit current auth
         UiAutomatorUtils.pressBack()

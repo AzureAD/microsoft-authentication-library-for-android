@@ -45,7 +45,7 @@ import org.junit.Test;
 @RetryOnFailure
 public class TestCase1600567 extends AbstractMsalBrokerTest {
     @Test
-    public void test_1600567() throws Throwable {
+    public void test_1600567_nonAllowedBrokerApp() throws Throwable {
         final BrokerHost brokerHost = new BrokerHost();
         brokerHost.install();
         brokerHost.launch();

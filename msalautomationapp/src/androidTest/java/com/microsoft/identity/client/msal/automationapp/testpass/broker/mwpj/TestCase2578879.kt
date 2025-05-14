@@ -57,7 +57,7 @@ class TestCase2578879 : AbstractMsalBrokerTest() {
     private lateinit var mBrokerHostApp: BrokerHost
 
     @Test
-    fun test_2578879() {
+    fun test_2578879_MWPJ_AccountWithNoPrtUsesNonJoinedFlowPkeyAuth() {
         // Make an interactive call with MSAL using the first account
         val msalSdk = MsalSdk()
         val authTestParamsForInteractiveRequest = MsalAuthTestParams.builder()

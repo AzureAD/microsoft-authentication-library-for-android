@@ -58,7 +58,7 @@ import java.util.Arrays;
 public class TestCase833513 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_833513() throws MsalException, InterruptedException, LabApiException, UiObjectNotFoundException {
+    public void test_833513_FLW_SDMATOnlyPossibleFromTheSameTenant() throws MsalException, InterruptedException, LabApiException, UiObjectNotFoundException {
         final String username1 = mLabAccount.getUsername();
         final String password1 = mLabAccount.getPassword();
 

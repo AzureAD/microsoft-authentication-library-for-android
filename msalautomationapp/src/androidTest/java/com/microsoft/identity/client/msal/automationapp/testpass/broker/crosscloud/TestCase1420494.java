@@ -81,7 +81,7 @@ public class TestCase1420494 extends AbstractGuestAccountMsalBrokerUiTest {
      * Tests Acquiring token for Cross cloud Guest account with broker.
      */
     @Test
-    public void test_1420494() throws Throwable {
+    public void test_1420494_CrossCloud_NonJoined_GuestATThenATS() throws Throwable {
         final String userName = mGuestUser.getHomeUpn();
         final String password = mLabClient.getPasswordForGuestUser(mGuestUser);
 

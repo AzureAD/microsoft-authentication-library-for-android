@@ -47,7 +47,7 @@ import org.junit.Test;
 @RetryOnFailure(retryCount = 2)
 public class TestCase1592509 extends AbstractMsalBrokerTest {
     @Test
-    public void test_1592509() throws Throwable {
+    public void test_1592509_NonJoined_Mooncake() throws Throwable {
         final ILabAccount labAccount = mLabClient.getLabAccount("idlab@mncmsidlab1.partner.onmschina.cn");
         final String username = labAccount.getUsername();
         final String password = labAccount.getPassword();

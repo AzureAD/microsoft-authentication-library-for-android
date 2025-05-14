@@ -53,7 +53,7 @@ import java.util.concurrent.TimeUnit;
 public class TestCase850457 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_850457() throws Throwable {
+    public void test_850457_MAM_Password_Reset() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

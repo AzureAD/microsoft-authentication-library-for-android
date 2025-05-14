@@ -40,7 +40,7 @@ import org.junit.Test;
 public class TestCase714567 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_714567() {
+    public void test_714567_Joined_DeviceRegistrationThroughSettingsPage() {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 
