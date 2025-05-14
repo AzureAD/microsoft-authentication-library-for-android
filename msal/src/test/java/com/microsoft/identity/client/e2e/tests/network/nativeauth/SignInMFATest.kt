@@ -322,7 +322,7 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
                     return@runBlocking
                 }
                 val atBody = atParts[1]
-                val charset = charset("UTF-8")
+                val charset = Charsets.UTF_8
                 val atDecoded = String(
                     Base64.getUrlDecoder().decode(atBody.toByteArray(charset)),
                     charset
