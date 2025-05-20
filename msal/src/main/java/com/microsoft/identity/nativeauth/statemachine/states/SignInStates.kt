@@ -58,6 +58,7 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignInResendCodeRe
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInSubmitCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInSubmitPasswordResult
+import com.microsoft.identity.nativeauth.toListOfAuthMethods
 import com.microsoft.identity.nativeauth.utils.serializable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -444,6 +445,16 @@ class SignInPasswordRequiredState(
                                 )
                             )
                         }
+                        is SignInCommandResult.StrongAuthMethodRegistrationRequired -> {
+                            SignInResult.StrongAuthMethodRegistrationRequired(
+                                nextState = RegisterStrongAuthState(
+                                    continuationToken = result.continuationToken,
+                                    correlationId = result.correlationId,
+                                    config = config
+                                ),
+                                authMethods = result.authMethods.toListOfAuthMethods()
+                            )
+                        }
                         is SignInCommandResult.Complete -> {
                             val authenticationResult =
                                 AuthenticationResultAdapter.adapt(result.authenticationResult)
@@ -677,7 +688,16 @@ class SignInContinuationState(
                             )
                         )
                     }
-
+                    is SignInCommandResult.StrongAuthMethodRegistrationRequired -> {
+                        SignInResult.StrongAuthMethodRegistrationRequired(
+                            nextState = RegisterStrongAuthState(
+                                continuationToken = result.continuationToken,
+                                correlationId = result.correlationId,
+                                config = config
+                            ),
+                            authMethods = result.authMethods.toListOfAuthMethods()
+                        )
+                    }
                     is INativeAuthCommandResult.Redirect,
                     is INativeAuthCommandResult.APIError -> {
                         Logger.warnWithObject(
