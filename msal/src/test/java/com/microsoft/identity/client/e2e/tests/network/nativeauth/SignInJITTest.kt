@@ -79,10 +79,13 @@ class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
      */
     @Ignore("Retrieving OTP code failure.")
     @Test
-    fun `test sign in after sign up without specify verification contact no second email is expected`()  {
+    fun `test sign in specifying custom verification contact`()  {
         config = getConfig(defaultConfigType)
         application = setupPCA(config, defaultChallengeTypes)
         resources = config.resources
+        val authenticationContextId = "c4"
+        val authenticationContextRequestClaimJson = "{\"access_token\":{\"acrs\":{\"essential\":true,\"value\":\"$authenticationContextId\"}}}"
+        val authenticationContextATClaimJson = "\"acrs\":[\"$authenticationContextId\"]"
 
         retryOperation {
             runBlocking {
@@ -99,6 +102,7 @@ class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
                 // Start a new signIn flow. Check that JIT flow is triggered.
                 val signInParams = NativeAuthSignInParameters(username)
                 signInParams.password = getSafePassword().toCharArray()
+                signInParams.claimsRequest = ClaimsRequest.getClaimsRequestFromJsonString(authenticationContextRequestClaimJson)
                 val signInResult = application.signIn(signInParams)
                 assertResult<SignInResult.StrongAuthMethodRegistrationRequired>(signInResult)
                 val authMethod = (signInResult as SignInResult.StrongAuthMethodRegistrationRequired).authMethods[0]
@@ -121,6 +125,20 @@ class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
                 assertResult<GetAccessTokenResult.Complete>(getAccessTokenResult)
                 val authResult = (getAccessTokenResult as GetAccessTokenResult.Complete).resultValue
                 assertNotNull(authResult)
+
+                // Check that AT contains authentication context claim
+                val atParts = authResult.accessToken.split(".")
+                if (atParts.size != 3) {
+                    fail("Invalid Access token received")
+                    return@runBlocking
+                }
+                val atBody = atParts[1]
+                val charset = Charsets.UTF_8
+                val atDecoded = String(
+                    Base64.getUrlDecoder().decode(atBody.toByteArray(charset)),
+                    charset
+                )
+                assertTrue(atDecoded.contains(authenticationContextATClaimJson))
             }
         }
     }
@@ -132,6 +150,7 @@ class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
      * - Check that JIT flow is triggered.
      * - Do not specify a verification contact.
      * - SignIn should be completed without needs to send a code to the email.
+     * - Access token is received.
      *
      */
     @Ignore("Retrieving OTP code failure.")
@@ -142,6 +161,7 @@ class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
         resources = config.resources
         val authenticationContextId = "c4"
         val authenticationContextRequestClaimJson = "{\"access_token\":{\"acrs\":{\"essential\":true,\"value\":\"$authenticationContextId\"}}}"
+        val authenticationContextATClaimJson = "\"acrs\":[\"$authenticationContextId\"]"
 
         retryOperation {
             runBlocking {
@@ -169,6 +189,27 @@ class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
                 // SignIn should be completed without needs to send a code to the email.
                 val challengeResult = signWithContinuationResult.nextState.challengeAuthMethod(authMethodParams)
                 assertResult<SignInResult.Complete>(challengeResult)
+
+                // Access token is received.
+                val accountState = (challengeResult as SignInResult.Complete).resultValue
+                val accountParam = NativeAuthGetAccessTokenParameters()
+                val getAccessTokenResult = accountState.getAccessToken(accountParam)
+                assertResult<GetAccessTokenResult.Complete>(getAccessTokenResult)
+                val authResult = (getAccessTokenResult as GetAccessTokenResult.Complete).resultValue
+
+                // Check that AT contains authentication context claim
+                val atParts = authResult.accessToken.split(".")
+                if (atParts.size != 3) {
+                    fail("Invalid Access token received")
+                    return@runBlocking
+                }
+                val atBody = atParts[1]
+                val charset = Charsets.UTF_8
+                val atDecoded = String(
+                    Base64.getUrlDecoder().decode(atBody.toByteArray(charset)),
+                    charset
+                )
+                assertTrue(atDecoded.contains(authenticationContextATClaimJson))
             }
         }
     }
