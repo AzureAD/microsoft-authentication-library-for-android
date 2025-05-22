@@ -79,7 +79,7 @@ class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
      */
     @Ignore("Retrieving OTP code failure.")
     @Test
-    fun `test sign in without specify verification contact`()  {
+    fun `test sign in after sign up without specify verification contact no second email is expected`()  {
         config = getConfig(defaultConfigType)
         application = setupPCA(config, defaultChallengeTypes)
         resources = config.resources
