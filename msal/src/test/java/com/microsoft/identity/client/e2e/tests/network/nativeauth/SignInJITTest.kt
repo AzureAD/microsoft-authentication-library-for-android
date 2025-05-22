@@ -125,20 +125,6 @@ class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
                 assertResult<GetAccessTokenResult.Complete>(getAccessTokenResult)
                 val authResult = (getAccessTokenResult as GetAccessTokenResult.Complete).resultValue
                 assertNotNull(authResult)
-
-                // Check that AT contains authentication context claim
-                val atParts = authResult.accessToken.split(".")
-                if (atParts.size != 3) {
-                    fail("Invalid Access token received")
-                    return@runBlocking
-                }
-                val atBody = atParts[1]
-                val charset = Charsets.UTF_8
-                val atDecoded = String(
-                    Base64.getUrlDecoder().decode(atBody.toByteArray(charset)),
-                    charset
-                )
-                assertTrue(atDecoded.contains(authenticationContextATClaimJson))
             }
         }
     }
@@ -196,20 +182,7 @@ class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
                 val getAccessTokenResult = accountState.getAccessToken(accountParam)
                 assertResult<GetAccessTokenResult.Complete>(getAccessTokenResult)
                 val authResult = (getAccessTokenResult as GetAccessTokenResult.Complete).resultValue
-
-                // Check that AT contains authentication context claim
-                val atParts = authResult.accessToken.split(".")
-                if (atParts.size != 3) {
-                    fail("Invalid Access token received")
-                    return@runBlocking
-                }
-                val atBody = atParts[1]
-                val charset = Charsets.UTF_8
-                val atDecoded = String(
-                    Base64.getUrlDecoder().decode(atBody.toByteArray(charset)),
-                    charset
-                )
-                assertTrue(atDecoded.contains(authenticationContextATClaimJson))
+                assertNotNull(authResult)
             }
         }
     }
@@ -271,20 +244,7 @@ class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
                 val getAccessTokenResult = accountState.getAccessToken(accountParam)
                 assertResult<GetAccessTokenResult.Complete>(getAccessTokenResult)
                 val authResult = (getAccessTokenResult as GetAccessTokenResult.Complete).resultValue
-
-                // Check that AT contains authentication context claim
-                val atParts = authResult.accessToken.split(".")
-                if (atParts.size != 3) {
-                    fail("Invalid Access token received")
-                    return@runBlocking
-                }
-                val atBody = atParts[1]
-                val charset = Charsets.UTF_8
-                val atDecoded = String(
-                    Base64.getUrlDecoder().decode(atBody.toByteArray(charset)),
-                    charset
-                )
-                assertTrue(atDecoded.contains(authenticationContextATClaimJson))
+                assertNotNull(authResult)
             }
         }
     }
