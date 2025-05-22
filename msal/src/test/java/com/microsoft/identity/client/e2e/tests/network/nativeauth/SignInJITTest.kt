@@ -85,7 +85,6 @@ class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
         resources = config.resources
         val authenticationContextId = "c4"
         val authenticationContextRequestClaimJson = "{\"access_token\":{\"acrs\":{\"essential\":true,\"value\":\"$authenticationContextId\"}}}"
-        val authenticationContextATClaimJson = "\"acrs\":[\"$authenticationContextId\"]"
 
         retryOperation {
             runBlocking {
@@ -147,7 +146,6 @@ class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
         resources = config.resources
         val authenticationContextId = "c4"
         val authenticationContextRequestClaimJson = "{\"access_token\":{\"acrs\":{\"essential\":true,\"value\":\"$authenticationContextId\"}}}"
-        val authenticationContextATClaimJson = "\"acrs\":[\"$authenticationContextId\"]"
 
         retryOperation {
             runBlocking {
@@ -205,7 +203,6 @@ class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
         resources = config.resources
         val authenticationContextId = "c4"
         val authenticationContextRequestClaimJson = "{\"access_token\":{\"acrs\":{\"essential\":true,\"value\":\"$authenticationContextId\"}}}"
-        val authenticationContextATClaimJson = "\"acrs\":[\"$authenticationContextId\"]"
 
         retryOperation {
             runBlocking {
