@@ -310,7 +310,8 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
 
                 // Retrieve access token
                 val accountState = (submitCorrectChallengeResult as SignInResult.Complete).resultValue
-                val getAccessTokenResult = accountState.getAccessToken()
+                val accountParam = NativeAuthGetAccessTokenParameters()
+                val getAccessTokenResult = accountState.getAccessToken(accountParam)
                 assertResult<GetAccessTokenResult.Complete>(getAccessTokenResult)
                 val authResult = (getAccessTokenResult as GetAccessTokenResult.Complete).resultValue
 
@@ -321,7 +322,7 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
                     return@runBlocking
                 }
                 val atBody = atParts[1]
-                val charset = charset("UTF-8")
+                val charset = Charsets.UTF_8
                 val atDecoded = String(
                     Base64.getUrlDecoder().decode(atBody.toByteArray(charset)),
                     charset
