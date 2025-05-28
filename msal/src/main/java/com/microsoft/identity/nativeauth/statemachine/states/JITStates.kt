@@ -43,10 +43,6 @@ abstract class BaseJITSubmitChallengeState(
     private val config: NativeAuthPublicClientApplicationConfiguration
 ) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
     suspend fun internalChallengeAuthMethod(parameters: NativeAuthChallengeAuthMethodParameters, tag: String): RegisterStrongAuthChallengeResult {
-        Logger.warn(
-            tag,
-            "Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications."
-        )
         // if external developer does not provide a verification contact, we use the login hint
         val verificationContact: String = parameters.verificationContact.takeIf { !it.isNullOrBlank() } ?: parameters.authMethod.loginHint
         // Currently, only email is supported for the challengeChannel. Continuation token grant type is used only for "preverified" flow.
@@ -142,7 +138,6 @@ class RegisterStrongAuthState(
     /**
      * Requests the server to send the challenge to the default authentication method; callback variant
      *
-     * <strong><u>Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
      * @param parameters [com.microsoft.identity.nativeauth.parameters.NativeAuthChallengeAuthMethodParameters] Parameters used to challenge an authentication method.
      * @param callback [com.microsoft.identity.nativeauth.statemachine.states.RegisterStrongAuthState.ChallengeAuthMethodCallback] to receive the result on.
      */
@@ -166,7 +161,6 @@ class RegisterStrongAuthState(
     /**
      * Requests the server to send the challenge to the default authentication method; Kotlin coroutines variant.
      *
-     * <strong><u>Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
      * @param parameters [com.microsoft.identity.nativeauth.parameters.NativeAuthChallengeAuthMethodParameters] Parameters used to challenge an authentication method.
      * @return The result of the challenge authentication method action.
      */
@@ -225,7 +219,6 @@ class RegisterStrongAuthVerificationRequiredState(
     /**
      * Submits the challenge value to the server; callback variant.
      *
-     * <strong><u>Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
      * @param challenge The challenge value to be submitted.
      * @param callback [com.microsoft.identity.nativeauth.statemachine.states.RegisterStrongAuthState.SubmitChallengeCallback] to receive the result on.
      */
@@ -249,7 +242,6 @@ class RegisterStrongAuthVerificationRequiredState(
     /**
      * Submits the challenge value to the server; Kotlin coroutines variant.
      *
-     * <strong><u>Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
      * @param challenge The challenge value to be submitted.
      * @return The results of the submit challenge action.
      */
@@ -260,10 +252,6 @@ class RegisterStrongAuthVerificationRequiredState(
             methodName = "${TAG}.submitChallenge(challenge: String)"
         )
 
-        Logger.warn(
-            TAG,
-            "Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications."
-        )
         if (challenge.isBlank()) {
           return RegisterStrongAuthSubmitChallengeError(
               errorMessage = "Empty challenge provided.",
@@ -342,7 +330,6 @@ class RegisterStrongAuthVerificationRequiredState(
     /**
      * Requests the server to send the challenge to the default authentication method; callback variant
      *
-     * <strong><u>Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
      * @param parameters [com.microsoft.identity.nativeauth.parameters.NativeAuthChallengeAuthMethodParameters] Parameters used to challenge an authentication method.
      * @param callback [com.microsoft.identity.nativeauth.statemachine.states.RegisterStrongAuthState.ChallengeAuthMethodCallback] to receive the result on.
      */
@@ -366,7 +353,6 @@ class RegisterStrongAuthVerificationRequiredState(
     /**
      * Requests the server to send the challenge to the default authentication method; Kotlin coroutines variant.
      *
-     * <strong><u>Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
      * @param parameters [com.microsoft.identity.nativeauth.parameters.NativeAuthChallengeAuthMethodParameters] Parameters used to challenge an authentication method.
      * @return The result of the challenge authentication method action.
      */

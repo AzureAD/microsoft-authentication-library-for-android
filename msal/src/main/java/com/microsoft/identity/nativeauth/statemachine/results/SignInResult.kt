@@ -78,7 +78,6 @@ interface SignInResult : Result {
     /**
      * MFARequired Result, which indicates that the multi-factor authentication is needed.
      *
-     * <strong><u>Warning: this class is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
      * @param nextState [com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState] the current state of the flow with follow-on methods.
      */
     class MFARequired(
@@ -88,7 +87,6 @@ interface SignInResult : Result {
     /**
      * StrongAuthMethodRegistration Result, which indicates that a registration of a strong authentication method is required to continue.
      *
-     * <strong><u>Warning: this class is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
      * @param nextState [com.microsoft.identity.nativeauth.statemachine.states.RegisterStrongAuthState] the current state of the flow with follow-on methods.
      */
     class StrongAuthMethodRegistrationRequired(
