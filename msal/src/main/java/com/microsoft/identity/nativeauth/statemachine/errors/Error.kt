@@ -175,7 +175,7 @@ class ResendCodeError(
     override val correlationId: String,
     override val errorCodes: List<Int>? = null,
     override var exception: Exception? = null
-): SignInResendCodeResult, SignUpResendCodeResult, ResetPasswordResendCodeResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception)
+): SignInResendCodeResult, SignUpResendCodeResult, ResetPasswordResendCodeResult, BrowserRequiredError, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception)
 
 class GetAccountError(
     override val errorType: String? = null,

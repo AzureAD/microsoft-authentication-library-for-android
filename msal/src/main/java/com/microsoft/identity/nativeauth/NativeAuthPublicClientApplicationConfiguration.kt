@@ -52,6 +52,7 @@ public class NativeAuthPublicClientApplicationConfiguration :
 
     private object NativeAuthSerializedNames {
         const val CHALLENGE_TYPES = "challenge_types"
+        const val CAPABILITIES = "capabilities"
         const val USE_MOCK_API = "use_mock_api_for_native_auth"
         const val DC = "dc"
     }
@@ -60,6 +61,10 @@ public class NativeAuthPublicClientApplicationConfiguration :
     //For a complete list of challenge types see [NativeAuthConstants.ChallengeType]
     @SerializedName(NativeAuthSerializedNames.CHALLENGE_TYPES)
     private var challengeTypes: List<String>? = null
+
+    //List of capabilities supported by the client.
+    @SerializedName(NativeAuthSerializedNames.CAPABILITIES)
+    private var capabilities: List<String>? = null
 
     //The mock API authority used for testing will be rejected by validation logic run on
     // instantiation. This flag is used to bypass those checks in various points in the application
@@ -90,6 +95,8 @@ public class NativeAuthPublicClientApplicationConfiguration :
 
         // Handle Native Auth specific fields
         challengeTypes = if (config.challengeTypes == null) challengeTypes else config.challengeTypes
+
+        capabilities = if (config.capabilities == null) capabilities else config.capabilities
 
         useMockAuthority = if (config.useMockAuthority == null) useMockAuthority else config.useMockAuthority
 
@@ -174,6 +181,7 @@ public class NativeAuthPublicClientApplicationConfiguration :
 
         // Check that challenge types are all valid
         validateChallengeTypes()
+        validateCapabilities()
     }
 
     /**

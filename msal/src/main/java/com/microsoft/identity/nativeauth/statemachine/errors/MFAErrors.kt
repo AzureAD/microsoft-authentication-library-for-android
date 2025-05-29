@@ -66,7 +66,7 @@ class MFASubmitChallengeError(
     override val errorCodes: List<Int>? = null,
     val subError: String? = null,
     override var exception: Exception? = null
-): MFASubmitChallengeResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception)
+): MFASubmitChallengeResult, BrowserRequiredError, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception)
 {
     fun isInvalidChallenge(): Boolean = this.errorType == ErrorTypes.INVALID_CHALLENGE
 }
