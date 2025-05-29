@@ -24,6 +24,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
 import androidx.annotation.NonNull;
 
+import com.microsoft.identity.client.msal.automationapp.BuildConfig;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
@@ -107,7 +108,13 @@ public class TestCase2584414 extends AbstractMsalBrokerTest {
 
         msalTestApp.handleBackButton();
         final String activeBroker = msalTestApp.getActiveBrokerPackageName();
-        Assert.assertEquals("Active broker pkg name : " + BrokerMicrosoftAuthenticator.AUTHENTICATOR_APP_PACKAGE_NAME, activeBroker);
+
+        // Check flight, if v2 is enabled, LTW should have the highest priority.
+        final String activeBrokerApp = BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("EnableBrokerDiscoveryV2Protocol:true") ?
+                BrokerLTW.BROKER_LTW_APP_PACKAGE_NAME :
+                BrokerMicrosoftAuthenticator.AUTHENTICATOR_APP_PACKAGE_NAME;
+
+        Assert.assertEquals("Active broker pkg name : " + activeBrokerApp, activeBroker);
     }
     @Override
     public LabQuery getLabQuery() {
