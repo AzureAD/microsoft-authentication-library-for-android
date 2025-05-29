@@ -216,7 +216,7 @@ public class NativeAuthPublicClientApplicationConfiguration :
             if (capability !in VALID_CAPABILITIES_TYPES) {
                 throw MsalClientException(
                     MsalClientException.NATIVE_AUTH_INVALID_CAPABILITY_TYPE_ERROR_CODE,
-                    MsalClientException.NATIVE_AUTH_INVALID_CAPABILITY_TYPE_ERROR_MESSAGE + " \"" + capabilities + "\""
+                    MsalClientException.NATIVE_AUTH_INVALID_CAPABILITY_TYPE_ERROR_MESSAGE + " \"" + capability + "\""
                 )
             }
         }
