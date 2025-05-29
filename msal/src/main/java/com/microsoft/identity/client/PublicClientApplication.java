@@ -242,6 +242,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         static final String ACCOUNT = "account";
         static final String NULL_ERROR_SUFFIX = " cannot be null or empty";
         static final String CHALLENGE_TYPES = "challenge_types";
+
+        static final String CONFIG = "config";
     }
 
     /**
@@ -835,6 +837,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      *                             </p>
      * @return An instance of INativeAuthPublicClientApplication.
      */
+    @Deprecated
     public static INativeAuthPublicClientApplication createNativeAuthPublicClientApplication(
             @NonNull final Context context,
             final int configFileResourceId) throws InterruptedException, MsalException {
@@ -929,6 +932,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      * @param authority   The default authority to be used for the authority. If this is null, the default authority will be used.
      * @param redirectUri The redirect URI of the application.
      * @return An instance of INativeAuthPublicClientApplication.
+     *
+     * @deprecated This method is deprecated because CAPABILITIES parameter is required. Use createNativeAuthPublicClientApplication(NativeAuthPublicClientApplicationConfiguration config) instead.
      */
     public static INativeAuthPublicClientApplication createNativeAuthPublicClientApplication(
             @NonNull final Context context,
@@ -948,6 +953,56 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     authority,
                     redirectUri,
                     challengeTypes
+            );
+        } catch (BaseException e) {
+            throw new MsalClientException(
+                    UNKNOWN_ERROR,
+                    NATIVE_AUTH_APPLICATION_CREATION_UNKNOWN_ERROR_MESSAGE,
+                    e
+            );
+        }
+    }
+
+    /**
+     * Creates an instance of INativeAuthPublicClientApplication using the provided context and configuration.
+     *
+     * <p>{@link PublicClientApplication#createNativeAuthPublicClientApplication(Context, NativeAuthPublicClientApplicationConfiguration)}
+     * will read the client id and other configuration settings from the provided configuration object.</p>
+     *
+     * <p>This function will pass back an {@link MsalClientException} object if it is unable
+     * to return {@link INativeAuthPublicClientApplication}. For example, AccountMode
+     * in configuration is not set to single.</p>
+     *
+     * @param context Application's {@link Context}. The SDK requires the application context
+     *                to be passed in {@link PublicClientApplication}. Cannot be null.
+     *                <p>
+     *                Note: The {@link Context} should be the application context instead of
+     *                the running activity's context, which could potentially make the SDK hold a
+     *                strong reference to the activity, thus preventing correct garbage
+     *                collection and causing bugs.
+     *                </p>
+     * @param config The configuration object containing client ID, authority, redirect URI, and challenge types.
+     *               Cannot be null.
+     *               <p>
+     *               For more information on the schema of the MSAL configuration object,
+     *               please see <a href="https://developer.android.com/guide/topics/resources/providing-resources">Android app resource overview</a>
+     *               and <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>.
+     *               </p>
+     * @return An instance of INativeAuthPublicClientApplication.
+     */
+    public static INativeAuthPublicClientApplication createNativeAuthPublicClientApplication(
+            @NonNull final Context context,
+            @NonNull final NativeAuthPublicClientApplicationConfiguration config) throws MsalException {
+        validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
+        validateNonNullArgument(config, NONNULL_CONSTANTS.CONFIG);
+
+        try {
+            return createNativeAuthApplication(
+                    Companion.initializeNativeAuthConfiguration(context, config),
+                    null,
+                    null,
+                    null,
+                    null
             );
         } catch (BaseException e) {
             throw new MsalClientException(
