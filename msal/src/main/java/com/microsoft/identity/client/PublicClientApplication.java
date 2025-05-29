@@ -237,13 +237,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         static final String AUTHORITY = "authority";
         static final String REDIRECT_URI = "redirect_uri";
         static final String CONFIG_FILE = "config_file";
+        static final String CONFIG = "config";
         static final String ACTIVITY = "activity";
         static final String SCOPES = "scopes";
         static final String ACCOUNT = "account";
         static final String NULL_ERROR_SUFFIX = " cannot be null or empty";
         static final String CHALLENGE_TYPES = "challenge_types";
-
-        static final String CONFIG = "config";
     }
 
     /**
@@ -933,7 +932,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      * @param redirectUri The redirect URI of the application.
      * @return An instance of INativeAuthPublicClientApplication.
      *
-     * @deprecated This method is deprecated because CAPABILITIES parameter is required. Use createNativeAuthPublicClientApplication(NativeAuthPublicClientApplicationConfiguration config) instead.
+     * @deprecated This method is deprecated because optional parameter CAPABILITIES  cannot be included. Use createNativeAuthPublicClientApplication(Context, NativeAuthPublicClientApplicationConfiguration) instead.
      */
     public static INativeAuthPublicClientApplication createNativeAuthPublicClientApplication(
             @NonNull final Context context,
