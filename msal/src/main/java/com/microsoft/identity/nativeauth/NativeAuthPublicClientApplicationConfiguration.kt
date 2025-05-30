@@ -48,8 +48,8 @@ public class NativeAuthPublicClientApplicationConfiguration :
         private val TAG = NativeAuthPublicClientApplicationConfiguration::class.java.simpleName
         private val VALID_CHALLENGE_TYPES = listOf(NativeAuthConstants.ChallengeType.PASSWORD,
             NativeAuthConstants.ChallengeType.OOB, NativeAuthConstants.ChallengeType.REDIRECT)
-        private val VALID_CAPABILITIES_TYPES = listOf(NativeAuthConstants.CapabilityType.MFA_REQUIRED,
-            NativeAuthConstants.CapabilityType.REGISTRATION_REQUIRED)
+        private val VALID_CAPABILITIES = listOf(NativeAuthConstants.Capabilities.MFA_REQUIRED,
+            NativeAuthConstants.Capabilities.REGISTRATION_REQUIRED)
     }
 
     private object NativeAuthSerializedNames {
@@ -213,10 +213,10 @@ public class NativeAuthPublicClientApplicationConfiguration :
 
         capabilities?.forEach { capability ->
             // Make sure capabilities passed were valid
-            if (capability !in VALID_CAPABILITIES_TYPES) {
+            if (capability !in VALID_CAPABILITIES) {
                 throw MsalClientException(
-                    MsalClientException.NATIVE_AUTH_INVALID_CAPABILITY_TYPE_ERROR_CODE,
-                    MsalClientException.NATIVE_AUTH_INVALID_CAPABILITY_TYPE_ERROR_MESSAGE + " \"" + capability + "\""
+                    MsalClientException.NATIVE_AUTH_INVALID_CAPABILITY_ERROR_CODE,
+                    MsalClientException.NATIVE_AUTH_INVALID_CAPABILITY_ERROR_MESSAGE + " \"" + capability + "\""
                 )
             }
         }

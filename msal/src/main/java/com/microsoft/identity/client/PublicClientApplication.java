@@ -836,7 +836,6 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      *                             </p>
      * @return An instance of INativeAuthPublicClientApplication.
      */
-    @Deprecated
     public static INativeAuthPublicClientApplication createNativeAuthPublicClientApplication(
             @NonNull final Context context,
             final int configFileResourceId) throws InterruptedException, MsalException {
@@ -932,8 +931,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      * @param redirectUri The redirect URI of the application.
      * @return An instance of INativeAuthPublicClientApplication.
      *
-     * @deprecated This method is deprecated because optional parameter CAPABILITIES  cannot be included. Use createNativeAuthPublicClientApplication(Context, NativeAuthPublicClientApplicationConfiguration) instead.
+     * @deprecated This method is deprecated. Use createNativeAuthPublicClientApplication(Context, NativeAuthPublicClientApplicationConfiguration) instead.
      */
+    @Deprecated
     public static INativeAuthPublicClientApplication createNativeAuthPublicClientApplication(
             @NonNull final Context context,
             @NonNull final String clientId,
