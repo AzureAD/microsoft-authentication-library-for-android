@@ -22,7 +22,7 @@ resources:
   - repository: common
     type: github
     name: AzureAD/microsoft-authentication-library-common-for-android
-    ref: dev
+    ref: revert-2651-revert-2587-gradleVersionChange2
     endpoint: ANDROID_GITHUB
 
 pool:
