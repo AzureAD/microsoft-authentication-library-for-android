@@ -65,6 +65,7 @@ public class NativeAuthPublicClientApplicationConfiguration :
     private var challengeTypes: List<String>? = null
 
     //List of capabilities supported by the client.
+    //For a complete list of challenge types see [NativeAuthConstants.Capabilities]
     @SerializedName(NativeAuthSerializedNames.CAPABILITIES)
     private var capabilities: List<String>? = null
 
@@ -84,6 +85,14 @@ public class NativeAuthPublicClientApplicationConfiguration :
 
     fun setChallengeTypes(challengeTypes: List<String>?) {
         this.challengeTypes = challengeTypes
+    }
+
+    fun getCapabilities(): List<String>? {
+        return capabilities
+    }
+
+    fun setCapabilities(capabilities: List<String>?) {
+        this.capabilities = capabilities
     }
 
     fun mergeConfiguration(config: NativeAuthPublicClientApplicationConfiguration) {
