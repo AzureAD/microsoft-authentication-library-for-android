@@ -61,7 +61,7 @@ class SignInSubmitPasswordError(
     override val correlationId: String,
     override  val errorCodes: List<Int>? = null,
     override var exception: Exception? = null
-): SignInSubmitPasswordResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
+): BrowserRequiredError, SignInSubmitPasswordResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
     fun isInvalidCredentials(): Boolean = this.errorType == SignInErrorTypes.INVALID_CREDENTIALS
 }
 
@@ -82,4 +82,4 @@ open class SignInContinuationError(
     override val correlationId: String,
     override val errorCodes: List<Int>? = null,
     override var exception: Exception? = null
-): SignInResult, Error(errorType = null, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception)
+): BrowserRequiredError, SignInResult, Error(errorType = null, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception)
