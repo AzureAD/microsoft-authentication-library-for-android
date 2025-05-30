@@ -287,7 +287,17 @@ class SignInCodeRequiredState internal constructor(
                         )
                     }
 
-                    is INativeAuthCommandResult.Redirect, is INativeAuthCommandResult.APIError -> {
+                    is INativeAuthCommandResult.Redirect -> {
+                        ResendCodeError(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes
+                        )
+                    }
+
+                    is INativeAuthCommandResult.APIError -> {
                         Logger.warnWithObject(
                             TAG,
                             result.correlationId,
@@ -466,7 +476,18 @@ class SignInPasswordRequiredState(
                                 )
                             )
                         }
-                        is INativeAuthCommandResult.Redirect, is INativeAuthCommandResult.APIError -> {
+
+                        is INativeAuthCommandResult.Redirect -> {
+                            SignInSubmitPasswordError(
+                                errorType = ErrorTypes.BROWSER_REQUIRED,
+                                error = result.error,
+                                errorMessage = result.errorDescription,
+                                correlationId = result.correlationId,
+                                errorCodes = result.errorCodes
+                            )
+                        }
+
+                        is INativeAuthCommandResult.APIError -> {
                             Logger.warnWithObject(
                                 TAG,
                                 result.correlationId,

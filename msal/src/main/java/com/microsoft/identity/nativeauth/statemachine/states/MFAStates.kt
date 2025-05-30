@@ -568,7 +568,15 @@ class MFARequiredState(
                             errorCodes = result.errorCodes,
                             subError = result.subError
                         )
-
+                    }
+                    is INativeAuthCommandResult.Redirect -> {
+                        MFASubmitChallengeError(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes
+                        )
                     }
                     is INativeAuthCommandResult.APIError -> {
                         Logger.warnWithObject(
