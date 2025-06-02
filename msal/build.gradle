@@ -1,5 +1,5 @@
 plugins {
-    id 'com.microsoft.identity.buildsystem' version '0.2.3'
+    id 'com.microsoft.identity.buildsystem' version '0.2.5'
     id 'com.android.library'
     id 'pmd'
     id 'checkstyle'
@@ -44,7 +44,7 @@ android {
 //            coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
 //        }
 //    }
-
+    namespace "com.microsoft.identity.msal"
     compileOptions {
         // Flag to enable support for the new language APIs
         coreLibraryDesugaringEnabled true
@@ -70,6 +70,9 @@ android {
         project.archivesBaseName = "msal"
         project.version = android.defaultConfig.versionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {
@@ -163,7 +166,6 @@ task javadoc(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
     configurations.api.setCanBeResolved(true)
     classpath += configurations.api
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
 
     options.memberLevel = JavadocMemberLevel.PUBLIC
     options.addStringOption('Xdoclint:none', '-quiet')
@@ -172,17 +174,16 @@ task javadoc(type: Javadoc) {
     exclude '**/R.java'
     destinationDir = reporting.file("$project.buildDir/outputs/jar/javadoc/")
 }
-
 // Task to generate javadoc.jar
 task javadocJar(type: Jar, dependsOn: javadoc) {
     from javadoc.destinationDir
-    classifier 'javadoc'
+    archiveClassifier.set('javadoc')
     destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
 }
 
 task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
-    classifier 'sources'
+    archiveClassifier.set('sources')
     destinationDirectory = reporting.file("$project.buildDir/outputs/jar/")
 }
 
@@ -300,8 +301,8 @@ task pmd(type: Pmd) {
     source = fileTree('src/main/java')
 
     reports {
-        xml.enabled = false
-        html.enabled = true
+        xml.required = false
+        html.required = true
     }
 }
 
@@ -322,7 +323,7 @@ afterEvaluate {
     publishing {
         publications {
             msal(MavenPublication) {
-                from components.distRelease
+                from components.findByName('distRelease')
                 groupId 'com.microsoft.identity.client'
                 artifactId 'msal'
                 //Edit the 'version' here for VSTS RC build

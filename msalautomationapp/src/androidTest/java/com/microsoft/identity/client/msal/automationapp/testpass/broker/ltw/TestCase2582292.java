@@ -56,7 +56,7 @@ import java.util.List;
 public class TestCase2582292 extends AbstractMsalBrokerTest {
 
     @Test
-    public void test_2582292() throws LabApiException, InterruptedException, UiObjectNotFoundException {
+    public void test_2582292_LTW_LTWActiveBrokerShouldNotBreakSDMMSALAuthenticatorRequest() throws LabApiException, InterruptedException, UiObjectNotFoundException {
         final String username1 = mLabAccount.getUsername();
         final String password1 = mLabAccount.getPassword();
 

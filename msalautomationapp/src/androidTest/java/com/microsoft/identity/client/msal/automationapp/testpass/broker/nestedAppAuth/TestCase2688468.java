@@ -44,7 +44,7 @@ import org.junit.Test;
 @SupportedBrokers(brokers = {BrokerHost.class})
 public class TestCase2688468 extends AbstractMsalBrokerTest {
     @Test
-    public void test_2688468()  throws Throwable {
+    public void test_2688468_NAA_ATAfterWPJ()  throws Throwable {
 
         // perform WPJ
         mBroker.performDeviceRegistration(mLabAccount.getUsername(), mLabAccount.getPassword());

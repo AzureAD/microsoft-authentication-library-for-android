@@ -54,7 +54,7 @@ import java.util.Arrays;
 @Ignore("Covering this case as part of TestCase833526, reducing enrollment calls with MDM account")
 public class TestCase1561185 extends AbstractMsalBrokerTest {
     @Test
-    public void test_1561185() throws Throwable {
+    public void test_1561185_Joined_PKeyAuth() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

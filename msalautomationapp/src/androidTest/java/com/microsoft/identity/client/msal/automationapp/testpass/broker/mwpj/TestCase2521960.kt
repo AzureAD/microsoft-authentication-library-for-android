@@ -57,7 +57,7 @@ class TestCase2521960 : AbstractMsalBrokerTest() {
     val loadAdditionalLabUserRule: TestRule = LoadLabUserTestRule(TempUserType.BASIC)
 
     @Test
-    fun test_2521960() {
+    fun test_2521960_MWPJ_RegistrationEntryMigrationSameTenantDifferentUpn() {
         // Register 2 accounts from different tenants
         mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mUsGovAccount.username, mUsGovAccount.password)
         mBrokerHostApp.multipleWpjApiFragment.performDeviceRegistration(mLabAccount.username, mLabAccount.password)

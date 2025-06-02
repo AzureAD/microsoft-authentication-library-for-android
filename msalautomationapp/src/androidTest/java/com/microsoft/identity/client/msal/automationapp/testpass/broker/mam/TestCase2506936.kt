@@ -45,7 +45,7 @@ import org.junit.Test
 class TestCase2506936 : AbstractMsalBrokerTest(){
 
     @Test
-    fun test_2506936() {
+    fun test_2506936_MAM_TeamsSignInThenOutThenInAgain() {
         // Fetch credentials
         val username: String = mLabAccount.username
         val password: String = mLabAccount.password

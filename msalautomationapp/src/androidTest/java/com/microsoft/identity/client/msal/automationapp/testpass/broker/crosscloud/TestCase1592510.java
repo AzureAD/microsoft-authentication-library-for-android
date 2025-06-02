@@ -79,7 +79,7 @@ public class TestCase1592510 extends AbstractGuestAccountMsalBrokerUiTest {
     }
 
     @Test
-    public void test_1592510() throws Throwable {
+    public void test_1592510_CrossCloud_HomeCloudATThenCrossCloudAT() throws Throwable {
         final String userName = mGuestUser.getHomeUpn();
         final String password = mLabClient.getPasswordForGuestUser(mGuestUser);
 

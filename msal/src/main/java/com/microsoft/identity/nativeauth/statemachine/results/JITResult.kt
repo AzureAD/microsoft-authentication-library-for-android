@@ -21,23 +21,26 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 
-package com.microsoft.identity.nativeauth.parameters
+package com.microsoft.identity.nativeauth.statemachine.results
 
-import com.microsoft.identity.client.claims.ClaimsRequest
+import com.microsoft.identity.nativeauth.parameters.NativeAuthRegisterStrongAuthVerificationRequiredResultParameter
+
+interface RegisterStrongAuthChallengeResult: Result {
+
+    /**
+     * Verification required result, which indicates that a challenge was sent to the user's auth method,
+     * and the server expects the challenge to be verified.
+     *
+     * @param result [com.microsoft.identity.nativeauth.parameters.NativeAuthRegisterStrongAuthVerificationRequiredResultParameter] a parameter object containing the result of the action.
+     */
+    class VerificationRequired(
+        val result: NativeAuthRegisterStrongAuthVerificationRequiredResultParameter
+    ) : RegisterStrongAuthChallengeResult, Result.SuccessResult(nextState = result.nextState)
+
+}
 
 /**
- * Encapsulates the parameters passed to the signIn methods after signUp or resetPassword
+ * Results related to submit challenge operation, produced by
+ * [com.microsoft.identity.nativeauth.statemachine.states.RegisterStrongAuthVerificationquiredState.submitChallenge]
  */
-class NativeAuthSignInContinuationParameters {
-
-    /**
-     * Permissions you want included in the access token received.
-     * Not all scopes are guaranteed to be included in the access token returned.
-     */
-    var scopes: List<String>? = null
-
-    /**
-     *  The claims parameter that needs to be sent to the service.
-     */
-    var claimsRequest: ClaimsRequest? = null
-}
+interface RegisterStrongAuthSubmitChallengeResult : Result

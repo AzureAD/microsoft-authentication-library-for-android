@@ -6,6 +6,12 @@
 
 *       @AzureAD/androididentity
 
+# Shared Ownership
+#---------------------
+changelog @AzureAD/androididentity @AzureAD/NativeAuthTeam
+msal/src/main/java/com/microsoft/identity/client/internal/CommandParametersAdapter.java @AzureAD/androididentity @AzureAD/NativeAuthTeam
+common @AzureAD/androididentity @AzureAD/NativeAuthTeam
+msal/src/test/java/com/microsoft/identity/client/CommandParametersTest.java @AzureAD/androididentity @AzureAD/NativeAuthTeam
 
 # Area Owners
 #---------------------
