@@ -65,7 +65,7 @@ public class NativeAuthPublicClientApplicationConfiguration :
     private var challengeTypes: List<String>? = null
 
     //List of capabilities supported by the client.
-    //For a complete list of challenge types see [NativeAuthConstants.Capabilities]
+    //For a complete list of capabilities see [NativeAuthConstants.Capabilities]
     @SerializedName(NativeAuthSerializedNames.CAPABILITIES)
     private var capabilities: List<String>? = null
 
