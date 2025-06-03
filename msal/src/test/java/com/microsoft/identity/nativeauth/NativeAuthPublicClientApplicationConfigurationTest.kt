@@ -357,7 +357,7 @@ class NativeAuthPublicClientApplicationConfigurationTest {
     }
 
     @Test
-    fun testSingleCorrectCapabilities() {
+    fun testSingleCorrectCapability() {
         val config = NativeAuthPublicClientApplicationConfiguration()
         config.clientId = clientId
         config.accountMode = AccountMode.SINGLE
