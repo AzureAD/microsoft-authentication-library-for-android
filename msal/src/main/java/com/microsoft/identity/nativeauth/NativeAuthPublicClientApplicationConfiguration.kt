@@ -192,6 +192,7 @@ public class NativeAuthPublicClientApplicationConfiguration :
 
         // Check that challenge types are all valid
         validateChallengeTypes()
+        // Check that capabilities are all valid
         validateCapabilities()
     }
 
