@@ -199,9 +199,13 @@ public class NativeAuthPublicClientApplicationConfiguration :
     /**
      * Validates that the challenge types passed are valid
      */
+    @Throws(MsalClientException::class)
     private fun validateChallengeTypes() {
         // Make all challenge types lowercase for simplicity
         challengeTypes = challengeTypes?.map { it.lowercase() }
+
+        // Remove duplicate capabilities
+        challengeTypes = challengeTypes?.distinct()
 
         challengeTypes?.forEach { challengeType ->
             // Make sure challenge types passed were valid
@@ -217,9 +221,13 @@ public class NativeAuthPublicClientApplicationConfiguration :
     /**
      * Validates that the capabilities passed are valid
      */
+    @Throws(MsalClientException::class)
     private fun validateCapabilities() {
         // Make all capabilities lowercase for simplicity
         capabilities = capabilities?.map { it.lowercase() }
+
+        // Remove duplicate capabilities
+        capabilities = capabilities?.distinct()
 
         capabilities?.forEach { capability ->
             // Make sure capabilities passed were valid
