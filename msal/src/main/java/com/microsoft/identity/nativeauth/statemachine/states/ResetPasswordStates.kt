@@ -167,7 +167,7 @@ class ResetPasswordCodeRequiredState internal constructor(
                         SubmitCodeError(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
                             error = result.error,
-                            errorMessage = result.errorDescription,
+                            errorMessage = result.redirectReason,
                             correlationId = result.correlationId
                         )
                     }
@@ -275,7 +275,7 @@ class ResetPasswordCodeRequiredState internal constructor(
                         ResendCodeError(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
                             error = result.error,
-                            errorMessage = result.errorDescription,
+                            errorMessage = result.redirectReason,
                             correlationId = result.correlationId,
                             errorCodes = result.errorCodes
                         )
@@ -462,7 +462,7 @@ class ResetPasswordPasswordRequiredState internal constructor(
                             ResetPasswordSubmitPasswordError(
                                 errorType = ErrorTypes.BROWSER_REQUIRED,
                                 error = result.error,
-                                errorMessage = result.errorDescription,
+                                errorMessage = result.redirectReason,
                                 correlationId = result.correlationId,
                                 errorCodes = result.errorCodes
                             )

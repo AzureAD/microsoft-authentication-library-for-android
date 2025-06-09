@@ -126,7 +126,7 @@ abstract class BaseJITSubmitChallengeState(
                     RegisterStrongAuthChallengeError(
                         errorType = ErrorTypes.BROWSER_REQUIRED,
                         error = result.error,
-                        errorMessage = result.errorDescription,
+                        errorMessage = result.redirectReason,
                         correlationId = result.correlationId,
                         errorCodes = result.errorCodes
                     )
@@ -327,7 +327,7 @@ class RegisterStrongAuthVerificationRequiredState(
                     RegisterStrongAuthSubmitChallengeError(
                         errorType = ErrorTypes.BROWSER_REQUIRED,
                         error = result.error,
-                        errorMessage = result.errorDescription,
+                        errorMessage = result.redirectReason,
                         correlationId = result.correlationId,
                         errorCodes = result.errorCodes
                     )
