@@ -84,7 +84,7 @@ class ResetPasswordSubmitPasswordError(
     override val errorCodes: List<Int>? = null,
     val subError: String? = null,
     override var exception: Exception? = null
-): ResetPasswordSubmitPasswordResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
+): BrowserRequiredError, ResetPasswordSubmitPasswordResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
 
     fun isInvalidPassword() : Boolean = this.errorType == ErrorTypes.INVALID_PASSWORD
 
