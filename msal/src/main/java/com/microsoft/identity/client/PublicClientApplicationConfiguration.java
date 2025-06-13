@@ -82,6 +82,7 @@ import com.microsoft.identity.common.java.ui.BrowserDescriptor;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.crypto.SecretKey;
@@ -247,6 +248,9 @@ public class PublicClientApplicationConfiguration {
      * @return The List of current Authorities.
      */
     public List<Authority> getAuthorities() {
+        if (mAuthorities == null) {
+            mAuthorities = new ArrayList<>();
+        }
         return mAuthorities;
     }
 

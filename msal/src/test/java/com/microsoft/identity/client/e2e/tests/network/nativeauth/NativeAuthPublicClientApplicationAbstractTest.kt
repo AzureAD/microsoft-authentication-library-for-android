@@ -124,7 +124,8 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
                 config.authorityUrl,
                 config.clientId
             )
-            nativeAuthConfig.authorities.add(authorityObject)
+            authorityObject.setDefault(true)
+            nativeAuthConfig.getAuthorities().add(authorityObject)
             nativeAuthConfig.setChallengeTypes(challengeTypes)
             nativeAuthConfig.setCapabilities(capabilities)
 
