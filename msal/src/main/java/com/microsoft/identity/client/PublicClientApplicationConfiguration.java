@@ -435,7 +435,7 @@ public class PublicClientApplicationConfiguration {
     }
 
     public Authority getDefaultAuthority() {
-        if (mAuthorities != null) {
+        if (mAuthorities != null && mAuthorities.size() != 0) {
             if (mAuthorities.size() > 1) {
                 for (Authority authority : mAuthorities) {
                     if (authority.getDefault()) {
