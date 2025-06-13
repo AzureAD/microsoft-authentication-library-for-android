@@ -47,7 +47,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
     private val defaultConfigType = ConfigType.SIGN_UP_PASSWORD
     private val defaultChallengeTypes = listOf("password", "oob")
-    private val defaultCapabilities = listOf("mfa_required registration_required")
+    private val defaultCapabilities = listOf("mfa_required", "registration_required")
 
 
     @Ignore("Retrieving OTP code failure.")

@@ -49,7 +49,7 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val defaultConfigType = ConfigType.SSPR
     private val defaultChallengeTypes = listOf("password", "oob")
-    private val defaultCapabilities = listOf("mfa_required registration_required")
+    private val defaultCapabilities = listOf("mfa_required", "registration_required")
 
     /**
      * Verify email with email OTP first and then reset password.

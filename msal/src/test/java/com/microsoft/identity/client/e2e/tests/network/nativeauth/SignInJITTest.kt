@@ -67,7 +67,7 @@ class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val defaultConfigType = ConfigType.SIGN_IN_MFA_SINGLE_AUTH
     private val defaultChallengeTypes = listOf("password", "oob")
-    private val defaultCapabilities = listOf("mfa_required registration_required")
+    private val defaultCapabilities = listOf("mfa_required", "registration_required")
 
     /**
      * Full flow: Ensure JIT is triggered on first signIn

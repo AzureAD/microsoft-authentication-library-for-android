@@ -47,7 +47,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val defaultConfigType = ConfigType.SIGN_UP_OTP
     private val defaultChallengeTypes = listOf("password", "oob")
-    private val defaultCapabilities = listOf("mfa_required registration_required")
+    private val defaultCapabilities = listOf("mfa_required", "registration_required")
 
     /**
      * Sign up with email + OTP. Verify email address using email OTP and sign up.
@@ -160,7 +160,7 @@ class SignUpEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
     @Test
     fun testErrorInvalidEmailFormat() {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
             val user = INVALID_EMAIL
