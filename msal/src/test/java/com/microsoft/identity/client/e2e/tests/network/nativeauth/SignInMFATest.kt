@@ -32,10 +32,14 @@ import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
 import com.microsoft.identity.nativeauth.parameters.NativeAuthGetAccessTokenParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
 import com.microsoft.identity.nativeauth.statemachine.errors.MFASubmitChallengeError
+import com.microsoft.identity.nativeauth.statemachine.errors.ResetPasswordError
+import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
+import com.microsoft.identity.nativeauth.statemachine.errors.SignUpError
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
 import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -55,6 +59,7 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val defaultConfigType = ConfigType.SIGN_IN_MFA_SINGLE_AUTH
     private val defaultChallengeTypes = listOf("password", "oob")
+    private val defaultCapabilities = listOf("mfa_required registration_required")
 
     /**
      * Full flow:
@@ -72,7 +77,7 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
     @Test
     fun `test submit invalid challenge, request new challenge, submit correct challenge and complete MFA flow`()  {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
         resources = config.resources
 
         retryOperation {
@@ -142,7 +147,7 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
     @Test
     fun `test get other auth methods, request challenge on specific auth method and complete MFA flow`() {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
         resources = config.resources
 
         retryOperation {
@@ -214,7 +219,7 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
     @Test
     fun `test selection required, request challenge on specific auth method and complete MFA flow`() {
         config = getConfig(ConfigType.SIGN_IN_MFA_MULTI_AUTH)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
         resources = config.resources
 
         retryOperation {
@@ -277,7 +282,7 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
     @Test
     fun `test MFA flow is triggered when authentication context is used as claim`() {
         config = getConfig(ConfigType.SIGN_IN_MFA_SINGLE_AUTH)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
         resources = config.resources
         val authenticationContextId = "c4"
         val authenticationContextRequestClaimJson = "{\"access_token\":{\"acrs\":{\"essential\":true,\"value\":\"$authenticationContextId\"}}}"
@@ -328,6 +333,59 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
                     charset
                 )
                 assertTrue(atDecoded.contains(authenticationContextATClaimJson))
+            }
+        }
+    }
+
+    /**
+     * Full flow: Ensure that correct error is returned when an user doesn’t supply the “mfa_required” capability.
+     * - Initialise client with empty capabilities config
+     * - SignIn specifying authentication context as claim
+     * - Receive MFA required error from API
+     * - Request default challenge and submit correct challenge
+     * - Return redirect with reason mfa required was not supplied
+     *
+     */
+    @Ignore("Retrieving OTP code failure.")
+    @Test
+    fun `test Redirect is triggered when Capabilities incapable`() {
+        config = getConfig(ConfigType.SIGN_IN_MFA_MULTI_AUTH)
+        //Initialise client with empty capabilities config
+        application = setupPCA(config, defaultChallengeTypes, listOf())
+        resources = config.resources
+        val authenticationContextId = "c4"
+        val authenticationContextRequestClaimJson = "{\"access_token\":{\"acrs\":{\"essential\":true,\"value\":\"$authenticationContextId\"}}}"
+
+        retryOperation {
+            runBlocking {
+                val username = config.email
+                val password = getSafePassword()
+                val params = NativeAuthSignInParameters(username)
+                params.password = password.toCharArray()
+                params.claimsRequest = ClaimsRequest.getClaimsRequestFromJsonString(authenticationContextRequestClaimJson)
+
+                // SignIn specifying authentication context as claim
+                val result = application.signIn(params)
+                assertResult<SignInResult.MFARequired>(result)
+
+                // Receive MFA required error from API
+                val sendChallengeResult =
+                    (result as SignInResult.MFARequired).nextState.requestChallenge()
+                assertResult<MFARequiredResult.VerificationRequired>(sendChallengeResult)
+
+                // Request default challenge and submit correct challenge
+                (sendChallengeResult as MFARequiredResult.VerificationRequired)
+                assertNotNull(sendChallengeResult.sentTo)
+                assertNotNull(sendChallengeResult.codeLength)
+                assertNotNull(sendChallengeResult.channel)
+                // Retrieve challenge from mailbox and submit
+                val otp = tempEmailApi.retrieveCodeFromInbox(username)
+                val submitCorrectChallengeResult = sendChallengeResult.nextState.submitChallenge(otp)
+
+                // Return redirect with reason mfa required was not supplied
+                assertTrue(submitCorrectChallengeResult is SignInError)
+                assertTrue((submitCorrectChallengeResult as SignInError).isBrowserRequired())
+                assertTrue((submitCorrectChallengeResult as SignInError).errorMessage!!.contains("mfa required was not supplied"))
             }
         }
     }
