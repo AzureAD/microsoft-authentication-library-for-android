@@ -47,6 +47,7 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
     private val defaultConfigType = ConfigType.SIGN_IN_PASSWORD
     private val defaultChallengeTypes = listOf("password", "oob")
+    private val defaultCapabilities = listOf("mfa_required registration_required")
 
     /**
      * Use valid email and password to get token.
@@ -55,7 +56,7 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     @Test
     fun testSuccess() {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         runBlocking {
             val username = config.email
@@ -73,7 +74,7 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     @Test
     fun testErrorIsUserNotFound() {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         runBlocking {
             val username = INVALID_EMAIL
@@ -92,7 +93,7 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     @Test
     fun testErrorIsInvalidCredentials() {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         runBlocking {
             val username = config.email
@@ -111,7 +112,7 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     @Test
     fun testErrorOutOfPersistence() {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         runBlocking {
             val username = config.email
@@ -137,7 +138,7 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     @Test
     fun testErrorOutOfPersistenceDifferentAccount() {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         runBlocking {
             val param = NativeAuthSignInParameters(username = config.email)
@@ -177,7 +178,7 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     @Test
     fun testSuccessOTPConfigCodeRequired() {
         config = getConfig(ConfigType.SIGN_IN_OTP)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         runBlocking {
             val param = NativeAuthSignInParameters(username = config.email)
@@ -203,7 +204,7 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     @Test
     fun testErrorOTPConfigBrowserRequired() {
         config = getConfig(ConfigType.SIGN_IN_OTP)
-        application = setupPCA(config, listOf("password"))
+        application = setupPCA(config, listOf("password"), defaultCapabilities)
 
         runBlocking {
             val param = NativeAuthSignInParameters(username = config.email)
@@ -221,7 +222,7 @@ class SignInEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     @Test
     fun testSignOut() {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         runBlocking {
             val param = NativeAuthSignInParameters(username = config.email)
