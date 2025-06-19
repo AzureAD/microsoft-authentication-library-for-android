@@ -248,9 +248,6 @@ public class PublicClientApplicationConfiguration {
      * @return The List of current Authorities.
      */
     public List<Authority> getAuthorities() {
-        if (mAuthorities == null) {
-            mAuthorities = new ArrayList<>();
-        }
         return mAuthorities;
     }
 
@@ -435,7 +432,7 @@ public class PublicClientApplicationConfiguration {
     }
 
     public Authority getDefaultAuthority() {
-        if (mAuthorities != null && mAuthorities.size() != 0) {
+        if (mAuthorities != null) {
             if (mAuthorities.size() > 1) {
                 for (Authority authority : mAuthorities) {
                     if (authority.getDefault()) {
