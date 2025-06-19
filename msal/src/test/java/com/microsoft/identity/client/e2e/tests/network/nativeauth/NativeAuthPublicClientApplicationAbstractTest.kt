@@ -117,16 +117,16 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
 
     fun setupPCA(config: NativeAuthTestConfig.Config, challengeTypes: List<String>, capabilities: List<String>): INativeAuthPublicClientApplication {
         return try {
-            val configParameters = NativeAuthPublicClientApplicationParameters(
+            val parameters = NativeAuthPublicClientApplicationParameters(
                 config.clientId,
                 config.authorityUrl,
                 challengeTypes
             )
-            configParameters.capabilities = capabilities
+            parameters.capabilities = capabilities
 
             PublicClientApplication.createNativeAuthPublicClientApplication(
                 context,
-                configParameters
+                parameters
             )
         } catch (e: MsalException) {
             Assert.fail(e.message)
