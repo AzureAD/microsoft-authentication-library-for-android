@@ -341,12 +341,10 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
      * Full flow: Ensure that correct error is returned when an user doesn’t supply the “mfa_required” capability.
      * - Initialise client with empty capabilities config
      * - SignIn specifying authentication context as claim
-     * - Receive MFA required error from API
-     * - Request default challenge and submit correct challenge
      * - Return redirect with reason mfa required was not supplied
      *
      */
-    @Ignore("Retrieving OTP code failure.")
+    @Ignore("Backward compatibility feature not available in eSTS production")
     @Test
     fun `test Redirect is triggered when Capabilities incapable`() {
         config = getConfig(ConfigType.SIGN_IN_MFA_MULTI_AUTH)
@@ -362,30 +360,14 @@ class SignInMFATest : NativeAuthPublicClientApplicationAbstractTest() {
                 val password = getSafePassword()
                 val params = NativeAuthSignInParameters(username)
                 params.password = password.toCharArray()
-                params.claimsRequest = ClaimsRequest.getClaimsRequestFromJsonString(authenticationContextRequestClaimJson)
-
                 // SignIn specifying authentication context as claim
+                params.claimsRequest = ClaimsRequest.getClaimsRequestFromJsonString(authenticationContextRequestClaimJson)
                 val result = application.signIn(params)
-                assertResult<SignInResult.MFARequired>(result)
-
-                // Receive MFA required error from API
-                val sendChallengeResult =
-                    (result as SignInResult.MFARequired).nextState.requestChallenge()
-                assertResult<MFARequiredResult.VerificationRequired>(sendChallengeResult)
-
-                // Request default challenge and submit correct challenge
-                (sendChallengeResult as MFARequiredResult.VerificationRequired)
-                assertNotNull(sendChallengeResult.sentTo)
-                assertNotNull(sendChallengeResult.codeLength)
-                assertNotNull(sendChallengeResult.channel)
-                // Retrieve challenge from mailbox and submit
-                val otp = tempEmailApi.retrieveCodeFromInbox(username)
-                val submitCorrectChallengeResult = sendChallengeResult.nextState.submitChallenge(otp)
 
                 // Return redirect with reason mfa required was not supplied
-                assertTrue(submitCorrectChallengeResult is SignInError)
-                assertTrue((submitCorrectChallengeResult as SignInError).isBrowserRequired())
-                assertTrue((submitCorrectChallengeResult as SignInError).errorMessage!!.contains("mfa required was not supplied"))
+                assertTrue(result is SignInError)
+                assertTrue((result as SignInError).isBrowserRequired())
+                assertTrue(result.errorMessage!!.contains("mfa required was not supplied")) // TODO: checking the actual redirect reason
             }
         }
     }
