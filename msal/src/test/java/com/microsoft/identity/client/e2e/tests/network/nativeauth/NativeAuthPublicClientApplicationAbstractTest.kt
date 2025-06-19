@@ -32,7 +32,6 @@ import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncrypti
 import com.microsoft.identity.client.e2e.tests.IPublicClientApplicationTest
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper
-import com.microsoft.identity.common.java.authorities.Authority
 import com.microsoft.identity.internal.testutils.TestUtils
 import com.microsoft.identity.internal.testutils.labutils.KeyVaultFetchHelper
 import com.microsoft.identity.internal.testutils.labutils.LabConstants
@@ -41,7 +40,7 @@ import com.microsoft.identity.internal.testutils.labutils.LabUserQuery
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
-import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationParameters
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.setMain
@@ -118,20 +117,16 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
 
     fun setupPCA(config: NativeAuthTestConfig.Config, challengeTypes: List<String>, capabilities: List<String>): INativeAuthPublicClientApplication {
         return try {
-            val nativeAuthConfig = NativeAuthPublicClientApplicationConfiguration()
-            nativeAuthConfig.clientId = config.clientId
-            val authorityObject = Authority.getAuthorityFromAuthorityUrl(
+            val parameters = NativeAuthPublicClientApplicationParameters(
+                config.clientId,
                 config.authorityUrl,
-                config.clientId
+                challengeTypes
             )
-            authorityObject.setDefault(true)
-            nativeAuthConfig.getAuthorities().add(authorityObject)
-            nativeAuthConfig.setChallengeTypes(challengeTypes)
-            nativeAuthConfig.setCapabilities(capabilities)
+            parameters.capabilities = capabilities
 
             PublicClientApplication.createNativeAuthPublicClientApplication(
                 context,
-                nativeAuthConfig
+                parameters
             )
         } catch (e: MsalException) {
             Assert.fail(e.message)

@@ -88,14 +88,6 @@ class NativeAuthPublicClientApplicationConfigurationFactory :
         }
 
         /**
-         * Initialize [NativeAuthPublicClientApplicationConfiguration] object from the provided config object, if there is any,
-         * and merge it with the default native auth config
-         */
-        fun initializeNativeAuthConfiguration(context: Context, config: NativeAuthPublicClientApplicationConfiguration): NativeAuthPublicClientApplicationConfiguration {
-            return initializeNativeAuthConfigurationInternal(context, config)
-        }
-
-        /**
          * Initialize the Native Auth configuration with base MSAL default configs and Native Auth default Configs
          */
         @WorkerThread
