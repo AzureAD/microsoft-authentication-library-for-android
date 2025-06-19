@@ -984,7 +984,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      *                strong reference to the activity, thus preventing correct garbage
      *                collection and causing bugs.
      *                </p>
-     * @param nativeAuthConfigParameters The configuration parameter class containing mandatory client ID, challenge types and optional capabilities, authorityUri, redirectUri.
+     * @param configParameters The configuration parameter class containing mandatory client ID, authorityUri, challenge types and optional capabilities, redirectUri.
      *               Cannot be null.
      *               <p>
      *               For more information on the schema of the MSAL configuration object,
@@ -995,18 +995,18 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      */
     public static INativeAuthPublicClientApplication createNativeAuthPublicClientApplication(
             @NonNull final Context context,
-            @NonNull final NativeAuthConfigParameters nativeAuthConfigParameters) throws MsalException {
+            @NonNull final NativeAuthConfigParameters configParameters) throws MsalException {
         validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
-        validateNonNullArgument(nativeAuthConfigParameters, NONNULL_CONSTANTS.CONFIG_PARAMETER);
+        validateNonNullArgument(configParameters, NONNULL_CONSTANTS.CONFIG_PARAMETER);
 
         try {
             return createNativeAuthApplication(
                     Companion.initializeNativeAuthConfiguration(context),
-                    nativeAuthConfigParameters.getClientId(),
-                    nativeAuthConfigParameters.getAuthorityUrl(),
-                    nativeAuthConfigParameters.getRedirectUri(),
-                    nativeAuthConfigParameters.getChallengeTypes(),
-                    nativeAuthConfigParameters.getCapabilities()
+                    configParameters.getClientId(),
+                    configParameters.getAuthorityUrl(),
+                    configParameters.getRedirectUri(),
+                    configParameters.getChallengeTypes(),
+                    configParameters.getCapabilities()
             );
         } catch (BaseException e) {
             throw new MsalClientException(
