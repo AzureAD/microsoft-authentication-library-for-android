@@ -21,10 +21,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package com.microsoft.identity.nativeauth.parameters
+package com.microsoft.identity.nativeauth
 
 
-class NativeAuthConfigParameters (
+public class NativeAuthPublicClientApplicationParameters (
     /**
      * The application client id. Cannot be null.
      */
@@ -32,7 +32,7 @@ class NativeAuthConfigParameters (
     /**
      * The authorityUrl to be used for the authority.
      */
-    var authorityUrl: String,
+    val authorityUrl: String,
     /**
      * The challenge types supported for authentication declared by client. Cannot be null.
      */

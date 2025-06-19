@@ -142,7 +142,7 @@ import com.microsoft.identity.msal.BuildConfig;
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication;
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication;
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration;
-import com.microsoft.identity.nativeauth.parameters.NativeAuthConfigParameters;
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationParameters;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -969,7 +969,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     /**
      * Creates an instance of INativeAuthPublicClientApplication using the provided context and configuration.
      *
-     * <p>{@link PublicClientApplication#createNativeAuthPublicClientApplication(Context, NativeAuthConfigParameters)}
+     * <p>{@link PublicClientApplication#createNativeAuthPublicClientApplication(Context, NativeAuthPublicClientApplicationParameters)}
      * will read the client id and other configuration settings from the provided configuration object.</p>
      *
      * <p>This function will pass back an {@link MsalClientException} object if it is unable
@@ -984,7 +984,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      *                strong reference to the activity, thus preventing correct garbage
      *                collection and causing bugs.
      *                </p>
-     * @param configParameters The configuration parameter class containing mandatory client ID, authorityUri, challenge types and optional capabilities, redirectUri.
+     * @param parameters The NativeAuthPublicClientApplication parameter class containing mandatory client ID, authorityUri, challenge types and optional capabilities, redirectUri.
      *               Cannot be null.
      *               <p>
      *               For more information on the schema of the MSAL configuration object,
@@ -995,18 +995,18 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      */
     public static INativeAuthPublicClientApplication createNativeAuthPublicClientApplication(
             @NonNull final Context context,
-            @NonNull final NativeAuthConfigParameters configParameters) throws MsalException {
+            @NonNull final NativeAuthPublicClientApplicationParameters parameters) throws MsalException {
         validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
-        validateNonNullArgument(configParameters, NONNULL_CONSTANTS.CONFIG_PARAMETER);
+        validateNonNullArgument(parameters, NONNULL_CONSTANTS.CONFIG_PARAMETER);
 
         try {
             return createNativeAuthApplication(
                     Companion.initializeNativeAuthConfiguration(context),
-                    configParameters.getClientId(),
-                    configParameters.getAuthorityUrl(),
-                    configParameters.getRedirectUri(),
-                    configParameters.getChallengeTypes(),
-                    configParameters.getCapabilities()
+                    parameters.getClientId(),
+                    parameters.getAuthorityUrl(),
+                    parameters.getRedirectUri(),
+                    parameters.getChallengeTypes(),
+                    parameters.getCapabilities()
             );
         } catch (BaseException e) {
             throw new MsalClientException(
