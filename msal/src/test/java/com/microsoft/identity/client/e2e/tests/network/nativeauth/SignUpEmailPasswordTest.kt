@@ -155,7 +155,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     @Test
     fun testSuccessOTPResend() {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         retryOperation {
             runBlocking {
@@ -243,7 +243,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     @Test
     fun testErrorInvalidPasswordFormat() {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
             val user = tempEmailApi.generateRandomEmailAddressLocally()
