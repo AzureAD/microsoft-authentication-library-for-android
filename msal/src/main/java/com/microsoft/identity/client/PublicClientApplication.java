@@ -237,7 +237,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         static final String AUTHORITY = "authority";
         static final String REDIRECT_URI = "redirect_uri";
         static final String CONFIG_FILE = "config_file";
-        static final String CONFIG_PARAMETER = "config_parameter";
+        static final String CLIENT_PARAMETER = "client_parameter";
         static final String ACTIVITY = "activity";
         static final String SCOPES = "scopes";
         static final String ACCOUNT = "account";
@@ -997,7 +997,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             @NonNull final Context context,
             @NonNull final NativeAuthPublicClientApplicationParameters parameters) throws MsalException {
         validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
-        validateNonNullArgument(parameters, NONNULL_CONSTANTS.CONFIG_PARAMETER);
+        validateNonNullArgument(parameters, NONNULL_CONSTANTS.CLIENT_PARAMETER);
 
         try {
             return createNativeAuthApplication(
