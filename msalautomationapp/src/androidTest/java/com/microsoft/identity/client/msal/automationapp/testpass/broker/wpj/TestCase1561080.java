@@ -80,7 +80,7 @@ public class TestCase1561080 extends AbstractMsalBrokerTest {
         //handle the login prompts
         final AadLoginComponentHandler aadLoginComponentHandler = new AadLoginComponentHandler();
         aadLoginComponentHandler.handleEmailField(username);
-        aadLoginComponentHandler.handlePasswordField(password);
+        aadLoginComponentHandler.handlePasswordField(password, false);
 
         ThreadUtils.sleepSafely(15000, "Sleep failed", "Interrupted");
 
