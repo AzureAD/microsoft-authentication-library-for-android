@@ -258,7 +258,7 @@ class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
      * - Return redirect with reason registration required was not supplied
      *
      */
-    @Ignore("Retrieving OTP code failure.")
+    @Ignore("Backward compatibility feature not available in eSTS production")
     @Test
     fun `test Redirect is triggered when Capabilities insufficient`()  {
         config = getConfig(defaultConfigType)
@@ -285,17 +285,10 @@ class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
                 continuationParameters.claimsRequest = ClaimsRequest.getClaimsRequestFromJsonString(authenticationContextRequestClaimJson)
                 val signWithContinuationResult = (submitCodeResult as SignUpResult.Complete).nextState.signIn(continuationParameters)
 
-                // Check that JIT flow is triggered
-                assertResult<SignInResult.StrongAuthMethodRegistrationRequired>(signWithContinuationResult)
-                val authMethod = (signWithContinuationResult as SignInResult.StrongAuthMethodRegistrationRequired).authMethods[0]
-                // Do not specify a verification contact
-                val authMethodParams = NativeAuthChallengeAuthMethodParameters(authMethod)
-
                 // Return redirect with reason registration required was not supplied
-                val challengeResult = signWithContinuationResult.nextState.challengeAuthMethod(authMethodParams)
-                assertTrue(challengeResult is SignInError)
-                assertTrue((challengeResult as SignInError).isBrowserRequired())
-                assertTrue((challengeResult as SignInError).errorMessage!!.contains("registation required was not supplied"))
+                assertTrue(signWithContinuationResult is SignInError)
+                assertTrue((signWithContinuationResult as SignInError).isBrowserRequired())
+                assertTrue(signWithContinuationResult.errorMessage!!.contains("registration required was not supplied"))
             }
         }
     }
