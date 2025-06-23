@@ -1,0 +1,15 @@
+{ 
+  "client_id": "YOUR_CLIENT_ID", // From Azure Portal
+  "authority": "https://login.microsoftonline.com/common", // Or your tenant-specific authority 
+  "redirect_uri": "msauth://your.package.name/YOUR_SIGNATURE_HASH", // See https://learn.microsoft.com/en-us/entra/identity-platform/tutorial-mobile-app-android-prepare-app?tabs=workforce-tenant%2Candroid-workforce for generating this 
+  "account_mode": "SINGLE", // Or MULTIPLE 
+  "authorities": [
+    { 
+      "type": "AAD",
+      "audience": {
+        "type": "AzureADandPersonalMicrosoftAccount",
+        "tenant_id": "common"
+      }
+    }
+  ] 
+} 
