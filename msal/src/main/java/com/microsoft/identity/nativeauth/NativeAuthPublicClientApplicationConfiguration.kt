@@ -48,10 +48,13 @@ public class NativeAuthPublicClientApplicationConfiguration :
         private val TAG = NativeAuthPublicClientApplicationConfiguration::class.java.simpleName
         private val VALID_CHALLENGE_TYPES = listOf(NativeAuthConstants.ChallengeType.PASSWORD,
             NativeAuthConstants.ChallengeType.OOB, NativeAuthConstants.ChallengeType.REDIRECT)
+        private val VALID_CAPABILITIES = listOf(NativeAuthConstants.Capabilities.MFA_REQUIRED,
+            NativeAuthConstants.Capabilities.REGISTRATION_REQUIRED)
     }
 
     private object NativeAuthSerializedNames {
         const val CHALLENGE_TYPES = "challenge_types"
+        const val CAPABILITIES = "capabilities"
         const val USE_MOCK_API = "use_mock_api_for_native_auth"
         const val DC = "dc"
     }
@@ -60,6 +63,11 @@ public class NativeAuthPublicClientApplicationConfiguration :
     //For a complete list of challenge types see [NativeAuthConstants.ChallengeType]
     @SerializedName(NativeAuthSerializedNames.CHALLENGE_TYPES)
     private var challengeTypes: List<String>? = null
+
+    //List of capabilities supported by the client.
+    //For a complete list of capabilities see [NativeAuthConstants.Capabilities]
+    @SerializedName(NativeAuthSerializedNames.CAPABILITIES)
+    private var capabilities: List<String>? = null
 
     //The mock API authority used for testing will be rejected by validation logic run on
     // instantiation. This flag is used to bypass those checks in various points in the application
@@ -79,6 +87,14 @@ public class NativeAuthPublicClientApplicationConfiguration :
         this.challengeTypes = challengeTypes
     }
 
+    fun getCapabilities(): List<String>? {
+        return capabilities
+    }
+
+    fun setCapabilities(capabilities: List<String>?) {
+        this.capabilities = capabilities
+    }
+
     fun mergeConfiguration(config: NativeAuthPublicClientApplicationConfiguration) {
         // Call super.mergeConfiguration to handle base configuration fields
         super.mergeConfiguration(config)
@@ -90,6 +106,8 @@ public class NativeAuthPublicClientApplicationConfiguration :
 
         // Handle Native Auth specific fields
         challengeTypes = if (config.challengeTypes == null) challengeTypes else config.challengeTypes
+
+        capabilities = if (config.capabilities == null) capabilities else config.capabilities
 
         useMockAuthority = if (config.useMockAuthority == null) useMockAuthority else config.useMockAuthority
 
@@ -174,14 +192,20 @@ public class NativeAuthPublicClientApplicationConfiguration :
 
         // Check that challenge types are all valid
         validateChallengeTypes()
+        // Check that capabilities are all valid
+        validateCapabilities()
     }
 
     /**
      * Validates that the challenge types passed are valid
      */
+    @Throws(MsalClientException::class)
     private fun validateChallengeTypes() {
         // Make all challenge types lowercase for simplicity
         challengeTypes = challengeTypes?.map { it.lowercase() }
+
+        // Remove duplicate capabilities
+        challengeTypes = challengeTypes?.distinct()
 
         challengeTypes?.forEach { challengeType ->
             // Make sure challenge types passed were valid
@@ -189,6 +213,28 @@ public class NativeAuthPublicClientApplicationConfiguration :
                 throw MsalClientException(
                     MsalClientException.NATIVE_AUTH_INVALID_CHALLENGE_TYPE_ERROR_CODE,
                     MsalClientException.NATIVE_AUTH_INVALID_CHALLENGE_TYPE_ERROR_MESSAGE + " \"" + challengeType + "\""
+                )
+            }
+        }
+    }
+
+    /**
+     * Validates that the capabilities passed are valid
+     */
+    @Throws(MsalClientException::class)
+    private fun validateCapabilities() {
+        // Make all capabilities lowercase for simplicity
+        capabilities = capabilities?.map { it.lowercase() }
+
+        // Remove duplicate capabilities
+        capabilities = capabilities?.distinct()
+
+        capabilities?.forEach { capability ->
+            // Make sure capabilities passed were valid
+            if (capability !in VALID_CAPABILITIES) {
+                throw MsalClientException(
+                    MsalClientException.NATIVE_AUTH_INVALID_CAPABILITY_ERROR_CODE,
+                    MsalClientException.NATIVE_AUTH_INVALID_CAPABILITY_ERROR_MESSAGE + " \"" + capability + "\""
                 )
             }
         }
