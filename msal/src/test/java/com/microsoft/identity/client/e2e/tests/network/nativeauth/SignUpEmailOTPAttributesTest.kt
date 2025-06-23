@@ -46,11 +46,13 @@ class SignUpEmailOTPAttributesTest : NativeAuthPublicClientApplicationAbstractTe
 
     private val defaultConfigType = ConfigType.SIGN_UP_OTP_ATTRIBUTES
     private val defaultChallengeTypes = listOf("password", "oob")
+    private val defaultCapabilities = listOf("mfa_required", "registration_required")
+
 
     override fun setup() {
         super.setup()
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
     }
 
     /**

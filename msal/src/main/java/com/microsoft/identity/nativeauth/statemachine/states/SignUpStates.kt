@@ -198,7 +198,7 @@ class SignUpCodeRequiredState internal constructor(
                         SubmitCodeError(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
                             error = result.error,
-                            errorMessage = result.errorDescription,
+                            errorMessage = result.redirectReason,
                             correlationId = result.correlationId
                         )
                     }
@@ -313,8 +313,16 @@ class SignUpCodeRequiredState internal constructor(
                             channel = result.challengeChannel
                         )
                     }
-
-                    is INativeAuthCommandResult.Redirect, is INativeAuthCommandResult.APIError -> {
+                    is INativeAuthCommandResult.Redirect -> {
+                        ResendCodeError(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.redirectReason,
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes
+                        )
+                    }
+                    is INativeAuthCommandResult.APIError -> {
                         Logger.warnWithObject(
                             TAG,
                             result.correlationId,
@@ -487,7 +495,7 @@ class SignUpPasswordRequiredState internal constructor(
                             SignUpSubmitPasswordError(
                                 errorType = ErrorTypes.BROWSER_REQUIRED,
                                 error = result.error,
-                                errorMessage = result.errorDescription,
+                                errorMessage = result.redirectReason,
                                 correlationId = result.correlationId
                             )
                         }
@@ -695,7 +703,7 @@ class SignUpAttributesRequiredState internal constructor(
                         SignUpSubmitAttributesError(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
                             error = result.error,
-                            errorMessage = result.errorDescription,
+                            errorMessage = result.redirectReason,
                             correlationId = result.correlationId
                         )
                     }

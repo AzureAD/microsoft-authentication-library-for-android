@@ -49,6 +49,7 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val defaultConfigType = ConfigType.SSPR
     private val defaultChallengeTypes = listOf("password", "oob")
+    private val defaultCapabilities = listOf("mfa_required", "registration_required")
 
     /**
      * Verify email with email OTP first and then reset password.
@@ -58,7 +59,7 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
     @Test
     fun testSSPRSuccess() {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         var result: ResetPasswordStartResult
 
@@ -88,7 +89,7 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
     @Test
     fun testErrorInvalidPasswordFormat() {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         var result: ResetPasswordStartResult
 
@@ -119,7 +120,7 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
     @Test
     fun testResendCode() {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         var result: ResetPasswordStartResult
 
@@ -155,7 +156,7 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
     @Test
     fun testErrorUserNotExist() {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         runBlocking {
             val username = tempEmailApi.generateRandomEmailAddressLocally()
@@ -173,7 +174,7 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
     @Test
     fun testErrorInsufficientChallengesBrowserRequired() {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, listOf("password"))
+        application = setupPCA(config, listOf("password"), defaultCapabilities)
 
         runBlocking {
             val username = config.email
@@ -191,7 +192,7 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
     @Test
     fun testErrorNoPasswordLinked() {
         config = getConfig(ConfigType.SIGN_IN_OTP)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes,defaultCapabilities)
 
         runBlocking {
             val username = config.email
@@ -210,7 +211,7 @@ class SSPRTest : NativeAuthPublicClientApplicationAbstractTest() {
     @Test
     fun testErrorUserExistAsSocial() {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         runBlocking {
             val username = INVALID_EMAIL // TODO: Use social accounts instead when ready

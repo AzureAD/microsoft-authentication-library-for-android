@@ -35,6 +35,7 @@ import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInContinuation
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
 import com.microsoft.identity.nativeauth.statemachine.errors.MFASubmitChallengeError
+import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
 import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
 import com.microsoft.identity.nativeauth.statemachine.results.RegisterStrongAuthChallengeResult
@@ -66,6 +67,7 @@ class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val defaultConfigType = ConfigType.SIGN_IN_MFA_SINGLE_AUTH
     private val defaultChallengeTypes = listOf("password", "oob")
+    private val defaultCapabilities = listOf("mfa_required", "registration_required")
 
     /**
      * Full flow: Ensure JIT is triggered on first signIn
@@ -81,7 +83,7 @@ class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
     @Test
     fun `test sign in specifying custom verification contact`()  {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
         resources = config.resources
         val authenticationContextId = "c4"
         val authenticationContextRequestClaimJson = "{\"access_token\":{\"acrs\":{\"essential\":true,\"value\":\"$authenticationContextId\"}}}"
@@ -142,7 +144,7 @@ class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
     @Test
     fun `test sign after sign up without specify verification contact`()  {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
         resources = config.resources
         val authenticationContextId = "c4"
         val authenticationContextRequestClaimJson = "{\"access_token\":{\"acrs\":{\"essential\":true,\"value\":\"$authenticationContextId\"}}}"
@@ -199,7 +201,7 @@ class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
     @Test
     fun `test sign after sign up with specify verification contact`()  {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
         resources = config.resources
         val authenticationContextId = "c4"
         val authenticationContextRequestClaimJson = "{\"access_token\":{\"acrs\":{\"essential\":true,\"value\":\"$authenticationContextId\"}}}"
@@ -242,6 +244,51 @@ class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
                 assertResult<GetAccessTokenResult.Complete>(getAccessTokenResult)
                 val authResult = (getAccessTokenResult as GetAccessTokenResult.Complete).resultValue
                 assertNotNull(authResult)
+            }
+        }
+    }
+
+    /**
+     * Full flow: Ensure that correct error is returned when an user doesn’t supply the “mfa_required registration_required” capabilities
+     * - Initialise client with insufficient capabilities config
+     * - SignUp a new user with username and password
+     * - SignIn specifying authentication context as claim
+     * - Check that JIT flow is triggered
+     * - Do not specify a verification contact
+     * - Return redirect with reason registration required was not supplied
+     *
+     */
+    @Ignore("Backward compatibility feature not available in eSTS production")
+    @Test
+    fun `test Redirect is triggered when Capabilities insufficient`()  {
+        config = getConfig(defaultConfigType)
+        // Initialise client with insufficient capabilities config
+        application = setupPCA(config, defaultChallengeTypes, listOf("mfa_required"))
+        resources = config.resources
+        val authenticationContextId = "c4"
+        val authenticationContextRequestClaimJson = "{\"access_token\":{\"acrs\":{\"essential\":true,\"value\":\"$authenticationContextId\"}}}"
+
+        retryOperation {
+            runBlocking {
+                // SignUp a new user with username and password
+                val username = tempEmailApi.generateRandomEmailAddressLocally()
+                val signUpParams = NativeAuthSignUpParameters(username)
+                signUpParams.password = getSafePassword().toCharArray()
+                val signUpResult = application.signUp(signUpParams)
+                assertResult<SignUpResult.CodeRequired>(signUpResult)
+                val otp1 = tempEmailApi.retrieveCodeFromInbox(username)
+                val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp1)
+                assertResult<SignUpResult.Complete>(submitCodeResult)
+
+                // SignIn after signUp with authentication context as claims to trigger MFA
+                val continuationParameters = NativeAuthSignInContinuationParameters()
+                continuationParameters.claimsRequest = ClaimsRequest.getClaimsRequestFromJsonString(authenticationContextRequestClaimJson)
+                val signWithContinuationResult = (submitCodeResult as SignUpResult.Complete).nextState.signIn(continuationParameters)
+
+                // Return redirect with reason registration required was not supplied
+                assertTrue(signWithContinuationResult is SignInError)
+                assertTrue((signWithContinuationResult as SignInError).isBrowserRequired())
+                assertTrue(signWithContinuationResult.errorMessage!!.contains("registration required was not supplied"))
             }
         }
     }

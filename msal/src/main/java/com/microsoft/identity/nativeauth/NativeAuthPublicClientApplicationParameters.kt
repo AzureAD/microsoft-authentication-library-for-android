@@ -21,42 +21,31 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package com.microsoft.identity.nativeauth.parameters
+package com.microsoft.identity.nativeauth
 
-import com.microsoft.identity.nativeauth.statemachine.states.RegisterStrongAuthVerificationRequiredState
 
-class NativeAuthRegisterStrongAuthVerificationRequiredResultParameter internal constructor(
-    internal val nextState: RegisterStrongAuthVerificationRequiredState,
-    internal val codeLength: Int,
-    internal val sentTo: String,
-    internal val channel: String
+public class NativeAuthPublicClientApplicationParameters (
+    /**
+     * The application client id. Cannot be null.
+     */
+    val clientId: String,
+    /**
+     * The authorityUrl to be used for the authority.
+     */
+    val authorityUrl: String,
+    /**
+     * The challenge types supported for authentication declared by client. Cannot be null.
+     */
+    val challengeTypes: List<String>,
 ) {
 
     /**
-     * The next state to use to continue the strong authentication method registration flow.
+     * The capabilities supported for authentication declared by client.
      */
-    fun getNextState(): RegisterStrongAuthVerificationRequiredState {
-        return nextState
-    }
+    var capabilities: List<String>? = null
 
     /**
-     * The length of the challenge required by the server.
+     *  The redirect URI of the application. Required for using browser.
      */
-    fun getCodeLength(): Int {
-        return codeLength
-    }
-
-    /**
-     * The email/phone number the challenge was sent to.
-     */
-    fun getSentTo(): String {
-        return sentTo
-    }
-
-    /**
-     * the channel(email/phone) the challenge was sent through.
-     */
-    fun getChannel(): String {
-        return channel
-    }
+    var redirectUri: String? = null
 }
