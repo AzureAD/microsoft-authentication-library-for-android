@@ -24,6 +24,7 @@ package com.microsoft.identity.client.msal.automationapp.testpass.broker.ltw;
 
 import androidx.annotation.NonNull;
 
+import com.microsoft.identity.client.msal.automationapp.BuildConfig;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
@@ -70,7 +71,13 @@ public class TestCase2572249 extends AbstractMsalBrokerTest {
     }
 
     @Test
-    public void test_2572249() throws Throwable {
+    public void test_2572249_LTW_SSOAfterLTWUninstallIfAuthenticatorPresent() throws Throwable {
+        if (BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("EnableBrokerDiscoveryV2Protocol:true")) {
+            // No longer applicable with V2 protocol.
+            return;
+        }
+
+
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

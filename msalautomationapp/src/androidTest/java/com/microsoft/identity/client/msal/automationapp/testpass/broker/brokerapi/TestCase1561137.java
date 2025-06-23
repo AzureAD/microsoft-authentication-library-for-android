@@ -50,7 +50,7 @@ import java.util.Arrays;
 @LocalBrokerHostDebugUiTest
 public class TestCase1561137 extends AbstractMsalBrokerTest {
     @Test
-    public void test_1561137() throws Throwable {
+    public void test_1561137_brokerhostRemoveAccount() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

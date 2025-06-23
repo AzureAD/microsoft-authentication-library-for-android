@@ -47,7 +47,7 @@ import java.util.Arrays;
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/1922549
 public class TestCase1922549 extends AbstractMsalBrokerUpdateTest {
     @Test
-    public void test_1922549() throws Throwable {
+    public void  test_1922549_Pop_UpdateScenario_NonJoined_GenerateSHR() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

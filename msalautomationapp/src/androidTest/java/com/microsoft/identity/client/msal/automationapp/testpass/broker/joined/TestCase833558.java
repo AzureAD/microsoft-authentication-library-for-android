@@ -64,7 +64,7 @@ public class TestCase833558 extends AbstractMsalBrokerTest {
     final String TAG = TestCase833558.class.getSimpleName();
     private IAccount mTempAccount = null;
     @Test
-    public void test_msal_833558() throws Throwable {
+    public void test_833558_Joined_AccountManagerAccountDeletion() throws Throwable {
         Logger.i(TAG, "Get user account from lab");
         final String deviceRegistrationOwnerUsername = mLabAccount.getUsername();
         final String deviceRegistrationOwnerPassword = mLabAccount.getPassword();

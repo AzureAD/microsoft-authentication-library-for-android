@@ -71,7 +71,7 @@ public class TestCase2579095 extends AbstractMsalBrokerTest {
     }
 
     @Test
-    public void test_2579095() throws Throwable {
+    public void test_2579095_LTW_CPActiveBrokerIfItHasAnArtifact() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
 

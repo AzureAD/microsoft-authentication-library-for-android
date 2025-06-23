@@ -42,7 +42,7 @@ class TestCase3040042 : AbstractMsalBrokerTest(){
 
     @Test
     @Throws(Throwable::class)
-    fun test_3040042() {
+    fun test_3040042_PhoneSignUpOption() {
         // Word should have phone sign-up option
         val word = WordApp(LocalApkInstaller())
         word.install()
