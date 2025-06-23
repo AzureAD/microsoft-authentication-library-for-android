@@ -29,6 +29,7 @@ import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryB2CAut
 import com.microsoft.identity.common.java.nativeauth.authorities.NativeAuthCIAMAuthority
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.fail
+import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.spy
@@ -289,5 +290,100 @@ class NativeAuthPublicClientApplicationConfigurationTest {
         whenever(spyConfig.useBroker).thenReturn(false)
         spyConfig.setChallengeTypes(listOf("oob", "oob", "password", "redirect", "redirect", "redirect"))
         spyConfig.validateConfiguration()
+        Assert.assertEquals(spyConfig.getChallengeTypes()?.size,3) // redirect added by default
+    }
+
+    // Capabilities are optional, so no exception should be thrown
+    @Test
+    fun testMissingCapabilities() {
+        val config = NativeAuthPublicClientApplicationConfiguration()
+        config.clientId = clientId
+        config.accountMode = AccountMode.SINGLE
+        val spyConfig = spy(config)
+        whenever(spyConfig.authorities).thenReturn(listOf(NativeAuthCIAMAuthority(ciamAuthority, clientId)))
+        whenever(spyConfig.defaultAuthority).thenReturn(NativeAuthCIAMAuthority(ciamAuthority, clientId))
+        whenever(spyConfig.isSharedDevice).thenReturn(false)
+        whenever(spyConfig.useBroker).thenReturn(false)
+        whenever(spyConfig.getCapabilities()).thenReturn(emptyList())
+        spyConfig.validateConfiguration()
+    }
+
+    @Test
+    fun testInvalidCapabilities() {
+        val config = NativeAuthPublicClientApplicationConfiguration()
+        config.clientId = clientId
+        config.accountMode = AccountMode.SINGLE
+        val spyConfig = spy(config)
+        whenever(spyConfig.authorities).thenReturn(listOf(NativeAuthCIAMAuthority(ciamAuthority, clientId)))
+        whenever(spyConfig.defaultAuthority).thenReturn(NativeAuthCIAMAuthority(ciamAuthority, clientId))
+        whenever(spyConfig.isSharedDevice).thenReturn(false)
+        whenever(spyConfig.useBroker).thenReturn(false)
+        spyConfig.setCapabilities(listOf("lorem"))
+
+        try {
+            spyConfig.validateConfiguration()
+        } catch (e: MsalClientException) {
+            assertEquals(MsalClientException.NATIVE_AUTH_INVALID_CAPABILITY_ERROR_CODE, e.errorCode)
+            return
+        }
+        // An exception should be thrown
+        fail()
+    }
+
+    @Test
+    fun testCaseInsensitiveCapabilities() {
+        val config = NativeAuthPublicClientApplicationConfiguration()
+        config.clientId = clientId
+        config.accountMode = AccountMode.SINGLE
+        val spyConfig = spy(config)
+        whenever(spyConfig.authorities).thenReturn(listOf(NativeAuthCIAMAuthority(ciamAuthority, clientId)))
+        whenever(spyConfig.defaultAuthority).thenReturn(NativeAuthCIAMAuthority(ciamAuthority, clientId))
+        whenever(spyConfig.isSharedDevice).thenReturn(false)
+        whenever(spyConfig.useBroker).thenReturn(false)
+        spyConfig.setCapabilities(listOf("Mfa_RequIRED"))
+        spyConfig.validateConfiguration()
+    }
+
+    @Test
+    fun testMultipleCorrectCapabilities() {
+        val config = NativeAuthPublicClientApplicationConfiguration()
+        config.clientId = clientId
+        config.accountMode = AccountMode.SINGLE
+        val spyConfig = spy(config)
+        whenever(spyConfig.authorities).thenReturn(listOf(NativeAuthCIAMAuthority(ciamAuthority, clientId)))
+        whenever(spyConfig.defaultAuthority).thenReturn(NativeAuthCIAMAuthority(ciamAuthority, clientId))
+        whenever(spyConfig.isSharedDevice).thenReturn(false)
+        whenever(spyConfig.useBroker).thenReturn(false)
+        spyConfig.setCapabilities(listOf("mfa_required", "registration_required"))
+        spyConfig.validateConfiguration()
+    }
+
+    @Test
+    fun testSingleCorrectCapability() {
+        val config = NativeAuthPublicClientApplicationConfiguration()
+        config.clientId = clientId
+        config.accountMode = AccountMode.SINGLE
+        val spyConfig = spy(config)
+        whenever(spyConfig.authorities).thenReturn(listOf(NativeAuthCIAMAuthority(ciamAuthority, clientId)))
+        whenever(spyConfig.defaultAuthority).thenReturn(NativeAuthCIAMAuthority(ciamAuthority, clientId))
+        whenever(spyConfig.isSharedDevice).thenReturn(false)
+        whenever(spyConfig.useBroker).thenReturn(false)
+        spyConfig.setCapabilities(listOf("mfa_required"))
+        spyConfig.validateConfiguration()
+    }
+
+    @Test
+    fun testRepeatedCorrectCapabilities() {
+        val config = NativeAuthPublicClientApplicationConfiguration()
+        config.clientId = clientId
+        config.accountMode = AccountMode.SINGLE
+        val spyConfig = spy(config)
+        whenever(spyConfig.authorities).thenReturn(listOf(NativeAuthCIAMAuthority(ciamAuthority, clientId)))
+        whenever(spyConfig.defaultAuthority).thenReturn(NativeAuthCIAMAuthority(ciamAuthority, clientId))
+        whenever(spyConfig.isSharedDevice).thenReturn(false)
+        whenever(spyConfig.useBroker).thenReturn(false)
+        spyConfig.setCapabilities(listOf("mfa_required", "mfa_required", "registration_required", "registration_required"))
+        spyConfig.validateConfiguration()
+        Assert.assertEquals(spyConfig.getCapabilities()?.size,2)
     }
 }

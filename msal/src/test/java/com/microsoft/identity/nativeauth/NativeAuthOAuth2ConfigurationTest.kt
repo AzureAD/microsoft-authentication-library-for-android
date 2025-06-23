@@ -42,7 +42,8 @@ class NativeAuthOAuth2ConfigurationTest {
             authorityUrl = authorityUrl,
             clientId = "1234",
             challengeType = "oob password redirect",
-            useMockApiForNativeAuth = false
+            useMockApiForNativeAuth = false,
+            capabilities = null
         )
 
         val signUpEndpoint = configuration.getSignUpStartEndpoint()
@@ -59,7 +60,8 @@ class NativeAuthOAuth2ConfigurationTest {
             authorityUrl = authorityUrl,
             clientId = "1234",
             challengeType = "oob password redirect",
-            useMockApiForNativeAuth = false
+            useMockApiForNativeAuth = false,
+            capabilities = null
         )
 
         val signUpEndpoint = configuration.getSignUpStartEndpoint()

@@ -32,11 +32,10 @@ import com.microsoft.identity.client.DeviceCodeFlowParameters;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.ITenantProfile;
 import com.microsoft.identity.client.MultiTenantAccount;
-import com.microsoft.identity.common.internal.msafederation.google.SignInWithGoogleApi;
-import com.microsoft.identity.common.internal.msafederation.google.SignInWithGoogleCredential;
-import com.microsoft.identity.common.internal.msafederation.google.SignInWithGoogleParameters;
 import com.microsoft.identity.common.internal.platform.AndroidPlatformUtil;
 import com.microsoft.identity.common.java.logging.DiagnosticContext;
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.JITChallengeAuthMethodCommandParameters;
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.JITContinueCommandParameters;
 import com.microsoft.identity.nativeauth.AuthMethod;
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration;
 import com.microsoft.identity.client.PoPAuthenticationScheme;
@@ -363,6 +362,7 @@ public class CommandParametersAdapter {
                 .username(username)
                 .password(password)
                 .challengeType(configuration.getChallengeTypes())
+                .capabilities(configuration.getCapabilities())
                 .userAttributes(userAttributes)
                 // Start of the flow, so there is no correlation ID to use from a previous API response.
                 // Set it to a default value.
@@ -570,6 +570,7 @@ public class CommandParametersAdapter {
                 .authenticationScheme(authenticationScheme)
                 .clientId(configuration.getClientId())
                 .challengeType(configuration.getChallengeTypes())
+                .capabilities(configuration.getCapabilities())
                 .claimsRequestJson(claimsRequestJson)
                 .scopes(scopes)
                 // Start of the flow, so there is no correlation ID to use from a previous API response.
@@ -994,6 +995,7 @@ public class CommandParametersAdapter {
                         .authority(authority)
                         .username(username)
                         .challengeType(configuration.getChallengeTypes())
+                        .capabilities(configuration.getCapabilities())
                         .clientId(configuration.getClientId())
                         // Start of the flow, so there is no correlation ID to use from a previous API response.
                         // Set it to a default value.
@@ -1124,6 +1126,104 @@ public class CommandParametersAdapter {
 
         return commandParameters;
     }
+
+    /**
+     * Creates command parameter for [[com.microsoft.identity.common.nativeauth.internal.commands.JITChallengeAuthMethodCommand]] of Native Auth
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param verificationContact the email/phone to send the challenge to
+     * @param challengeChannel the channel used to send the challenge
+     * @param challengeType the type of challenge
+     * @param correlationId correlation ID to use in the API request, taken from the previous request in the flow
+     * @param continuationToken Continuation token
+     * @return Command parameter object
+     * @throws ClientException
+     */
+    public static JITChallengeAuthMethodCommandParameters createJITChallengeAuthMethodCommandParameters(
+            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+            @NonNull final OAuth2TokenCache tokenCache,
+            @NonNull final String verificationContact,
+            @NonNull final String challengeChannel,
+            @NonNull final String challengeType,
+            @NonNull final String correlationId,
+            @NonNull final String continuationToken
+    ) throws ClientException {
+        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
+
+        final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
+                AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
+                null
+        );
+
+        return JITChallengeAuthMethodCommandParameters.builder()
+                .authenticationScheme(authenticationScheme)
+                .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
+                .applicationName(configuration.getAppContext().getPackageName())
+                .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                .clientId(configuration.getClientId())
+                .isSharedDevice(configuration.getIsSharedDevice())
+                .redirectUri(configuration.getRedirectUri())
+                .oAuth2TokenCache(tokenCache)
+                .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
+                .sdkType(SdkType.MSAL)
+                .sdkVersion(PublicClientApplication.getSdkVersion())
+                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                .authority(authority)
+                .verificationContact(verificationContact)
+                .authMethodChallengeType(challengeType)
+                .continuationToken(continuationToken)
+                .correlationId(correlationId)
+                .challengeChannel(challengeChannel)
+                .build();
+    }
+
+    /**
+     * Creates command parameter for [[com.microsoft.identity.common.nativeauth.internal.commands.JITContinueCommandParameters]] of Native Auth
+     * @param configuration PCA configuration
+     * @param tokenCache token cache for storing results
+     * @param grantType grant type
+     * @param code the code provided by the user
+     * @param correlationId correlation ID to use in the API request, taken from the previous request in the flow
+     * @param continuationToken continuation token
+     * @return Command parameter object
+     * @throws ClientException
+     */
+    public static JITContinueCommandParameters createJITSubmitChallengeCommandParameters(
+             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
+             @NonNull final OAuth2TokenCache tokenCache,
+             @NonNull final String grantType,
+             @NonNull final String code,
+             @NonNull final String correlationId,
+             @NonNull final String continuationToken
+    ) throws ClientException {
+        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
+
+        final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
+                AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
+                null
+        );
+
+        return JITContinueCommandParameters.builder()
+                .authenticationScheme(authenticationScheme)
+                .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
+                .applicationName(configuration.getAppContext().getPackageName())
+                .applicationVersion(getPackageVersion(configuration.getAppContext()))
+                .clientId(configuration.getClientId())
+                .isSharedDevice(configuration.getIsSharedDevice())
+                .redirectUri(configuration.getRedirectUri())
+                .oAuth2TokenCache(tokenCache)
+                .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
+                .sdkType(SdkType.MSAL)
+                .sdkVersion(PublicClientApplication.getSdkVersion())
+                .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
+                .authority(authority)
+                .grantType(grantType)
+                .continuationToken(continuationToken)
+                .code(code)
+                .correlationId(correlationId)
+                .build();
+    }
+
 
     private static String getPackageVersion(@NonNull final Context context) {
         final String packageName = context.getPackageName();

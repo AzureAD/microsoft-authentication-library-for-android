@@ -58,6 +58,7 @@ import com.microsoft.identity.nativeauth.statemachine.results.SignInResendCodeRe
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInSubmitCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInSubmitPasswordResult
+import com.microsoft.identity.nativeauth.toListOfAuthMethods
 import com.microsoft.identity.nativeauth.utils.serializable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -180,7 +181,7 @@ class SignInCodeRequiredState internal constructor(
                         SubmitCodeError(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
                             error = result.error,
-                            errorMessage = result.errorDescription,
+                            errorMessage = result.redirectReason,
                             correlationId = result.correlationId
                         )
                     }
@@ -286,7 +287,17 @@ class SignInCodeRequiredState internal constructor(
                         )
                     }
 
-                    is INativeAuthCommandResult.Redirect, is INativeAuthCommandResult.APIError -> {
+                    is INativeAuthCommandResult.Redirect -> {
+                        ResendCodeError(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.redirectReason,
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes
+                        )
+                    }
+
+                    is INativeAuthCommandResult.APIError -> {
                         Logger.warnWithObject(
                             TAG,
                             result.correlationId,
@@ -444,6 +455,16 @@ class SignInPasswordRequiredState(
                                 )
                             )
                         }
+                        is SignInCommandResult.StrongAuthMethodRegistrationRequired -> {
+                            SignInResult.StrongAuthMethodRegistrationRequired(
+                                nextState = RegisterStrongAuthState(
+                                    continuationToken = result.continuationToken,
+                                    correlationId = result.correlationId,
+                                    config = config
+                                ),
+                                authMethods = result.authMethods.toListOfAuthMethods()
+                            )
+                        }
                         is SignInCommandResult.Complete -> {
                             val authenticationResult =
                                 AuthenticationResultAdapter.adapt(result.authenticationResult)
@@ -455,7 +476,18 @@ class SignInPasswordRequiredState(
                                 )
                             )
                         }
-                        is INativeAuthCommandResult.Redirect, is INativeAuthCommandResult.APIError -> {
+
+                        is INativeAuthCommandResult.Redirect -> {
+                            SignInSubmitPasswordError(
+                                errorType = ErrorTypes.BROWSER_REQUIRED,
+                                error = result.error,
+                                errorMessage = result.redirectReason,
+                                correlationId = result.correlationId,
+                                errorCodes = result.errorCodes
+                            )
+                        }
+
+                        is INativeAuthCommandResult.APIError -> {
                             Logger.warnWithObject(
                                 TAG,
                                 result.correlationId,
@@ -677,8 +709,25 @@ class SignInContinuationState(
                             )
                         )
                     }
-
-                    is INativeAuthCommandResult.Redirect,
+                    is SignInCommandResult.StrongAuthMethodRegistrationRequired -> {
+                        SignInResult.StrongAuthMethodRegistrationRequired(
+                            nextState = RegisterStrongAuthState(
+                                continuationToken = result.continuationToken,
+                                correlationId = result.correlationId,
+                                config = config
+                            ),
+                            authMethods = result.authMethods.toListOfAuthMethods()
+                        )
+                    }
+                    is INativeAuthCommandResult.Redirect -> {
+                        SignInContinuationError(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.redirectReason,
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes
+                        )
+                    }
                     is INativeAuthCommandResult.APIError -> {
                         Logger.warnWithObject(
                             TAG,

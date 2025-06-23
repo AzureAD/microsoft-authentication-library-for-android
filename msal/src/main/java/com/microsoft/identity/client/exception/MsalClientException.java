@@ -278,7 +278,9 @@ public final class MsalClientException extends MsalException {
      * Configuration error. Native auth app passed with an invalid challenge type.
      */
     public static final String NATIVE_AUTH_INVALID_CHALLENGE_TYPE_ERROR_CODE = "native_auth_invalid_challenge_type";
+    public static final String NATIVE_AUTH_INVALID_CAPABILITY_ERROR_CODE = "native_auth_invalid_capability";
     public static final String NATIVE_AUTH_INVALID_CHALLENGE_TYPE_ERROR_MESSAGE = "NativeAuthPublicClientApplication detected invalid challenge type.";
+    public static final String NATIVE_AUTH_INVALID_CAPABILITY_ERROR_MESSAGE = "NativeAuthPublicClientApplication detected invalid capability.";
 
     public MsalClientException(final String errorCode) {
         super(errorCode);

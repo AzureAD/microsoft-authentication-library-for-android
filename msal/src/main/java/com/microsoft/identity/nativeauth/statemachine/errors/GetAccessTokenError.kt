@@ -48,7 +48,7 @@ class GetAccessTokenError(
     override val correlationId: String,
     override val errorCodes: List<Int>? = null,
     override var exception: Exception? = null
-): GetAccessTokenResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
+): BrowserRequiredError, GetAccessTokenResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception) {
     fun isNoAccountFound() : Boolean = this.errorType == GetAccessTokenErrorTypes.NO_ACCOUNT_FOUND
 
     fun isInvalidScopes(): Boolean = this.errorType == GetAccessTokenErrorTypes.INVALID_SCOPES
