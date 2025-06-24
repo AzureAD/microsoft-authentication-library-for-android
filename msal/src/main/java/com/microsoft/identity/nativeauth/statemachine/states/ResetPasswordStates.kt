@@ -167,7 +167,7 @@ class ResetPasswordCodeRequiredState internal constructor(
                         SubmitCodeError(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
                             error = result.error,
-                            errorMessage = result.errorDescription,
+                            errorMessage = result.redirectReason,
                             correlationId = result.correlationId
                         )
                     }
@@ -271,7 +271,16 @@ class ResetPasswordCodeRequiredState internal constructor(
                         )
                     }
 
-                    is INativeAuthCommandResult.Redirect,
+                    is INativeAuthCommandResult.Redirect -> {
+                        ResendCodeError(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.redirectReason,
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes
+                        )
+                    }
+
                     is INativeAuthCommandResult.APIError -> {
                         Logger.warnWithObject(
                             TAG,
@@ -446,6 +455,16 @@ class ResetPasswordPasswordRequiredState internal constructor(
                                 error = result.error,
                                 errorMessage = result.errorDescription,
                                 correlationId = result.correlationId
+                            )
+                        }
+
+                        is INativeAuthCommandResult.Redirect -> {
+                            ResetPasswordSubmitPasswordError(
+                                errorType = ErrorTypes.BROWSER_REQUIRED,
+                                error = result.error,
+                                errorMessage = result.redirectReason,
+                                correlationId = result.correlationId,
+                                errorCodes = result.errorCodes
                             )
                         }
 

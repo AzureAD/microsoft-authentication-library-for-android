@@ -47,12 +47,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
 
     private val defaultConfigType = ConfigType.SIGN_IN_OTP
     private val defaultChallengeTypes = listOf("password", "oob")
-
-    override fun setup() {
-        super.setup()
-        config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
-    }
+    private val defaultCapabilities = listOf("mfa_required", "registration_required")
 
     /**
      * Use valid email and OTP to get token and sign in.
@@ -62,7 +57,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
     @Test
     fun testSuccess() {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         retryOperation {
             runBlocking {
@@ -84,7 +79,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
     @Test
     fun testErrorIsUserNotFound() {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         retryOperation {
             runBlocking {
@@ -104,7 +99,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
     @Test
     fun testErrorPasswordConfigBrowserRequired() {
         config = getConfig(ConfigType.SIGN_IN_PASSWORD)
-        application = setupPCA(config, listOf("oob"))
+        application = setupPCA(config, listOf("oob"), defaultCapabilities)
 
         runBlocking {
             val user = config.email
@@ -122,7 +117,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
     @Test
     fun testSuccessConfigPasswordRequired() {
         config = getConfig(ConfigType.SIGN_IN_PASSWORD)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         runBlocking {
             val user = config.email
@@ -145,7 +140,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
     @Test
     fun testResendCode() {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         retryOperation {
             runBlocking {
@@ -190,7 +185,7 @@ class SignInEmailOTPTest : NativeAuthPublicClientApplicationAbstractTest() {
     @Test
     fun testErrorIsInvalidCode() {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         runBlocking {
             val user = config.email

@@ -113,7 +113,6 @@ import com.microsoft.identity.common.java.commands.parameters.DeviceCodeFlowComm
 import com.microsoft.identity.common.java.commands.parameters.GenerateShrCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.InteractiveTokenCommandParameters;
 import com.microsoft.identity.common.java.commands.parameters.SilentTokenCommandParameters;
-import com.microsoft.identity.common.java.controllers.BaseController;
 import com.microsoft.identity.common.java.controllers.CommandDispatcher;
 import com.microsoft.identity.common.java.controllers.CommandResult;
 import com.microsoft.identity.common.java.controllers.ExceptionAdapter;
@@ -143,6 +142,7 @@ import com.microsoft.identity.msal.BuildConfig;
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication;
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplication;
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration;
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationParameters;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -237,6 +237,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         static final String AUTHORITY = "authority";
         static final String REDIRECT_URI = "redirect_uri";
         static final String CONFIG_FILE = "config_file";
+        static final String CLIENT_PARAMETER = "client_parameter";
         static final String ACTIVITY = "activity";
         static final String SCOPES = "scopes";
         static final String ACCOUNT = "account";
@@ -846,6 +847,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     null,
                     null,
                     null,
+                    null,
                     null
             );
         }  catch (MsalException e) {
@@ -897,6 +899,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     null,
                     null,
                     null,
+                    null,
                     null
             );
         } catch (BaseException e) {
@@ -928,8 +931,12 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      * @param clientId    The application client id. Cannot be null.
      * @param authority   The default authority to be used for the authority. If this is null, the default authority will be used.
      * @param redirectUri The redirect URI of the application.
+     * @param challengeTypes The challengeTypes supported for authentication declared by client.
      * @return An instance of INativeAuthPublicClientApplication.
+     *
+     * @deprecated This method is deprecated. Use createNativeAuthPublicClientApplication(Context, NativeAuthPublicClientApplicationConfiguration) instead.
      */
+    @Deprecated
     public static INativeAuthPublicClientApplication createNativeAuthPublicClientApplication(
             @NonNull final Context context,
             @NonNull final String clientId,
@@ -947,7 +954,59 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                     clientId,
                     authority,
                     redirectUri,
-                    challengeTypes
+                    challengeTypes,
+                    null
+            );
+        } catch (BaseException e) {
+            throw new MsalClientException(
+                    UNKNOWN_ERROR,
+                    NATIVE_AUTH_APPLICATION_CREATION_UNKNOWN_ERROR_MESSAGE,
+                    e
+            );
+        }
+    }
+
+    /**
+     * Creates an instance of INativeAuthPublicClientApplication using the provided context and configuration.
+     *
+     * <p>{@link PublicClientApplication#createNativeAuthPublicClientApplication(Context, NativeAuthPublicClientApplicationParameters)}
+     * will read the client id and other configuration settings from the provided configuration object.</p>
+     *
+     * <p>This function will pass back an {@link MsalClientException} object if it is unable
+     * to return {@link INativeAuthPublicClientApplication}. For example, AccountMode
+     * in configuration is not set to single.</p>
+     *
+     * @param context Application's {@link Context}. The SDK requires the application context
+     *                to be passed in {@link PublicClientApplication}. Cannot be null.
+     *                <p>
+     *                Note: The {@link Context} should be the application context instead of
+     *                the running activity's context, which could potentially make the SDK hold a
+     *                strong reference to the activity, thus preventing correct garbage
+     *                collection and causing bugs.
+     *                </p>
+     * @param parameters The NativeAuthPublicClientApplication parameter class containing mandatory client ID, authorityUri, challenge types and optional capabilities, redirectUri.
+     *               Cannot be null.
+     *               <p>
+     *               For more information on the schema of the MSAL configuration object,
+     *               please see <a href="https://developer.android.com/guide/topics/resources/providing-resources">Android app resource overview</a>
+     *               and <a href="https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki">MSAL Github Wiki</a>.
+     *               </p>
+     * @return An instance of INativeAuthPublicClientApplication.
+     */
+    public static INativeAuthPublicClientApplication createNativeAuthPublicClientApplication(
+            @NonNull final Context context,
+            @NonNull final NativeAuthPublicClientApplicationParameters parameters) throws MsalException {
+        validateNonNullArgument(context, NONNULL_CONSTANTS.CONTEXT);
+        validateNonNullArgument(parameters, NONNULL_CONSTANTS.CLIENT_PARAMETER);
+
+        try {
+            return createNativeAuthApplication(
+                    Companion.initializeNativeAuthConfiguration(context),
+                    parameters.getClientId(),
+                    parameters.getAuthorityUrl(),
+                    parameters.getRedirectUri(),
+                    parameters.getChallengeTypes(),
+                    parameters.getCapabilities()
             );
         } catch (BaseException e) {
             throw new MsalClientException(
@@ -1133,7 +1192,8 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
                                                                                  @Nullable final String clientId,
                                                                                  @Nullable final String authority,
                                                                                  @Nullable final String redirectUri,
-                                                                                 @Nullable final List<String> challengeTypes) throws BaseException {
+                                                                                 @Nullable final List<String> challengeTypes,
+                                                                                 @Nullable final List<String> capabilities) throws BaseException {
         if (clientId != null) {
             config.setClientId(clientId);
         }
@@ -1152,6 +1212,10 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
 
         if (challengeTypes != null) {
             config.setChallengeTypes(challengeTypes);
+        }
+
+        if (capabilities != null) {
+            config.setCapabilities(capabilities);
         }
 
         // Check whether account mode is set to SINGLE

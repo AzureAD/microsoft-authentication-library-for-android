@@ -181,7 +181,7 @@ class SignInCodeRequiredState internal constructor(
                         SubmitCodeError(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
                             error = result.error,
-                            errorMessage = result.errorDescription,
+                            errorMessage = result.redirectReason,
                             correlationId = result.correlationId
                         )
                     }
@@ -287,7 +287,17 @@ class SignInCodeRequiredState internal constructor(
                         )
                     }
 
-                    is INativeAuthCommandResult.Redirect, is INativeAuthCommandResult.APIError -> {
+                    is INativeAuthCommandResult.Redirect -> {
+                        ResendCodeError(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.redirectReason,
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes
+                        )
+                    }
+
+                    is INativeAuthCommandResult.APIError -> {
                         Logger.warnWithObject(
                             TAG,
                             result.correlationId,
@@ -466,7 +476,18 @@ class SignInPasswordRequiredState(
                                 )
                             )
                         }
-                        is INativeAuthCommandResult.Redirect, is INativeAuthCommandResult.APIError -> {
+
+                        is INativeAuthCommandResult.Redirect -> {
+                            SignInSubmitPasswordError(
+                                errorType = ErrorTypes.BROWSER_REQUIRED,
+                                error = result.error,
+                                errorMessage = result.redirectReason,
+                                correlationId = result.correlationId,
+                                errorCodes = result.errorCodes
+                            )
+                        }
+
+                        is INativeAuthCommandResult.APIError -> {
                             Logger.warnWithObject(
                                 TAG,
                                 result.correlationId,
@@ -698,7 +719,15 @@ class SignInContinuationState(
                             authMethods = result.authMethods.toListOfAuthMethods()
                         )
                     }
-                    is INativeAuthCommandResult.Redirect,
+                    is INativeAuthCommandResult.Redirect -> {
+                        SignInContinuationError(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.redirectReason,
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes
+                        )
+                    }
                     is INativeAuthCommandResult.APIError -> {
                         Logger.warnWithObject(
                             TAG,
