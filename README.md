@@ -35,14 +35,6 @@ dependencies {
 }
 ```
 
-Please also add the following lines to your repositories section in your gradle script:
-
-```gradle
-maven { 
-    url 'https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed/maven/v1' 
-}
-```
-
 ### Step 2: Create your MSAL configuration file
 
 [Configuration Documentation](https://docs.microsoft.com/azure/active-directory/develop/msal-configuration)

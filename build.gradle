@@ -21,11 +21,6 @@ allprojects {
         google()
         mavenLocal()
         mavenCentral()
-        // Adding here because Travis cannot access AndroidADAL feed.
-        maven {
-            url 'https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed/maven/v1'
-            name 'Duo-SDK-Feed'
-        }
         maven {
             name "vsts-maven-adal-android"
             url "https://identitydivision.pkgs.visualstudio.com/_packaging/AndroidADAL/maven/v1"
