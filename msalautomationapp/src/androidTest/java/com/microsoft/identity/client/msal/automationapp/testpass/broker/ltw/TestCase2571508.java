@@ -147,7 +147,7 @@ public class TestCase2571508  extends AbstractMsalBrokerTest {
     @Override
     public LabQuery getLabQuery() {
         return LabQuery.builder()
-                .userType(UserType.CLOUD)
+                .userType(mUserType)
                 .build();
     }
 
