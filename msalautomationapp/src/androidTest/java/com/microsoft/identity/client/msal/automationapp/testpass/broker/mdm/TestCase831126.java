@@ -23,11 +23,13 @@
 package com.microsoft.identity.client.msal.automationapp.testpass.broker.mdm;
 
 import static com.microsoft.identity.client.ui.automation.utils.CommonUtils.FIND_UI_ELEMENT_TIMEOUT;
+import static com.microsoft.identity.client.ui.automation.utils.CommonUtils.FIND_UI_ELEMENT_TIMEOUT_SHORT;
 import static org.junit.Assert.fail;
 
 import androidx.test.uiautomator.UiObject;
 
 import com.microsoft.identity.client.IAccount;
+import com.microsoft.identity.client.msal.automationapp.BuildConfig;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthResult;
 import com.microsoft.identity.client.msal.automationapp.sdk.MsalAuthTestParams;
@@ -66,7 +68,6 @@ public class TestCase831126 extends AbstractMsalBrokerTest {
     public void test_831126_MDM_FirstPartyAppSignIn() throws Throwable {
         final String username = mLabAccount.getUsername();
         final String password = mLabAccount.getPassword();
-
         final OutlookApp outlook = new OutlookApp(new LocalApkInstaller());
 
         outlook.install();
@@ -89,12 +90,24 @@ public class TestCase831126 extends AbstractMsalBrokerTest {
 
         // add first account in Outlook
         outlook.addFirstAccount(username, password, promptHandlerParameters);
+        if (BuildConfig.COPY_OF_LOCAL_FLIGHTS_FOR_TEST_PURPOSES.contains("EnableWebCpInWebView:true")) {
+            // Webcp in webview flow.
+            final UiObject goToPlayStoreBtn = UiAutomatorUtils.obtainUiObjectWithText("Go to Google Play");
+            if (goToPlayStoreBtn.waitForExists(FIND_UI_ELEMENT_TIMEOUT_SHORT)) {
+                goToPlayStoreBtn.clickAndWaitForNewWindow();
+                final UiObject installCompanyPortalInPlayStoreBtn = UiAutomatorUtils.obtainUiObjectWithText("Intune Company Portal");
+                if (!installCompanyPortalInPlayStoreBtn.waitForExists(FIND_UI_ELEMENT_TIMEOUT)) {
+                    fail("Intune Company Portal app install page did not show up in Play Store");
+                }
+            }
 
-        // verify go to playstore page to download CP
-        mBrowser.handleFirstRun();
-        final UiObject goToPlayStoreBtn = UiAutomatorUtils.obtainUiObjectWithText("Go to Google Play");
-        if (!goToPlayStoreBtn.waitForExists(FIND_UI_ELEMENT_TIMEOUT)) {
-            fail("Go to play store page did not show up");
+        } else {
+            // verify go to playstore page to download CP
+            mBrowser.handleFirstRun();
+            final UiObject goToPlayStoreBtn = UiAutomatorUtils.obtainUiObjectWithText("Go to Google Play");
+            if (!goToPlayStoreBtn.waitForExists(FIND_UI_ELEMENT_TIMEOUT)) {
+                fail("Go to play store page did not show up");
+            }
         }
 
         // enroll device in MDM via the Company Portal app
