@@ -151,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
 
                         final MessageDigest digestSha512 = MessageDigest.getInstance("SHA-512");
                         digestSha512.update(signature.toByteArray());
-                        final String  packageSigningSha512 = Base64.encodeToString(digestSha512.digest(), Base64.NO_WRAP);
+                        final String packageSigningSha512 = Base64.encodeToString(digestSha512.digest(), Base64.NO_WRAP);
 
                         signingCertificateHashes = "SHA-1: " + packageSigningSha1 + "\nSHA-512: " + packageSigningSha512;
                     }
