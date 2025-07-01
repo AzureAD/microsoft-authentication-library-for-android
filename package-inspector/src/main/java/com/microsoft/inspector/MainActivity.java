@@ -145,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
                     if (null != signatures
                             && signatures.length > 0) {
                         final Signature signature = signatures[0];
-                        final MessageDigest digestSha1 = MessageDigest.getInstance("SHA"); // CodeQL [SM05136] This is only for test purposes, not used in production.
+                        final MessageDigest digestSha1 = MessageDigest.getInstance("SHA-1"); // CodeQL [SM05136] This is only for test purposes, not used in production.
                         digestSha1.update(signature.toByteArray());
                         final String packageSigningSha1 = Base64.encodeToString(digestSha1.digest(), Base64.NO_WRAP);
 
