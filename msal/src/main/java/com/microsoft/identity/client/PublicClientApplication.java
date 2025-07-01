@@ -58,6 +58,7 @@ import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -298,7 +299,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         runOnBackground(new Runnable() {
             @Override
             public void run() {
-                Logger.info("TestThis", "create() called with configFileResourceId: " + configFileResourceId);
+                Log.i("TestThis", "create() called with configFileResourceId: " + configFileResourceId);
                 create(
                         initializeConfiguration(context, configFileResourceId),
                         null, // client id

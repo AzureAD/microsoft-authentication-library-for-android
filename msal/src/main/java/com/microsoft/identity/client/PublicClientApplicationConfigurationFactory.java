@@ -87,7 +87,12 @@ public class PublicClientApplicationConfigurationFactory {
     private static PublicClientApplicationConfiguration initializeConfigurationInternal(@NonNull final Context context,
                                                                                         @Nullable final PublicClientApplicationConfiguration developerConfig) {
         validateNonNullArgument(context, "context");
-        Log.d("TestThis", "initializeConfigurationInternal " + developerConfig + " developerConfig "+ developerConfig.getClientId());
+        if (developerConfig != null) {
+            Log.d("TestThis", "initializeConfigurationInternal " + developerConfig + " developerConfig "+ developerConfig.getClientId());
+        } else {
+            Log.d("TestThis", "initializeConfigurationInternal " + " developerConfig is null");
+        }
+
         final PublicClientApplicationConfiguration config = loadDefaultConfiguration(context);
         if (developerConfig != null) {
             config.mergeConfiguration(developerConfig);
