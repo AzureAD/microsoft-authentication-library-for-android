@@ -32,6 +32,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -81,6 +82,15 @@ public final class CurrentTaskBrowserTabActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         final String methodTag = TAG + ":onCreate";
+
+        // Apply FLAG_SECURE if configured
+        if (PublicClientApplication.isBrowserActivitySecureFlagEnabled()) {
+            getWindow().setFlags(
+                    WindowManager.LayoutParams.FLAG_SECURE,
+                    WindowManager.LayoutParams.FLAG_SECURE
+            );
+            Logger.info(methodTag, "FLAG_SECURE has been set on CurrentTaskBrowserTabActivity");
+        }
         final String response = getIntent().getDataString();
 
         if (savedInstanceState == null

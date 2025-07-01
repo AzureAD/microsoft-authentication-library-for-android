@@ -75,4 +75,28 @@ public class PublicClientApplicationConfigurationTest {
         config.setRedirectUri("null");
         config.validateConfiguration();
     }
+
+    @Test
+    public void testBrowserActivitySecureFlagDefault() {
+        final PublicClientApplicationConfiguration config = new PublicClientApplicationConfiguration();
+        // Default should be false
+        assertFalse("Browser activity secure flag should default to false", 
+                   config.isBrowserActivitySecureFlagEnabled());
+    }
+
+    @Test
+    public void testBrowserActivitySecureFlagSetTrue() {
+        final PublicClientApplicationConfiguration config = new PublicClientApplicationConfiguration();
+        config.setBrowserActivitySecureFlagEnabled(true);
+        assertTrue("Browser activity secure flag should be true when set", 
+                  config.isBrowserActivitySecureFlagEnabled());
+    }
+
+    @Test
+    public void testBrowserActivitySecureFlagSetFalse() {
+        final PublicClientApplicationConfiguration config = new PublicClientApplicationConfiguration();
+        config.setBrowserActivitySecureFlagEnabled(false);
+        assertFalse("Browser activity secure flag should be false when set", 
+                   config.isBrowserActivitySecureFlagEnabled());
+    }
 }

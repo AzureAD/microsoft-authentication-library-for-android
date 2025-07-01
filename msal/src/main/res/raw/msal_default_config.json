@@ -19,6 +19,7 @@
   "handle_null_taskaffinity": false,
   "authorization_in_current_task": false,
   "webauthn_capable": false,
+  "browser_activity_secure_flag": false,
   "http": {
     "connect_timeout": 10000,
     "read_timeout": 30000

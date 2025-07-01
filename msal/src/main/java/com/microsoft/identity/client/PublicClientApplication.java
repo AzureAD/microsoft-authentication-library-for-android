@@ -228,6 +228,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
     private static final String ACCESS_NETWORK_STATE_PERMISSION = "android.permission.ACCESS_NETWORK_STATE";
     private static final String ERR_UNSUPPORTED_OPERATION = "This method is unsupported.";
     private static final ExecutorService sBackgroundExecutor = Executors.newCachedThreadPool();
+    
+    // Static configuration field for browser activity security flag
+    private static boolean sBrowserActivitySecureFlag = false;
 
     static class NONNULL_CONSTANTS {
         static final String CONTEXT = "context";
@@ -1140,6 +1143,9 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
             config.setRedirectUri(redirectUri);
         }
 
+        // Set the browser activity secure flag from configuration
+        sBrowserActivitySecureFlag = config.isBrowserActivitySecureFlagEnabled();
+
         try {
             validateAccountModeConfiguration(config);
         } catch (final MsalClientException e) {
@@ -1509,6 +1515,13 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
      */
     public static String getSdkVersion() {
         return BuildConfig.VERSION_NAME;
+    }
+
+    /**
+     * @return Whether FLAG_SECURE should be set on BrowserTabActivity and CurrentTaskBrowserTabActivity.
+     */
+    public static boolean isBrowserActivitySecureFlagEnabled() {
+        return sBrowserActivitySecureFlag;
     }
 
     /**

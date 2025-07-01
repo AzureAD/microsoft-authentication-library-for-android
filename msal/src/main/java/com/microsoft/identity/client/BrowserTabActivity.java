@@ -25,6 +25,7 @@ package com.microsoft.identity.client;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.microsoft.identity.common.internal.providers.oauth2.BrowserAuthorizationFragment;
@@ -62,6 +63,15 @@ public final class BrowserTabActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         final String methodTag = TAG + ":onCreate";
+
+        // Apply FLAG_SECURE if configured
+        if (PublicClientApplication.isBrowserActivitySecureFlagEnabled()) {
+            getWindow().setFlags(
+                    WindowManager.LayoutParams.FLAG_SECURE,
+                    WindowManager.LayoutParams.FLAG_SECURE
+            );
+            Logger.info(methodTag, "FLAG_SECURE has been set on BrowserTabActivity");
+        }
 
         if (savedInstanceState == null
                 && getIntent() != null

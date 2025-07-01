@@ -114,6 +114,7 @@ public class PublicClientApplicationConfiguration {
         static final String HANDLE_TASKS_WITH_NULL_TASKAFFINITY = "handle_null_taskaffinity";
         static final String AUTHORIZATION_IN_CURRENT_TASK = "authorization_in_current_task";
         static final String WEBAUTHN_CAPABLE = "webauthn_capable";
+        static final String BROWSER_ACTIVITY_SECURE_FLAG = "browser_activity_secure_flag";
     }
 
     @SerializedName(CLIENT_ID)
@@ -186,6 +187,13 @@ public class PublicClientApplicationConfiguration {
      */
     @SerializedName(WEBAUTHN_CAPABLE)
     private Boolean webauthnCapable;
+
+    /**
+     * When set to true, FLAG_SECURE will be set on BrowserTabActivity and CurrentTaskBrowserTabActivity
+     * to prevent screenshots and screen recording during authentication.
+     */
+    @SerializedName(BROWSER_ACTIVITY_SECURE_FLAG)
+    private Boolean browserActivitySecureFlag;
 
     transient private OAuth2TokenCache mOAuth2TokenCache;
 
@@ -428,6 +436,24 @@ public class PublicClientApplicationConfiguration {
 
     public Boolean isWebauthnCapable() {
         return Boolean.TRUE.equals(webauthnCapable);
+    }
+
+    /**
+     * Gets whether FLAG_SECURE should be set on BrowserTabActivity and CurrentTaskBrowserTabActivity.
+     *
+     * @return true if FLAG_SECURE should be set, false otherwise. Defaults to false.
+     */
+    public Boolean isBrowserActivitySecureFlagEnabled() {
+        return Boolean.TRUE.equals(browserActivitySecureFlag);
+    }
+
+    /**
+     * Sets whether FLAG_SECURE should be set on BrowserTabActivity and CurrentTaskBrowserTabActivity.
+     *
+     * @param browserActivitySecureFlag true to enable FLAG_SECURE, false to disable.
+     */
+    public void setBrowserActivitySecureFlagEnabled(Boolean browserActivitySecureFlag) {
+        this.browserActivitySecureFlag = browserActivitySecureFlag;
     }
 
     public Authority getDefaultAuthority() {
