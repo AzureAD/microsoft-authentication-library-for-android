@@ -139,18 +139,24 @@ public class MainActivity extends AppCompatActivity {
                             getPackageManagerFlag()
                     );
 
-                    String packageSigningSha = "";
+                    String signingCertificateHashes = "";
 
                     final Signature[] signatures = getSignatures(packageInfo);
                     if (null != signatures
                             && signatures.length > 0) {
                         final Signature signature = signatures[0];
-                        final MessageDigest digest = MessageDigest.getInstance("SHA");
-                        digest.update(signature.toByteArray());
-                        packageSigningSha = Base64.encodeToString(digest.digest(), Base64.NO_WRAP);
+                        final MessageDigest digestSha1 = MessageDigest.getInstance("SHA"); // CodeQL [SM05136] This is only for test purposes, not used in production.
+                        digestSha1.update(signature.toByteArray());
+                        final String packageSigningSha1 = Base64.encodeToString(digestSha1.digest(), Base64.NO_WRAP);
+
+                        final MessageDigest digestSha512 = MessageDigest.getInstance("SHA-512");
+                        digestSha512.update(signature.toByteArray());
+                        final String  packageSigningSha512 = Base64.encodeToString(digestSha512.digest(), Base64.NO_WRAP);
+
+                        signingCertificateHashes = "SHA-1: " + packageSigningSha1 + "\nSHA-512: " + packageSigningSha512;
                     }
 
-                    String msg = packageSigningSha;
+                    String msg = signingCertificateHashes;
 
                     if (isAnAuthenticatorApp(pkgName)) {
                         msg += "\n\n" + getAuthenticatorAppMetadata(pkgName);
