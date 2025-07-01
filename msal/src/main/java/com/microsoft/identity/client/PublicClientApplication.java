@@ -298,6 +298,7 @@ public class PublicClientApplication implements IPublicClientApplication, IToken
         runOnBackground(new Runnable() {
             @Override
             public void run() {
+                Logger.info("TestThis", "create() called with configFileResourceId: " + configFileResourceId);
                 create(
                         initializeConfiguration(context, configFileResourceId),
                         null, // client id

@@ -31,6 +31,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -645,7 +646,7 @@ public class AcquireTokenFragment extends Fragment {
         } else {
             Logger.getInstance().setEnablePII(false);
         }
-
+        Log.d("TestThis", "Loading MSAL application with config file: " + requestOptions.getConfigFile());
         MsalWrapper.create(getContext(),
                 Constants.getResourceIdFromConfigFile(requestOptions.getConfigFile()),
                 new INotifyOperationResultCallback<MsalWrapper>() {

@@ -16,6 +16,7 @@ import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.IPublicClientApplication;
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
+import com.microsoft.identity.client.Logger;
 import com.microsoft.identity.client.PoPAuthenticationScheme;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.claims.ClaimsRequest;
@@ -51,6 +52,7 @@ abstract class MsalWrapper {
     public static void create(@NonNull final Context context,
                               @NonNull final int configFileResourceId,
                               @NonNull final INotifyOperationResultCallback<MsalWrapper> callback) {
+        Log.i("TestThis", "RespurceId " + configFileResourceId);
         PublicClientApplication.create(context,
                 configFileResourceId,
                 new PublicClientApplication.ApplicationCreatedListener() {
@@ -91,7 +93,7 @@ abstract class MsalWrapper {
     public void acquireToken(@NonNull final Activity activity,
                              @NonNull final RequestOptions requestOptions,
                              @NonNull final INotifyOperationResultCallback<IAuthenticationResult> callback) {
-
+        Log.i("MsalWrapper", "acquireToken called with RequestOptions: " + requestOptions);
         final AcquireTokenParameters.Builder builder = getAcquireTokenParametersBuilder(activity, requestOptions, callback);
         builder.withScopes(Arrays.asList(requestOptions.getScopes().toLowerCase().split(" ")));
         builder.withOtherScopesToAuthorize(

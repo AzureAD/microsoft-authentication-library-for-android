@@ -23,6 +23,7 @@
 package com.microsoft.identity.client;
 
 import android.content.Context;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -86,7 +87,7 @@ public class PublicClientApplicationConfigurationFactory {
     private static PublicClientApplicationConfiguration initializeConfigurationInternal(@NonNull final Context context,
                                                                                         @Nullable final PublicClientApplicationConfiguration developerConfig) {
         validateNonNullArgument(context, "context");
-
+        Log.d("TestThis", "initializeConfigurationInternal " + developerConfig + " developerConfig "+ developerConfig.getClientId());
         final PublicClientApplicationConfiguration config = loadDefaultConfiguration(context);
         if (developerConfig != null) {
             config.mergeConfiguration(developerConfig);
@@ -116,6 +117,7 @@ public class PublicClientApplicationConfigurationFactory {
     public static PublicClientApplicationConfiguration loadConfiguration(@NonNull final Context context,
                                                                   final int configResourceId) {
         final InputStream configStream = context.getResources().openRawResource(configResourceId);
+        Log.d("TestThis", "loadConfiguration "  + " configResourceId "+ configResourceId);
         boolean useDefaultConfigResourceId = configResourceId == R.raw.msal_default_config;
         return loadConfiguration(configStream, useDefaultConfigResourceId);
     }
