@@ -772,8 +772,7 @@ public class PublicClientApplicationConfiguration {
                 if (AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_RELEASE_SIGNATURE_SHA512.equalsIgnoreCase(sha512_signingCertThumbprint)
                         || AuthenticationConstants.Broker.AZURE_AUTHENTICATOR_APP_DEBUG_SIGNATURE_SHA512.equalsIgnoreCase(sha512_signingCertThumbprint)) {
 
-                    // MSAL still uses SHA-1 format in redirect url.
-                    final MessageDigest md_sha1 = MessageDigest.getInstance("SHA");
+                    final MessageDigest md_sha1 = MessageDigest.getInstance("SHA"); // CodeQL [SM05136] MSAL still uses SHA-1 format in redirect url.
                     md_sha1.update(signature.toByteArray());
                     final String sha1_signingCertThumbprint = Base64.encodeToString(md_sha1.digest(), Base64.NO_WRAP);
 
