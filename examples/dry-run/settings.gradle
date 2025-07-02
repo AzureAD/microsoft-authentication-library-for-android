@@ -1,0 +1,2 @@
+rootProject.name = "MSALDryRun"
+include ':app'
