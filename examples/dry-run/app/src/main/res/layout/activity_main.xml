@@ -3,10 +3,27 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:gravity="center">
+    android:padding="16dp">
 
-    <Button
+    <TextView
+        android:id="@+id/accountInfoTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:textSize="16sp"
+        android:background="@drawable/log_background"
+        android:layout_marginBottom="16dp"
+        android:textColor="?attr/colorOnSurface"
+        android:text="No account signed in"/>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <Button
         android:id="@+id/signInButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -32,15 +49,19 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="200dp"
-        android:background="#F5F5F5">
+        android:background="@drawable/log_background"
+        android:clipToPadding="false"
+        android:padding="4dp">
 
         <TextView
             android:id="@+id/logTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="8dp"
-            android:textSize="14sp"/>
+            android:textSize="14sp"
+            android:textColor="?attr/colorOnSurface"/>
 
     </ScrollView>
+    </LinearLayout>
 
 </LinearLayout>

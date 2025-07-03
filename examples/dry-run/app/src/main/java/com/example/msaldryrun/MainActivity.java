@@ -5,12 +5,15 @@ import android.widget.Button;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.microsoft.identity.client.IAccount;
+
 public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCallback {
     private AuthHelper mAuthHelper;
     private Button mSignInButton;
     private Button mSignOutButton;
     private Button mAcquireTokenButton;
     private TextView mLogTextView;
+    private TextView mAccountInfoTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,9 +25,7 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
         mSignOutButton = findViewById(R.id.signOutButton);
         mAcquireTokenButton = findViewById(R.id.acquireTokenButton);
         mLogTextView = findViewById(R.id.logTextView);
-
-        // Load MSAL configuration
-        MSALConfig.getInstance().load(this);
+        mAccountInfoTextView = findViewById(R.id.accountInfoTextView);
 
         // Initialize AuthHelper
         mAuthHelper = new AuthHelper(this, this);
@@ -33,6 +34,8 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
         mSignInButton.setOnClickListener(v -> mAuthHelper.signIn(this));
         mSignOutButton.setOnClickListener(v -> mAuthHelper.signOut());
         mAcquireTokenButton.setOnClickListener(v -> mAuthHelper.acquireTokenSilently());
+
+        updateAccountInfo();
     }
 
     private void updateUI(boolean isSignedIn) {
@@ -46,28 +49,44 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
         mLogTextView.setText(currentLog + "\n" + message);
     }
 
+    private void updateAccountInfo() {
+        IAccount account = mAuthHelper.getCurrentAccount();
+        if (account != null) {
+            String displayInfo = String.format("Signed in as:\n%s\n%s", 
+                account.getUsername(),
+                account.getAuthority());
+            mAccountInfoTextView.setText(displayInfo);
+        } else {
+            mAccountInfoTextView.setText("No account signed in");
+        }
+    }
+
     // AuthHelper.AuthCallback implementation
     @Override
     public void onSignInSuccess() {
         logMessage("Signed in successfully");
         updateUI(true);
+        updateAccountInfo();
     }
 
     @Override
     public void onSignInFailure(String error) {
         logMessage("Sign in failed: " + error);
         updateUI(false);
+        updateAccountInfo();
     }
 
     @Override
     public void onSignOutSuccess() {
         logMessage("Signed out successfully");
         updateUI(false);
+        updateAccountInfo();
     }
 
     @Override
     public void onSignOutFailure(String error) {
         logMessage("Sign out failed: " + error);
+        updateAccountInfo();
     }
 
     @Override

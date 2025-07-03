@@ -3,6 +3,9 @@ package com.example.msaldryrun;
 import android.app.Activity;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IAuthenticationResult;
@@ -35,12 +38,8 @@ public class AuthHelper {
     }
 
     private void initializeMSAL(Activity activity) {
-        MSALConfig config = MSALConfig.getInstance();
         PublicClientApplication.createSingleAccountPublicClientApplication(
-                activity,
-                config.getClientId(),
-                config.getAuthority(),
-                config.getRedirectUri(),
+                activity, R.raw.auth_config,
                 new IPublicClientApplication.ISingleAccountApplicationCreatedListener() {
                     @Override
                     public void onCreated(ISingleAccountPublicClientApplication application) {
@@ -57,20 +56,32 @@ public class AuthHelper {
 
     private void loadAccount() {
         if (mPCA != null) {
-            mPCA.getCurrentAccount(new ISingleAccountPublicClientApplication.CurrentAccountCallback() {
+            mPCA.getCurrentAccountAsync(new ISingleAccountPublicClientApplication.CurrentAccountCallback() {
                 @Override
-                public void onAccountLoaded(IAccount account) {
+                public void onAccountLoaded(@Nullable IAccount account) {
                     mAccount = account;
+                    if (mAccount != null) {
+                        Log.d(TAG, "Account loaded: " + mAccount.getUsername());
+                        mCallback.onSignInSuccess();
+                    } else {
+                        Log.d(TAG, "No account loaded");
+                    }
                 }
 
                 @Override
-                public void onAccountChanged(IAccount priorAccount, IAccount currentAccount) {
+                public void onAccountChanged(@Nullable IAccount priorAccount, @Nullable IAccount currentAccount) {
                     mAccount = currentAccount;
+                    if (mAccount != null) {
+                        Log.d(TAG, "Account changed: " + mAccount.getUsername());
+                        mCallback.onSignInSuccess();
+                    } else {
+                        Log.d(TAG, "No account loaded after change");
+                    }
                 }
 
                 @Override
-                public void onError(MsalException exception) {
-                    Log.e(TAG, "Failed to load account", exception);
+                public void onError(@NonNull MsalException exception) {
+                    Log.e(TAG, "Error loading account", exception);
                 }
             });
         }
@@ -150,5 +161,9 @@ public class AuthHelper {
 
     public boolean isSignedIn() {
         return mAccount != null;
+    }
+
+    public IAccount getCurrentAccount() {
+        return mAccount;
     }
 }

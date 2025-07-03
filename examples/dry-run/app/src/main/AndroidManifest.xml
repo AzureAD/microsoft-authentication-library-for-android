@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.MSALDryRun">
+        android:theme="@style/Theme.MaterialComponents.DayNight.DarkActionBar"
+        tools:targetApi="31">
 
         <activity
             android:name=".MainActivity"
@@ -30,8 +31,9 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
-                    android:host="auth"
-                    android:scheme="msauth" />
+                    android:scheme="msauth"
+                    android:host="com.example.msaldryrun"
+                    android:path="/LcRPdWTyHoedZZoP+vp27qR+oHk=" />
             </intent-filter>
         </activity>
 

@@ -4,7 +4,7 @@ plugins {
 
 android {
     namespace 'com.example.msaldryrun'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.example.msaldryrun"
@@ -20,15 +20,27 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+    buildFeatures {
+        viewBinding true
+    }
+
+    packagingOptions {
+        resources {
+            excludes += ['META-INF/DEPENDENCIES']
+        }
+    }
 }
 
 dependencies {
-    implementation 'com.microsoft.identity.client:msal:4.+'
+    implementation 'com.microsoft.identity.client:msal:6.+'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    
 }
