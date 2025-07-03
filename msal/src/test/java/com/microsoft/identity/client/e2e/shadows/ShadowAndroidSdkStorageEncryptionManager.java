@@ -28,7 +28,7 @@ import com.microsoft.identity.common.java.crypto.key.ISecretKeyProvider;
 
 import org.robolectric.annotation.Implements;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Implements(AndroidAuthSdkStorageEncryptionManager.class)
@@ -42,8 +42,6 @@ public class ShadowAndroidSdkStorageEncryptionManager {
     }
 
     public List<ISecretKeyProvider> getKeyProviderForDecryption(byte[] cipherText) {
-        return new ArrayList<ISecretKeyProvider>() {{
-            add(mUserDefinedKey);
-        }};
+        return Collections.singletonList(mUserDefinedKey);
     }
 }
