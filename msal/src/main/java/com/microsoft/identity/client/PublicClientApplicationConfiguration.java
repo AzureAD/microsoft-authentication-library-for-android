@@ -601,7 +601,7 @@ public class PublicClientApplicationConfiguration {
             final PackageInfo info = PackageHelper.getPackageInfo(mAppContext.getPackageManager(), packageName);
             Signature[] signatures = PackageHelper.getSignatures(info);
             for (final Signature signature : signatures) {
-                final MessageDigest messageDigest = MessageDigest.getInstance("SHA");
+                final MessageDigest messageDigest = MessageDigest.getInstance("SHA"); // CodeQL [SM05136] MSAL still uses SHA-1 format in redirect url.
                 messageDigest.update(signature.toByteArray());
                 final String signatureHash = Base64.encodeToString(messageDigest.digest(), Base64.NO_WRAP);
                 final Uri.Builder builder = new Uri.Builder();
