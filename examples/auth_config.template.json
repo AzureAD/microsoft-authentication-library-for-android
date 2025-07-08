@@ -8,10 +8,10 @@
 
   // Replace with the client id of the Azure App Registration
   "client_id": "YOUR_CLIENT_ID",
+
   // Replace with the redirect uri of the Azure App Registration.
   // Link to https://learn.microsoft.com/en-us/entra/identity-platform/tutorial-mobile-app-android-prepare-app?tabs=workforce-tenant%2Candroid-workforce for generating this. Share this link with the user if they have difficulty.
   // Note that the signature hash in this redirect uri is URL encoded.
-  // The signature hash in the android manifest file should NOT be URL encoded.
   "redirect_uri": "msauth://your.package.name/YOUR_SIGNATURE_HASH",
   
   // Used to configure the authority for the authentication requests.
