@@ -38,7 +38,7 @@
                 <data
                     android:scheme="msauth" 
                     android:host="com.example.msalmultipleaccount"
-                    android:path="/LcRPdWTyHoedZZoP+vp27qR+oHk=" />
+                    android:path="/SIGNATURE_HASH" />
             </intent-filter>
         </activity>
 
