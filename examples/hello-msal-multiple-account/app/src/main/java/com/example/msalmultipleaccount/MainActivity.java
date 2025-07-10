@@ -95,6 +95,7 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
 
         // Setup click listeners
         // Map button to call Sign In Method
+        // In multiple account mode, this is done by calling the acquireToken method in MSAL
         mSignInButton.setOnClickListener(v -> mAuthHelper.acquireTokenInteractive(this, null));
 
         // Map button to call Sign Out Method
