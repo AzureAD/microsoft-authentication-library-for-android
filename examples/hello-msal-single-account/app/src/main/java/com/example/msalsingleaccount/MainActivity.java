@@ -33,9 +33,15 @@ import com.microsoft.identity.client.IAccount;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.concurrent.Executors;
+import java.util.concurrent.CompletableFuture;
 
+/**
+ * MainActivity for the MSAL Single Account example app.
+ * Demonstrates sign-in, sign-out, token acquisition, and calling Microsoft Graph API.
+ */
 public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCallback {
+
+    // UI elements
     private AuthHelper mAuthHelper;
     private Button mSignInButton;
     private Button mSignOutButton;
@@ -45,6 +51,13 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
     private TextView mLogTextView;
     private TextView mAccountInfoTextView;
 
+    /**
+     * Called when the activity is first created.
+     * Initializes the UI and sets up click listeners for buttons.
+     *
+     * @param savedInstanceState If the activity is being re-initialized after previously being shut down,
+     *                           this Bundle contains the data it most recently supplied in onSaveInstanceState(Bundle).
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,14 +76,27 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
         mAuthHelper = new AuthHelper(this, this);
 
         // Setup click listeners
+
+        // Map button to call Sign In Method
         mSignInButton.setOnClickListener(v -> mAuthHelper.signIn(this, null));
+
+        // Map button to call Sign Out Method
         mSignOutButton.setOnClickListener(v -> mAuthHelper.signOut());
+
+        // Map button to call Acquire Token Silent Method
         mAcquireTokenSilentButton.setOnClickListener(v ->
-                Executors.newSingleThreadExecutor().execute(() -> {
-                    mAuthHelper.acquireTokenSilent(null);
+
+                // Standard acquireTokenSilent must be run on a background (or worker) thread.
+                // To run on the main thread, use acquireTokenSilentAsync.
+                CompletableFuture.runAsync(() -> {
+                    mAuthHelper.acquireTokenSilent();
                 })
         );
+
+        // Map button to call Acquire Token Device Code Method
         mAcquireTokenDeviceCodeButton.setOnClickListener(v -> mAuthHelper.acquireTokenWithDeviceCode());
+
+        // Map button to call Graph API with the signed in user
         mCallGraphButton.setOnClickListener(v -> {
             IAccount selectedAccount = mAuthHelper.getCurrentAccount();
             if (selectedAccount != null) {
@@ -78,9 +104,15 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
             }
         });
 
+        // Once the methods have been mapped to buttons, update the account information UI
         updateAccountInfo();
     }
 
+    /**
+     * Updates the UI based on the sign-in state.
+     * The UI updates will be ran on the Ui Thread.
+     * @param isSignedIn whether or not there's an account signed in.
+     */
     private void updateUI(boolean isSignedIn) {
         runOnUiThread(() -> {
             mSignInButton.setEnabled(!isSignedIn);
@@ -91,6 +123,11 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
         });
     }
 
+    /**
+     * Logs a message to the log TextView.
+     * The UI updates will be ran on the Ui Thread.
+     * @param message the message to log.
+     */
     private void logMessage(String message) {
         runOnUiThread(() -> {
             String currentLog = mLogTextView.getText().toString();
@@ -98,19 +135,51 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
         });
     }
 
+    /**
+     * Updates the account information TextView with the current account details.
+     * The UI updates will be ran on the Ui Thread.
+     */
     private void updateAccountInfo() {
-        IAccount account = mAuthHelper.getCurrentAccount();
-        if (account != null) {
-            String displayInfo = String.format("Signed in as:\n%s\n%s", 
-                account.getUsername(),
-                account.getAuthority());
-            mAccountInfoTextView.setText(displayInfo);
-        } else {
-            mAccountInfoTextView.setText("No account signed in");
-        }
+        runOnUiThread(() -> {
+            IAccount account = mAuthHelper.getCurrentAccount();
+            if (account != null) {
+                String displayInfo = String.format("Signed in as:\n%s",
+                    account.getUsername());
+                mAccountInfoTextView.setText(displayInfo);
+            } else {
+                mAccountInfoTextView.setText("No account signed in");
+            }
+        });
+    }
+
+    /**
+     * Uses GraphHelper to call the Microsoft Graph API to retrieve user information.
+     */
+    private void callGraphAPI() {
+        mAuthHelper.acquireTokenSilentAsync(accessToken -> {
+            GraphHelper.callGraphAPI(accessToken, new GraphHelper.GraphCallback() {
+                @Override
+                public void onSuccess(JSONObject data) {
+                    try {
+                        String displayName = data.getString("displayName");
+                        String officeLocation = data.getString("officeLocation");
+                        logMessage("Graph API Success!\nDisplay Name: " + displayName +
+                                "\nOffice: " + officeLocation);
+                    } catch (JSONException e) {
+                        logMessage("Error parsing Graph response: " + e.getMessage());
+                    }
+                }
+
+                @Override
+                public void onError(String error) {
+                    logMessage("Graph API Error: " + error);
+                }
+            });
+        });
     }
 
     // AuthHelper.AuthCallback implementation
+    // These methods are called from AuthHelper to communicate MSAL operation results, and handle UI updates in response
     @Override
     public void onSignInSuccess() {
         logMessage("Signed in successfully");
@@ -163,28 +232,5 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
     public void onInitialAccountLoaded(boolean accountLoaded) {
         updateUI(accountLoaded);
         updateAccountInfo();
-    }
-
-    private void callGraphAPI() {
-        mAuthHelper.acquireTokenSilentAsync(accessToken -> {
-            GraphHelper.callGraphAPI(accessToken, new GraphHelper.GraphCallback() {
-                @Override
-                public void onSuccess(JSONObject data) {
-                    try {
-                        String displayName = data.getString("displayName");
-                        String officeLocation = data.getString("officeLocation");
-                        logMessage("Graph API Success!\nDisplay Name: " + displayName +
-                                "\nOffice: " + officeLocation);
-                    } catch (JSONException e) {
-                        logMessage("Error parsing Graph response: " + e.getMessage());
-                    }
-                }
-
-                @Override
-                public void onError(String error) {
-                    logMessage("Graph API Error: " + error);
-                }
-            });
-        });
     }
 }

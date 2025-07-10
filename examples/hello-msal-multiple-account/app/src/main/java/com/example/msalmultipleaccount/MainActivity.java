@@ -40,9 +40,15 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
+import java.util.concurrent.CompletableFuture;
 
+/**
+ * MainActivity for the MSAL Multiple Account example app.
+ * Demonstrates sign-in, sign-out, token acquisition, and calling Microsoft Graph API.
+ */
 public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCallback {
+
+    // UI elements
     private AuthHelper mAuthHelper;
     private Button mSignInButton;
     private Button mSignOutButton;
@@ -56,6 +62,13 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
     private ArrayAdapter<String> mAccountAdapter;
     private boolean mFirstLaunch = true;
 
+    /**
+     * Called when the activity is first created.
+     * Initializes the UI and sets up click listeners for buttons.
+     *
+     * @param savedInstanceState If the activity is being re-initialized after previously being shut down,
+     *                           this Bundle contains the data it most recently supplied in onSaveInstanceState(Bundle).
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,22 +94,33 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
         mAuthHelper = new AuthHelper(this, this);
 
         // Setup click listeners
-        mSignInButton.setOnClickListener(v -> mAuthHelper.signIn(this, null));
+        // Map button to call Sign In Method
+        mSignInButton.setOnClickListener(v -> mAuthHelper.acquireTokenInteractive(this, null));
+
+        // Map button to call Sign Out Method
         mSignOutButton.setOnClickListener(v -> {
             IAccount selectedAccount = getSelectedAccount();
             if (selectedAccount != null) {
-                mAuthHelper.signOut(selectedAccount);
+                mAuthHelper.removeAccount(selectedAccount);
             }
         });
+
+        // Map button to call acquireTokenSilent Method
         mAcquireTokenSilentButton.setOnClickListener(v -> {
             IAccount selectedAccount = getSelectedAccount();
             if (selectedAccount != null) {
-                Executors.newSingleThreadExecutor().execute(() -> {
+                // Standard acquireTokenSilent must be run on a background (or worker) thread.
+                // To run on the main thread, use acquireTokenSilentAsync.
+                CompletableFuture.runAsync(() -> {
                     mAuthHelper.acquireTokenSilent(selectedAccount);
                 });
             }
         });
+
+        // Map button to call Acquire Token Device Code Method
         mAcquireTokenDeviceCodeButton.setOnClickListener(v -> mAuthHelper.acquireTokenWithDeviceCode());
+
+        // Map button to call Graph API with the signed in user
         mCallGraphButton.setOnClickListener(v -> {
             IAccount selectedAccount = getSelectedAccount();
             if (selectedAccount != null) {
@@ -104,6 +128,8 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
             }
         });
 
+        // Set up the account spinner to listen for account selection changes.
+        // Whenever a new account is selected, update the account info and UI.
         mAccountSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -117,9 +143,14 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
             }
         });
 
+        // Once the methods have been mapped to buttons, update the account information UI
         updateUI();
     }
 
+    /**
+     * Updates the UI based on the sign-in state.
+     * The UI updates will be ran on the Ui Thread.
+     */
     private void updateUI() {
         runOnUiThread(() -> {
             boolean hasAccounts = mAuthHelper.hasAccounts();
@@ -133,24 +164,40 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
         });
     }
 
+    /**
+     * Updates the account spinner with the list of accounts.
+     * The UI updates will be ran on the Ui Thread.
+     *
+     * @param accounts List of accounts to display in the spinner.
+     */
     private void updateAccountSpinner(List<IAccount> accounts) {
-        mAccounts = accounts;
-        List<String> accountNames = new ArrayList<>();
-        accountNames.add("No Account Selected");  // Add option for no selection
-        for (IAccount account : accounts) {
-            accountNames.add(account.getUsername());
-        }
-        mAccountAdapter.clear();
-        mAccountAdapter.addAll(accountNames);
-        mAccountAdapter.notifyDataSetChanged();
+        runOnUiThread(() -> {
+            mAccounts = accounts;
+            List<String> accountNames = new ArrayList<>();
+            accountNames.add("No Account Selected");  // Add option for no selection
 
-        // On first launch, if there are accounts, select the first one
-        if (mFirstLaunch && !accounts.isEmpty()) {
-            mAccountSpinner.setSelection(1);  // Select first account (position 1 since 0 is "No Account Selected")
-            mFirstLaunch = false;
-        }
+            // Add each account to the spinner
+            for (IAccount account : accounts) {
+                accountNames.add(account.getUsername());
+            }
+            mAccountAdapter.clear();
+            mAccountAdapter.addAll(accountNames);
+            mAccountAdapter.notifyDataSetChanged();
+
+            // On first launch, if there are accounts, select the first one
+            if (mFirstLaunch && !accounts.isEmpty()) {
+                mAccountSpinner.setSelection(1);  // Select first account (position 1 since 0 is "No Account Selected")
+                mFirstLaunch = false;
+            }
+        });
     }
 
+    /**
+     * Gets the currently selected account from the spinner.
+     * Returns null if "No Account Selected" is chosen or if no accounts are available.
+     *
+     * @return The selected account or null if no account is selected.
+     */
     private IAccount getSelectedAccount() {
         int position = mAccountSpinner.getSelectedItemPosition();
         // Return null if "No Account Selected" is chosen (position 0) or invalid position
@@ -161,6 +208,12 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
         return mAccounts.get(position - 1);
     }
 
+    /**
+     * Logs a message to the log TextView.
+     * The UI updates will be ran on the Ui Thread.
+     *
+     * @param message the message to log.
+     */
     private void logMessage(String message) {
         runOnUiThread(() -> {
             String currentLog = mLogTextView.getText().toString();
@@ -168,15 +221,50 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
         });
     }
 
+    /**
+     * Updates the account information TextView with the current account details.
+     * The UI updates will be ran on the Ui Thread.
+     */
     private void updateAccountInfo() {
-        IAccount account = getSelectedAccount();
-        if (account != null) {
-            String displayInfo = String.format("Selected account:\n%s",
-                account.getUsername());
-            mAccountInfoTextView.setText(displayInfo);
-        } else {
-            mAccountInfoTextView.setText("No account selected");
-        }
+        runOnUiThread(() -> {
+            IAccount account = getSelectedAccount();
+            if (account != null) {
+                String displayInfo = String.format("Selected account:\n%s",
+                        account.getUsername());
+                mAccountInfoTextView.setText(displayInfo);
+            } else {
+                mAccountInfoTextView.setText("No account selected");
+            }
+        });
+    }
+
+    /**
+     * Calls the Microsoft Graph API using the access token from the selected account.
+     * Displays the user's display name and office location in the log.
+     *
+     * @param account The account to use for the Graph API call.
+     */
+    private void callGraphAPI(IAccount account) {
+        mAuthHelper.acquireTokenSilentAsync(account, accessToken -> {
+            GraphHelper.callGraphAPI(accessToken, new GraphHelper.GraphCallback() {
+                @Override
+                public void onSuccess(JSONObject data) {
+                    try {
+                        String displayName = data.getString("displayName");
+                        String officeLocation = data.getString("officeLocation");
+                        logMessage("Graph API Success!\nDisplay Name: " + displayName +
+                                "\nOffice: " + officeLocation);
+                    } catch (JSONException e) {
+                        logMessage("Error parsing Graph response: " + e.getMessage());
+                    }
+                }
+
+                @Override
+                public void onError(String error) {
+                    logMessage("Graph API Error: " + error);
+                }
+            });
+        });
     }
 
     // AuthHelper.AuthCallback implementation
@@ -229,28 +317,5 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
         updateAccountSpinner(accounts);
         updateAccountInfo();
         updateUI();
-    }
-
-    private void callGraphAPI(IAccount account) {
-        mAuthHelper.acquireTokenSilentAsync(account, accessToken -> {
-            GraphHelper.callGraphAPI(accessToken, new GraphHelper.GraphCallback() {
-                @Override
-                public void onSuccess(JSONObject data) {
-                    try {
-                        String displayName = data.getString("displayName");
-                        String officeLocation = data.getString("officeLocation");
-                        logMessage("Graph API Success!\nDisplay Name: " + displayName +
-                                 "\nOffice: " + officeLocation);
-                    } catch (JSONException e) {
-                        logMessage("Error parsing Graph response: " + e.getMessage());
-                    }
-                }
-
-                @Override
-                public void onError(String error) {
-                    logMessage("Graph API Error: " + error);
-                }
-            });
-        });
     }
 }

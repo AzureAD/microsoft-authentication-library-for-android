@@ -33,15 +33,30 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * GraphHelper is a utility class to interact with Microsoft Graph API.
+ * It provides a method to call the Graph API and retrieve user information.
+ */
 public class GraphHelper {
     private static final String TAG = GraphHelper.class.getSimpleName();
+
+    // The URL for the Microsoft Graph API endpoint to get user information
     private static final String GRAPH_URL = "https://graph.microsoft.com/v1.0/me";
 
+    /**
+     * Callback interface for handling Graph API responses.
+     */
     public interface GraphCallback {
         void onSuccess(JSONObject data);
         void onError(String error);
     }
 
+    /**
+     * Calls the Microsoft Graph API to retrieve user information.
+     *
+     * @param accessToken The OAuth 2.0 access token for authentication.
+     * @param callback    The callback to handle the response or error.
+     */
     public static void callGraphAPI(@NonNull String accessToken, @NonNull GraphCallback callback) {
         CompletableFuture.runAsync(() -> {
             HttpURLConnection connection = null;

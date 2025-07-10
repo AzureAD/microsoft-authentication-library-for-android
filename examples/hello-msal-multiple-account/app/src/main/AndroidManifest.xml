@@ -33,7 +33,7 @@
 
                 <!--
                     android:host should be the package name of your application.
-                    android:path should be the signature hash registered in the Azure app registration. This signature hash is not URL encoded, unlike the one in the json configuration file
+                    android:path should be the signature hash registered in the Azure app registration. This signature hash is not URL encoded
                 -->
                 <data
                     android:scheme="msauth" 

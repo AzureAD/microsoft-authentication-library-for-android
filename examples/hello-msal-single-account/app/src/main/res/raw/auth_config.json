@@ -1,7 +1,7 @@
 {
     "client_id" : "CLIENT_ID",
-    "authorization_user_agent" : "DEFAULT",
     "redirect_uri" : "msauth://com.example.msalsingleaccount/SIGNATURE_HASH",
+    "authorization_user_agent" : "DEFAULT",
     "account_mode": "SINGLE",
     "authorities": [
         {

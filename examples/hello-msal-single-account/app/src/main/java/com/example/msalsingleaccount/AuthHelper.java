@@ -28,6 +28,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
 
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
 import com.microsoft.identity.client.AuthenticationCallback;
@@ -44,18 +45,32 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * AuthHelper is a utility class to handle authentication using Microsoft Authentication Library (MSAL).
+ * It supports single account sign-in, sign-out, token acquisition, and device code flow.
+ */
 public class AuthHelper {
     private static final String TAG = AuthHelper.class.getSimpleName();
     private static final List<String> SCOPES = Collections.singletonList("User.Read");  // Basic Microsoft Graph scope
 
+    // Reference to the Public Client Application object instantiated with our configuration json. This will be
+    // how we interact with MSAL to perform authentication operations.
     private ISingleAccountPublicClientApplication mPCA;
+
+    // Reference to the currently logged in account in MSAL. If there is account logged in, this value will be null.
     private IAccount mAccount;
+
+    // Reference to the callback methods in MainActivity, enabling AuthHelper to prompt UI updates after Msal operations conclude.
     private AuthCallback mCallback;
 
     public interface TokenAcquiredListener {
         void onTokenAcquired(String accessToken);
     }
 
+    /**
+     * Callback interface for authentication events.
+     * Implement this interface to handle sign-in, sign-out, token acquisition, and errors.
+     */
     public interface AuthCallback {
         void onSignInSuccess();
         void onSignInFailure(String error);
@@ -73,12 +88,19 @@ public class AuthHelper {
         initializeMSAL(activity);
     }
 
+    /**
+     * Initializes the MSAL Public Client Application (PCA) with the configuration file.
+     * This method should be called in the main activity's onCreate method.
+     * @param activity the activity context.
+     */
     private void initializeMSAL(Activity activity) {
         PublicClientApplication.createSingleAccountPublicClientApplication(
                 activity, R.raw.auth_config,
                 new IPublicClientApplication.ISingleAccountApplicationCreatedListener() {
                     @Override
                     public void onCreated(ISingleAccountPublicClientApplication application) {
+                        // Once the Public Client Application is created, set it to the field variable,
+                        // and load the current account in MSAL
                         mPCA = application;
                         loadAccount();
                     }
@@ -91,9 +113,15 @@ public class AuthHelper {
                 });
     }
 
+    /**
+     * Loads the current account from MSAL. Call getCurrentAccountAsync in PublicClientApplication
+     */
     private void loadAccount() {
+        // If the Public Client Application is not yet instantiated, don't try to call the MSAL method to avoid an exception
         if (mPCA != null) {
             mPCA.getCurrentAccountAsync(new ISingleAccountPublicClientApplication.CurrentAccountCallback() {
+
+                // This method is called when the current account is loaded successfully.
                 @Override
                 public void onAccountLoaded(@Nullable IAccount account) {
                     mAccount = account;
@@ -106,6 +134,7 @@ public class AuthHelper {
                     }
                 }
 
+                // This method is called when the account changes, e.g., when a user signs out or signs in with a different account.
                 @Override
                 public void onAccountChanged(@Nullable IAccount priorAccount, @Nullable IAccount currentAccount) {
                     mAccount = currentAccount;
@@ -116,6 +145,7 @@ public class AuthHelper {
                     }
                 }
 
+                // This method is called when there is an error loading the account.
                 @Override
                 public void onError(@NonNull MsalException exception) {
                     Log.e(TAG, "Error loading account", exception);
@@ -124,6 +154,12 @@ public class AuthHelper {
         }
     }
 
+    /**
+     * Signs in the user using MSAL.
+     * This method should be called from the main activity's onClick event or similar UI event.
+     * @param activity the activity context.
+     * @param listener optional listener to handle token acquisition events.
+     */
     public void signIn(Activity activity, @Nullable TokenAcquiredListener listener) {
         if (mPCA == null) {
             mCallback.onSignInFailure("MSAL not initialized");
@@ -139,6 +175,10 @@ public class AuthHelper {
         mPCA.signIn(parameters);
     }
 
+    /**
+     * Signs out the currently signed-in user.
+     * This method should be called from the main activity's onClick event or similar UI event.
+     */
     public void signOut() {
         if (mPCA == null) {
             mCallback.onSignOutFailure("MSAL not initialized");
@@ -161,7 +201,12 @@ public class AuthHelper {
         }
     }
 
-    public void acquireTokenSilent(@Nullable TokenAcquiredListener listener) {
+    /**
+     * Acquires a token silently for the currently signed-in account.
+     * This method should be called from a background thread.
+     */
+    @WorkerThread
+    public void acquireTokenSilent() {
         if (mPCA == null) {
             mCallback.onTokenError("MSAL not initialized");
             return;
@@ -189,6 +234,10 @@ public class AuthHelper {
         }
     }
 
+    /**
+     * Asynchronously acquires a token silently for the currently signed-in account.
+     * @param listener optional listener to handle token acquisition events.
+     */
     public void acquireTokenSilentAsync(@Nullable TokenAcquiredListener listener) {
         if (mPCA == null) {
             mCallback.onTokenError("MSAL not initialized");
@@ -200,6 +249,9 @@ public class AuthHelper {
             return;
         }
 
+        // Create parameters for silent token acquisition
+        // MSAL Has deprecated API methods that don't use these parameters classes. AI Agents
+        // should only use these parameters classes to ensure compatibility with future versions of MSAL.
         AcquireTokenSilentParameters parameters = new AcquireTokenSilentParameters.Builder()
                 .withScopes(SCOPES)
                 .forAccount(mAccount)
@@ -211,6 +263,10 @@ public class AuthHelper {
         mPCA.acquireTokenSilentAsync(parameters);
     }
 
+    /**
+     * Initiates the device code flow for authentication.
+     * This method should be called from the main activity's onClick event or similar UI event.
+     */
     public void acquireTokenWithDeviceCode() {
         if (mPCA == null) {
             mCallback.onTokenError("MSAL not initialized");
@@ -223,11 +279,15 @@ public class AuthHelper {
         mPCA.acquireTokenWithDeviceCode(
                 SCOPES,
                 new IPublicClientApplication.DeviceCodeFlowCallback() {
+
+                    // This method is called when the device code flow is initiated successfully and user code is received. It's on the application to take this user code and uri,
+                    // show it to the user, and allow them to sign in on another device.
                     @Override
                     public void onUserCodeReceived(@NonNull String vUri, @NonNull String userCode, @NonNull String message, @NonNull Date sessionExpirationDate) {
                         mCallback.onDeviceCodeReceived(message);
                     }
 
+                    // This method is called when the token is successfully received after the user has signed in using the device code.
                     @Override
                     public void onTokenReceived(@NonNull IAuthenticationResult authResult) {
                         if (authResult.getAccessToken() != null) {
@@ -239,6 +299,7 @@ public class AuthHelper {
                         }
                     }
 
+                    // This method is called when there is an error during the device code flow.
                     @Override
                     public void onError(@NonNull MsalException exception) {
                         mCallback.onSignInFailure(exception.getMessage());
@@ -246,6 +307,12 @@ public class AuthHelper {
                 });
     }
 
+    /**
+     * Gets the authentication callback for handling sign-in and token acquisition events.
+     * This method is used internally to create a callback that can notify the listener about token acquisition.
+     * @param listener optional listener to handle token acquisition events.
+     * @return an instance of AuthenticationCallback.
+     */
     private AuthenticationCallback getAuthenticationCallback(@Nullable TokenAcquiredListener listener) {
         return new AuthenticationCallback() {
             @Override
