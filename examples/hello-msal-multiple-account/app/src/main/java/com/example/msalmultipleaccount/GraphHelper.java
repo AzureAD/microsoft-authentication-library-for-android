@@ -65,6 +65,8 @@ public class GraphHelper {
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestProperty("Authorization", "Bearer " + accessToken);
                 connection.setRequestProperty("Accept", "application/json");
+                connection.setConnectTimeout(15000);
+                connection.setReadTimeout(15000);
 
                 int responseCode = connection.getResponseCode();
                 if (responseCode == HttpURLConnection.HTTP_OK) {
