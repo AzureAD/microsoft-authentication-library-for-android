@@ -1,7 +1,7 @@
 {
-    "client_id": "CLIENT_ID",
+    "client_id": "eb30e84d-4b19-4e62-aff6-337f4cfd65c2",
+    "redirect_uri": "msauth://com.example.msalmultipleaccount/LcRPdWTyHoedZZoP%2Bvp27qR%2BoHk%3D",
     "authorization_user_agent": "DEFAULT",
-    "redirect_uri": "msauth://com.example.msalmultipleaccount/SIGNATURE_HASH",
     "account_mode": "MULTIPLE",
     "authorities": [
         {

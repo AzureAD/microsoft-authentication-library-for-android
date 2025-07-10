@@ -45,10 +45,18 @@
             android:layout_marginBottom="8dp"/>
 
         <Button
-            android:id="@+id/acquireTokenButton"
+            android:id="@+id/acquireTokenSilentButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Acquire Token Silently"
+            android:enabled="false"
+            android:layout_marginBottom="8dp"/>
+
+        <Button
+            android:id="@+id/callGraphButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Call Microsoft Graph"
             android:enabled="false"
             android:layout_marginBottom="16dp"/>
 

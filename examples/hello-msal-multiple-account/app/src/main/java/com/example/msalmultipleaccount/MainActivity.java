@@ -1,3 +1,26 @@
+//  Copyright (c) Microsoft Corporation.
+//  All rights reserved.
+//
+//  This code is licensed under the MIT License.
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files(the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions :
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//  THE SOFTWARE.
+
 package com.example.msalmultipleaccount;
 
 import android.os.Bundle;
@@ -7,19 +30,25 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.microsoft.identity.client.IAccount;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCallback {
     private AuthHelper mAuthHelper;
     private Button mSignInButton;
     private Button mSignOutButton;
-    private Button mAcquireTokenButton;
+    private Button mAcquireTokenSilentButton;
     private Button mAcquireTokenDeviceCodeButton;
+    private Button mCallGraphButton;
     private TextView mLogTextView;
     private TextView mAccountInfoTextView;
     private Spinner mAccountSpinner;
@@ -33,9 +62,10 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
         setContentView(R.layout.activity_main);
 
         // Initialize views
+        mCallGraphButton = findViewById(R.id.callGraphButton);
         mSignInButton = findViewById(R.id.signInButton);
         mSignOutButton = findViewById(R.id.signOutButton);
-        mAcquireTokenButton = findViewById(R.id.acquireTokenButton);
+        mAcquireTokenSilentButton = findViewById(R.id.acquireTokenSilentButton);
         mLogTextView = findViewById(R.id.logTextView);
         mAccountInfoTextView = findViewById(R.id.accountInfoTextView);
         mAcquireTokenDeviceCodeButton = findViewById(R.id.acquireTokenDeviceCodeButton);
@@ -51,20 +81,28 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
         mAuthHelper = new AuthHelper(this, this);
 
         // Setup click listeners
-        mSignInButton.setOnClickListener(v -> mAuthHelper.signIn(this));
+        mSignInButton.setOnClickListener(v -> mAuthHelper.signIn(this, null));
         mSignOutButton.setOnClickListener(v -> {
             IAccount selectedAccount = getSelectedAccount();
             if (selectedAccount != null) {
                 mAuthHelper.signOut(selectedAccount);
             }
         });
-        mAcquireTokenButton.setOnClickListener(v -> {
+        mAcquireTokenSilentButton.setOnClickListener(v -> {
             IAccount selectedAccount = getSelectedAccount();
             if (selectedAccount != null) {
-                mAuthHelper.acquireTokenSilently(selectedAccount);
+                Executors.newSingleThreadExecutor().execute(() -> {
+                    mAuthHelper.acquireTokenSilent(selectedAccount);
+                });
             }
         });
         mAcquireTokenDeviceCodeButton.setOnClickListener(v -> mAuthHelper.acquireTokenWithDeviceCode());
+        mCallGraphButton.setOnClickListener(v -> {
+            IAccount selectedAccount = getSelectedAccount();
+            if (selectedAccount != null) {
+                callGraphAPI(selectedAccount);
+            }
+        });
 
         mAccountSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -83,12 +121,16 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
     }
 
     private void updateUI() {
-        boolean hasAccounts = mAuthHelper.hasAccounts();
-        mSignInButton.setEnabled(true);  // Always enabled to allow signing in new accounts
-        mAcquireTokenDeviceCodeButton.setEnabled(true);  // Always enabled for device code flow
-        mSignOutButton.setEnabled(hasAccounts && getSelectedAccount() != null);  // Only enabled when an account is selected
-        mAcquireTokenButton.setEnabled(hasAccounts && getSelectedAccount() != null);  // Only enabled when an account is selected
-        mAccountSpinner.setEnabled(hasAccounts);
+        runOnUiThread(() -> {
+            boolean hasAccounts = mAuthHelper.hasAccounts();
+            mSignInButton.setEnabled(true);  // Always enabled to allow signing in new accounts
+            mAcquireTokenDeviceCodeButton.setEnabled(true);  // Always enabled for device code flow
+            boolean accountSelected = hasAccounts && getSelectedAccount() != null;
+            mSignOutButton.setEnabled(accountSelected);  // Only enabled when an account is selected
+            mAcquireTokenSilentButton.setEnabled(accountSelected);  // Only enabled when an account is selected
+            mCallGraphButton.setEnabled(accountSelected);  // Only enabled when an account is selected
+            mAccountSpinner.setEnabled(hasAccounts);
+        });
     }
 
     private void updateAccountSpinner(List<IAccount> accounts) {
@@ -120,8 +162,10 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
     }
 
     private void logMessage(String message) {
-        String currentLog = mLogTextView.getText().toString();
-        mLogTextView.setText(currentLog + "\n" + message);
+        runOnUiThread(() -> {
+            String currentLog = mLogTextView.getText().toString();
+            mLogTextView.setText(currentLog + "\n" + message);
+        });
     }
 
     private void updateAccountInfo() {
@@ -185,5 +229,28 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
         updateAccountSpinner(accounts);
         updateAccountInfo();
         updateUI();
+    }
+
+    private void callGraphAPI(IAccount account) {
+        mAuthHelper.acquireTokenSilentAsync(account, accessToken -> {
+            GraphHelper.callGraphAPI(accessToken, new GraphHelper.GraphCallback() {
+                @Override
+                public void onSuccess(JSONObject data) {
+                    try {
+                        String displayName = data.getString("displayName");
+                        String officeLocation = data.getString("officeLocation");
+                        logMessage("Graph API Success!\nDisplay Name: " + displayName +
+                                 "\nOffice: " + officeLocation);
+                    } catch (JSONException e) {
+                        logMessage("Error parsing Graph response: " + e.getMessage());
+                    }
+                }
+
+                @Override
+                public void onError(String error) {
+                    logMessage("Graph API Error: " + error);
+                }
+            });
+        });
     }
 }
