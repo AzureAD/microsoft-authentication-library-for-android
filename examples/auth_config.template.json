@@ -15,6 +15,8 @@
   "redirect_uri": "msauth://your.package.name/YOUR_SIGNATURE_HASH",
   
   // Used to configure the authority for the authentication requests.
+  // This should always be included in the configuration file.
+  // The "type" can be "AAD" or "CIAM", for entra users or CIAM users respectively.
   "authorities": [
     {
       "type": "AAD",
@@ -24,6 +26,8 @@
       }
     }
   ],
+
+  // All values below are optional and can be included in the user's configuration file only if they differ from the default value.
 
   // Sets MSAL Account mode. Possible Values: MULTIPLE, SINGLE. MULTIPLE is for multiple account mode, SINGLE is for single account mode. MULTIPLE is the default mode and is generally preferred amongst users.
   "account_mode": "MULTIPLE", 
@@ -177,10 +181,5 @@
         "oTJf5e5nB1NinkdBpkkmhPnwbVRmDlHZ-s_QhvyuGKM5nq5XtjA439O31wxrkL6ReHyyKfDHFUHpQnoXoj--Ig=="
       ]
     }
-  ],
-
-  "environment": "Production",
-  "power_opt_check_for_network_req_enabled": true,
-  "handle_null_taskaffinity": false,
-  "authorization_in_current_task": false
+  ]
 }

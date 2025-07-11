@@ -78,6 +78,8 @@ Important notes:
 - Use proper callback interfaces for communication between components
 
 # Configuration and Manifest
+- Use auth_config.template.json as a guide for enabling and disabling MSAL configuration settings based on user needs.
+- When generating the configuration file, include all mandatory settings (client_id, redirect_uri, and authorities), and only include optional configurations that differ from their default values.
 - Cline must generate an AndroidManifest that includes the user's application name and signature hash. See AndroidManifest.xml in the golden example apps mentioned above for reference. The signature hash and redirect URI in the AndroidManifest.xml must NOT be URL encoded. For example:
   ```xml
   <data
@@ -94,9 +96,72 @@ Important notes:
   ```
   Note that special characters like '+' and '=' are URL encoded to %2B and %3D respectively.
 
-- Use auth_config.template.json as a guide for enabling and disabling MSAL configuration settings based on user needs.
 - When generating an application, make sure to print the result of the PublicClientApplication creation process so users are aware of any issues. The user can decide to remove this later. Also, no PublicClientApplication APIs should be callable if the PublicClientApplication has not been successfully created.
 
 # Azure App Registration Fields
 - If the user prompts cline to create an application and provides the Client ID and redirect uri to be used in the project, Cline must place them in the configuration json and the android manifest.
 - If the user does not prompt cline with the client id and redirect uri, then Cline should ask them to enter them as part of a later prompt to be placed in the correct locations mentioned above. Guide them to this link (https://learn.microsoft.com/en-us/entra/identity-platform/msal-client-application-configuration) to assist them in the app registration process.
+
+# UI Requirements and Best Practices
+
+## Theme Configuration
+- Applications should use a consistent theme throughout the app
+- If using Material Design (optional), extend appropriate Material theme
+- Required theme attributes regardless of design system:
+  ```xml
+  <style name="AppTheme">
+      <item name="colorPrimary">@color/colorPrimary</item>
+      <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+      <item name="colorAccent">@color/colorAccent</item>
+      <item name="android:windowBackground">@color/windowBackground</item>
+  </style>
+  ```
+- Ensure theme is properly set in AndroidManifest.xml using android:theme attribute
+
+## Required Resource Structure
+- Mandatory resource directories and files:
+  1. res/values/colors.xml - Define standard color palette
+  2. res/values/styles.xml - Define app theme and styles
+  3. res/values/strings.xml - All string resources
+  4. res/layout/ - Layout files
+  5. res/drawable/ - Vector drawables and other graphics
+  6. res/mipmap-*/ - Launcher icons in various densities
+- Icon configuration:
+  1. Create adaptive icons using foreground and background layers
+  2. Include mipmap-anydpi-v26 for adaptive icon support
+  3. Provide round and regular launcher variants
+  4. Define ic_launcher_foreground.xml in drawable
+  5. Define launcher background color in colors.xml
+
+## UI Component Guidelines
+- Use consistent UI components throughout the app
+- If using Material Design components:
+  1. Include Material Design dependency
+  2. Use appropriate Material components
+  3. Follow Material Design guidelines
+- For standard Android widgets:
+  1. Apply consistent styling
+  2. Use appropriate view attributes
+  3. Implement proper view hierarchies
+- Use modern layout systems (ConstraintLayout recommended)
+- Implement proper view binding instead of findViewById
+
+## Best Practices
+- Resource naming conventions:
+  1. Layout files: activity_*, fragment_*, item_*, etc.
+  2. Drawable files: ic_*, bg_*, etc.
+  3. Color resources: semantic names like colorPrimary, colorError
+  4. String resources: screen_action_description pattern
+- Layout organization:
+  1. Use styles for repeated view attributes
+  2. Extract dimensions to dimens.xml
+  3. Use proper layout_width/height (wrap_content/match_parent appropriately)
+  4. Implement landscape variations where needed
+- Theme inheritance:
+  1. Create specific styles for different UI components
+  2. Use theme overlays when needed
+  3. Consider dark theme support
+- Error handling:
+  1. Show clear error states
+  2. Implement proper loading states
+  3. Use progress indicators for async operations
