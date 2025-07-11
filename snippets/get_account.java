@@ -53,7 +53,7 @@ public class AccountManagement {
     public void getCurrentAccount(
             ISingleAccountPublicClientApplication pca,
             final CurrentAccountCallback callback) {
-        pca.getCurrentAccount(new ISingleAccountPublicClientApplication.CurrentAccountCallback() {
+        pca.getCurrentAccountAsync(new ISingleAccountPublicClientApplication.CurrentAccountCallback() {
             @Override
             public void onAccountLoaded(IAccount account) {
                 callback.onComplete(account, null);

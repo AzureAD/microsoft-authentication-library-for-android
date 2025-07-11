@@ -43,7 +43,7 @@ public class TokenAcquisition {
         // Build parameters using the modern Parameters-based API
         AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
             .withScopes(scopesList)
-            .withActivity(activity)
+            .startAuthorizationFromActivity(activity)
             .withCallback(new AuthenticationCallback() {
                 @Override
                 public void onSuccess(IAuthenticationResult authenticationResult) {

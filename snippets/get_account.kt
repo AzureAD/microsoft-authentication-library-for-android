@@ -51,7 +51,7 @@ class AccountManagement {
         pca: ISingleAccountPublicClientApplication,
         callback: (IAccount?, MsalException?) -> Unit
     ) {
-        pca.getCurrentAccount(object : ISingleAccountPublicClientApplication.CurrentAccountCallback {
+        pca.getCurrentAccountAsync(object : ISingleAccountPublicClientApplication.CurrentAccountCallback {
             override fun onAccountLoaded(account: IAccount?) {
                 callback(account, null)
             }

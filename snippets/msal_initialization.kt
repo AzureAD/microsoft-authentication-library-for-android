@@ -26,7 +26,7 @@ import com.microsoft.identity.client.exception.MsalException
 
 class MSALInitialization {
     companion object {
-        private const val CONFIG_FILE_NAME = "auth_config.json"
+        private const val CONFIG_FILE = "auth_config.json"
     }
 
     private lateinit var mPCA: IPublicClientApplication
@@ -38,7 +38,7 @@ class MSALInitialization {
         // Create PCA from config file
         PublicClientApplication.createMultipleAccountPublicClientApplication(
             context,
-            CONFIG_FILE_NAME,
+            CONFIG_FILE,
             object : IPublicClientApplication.ApplicationCreatedListener {
                 override fun onCreated(application: IPublicClientApplication) {
                     mPCA = application
@@ -56,7 +56,7 @@ class MSALInitialization {
     fun initializeSingleAccountMSAL(context: Context, callback: (IPublicClientApplication?, MsalException?) -> Unit) {
         PublicClientApplication.createSingleAccountPublicClientApplication(
             context,
-            CONFIG_FILE_NAME,
+            CONFIG_FILE,
             object : IPublicClientApplication.ApplicationCreatedListener {
                 override fun onCreated(application: IPublicClientApplication) {
                     mPCA = application

@@ -26,7 +26,7 @@ import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
 
 public class MSALInitialization {
-    private static final String CONFIG_FILE_NAME = "auth_config.json";
+    private static final String CONFIG_FILE = "auth_config.json";
     private IPublicClientApplication mPCA;
 
     /**
@@ -36,7 +36,7 @@ public class MSALInitialization {
         // Create PCA from config file
         PublicClientApplication.createMultipleAccountPublicClientApplication(
             context,
-            CONFIG_FILE_NAME,
+                CONFIG_FILE,
             new IPublicClientApplication.ApplicationCreatedListener() {
                 @Override
                 public void onCreated(IPublicClientApplication application) {
@@ -58,7 +58,7 @@ public class MSALInitialization {
     public void initializeSingleAccountMSAL(Context context, final InitializationCallback callback) {
         PublicClientApplication.createSingleAccountPublicClientApplication(
             context,
-            CONFIG_FILE_NAME,
+            CONFIG_FILE,
             new IPublicClientApplication.ApplicationCreatedListener() {
                 @Override
                 public void onCreated(IPublicClientApplication application) {

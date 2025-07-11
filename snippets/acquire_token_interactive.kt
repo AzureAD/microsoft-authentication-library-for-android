@@ -42,7 +42,7 @@ class TokenAcquisition {
         // Build parameters using the modern Parameters-based API
         val parameters = AcquireTokenParameters.Builder()
             .withScopes(scopes.toList())
-            .withActivity(activity)
+            .startAuthorizationFromActivity(activity)
             .withCallback(object : AuthenticationCallback {
                 override fun onSuccess(authenticationResult: IAuthenticationResult) {
                     callback(authenticationResult, null)
