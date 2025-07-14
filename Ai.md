@@ -1,6 +1,6 @@
 # MSAL Android Integration Guide
 
-## Golden Path Examples
+## AI-Friendly Directories
 - [Multiple Account Mode Sample](./examples/hello-msal-multiple-account/) - Use this when you want to support multiple accounts in your application (default mode)
 - [Single Account Mode Sample](./examples/hello-msal-single-account/) - Use this when you want to support single account authentication only
 - [Configuration Template](./auth_config.template.json) -  Configuration template containing explanation of MSAL configuration settings and their default values
