@@ -103,15 +103,15 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
     }
 
     private fun getConfigsThroughBuildValue(): Map<String, NativeAuthTestConfig.Config>? {
-        // We are no longer fetching the config from the Key Vault, we are using a BuildConfig value
-        // val secretValue = KeyVaultFetchHelper.getSecretForBuildAutomation("msalandroidnativeauthautomationconfjsonfile")
         var buildConfigString = BuildValues.getNativeAuthConfigString()
         // If the buildConfigString is null or empty, we will try to read the config from the file path
-        if (buildConfigString == null || buildConfigString.isEmpty()) {
+        if (buildConfigString.isNullOrBlank()) {
             val buildConfigFilePath = BuildValues.getNativeAuthConfigFilePath()
             // If the build config file path is set, read the file and set buildConfigString to its content
             if (buildConfigFilePath != null && buildConfigFilePath.isNotEmpty()) {
                 buildConfigString = readConfigFile(buildConfigFilePath)
+            } else {
+                throw IllegalStateException("Native auth config file pipeline variable or local file path not found")
             }
         }
         val type = TypeToken.getParameterized(
