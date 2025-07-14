@@ -15,7 +15,7 @@
   "redirect_uri": "msauth://your.package.name/YOUR_SIGNATURE_HASH",
   
   // Used to configure the authority for the authentication requests.
-  // This should always be included in the configuration file.
+  // While it is not mandatory to have this field in the configuration file if the user is fine with the default, it's best pratice to include it anyway.
   // The "type" can be "AAD" or "CIAM", for entra users or CIAM users respectively.
   "authorities": [
     {
