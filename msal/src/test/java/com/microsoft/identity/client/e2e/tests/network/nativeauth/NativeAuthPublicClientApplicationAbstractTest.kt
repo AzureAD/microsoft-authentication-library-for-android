@@ -185,7 +185,8 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
                 }
             }
         } catch (e: IOException) {
-            e.printStackTrace()
+            android.util.Log.e("NativeAuthTest", "Failed to read config file: $filePath", e)
+            throw RuntimeException("Error reading config file: $filePath", e)
         }
         return sb.toString()
     }
