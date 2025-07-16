@@ -344,7 +344,7 @@ public class NestedAppHelper {
     private void handlePrompt() {
         // perform UI action
         final AadLoginComponentHandler aadLoginComponentHandler = new AadLoginComponentHandler(CommonUtils.FIND_UI_ELEMENT_TIMEOUT_LONG);
-        aadLoginComponentHandler.handlePasswordField(mLabAccount.getPassword());
+        aadLoginComponentHandler.handlePasswordField(mLabAccount.getPassword(), mLabAccount.getUserType() == UserType.MSA);
     }
 
     private void handlePromptAsync(@NonNull Runnable promptHandler) {

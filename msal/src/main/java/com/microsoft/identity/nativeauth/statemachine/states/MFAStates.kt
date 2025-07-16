@@ -172,7 +172,7 @@ class AwaitingMFAState(
                         MFARequestChallengeError(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
                             error = result.error,
-                            errorMessage = result.errorDescription,
+                            errorMessage = result.redirectReason,
                             correlationId = result.correlationId
                         )
                     }
@@ -315,7 +315,7 @@ class MFARequiredState(
                         MFAGetAuthMethodsError(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
                             error = result.error,
-                            errorMessage = result.errorDescription,
+                            errorMessage = result.redirectReason,
                             correlationId = result.correlationId
                         )
                     }
@@ -452,7 +452,7 @@ class MFARequiredState(
                         MFARequestChallengeError(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
                             error = result.error,
-                            errorMessage = result.errorDescription,
+                            errorMessage = result.redirectReason,
                             correlationId = result.correlationId
                         )
                     }
@@ -552,7 +552,15 @@ class MFARequiredState(
                             errorCodes = result.errorCodes,
                             subError = result.subError
                         )
-
+                    }
+                    is INativeAuthCommandResult.Redirect -> {
+                        MFASubmitChallengeError(
+                            errorType = ErrorTypes.BROWSER_REQUIRED,
+                            error = result.error,
+                            errorMessage = result.redirectReason,
+                            correlationId = result.correlationId,
+                            errorCodes = result.errorCodes
+                        )
                     }
                     is INativeAuthCommandResult.APIError -> {
                         Logger.warnWithObject(

@@ -32,14 +32,15 @@ import com.microsoft.identity.client.e2e.shadows.ShadowAndroidSdkStorageEncrypti
 import com.microsoft.identity.client.e2e.tests.IPublicClientApplicationTest
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.common.internal.controllers.CommandDispatcherHelper
+import com.microsoft.identity.common.java.nativeauth.BuildValues
 import com.microsoft.identity.internal.testutils.TestUtils
-import com.microsoft.identity.internal.testutils.labutils.KeyVaultFetchHelper
 import com.microsoft.identity.internal.testutils.labutils.LabConstants
 import com.microsoft.identity.internal.testutils.labutils.LabUserHelper
 import com.microsoft.identity.internal.testutils.labutils.LabUserQuery
 import com.microsoft.identity.internal.testutils.nativeauth.ConfigType
 import com.microsoft.identity.internal.testutils.nativeauth.api.models.NativeAuthTestConfig
 import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication
+import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationParameters
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.setMain
@@ -51,6 +52,10 @@ import org.mockito.Mockito
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.LooperMode
+import java.io.BufferedReader
+import java.io.FileInputStream
+import java.io.IOException
+import java.io.InputStreamReader
 
 // TODO: move to "PAUSED". A work in RoboTestUtils will be needed though.
 @LooperMode(LooperMode.Mode.LEGACY)
@@ -97,31 +102,45 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
         return credential.password
     }
 
-    private fun getConfigsThroughSecretValue(): Map<String, NativeAuthTestConfig.Config>? {
-        val secretValue = KeyVaultFetchHelper.getSecretForBuildAutomation("msalandroidnativeauthautomationconfjsonfile")
+    private fun getConfigsThroughBuildValue(): Map<String, NativeAuthTestConfig.Config>? {
+        var buildConfigString = BuildValues.getNativeAuthConfigString()
+        // If the buildConfigString is null or empty, we will try to read the config from the file path
+        if (buildConfigString.isNullOrBlank()) {
+            val buildConfigFilePath = BuildValues.getNativeAuthConfigFilePath()
+            // If the build config file path is set, read the file and set buildConfigString to its content
+            if (buildConfigFilePath != null && buildConfigFilePath.isNotEmpty()) {
+                buildConfigString = readConfigFile(buildConfigFilePath)
+            } else {
+                throw IllegalStateException("Native auth config file pipeline variable or local file path not found")
+            }
+        }
         val type = TypeToken.getParameterized(
             Map::class.java,
             String::class.java,
             NativeAuthTestConfig.Config::class.java
         ).type
 
-        return Gson().fromJson(secretValue, type)
+        return Gson().fromJson(buildConfigString, type)
     }
 
     fun getConfig(configType: ConfigType): NativeAuthTestConfig.Config {
-        val secretValue = getConfigsThroughSecretValue()
+        val secretValue = getConfigsThroughBuildValue()
         return secretValue?.get(configType.stringValue)
             ?: throw IllegalStateException("Config not $secretValue")
     }
 
-    fun setupPCA(config: NativeAuthTestConfig.Config, challengeTypes: List<String>): INativeAuthPublicClientApplication {
+    fun setupPCA(config: NativeAuthTestConfig.Config, challengeTypes: List<String>, capabilities: List<String>): INativeAuthPublicClientApplication {
         return try {
-            PublicClientApplication.createNativeAuthPublicClientApplication(
-                context,
+            val parameters = NativeAuthPublicClientApplicationParameters(
                 config.clientId,
                 config.authorityUrl,
-                null,
                 challengeTypes
+            )
+            parameters.capabilities = capabilities
+
+            PublicClientApplication.createNativeAuthPublicClientApplication(
+                context,
+                parameters
             )
         } catch (e: MsalException) {
             Assert.fail(e.message)
@@ -151,5 +170,24 @@ abstract class NativeAuthPublicClientApplicationAbstractTest : IPublicClientAppl
                 }
             }
         }
+    }
+
+    private fun readConfigFile(filePath: String): String {
+        val sb = StringBuilder()
+        try {
+            FileInputStream(filePath).use { inputStream ->
+                BufferedReader(InputStreamReader(inputStream)).use { reader ->
+                    var line: String? = reader.readLine()
+                    while (line != null) {
+                        sb.append(line)
+                        line = reader.readLine()
+                    }
+                }
+            }
+        } catch (e: IOException) {
+            android.util.Log.e("NativeAuthTest", "Failed to read config file: $filePath", e)
+            throw RuntimeException("Error reading config file: $filePath", e)
+        }
+        return sb.toString()
     }
 }

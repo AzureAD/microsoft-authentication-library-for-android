@@ -2,6 +2,19 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+
+Version 6.2.0
+----------
+- [PATCH] Update common @21.4.0
+- [MINOR] Update AGP Version to 8.1.0 (#2254)
+
+Version 6.1.1
+----------
+- [PATCH] Update common @21.3.0
+
+Version 6.1.0
+----------
+- [PATCH] Update common @21.2.0
 - [MINOR] Native auth: Add claimsRequest also to getAccessToken and signIn after signUp/SSPR flows (#2278)
 - [MINOR] Native auth: user can now register new strong authentication method when required (#2293)
 

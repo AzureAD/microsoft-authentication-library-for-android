@@ -118,6 +118,15 @@ abstract class BaseJITSubmitChallengeState(
                         )
                     )
                 }
+                is INativeAuthCommandResult.Redirect -> {
+                    RegisterStrongAuthChallengeError(
+                        errorType = ErrorTypes.BROWSER_REQUIRED,
+                        error = result.error,
+                        errorMessage = result.redirectReason,
+                        correlationId = result.correlationId,
+                        errorCodes = result.errorCodes
+                    )
+                }
             }
         }
     }
@@ -298,6 +307,15 @@ class RegisterStrongAuthVerificationRequiredState(
                         errorType = ErrorTypes.INVALID_CHALLENGE,
                         error = result.error,
                         errorMessage = result.errorDescription,
+                        correlationId = result.correlationId,
+                        errorCodes = result.errorCodes
+                    )
+                }
+                is INativeAuthCommandResult.Redirect -> {
+                    RegisterStrongAuthSubmitChallengeError(
+                        errorType = ErrorTypes.BROWSER_REQUIRED,
+                        error = result.error,
+                        errorMessage = result.redirectReason,
                         correlationId = result.correlationId,
                         errorCodes = result.errorCodes
                     )

@@ -14,7 +14,7 @@ if (project.hasProperty("localFlights")) {
 }
 
 android {
-
+    namespace "com.microsoft.identity.client.msal.automationapp"
     packagingOptions {
         pickFirst  'META-INF/common4j.kotlin_module'
     }
@@ -26,7 +26,9 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-
+    buildFeatures {
+        buildConfig = true
+    }
     final String BROKER_HOST = "BrokerHost"
     final String BROKER_MICROSOFT_AUTHENTICATOR = "BrokerMicrosoftAuthenticator"
     final String BROKER_COMPANY_PORTAL = "BrokerCompanyPortal"

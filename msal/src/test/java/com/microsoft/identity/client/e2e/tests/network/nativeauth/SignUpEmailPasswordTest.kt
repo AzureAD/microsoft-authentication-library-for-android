@@ -47,13 +47,14 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
 
     private val defaultConfigType = ConfigType.SIGN_UP_PASSWORD
     private val defaultChallengeTypes = listOf("password", "oob")
+    private val defaultCapabilities = listOf("mfa_required", "registration_required")
 
 
     @Ignore("Retrieving OTP code failure.")
     @Test
     fun testSignUpErrorSimple() {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         retryOperation {
             runBlocking {
@@ -75,7 +76,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     @Test
     fun testSuccessOTPLast() {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         retryOperation {
             runBlocking {
@@ -100,7 +101,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     @Test
     fun testResendEmailOOB() {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         retryOperation {
             runBlocking {
@@ -127,7 +128,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     @Test
     fun testSuccessOTPFirst() {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
@@ -154,7 +155,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     @Test
     fun testSuccessOTPResend() {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         retryOperation {
             runBlocking {
@@ -183,7 +184,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     @Test
     fun testErrorUserExistAsPassword() {
         config = getConfig(ConfigType.SIGN_IN_PASSWORD)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
             val user = config.email
@@ -203,7 +204,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     @Test
     fun testErrorUserExistAsSocial() {
         config = getConfig(ConfigType.SIGN_IN_PASSWORD)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         runBlocking {
             val user = config.email
@@ -222,7 +223,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     @Test
     fun testErrorInvalidEmailFormat() {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         runBlocking {
             val user = INVALID_EMAIL
@@ -242,7 +243,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     @Test
     fun testErrorInvalidPasswordFormat() {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.
             val user = tempEmailApi.generateRandomEmailAddressLocally()
@@ -262,7 +263,7 @@ class SignUpEmailPasswordTest : NativeAuthPublicClientApplicationAbstractTest() 
     @Test
     fun testSignInAfterSignUp() {
         config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes)
+        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
 
         retryOperation {
             runBlocking { // Running with runBlocking to avoid default 10 second execution timeout.

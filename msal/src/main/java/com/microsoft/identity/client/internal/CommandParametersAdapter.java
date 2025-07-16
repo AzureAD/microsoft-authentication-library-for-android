@@ -362,6 +362,7 @@ public class CommandParametersAdapter {
                 .username(username)
                 .password(password)
                 .challengeType(configuration.getChallengeTypes())
+                .capabilities(configuration.getCapabilities())
                 .userAttributes(userAttributes)
                 // Start of the flow, so there is no correlation ID to use from a previous API response.
                 // Set it to a default value.
@@ -569,6 +570,7 @@ public class CommandParametersAdapter {
                 .authenticationScheme(authenticationScheme)
                 .clientId(configuration.getClientId())
                 .challengeType(configuration.getChallengeTypes())
+                .capabilities(configuration.getCapabilities())
                 .claimsRequestJson(claimsRequestJson)
                 .scopes(scopes)
                 // Start of the flow, so there is no correlation ID to use from a previous API response.
@@ -993,6 +995,7 @@ public class CommandParametersAdapter {
                         .authority(authority)
                         .username(username)
                         .challengeType(configuration.getChallengeTypes())
+                        .capabilities(configuration.getCapabilities())
                         .clientId(configuration.getClientId())
                         // Start of the flow, so there is no correlation ID to use from a previous API response.
                         // Set it to a default value.
