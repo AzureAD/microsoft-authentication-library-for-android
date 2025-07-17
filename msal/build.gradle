@@ -11,14 +11,8 @@ apply from: 'versioning/version_tasks.gradle'
 
 group = 'com.microsoft.identity.client'
 
-def desugarCode = false
-
-if(project.hasProperty("sugar")){
-    desugarCode = sugar.toBoolean()
-}
-
 buildSystem {
-    desugar = desugarCode
+    desugar = false
 }
 
 def enableCodeCoverage = false
@@ -32,39 +26,19 @@ codeCoverageReport {
 }
 
 android {
-//    testOptions {
-//        compileOptions {
-//            // Flag to enable support for the new language APIs
-//            coreLibraryDesugaringEnabled true
-//            // Sets Java compatibility to Java 8
-//            sourceCompatibility JavaVersion.VERSION_1_8
-//            targetCompatibility JavaVersion.VERSION_1_8
-//        }
-//        dependencies {
-//            coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
-//        }
-//    }
     namespace "com.microsoft.identity.msal"
     compileOptions {
-        // Flag to enable support for the new language APIs
-        coreLibraryDesugaringEnabled true
         // Sets Java compatibility to Java 8
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-
 
     compileSdk rootProject.ext.compileSdkVersion
 
     defaultConfig {
         multiDexEnabled true
         minSdkVersion rootProject.ext.minSdkVersion
-        if(project.getProperties().get("robolectricSdkVersion")){
-            println "Using command line parameter robolectricSdkVersion for target sdk version " + project.getProperties().get("robolectricSdkVersion")
-            targetSdkVersion project.getProperties().get("robolectricSdkVersion")
-        } else{
-            targetSdkVersion rootProject.ext.targetSdkVersion
-        }
+        targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode getAppVersionCode()
         versionName getAppVersionName()
         project.archivesBaseName = "msal"
@@ -73,6 +47,10 @@ android {
     }
     buildFeatures {
         buildConfig = true
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
     }
 
     buildTypes {
@@ -199,11 +177,6 @@ if (project.hasProperty("distCommon4jVersion")) {
     distCommon4jVersion = project.distCommon4jVersion
 }
 dependencies {
-    //Please leave this in... desugaring is currently disabled by default; however it's required for running some tests
-    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
-
-    def mockito_version = 'latest.release'
-
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$rootProject.ext.kotlinVersion"
     testImplementation "org.jetbrains.kotlin:kotlin-stdlib:$rootProject.ext.kotlinVersion"
     androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib:$rootProject.ext.kotlinVersion"
@@ -226,9 +199,7 @@ dependencies {
 
     // test dependencies
     testImplementation "junit:junit:$rootProject.ext.junitVersion"
-    //mockito-inline was introduced in mockito 2.7.6
-    //see: https://javadoc.io/static/org.mockito/mockito-core/3.6.28/org/mockito/Mockito.html#0.1
-    testImplementation "org.mockito:mockito-inline:$rootProject.ext.mockitoCoreVersion"
+    testImplementation "org.mockito:mockito-core:$rootProject.ext.mockitoCoreVersion"
     testImplementation ("org.robolectric:robolectric:$rootProject.ext.robolectricVersion")
     testImplementation "androidx.test:core:$rootProject.ext.androidxTestCoreVersion"    
     testLocalImplementation project(':testutils')
@@ -246,7 +217,7 @@ dependencies {
     testImplementation "org.powermock:powermock-module-junit4-rule:$rootProject.ext.powerMockVersion"
     testImplementation "org.powermock:powermock-api-mockito2:$rootProject.ext.powerMockVersion"
     testImplementation "org.powermock:powermock-classloading-xstream:$rootProject.ext.powerMockVersion"
-
+    
     // instrumentation test dependencies
     androidTestImplementation "androidx.test.ext:junit:$rootProject.ext.androidxJunitVersion"
     // Set this dependency to use JUnit 4 rules
