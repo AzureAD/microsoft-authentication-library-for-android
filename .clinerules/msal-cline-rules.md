@@ -11,6 +11,7 @@
   These files must be placed in their corresponding locations in the new application's directory structure. The only modification allowed is updating the applicationId and namespace in app/build.gradle and rootProject.name in settings.gradle to match the new application's package name. Cline can divert from these files as needed once initial creation is complete.
 
 # MSAL API Usage
+- Broker integration (Microsoft Authenticator, Company Portal, or Link To Windows) should ALWAYS be enabled for enhanced security and SSO capabilities. The broker_redirect_uri_registered field in auth_config.json should be set to "true" unless explicitly disabled by the user's request.
 - ALWAYS use MSAL's Parameters-based APIs instead of deprecated methods. Here are the required patterns:
 
 For interactive token acquisition in multiple account applications:
