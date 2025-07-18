@@ -46,7 +46,6 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
     private Button mSignInButton;
     private Button mSignOutButton;
     private Button mAcquireTokenSilentButton;
-    private Button mAcquireTokenDeviceCodeButton;
     private Button mCallGraphButton;
     private TextView mLogTextView;
     private TextView mAccountInfoTextView;
@@ -70,7 +69,6 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
         mAcquireTokenSilentButton = findViewById(R.id.acquireTokenSilentButton);
         mLogTextView = findViewById(R.id.logTextView);
         mAccountInfoTextView = findViewById(R.id.accountInfoTextView);
-        mAcquireTokenDeviceCodeButton = findViewById(R.id.acquireTokenDeviceCodeButton);
 
         // Initialize AuthHelper
         mAuthHelper = new AuthHelper(this, this);
@@ -93,9 +91,6 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
                 })
         );
 
-        // Map button to call Acquire Token Device Code Method
-        mAcquireTokenDeviceCodeButton.setOnClickListener(v -> mAuthHelper.acquireTokenWithDeviceCode());
-
         // Map button to call Graph API with the signed in user
         mCallGraphButton.setOnClickListener(v -> {
             IAccount selectedAccount = mAuthHelper.getCurrentAccount();
@@ -116,7 +111,6 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
     private void updateUI(boolean isSignedIn) {
         runOnUiThread(() -> {
             mSignInButton.setEnabled(!isSignedIn);
-            mAcquireTokenDeviceCodeButton.setEnabled(!isSignedIn);
             mSignOutButton.setEnabled(isSignedIn);
             mAcquireTokenSilentButton.setEnabled(isSignedIn);
             mCallGraphButton.setEnabled(isSignedIn);
@@ -216,11 +210,6 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
     @Override
     public void onTokenError(String error) {
         logMessage("Token acquisition failed: " + error);
-    }
-
-    @Override
-    public void onDeviceCodeReceived(String message) {
-        logMessage("Device code initiated.\n" + message);
     }
 
     @Override

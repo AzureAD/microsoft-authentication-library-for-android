@@ -45,7 +45,7 @@ mPCA.signIn(parameters);
 Important notes:
 - For multiple account applications, use acquireToken for sign in
 - For single account applications, use signIn
-- acquireTokenWithDeviceCode method can be used to sign in in either multiple or single account mode.
+- acquireTokenWithDeviceCode method is not recommended due to security concerns in the industry. Only use it in niche scenarios where devices lack input methods necessary for interactive authentication. Only add this method to the generated app if explicitly asked for by the user.
 - Do not use deprecated methods like:
   - acquireToken(activity, scopes, callback)
   - acquireTokenSilentAsync(scopes, account, authority, callback)
@@ -54,7 +54,6 @@ Important notes:
 # Multiple Account Mode UI Requirements
 - Account spinner must include a "No Account Selected" option at position 0
 - Sign In button must always be enabled to allow adding new accounts
-- Device Code Flow button must always be enabled
 - Sign Out button must only be enabled when an account is selected in the spinner
 - Acquire Token Silent button must only be enabled when an account is selected in the spinner
 

@@ -93,5 +93,6 @@ Add these activities to your AndroidManifest.xml inside the `<application>` tag:
 1. The signature hash in AndroidManifest.xml should NOT be URL encoded
 2. The redirect URI in auth_config.json MUST be URL encoded
 3. The latest MSAL version (6.+ or newer) should be used
+4. Device Code Flow is not recommended due to security concerns in the industry. The AcquireToken authentication method should be used instead. There are some niche scenarios where some devices lack the input methods necessary for AcquireToken, and need to use AcquireTokenWithDeviceCode.
 
 For full implementation details, refer to the golden path example apps linked above.

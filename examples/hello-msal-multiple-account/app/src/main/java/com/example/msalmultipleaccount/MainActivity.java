@@ -53,7 +53,6 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
     private Button mSignInButton;
     private Button mSignOutButton;
     private Button mAcquireTokenSilentButton;
-    private Button mAcquireTokenDeviceCodeButton;
     private Button mCallGraphButton;
     private TextView mLogTextView;
     private TextView mAccountInfoTextView;
@@ -81,7 +80,6 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
         mAcquireTokenSilentButton = findViewById(R.id.acquireTokenSilentButton);
         mLogTextView = findViewById(R.id.logTextView);
         mAccountInfoTextView = findViewById(R.id.accountInfoTextView);
-        mAcquireTokenDeviceCodeButton = findViewById(R.id.acquireTokenDeviceCodeButton);
         mAccountSpinner = findViewById(R.id.accountSpinner);
 
         // Initialize account adapter
@@ -118,9 +116,6 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
             }
         });
 
-        // Map button to call Acquire Token Device Code Method
-        mAcquireTokenDeviceCodeButton.setOnClickListener(v -> mAuthHelper.acquireTokenWithDeviceCode());
-
         // Map button to call Graph API with the signed in user
         mCallGraphButton.setOnClickListener(v -> {
             IAccount selectedAccount = getSelectedAccount();
@@ -156,7 +151,6 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
         runOnUiThread(() -> {
             boolean hasAccounts = mAuthHelper.hasAccounts();
             mSignInButton.setEnabled(true);  // Always enabled to allow signing in new accounts
-            mAcquireTokenDeviceCodeButton.setEnabled(true);  // Always enabled for device code flow
             boolean accountSelected = hasAccounts && getSelectedAccount() != null;
             mSignOutButton.setEnabled(accountSelected);  // Only enabled when an account is selected
             mAcquireTokenSilentButton.setEnabled(accountSelected);  // Only enabled when an account is selected
@@ -301,11 +295,6 @@ public class MainActivity extends AppCompatActivity implements AuthHelper.AuthCa
     @Override
     public void onTokenError(String error) {
         logMessage("Token acquisition failed: " + error);
-    }
-
-    @Override
-    public void onDeviceCodeReceived(String message) {
-        logMessage("Device code initiated.\n" + message);
     }
 
     @Override

@@ -30,13 +30,6 @@
             android:layout_marginBottom="8dp"/>
 
         <Button
-            android:id="@+id/acquireTokenDeviceCodeButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Sign In (Device Code)"
-            android:layout_marginBottom="8dp"/>
-
-        <Button
             android:id="@+id/signOutButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
