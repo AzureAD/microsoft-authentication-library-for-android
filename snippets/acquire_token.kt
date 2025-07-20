@@ -36,12 +36,12 @@ class TokenAcquisition {
      */
     fun acquireTokenInteractively(
         activity: Activity,
-        scopes: Array<String>,
+        scopes: List<String>,
         callback: (IAuthenticationResult?, MsalException?) -> Unit
     ) {
         // Build parameters using the modern Parameters-based API
         val parameters = AcquireTokenParameters.Builder()
-            .withScopes(scopes.toList())
+            .withScopes(scopes)
             .startAuthorizationFromActivity(activity)
             .withCallback(object : AuthenticationCallback {
                 override fun onSuccess(authenticationResult: IAuthenticationResult) {
@@ -67,7 +67,7 @@ class TokenAcquisition {
      * Example usage with Microsoft Graph scopes
      */
     fun exampleUsage(activity: Activity) {
-        val graphScopes = arrayOf("User.Read")
+        val graphScopes = listOf("User.Read")
         
         acquireTokenInteractively(activity, graphScopes) { result, exception ->
             when {
