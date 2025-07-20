@@ -71,7 +71,7 @@ public class TokenAcquisition {
      * Example usage with Microsoft Graph scopes
      */
     public void exampleUsage(Activity activity) {
-        String[] graphScopes = new String[]{"User.Read"};
+        List<String> graphScopes = Collections.singletonList("User.Read");
         
         acquireTokenInteractively(activity, graphScopes, new TokenCallback() {
             @Override

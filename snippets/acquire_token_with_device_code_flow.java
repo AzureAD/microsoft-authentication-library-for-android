@@ -70,9 +70,9 @@ public class DeviceCodeFlowTokenAcquisition {
      * Example usage with Microsoft Graph scopes
      */
     public void exampleUsage() {
-        String[] graphScopes = new String[]{"User.Read"};
+        List<String> graphScopes = Collections.singletonList("User.Read");
         
-        acquireTokenWithDeviceCode(Arrays.asList(graphScopes), new DeviceCodeCallback() {
+        acquireTokenWithDeviceCode(graphScopes, new DeviceCodeCallback() {
             @Override
             public void onDeviceCodeReceived(String message) {
                 // Display message to user. This includes the device code and instructions

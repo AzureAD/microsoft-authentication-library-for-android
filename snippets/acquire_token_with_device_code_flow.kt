@@ -38,12 +38,12 @@ class DeviceCodeFlowTokenAcquisition {
      * where the device cannot handle interactive authentication.
      */
     fun acquireTokenWithDeviceCode(
-        scopes: Array<String>,
+        scopes: List<String>,
         onDeviceCode: (String) -> Unit,
         onComplete: (IAuthenticationResult?, MsalException?) -> Unit
     ) {
         mPCA.acquireTokenWithDeviceCode(
-            scopes.toList(),
+            scopes,
             object : IPublicClientApplication.DeviceCodeFlowCallback {
                 override fun onUserCodeReceived(
                     deviceCode: String,
@@ -69,7 +69,7 @@ class DeviceCodeFlowTokenAcquisition {
      * Example usage with Microsoft Graph scopes
      */
     fun exampleUsage() {
-        val graphScopes = arrayOf("User.Read")
+        val graphScopes = listOf("User.Read")
         
         acquireTokenWithDeviceCode(
             scopes = graphScopes,
