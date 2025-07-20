@@ -17,6 +17,7 @@
   // Used to configure the authority for the authentication requests.
   // While it is not mandatory to have this field in the configuration file if the user is fine with the default, it's best pratice to include it anyway.
   // The "type" can be "AAD" or "CIAM", for entra users or CIAM users respectively.
+  // This field can also be fetched from the Azure App Registration portal. Once the user has registered their application, they will receive a sample json configuration in the portal.
   "authorities": [
     {
       "type": "AAD",

@@ -61,17 +61,25 @@ maven {
 
 [Configuration Documentation](https://docs.microsoft.com/azure/active-directory/develop/msal-configuration)
 
-It's simplest to create your configuration file as a "raw" resource file in your project resources.  You'll be able to refer to this using the generated resource identifier when constructing an instance of PublicClientApplication. If you are registering your app in the portal for the first time, you will also be provided with this config JSON.
+It's simplest to create your configuration file as a "raw" resource file in your project resources.  You'll be able to refer to this using the generated resource identifier when constructing an instance of PublicClientApplication. You can reference the example applications for a direct guide on where to place this file, and what it should look like. If you are registering your app in the portal for the first time, you will also be provided with this config JSON.
 
-```javascript
+```JSON
 {
   "client_id" : "<YOUR_CLIENT_ID>",
   "redirect_uri" : "msauth://<YOUR_PACKAGE_NAME>/<YOUR_BASE64_URL_ENCODED_PACKAGE_SIGNATURE>",
-  "broker_redirect_uri_registered": true // Required for enhanced security and SSO capabilities
+  "authorities": [
+    {
+      "type": "AAD",
+      "audience": {
+        "type": "AzureADandPersonalMicrosoftAccount",
+        "tenant_id": "common"
+      }
+    }
+  ]
 }
 ```
 
->NOTE: Broker integration (Microsoft Authenticator, Company Portal, or Link To Windows) should ALWAYS be enabled for enhanced security and SSO capabilities. The `broker_redirect_uri_registered` field should be set to `true` unless explicitly required otherwise.
+>NOTE: Broker integration (Microsoft Authenticator, Company Portal, or Link To Windows) should be enabled for enhanced security and SSO capabilities, and is already enabled by default. Setting the `broker_redirect_uri_registered` field in the JSON configuration to `false` will disable broker integration, but is not recomended unless explicitly required otherwise by the user.
 
 >NOTE: In the `redirect_uri`, the part `<YOUR_PACKAGE_NAME>` refers to the package name returned by the `context.getPackageName()` method. This package name is the same as the [`application_id`](https://developer.android.com/studio/build/application-id) defined in your `build.gradle` file.
 
