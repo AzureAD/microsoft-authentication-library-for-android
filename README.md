@@ -274,7 +274,7 @@ mSingleAccountApp.getCurrentAccountAsync(new ISingleAccountPublicClientApplicati
     public void onAccountLoaded(@Nullable IAccount account) {
         if (account != null) {
             // Store the account for later use
-            mAccount = account
+            mAccount = account;
             // Account is signed in
             String username = account.getUsername();
         } else {
