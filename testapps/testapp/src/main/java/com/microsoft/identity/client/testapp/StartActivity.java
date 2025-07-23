@@ -45,11 +45,10 @@ public class StartActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (view, insets) -> {
-            WindowInsetsCompat.Insets systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            int topInset = systemBarsInsets.top;
-            int bottomInset = systemBarsInsets.bottom;
-            int leftInset = systemBarsInsets.left;
-            int rightInset = systemBarsInsets.right;
+            int topInset = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top;
+            int bottomInset = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
+            int leftInset = insets.getInsets(WindowInsetsCompat.Type.systemBars()).left;
+            int rightInset = insets.getInsets(WindowInsetsCompat.Type.systemBars()).right;
 
             view.setPadding(leftInset, topInset, rightInset, bottomInset);
             return insets;
