@@ -315,7 +315,7 @@ afterEvaluate {
     tasks.named("assembleDistRelease").configure {
         if (project.findProperty("renameOutput")?.toString()?.toBoolean() == true) {
             def buildFile = file("$buildDir/outputs/aar/${archivesBaseName}-dist-release.aar")
-            print "Build file $buildFile"
+            println "Build file $buildFile"
             doLast {
                 def renamedFile = file("$buildDir/outputs/aar/${archivesBaseName}-${version}.aar")
                 println "Renaming build file $buildFile to '$renamedFile'"
