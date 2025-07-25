@@ -24,11 +24,17 @@ import android.app.Activity
 import com.microsoft.identity.client.AcquireTokenParameters
 import com.microsoft.identity.client.AuthenticationCallback
 import com.microsoft.identity.client.IAuthenticationResult
-import com.microsoft.identity.client.IPublicClientApplication
+import com.microsoft.identity.client.IMultipleAccountPublicClientApplication
 import com.microsoft.identity.client.exception.MsalException
 
+/**
+ * Snippet showing how to acquire a token interactively.
+ * 
+ * This method can be used for initial sign-in in multiple account mode. It can be used to re-authenticate a user in either
+ * single account mode or multiple account mode. In single account mode, to sign in a user for the first time, use signIn.
+ */
 class TokenAcquisition {
-    private lateinit var mPCA: IPublicClientApplication
+    private lateinit var mPCA: IMultipleAccountPublicClientApplication
 
     /**
      * Acquires token interactively, launching browser for user authentication if necessary.
@@ -67,6 +73,7 @@ class TokenAcquisition {
      * Example usage with Microsoft Graph scopes
      */
     fun exampleUsage(activity: Activity) {
+        mPCA = /* Initialize your IMultipleAccountPublicClientApplication instance here */;
         val graphScopes = listOf("User.Read")
         
         acquireTokenInteractively(activity, graphScopes) { result, exception ->

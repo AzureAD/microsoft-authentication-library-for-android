@@ -73,7 +73,7 @@ Important notes:
 - Use proper access modifiers (private for member variables)
 - Follow Android naming conventions (mVariable for member variables)
 - Handle UI updates on the main thread using activity.runOnUiThread
-- Validate PCA initialization before making any MSAL API calls
+- Validate PublicClientApplication (PCA) initialization before making any MSAL API calls
 - Refresh account lists after authentication operations
 - Use proper callback interfaces for communication between components
 
@@ -84,14 +84,14 @@ Important notes:
   ```xml
   <data
       android:scheme="msauth" 
-      android:host="your.app.name"
+      android:host="your.app.package.name"
       android:path="/ABcDeFgJQiLoiEmd-vn14qR*okk=" />
   ```
 
 - When generating the auth_config.json file, the redirect_uri field MUST contain URL encoded values. For example:
   ```json
   {
-      "redirect_uri": "msauth://your.app.name/ABcDeFgJQiLoiEmd-vn14qR%2Aokk%3D%0A"
+      "redirect_uri": "msauth://your.app.package.name/ABcDeFgJQiLoiEmd-vn14qR%2Aokk%3D%0A"
   }
   ```
   Note that special characters like '+' and '=' are URL encoded to %2B and %3D respectively.

@@ -24,13 +24,19 @@ import android.app.Activity;
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AuthenticationCallback;
 import com.microsoft.identity.client.IAuthenticationResult;
-import com.microsoft.identity.client.IPublicClientApplication;
+import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Snippet showing how to acquire a token interactively.
+ * 
+ * This method can be used for initial sign-in in multiple account mode. It can be used to re-authenticate a user in either
+ * single account mode or multiple account mode. In single account mode, to sign in a user for the first time, use signIn.
+ */
 public class TokenAcquisition {
-    private IPublicClientApplication mPCA;
+    private IMultipleAccountPublicClientApplication mPCA;
 
     /**
      * Acquires token interactively, launching browser for user authentication if necessary.
@@ -46,17 +52,17 @@ public class TokenAcquisition {
             .startAuthorizationFromActivity(activity)
             .withCallback(new AuthenticationCallback() {
                 @Override
-                public void onSuccess(IAuthenticationResult authenticationResult) {
+                public void onSuccess(IAuthenticationResult authenticationResult) { // Token acquisition successful, handle result
                     callback.onComplete(authenticationResult, null);
                 }
 
                 @Override
-                public void onError(MsalException exception) {
+                public void onError(MsalException exception) { // Token acquisition failed, handle error
                     callback.onComplete(null, exception);
                 }
 
                 @Override
-                public void onCancel() {
+                public void onCancel() { // User cancelled the authentication, handle cancellation
                     // Handle the cancellation
                     System.out.println("User cancelled the authentication");
                 }
@@ -71,6 +77,7 @@ public class TokenAcquisition {
      * Example usage with Microsoft Graph scopes
      */
     public void exampleUsage(Activity activity) {
+        mPCA = /* Initialize your IMultipleAccountPublicClientApplication instance here */;
         List<String> graphScopes = Collections.singletonList("User.Read");
         
         acquireTokenInteractively(activity, graphScopes, new TokenCallback() {

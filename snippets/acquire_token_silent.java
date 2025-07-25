@@ -29,8 +29,14 @@ import com.microsoft.identity.client.exception.MsalException;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Demonstrates how to acquire tokens silently (no interactive flow).
+ * 
+ * Includes both synchronous (background thread) and asynchronous (main thread) patterns.
+ * Use this snippet in both single and multiple account modes.
+ */
 public class SilentTokenAcquisition {
-    private IPublicClientApplication mPCA;
+    private IPublicClientApplication mPCA; // Use ISingleAccountPublicClientApplication or IMultipleAccountPublicClientApplication as needed
 
     /**
      * IMPORTANT: This method must be called from a background thread.
@@ -58,17 +64,18 @@ public class SilentTokenAcquisition {
             List<String> scopesList,
             final TokenCallback callback) {
         // Build parameters using the modern Parameters-based API
+        // Notice that it incudes a callback for asynchronous operations
         AcquireTokenSilentParameters parameters = new AcquireTokenSilentParameters.Builder()
             .withScopes(scopesList)
             .forAccount(account)
             .withCallback(new SilentAuthenticationCallback() {
                 @Override
-                public void onSuccess(IAuthenticationResult result) {
+                public void onSuccess(IAuthenticationResult result) { // Token acquisition successful, handle result
                     callback.onComplete(result, null);
                 }
 
                 @Override
-                public void onError(MsalException exception) {
+                public void onError(MsalException exception) { // Token acquisition failed, handle the error
                     callback.onComplete(null, exception);
                 }
             })
@@ -82,6 +89,7 @@ public class SilentTokenAcquisition {
      * Example usage showing both synchronous and asynchronous patterns
      */
     public void exampleUsage(IAccount account) {
+        mPCA = /* Initialize your IPublicClientApplication instance here, can be multiple or single account mode.*/;
         List<String> graphScopes = Collections.singletonList("User.Read");
 
         // Example 1: Background thread usage (synchronous)

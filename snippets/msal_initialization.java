@@ -22,17 +22,24 @@
 //   THE SOFTWARE.
 import android.content.Context;
 import com.microsoft.identity.client.IPublicClientApplication;
+import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
+import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
 
+/**
+ * Snippets showing how to setup PublicClientApplication (PCA) objects.
+ * These objects are used to call MSAL's various APIs in either single or multiple account mode.
+ */
 public class MSALInitialization {
     private static final String CONFIG_FILE = "auth_config.json";
-    private IPublicClientApplication mPCA;
+    private IMultipleAccountPublicClientApplication mMultipleAccountPCA;
+    private ISingleAccountPublicClientApplication mSingleAccountPCA;
 
     /**
-     * Initializes MSAL PublicClientApplication with configuration from auth_config.json
+     * Initializes MSAL PublicClientApplication for multiple account mode with configuration from a config json file
      */
-    public void initializeMSAL(Context context, final InitializationCallback callback) {
+    public void initializeMultipleAccountMSAL(Context context, final InitializationCallback callback) {
         // Create PCA from config file
         PublicClientApplication.createMultipleAccountPublicClientApplication(
             context,
@@ -40,7 +47,7 @@ public class MSALInitialization {
             new IPublicClientApplication.ApplicationCreatedListener() {
                 @Override
                 public void onCreated(IPublicClientApplication application) {
-                    mPCA = application;
+                    mMultipleAccountPCA = application;
                     callback.onComplete(mPCA, null);
                 }
 
@@ -53,7 +60,7 @@ public class MSALInitialization {
     }
 
     /**
-     * For single account mode, use this initialization instead
+     * Initializes MSAL PublicClientApplication for single account mode with configuration  from a config json file
      */
     public void initializeSingleAccountMSAL(Context context, final InitializationCallback callback) {
         PublicClientApplication.createSingleAccountPublicClientApplication(
@@ -62,7 +69,7 @@ public class MSALInitialization {
             new IPublicClientApplication.ApplicationCreatedListener() {
                 @Override
                 public void onCreated(IPublicClientApplication application) {
-                    mPCA = application;
+                    mSingleAccountPCA = application;
                     callback.onComplete(mPCA, null);
                 }
 

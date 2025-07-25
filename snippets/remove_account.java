@@ -21,51 +21,54 @@
 //   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //   THE SOFTWARE.
 
-import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
+import com.microsoft.identity.client.IAccount;
+import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
 
 /**
- * Snippet showing how to sign out in SINGLE ACCOUNT MODE.
+ * Snippet showing how to remove an account from the msal cache in multiple account mode.
  * 
- * Use signOut for sign-out in SINGLE ACCOUNT MODE.
- * Do NOT use this in multiple account mode. For multiple account mode, use removeAccount.
+ * Use removeAccount for sign-out in MULTIPLE ACCOUNT MODE.
+ * Do NOT use this in single account mode. For single account mode, use signOut.
  */
-public class AccountSignOut {
+public class AccountRemove {
 
-    private ISingleAccountPublicClientApplication mPCA;
+    IMultipleAccountPublicClientApplication mPCA;
 
     /**
-     * Signs out the current account in single account mode.
+     * Removes the account from MSAL cache in multiple account mode.
      */
-    public void signOut(final SignOutCallback callback) {
-        mPCA.signOut(new ISingleAccountPublicClientApplication.SignOutCallback() {
+    public void removeAccount(
+            IAccount account,
+            final RemoveAccountCallback callback) {
+        mPCA.removeAccount(account, new IMultipleAccountPublicClientApplication.RemoveAccountCallback() {
             @Override
-            public void onSignOut() {
-                // Sign out successful
+            public void onRemoved() {
+                // Account successfully removed
                 callback.onComplete(null);
             }
 
             @Override
             public void onError(MsalException exception) {
-                // Failed to sign out
+                // Failed to remove account
                 callback.onComplete(exception);
             }
         });
     }
 
     /**
-     * Example usage for single account mode
+     * Example usage for multiple account mode
      */
-    public void exampleSingleAccountUsage() {
-        mPCA = /* Initialize your ISingleAccountPublicClientApplication instance here */;
-        signOut(new SignOutCallback() {
+    public void exampleMultipleAccountUsage(IAccount account) {
+        mPCA = /* Initialize your IMultipleAccountPublicClientApplication instance here */;
+        removeAccount(account, new RemoveAccountCallback() {
             @Override
             public void onComplete(MsalException exception) {
                 if (exception == null) {
-                    System.out.println("Successfully signed out");
-                    // Update UI to signed-out state
+                    System.out.println("Account successfully removed");
+                    // Update UI, clear account-specific data
                 } else {
-                    System.out.println("Failed to sign out: " + exception.getMessage());
+                    System.out.println("Failed to remove account: " + exception.getMessage());
                     // Handle the error
                 }
             }
@@ -73,9 +76,9 @@ public class AccountSignOut {
     }
 
     /**
-     * Callback interface for sign out operations
+     * Callback interface for remove account operations
      */
-    public interface SignOutCallback {
+    public interface RemoveAccountCallback {
         void onComplete(MsalException exception);
     }
 }

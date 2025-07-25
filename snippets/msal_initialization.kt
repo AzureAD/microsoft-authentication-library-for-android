@@ -21,27 +21,34 @@
 //   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //   THE SOFTWARE.
 import com.microsoft.identity.client.IPublicClientApplication
+import com.microsoft.identity.client.ISingleAccountPublicClientApplication
+import com.microsoft.identity.client.IMultipleAccountPublicClientApplication
 import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.exception.MsalException
 
+/**
+ * Snippets showing how to setup PublicClientApplication (PCA) objects.
+ * These objects are used to call MSAL's various APIs in either single or multiple account mode.
+ */
 class MSALInitialization {
     companion object {
         private const val CONFIG_FILE = "auth_config.json"
     }
 
-    private lateinit var mPCA: IPublicClientApplication
+    private lateinit var mMultipleAccountPCA: IMultipleAccountPublicClientApplication
+    private lateinit var mSingleAccountPCA: ISingleAccountPublicClientApplication
 
     /**
-     * Initializes MSAL PublicClientApplication with configuration from auth_config.json
+     * Initializes MSAL PublicClientApplication for multiple account mode with configuration from a config json file
      */
-    fun initializeMSAL(context: Context, callback: (IPublicClientApplication?, MsalException?) -> Unit) {
+    fun initializeMultipleAccountMSAL(context: Context, callback: (IPublicClientApplication?, MsalException?) -> Unit) {
         // Create PCA from config file
         PublicClientApplication.createMultipleAccountPublicClientApplication(
             context,
             CONFIG_FILE,
             object : IPublicClientApplication.ApplicationCreatedListener {
                 override fun onCreated(application: IPublicClientApplication) {
-                    mPCA = application
+                    mMultipleAccountPCA = application
                     callback(mPCA, null)
                 }
 
@@ -52,14 +59,16 @@ class MSALInitialization {
         )
     }
 
-    // For single account mode, use this initialization instead:
+    /**
+     * Initializes MSAL PublicClientApplication for single account mode with configuration from a config json file
+     */
     fun initializeSingleAccountMSAL(context: Context, callback: (IPublicClientApplication?, MsalException?) -> Unit) {
         PublicClientApplication.createSingleAccountPublicClientApplication(
             context,
             CONFIG_FILE,
             object : IPublicClientApplication.ApplicationCreatedListener {
                 override fun onCreated(application: IPublicClientApplication) {
-                    mPCA = application
+                    mSingleAccountPCA = application
                     callback(mPCA, null)
                 }
 
