@@ -31,7 +31,7 @@ These resources contain all necessary patterns, rules, and examples for AI tools
 
 ## Try out Cline!
 
-We've recently made improvements to our repo to empower AI agents to quickly and correctly generate MSAL-integrated android applications. Feel free to try it out! Use the prompt below as reference, tweak it how you like to get different applications generated for your own needs, and feel free to include UI preferences (Colors, Themes, button placement) as you work with the Cline agent.
+We've recently made improvements to our repo to empower AI agents to quickly and correctly generate MSAL-integrated android applications. Feel free to try it out! Use the prompt below as reference, tweak it how you like to get different applications generated for your own needs, and feel free to include UI preferences (Colors, Themes, button placement) as you work with the Cline agent. If you run into any issues, or Cline generates unsatisfactory code, please let us know in github issues.
 
 ### Example Prompt:
 Please create a new android application integrated with MSAL named com.example.clinesandboxtest. Place this application in a folder on my desktop. I want this application to have all basic MSAL functionality, only allowing the use of chrome browser and no other browsers. You may use the client id (YOUR CLIENT ID HERE) and redirect_uri (YOUR REDIRECT URI) where applicable.
