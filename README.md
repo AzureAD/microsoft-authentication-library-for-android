@@ -79,8 +79,6 @@ It's simplest to create your configuration file as a "raw" resource file in your
 }
 ```
 
->NOTE: Broker integration (Microsoft Authenticator, Company Portal, or Link To Windows) should be enabled for enhanced security and SSO capabilities, and is already enabled by default. Setting the `broker_redirect_uri_registered` field in the JSON configuration to `false` will disable broker integration, but is not recomended unless explicitly required otherwise by the user.
-
 >NOTE: In the `redirect_uri`, the part `<YOUR_PACKAGE_NAME>` refers to the package name returned by the `context.getPackageName()` method. This package name is the same as the [`application_id`](https://developer.android.com/studio/build/application-id) defined in your `build.gradle` file.
 
 >NOTE: This is the minimum required configuration.  MSAL relies on the defaults that ship with the library for all other settings.  Please refer to the [configuration file documentation](https://docs.microsoft.com/azure/active-directory/develop/msal-configuration) to understand the library defaults.
@@ -116,7 +114,7 @@ It's simplest to create your configuration file as a "raw" resource file in your
 
 >NOTE: Please refer to [this FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-android/wiki/MSAL-FAQ#redirect-uri-issues) for more information on common redirect uri issues.
 
-### Step 4: Create an MSAL PublicClientApplication
+### Step 4: Create an MSAL PublicClientApplication and use MSAL APIs
 
 There are two modes for MSAL applications:
 
@@ -132,37 +130,38 @@ IMultipleAccountPublicClientApplication mMultipleAccountApp = null;
 private List<IAccount> mAccounts;
 private static final List<String> SCOPES = Collections.singletonList("User.Read"); // Basic Microsoft Graph scope
 
-// Create a Multiple Account PublicClientApplication
-PublicClientApplication.createMultipleAccountPublicClientApplication(getContext(),
-    R.raw.msal_config,
+// Create PCA from config file
+PublicClientApplication.createMultipleAccountPublicClientApplication(
+    context,
+    R.raw.auth_config, // Reference the json file in your app
     new IPublicClientApplication.IMultipleAccountApplicationCreatedListener() {
         @Override
         public void onCreated(IMultipleAccountPublicClientApplication application) {
-            // Store PCA instance
-            mMultipleAccountApp = application;
-            
-            // Validate PCA was created successfully before making any calls
-            if (mMultipleAccountApp != null) {
-                // Ready to make calls
-            }
+            mMultipleAccountPCA = application;
+            // Do something post initialization, like notifying a callback or calling getAccounts()
         }
 
         @Override
         public void onError(MsalException exception) {
-            // Log and handle PCA creation failure
+            // Handle error during initialization
         }
-    });
+    }
+);
 ```
 
 ```java
-// Sign In (Interactive Token Acquisition)
+// Acquire Token (Equivalent to Sign In in Single Account Mode)
 AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
     .withScopes(SCOPES)
     .startAuthorizationFromActivity(activity)
     .withCallback(getAuthInteractiveCallback())
     .build();
-mMultipleAccountApp.acquireToken(parameters);
 
+// Acquire token using the parameters
+mMultipleAccountApp.acquireToken(parameters);
+```
+
+```java
 // An example implementation of the callback
 private AuthenticationCallback getAuthInteractiveCallback() {
     return new AuthenticationCallback() {
@@ -221,6 +220,7 @@ mMultipleAccountApp.getAccounts(new IPublicClientApplication.LoadAccountsCallbac
 AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
     .withScopes(SCOPES)
     .forAccount(account)
+    .fromAuthority(account.getAuthority())
     .withCallback(getAuthInteractiveCallback())
     .build();
 mMultipleAccountApp.acquireTokenSilentAsync(silentParameters);
@@ -231,8 +231,26 @@ mMultipleAccountApp.acquireTokenSilentAsync(silentParameters);
 AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
     .withScopes(SCOPES)
     .forAccount(account)
+    .fromAuthority(account.getAuthority())
     .build();
 mMultipleAccountApp.acquireTokenSilent(silentParameters);
+```
+
+```java
+// Remove Account for Multiple Account Mode (equialent to Sign Out in Single Account Mode)
+mMultipleAccountApp.removeAccount(account, new IMultipleAccountPublicClientApplication.RemoveAccountCallback() {
+    @Override
+    public void onRemoved() {
+        // Account successfully removed
+        // Update UI, clear account-specific data
+    }
+
+    @Override
+    public void onError(MsalException exception) {
+        // Failed to remove account
+        // Handle the error
+    }
+});
 ```
 
 #### Single Account Mode
@@ -242,28 +260,33 @@ ISingleAccountApplication mSingleAccountApp = null;
 IAccount mAccount;
 private static final List<String> SCOPES = Collections.singletonList("User.Read"); // Basic Microsoft Graph scope
 
-// Create a Single Account PublicClientApplication
-PublicClientApplication.createSingleAccountPublicClientApplication(getContext(),
-    R.raw.msal_config,
-    new IPublicClientApplication.ISingleAccountApplicationCreatedListener() {
+PublicClientApplication.createSingleAccountPublicClientApplication(
+    context,
+    R.raw.auth_config, // Reference the json file in your app
+    new PublicClientApplication.ISingleAccountApplicationCreatedListener() {
         @Override
         public void onCreated(ISingleAccountPublicClientApplication application) {
             mSingleAccountApp = application;
+            // Do something post initialization, like notifying a callback or calling getCurrentAccount()
         }
 
         @Override
         public void onError(MsalException exception) {
-            // Log and handle PCA creation failure
+            // Handle error during initialization
         }
-    });
+    }
+);
 ```
 
 ```java
 // Sign In
-SignInParameters parameters = new SignInParameters.Builder()
-    .startActivity(activity)
+SignInParameters parameters = SignInParameters.builder()
+    // .withLoginHint(mUsername) // Can pass user's login hint if available
+    .withScopes(scopes)
+    .withActivity(activity)
     .withCallback(getAuthInteractiveCallback())
     .build();
+
 mSingleAccountApp.signIn(parameters);
 ```
 
@@ -299,6 +322,7 @@ mSingleAccountApp.getCurrentAccountAsync(new ISingleAccountPublicClientApplicati
 AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
     .withScopes(SCOPES)
     .forAccount(account)
+    .fromAuthority(account.getAuthority())
     .withCallback(getAuthInteractiveCallback())
     .build();
 mSingleAccountApp.acquireTokenSilentAsync(silentParameters);
@@ -309,8 +333,26 @@ mSingleAccountApp.acquireTokenSilentAsync(silentParameters);
 AcquireTokenSilentParameters silentParameters = new AcquireTokenSilentParameters.Builder()
     .withScopes(SCOPES)
     .forAccount(account)
+    .fromAuthority(account.getAuthority())
     .build();
 mSingleAccountApp.acquireTokenSilent(silentParameters);
+```
+
+```java
+// Sign Out for Single Account Mode
+mSingleAccountApp.signOut(new ISingleAccountPublicClientApplication.SignOutCallback() {
+    @Override
+    public void onSignOut() {
+        // Account successfully signed out
+        // Update UI to signed-out state
+    }
+
+    @Override
+    public void onError(MsalException exception) {
+        // Failed to sign out
+        // Handle the error
+    }
+});
 ```
 
 All of the above examples can be found in the `snippets` directory, where we've also included jotlin examples.

@@ -33,7 +33,7 @@
   // Sets MSAL Account mode. Possible Values: MULTIPLE, SINGLE. MULTIPLE is for multiple account mode, SINGLE is for single account mode. MULTIPLE is the default mode and is generally preferred amongst users.
   "account_mode": "MULTIPLE", 
 
-  // IMPORTANT: Broker integration is strongly recommended for enhanced security and SSO capabilities.
+  // IMPORTANT: Broker integration is strongly recommended for enhanced security and SSO capabilities. By default, it is set to true.
   // Set to true if app should integrate with broker (Microsoft Authenticator, Company Portal, or Link To Windows) for authentication.
   // This enables SSO (Single Sign-On) capabilities and provides additional security features.
   // Should ALWAYS be set to true unless explicitly required by the user to be disabled.
