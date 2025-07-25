@@ -30,36 +30,38 @@ import java.util.Date;
 import java.util.List;
 
 /**
+ * Snippet showing how to use device code flow to acquire tokens.
+ * 
  * IMPORTANT: Device Code Flow is not recommended due to security concerns in the industry.
  * Only use this method in niche scenarios where devices lack input methods necessary for interactive authentication.
  * For standard authentication scenarios, use acquireToken (for multiple account mode) or signIn (for single account mode).
  */
 public class DeviceCodeFlowTokenAcquisition {
-    private IPublicClientApplication mPCA;
+    private IPublicClientApplication mPCA; // Use ISingleAccountPublicClientApplication or IMultipleAccountPublicClientApplication as needed
 
     /**
      * Acquires token using Device Code Flow. This should only be used in specific scenarios
      * where the device cannot handle interactive authentication.
      */
-    public void acquireTokenWithDeviceCode(List<String> scopesList, final DeviceCodeCallback callback) {
+    public void acquireTokenWithDeviceCode(List<String> scopes, final DeviceCodeCallback callback) {
         mPCA.acquireTokenWithDeviceCode(
-            scopesList,
+            scopes,
             new IPublicClientApplication.DeviceCodeFlowCallback() {
                 @Override
                 public void onUserCodeReceived(@NonNull String deviceCode,
                                              @NonNull String verificationUri,
                                              @NonNull String message,
-                                             @NonNull Date expiresOn) {
-                    callback.onDeviceCodeReceived(message);
+                                             @NonNull Date expiresOn) { // Display the device code and instructions to the user
+                    callback.onDeviceCodeReceived(message); // Show the message to the user through app ui
                 }
 
                 @Override
-                public void onTokenReceived(@NonNull IAuthenticationResult result) {
+                public void onTokenReceived(@NonNull IAuthenticationResult result) { // Token acquisition successful, handle result
                     callback.onComplete(result, null);
                 }
 
                 @Override
-                public void onError(@NonNull MsalException exception) {
+                public void onError(@NonNull MsalException exception) { // Token acquisition failed, handle error
                     callback.onComplete(null, exception);
                 }
             }
@@ -70,6 +72,7 @@ public class DeviceCodeFlowTokenAcquisition {
      * Example usage with Microsoft Graph scopes
      */
     public void exampleUsage() {
+        mPCA = /* Initialize your IPublicClientApplication instance here */;
         List<String> graphScopes = Collections.singletonList("User.Read");
         
         acquireTokenWithDeviceCode(graphScopes, new DeviceCodeCallback() {

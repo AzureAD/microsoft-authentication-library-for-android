@@ -20,53 +20,34 @@
 //   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //   THE SOFTWARE.
+
 import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
-import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
 import java.util.List;
 
-public class AccountManagement {
+/**
+ * Snippet showing how to get all accounts in MULTIPLE ACCOUNT MODE.
+ * 
+ * Use getAccounts for multiple account mode.
+ * Do NOT use this in single account mode. For single account mode, use getCurrentAccount.
+ */
+public class GetAccountsHelper {
+
+    private IMultipleAccountPublicClientApplication mPCA;
 
     /**
-     * Gets all accounts for multiple account mode applications
+     * Gets all accounts for multiple account mode applications.
      */
-    public void getAccounts(
-            IMultipleAccountPublicClientApplication pca,
-            final AccountsCallback callback) {
-        pca.getAccounts(new IMultipleAccountPublicClientApplication.LoadAccountsCallback() {
+    public void getAccounts(final AccountsCallback callback) {
+        mPCA.getAccounts(new IMultipleAccountPublicClientApplication.LoadAccountsCallback() {
             @Override
-            public void onTaskCompleted(List<IAccount> result) {
+            public void onTaskCompleted(List<IAccount> result) { // Successfully retrieved accounts, handle result
                 callback.onComplete(result, null);
             }
 
             @Override
-            public void onError(MsalException exception) {
-                callback.onComplete(null, exception);
-            }
-        });
-    }
-
-    /**
-     * Gets the current account for single account mode applications
-     */
-    public void getCurrentAccount(
-            ISingleAccountPublicClientApplication pca,
-            final CurrentAccountCallback callback) {
-        pca.getCurrentAccountAsync(new ISingleAccountPublicClientApplication.CurrentAccountCallback() {
-            @Override
-            public void onAccountLoaded(IAccount account) {
-                callback.onComplete(account, null);
-            }
-
-            @Override
-            public void onAccountChanged(IAccount priorAccount, IAccount currentAccount) {
-                // Handle account changes
-                callback.onComplete(currentAccount, null);
-            }
-
-            @Override
-            public void onError(MsalException exception) {
+            public void onError(MsalException exception) { // Failed to retrieve accounts, handle error
                 callback.onComplete(null, exception);
             }
         });
@@ -75,8 +56,9 @@ public class AccountManagement {
     /**
      * Example usage for multiple account mode
      */
-    public void exampleMultipleAccountUsage(IMultipleAccountPublicClientApplication pca) {
-        getAccounts(pca, new AccountsCallback() {
+    public void exampleMultipleAccountUsage() {
+        mPCA = /* Initialize your IMultipleAccountPublicClientApplication instance here */;
+        getAccounts(new AccountsCallback() {
             @Override
             public void onComplete(List<IAccount> accounts, MsalException exception) {
                 if (accounts != null) {
@@ -98,37 +80,9 @@ public class AccountManagement {
     }
 
     /**
-     * Example usage for single account mode
-     */
-    public void exampleSingleAccountUsage(ISingleAccountPublicClientApplication pca) {
-        getCurrentAccount(pca, new CurrentAccountCallback() {
-            @Override
-            public void onComplete(IAccount account, MsalException exception) {
-                if (account != null) {
-                    System.out.println("Current account: " + account.getUsername());
-                    // Use the account
-                } else if (exception != null) {
-                    System.out.println("Failed to get current account: " + exception.getMessage());
-                    // Handle the error
-                } else {
-                    System.out.println("No account signed in");
-                    // Handle no account scenario
-                }
-            }
-        });
-    }
-
-    /**
      * Callback interface for retrieving multiple accounts
      */
     public interface AccountsCallback {
         void onComplete(List<IAccount> accounts, MsalException exception);
-    }
-
-    /**
-     * Callback interface for retrieving current account
-     */
-    public interface CurrentAccountCallback {
-        void onComplete(IAccount account, MsalException exception);
     }
 }

@@ -63,7 +63,15 @@ public class AuthHelper {
     // Reference to the callback methods in MainActivity, enabling AuthHelper to prompt UI updates after Msal operations conclude.
     private AuthCallback mCallback;
 
+    /**
+     * Listener interface for token acquisition events.
+     * Implement this interface to handle token acquisition events in your activity or fragment.
+     */
     public interface TokenAcquiredListener {
+        /**
+         * Called when a token is successfully acquired. Should contain handling the access token result.
+         * @param accessToken the acquired access token.
+         */
         void onTokenAcquired(String accessToken);
     }
 

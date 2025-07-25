@@ -20,73 +20,65 @@
 //   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //   THE SOFTWARE.
+
 import android.app.Activity
-import com.microsoft.identity.client.AcquireTokenParameters
-import com.microsoft.identity.client.AuthenticationCallback
+import com.microsoft.identity.client.ISingleAccountPublicClientApplication
+import com.microsoft.identity.client.SignInParameters
 import com.microsoft.identity.client.IAuthenticationResult
-import com.microsoft.identity.client.IMultipleAccountPublicClientApplication
 import com.microsoft.identity.client.exception.MsalException
+import com.microsoft.identity.client.AuthenticationCallback
+import com.microsoft.identity.client.Prompt
+import java.util.Collections
 
 /**
- * Snippet showing how to acquire a token interactively.
- * 
- * This method can be used for initial sign-in in multiple account mode. It can be used to re-authenticate a user in either
- * single account mode or multiple account mode. In single account mode, to sign in a user for the first time, use signIn.
+ * Demonstrates how to sign in again (reauthenticate existing user) using MSAL's Parameters-based API in SINGLE ACCOUNT MODE.
+ *
+ * This is useful when you want to force a fresh sign-in, ignoring any existing sessions.
+ * Use signInAgain for single account mode. For multiple account mode, use acquireToken with .withPrompt(Prompt.LOGIN) to force authentication.
  */
-class TokenAcquisition {
-    private lateinit var mPCA: IMultipleAccountPublicClientApplication
+class SignInAgainHelper {
+
+    private lateinit var mPCA: ISingleAccountPublicClientApplication
 
     /**
-     * Acquires token interactively, launching browser for user authentication if necessary.
-     * This is the recommended method for initial sign-in in multiple account mode.
+     * Signs in the user again interactively in single account mode.
+     * This will prompt for credentials even if there's an existing session.
      */
-    fun acquireTokenInteractively(
-        activity: Activity,
-        scopes: List<String>,
-        callback: (IAuthenticationResult?, MsalException?) -> Unit
-    ) {
-        // Build parameters using the modern Parameters-based API
-        val parameters = AcquireTokenParameters.Builder()
+    fun signInAgain(activity: Activity, scopes: List<String>, callback: (IAuthenticationResult?, MsalException?) -> Unit) {
+        val parameters = SignInParameters.builder()
             .withScopes(scopes)
-            .startAuthorizationFromActivity(activity)
-            // .withPrompt(Prompt.LOGIN) // Use Prompt.LOGIN to force interactive re-authentication
+            .withActivity(activity)
             .withCallback(object : AuthenticationCallback {
+                override fun onCancel() {
+                    // Handle cancellation
+                }
                 override fun onSuccess(authenticationResult: IAuthenticationResult) {
                     callback(authenticationResult, null)
                 }
-
                 override fun onError(exception: MsalException) {
                     callback(null, exception)
-                }
-
-                override fun onCancel() {
-                    // Handle the cancellation
-                    println("User cancelled the authentication")
                 }
             })
             .build()
 
-        // Acquire token using the parameters
-        mPCA.acquireToken(parameters)
+        mPCA.signInAgain(parameters)
     }
 
     /**
-     * Example usage with Microsoft Graph scopes
+     * Example usage for single account mode
      */
-    fun exampleUsage(activity: Activity) {
-        mPCA = /* Initialize your IMultipleAccountPublicClientApplication instance here */;
-        val graphScopes = listOf("User.Read")
-        
-        acquireTokenInteractively(activity, graphScopes) { result, exception ->
+    fun exampleSingleAccountUsage(activity: Activity) {
+        mPCA = /* Initialize your ISingleAccountPublicClientApplication instance here */
+        val graphScopes = Collections.singletonList("User.Read")
+        signInAgain(activity, graphScopes) { result, exception ->
             when {
                 result != null -> {
-                    // Use the access token
                     val accessToken = result.accessToken
-                    // Make API calls with the token
+                    // Use the access token
                 }
                 exception != null -> {
-                    // Handle the exception
-                    println("Error acquiring token: ${exception.message}")
+                    println("Failed to sign in again: ${exception.message}")
+                    // Handle the error
                 }
             }
         }

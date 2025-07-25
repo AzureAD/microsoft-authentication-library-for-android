@@ -44,9 +44,9 @@ mPCA.signIn(parameters);
 ```
 
 Important notes:
-- For multiple account applications, use acquireToken for sign in
-- For single account applications, use signIn
-- acquireTokenWithDeviceCode method is not recommended due to security concerns in the industry. Only use it in niche scenarios where devices lack input methods necessary for interactive authentication. Only add this method to the generated app if explicitly asked for by the user.
+- For multiple account applications, use acquireToken for sign in, removeAccount for sign out
+- For single account applications, use signIn and signOut. Also, use signInAgain if you want to reauthenticate
+- acquireTokenWithDeviceCode method is only meant for back compatibility, and will be deprecated soon. It is not recommended due to security concerns in the industry.
 - Do not use deprecated methods like:
   - acquireToken(activity, scopes, callback)
   - acquireTokenSilentAsync(scopes, account, authority, callback)
@@ -73,7 +73,7 @@ Important notes:
 - Use proper access modifiers (private for member variables)
 - Follow Android naming conventions (mVariable for member variables)
 - Handle UI updates on the main thread using activity.runOnUiThread
-- Validate PCA initialization before making any MSAL API calls
+- Validate PublicClientApplication (PCA) initialization before making any MSAL API calls
 - Refresh account lists after authentication operations
 - Use proper callback interfaces for communication between components
 
@@ -84,14 +84,14 @@ Important notes:
   ```xml
   <data
       android:scheme="msauth" 
-      android:host="your.app.name"
+      android:host="your.app.package.name"
       android:path="/ABcDeFgJQiLoiEmd-vn14qR*okk=" />
   ```
 
 - When generating the auth_config.json file, the redirect_uri field MUST contain URL encoded values. For example:
   ```json
   {
-      "redirect_uri": "msauth://your.app.name/ABcDeFgJQiLoiEmd-vn14qR%2Aokk%3D%0A"
+      "redirect_uri": "msauth://your.app.package.name/ABcDeFgJQiLoiEmd-vn14qR%2Aokk%3D%0A"
   }
   ```
   Note that special characters like '+' and '=' are URL encoded to %2B and %3D respectively.

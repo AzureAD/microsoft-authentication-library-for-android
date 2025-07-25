@@ -63,7 +63,15 @@ public class AuthHelper {
     // Callback interface to notify the activity of authentication events.
     private AuthCallback mCallback;
 
+    /**
+     * Listener interface for token acquisition events.
+     * Implement this interface to handle token acquisition events in your activity or fragment.
+     */
     public interface TokenAcquiredListener {
+        /**
+         * Called when a token is successfully acquired. Should contain handling the access token result.
+         * @param accessToken the acquired access token.
+         */
         void onTokenAcquired(String accessToken);
     }
 

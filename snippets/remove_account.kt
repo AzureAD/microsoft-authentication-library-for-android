@@ -21,48 +21,52 @@
 //   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //   THE SOFTWARE.
 
-import com.microsoft.identity.client.ISingleAccountPublicClientApplication
+import com.microsoft.identity.client.IAccount
+import com.microsoft.identity.client.IMultipleAccountPublicClientApplication
 import com.microsoft.identity.client.exception.MsalException
 
 /**
- * Snippet showing how to sign out in SINGLE ACCOUNT MODE.
+ * Snippet showing how to remove an account from the msal cache in MULTIPLE ACCOUNT MODE.
  *
- * Use signOut for sign-out in SINGLE ACCOUNT MODE.
- * Do NOT use this in multiple account mode. For multiple account mode, use removeAccount.
+ * Use removeAccount for sign-out in MULTIPLE ACCOUNT MODE.
+ * Do NOT use this in single account mode. For single account mode, use signOut.
  */
-class AccountSignOut {
+class AccountRemoveHelper {
 
-    var mPCA: ISingleAccountPublicClientApplication? = null
+    var mPCA: IMultipleAccountPublicClientApplication? = null
 
     /**
-     * Signs out the current account in single account mode.
+     * Removes the account from MSAL cache in multiple account mode.
      */
-    fun signOut(callback: SignOutCallback) {
-        mPCA?.signOut(object : ISingleAccountPublicClientApplication.SignOutCallback {
-            override fun onSignOut() {
-                // Sign out successful
+    fun removeAccount(
+        account: IAccount,
+        callback: RemoveAccountCallback
+    ) {
+        mPCA?.removeAccount(account, object : IMultipleAccountPublicClientApplication.RemoveAccountCallback {
+            override fun onRemoved() {
+                // Account successfully removed
                 callback.onComplete(null)
             }
 
             override fun onError(exception: MsalException) {
-                // Failed to sign out
+                // Failed to remove account
                 callback.onComplete(exception)
             }
         })
     }
 
     /**
-     * Example usage for single account mode
+     * Example usage for multiple account mode
      */
-    fun exampleSingleAccountUsage() {
-        mPCA = /* Initialize your ISingleAccountPublicClientApplication instance here */
-        signOut(object : SignOutCallback {
+    fun exampleMultipleAccountUsage(account: IAccount) {
+        mPCA = /* Initialize your IMultipleAccountPublicClientApplication instance here */
+        removeAccount(account, object : RemoveAccountCallback {
             override fun onComplete(exception: MsalException?) {
                 if (exception == null) {
-                    println("Successfully signed out")
-                    // Update UI to signed-out state
+                    println("Account successfully removed")
+                    // Update UI, clear account-specific data
                 } else {
-                    println("Failed to sign out: ${exception.message}")
+                    println("Failed to remove account: ${exception.message}")
                     // Handle the error
                 }
             }
@@ -70,9 +74,9 @@ class AccountSignOut {
     }
 
     /**
-     * Callback interface for sign out operations
+     * Callback interface for remove account operations
      */
-    interface SignOutCallback {
+    interface RemoveAccountCallback {
         fun onComplete(exception: MsalException?)
     }
 }

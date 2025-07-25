@@ -21,32 +21,36 @@
 //   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //   THE SOFTWARE.
 
+import com.microsoft.identity.client.IAccount
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication
 import com.microsoft.identity.client.exception.MsalException
 
 /**
- * Snippet showing how to sign out in SINGLE ACCOUNT MODE.
+ * Demonstrates how to get the current account in SINGLE ACCOUNT MODE.
  *
- * Use signOut for sign-out in SINGLE ACCOUNT MODE.
- * Do NOT use this in multiple account mode. For multiple account mode, use removeAccount.
+ * Use getCurrentAccount for single account mode.
+ * Do NOT use this in multiple account mode. For multiple account mode, use getAccounts.
  */
-class AccountSignOut {
+class GetCurrentAccountHelper {
 
     var mPCA: ISingleAccountPublicClientApplication? = null
 
     /**
-     * Signs out the current account in single account mode.
+     * Gets the current account for single account mode applications.
      */
-    fun signOut(callback: SignOutCallback) {
-        mPCA?.signOut(object : ISingleAccountPublicClientApplication.SignOutCallback {
-            override fun onSignOut() {
-                // Sign out successful
-                callback.onComplete(null)
+    fun getCurrentAccount(callback: CurrentAccountCallback) {
+        mPCA?.getCurrentAccountAsync(object : ISingleAccountPublicClientApplication.CurrentAccountCallback {
+            override fun onAccountLoaded(account: IAccount?) {
+                callback.onComplete(account, null)
+            }
+
+            override fun onAccountChanged(priorAccount: IAccount?, currentAccount: IAccount?) {
+                // Handle account changes
+                callback.onComplete(currentAccount, null)
             }
 
             override fun onError(exception: MsalException) {
-                // Failed to sign out
-                callback.onComplete(exception)
+                callback.onComplete(null, exception)
             }
         })
     }
@@ -56,23 +60,30 @@ class AccountSignOut {
      */
     fun exampleSingleAccountUsage() {
         mPCA = /* Initialize your ISingleAccountPublicClientApplication instance here */
-        signOut(object : SignOutCallback {
-            override fun onComplete(exception: MsalException?) {
-                if (exception == null) {
-                    println("Successfully signed out")
-                    // Update UI to signed-out state
-                } else {
-                    println("Failed to sign out: ${exception.message}")
-                    // Handle the error
+        getCurrentAccount(object : CurrentAccountCallback {
+            override fun onComplete(account: IAccount?, exception: MsalException?) {
+                when {
+                    account != null -> {
+                        println("Current account: ${account.username}")
+                        // Use the account
+                    }
+                    exception != null -> {
+                        println("Failed to get current account: ${exception.message}")
+                        // Handle the error
+                    }
+                    else -> {
+                        println("No account signed in")
+                        // Handle no account scenario
+                    }
                 }
             }
         })
     }
 
     /**
-     * Callback interface for sign out operations
+     * Callback interface for retrieving current account
      */
-    interface SignOutCallback {
-        fun onComplete(exception: MsalException?)
+    interface CurrentAccountCallback {
+        fun onComplete(account: IAccount?, exception: MsalException?)
     }
 }

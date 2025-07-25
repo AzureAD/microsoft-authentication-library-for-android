@@ -26,12 +26,14 @@ import com.microsoft.identity.client.exception.MsalException
 import java.util.Date
 
 /**
+ * Snippet showing how to use device code flow to acquire tokens.
+ *
  * IMPORTANT: Device Code Flow is not recommended due to security concerns in the industry.
  * Only use this method in niche scenarios where devices lack input methods necessary for interactive authentication.
  * For standard authentication scenarios, use acquireToken (for multiple account mode) or signIn (for single account mode).
  */
 class DeviceCodeFlowTokenAcquisition {
-    private lateinit var mPCA: IPublicClientApplication
+    private lateinit var mPCA: IPublicClientApplication // Use ISingleAccountPublicClientApplication or IMultipleAccountPublicClientApplication as needed
 
     /**
      * Acquires token using Device Code Flow. This should only be used in specific scenarios
@@ -50,15 +52,16 @@ class DeviceCodeFlowTokenAcquisition {
                     verificationUri: String,
                     message: String,
                     expiresOn: Date
-                ) {
+                ) { // Display the device code and instructions to the user
+                    // Show the message to the user through app ui
                     onDeviceCode(message)
                 }
 
-                override fun onTokenReceived(result: IAuthenticationResult) {
+                override fun onTokenReceived(result: IAuthenticationResult) { // Token acquisition successful, handle result
                     onComplete(result, null)
                 }
 
-                override fun onError(exception: MsalException) {
+                override fun onError(exception: MsalException) { // Token acquisition failed, handle error
                     onComplete(null, exception)
                 }
             }
@@ -69,6 +72,7 @@ class DeviceCodeFlowTokenAcquisition {
      * Example usage with Microsoft Graph scopes
      */
     fun exampleUsage() {
+        mPCA = /* Initialize your IPublicClientApplication instance here */;
         val graphScopes = listOf("User.Read")
         
         acquireTokenWithDeviceCode(

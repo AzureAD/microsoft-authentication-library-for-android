@@ -27,8 +27,14 @@ import com.microsoft.identity.client.IPublicClientApplication
 import com.microsoft.identity.client.SilentAuthenticationCallback
 import com.microsoft.identity.client.exception.MsalException
 
+/**
+ * Demonstrates how to acquire tokens silently (no interactive flow).
+ * 
+ * Includes both synchronous (background thread) and asynchronous (main thread) patterns.
+ * Use this snippet in both single and multiple account modes.
+ */
 class SilentTokenAcquisition {
-    private lateinit var mPCA: IPublicClientApplication
+    private lateinit var mPCA: IPublicClientApplication // Use ISingleAccountPublicClientApplication or IMultipleAccountPublicClientApplication as needed
 
     /**
      * IMPORTANT: This method must be called from a background thread.
@@ -36,6 +42,7 @@ class SilentTokenAcquisition {
      * 
      * Attempts to acquire a token silently from the cache.
      */
+    @WorkerThread
     @Throws(MsalException::class, InterruptedException::class)
     fun acquireTokenSilent(
         account: IAccount,
@@ -45,6 +52,7 @@ class SilentTokenAcquisition {
         val parameters = AcquireTokenSilentParameters.Builder()
             .withScopes(scopes)
             .forAccount(account)
+            .fromAuthority(account.getAuthority())
             .build()
 
         // Synchronously acquire token - MUST be called from background thread
@@ -63,12 +71,13 @@ class SilentTokenAcquisition {
         val parameters = AcquireTokenSilentParameters.Builder()
             .withScopes(scopes)
             .forAccount(account)
+            .fromAuthority(account.getAuthority())
             .withCallback(object : SilentAuthenticationCallback {
-                override fun onSuccess(result: IAuthenticationResult) {
+                override fun onSuccess(result: IAuthenticationResult) { // token acquisition successful, handle result
                     callback(result, null)
                 }
 
-                override fun onError(exception: MsalException) {
+                override fun onError(exception: MsalException) { // token acquisition failed, handle error
                     callback(null, exception)
                 }
             })
@@ -82,6 +91,7 @@ class SilentTokenAcquisition {
      * Example usage showing both synchronous and asynchronous patterns
      */
     fun exampleUsage(account: IAccount) {
+        mPCA = /* Initialize your IPublicClientApplication instance here, either multiple or single account. */;
         val graphScopes = listOf("User.Read")
 
         // Example 1: Background thread usage (synchronous)

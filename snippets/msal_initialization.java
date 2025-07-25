@@ -22,62 +22,98 @@
 //   THE SOFTWARE.
 import android.content.Context;
 import com.microsoft.identity.client.IPublicClientApplication;
+import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
+import com.microsoft.identity.client.IMultipleAccountPublicClientApplication;
 import com.microsoft.identity.client.PublicClientApplication;
 import com.microsoft.identity.client.exception.MsalException;
 
+/**
+ * Snippets showing how to setup PublicClientApplication (PCA) objects.
+ * These objects are used to call MSAL's various APIs in either single or multiple account mode.
+ */
 public class MSALInitialization {
     private static final String CONFIG_FILE = "auth_config.json";
-    private IPublicClientApplication mPCA;
+    private IMultipleAccountPublicClientApplication mMultipleAccountPCA;
+    private ISingleAccountPublicClientApplication mSingleAccountPCA;
 
     /**
-     * Initializes MSAL PublicClientApplication with configuration from auth_config.json
+     * Initializes MSAL PublicClientApplication for multiple account mode with configuration from a config json file
      */
-    public void initializeMSAL(Context context, final InitializationCallback callback) {
+    public void initializeMultipleAccountMSAL(Context context) {
         // Create PCA from config file
         PublicClientApplication.createMultipleAccountPublicClientApplication(
             context,
-                CONFIG_FILE,
-            new IPublicClientApplication.ApplicationCreatedListener() {
+            CONFIG_FILE,
+            new IPublicClientApplication.IMultipleAccountApplicationCreatedListener() {
                 @Override
-                public void onCreated(IPublicClientApplication application) {
-                    mPCA = application;
-                    callback.onComplete(mPCA, null);
+                public void onCreated(IMultipleAccountPublicClientApplication application) {
+                    mMultipleAccountPCA = application;
+                    // Do something post initialization, like notifying a callback or calling getAccounts()
                 }
 
                 @Override
                 public void onError(MsalException exception) {
-                    callback.onComplete(null, exception);
+                    // Handle error during initialization
                 }
             }
         );
     }
 
     /**
-     * For single account mode, use this initialization instead
+     * Initializes MSAL PublicClientApplication for multiple account mode with configuration from a config json file
+     * Shows how to do this asynchronously, which is useful for UI applications where you don't want to block the main thread.
      */
-    public void initializeSingleAccountMSAL(Context context, final InitializationCallback callback) {
+    public void initializeMultipleAccountMSALAsync(Context context) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    // Create PCA from config file
+                    mMultipleAccountPCA = PublicClientApplication.createMultipleAccountPublicClientApplication(context, CONFIG_FILE);
+                } catch (MsalException e) {
+                    // Handle error during initialization
+                }
+            }
+        }).start();
+    }
+
+    /**
+     * Initializes MSAL PublicClientApplication for single account mode with configuration from a config json file
+     */
+    public void initializeSingleAccountMSAL(Context context) {
         PublicClientApplication.createSingleAccountPublicClientApplication(
             context,
             CONFIG_FILE,
-            new IPublicClientApplication.ApplicationCreatedListener() {
+            new PublicClientApplication.ISingleAccountApplicationCreatedListener() {
                 @Override
-                public void onCreated(IPublicClientApplication application) {
-                    mPCA = application;
-                    callback.onComplete(mPCA, null);
+                public void onCreated(ISingleAccountPublicClientApplication application) {
+                    mSingleAccountPCA = application;
+                    // Do something post initialization, like notifying a callback or calling getCurrentAccount()
                 }
 
                 @Override
                 public void onError(MsalException exception) {
-                    callback.onComplete(null, exception);
+                    // Handle error during initialization
                 }
             }
         );
     }
 
     /**
-     * Callback interface for MSAL initialization
+     * Initializes MSAL PublicClientApplication for single account mode with configuration from a config json file.
+     * Shows how to do this asynchronously, which is useful for UI applications where you don't want to block the main thread.
      */
-    public interface InitializationCallback {
-        void onComplete(IPublicClientApplication application, MsalException exception);
+    public void initializeSingleAccountMSALAsync(Context context) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    // Create PCA from config file
+                    mSingleAccountPCA = PublicClientApplication.createSingleAccountPublicClientApplication(context, CONFIG_FILE);
+                } catch (MsalException e) {
+                    // Handle error during initialization
+                }
+            }
+        }).start();
     }
 }
