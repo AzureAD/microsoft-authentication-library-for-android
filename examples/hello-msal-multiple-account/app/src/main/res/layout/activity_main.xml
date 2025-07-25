@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/accountInfoTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:textSize="16sp"
+        android:background="@drawable/log_background"
+        android:layout_marginBottom="16dp"
+        android:textColor="?attr/colorOnSurface"
+        android:text="No account selected"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <Spinner
+            android:id="@+id/accountSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:enabled="false"/>
+
+        <Button
+            android:id="@+id/signInButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sign In"
+            android:layout_marginBottom="8dp"/>
+
+        <Button
+            android:id="@+id/signOutButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sign Out"
+            android:enabled="false"
+            android:layout_marginBottom="8dp"/>
+
+        <Button
+            android:id="@+id/acquireTokenSilentButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Acquire Token Silently"
+            android:enabled="false"
+            android:layout_marginBottom="8dp"/>
+
+        <Button
+            android:id="@+id/callGraphButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Call Microsoft Graph"
+            android:enabled="false"
+            android:layout_marginBottom="16dp"/>
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:background="@drawable/log_background"
+            android:clipToPadding="false"
+            android:padding="4dp">
+
+            <TextView
+                android:id="@+id/logTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="8dp"
+                android:textSize="14sp"
+                android:textColor="?attr/colorOnSurface"/>
+
+        </ScrollView>
+    </LinearLayout>
+
+</LinearLayout>
