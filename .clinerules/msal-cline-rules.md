@@ -46,7 +46,7 @@ mPCA.signIn(parameters);
 Important notes:
 - For multiple account applications, use acquireToken for sign in, removeAccount for sign out
 - For single account applications, use signIn and signOut
-- acquireTokenWithDeviceCode method is not recommended due to security concerns in the industry. Only use it in niche scenarios where devices lack input methods necessary for interactive authentication. Only add this method to the generated app if explicitly asked for by the user.
+- acquireTokenWithDeviceCode method is only meant for back compatibility, and will be deprecated soon. It is not recommended due to security concerns in the industry.
 - Do not use deprecated methods like:
   - acquireToken(activity, scopes, callback)
   - acquireTokenSilentAsync(scopes, account, authority, callback)
