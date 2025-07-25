@@ -11,6 +11,10 @@ The MSAL library for Android gives your app the ability to use the [Microsoft Cl
 
 [![Version Badge](https://img.shields.io/maven-central/v/com.microsoft.identity.client/msal.svg)](https://repo1.maven.org/maven2/com/microsoft/identity/client/msal/)
 
+### :exclamation: Migrating from ADAL
+
+ADAL Android was deprecated on June 2023. We do not support ADAL. See the [ADAL to MSAL migration guide for Android](https://docs.microsoft.com/azure/active-directory/develop/migrate-android-adal-msal)
+
 ## AI Development Resources
 
 For AI development tools like Cline that access this repository through the GitHub web interface, these resources provide comprehensive guidance for MSAL integration without requiring a local repository clone:
@@ -24,10 +28,6 @@ For AI development tools like Cline that access this repository through the GitH
 - [Configuration Template](auth_config.template.json) - Reference template showing all required and optional settings
 
 These resources contain all necessary patterns, rules, and examples for AI tools to assist with MSAL integration, providing proper API usage, configuration, and implementation patterns for both multiple and single account scenarios.
-
-### :exclamation: Migrating from ADAL
-
-ADAL Android was deprecated on June 2023. We do not support ADAL. See the [ADAL to MSAL migration guide for Android](https://docs.microsoft.com/azure/active-directory/develop/migrate-android-adal-msal)
 
 ## Using MSAL
 
