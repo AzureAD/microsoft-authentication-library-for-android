@@ -25,43 +25,43 @@ import android.app.Activity
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication
 import com.microsoft.identity.client.SignInParameters
 import com.microsoft.identity.client.IAuthenticationResult
-import com.microsoft.identity.client.AuthenticationCallback
 import com.microsoft.identity.client.exception.MsalException
+import com.microsoft.identity.client.AuthenticationCallback
+import com.microsoft.identity.client.Prompt
 import java.util.Collections
 
 /**
- * Demonstrates how to sign in using MSAL's Parameters-based API in SINGLE ACCOUNT MODE.
- * 
- * Use signIn for single account mode. For multiple account mode, use acquireToken.
+ * Demonstrates how to sign in again (reauthenticate existing user) using MSAL's Parameters-based API in SINGLE ACCOUNT MODE.
+ *
+ * This is useful when you want to force a fresh sign-in, ignoring any existing sessions.
+ * Use signInAgain for single account mode. For multiple account mode, use acquireToken with .withPrompt(Prompt.LOGIN) to force authentication.
  */
-class SignInHelper {
+class SignInAgainHelper {
 
-    var mPCA: ISingleAccountPublicClientApplication? = null
+    private lateinit var mPCA: ISingleAccountPublicClientApplication
 
     /**
-     * Signs in the user interactively in single account mode.
+     * Signs in the user again interactively in single account mode.
+     * This will prompt for credentials even if there's an existing session.
      */
-    fun signIn(activity: Activity, scopes: List<String>, callback: SignInCallback) {
+    fun signInAgain(activity: Activity, scopes: List<String>, callback: (IAuthenticationResult?, MsalException?) -> Unit) {
         val parameters = SignInParameters.builder()
-            // .withLoginHint(mUsername) // Can pass user's login hint if available
             .withScopes(scopes)
             .withActivity(activity)
             .withCallback(object : AuthenticationCallback {
                 override fun onCancel() {
                     // Handle cancellation
                 }
-
                 override fun onSuccess(authenticationResult: IAuthenticationResult) {
-                    callback.onComplete(authenticationResult, null)
+                    callback(authenticationResult, null)
                 }
-
                 override fun onError(exception: MsalException) {
-                    callback.onComplete(null, exception)
+                    callback(null, exception)
                 }
             })
             .build()
 
-        mPCA?.signIn(parameters)
+        mPCA.signInAgain(parameters)
     }
 
     /**
@@ -70,24 +70,17 @@ class SignInHelper {
     fun exampleSingleAccountUsage(activity: Activity) {
         mPCA = /* Initialize your ISingleAccountPublicClientApplication instance here */
         val graphScopes = Collections.singletonList("User.Read")
-
-        signIn(activity, graphScopes, object : SignInCallback {
-            override fun onComplete(result: IAuthenticationResult?, exception: MsalException?) {
-                if (result != null) {
+        signInAgain(activity, graphScopes) { result, exception ->
+            when {
+                result != null -> {
                     val accessToken = result.accessToken
                     // Use the access token
-                } else if (exception != null) {
-                    println("Failed to sign in: ${exception.message}")
+                }
+                exception != null -> {
+                    println("Failed to sign in again: ${exception.message}")
                     // Handle the error
                 }
             }
-        })
-    }
-
-    /**
-     * Callback interface for sign in operations
-     */
-    interface SignInCallback {
-        fun onComplete(result: IAuthenticationResult?, exception: MsalException?)
+        }
     }
 }

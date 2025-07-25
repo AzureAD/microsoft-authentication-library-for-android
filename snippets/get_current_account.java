@@ -33,7 +33,7 @@ import com.microsoft.identity.client.exception.MsalException;
  */
 public class GetCurrentAccountHelper {
 
-    ISingleAccountPublicClientApplication mPCA;
+    final ISingleAccountPublicClientApplication mPCA;
 
     /**
      * Gets the current account for single account mode applications.

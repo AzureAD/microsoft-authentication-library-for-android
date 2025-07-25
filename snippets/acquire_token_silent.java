@@ -45,12 +45,13 @@ public class SilentTokenAcquisition {
      * Attempts to acquire a token silently from the cache.
      */
     @WorkerThread
-    public IAuthenticationResult acquireTokenSilent(IAccount account, List<String> scopesList)
+    public IAuthenticationResult acquireTokenSilent(IAccount account, List<String> scopes)
             throws MsalException, InterruptedException {
         // Build parameters using the modern Parameters-based API
         AcquireTokenSilentParameters parameters = new AcquireTokenSilentParameters.Builder()
-            .withScopes(scopesList)
+            .withScopes(scopes)
             .forAccount(account)
+            .fromAuthority(account.getAuthority())
             .build();
 
         // Synchronously acquire token - MUST be called from background thread
@@ -62,13 +63,14 @@ public class SilentTokenAcquisition {
      */
     public void acquireTokenSilentAsync(
             IAccount account,
-            List<String> scopesList,
+            List<String> scopes,
             final TokenCallback callback) {
         // Build parameters using the modern Parameters-based API
         // Notice that it incudes a callback for asynchronous operations
         AcquireTokenSilentParameters parameters = new AcquireTokenSilentParameters.Builder()
-            .withScopes(scopesList)
+            .withScopes(scopes)
             .forAccount(account)
+            .fromAuthority(account.getAuthority())
             .withCallback(new SilentAuthenticationCallback() {
                 @Override
                 public void onSuccess(IAuthenticationResult result) { // Token acquisition successful, handle result

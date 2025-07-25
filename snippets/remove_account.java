@@ -33,7 +33,7 @@ import com.microsoft.identity.client.exception.MsalException;
  */
 public class AccountRemove {
 
-    IMultipleAccountPublicClientApplication mPCA;
+    final IMultipleAccountPublicClientApplication mPCA;
 
     /**
      * Removes the account from MSAL cache in multiple account mode.

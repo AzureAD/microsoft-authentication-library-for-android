@@ -26,22 +26,25 @@ import com.microsoft.identity.client.ISingleAccountPublicClientApplication;
 import com.microsoft.identity.client.SignInParameters;
 import com.microsoft.identity.client.IAuthenticationResult;
 import com.microsoft.identity.client.exception.MsalException;
+import com.microsoft.identity.client.Prompt;
+import java.util.Arrays;
 
 /**
- * Demonstrates how to sign in using MSAL's Parameters-based API in SINGLE ACCOUNT MODE.
- * 
- * Use signIn for single account mode. For multiple account mode, use acquireToken.
+ * Demonstrates how to sign in again (reauthenticate existing user) using MSAL's Parameters-based API in SINGLE ACCOUNT MODE.
+ *
+ * This is useful when you want to force a fresh sign-in, ignoring any existing sessions.
+ * Use signInAgain for single account mode. For multiple account mode, use acquireToken with .withPrompt(Prompt.LOGIN) to force authentication.
  */
-public class SignInHelper {
+public class SignInAgainHelper {
 
-    final ISingleAccountPublicClientApplication mPCA;
+    private ISingleAccountPublicClientApplication mPCA;
 
     /**
-     * Signs in the user interactively in single account mode.
+     * Signs in the user again interactively in single account mode.
+     * This will prompt for credentials even if there's an existing session.
      */
-    public void signIn(final Activity activity, final List<String> scopes, final SignInCallback callback) {
+    public void signInAgain(Activity activity, List<String> scopes, final SignInAgainCallback callback) {
         SignInParameters parameters = SignInParameters.builder()
-            // .withLoginHint(mUsername) // Can pass user's login hint if available
             .withScopes(scopes)
             .withActivity(activity)
             .withCallback(new AuthenticationCallback() {
@@ -57,9 +60,10 @@ public class SignInHelper {
                 public void onError(MsalException exception) {
                     callback.onComplete(null, exception);
                 }
-            }).build();
+            })
+            .build();
 
-        mPCA.signIn(parameters);
+        mPCA.signInAgain(parameters);
     }
 
     /**
@@ -68,15 +72,14 @@ public class SignInHelper {
     public void exampleSingleAccountUsage(Activity activity) {
         mPCA = /* Initialize your ISingleAccountPublicClientApplication instance here */;
         List<String> graphScopes = Collections.singletonList("User.Read");
-
-        signIn(activity, graphScopes, new SignInCallback() {
+        signInAgain(activity, graphScopes, new SignInAgainCallback() {
             @Override
             public void onComplete(IAuthenticationResult result, MsalException exception) {
                 if (result != null) {
                     String accessToken = result.getAccessToken();
                     // Use the access token
                 } else if (exception != null) {
-                    System.out.println("Failed to sign in: " + exception.getMessage());
+                    System.out.println("Failed to sign in again: " + exception.getMessage());
                     // Handle the error
                 }
             }
@@ -84,9 +87,9 @@ public class SignInHelper {
     }
 
     /**
-     * Callback interface for sign in operations
+     * Callback interface for sign in again operations
      */
-    public interface SignInCallback {
+    public interface SignInAgainCallback {
         void onComplete(IAuthenticationResult result, MsalException exception);
     }
 }

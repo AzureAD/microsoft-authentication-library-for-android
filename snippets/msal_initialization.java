@@ -43,10 +43,10 @@ public class MSALInitialization {
         // Create PCA from config file
         PublicClientApplication.createMultipleAccountPublicClientApplication(
             context,
-                CONFIG_FILE,
-            new IPublicClientApplication.ApplicationCreatedListener() {
+            CONFIG_FILE,
+            new IPublicClientApplication.IMultipleAccountApplicationCreatedListener() {
                 @Override
-                public void onCreated(IPublicClientApplication application) {
+                public void onCreated(IMultipleAccountPublicClientApplication application) {
                     mMultipleAccountPCA = application;
                     // Do something post initialization, like notifying a callback or calling getAccounts()
                 }
@@ -84,9 +84,9 @@ public class MSALInitialization {
         PublicClientApplication.createSingleAccountPublicClientApplication(
             context,
             CONFIG_FILE,
-            new IPublicClientApplication.ApplicationCreatedListener() {
+            new PublicClientApplication.ISingleAccountApplicationCreatedListener() {
                 @Override
-                public void onCreated(IPublicClientApplication application) {
+                public void onCreated(ISingleAccountPublicClientApplication application) {
                     mSingleAccountPCA = application;
                     // Do something post initialization, like notifying a callback or calling getCurrentAccount()
                 }

@@ -52,6 +52,7 @@ class SilentTokenAcquisition {
         val parameters = AcquireTokenSilentParameters.Builder()
             .withScopes(scopes)
             .forAccount(account)
+            .fromAuthority(account.getAuthority())
             .build()
 
         // Synchronously acquire token - MUST be called from background thread
@@ -70,6 +71,7 @@ class SilentTokenAcquisition {
         val parameters = AcquireTokenSilentParameters.Builder()
             .withScopes(scopes)
             .forAccount(account)
+            .fromAuthority(account.getAuthority())
             .withCallback(object : SilentAuthenticationCallback {
                 override fun onSuccess(result: IAuthenticationResult) { // token acquisition successful, handle result
                     callback(result, null)

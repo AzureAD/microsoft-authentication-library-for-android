@@ -44,12 +44,13 @@ public class TokenAcquisition {
      */
     public void acquireTokenInteractively(
             Activity activity,
-            List<String> scopesList,
+            List<String> scopes,
             final TokenCallback callback) {
         // Build parameters using the modern Parameters-based API
         AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
-            .withScopes(scopesList)
+            .withScopes(scopes)
             .startAuthorizationFromActivity(activity)
+            // .withPrompt(Prompt.LOGIN) // Use Prompt.LOGIN to force interactive re-authentication
             .withCallback(new AuthenticationCallback() {
                 @Override
                 public void onSuccess(IAuthenticationResult authenticationResult) { // Token acquisition successful, handle result

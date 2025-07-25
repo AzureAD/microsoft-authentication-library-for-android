@@ -43,9 +43,9 @@ public class DeviceCodeFlowTokenAcquisition {
      * Acquires token using Device Code Flow. This should only be used in specific scenarios
      * where the device cannot handle interactive authentication.
      */
-    public void acquireTokenWithDeviceCode(List<String> scopesList, final DeviceCodeCallback callback) {
+    public void acquireTokenWithDeviceCode(List<String> scopes, final DeviceCodeCallback callback) {
         mPCA.acquireTokenWithDeviceCode(
-            scopesList,
+            scopes,
             new IPublicClientApplication.DeviceCodeFlowCallback() {
                 @Override
                 public void onUserCodeReceived(@NonNull String deviceCode,

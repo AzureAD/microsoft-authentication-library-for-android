@@ -47,8 +47,8 @@ class MSALInitialization {
         PublicClientApplication.createMultipleAccountPublicClientApplication(
             context,
             CONFIG_FILE,
-            object : IPublicClientApplication.ApplicationCreatedListener {
-                override fun onCreated(application: IPublicClientApplication) {
+            object : IPublicClientApplication.IMultipleAccountApplicationCreatedListener {
+                override fun onCreated(application: IMultipleAccountPublicClientApplication) {
                     mMultipleAccountPCA = application
                     // Do something post initialization, like notifying a callback or calling getAccounts()
                 }
@@ -82,8 +82,8 @@ class MSALInitialization {
         PublicClientApplication.createSingleAccountPublicClientApplication(
             context,
             CONFIG_FILE,
-            object : IPublicClientApplication.ApplicationCreatedListener {
-                override fun onCreated(application: IPublicClientApplication) {
+            object : IPublicClientApplication.ISingleAccountApplicationCreatedListener {
+                override fun onCreated(application: ISingleAccountPublicClientApplication) {
                     mSingleAccountPCA = application
                     // Do something post initialization, like notifying a callback or calling getCurrentAccount()
                 }

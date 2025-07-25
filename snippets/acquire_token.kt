@@ -49,6 +49,7 @@ class TokenAcquisition {
         val parameters = AcquireTokenParameters.Builder()
             .withScopes(scopes)
             .startAuthorizationFromActivity(activity)
+            // .withPrompt(Prompt.LOGIN) // Use Prompt.LOGIN to force interactive re-authentication
             .withCallback(object : AuthenticationCallback {
                 override fun onSuccess(authenticationResult: IAuthenticationResult) {
                     callback(authenticationResult, null)

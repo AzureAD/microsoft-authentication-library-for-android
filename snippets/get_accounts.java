@@ -34,7 +34,7 @@ import java.util.List;
  */
 public class GetAccountsHelper {
 
-    IMultipleAccountPublicClientApplication mPCA;
+    private IMultipleAccountPublicClientApplication mPCA;
 
     /**
      * Gets all accounts for multiple account mode applications.
