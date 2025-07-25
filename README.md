@@ -116,7 +116,7 @@ It's simplest to create your configuration file as a "raw" resource file in your
 
 ### Step 4: Create an MSAL PublicClientApplication and use MSAL APIs
 
-There are two modes for MSAL applications:
+Android applications communicate with the MSAL library through the PublicSlientApplication class (PCA for short). There are two modes for MSAL applications:
 
 1. **Multiple Account Mode** (Default): Allows multiple accounts to be used within the same application
 2. **Single Account Mode**: Restricts the application to use only one account at a time
@@ -357,7 +357,7 @@ mSingleAccountApp.signOut(new ISingleAccountPublicClientApplication.SignOutCallb
 
 All of the above examples can be found in the `snippets` directory, where we've also included jotlin examples.
 
->**WARNING**: Device Code Flow (`acquireTokenWithDeviceCode`) is discouraged due to security concerns in the industry. Only use this authentication method in specific scenarios where devices lack input capabilities necessary for interactive authentication (e.g., conference room devices without text input). For standard Android applications, always use the interactive `acquireToken()` or `signIn()` APIs demonstrated above.
+>**WARNING**: IMPORTANT: Device Code Flow (`acquireTokenWithDeviceCode`) is not recommended due to security concerns in the industry. We include it to support backwards compatibility. Only use this method in niche scenarios where devices lack input methods necessary for interactive authentication. For standard authentication scenarios, use `acquireToken` (for multiple account mode) or `signIn` (for single account mode).
 
 >**IMPORTANT**: 
 >- Always use Parameters-based APIs instead of deprecated methods
@@ -371,7 +371,7 @@ All of the above examples can be found in the `snippets` directory, where we've 
 1. **Authentication Configuration**:
    - Enable broker integration for enhanced security and SSO capabilities
    - URL encode special characters in `redirect_uri` within auth_config.json
-   - Do NOT URL encode the signature hash in AndroidManifest.xml
+   - Do NOT URL encode the signature hash in AndroidManifest.xml. Refer to `Step 3` in `Using MSAL` section above for direct examples.
 
 2. **Resource Organization**:
    - Use proper resource naming conventions (e.g., `activity_*`, `fragment_*`)
@@ -381,7 +381,7 @@ All of the above examples can be found in the `snippets` directory, where we've 
 
 3. **Error Handling**:
    - Validate PCA initialization before API calls
-   - Handle and log authentication errors appropriately
+   - Handle and communicate authentication errors appropriately
    - Show clear error states to users
    - Use progress indicators for async operations
 
