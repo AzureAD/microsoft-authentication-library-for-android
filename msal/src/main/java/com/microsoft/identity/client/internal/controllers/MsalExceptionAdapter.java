@@ -80,6 +80,7 @@ public class MsalExceptionAdapter {
                     uiRequiredException
             );
             msalUiRequiredException.setUsername(uiRequiredException.getUsername());
+            return msalUiRequiredException;
         }
 
         if (e instanceof IntuneAppProtectionPolicyRequiredException) {
