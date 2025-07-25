@@ -20,6 +20,7 @@
 //   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //   THE SOFTWARE.
+import android.content.Context
 import com.microsoft.identity.client.IPublicClientApplication
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication
 import com.microsoft.identity.client.IMultipleAccountPublicClientApplication
@@ -41,7 +42,7 @@ class MSALInitialization {
     /**
      * Initializes MSAL PublicClientApplication for multiple account mode with configuration from a config json file
      */
-    fun initializeMultipleAccountMSAL(context: Context, callback: (IPublicClientApplication?, MsalException?) -> Unit) {
+    fun initializeMultipleAccountMSAL(context: Context) {
         // Create PCA from config file
         PublicClientApplication.createMultipleAccountPublicClientApplication(
             context,
@@ -49,33 +50,63 @@ class MSALInitialization {
             object : IPublicClientApplication.ApplicationCreatedListener {
                 override fun onCreated(application: IPublicClientApplication) {
                     mMultipleAccountPCA = application
-                    callback(mPCA, null)
+                    // Do something post initialization, like notifying a callback or calling getAccounts()
                 }
 
                 override fun onError(exception: MsalException) {
-                    callback(null, exception)
+                    // Handle error during initialization
                 }
             }
         )
     }
 
     /**
+     * Initializes MSAL PublicClientApplication for multiple account mode with configuration from a config json file
+     * Shows how to do this asynchronously, which is useful for UI applications where you don't want to block the main thread.
+     */
+    fun initializeMultipleAccountMSALAsync(context: Context) {
+        Thread {
+            try {
+                // Create PCA from config file
+                mMultipleAccountPCA = PublicClientApplication.createMultipleAccountPublicClientApplication(context, CONFIG_FILE)
+            } catch (e: MsalException) {
+                // Handle error during initialization
+            }
+        }.start()
+    }
+
+    /**
      * Initializes MSAL PublicClientApplication for single account mode with configuration from a config json file
      */
-    fun initializeSingleAccountMSAL(context: Context, callback: (IPublicClientApplication?, MsalException?) -> Unit) {
+    fun initializeSingleAccountMSAL(context: Context) {
         PublicClientApplication.createSingleAccountPublicClientApplication(
             context,
             CONFIG_FILE,
             object : IPublicClientApplication.ApplicationCreatedListener {
                 override fun onCreated(application: IPublicClientApplication) {
                     mSingleAccountPCA = application
-                    callback(mPCA, null)
+                    // Do something post initialization, like notifying a callback or calling getCurrentAccount()
                 }
 
                 override fun onError(exception: MsalException) {
-                    callback(null, exception)
+                    // Handle error during initialization
                 }
             }
         )
+    }
+
+    /**
+     * Initializes MSAL PublicClientApplication for single account mode with configuration from a config json file.
+     * Shows how to do this asynchronously, which is useful for UI applications where you don't want to block the main thread.
+     */
+    fun initializeSingleAccountMSALAsync(context: Context) {
+        Thread {
+            try {
+                // Create PCA from config file
+                mSingleAccountPCA = PublicClientApplication.createSingleAccountPublicClientApplication(context, CONFIG_FILE)
+            } catch (e: MsalException) {
+                // Handle error during initialization
+            }
+        }.start()
     }
 }

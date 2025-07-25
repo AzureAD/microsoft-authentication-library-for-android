@@ -42,6 +42,7 @@ class SilentTokenAcquisition {
      * 
      * Attempts to acquire a token silently from the cache.
      */
+    @WorkerThread
     @Throws(MsalException::class, InterruptedException::class)
     fun acquireTokenSilent(
         account: IAccount,

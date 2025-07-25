@@ -44,6 +44,7 @@ public class SilentTokenAcquisition {
      * 
      * Attempts to acquire a token silently from the cache.
      */
+    @WorkerThread
     public IAuthenticationResult acquireTokenSilent(IAccount account, List<String> scopesList)
             throws MsalException, InterruptedException {
         // Build parameters using the modern Parameters-based API

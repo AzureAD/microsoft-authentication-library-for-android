@@ -39,7 +39,7 @@ public class MSALInitialization {
     /**
      * Initializes MSAL PublicClientApplication for multiple account mode with configuration from a config json file
      */
-    public void initializeMultipleAccountMSAL(Context context, final InitializationCallback callback) {
+    public void initializeMultipleAccountMSAL(Context context) {
         // Create PCA from config file
         PublicClientApplication.createMultipleAccountPublicClientApplication(
             context,
@@ -48,21 +48,39 @@ public class MSALInitialization {
                 @Override
                 public void onCreated(IPublicClientApplication application) {
                     mMultipleAccountPCA = application;
-                    callback.onComplete(mPCA, null);
+                    // Do something post initialization, like notifying a callback or calling getAccounts()
                 }
 
                 @Override
                 public void onError(MsalException exception) {
-                    callback.onComplete(null, exception);
+                    // Handle error during initialization
                 }
             }
         );
     }
 
     /**
-     * Initializes MSAL PublicClientApplication for single account mode with configuration  from a config json file
+     * Initializes MSAL PublicClientApplication for multiple account mode with configuration from a config json file
+     * Shows how to do this asynchronously, which is useful for UI applications where you don't want to block the main thread.
      */
-    public void initializeSingleAccountMSAL(Context context, final InitializationCallback callback) {
+    public void initializeMultipleAccountMSALAsync(Context context) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    // Create PCA from config file
+                    mMultipleAccountPCA = PublicClientApplication.createMultipleAccountPublicClientApplication(context, CONFIG_FILE);
+                } catch (MsalException e) {
+                    // Handle error during initialization
+                }
+            }
+        }).start();
+    }
+
+    /**
+     * Initializes MSAL PublicClientApplication for single account mode with configuration from a config json file
+     */
+    public void initializeSingleAccountMSAL(Context context) {
         PublicClientApplication.createSingleAccountPublicClientApplication(
             context,
             CONFIG_FILE,
@@ -70,21 +88,32 @@ public class MSALInitialization {
                 @Override
                 public void onCreated(IPublicClientApplication application) {
                     mSingleAccountPCA = application;
-                    callback.onComplete(mPCA, null);
+                    // Do something post initialization, like notifying a callback or calling getCurrentAccount()
                 }
 
                 @Override
                 public void onError(MsalException exception) {
-                    callback.onComplete(null, exception);
+                    // Handle error during initialization
                 }
             }
         );
     }
 
     /**
-     * Callback interface for MSAL initialization
+     * Initializes MSAL PublicClientApplication for single account mode with configuration from a config json file.
+     * Shows how to do this asynchronously, which is useful for UI applications where you don't want to block the main thread.
      */
-    public interface InitializationCallback {
-        void onComplete(IPublicClientApplication application, MsalException exception);
+    public void initializeSingleAccountMSALAsync(Context context) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    // Create PCA from config file
+                    mSingleAccountPCA = PublicClientApplication.createSingleAccountPublicClientApplication(context, CONFIG_FILE);
+                } catch (MsalException e) {
+                    // Handle error during initialization
+                }
+            }
+        }).start();
     }
 }
