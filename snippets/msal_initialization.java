@@ -32,7 +32,6 @@ import com.microsoft.identity.client.exception.MsalException;
  * These objects are used to call MSAL's various APIs in either single or multiple account mode.
  */
 public class MSALInitialization {
-    private static final String CONFIG_FILE = "auth_config.json";
     private IMultipleAccountPublicClientApplication mMultipleAccountPCA;
     private ISingleAccountPublicClientApplication mSingleAccountPCA;
 
