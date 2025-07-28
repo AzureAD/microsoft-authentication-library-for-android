@@ -161,6 +161,7 @@ PublicClientApplication.createMultipleAccountPublicClientApplication(
 AcquireTokenParameters parameters = new AcquireTokenParameters.Builder()
     .withScopes(SCOPES)
     .startAuthorizationFromActivity(activity)
+    // .withPrompt(Prompt.LOGIN) // Use Prompt.LOGIN to force interactive authentication, even if user is signed in
     .withCallback(getAuthInteractiveCallback())
     .build();
 
@@ -295,6 +296,17 @@ SignInParameters parameters = SignInParameters.builder()
     .build();
 
 mSingleAccountApp.signIn(parameters);
+```
+
+```java
+// Sign In Again, reauthenticates the current user
+final SignInParameters signInParameters = SignInParameters.builder()
+                .withActivity(mActivity)
+                .withScopes(Arrays.asList(mScopes))
+                // .withPrompt(Prompt.LOGIN) // Will force an interactive reauth if passed
+                .withCallback(getNoCurrentAccountExpectedCallback(countDownLatch))
+                .build();
+mSingleAccountPCA.signInAgain(signInParameters);
 ```
 
 ```java
