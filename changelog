@@ -2,6 +2,7 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+- [MINOR] Copy username from UiRequiredException to MsalUiRequiredException (#2344)
 
 Version 6.2.0
 ----------
