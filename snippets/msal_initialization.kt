@@ -32,9 +32,6 @@ import com.microsoft.identity.client.exception.MsalException
  * These objects are used to call MSAL's various APIs in either single or multiple account mode.
  */
 class MSALInitialization {
-    companion object {
-        private const val CONFIG_FILE = "auth_config.json"
-    }
 
     private lateinit var mMultipleAccountPCA: IMultipleAccountPublicClientApplication
     private lateinit var mSingleAccountPCA: ISingleAccountPublicClientApplication

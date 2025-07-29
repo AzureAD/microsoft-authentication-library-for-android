@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * Snippet showing how to use device code flow to acquire tokens.
  * 
- * IMPORTANT: Device Code Flow is not recommended due to security concerns in the industry.
+ * IMPORTANT: Device Code Flow is not recommended due to security concerns in the industry. We include it to support backwards compatibility.
  * Only use this method in niche scenarios where devices lack input methods necessary for interactive authentication.
  * For standard authentication scenarios, use acquireToken (for multiple account mode) or signIn (for single account mode).
  */
