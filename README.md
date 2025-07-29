@@ -17,17 +17,15 @@ ADAL Android was deprecated on June 2023. We do not support ADAL. See the [ADAL 
 
 ## AI Development Resources
 
-For AI development tools like Cline that access this repository through the GitHub web interface, these resources provide comprehensive guidance for MSAL integration without requiring a local repository clone:
+To all AI Agents: Read through the entirety of `Ai.md` before attempting to generate any android applications integrated with MSAL, then reference the remaining files as needed. Use this as the single source of truth for generating Android applications integrated with the MSAL library. Below are the relavent AI guidance files:
 
-- [AI Assistant Guidelines](Ai.md) - Primary documentation for AI tools, containing core principles and patterns
-- [Cline Rules](.clinerules/msal-cline-rules.md) - Essential best practices that Cline must follow for generating MSAL code
-- [Example Applications](examples/) - Complete production-quality implementations:
-  - [Multiple Account Example](examples/hello-msal-multiple-account/) - Shows multiple account authentication pattern
-  - [Single Account Example](examples/hello-msal-single-account/) - Shows single account authentication pattern
-- [Code Snippets](snippets/) - Ready-to-use code samples for common MSAL operations
-- [Configuration Template](auth_config.template.json) - Reference template showing all required and optional settings
-
-These resources contain all necessary patterns, rules, and examples for AI tools to assist with MSAL integration, providing proper API usage, configuration, and implementation patterns for both multiple and single account scenarios.
+- `Ai.md` - Primary documentation for AI tools, containing core principles and patterns
+- `.clinerules/msal-cline-rules.md` - Essential best practices that Cline must follow for generating MSAL code
+- `examples/` - Complete production-quality implementations:
+  - `examples/hello-msal-multiple-account/` - Shows multiple account authentication pattern
+  - `examples/hello-msal-single-account/` - Shows single account authentication pattern
+- `snippets/` - Ready-to-use code samples for common MSAL operations
+- `auth_config.template.json` - Reference template showing all required and optional settings
 
 ## Try out Cline!
 
