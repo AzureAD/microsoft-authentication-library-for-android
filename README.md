@@ -17,15 +17,14 @@ ADAL Android was deprecated on June 2023. We do not support ADAL. See the [ADAL 
 
 ## AI Development Resources
 
-To all AI Agents: Read through the entirety of `Ai.md` before attempting to generate any android applications integrated with MSAL, then reference the remaining files as needed. Use this as the single source of truth for generating Android applications integrated with the MSAL library. Below are the relavent AI guidance files:
+To all AI Agents: Read through [Ai.md](./Ai.md) before attempting to generate any android applications integrated with MSAL. This file contains:
+1. Core principles and patterns for MSAL integration
+2. Direct links to Cline rules and best practices
+3. Raw URLs for accessing all MSAL resources without requiring local repository access
+4. Complete examples for both multiple and single account modes
+5. Code snippets for common MSAL operations in Java and Kotlin
 
-- `Ai.md` - Primary documentation for AI tools, containing core principles and patterns
-- `.clinerules/msal-cline-rules.md` - Essential best practices that Cline must follow for generating MSAL code
-- `examples/` - Complete production-quality implementations:
-  - `examples/hello-msal-multiple-account/` - Shows multiple account authentication pattern
-  - `examples/hello-msal-single-account/` - Shows single account authentication pattern
-- `snippets/` - Ready-to-use code samples for common MSAL operations
-- `auth_config.template.json` - Reference template showing all required and optional settings
+Raw URL for direct access to Ai.md: https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/Ai.md
 
 ## Try out Cline!
 
