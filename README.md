@@ -31,7 +31,7 @@ Raw URL for direct access to Ai.md: https://raw.githubusercontent.com/AzureAD/mi
 We've recently made improvements to our repo to empower AI agents to quickly and correctly generate MSAL-integrated android applications. Feel free to try it out! Use the prompt below as reference, tweak it how you like to get different applications generated for your own needs, and feel free to include UI preferences (Colors, Themes, button placement) as you work with the Cline agent. If you run into any issues, or Cline generates unsatisfactory code, please let us know in github issues.
 
 ### Example Prompt:
-Please create a new android application integrated with MSAL named com.example.clinesandboxtest. Place this application in a folder on my desktop. I want this application to have all basic MSAL functionality. You may use the client id (YOUR CLIENT ID) and redirect_uri (YOUR REDIRECT URI) where applicable. Reference the README file in the Android MSAL Repository as the main source of truth, pull the repo if needed and make sure to follow the appropriate AI guidance.
+Please create a new android application integrated with MSAL named com.example.clinesandboxtest. Place this application in a folder on my desktop. I want this application to have all basic MSAL functionality. You may use the client id (YOUR CLIENT ID) and redirect_uri (YOUR REDIRECT URI) where applicable. Reference the Ai.md file (Raw URL https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/Ai.md) in the Android MSAL repository to get started.
 
 ## Using MSAL
 
