@@ -2,16 +2,14 @@
 // Taken from android-complete.
 ext {
     // SDK
-    minSdkVersion = 21
-    brokerProjectMinSdkVersion = 24
-    automationAppMinSDKVersion = 21
-    targetSdkVersion = 33
-    compileSdkVersion = 34
-    buildToolsVersion = "28.0.3"
+    minSdkVersion = 24
+    targetSdkVersion = 35
+    compileSdkVersion = 35
+    buildToolsVersion = "35.0.0"
 
     // Plugins
-    gradleVersion = '8.1.1'
-    kotlinVersion = '1.7.21'
+    gradleVersion = '8.10.0'
+    kotlinVersion = '1.8.0'
     spotBugsGradlePluginVersion = '4.7.1'
     jupiterApiVersion = '5.6.0'
     
@@ -35,20 +33,20 @@ ext {
     junitVersion = "4.13.2"
     legacySupportV4Version = "1.0.0"
     localBroadcastManagerVersion = "1.0.0"
-    lombokVersion = "1.18.22"
+    lombokVersion = "1.18.30"
     materialVersion = "1.0.0"
-    mockitoCoreVersion = "3.6.28"
-    mockitoAndroidVersion = "3.6.28"
+    mockitoCoreVersion = "5.11.0"
+    mockitoAndroidVersion = "5.11.0"
     multidexVersion = "2.0.1"
     nimbusVersion = "9.37.3"
     powerMockVersion = "2.0.9"
     runnerVersion = "1.2.0"
     rulesVersion = "1.2.0"
-    robolectricVersion = "4.11.1"
+    robolectricVersion = "4.14"
     uiAutomatorVersion = "2.2.0"
     daggerVersion = "2.31.2"
     daggerCompilerVersion = "2.31.2"
-    msal4jVersion = "1.10.0"
+    msal4jVersion = "1.20.1"
     moshiVersion = "1.14.0"
     moshiAdaptersVersion = "1.14.0"
     openpojoVersion = "0.9.1"
@@ -77,6 +75,7 @@ ext {
     jcipAnnotationVersion = "1.0-1"
     openTelemetryVersion = "1.18.0"
     jetpackDataStoreVersion = "1.0.0"
+    blockstoreVersion="16.2.0"
     lifecycleKtxVersion="2.5.1"
     AndroidCredentialsVersion="1.2.2"
     LegacyFidoApiVersion="20.1.0"

@@ -27,8 +27,6 @@ apply plugin: 'com.android.application'
 
 apply plugin: 'kotlin-android'
 
-apply plugin: 'kotlin-android-extensions'
-
 def msalVersion = "5.10.0"
 
 if (project.hasProperty("distMsalVersion")) {
@@ -47,14 +45,10 @@ android {
 // which uses Version 8. Host apps that use libraries dependent on version 8
 // must also integrate version 8.
     compileOptions {
-        // Flag to enable support for the new language APIs
-        //coreLibraryDesugaringEnabled true
         // Sets Java compatibility to Java 8
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-
-
     compileSdkVersion rootProject.ext.compileSdkVersion
     defaultConfig {
         multiDexEnabled true
@@ -87,6 +81,9 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
     buildFeatures {
         viewBinding true
         buildConfig true
@@ -111,10 +108,6 @@ android {
 }
 
 dependencies {
-
-// Commented out becuase we haven't supported this in MSAL yet. Having this on could be misleading.
-//  coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
-
     // Compile Dependency
     localImplementation project(':msal')
     distImplementation "com.microsoft.identity.client:msal:${msalVersion}"
