@@ -34,7 +34,6 @@ import android.content.pm.ResolveInfo;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 
-import androidx.annotation.NonNull;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
@@ -44,20 +43,18 @@ import com.microsoft.identity.client.internal.MsalUtils;
 import com.microsoft.identity.common.adal.internal.AuthenticationSettings;
 import com.microsoft.identity.common.java.net.HttpUrlConnectionFactory;
 import com.microsoft.identity.msal.test.R;
-import com.microsoft.identity.nativeauth.INativeAuthPublicClientApplication;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.crypto.SecretKey;
@@ -387,8 +384,8 @@ public final class PublicClientApplicationTest {
         final PackageManager packageManager = context.getPackageManager();
 
         final List<ResolveInfo> resolveInfos = new ArrayList<>();
-        Mockito.when(packageManager.queryIntentActivities(Matchers.any(Intent.class),
-                Matchers.eq(PackageManager.GET_RESOLVED_FILTER))).thenReturn(resolveInfos);
+        Mockito.when(packageManager.queryIntentActivities(ArgumentMatchers.any(Intent.class),
+                ArgumentMatchers.eq(PackageManager.GET_RESOLVED_FILTER))).thenReturn(resolveInfos);
 
         final ResolveInfo mockedResolveInfo1 = Mockito.mock(ResolveInfo.class);
         final ActivityInfo mockedActivityInfo1 = Mockito.mock(ActivityInfo.class);
