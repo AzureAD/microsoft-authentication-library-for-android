@@ -20,14 +20,15 @@ android {
     }
 
     compileOptions {
-        // Flag to enable support for the new language APIs
-        coreLibraryDesugaringEnabled true
         // Sets Java compatibility to Java 8
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
     buildFeatures {
         buildConfig = true
+    }
+    kotlinOptions {
+        jvmTarget = "1.8"
     }
     final String BROKER_HOST = "BrokerHost"
     final String BROKER_MICROSOFT_AUTHENTICATOR = "BrokerMicrosoftAuthenticator"
@@ -57,7 +58,7 @@ android {
         multiDexEnabled true
         namespace = "com.microsoft.identity.client.msal.automationapp"
         applicationId "com.msft.identity.client.sample"
-        minSdkVersion rootProject.ext.automationAppMinSDKVersion
+        minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
@@ -177,8 +178,6 @@ android {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
-
-    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$rootProject.ext.coreLibraryDesugaringVersion"
 
     // Compile Dependency
     localImplementation project(':msal')

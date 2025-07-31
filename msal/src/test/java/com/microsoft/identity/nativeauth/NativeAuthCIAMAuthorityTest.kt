@@ -104,6 +104,8 @@ class NativeAuthCIAMAuthorityTest {
         )
     }
 
+
+
     @Test
     fun testCIAMAuthorityCreateOAuth2StrategyWithDuplicateChallengeTypes() {
         val authority = NativeAuthCIAMAuthority.getAuthorityFromAuthorityUrl(

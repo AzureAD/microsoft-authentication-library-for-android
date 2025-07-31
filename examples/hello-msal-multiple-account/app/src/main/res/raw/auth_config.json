@@ -1,0 +1,15 @@
+{
+    "client_id": "CLIENT_ID",
+    "redirect_uri": "msauth://com.example.msalmultipleaccount/SIGNATURE_HASH",
+    "authorization_user_agent": "DEFAULT",
+    "account_mode": "MULTIPLE",
+    "authorities": [
+        {
+            "type": "AAD",
+            "audience": {
+                "type": "AzureADandPersonalMicrosoftAccount",
+                "tenant_id": "common"
+            }
+        }
+    ]
+}
