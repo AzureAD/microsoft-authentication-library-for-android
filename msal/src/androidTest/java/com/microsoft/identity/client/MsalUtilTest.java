@@ -44,7 +44,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import java.io.UnsupportedEncodingException;
@@ -214,14 +214,14 @@ public final class MsalUtilTest {
         // resolveInfo list is empty
         final PackageManager mockedPackageManager = Mockito.mock(PackageManager.class);
         Mockito.when(mockedContext.getPackageManager()).thenReturn(mockedPackageManager);
-        Mockito.when(mockedPackageManager.queryIntentActivities(Matchers.any(Intent.class),
-                Matchers.eq(PackageManager.GET_RESOLVED_FILTER))).thenReturn(Collections.<ResolveInfo>emptyList());
+        Mockito.when(mockedPackageManager.queryIntentActivities(ArgumentMatchers.any(Intent.class),
+                ArgumentMatchers.eq(PackageManager.GET_RESOLVED_FILTER))).thenReturn(Collections.<ResolveInfo>emptyList());
         Assert.assertFalse(MsalUtils.hasCustomTabRedirectActivity(mockedContext, url));
 
         // resolve info list contains single item, and the activity name is BrowserTabActivity class name.
         final List<ResolveInfo> resolveInfos = new ArrayList<>();
-        Mockito.when(mockedPackageManager.queryIntentActivities(Matchers.any(Intent.class),
-                Matchers.eq(PackageManager.GET_RESOLVED_FILTER))).thenReturn(resolveInfos);
+        Mockito.when(mockedPackageManager.queryIntentActivities(ArgumentMatchers.any(Intent.class),
+                ArgumentMatchers.eq(PackageManager.GET_RESOLVED_FILTER))).thenReturn(resolveInfos);
 
         final ResolveInfo mockedResolveInfo1 = Mockito.mock(ResolveInfo.class);
         final ActivityInfo mockedActivityInfo1 = Mockito.mock(ActivityInfo.class);
@@ -250,14 +250,14 @@ public final class MsalUtilTest {
         final PackageManager mockedPackageManager = Mockito.mock(PackageManager.class);
 
         // if not custom tab service exists
-        Mockito.when(mockedPackageManager.queryIntentServices(Matchers.any(Intent.class),
-                Matchers.eq(0))).thenReturn(null);
+        Mockito.when(mockedPackageManager.queryIntentServices(ArgumentMatchers.any(Intent.class),
+                ArgumentMatchers.eq(0))).thenReturn(null);
         Assert.assertNull(MsalUtils.getChromePackageWithCustomTabSupport(mockedContext));
 
         final List<ResolveInfo> resolvedInfos = new ArrayList<>();
         Mockito.when(mockedContext.getPackageManager()).thenReturn(mockedPackageManager);
-        Mockito.when(mockedPackageManager.queryIntentServices(Matchers.any(Intent.class),
-                Matchers.eq(0))).thenReturn(resolvedInfos);
+        Mockito.when(mockedPackageManager.queryIntentServices(ArgumentMatchers.any(Intent.class),
+                ArgumentMatchers.eq(0))).thenReturn(resolvedInfos);
 
         // If custom tab service exists, but it's not belonging to chrome package
         final ResolveInfo mockedResolveInfo = Mockito.mock(ResolveInfo.class);
@@ -289,16 +289,16 @@ public final class MsalUtilTest {
         // no chrome package exists
         final PackageManager mockedPackageManager = Mockito.mock(PackageManager.class);
         Mockito.when(mockedContext.getPackageManager()).thenReturn(mockedPackageManager);
-        Mockito.when(mockedPackageManager.getPackageInfo(Matchers.refEq(MsalUtils.CHROME_PACKAGE),
-                Matchers.eq(PackageManager.GET_ACTIVITIES))).thenThrow(PackageManager.NameNotFoundException.class);
+        Mockito.when(mockedPackageManager.getPackageInfo(ArgumentMatchers.refEq(MsalUtils.CHROME_PACKAGE),
+                ArgumentMatchers.eq(PackageManager.GET_ACTIVITIES))).thenThrow(PackageManager.NameNotFoundException.class);
 
         Assert.assertNull(MsalUtils.getChromePackage(mockedContext));
 
         //Chrome package exists in the device but is disabled
         final PackageInfo mockedPackageInfo = Mockito.mock(PackageInfo.class);
         final ApplicationInfo mockedApplicationInfo = Mockito.mock(ApplicationInfo.class);
-        Mockito.when(mockedPackageManager.getPackageInfo(Matchers.refEq(MsalUtils.CHROME_PACKAGE),
-                Matchers.eq(PackageManager.GET_ACTIVITIES))).thenReturn(mockedPackageInfo);
+        Mockito.when(mockedPackageManager.getPackageInfo(ArgumentMatchers.refEq(MsalUtils.CHROME_PACKAGE),
+                ArgumentMatchers.eq(PackageManager.GET_ACTIVITIES))).thenReturn(mockedPackageInfo);
 
         mockedPackageInfo.applicationInfo = mockedApplicationInfo;
         mockedApplicationInfo.enabled = false;

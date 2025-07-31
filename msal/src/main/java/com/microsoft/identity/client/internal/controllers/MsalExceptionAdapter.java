@@ -38,6 +38,7 @@ import com.microsoft.identity.common.java.exception.ServiceException;
 import com.microsoft.identity.common.java.exception.UiRequiredException;
 import com.microsoft.identity.common.java.exception.UnsupportedBrokerException;
 import com.microsoft.identity.common.java.exception.UserCancelException;
+import com.microsoft.identity.common.java.util.StringUtil;
 
 public class MsalExceptionAdapter {
 
@@ -79,7 +80,9 @@ public class MsalExceptionAdapter {
                     uiRequiredException.getMessage(),
                     uiRequiredException
             );
-            msalUiRequiredException.setUsername(uiRequiredException.getUsername());
+            if (!StringUtil.isNullOrEmpty(uiRequiredException.getUsername())) {
+                msalUiRequiredException.setUsername(uiRequiredException.getUsername());
+            }
             return msalUiRequiredException;
         }
 
