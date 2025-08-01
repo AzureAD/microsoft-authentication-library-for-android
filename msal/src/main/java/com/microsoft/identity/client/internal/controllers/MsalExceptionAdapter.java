@@ -38,6 +38,7 @@ import com.microsoft.identity.common.java.exception.ServiceException;
 import com.microsoft.identity.common.java.exception.UiRequiredException;
 import com.microsoft.identity.common.java.exception.UnsupportedBrokerException;
 import com.microsoft.identity.common.java.exception.UserCancelException;
+import com.microsoft.identity.common.java.util.StringUtil;
 
 public class MsalExceptionAdapter {
 
@@ -73,11 +74,16 @@ public class MsalExceptionAdapter {
 
         if (e instanceof UiRequiredException) {
             final UiRequiredException uiRequiredException = ((UiRequiredException) e);
-            return new MsalUiRequiredException(
+
+            final MsalUiRequiredException msalUiRequiredException = new MsalUiRequiredException(
                     uiRequiredException.getErrorCode(),
                     uiRequiredException.getMessage(),
                     uiRequiredException
             );
+            if (!StringUtil.isNullOrEmpty(uiRequiredException.getUsername())) {
+                msalUiRequiredException.setUsername(uiRequiredException.getUsername());
+            }
+            return msalUiRequiredException;
         }
 
         if (e instanceof IntuneAppProtectionPolicyRequiredException) {
