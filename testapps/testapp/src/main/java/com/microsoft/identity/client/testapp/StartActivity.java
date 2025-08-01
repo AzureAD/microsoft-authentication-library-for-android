@@ -31,6 +31,8 @@ import android.widget.Button;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 public class StartActivity extends AppCompatActivity {
 
@@ -42,7 +44,15 @@ public class StartActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (view, insets) -> {
+            int topInset = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top;
+            int bottomInset = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
+            int leftInset = insets.getInsets(WindowInsetsCompat.Type.systemBars()).left;
+            int rightInset = insets.getInsets(WindowInsetsCompat.Type.systemBars()).right;
 
+            view.setPadding(leftInset, topInset, rightInset, bottomInset);
+            return insets;
+        });
         mStartTaskButton = findViewById(R.id.btnStartTask);
 
         mStartTaskButton.setOnClickListener(new View.OnClickListener() {
