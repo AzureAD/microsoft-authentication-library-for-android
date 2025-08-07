@@ -31,6 +31,7 @@ import androidx.annotation.WorkerThread;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.microsoft.identity.client.flighting.MsalFlightManager;
 import com.microsoft.identity.client.internal.configuration.LogLevelDeserializer;
 import com.microsoft.identity.common.components.AndroidPlatformComponentsFactory;
 import com.microsoft.identity.common.java.authorities.Authority;
@@ -39,6 +40,7 @@ import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudien
 import com.microsoft.identity.common.internal.authorities.AzureActiveDirectoryAudienceDeserializer;
 import com.microsoft.identity.common.java.cache.MsalOAuth2TokenCache;
 import com.microsoft.identity.common.java.configuration.LibraryConfiguration;
+import com.microsoft.identity.common.java.flighting.CommonFlightsManager;
 import com.microsoft.identity.msal.R;
 import com.microsoft.identity.common.logging.Logger;
 
@@ -98,6 +100,8 @@ public class PublicClientApplicationConfigurationFactory {
         LibraryConfiguration.intializeLibraryConfiguration(libraryConfiguration);
 
         config.setOAuth2TokenCache(MsalOAuth2TokenCache.create(AndroidPlatformComponentsFactory.createFromContext(context)));
+
+        MsalFlightManager.INSTANCE.initializeFlightsManager();
         return config;
     }
 
