@@ -39,7 +39,6 @@ import org.junit.Test
 // [Brokered] When Broker Installed, OneDrive and Office should show phone sign up option, Outlook should not
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/3040042
 @RetryOnFailure
-@Ignore("Flow is currently not working, Outlook is showing phone sign up option")
 class TestCase3040042 : AbstractMsalBrokerTest(){
 
     @Test
