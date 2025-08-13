@@ -51,9 +51,9 @@ import java.util.List;
 // Samsung GA Coverage
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2571345
 @LTWTests
+@RetryOnFailure
 @RunOnAPI29Minus
 @SupportedBrokers(brokers = {BrokerLTW.class})
-@RetryOnFailure
 @RunWith(Parameterized.class)
 public class TestCase2571345 extends AbstractMsalBrokerTest {
 

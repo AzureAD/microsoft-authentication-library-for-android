@@ -51,8 +51,8 @@ import java.util.List;
 // If LTW is the active broker, and request is made through Authenticator from an old MSAL in shared device mode, nothing should break
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2582292
 @LTWTests
-@RetryOnFailure
 @SupportedBrokers(brokers = {BrokerLTW.class})
+@RetryOnFailure
 public class TestCase2582292 extends AbstractMsalBrokerTest {
 
     @Test
