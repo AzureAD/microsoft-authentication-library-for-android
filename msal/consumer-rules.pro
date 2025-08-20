@@ -17,7 +17,6 @@
 #}
 
 ##---------------Begin: proguard configuration for MSAL  --------
--keep class !com.microsoft.identity.common.java.nativeauth.**, !com.microsoft.identity.common.nativeauth.**, !com.microsoft.identity.nativeauth.**, com.microsoft.identity.** { *; }
 -keep class com.microsoft.device.display.** { *; }
 
 ##---------------Begin: proguard configuration for Nimbus  ----------
@@ -46,6 +45,6 @@
 -keep class * implements com.google.gson.JsonDeserializer
 
 # Prevent R8 from leaving Data object members always null
--keepclassmembers,allowobfuscation class * {
+-keepclassmembers class * {
   @com.google.gson.annotations.SerializedName <fields>;
 }
