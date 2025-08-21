@@ -22,6 +22,7 @@
 //  THE SOFTWARE.
 package com.microsoft.identity.client;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -34,15 +35,12 @@ import android.os.Build;
 import android.os.Bundle;
 import android.widget.Toast;
 
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
 import com.microsoft.identity.common.internal.providers.oauth2.CurrentTaskBrowserAuthorizationFragment;
 import com.microsoft.identity.common.internal.util.StringUtil;
 import com.microsoft.identity.common.logging.Logger;
 
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.AuthorizationIntentAction.DESTROY_REDIRECT_RECEIVING_ACTIVITY_ACTION;
 import static com.microsoft.identity.common.adal.internal.AuthenticationConstants.AuthorizationIntentAction.REDIRECT_RETURNED_ACTION;
-
 
 /**
  * MSAL activity class (needs to be public in order to be discoverable by the os) to get the browser redirect with auth code from authorize
@@ -58,7 +56,7 @@ import static com.microsoft.identity.common.adal.internal.AuthenticationConstant
  * &lt;intent-filter&gt;
  *     &lt;action android:name="android.intent.action.VIEW" /&gt;
  *
- *     To receive implicit intents, have to put the activity in the category of default.
+ *     To receive implicit intents, have to put the category of default.
  *     &lt;category android:name="android.intent.category.DEFAULT" /&gt;
  *
  *     The target activity allows itself to be started by a web browser to display data.
@@ -73,8 +71,6 @@ public final class CurrentTaskBrowserTabActivity extends Activity {
     private static final String TAG = CurrentTaskBrowserTabActivity.class.getSimpleName();
     private static final int REDIRECT_RECEIVED_CODE = 2;
     private BroadcastReceiver mCloseBroadcastReceiver;
-    //private int mTaskIdResponseFor;
-
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -98,6 +94,7 @@ public final class CurrentTaskBrowserTabActivity extends Activity {
         }
     }
 
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -105,16 +102,15 @@ public final class CurrentTaskBrowserTabActivity extends Activity {
         final String methodTag = TAG + ":onActivityResult";
 
         if (resultCode == RESULT_CANCELED) {
-            // We weren't able to open CurrentTaskAuthorizationActivity from the back stack. Send a broadcast
-            // instead.
+            // Send broadcast to notify authorization activity
             Intent broadcast = new Intent(REDIRECT_RETURNED_ACTION);
-            LocalBroadcastManager.getInstance(this).sendBroadcast(broadcast);
+            broadcast.setPackage(getPackageName()); // Restrict to our app only
+            sendBroadcast(broadcast);
 
             // Wait for the custom tab to be removed from the back stack before finishing.
             mCloseBroadcastReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
-
                     boolean hasNullTaskAffinity = false;
                     final PackageManager packageManager = CurrentTaskBrowserTabActivity.this.getApplicationContext().getPackageManager();
                     try {
@@ -135,17 +131,23 @@ public final class CurrentTaskBrowserTabActivity extends Activity {
                     }
                 }
             };
-            LocalBroadcastManager.getInstance(this).registerReceiver(
-                    mCloseBroadcastReceiver,
-                    new IntentFilter(DESTROY_REDIRECT_RECEIVING_ACTIVITY_ACTION)
-            );
+
+            IntentFilter filter = new IntentFilter(DESTROY_REDIRECT_RECEIVING_ACTIVITY_ACTION);
+            // Use backward-compatible receiver registration
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                // Use RECEIVER_NOT_EXPORTED for Android 13+ to prevent external apps from sending broadcasts
+                registerReceiver(mCloseBroadcastReceiver, filter, Context.RECEIVER_NOT_EXPORTED); // 0x4 = RECEIVER_NOT_EXPORTED
+            } else {
+                registerReceiver(mCloseBroadcastReceiver, filter);
+            }
         }
     }
 
     @Override
     protected void onDestroy() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mCloseBroadcastReceiver);
+        if (mCloseBroadcastReceiver != null) {
+            unregisterReceiver(mCloseBroadcastReceiver);
+        }
         super.onDestroy();
     }
-
 }
