@@ -67,6 +67,7 @@ ext {
     yubikitPivVersion = "2.5.0"
     powerliftAndroidVersion="1.0.3"
     kotlinXCoroutinesVersion = "1.6.4"
+    kotlinxSerializationVersion = "1.6.3"
     mockkVersion = "1.11.0"
     mockitoKotlinVersion = "4.1.0"
     androidxAnnotationVersion = "1.4.0"
