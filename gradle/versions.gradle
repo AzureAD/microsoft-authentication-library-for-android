@@ -9,7 +9,7 @@ ext {
 
     // Plugins
     gradleVersion = '8.10.0'
-    kotlinVersion = '1.8.0'
+    kotlinVersion = '1.9.25'
     spotBugsGradlePluginVersion = '4.7.1'
     jupiterApiVersion = '5.6.0'
     
@@ -68,6 +68,7 @@ ext {
     yubikitPivVersion = "2.5.0"
     powerliftAndroidVersion="1.0.3"
     kotlinXCoroutinesVersion = "1.6.4"
+    kotlinxSerializationVersion = "1.6.3"
     mockkVersion = "1.11.0"
     mockitoKotlinVersion = "4.1.0"
     androidxAnnotationVersion = "1.4.0"
