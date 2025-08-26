@@ -2,6 +2,15 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+- [PATCH] Add null checks for guest account ids (#2361)
+
+Version 7.0.1
+----------
+- [PATCH] Update common @22.0.1
+
+Version 7.0.0
+----------
+- [PATCH] Update common @22.0.0
 - [MINOR] Copy username from UiRequiredException to MsalUiRequiredException (#2344)
 - [MAJOR] Bump TargetSdk to 35, minSdk to 24, AGP to 8.10.0 (#3164)
 - [MINOR] Update Nimbus version (#2346)
