@@ -148,8 +148,13 @@ public final class CurrentTaskBrowserTabActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        final String methodTag = TAG + ":onDestroy";
         if (mCloseBroadcastReceiver != null) {
-            unregisterReceiver(mCloseBroadcastReceiver);
+            try {
+                unregisterReceiver(mCloseBroadcastReceiver);
+            } catch (final Exception e) {
+                Logger.error(methodTag, "Failed to unregister receiver: " + e.getMessage(), e);
+            }
         }
         super.onDestroy();
     }
