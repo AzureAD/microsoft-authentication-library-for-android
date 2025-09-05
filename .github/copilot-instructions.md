@@ -159,7 +159,7 @@ Before generating any MSAL API call, verify:
 - ✅ Broker integration enabled (unless explicitly disabled)
 - ✅ Scopes properly defined
 
-### Configuration Validation
+### Application Setup and Configuration Validation Checklist
 
 - **Raw URL Access Test:** Can you fetch `auth_config.template.json` from the raw URL?
 - **Snippet Verification:** Is the API pattern copied from the snippets directory?
