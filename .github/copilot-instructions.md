@@ -20,19 +20,23 @@
 
 ---
 
-## Authoritative Resources
+## Authoritative Resources (Direct Access URLs)
 
-- **Integration Guide:** [`Ai.md`](./Ai.md) — canonical requirements, sample locations, dependency setup, manifest rules, and important notes.
-- **Cline Rules:** [`./.clinerules/msal-cline-rules.md`](./.clinerules/msal-cline-rules.md) — enforceable rules for project structure, APIs, configuration, and UI.
-- **Snippets Directory:** [`./snippets/`](./snippets/) — reviewed code samples for all MSAL API calls in Java & Kotlin (always reference these first).
+- **Integration Guide:** [`Ai.md`](../Ai.md)  
+  - Raw URL: https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/Ai.md
+- **Cline Rules:** [`../.clinerules/msal-cline-rules.md`](../.clinerules/msal-cline-rules.md)  
+  - Raw URL: https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/.clinerules/msal-cline-rules.md
+- **Snippets Directory:** [`../snippets/`](../snippets/)  
+- **Configuration Template:** [`../auth_config.template.json`](../auth_config.template.json)  
+  - Raw URL: https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/auth_config.template.json
 
 ---
 
 ## Golden Sample Apps
 
 **Use these as blueprints for every generated project. Only deviate for explicit user customization.**
-- **Multiple Account Mode (default):** [`./examples/hello-msal-multiple-account/`](./examples/hello-msal-multiple-account/)
-- **Single Account Mode:** [`./examples/hello-msal-single-account/`](./examples/hello-msal-single-account/)
+- **Multiple Account Mode (default):** [`../examples/hello-msal-multiple-account/`](../examples/hello-msal-multiple-account/)
+- **Single Account Mode:** [`../examples/hello-msal-single-account/`](../examples/hello-msal-single-account/)
 
 **Copy all Gradle, manifest, and core source files from these locations.**  
 Only change `applicationId`, `namespace`, and other user-supplied values as required.
@@ -41,7 +45,7 @@ Only change `applicationId`, `namespace`, and other user-supplied values as requ
 
 ## Configuration and Required Files
 
-- **Configuration Template:** [`auth_config.template.json`](./auth_config.template.json)  
+- **Configuration Template:** [`auth_config.template.json`](../auth_config.template.json)  
   Use this for all MSAL config generation.  
   [Raw URL](https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/auth_config.template.json)
 - **auth_config.json:**  
@@ -71,7 +75,7 @@ Only change `applicationId`, `namespace`, and other user-supplied values as requ
     android.enableJetifier=true
     ```
 - **App-level `build.gradle`** (see golden examples for the full file):
-    - Use at least `minSdk 24`, `targetSdk 33`, `compileSdk 34`
+    - Use at least `minSdk 24`, `targetSdk 35`, `compileSdk 35`
     - Always use the latest MSAL version (`7.+` or newer)
     - Required dependencies:
       ```gradle
@@ -86,7 +90,7 @@ Only change `applicationId`, `namespace`, and other user-supplied values as requ
 
 ## API Patterns and Snippets
 
-**For all MSAL API usage, always prefer code from [`./snippets/`](./snippets/).**  
+**For all MSAL API usage, always prefer code from [`../snippets/`](../snippets/).**  
 This directory contains up-to-date, reviewed examples in both Java and Kotlin for:
 - Initialization
 - Token acquisition (interactive and silent)
@@ -137,6 +141,36 @@ Device Code Flow is not recommended except for niche scenarios.
 
 ---
 
+## Error Prevention and Validation
+
+### Critical Encoding Rules
+
+| Context                | Signature Hash Encoding      | Example                                   |
+|------------------------|-----------------------------|-------------------------------------------|
+| AndroidManifest.xml    | **NOT URL encoded**         | `/ABcDeFgJQiLoiEmd-vn14qR*okk=`           |
+| auth_config.json       | **URL encoded**             | `ABcDeFgJQiLoiEmd-vn14qR%2Aokk%3D`        |
+
+### API Method Validation Checklist
+
+Before generating any MSAL API call, verify:
+- ✅ Using parameters-based APIs (not deprecated methods)
+- ✅ Proper callback handling
+- ✅ Account mode consistency (single vs multiple)
+- ✅ Broker integration enabled (unless explicitly disabled)
+- ✅ Scopes properly defined
+
+### Configuration Validation
+
+- **Raw URL Access Test:** Can you fetch `auth_config.template.json` from the raw URL?
+- **Snippet Verification:** Is the API pattern copied from the snippets directory?
+- **Encoding Check:** Are signature hashes properly encoded per context?
+- **Dependency Check:** Is MSAL 7.+ being used?
+- **AndroidX Check:** Are AndroidX properties enabled in `gradle.properties`?
+- **UI Logic Check:** Does the UI logic match the selected account mode?
+- **UI element Check:** Are all used UI elements existing and correctly configured?
+
+---
+
 ## Error Handling and Security
 
 - Show clear error states in UI
@@ -157,8 +191,26 @@ Device Code Flow is not recommended except for niche scenarios.
 
 ## Advanced/Unusual Scenarios
 
-- For edge cases, see both [`Ai.md`](./Ai.md) and [`./.clinerules/msal-cline-rules.md`](./.clinerules/msal-cline-rules.md)
+- For edge cases, see both [`Ai.md`](../Ai.md) and [`../.clinerules/msal-cline-rules.md`](../.clinerules/msal-cline-rules.md)
 - Always check the snippets directory and golden sample apps first
+
+---
+
+## Quick Reference Card
+
+### Must-Use URLs
+
+- Template Config: https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/auth_config.template.json
+- Multiple Account Example: https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/examples/hello-msal-multiple-account/
+- Single Account Example: https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/examples/hello-msal-single-account/
+
+### Critical Constants
+
+- Min SDK: 24
+- Target SDK: 35
+- Compile SDK: 35
+- MSAL Version: 7.+
+- AndroidX Required: true
 
 ---
 
