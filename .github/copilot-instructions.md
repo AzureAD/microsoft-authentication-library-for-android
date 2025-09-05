@@ -13,6 +13,8 @@
   For MSAL setup, configuration, and authentication flows, only use names and patterns found in the golden examples or snippets.  
   **However, for custom UI elements, adapting to the user's prompt, and general UX (color schemes, themes, custom layouts, etc.), Copilot is encouraged to be creative** so long as the MSAL calling structure, configuration, and authentication handling follow the best practices and requirements outlined in this document and demonstrated in the golden sample apps.
 - **When generating configuration, use [`auth_config.template.json`](./auth_config.template.json) as your only source of default values and an explanation of the configuration options.**
+- **If the user has not supplied a package name, client ID, and signature hash/redirect uri, explicitly prompt for these values before generating or completing an MSAL-enabled sample application.**  
+  These are required for correct configuration and must be present in both the manifest (package name, signature hash) and `auth_config.json` (client ID, redirect URI with URL-encoded signature hash).
 - **When in doubt, prefer multiple account mode unless the user says otherwise.**
 - **If Copilot is generating a sample application, it must check all relevant checklists for completion, especially the "Application Setup and Configuration Validation Checklist".**
 - **If the user request conflicts with these instructions, follow the user’s explicit instructions, but add a comment warning about deviation.**
