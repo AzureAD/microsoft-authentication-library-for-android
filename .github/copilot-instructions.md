@@ -40,8 +40,8 @@
 **Extended Rules:** [`Ai.md`](../Ai.md) - [Raw URL](https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/Ai.md) | [`.clinerules/msal-cline-rules.md`](../.clinerules/msal-cline-rules.md) - [Raw URL](https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/.clinerules/msal-cline-rules.md)
 
 **Direct URLs for AI Agents:**
-- Multiple Account Example: https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/examples/hello-msal-multiple-account/
-- Single Account Example: https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/examples/hello-msal-single-account/
+- Multiple Account Example: https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/dev/examples/hello-msal-multiple-account
+- Single Account Example: https://github.com/AzureAD/microsoft-authentication-library-for-android/tree/dev/examples/hello-msal-single-account
 
 ## 3. API Patterns & Validation
 
