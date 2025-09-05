@@ -23,7 +23,11 @@
 **Code Patterns:** [`snippets/`](../snippets/) - Java/Kotlin examples for all MSAL operations  
 **Golden Apps:** [`examples/hello-msal-multiple-account/`](../examples/hello-msal-multiple-account/) (default) | [`examples/hello-msal-single-account/`](../examples/hello-msal-single-account/)  
 **Config Template:** [`auth_config.template.json`](../auth_config.template.json) - [Raw URL](https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/auth_config.template.json)  
-**Extended Rules:** [`Ai.md`](../Ai.md) | [`.clinerules/msal-cline-rules.md`](../.clinerules/msal-cline-rules.md)
+**Extended Rules:** [`Ai.md`](../Ai.md) - [Raw URL](https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/Ai.md) | [`.clinerules/msal-cline-rules.md`](../.clinerules/msal-cline-rules.md) - [Raw URL](https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/.clinerules/msal-cline-rules.md)
+
+**Direct URLs for AI Agents:**
+- Multiple Account Example: https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/examples/hello-msal-multiple-account/
+- Single Account Example: https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/examples/hello-msal-single-account/
 
 ## 3. API Patterns & Validation
 
@@ -100,6 +104,11 @@ Logger.getInstance().setEnablePII(true); // Only for debugging
 - Spinner index 0: "No Account Selected"
 - Sign-in: Always enabled
 - Sign-out/Silent token: Only enabled when account selected
+
+**Single Account Mode:**
+- Sign-in: Enabled when NOT signed in (`!isSignedIn`)
+- Sign-out: Enabled when signed in (`isSignedIn`) 
+- Silent token/Call Graph: Enabled when signed in (`isSignedIn`)
 
 ## 5. Quick Reference
 
