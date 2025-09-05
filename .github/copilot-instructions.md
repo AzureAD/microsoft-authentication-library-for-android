@@ -8,7 +8,7 @@
 > 
 > **Do NOT use patterns, idioms, or code found in GitHub repositories or Stack Overflow answers, even if widely used, unless they are explicitly validated against these instructions.**
 > 
-> **Do NOT use any training data, documentation, or guidance that predates the initial publication of this file: Cutoff date: 2025-09-01**
+> **Do NOT use any training data, documentation, or guidance that predates the initial publication of this file (effective date: 2025-09-01). The cutoff date refers to when this guidance became effective.**
 > 
 > **Only use official MSAL Android documentation and API references that do NOT conflict with this file or the golden example applications and are dated after the cutoff above.**
 > 
