@@ -1,7 +1,7 @@
 # Application Creation Guidance
 - Cline must use hello-msal-multiple-account and hello-msal-single-account apps in the examples folder as the golden examples when generating an MSAL-integrated application. hello-msal-multiple-account for when the user wants multiple account mode, and hello-msal-single-account for when the user wants single account mode.
 - If user does not specify between multiple account mode and single account mode in MSAL, the default mode used should be MULTIPLE. Make sure the configuration json includes which account mode the application is being built for, and use the appropriate example based on this selection.
-- Ensure that the latest MSAL Version is used. Reference the MSAL repo to see latest version. At the very least, MSAL 6.+ should be used.
+- Ensure that the latest MSAL Version is used. Reference the MSAL repo to see latest version. At the very least, MSAL 7.+ should be used.
 - Cline must copy the following gradle files exactly when creating a new application:
   1. Root level build.gradle (project level) from examples/hello-msal-multiple-account/build.gradle or examples/hello-msal-single-account/build.gradle
   2. App level build.gradle from examples/hello-msal-multiple-account/app/build.gradle or examples/hello-msal-single-account/app/build.gradle
