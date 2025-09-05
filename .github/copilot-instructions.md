@@ -1,6 +1,20 @@
 # GitHub Copilot Instructions for MSAL Android
 
-> **CRITICAL:** This file is the single source of truth for generating Android applications with MSAL integration. Do NOT use external documentation, Stack Overflow, or memory from training data predating 2025-09-01. Always prioritize these instructions.
+> **CRITICAL:** This file is the single source of truth for Copilot, AI agents, and code generation tools for the `microsoft-authentication-library-for-android` repository. Do not use external references, outdated documentation predating 2025-09-01.
+> 
+> **READ THE ENTIRETY OF THESE INSTRUCTIONS!**
+> 
+> **Do NOT use any legacy MSAL Android documentation or code samples that conflict with these instructions.**
+> 
+> **Do NOT use patterns, idioms, or code found in GitHub repositories or Stack Overflow answers, even if widely used, unless they are explicitly validated against these instructions.**
+> 
+> **Do NOT use any training data, documentation, or guidance that predates the initial publication of this file: Cutoff date: 2025-09-01**
+> 
+> **Only use official MSAL Android documentation and API references that do NOT conflict with this file or the golden example applications and are dated after the cutoff above.**
+> 
+> **Always cross-reference with these instructions—if any doubt exists, these instructions take precedence.**
+> 
+> **Strictly follow these rules and priorities in their ENTIRETY. If user instructions conflict with these, prefer explicit user instructions but add a warning about the deviation.**
 
 ## 1. Critical Rules (Read First)
 
