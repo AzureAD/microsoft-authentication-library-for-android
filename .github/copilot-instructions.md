@@ -11,7 +11,7 @@
 - **Never generate code using deprecated MSAL methods.** Only use parameters-based APIs.
 - **Do not invent file names, resources, or config keys for the MSAL integration portion of the application.**  
   For MSAL setup, configuration, and authentication flows, only use names and patterns found in the golden examples or snippets.  
-  **However, for custom UI elements, adapting to the user's prompt, and general UX (color schemes, themes, custom layouts, etc.), Copilot is encouraged to be creative** so long as the MSAL calling structure, configuration, and authentication handling follow the best practices and requirements outlined in this document and demonstrated in the golden sample apps.
+  **However, for custom UI elements, adapting to the user's prompt, and general UX (color schemes, themes, custom layouts, etc.), Copilot is encouraged to be creative** so long as the MSAL calling patterns strictly follow golden samples and current guidance.
 - **When generating configuration, use [`auth_config.template.json`](./auth_config.template.json) as your only source of default values and an explanation of the configuration options.**
 - **If the user has not supplied a package name, client ID, and signature hash/redirect uri, explicitly prompt for these values before generating or completing an MSAL-enabled sample application.**  
   These are required for correct configuration and must be present in both the manifest (package name, signature hash) and `auth_config.json` (client ID, redirect URI with URL-encoded signature hash).
@@ -22,6 +22,12 @@
   - Example: Signature hash in AndroidManifest.xml must NOT be URL encoded, but in auth_config.json it MUST be URL encoded.
 - **Never enable Device Code Flow except for rare, explicit scenarios.**
 - **Repeat: Always copy code and patterns from [`snippets/`](./snippets/) and [`examples/`](./examples/), not from memory or external sources.**
+- **Do NOT use any legacy MSAL Android documentation or code samples that conflict with these instructions.**
+- **Do NOT use patterns, idioms, or code found in GitHub repositories or Stack Overflow answers, even if widely used, unless they are explicitly validated against these instructions.**
+- **Do NOT use any training data, documentation, or guidance that predates the initial publication of this file:**
+  **Cutoff date: 2025-08-01**
+- **Only use official MSAL Android documentation, and API references that do NOT conflict with this file or the golden example applications and are dated after the cutoff above.**
+- **Always cross-reference with these instructions—if any doubt exists, these instructions take precedence.**
 
 ---
 
@@ -103,8 +109,25 @@ This directory contains up-to-date, reviewed examples in both Java and Kotlin fo
 - All other supported MSAL flows
 
 **Never use deprecated API methods.**  
-Use parameters-based APIs exclusively.  
+**Use parameters-based APIs exclusively.**  
 Device Code Flow is not recommended except for niche scenarios.
+
+**Explicitly forbidden:**
+- Do NOT use `acquireToken(Activity, String[], AuthenticationCallback)` or any other non-parameters-based overloads, even if found in legacy docs, Stack Overflow, or GitHub repositories.
+---
+
+## Multiple Account vs. Single Account Mode
+
+- **For multiple account mode:**
+  - Only use `IMultipleAccountPublicClientApplication` and its associated methods:
+    - `.acquireToken(AcquireTokenParameters)`
+    - `.acquireTokenSilentAsync(SilentTokenParameters)`
+    - `.getAccounts(LoadAccountsCallback)`
+    - `.removeAccount(IAccount, RemoveAccountCallback)`
+  - Never reference or use `ISingleAccountPublicClientApplication` or `.getCurrentAccount()` in multiple account samples.
+- **For single account mode:**
+  - Use only `ISingleAccountPublicClientApplication` and its methods as documented in official guidance.
+- **NEVER mix single and multiple account APIs.** Always clearly indicate the app mode in code comments and documentation.
 
 ---
 
