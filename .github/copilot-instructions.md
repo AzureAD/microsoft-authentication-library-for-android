@@ -9,9 +9,12 @@
 
 - **Always use code from [`snippets/`](./snippets/).** If you do not find an exact match, use the most similar snippet and adapt.
 - **Never generate code using deprecated MSAL methods.** Only use parameters-based APIs.
-- **Do not invent file names, resources, or config keys.** Use only those found in the golden examples or snippets.
-- **When generating configuration, use [`auth_config.template.json`](./auth_config.template.json) as your only source of default values.**
+- **Do not invent file names, resources, or config keys for the MSAL integration portion of the application.**  
+  For MSAL setup, configuration, and authentication flows, only use names and patterns found in the golden examples or snippets.  
+  **However, for custom UI elements, adapting to the user's prompt, and general UX (color schemes, themes, custom layouts, etc.), Copilot is encouraged to be creative** so long as the MSAL calling structure, configuration, and authentication handling follow the best practices and requirements outlined in this document and demonstrated in the golden sample apps.
+- **When generating configuration, use [`auth_config.template.json`](./auth_config.template.json) as your only source of default values and an explanation of the configuration options.**
 - **When in doubt, prefer multiple account mode unless the user says otherwise.**
+- **If Copilot is generating a sample application, it must check all relevant checklists for completion, especially the "Application Setup and Configuration Validation Checklist".**
 - **If the user request conflicts with these instructions, follow the user’s explicit instructions, but add a comment warning about deviation.**
 - **Strictly resolve all ambiguities according to these instructions.**  
   - Example: Signature hash in AndroidManifest.xml must NOT be URL encoded, but in auth_config.json it MUST be URL encoded.
