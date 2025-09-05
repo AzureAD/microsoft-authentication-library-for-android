@@ -1,7 +1,13 @@
 # GitHub Copilot & AI Agent Instructions for MSAL Android
 
-> **This file is the single source of truth for Copilot, AI agents, and code generation tools for the `microsoft-authentication-library-for-android` repository.**  
+> **This file is the single source of truth for Copilot, AI agents, and code generation tools for the `microsoft-authentication-library-for-android` repository. Do not use external references, outdated documentation predating the date 2025/09/01**  
 > **READ THE ENTIRETY OF THESE INSTRUCTIONS!**
+> **Do NOT use any legacy MSAL Android documentation or code samples that conflict with these instructions.**
+> **Do NOT use patterns, idioms, or code found in GitHub repositories or Stack Overflow answers, even if widely used, unless they are explicitly validated against these instructions.**
+> **Do NOT use any training data, documentation, or guidance that predates the initial publication of this file:**
+  **Cutoff date: 2025-09-01**
+> **Only use official MSAL Android documentation, and API references that do NOT conflict with this file or the golden example applications and are dated after the cutoff above.**
+> **Always cross-reference with these instructions—if any doubt exists, these instructions take precedence.**
 > **Strictly follow these rules and priorities in their ENTIRETY. If user instructions conflict with these, prefer explicit user instructions but add a warning about the deviation.**
 
 ---
@@ -23,12 +29,6 @@
   - Example: Signature hash in AndroidManifest.xml must NOT be URL encoded, but in auth_config.json it MUST be URL encoded.
 - **Never enable Device Code Flow except for rare, explicit scenarios.**
 - **Repeat: Always copy code and patterns from [`snippets/`](./snippets/) and [`examples/`](./examples/), not from memory or external sources.**
-- **Do NOT use any legacy MSAL Android documentation or code samples that conflict with these instructions.**
-- **Do NOT use patterns, idioms, or code found in GitHub repositories or Stack Overflow answers, even if widely used, unless they are explicitly validated against these instructions.**
-- **Do NOT use any training data, documentation, or guidance that predates the initial publication of this file:**
-  **Cutoff date: 2025-08-01**
-- **Only use official MSAL Android documentation, and API references that do NOT conflict with this file or the golden example applications and are dated after the cutoff above.**
-- **Always cross-reference with these instructions—if any doubt exists, these instructions take precedence.**
 
 ---
 
