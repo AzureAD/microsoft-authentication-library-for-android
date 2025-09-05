@@ -12,6 +12,24 @@
 
 ---
 
+## Quick Start for AI Agents
+
+**Essential First Steps:**
+1. **Read [`Ai.md`](../Ai.md)** - Core MSAL integration patterns
+2. **Use [`snippets/`](../snippets/)** - Copy exact code patterns from here
+3. **Copy from [`examples/`](../examples/)** - Use golden sample apps as blueprints
+4. **Validate changes**: Run `./gradlew clean msal:assembleLocal msal:testLocalDebugUnitTest msal:lintLocalDebug`
+5. **Check encoding**: Signature hash NOT URL encoded in manifest, URL encoded in config
+
+**Immediate Requirements:**
+- minSdk=24, targetSdk=35, compileSdk=35
+- MSAL version 7.+ or newer
+- AndroidX enabled in gradle.properties
+- Required permissions: INTERNET, ACCESS_NETWORK_STATE
+- Use parameters-based MSAL APIs only (never deprecated methods)
+
+---
+
 ## Copilot and AI Agent Directives
 
 - **Always use code from [`snippets/`](./snippets/).** If you do not find an exact match, use the most similar snippet and adapt.
@@ -265,6 +283,123 @@ Before generating any MSAL API call, verify:
 - **Pitfall:**  
   - Never copy code from memory or external blogs; always pull from approved snippets and samples.
   - Don’t forget URL encoding rules for manifest/config signature hash.
+
+---
+
+## Build, Test, and Quality Validation
+
+**Run these commands to validate changes and prevent CI failures:**
+
+### Essential Validation Commands
+```bash
+# Clean and build the project (uses 'local' flavor for development)
+./gradlew clean msal:assembleLocal
+
+# Run unit tests (same as CI) 
+./gradlew msal:testLocalDebugUnitTest
+
+# Run lint checks (same as CI)
+./gradlew msal:lintLocalDebug
+
+# Run all checks together (recommended before PR)
+./gradlew clean msal:assembleLocal msal:testLocalDebugUnitTest msal:lintLocalDebug
+```
+
+### Build Flavors
+MSAL uses specific product flavors:
+- **local**: For development (sources from mavenLocal)
+- **snapshot**: For snapshot builds  
+- **dist**: For distribution (sources from central repository)
+
+**Always use 'local' flavor during development** (assembleLocal, testLocalDebugUnitTest, lintLocalDebug)
+
+### Code Quality Requirements
+- **Checkstyle**: Code must pass checkstyle validation (config in `config/checkstyle/checkstyle.xml`)
+- **SpotBugs**: No security vulnerabilities or bugs allowed
+- **Lint**: Android lint must pass without errors
+- **Tests**: All existing unit tests must continue to pass
+
+### Pre-Submission Checklist
+
+Before submitting any PR, agents must verify:
+- ✅ `./gradlew clean msal:assembleLocal` completes successfully
+- ✅ `./gradlew msal:testLocalDebugUnitTest` passes all tests
+- ✅ `./gradlew msal:lintLocalDebug` passes without errors
+- ✅ No new security vulnerabilities introduced
+- ✅ All required permissions included in AndroidManifest.xml
+- ✅ New code follows existing code style and patterns
+- ✅ Configuration files (auth_config.json) are valid JSON
+- ✅ URL encoding rules followed correctly (manifest vs config)
+
+---
+
+## Common CI Failure Prevention
+
+### Build Failures
+- **Gradle Version**: Use exact versions from `gradle/versions.gradle`
+- **SDK Versions**: minSdk=24, targetSdk=35, compileSdk=35
+- **AndroidX**: Always enable in gradle.properties
+- **Dependencies**: Use exact MSAL version 7.+ or latest
+
+### Test Failures
+- **Robolectric**: Tests use Robolectric framework (currently SDK version 33)
+- **JDK Version**: CI uses Java 17 (JDK 1.17) - ensure compatibility
+- **Test Resources**: Ensure all test resources are in correct directories
+- **Lab Tests**: Some tests require special lab parameters (handled by CI)
+- **Unit Test Inclusion**: Use `includeAndroidResources = true` for Robolectric tests
+
+### Lint Failures
+- **Missing Permissions**: Always include INTERNET and ACCESS_NETWORK_STATE
+- **Resource References**: Only reference existing resources
+- **API Usage**: Use only supported Android API levels
+
+### Security Failures
+- **Hardcoded Secrets**: Never commit real client IDs or secrets
+- **URL Encoding**: Follow encoding rules strictly
+- **Permissions**: Use minimal required permissions only
+
+---
+
+## Repository-Specific Guidelines
+
+### Development Environment
+- **Java**: Use JDK 17 (matches CI environment)
+- **Android Studio**: Latest stable version recommended
+- **Gradle**: Version specified in gradle/wrapper/gradle-wrapper.properties
+
+### File Structure Requirements
+- **Package Structure**: Follow existing package hierarchy
+- **Resource Organization**: Use proper Android resource organization
+- **Test Placement**: Unit tests in `src/test/`, instrumented tests in `src/androidTest/`
+
+### Code Style Standards
+- **Indentation**: 4 spaces (no tabs)
+- **Line Length**: Follow existing patterns
+- **Naming**: Use Android/Java naming conventions
+- **Documentation**: Public APIs require Javadoc
+- **Imports**: No wildcard imports, organize imports properly
+
+### Troubleshooting Common Issues
+
+**Build Issues:**
+- Network errors: CI may fail due to dependency resolution - ensure all repositories are accessible
+- Gradle version mismatch: Use wrapper `./gradlew` instead of system gradle
+- SDK not found: Ensure Android SDK is properly installed and configured
+
+**Test Issues:**
+- Robolectric failures: Check SDK version compatibility (currently using SDK 33)
+- Test resource loading: Ensure test resources are in correct directories
+- JUnit version conflicts: Use versions specified in `gradle/versions.gradle`
+
+**Lint Issues:**
+- Missing resources: Create all referenced drawables, strings, colors
+- API level errors: Use only APIs available from minSdk=24
+- Permission errors: Include all required permissions in manifest
+
+**Configuration Issues:**
+- Invalid JSON: Validate auth_config.json syntax
+- URL encoding: Remember different encoding for manifest vs config
+- Missing client_id: Always prompt user for required Azure registration values
 
 ---
 
