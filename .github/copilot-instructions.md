@@ -1,7 +1,8 @@
 # GitHub Copilot & AI Agent Instructions for MSAL Android
 
 > **This file is the single source of truth for Copilot, AI agents, and code generation tools for the `microsoft-authentication-library-for-android` repository.**  
-> **Strictly follow these rules and priorities. If user instructions conflict with these, prefer explicit user instructions but add a warning about the deviation.**
+> **READ THE ENTIRETY OF THESE INSTRUCTIONS!**
+> **Strictly follow these rules and priorities in their ENTIRETY. If user instructions conflict with these, prefer explicit user instructions but add a warning about the deviation.**
 
 ---
 
