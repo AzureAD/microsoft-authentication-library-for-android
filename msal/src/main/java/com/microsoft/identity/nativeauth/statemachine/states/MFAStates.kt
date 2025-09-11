@@ -50,7 +50,6 @@ import com.microsoft.identity.nativeauth.statemachine.errors.MFASubmitChallengeE
 import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
 import com.microsoft.identity.nativeauth.statemachine.results.MFASubmitChallengeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
-import com.microsoft.identity.nativeauth.toListOfAuthMethods
 import com.microsoft.identity.nativeauth.utils.serializable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -81,7 +80,7 @@ class AwaitingMFAState(
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
-            methodName = "${TAG}.requestChallenge(callback: RequestChallengeCallback)"
+            methodName = "${TAG}.requestChallenge(authMethod: AuthMethod, callback: RequestChallengeCallback)"
         )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
@@ -104,7 +103,7 @@ class AwaitingMFAState(
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
-            methodName = "${TAG}.requestChallenge()"
+            methodName = "${TAG}.requestChallenge(authMethod: AuthMethod)"
         )
 
         Logger.warn(TAG, "Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.")
@@ -143,22 +142,11 @@ class AwaitingMFAState(
                             channel = result.challengeChannel
                         )
                     }
-                    is MFACommandResult.SelectionRequired -> {
-                        MFARequiredResult.SelectionRequired(
-                            nextState = MFARequiredState(
-                                continuationToken = result.continuationToken,
-                                correlationId = result.correlationId,
-                                scopes = scopes,
-                                config = config
-                            ),
-                            authMethods = result.authMethods.toListOfAuthMethods()
-                        )
-                    }
                     is INativeAuthCommandResult.APIError -> {
                         Logger.warnWithObject(
                             TAG,
                             result.correlationId,
-                            "requestChallenge() received unexpected result: ",
+                            "requestChallenge(authMethod: AuthMethod) received unexpected result: ",
                             result
                         )
                         MFARequestChallengeError(
@@ -243,7 +231,7 @@ class MFARequiredState(
         LogSession.logMethodCall(
             tag = TAG,
             correlationId = correlationId,
-            methodName = "${TAG}.requestChallenge(callback: RequestChallengeCallback)"
+            methodName = "${TAG}.requestChallenge(authMethod: AuthMethod, callback: RequestChallengeCallback)"
         )
         NativeAuthPublicClientApplication.pcaScope.launch {
             try {
@@ -305,17 +293,6 @@ class MFARequiredState(
                             codeLength = result.codeLength,
                             sentTo = result.challengeTargetLabel,
                             channel = result.challengeChannel
-                        )
-                    }
-                    is MFACommandResult.SelectionRequired -> {
-                        MFARequiredResult.SelectionRequired(
-                            nextState = MFARequiredState(
-                                continuationToken = result.continuationToken,
-                                correlationId = result.correlationId,
-                                scopes = scopes,
-                                config = config
-                            ),
-                            authMethods = result.authMethods.toListOfAuthMethods()
                         )
                     }
                     is INativeAuthCommandResult.APIError -> {
