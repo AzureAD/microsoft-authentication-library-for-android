@@ -61,7 +61,6 @@ import com.microsoft.identity.common.java.commands.parameters.SilentTokenCommand
 import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.nativeauth.authorities.NativeAuthCIAMAuthority;
-import com.microsoft.identity.common.java.nativeauth.commands.parameters.GetAuthMethodsCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.MFAChallengeAuthMethodCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.MFASubmitChallengeCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.ResetPasswordResendCodeCommandParameters;
@@ -872,44 +871,6 @@ public class CommandParametersAdapter {
                         .challengeType(configuration.getChallengeTypes())
                         .continuationToken(continuationToken)
                         .clientId(configuration.getClientId())
-                        .correlationId(correlationId)
-                        .build();
-
-        return commandParameters;
-    }
-
-    /**
-     * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.GetAuthMethodsCommand}] of Native Auth
-     * @param configuration PCA configuration
-     * @param tokenCache token cache for storing results
-     * @param correlationId correlation ID to use in the API request, taken from the previous request in the flow
-     * @param continuationToken Continuation token
-     * @return Command parameter object
-     */
-    public static GetAuthMethodsCommandParameters createGetAuthMethodsCommandParameters(
-            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
-            @NonNull final OAuth2TokenCache tokenCache,
-            @NonNull final String continuationToken,
-            @NonNull final String correlationId) {
-
-        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
-
-        final GetAuthMethodsCommandParameters commandParameters =
-                GetAuthMethodsCommandParameters.builder()
-                        .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
-                        .applicationName(configuration.getAppContext().getPackageName())
-                        .applicationVersion(getPackageVersion(configuration.getAppContext()))
-                        .clientId(configuration.getClientId())
-                        .isSharedDevice(configuration.getIsSharedDevice())
-                        .redirectUri(configuration.getRedirectUri())
-                        .oAuth2TokenCache(tokenCache)
-                        .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
-                        .sdkType(SdkType.MSAL)
-                        .sdkVersion(PublicClientApplication.getSdkVersion())
-                        .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
-                        .authority(authority)
-                        .continuationToken(continuationToken)
-                        .challengeType(configuration.getChallengeTypes())
                         .correlationId(correlationId)
                         .build();
 

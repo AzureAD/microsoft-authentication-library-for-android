@@ -49,7 +49,6 @@ import com.microsoft.identity.nativeauth.statemachine.errors.SignUpSubmitAttribu
 import com.microsoft.identity.nativeauth.statemachine.errors.SubmitCodeError;
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult;
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult;
-import com.microsoft.identity.nativeauth.statemachine.results.MFAGetAuthMethodsResult;
 import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult;
 import com.microsoft.identity.nativeauth.statemachine.results.MFASubmitChallengeResult;
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResendCodeResult;
@@ -511,125 +510,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
     }
 
     @Test
-    public void testSignInMFAScenario1() throws ExecutionException, InterruptedException, TimeoutException {
-        String correlationId = UUID.randomUUID().toString();
-        configureMockApi(
-                MockApiEndpoint.SignInInitiate,
-                correlationId,
-                MockApiResponseType.INITIATE_SUCCESS
-        );
-
-        // 2a. Sign in challenge
-        // 2b. Setup server response with password required
-        configureMockApi(
-                MockApiEndpoint.SignInChallenge,
-                correlationId,
-                MockApiResponseType.CHALLENGE_TYPE_PASSWORD
-        );
-
-        // 3a. Token with password
-        // 3b. mfa_required
-        configureMockApi(
-                MockApiEndpoint.SignInToken,
-                correlationId,
-                MockApiResponseType.MFA_REQUIRED
-        );
-
-        SignInTestCallback signInCallback = new SignInTestCallback();
-
-        application.signIn(
-                username,
-                password,
-                null,
-                signInCallback
-        );
-
-        SignInResult result = signInCallback.get();
-        assertTrue(result instanceof SignInResult.MFARequired);
-
-        correlationId = UUID.randomUUID().toString();
-        // 4a. Sign in challenge for default auth method
-        // 4b. Setup server response with oob required
-        configureMockApi(
-                MockApiEndpoint.SignInChallenge,
-                correlationId,
-                MockApiResponseType.CHALLENGE_TYPE_OOB
-        );
-
-        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
-        // it's value in order to make it consistent with the subsequent call to mock API.
-        AwaitingMFAState nextState = spy(((SignInResult.MFARequired) result).getNextState());
-        mockCorrelationId(nextState, correlationId);
-
-        AwaitingMFAStateRequestChallengeTestCallback sendChallengeCallback = new AwaitingMFAStateRequestChallengeTestCallback();
-        nextState.requestChallenge(sendChallengeCallback);
-
-        MFARequiredResult sendChallengeResult = sendChallengeCallback.get();
-        assertTrue(sendChallengeResult instanceof MFARequiredResult.VerificationRequired);
-
-        correlationId = UUID.randomUUID().toString();
-        // 5a. Sign in challenge for default auth method
-        // 5b. Setup server response with introspect required
-        configureMockApi(
-                MockApiEndpoint.Introspect,
-                correlationId,
-                MockApiResponseType.INTROSPECT_SUCCESS
-        );
-
-        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
-        // it's value in order to make it consistent with the subsequent call to mock API.
-        MFARequiredState nextState2 = spy(((MFARequiredResult.VerificationRequired) sendChallengeResult).getNextState());
-        mockCorrelationId(nextState2, correlationId);
-
-        GetAuthMethodsTestCallback getAuthMethodsCallback = new GetAuthMethodsTestCallback();
-        nextState2.getAuthMethods(getAuthMethodsCallback);
-
-        MFAGetAuthMethodsResult getAuthMethodsResult = getAuthMethodsCallback.get();
-        assertTrue(getAuthMethodsResult instanceof MFARequiredResult.SelectionRequired);
-
-        correlationId = UUID.randomUUID().toString();
-        // 6a. Sign in challenge for specified auth method
-        // 6b. Setup server response with oob required
-        configureMockApi(
-                MockApiEndpoint.SignInChallenge,
-                correlationId,
-                MockApiResponseType.CHALLENGE_TYPE_OOB
-        );
-
-        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
-        // it's value in order to make it consistent with the subsequent call to mock API.
-        MFARequiredState nextState3 = spy(((MFARequiredResult.SelectionRequired) getAuthMethodsResult).getNextState());
-        mockCorrelationId(nextState3, correlationId);
-
-        MFARequiredStateRequestChallengeTestCallback sendSelectedAuthMethodCallback = new MFARequiredStateRequestChallengeTestCallback();
-        AuthMethod authMethod = ((MFARequiredResult.SelectionRequired) getAuthMethodsResult).getAuthMethods().get(0);
-        nextState3.requestChallenge(authMethod, sendSelectedAuthMethodCallback);
-
-        MFARequiredResult sendSelectedAuthMethodResult = sendSelectedAuthMethodCallback.get();
-        assertTrue(sendSelectedAuthMethodResult instanceof MFARequiredResult.VerificationRequired);
-
-        correlationId = UUID.randomUUID().toString();
-        // 7a. Send challenge value to the API
-        // 7b. Sign in completed, receive tokens
-        configureMockApi(
-                MockApiEndpoint.SignInToken,
-                correlationId,
-                MockApiResponseType.TOKEN_SUCCESS
-        );
-
-        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
-        // it's value in order to make it consistent with the subsequent call to mock API.
-        MFARequiredState nextState4 = spy(((MFARequiredResult.VerificationRequired) sendSelectedAuthMethodResult).getNextState());
-        mockCorrelationId(nextState4, correlationId);
-
-        SubmitChallengeTestCallback submitChallengeCallback = new SubmitChallengeTestCallback();
-        nextState4.submitChallenge(code, submitChallengeCallback);
-
-        MFASubmitChallengeResult submitChallengeResult = submitChallengeCallback.get();
-        assertTrue(submitChallengeResult instanceof SignInResult.Complete);
-    }
-
-    @Test
     public void testSignInMFAScenario2() throws ExecutionException, InterruptedException, TimeoutException {
         String correlationId = UUID.randomUUID().toString();
         configureMockApi(
@@ -654,6 +534,12 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 MockApiResponseType.MFA_REQUIRED
         );
 
+        configureMockApi(
+                MockApiEndpoint.SignInChallenge,
+                correlationId,
+                MockApiResponseType.INTROSPECT_SUCCESS
+        );
+
         SignInTestCallback signInCallback = new SignInTestCallback();
 
         application.signIn(
@@ -669,11 +555,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         correlationId = UUID.randomUUID().toString();
         // 3a. Sign in challenge for default auth method
         // 3b. Setup server response with oob required
-        configureMockApi(
-                MockApiEndpoint.SignInChallenge,
-                correlationId,
-                MockApiResponseType.INTROSPECT_REQUIRED
-        );
+
 
         // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
         // it's value in order to make it consistent with the subsequent call to mock API.
@@ -681,10 +563,11 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         mockCorrelationId(nextState, correlationId);
 
         AwaitingMFAStateRequestChallengeTestCallback sendChallengeCallback = new AwaitingMFAStateRequestChallengeTestCallback();
-        nextState.requestChallenge(sendChallengeCallback);
+        AuthMethod authMethod = ((SignInResult.MFARequired) result).getAuthMethods().get(0);
+        nextState.requestChallenge(authMethod, sendChallengeCallback);
 
         MFARequiredResult sendChallengeResult = sendChallengeCallback.get();
-        assertTrue(sendChallengeResult instanceof MFARequiredResult.SelectionRequired);
+        assertTrue(sendChallengeResult instanceof MFARequiredResult.VerificationRequired);
 
         correlationId = UUID.randomUUID().toString();
         // 6a. Sign in challenge for specified auth method
@@ -694,18 +577,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
                 correlationId,
                 MockApiResponseType.CHALLENGE_TYPE_OOB
         );
-
-        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
-        // it's value in order to make it consistent with the subsequent call to mock API.
-        MFARequiredState nextState3 = spy(((MFARequiredResult.SelectionRequired) sendChallengeResult).getNextState());
-        mockCorrelationId(nextState3, correlationId);
-
-        MFARequiredStateRequestChallengeTestCallback sendSelectedAuthMethodCallback = new MFARequiredStateRequestChallengeTestCallback();
-        AuthMethod authMethod = ((MFARequiredResult.SelectionRequired) sendChallengeResult).getAuthMethods().get(0);
-        nextState3.requestChallenge(authMethod, sendSelectedAuthMethodCallback);
-
-        MFARequiredResult sendSelectedAuthMethodResult = sendSelectedAuthMethodCallback.get();
-        assertTrue(sendSelectedAuthMethodResult instanceof MFARequiredResult.VerificationRequired);
 
         correlationId = UUID.randomUUID().toString();
         // 7a. Send challenge value to the API
@@ -718,7 +589,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
         // it's value in order to make it consistent with the subsequent call to mock API.
-        MFARequiredState nextState4 = spy(((MFARequiredResult.VerificationRequired) sendSelectedAuthMethodResult).getNextState());
+        MFARequiredState nextState4 = spy(((MFARequiredResult.VerificationRequired) sendChallengeResult).getNextState());
         mockCorrelationId(nextState4, correlationId);
 
         SubmitChallengeTestCallback submitChallengeCallback = new SubmitChallengeTestCallback();
@@ -3438,19 +3309,6 @@ class AwaitingMFAStateRequestChallengeTestCallback extends TestCallback<MFARequi
 
     @Override
     public void onResult(MFARequiredResult result) {
-        future.setResult(result);
-    }
-
-    @Override
-    public void onError(@NonNull BaseException exception) {
-        future.setException(exception);
-    }
-}
-
-class GetAuthMethodsTestCallback extends TestCallback<MFAGetAuthMethodsResult> implements MFARequiredState.GetAuthMethodsCallback {
-
-    @Override
-    public void onResult(MFAGetAuthMethodsResult result) {
         future.setResult(result);
     }
 
