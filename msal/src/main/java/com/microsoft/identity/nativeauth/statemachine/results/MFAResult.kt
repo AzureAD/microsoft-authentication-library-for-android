@@ -57,14 +57,8 @@ interface MFARequiredResult: Result {
     class SelectionRequired(
         override val nextState: MFARequiredState,
         val authMethods: List<AuthMethod>
-    ) : MFARequiredResult, MFAGetAuthMethodsResult, Result.SuccessResult(nextState = nextState)
+    ) : MFARequiredResult, Result.SuccessResult(nextState = nextState)
 }
-
-/**
- * Results related to get authentication methods operation, produced by
- * [com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState.getAuthMethods]
- */
-interface MFAGetAuthMethodsResult : Result
 
 /**
  * Results related to MFA submit challenge operation, produced by

@@ -452,7 +452,8 @@ class SignInPasswordRequiredState(
                                     correlationId = result.correlationId,
                                     scopes = scopes,
                                     config = config
-                                )
+                                ),
+                                authMethods = result.authMethods.toListOfAuthMethods()
                             )
                         }
                         is SignInCommandResult.StrongAuthMethodRegistrationRequired -> {

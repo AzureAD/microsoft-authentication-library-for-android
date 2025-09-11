@@ -62,8 +62,7 @@ import com.microsoft.identity.common.java.dto.AccountRecord;
 import com.microsoft.identity.common.java.exception.ClientException;
 import com.microsoft.identity.common.java.nativeauth.authorities.NativeAuthCIAMAuthority;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.GetAuthMethodsCommandParameters;
-import com.microsoft.identity.common.java.nativeauth.commands.parameters.MFADefaultChallengeCommandParameters;
-import com.microsoft.identity.common.java.nativeauth.commands.parameters.MFASelectedDefaultChallengeCommandParameters;
+import com.microsoft.identity.common.java.nativeauth.commands.parameters.MFAChallengeAuthMethodCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.MFASubmitChallengeCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.ResetPasswordResendCodeCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.ResetPasswordStartCommandParameters;
@@ -784,59 +783,11 @@ public class CommandParametersAdapter {
      * @param tokenCache token cache for storing results
      * @param correlationId correlation ID to use in the API request, taken from the previous request in the flow
      * @param continuationToken continuation token
-     * @param scopes scopes requested during sign in flow
-     * @return Command parameter object
-     * @throws ClientException
-     */
-    public static MFADefaultChallengeCommandParameters createMFADefaultChallengeCommandParameters(
-            @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
-            @NonNull final OAuth2TokenCache tokenCache,
-            @NonNull final String continuationToken,
-            @NonNull final String correlationId,
-            final List<String> scopes) throws ClientException {
-
-        final NativeAuthCIAMAuthority authority = ((NativeAuthCIAMAuthority) configuration.getDefaultAuthority());
-
-        final AbstractAuthenticationScheme authenticationScheme = AuthenticationSchemeFactory.createScheme(
-                AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()),
-                null
-        );
-
-        final MFADefaultChallengeCommandParameters commandParameters =
-                MFADefaultChallengeCommandParameters.builder()
-                        .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
-                        .applicationName(configuration.getAppContext().getPackageName())
-                        .applicationVersion(getPackageVersion(configuration.getAppContext()))
-                        .clientId(configuration.getClientId())
-                        .isSharedDevice(configuration.getIsSharedDevice())
-                        .redirectUri(configuration.getRedirectUri())
-                        .oAuth2TokenCache(tokenCache)
-                        .requiredBrokerProtocolVersion(configuration.getRequiredBrokerProtocolVersion())
-                        .sdkType(SdkType.MSAL)
-                        .sdkVersion(PublicClientApplication.getSdkVersion())
-                        .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
-                        .authority(authority)
-                        .authenticationScheme(authenticationScheme)
-                        .continuationToken(continuationToken)
-                        .scopes(scopes)
-                        .challengeType(configuration.getChallengeTypes())
-                        .correlationId(correlationId)
-                        .build();
-
-        return commandParameters;
-    }
-
-    /**
-     * Creates command parameter for [{@link com.microsoft.identity.common.nativeauth.internal.commands.MFAChallengeCommand}] of Native Auth
-     * @param configuration PCA configuration
-     * @param tokenCache token cache for storing results
-     * @param correlationId correlation ID to use in the API request, taken from the previous request in the flow
-     * @param continuationToken continuation token
      * @param authMethod the user's authentication method that is used to perform the challenge operation
      * @return Command parameter object
      * @throws ClientException
      */
-    public static MFASelectedDefaultChallengeCommandParameters createMFASelectedChallengeCommandParameters(
+    public static MFAChallengeAuthMethodCommandParameters createMFASelectedChallengeCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String continuationToken,
@@ -853,8 +804,8 @@ public class CommandParametersAdapter {
 
         final String authMethodId = authMethod.getId();
 
-        final MFASelectedDefaultChallengeCommandParameters commandParameters =
-                MFASelectedDefaultChallengeCommandParameters.builder()
+        final MFAChallengeAuthMethodCommandParameters commandParameters =
+                MFAChallengeAuthMethodCommandParameters.builder()
                         .platformComponents(AndroidPlatformComponentsFactory.createFromContext(configuration.getAppContext()))
                         .applicationName(configuration.getAppContext().getPackageName())
                         .applicationVersion(getPackageVersion(configuration.getAppContext()))
