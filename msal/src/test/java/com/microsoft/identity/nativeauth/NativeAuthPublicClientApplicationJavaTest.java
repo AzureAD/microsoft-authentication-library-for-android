@@ -535,7 +535,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         );
 
         configureMockApi(
-                MockApiEndpoint.SignInChallenge,
+                MockApiEndpoint.Introspect,
                 correlationId,
                 MockApiResponseType.INTROSPECT_SUCCESS
         );
@@ -556,6 +556,14 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         // 3a. Sign in challenge for default auth method
         // 3b. Setup server response with oob required
 
+        correlationId = UUID.randomUUID().toString();
+        // 6a. Sign in challenge for specified auth method
+        // 6b. Setup server response with oob required
+        configureMockApi(
+                MockApiEndpoint.SignInChallenge,
+                correlationId,
+                MockApiResponseType.CHALLENGE_TYPE_OOB
+        );
 
         // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
         // it's value in order to make it consistent with the subsequent call to mock API.
@@ -568,15 +576,6 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
 
         MFARequiredResult sendChallengeResult = sendChallengeCallback.get();
         assertTrue(sendChallengeResult instanceof MFARequiredResult.VerificationRequired);
-
-        correlationId = UUID.randomUUID().toString();
-        // 6a. Sign in challenge for specified auth method
-        // 6b. Setup server response with oob required
-        configureMockApi(
-                MockApiEndpoint.SignInChallenge,
-                correlationId,
-                MockApiResponseType.CHALLENGE_TYPE_OOB
-        );
 
         correlationId = UUID.randomUUID().toString();
         // 7a. Send challenge value to the API

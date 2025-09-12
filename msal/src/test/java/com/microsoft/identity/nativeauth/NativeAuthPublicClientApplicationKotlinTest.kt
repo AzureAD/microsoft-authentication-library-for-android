@@ -2881,20 +2881,7 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
             MockApiResponseType.MFA_REQUIRED
         )
 
-        val result = application.signIn(username, password)
-        assertResult<SignInResult.MFARequired>(result)
-
-        correlationId = UUID.randomUUID().toString()
-        // 3a. Sign in challenge for default auth method
-        // 3b. Setup server response with oob required
-        configureMockApi(
-            MockApiEndpoint.SignInChallenge,
-            correlationId,
-            MockApiResponseType.CHALLENGE_TYPE_OOB
-        )
-
-        correlationId = UUID.randomUUID().toString()
-        // 4a. Call /introspect to get additional methods
+        // 4a. Call /introspect to get methods
         // 4b. Return list of auth methods
         configureMockApi(
             MockApiEndpoint.Introspect,
@@ -2902,10 +2889,21 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
             MockApiResponseType.INTROSPECT_SUCCESS
         )
 
+        val result = application.signIn(username, password)
+        assertResult<SignInResult.MFARequired>(result)
+
         // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
         // it's value in order to make it consistent with the subsequent call to mock API.
         val nextState = spy((result as SignInResult.MFARequired).nextState)
         nextState.mockCorrelationId(correlationId)
+
+        // 5a. Sign in challenge for specified auth method
+        // 5b. Setup server response with oob required
+        configureMockApi(
+            MockApiEndpoint.SignInChallenge,
+            correlationId,
+            MockApiResponseType.CHALLENGE_TYPE_OOB
+        )
 
         // Initiate challenge, send code to email
         val sendChallengeResult = nextState.requestChallenge(result.authMethods.first())
@@ -2914,15 +2912,6 @@ class NativeAuthPublicClientApplicationKotlinTest(private val allowPII: Boolean)
         assertNotNull(sendChallengeResult.sentTo)
         assertNotNull(sendChallengeResult.codeLength)
         assertNotNull(sendChallengeResult.channel)
-
-        correlationId = UUID.randomUUID().toString()
-        // 5a. Sign in challenge for specified auth method
-        // 5b. Setup server response with oob required
-        configureMockApi(
-            MockApiEndpoint.SignInChallenge,
-            correlationId,
-            MockApiResponseType.CHALLENGE_TYPE_OOB
-        )
 
         correlationId = UUID.randomUUID().toString()
         // 6a. Token with oob
