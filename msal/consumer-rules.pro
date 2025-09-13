@@ -43,6 +43,13 @@
 -keep class * implements com.google.gson.TypeAdapterFactory
 -keep class * implements com.google.gson.JsonSerializer
 -keep class * implements com.google.gson.JsonDeserializer
+-keep class com.google.gson.reflect.TypeToken { *; }
+-keep class * extends com.google.gson.reflect.TypeToken { *; }
+
+# Keep things as they are used in TypeAdapter for deserialization/serialization
+-keep class com.microsoft.identity.client.Logger { *; }
+-keep class com.microsoft.identity.client.claims.ClaimsRequest { *; }
+-keep class com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation { *; }
 
 # Prevent R8 from leaving Data object members always null
 -keepclassmembers class * {
