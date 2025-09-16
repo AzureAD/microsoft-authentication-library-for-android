@@ -2,6 +2,7 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+- [MAJOR] Update proguard rules (#2372)
 
 Version 7.1.0
 ----------
