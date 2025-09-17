@@ -37,7 +37,7 @@ interface MFARequiredResult: Result {
      * @param nextState [com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState] the current state of the flow with follow-on methods.
      * @param codeLength the length of the challenge required by the server.
      * @param sentTo the email/phone number the challenge was sent to.
-     * @param channel the channel(email/phone) the challenge was sent through.
+     * @param channel the channel(email/sms) the challenge was sent through.
      */
     class VerificationRequired(
         override val nextState: MFARequiredState,

@@ -36,7 +36,7 @@ class NativeAuthChallengeAuthMethodParameters(
 ) {
 
     /**
-     * email to contact to register a new strong authentication method
+     * email or phone number to contact to register a new strong authentication method
      */
     var verificationContact: String? = null
 }
