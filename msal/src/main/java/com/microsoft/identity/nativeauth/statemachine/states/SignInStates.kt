@@ -201,6 +201,27 @@ class SignInCodeRequiredState internal constructor(
                             exception = result.exception
                         )
                     }
+                    is SignInCommandResult.MFARequired -> {
+                        SignInResult.MFARequired(
+                            nextState = AwaitingMFAState(
+                                continuationToken = result.continuationToken,
+                                correlationId = result.correlationId,
+                                scopes = scopes,
+                                config = config
+                            ),
+                            authMethods = result.authMethods.toListOfAuthMethods()
+                        )
+                    }
+                    is SignInCommandResult.StrongAuthMethodRegistrationRequired -> {
+                        SignInResult.StrongAuthMethodRegistrationRequired(
+                            nextState = RegisterStrongAuthState(
+                                continuationToken = result.continuationToken,
+                                correlationId = result.correlationId,
+                                config = config
+                            ),
+                            authMethods = result.authMethods.toListOfAuthMethods()
+                        )
+                    }
                 }
             } catch (e: Exception) {
                 SubmitCodeError(
@@ -715,6 +736,17 @@ class SignInContinuationState(
                             nextState = RegisterStrongAuthState(
                                 continuationToken = result.continuationToken,
                                 correlationId = result.correlationId,
+                                config = config
+                            ),
+                            authMethods = result.authMethods.toListOfAuthMethods()
+                        )
+                    }
+                    is SignInCommandResult.MFARequired -> {
+                        SignInResult.MFARequired(
+                            nextState = AwaitingMFAState(
+                                continuationToken = result.continuationToken,
+                                correlationId = result.correlationId,
+                                scopes = parameters.scopes,
                                 config = config
                             ),
                             authMethods = result.authMethods.toListOfAuthMethods()
