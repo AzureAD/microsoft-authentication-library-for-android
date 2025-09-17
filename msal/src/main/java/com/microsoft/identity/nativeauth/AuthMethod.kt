@@ -26,8 +26,6 @@ import android.os.Parcel
 import android.os.Parcelable
 import com.microsoft.identity.common.java.nativeauth.providers.responses.signin.AuthenticationMethodApiResult
 import com.microsoft.identity.common.java.nativeauth.util.ILoggable
-import com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState
-import com.microsoft.identity.nativeauth.utils.serializable
 
 /**
  * AuthMethod represents a user's authentication methods.
@@ -42,7 +40,7 @@ data class AuthMethod(
     // Auth method login hint (e.g. user@contoso.com)
     val loginHint: String,
 
-    // Auth method challenge channel (email, etc.)
+    // Auth method challenge channel (email, sms, etc.)
     val challengeChannel: String,
 ) : ILoggable, Parcelable {
     override fun toUnsanitizedString(): String = "AuthMethod(id=$id, " +

@@ -47,16 +47,23 @@ abstract class BaseJITSubmitChallengeState(
             tag,
             "Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications."
         )
+        // when SMS auth method is used verification contact can't be nil or empty
+        if (isChallengeChannelSMS(parameters.authMethod.challengeChannel) && parameters.verificationContact.isNullOrBlank()) {
+            return RegisterStrongAuthChallengeError(
+                errorType = ErrorTypes.INVALID_INPUT,
+                errorMessage = "Invalid verification contact",
+                correlationId = correlationId
+            )
+        }
+
         // if external developer does not provide a verification contact, we use the login hint
         val verificationContact: String = parameters.verificationContact.takeIf { !it.isNullOrBlank() } ?: parameters.authMethod.loginHint
-        // Currently, only email is supported for the challengeChannel. Continuation token grant type is used only for "preverified" flow.
-        val challengeChannel = NativeAuthConstants.ChallengeChannel.EMAIL
         val params =
             CommandParametersAdapter.createJITChallengeAuthMethodCommandParameters(
                 config,
                 config.oAuth2TokenCache,
                 verificationContact,
-                challengeChannel,
+                parameters.authMethod.challengeChannel,
                 parameters.authMethod.challengeType,
                 correlationId,
                 continuationToken,
@@ -133,6 +140,10 @@ abstract class BaseJITSubmitChallengeState(
                 }
             }
         }
+    }
+
+    private fun isChallengeChannelSMS(challengeChannel: String): Boolean {
+        return challengeChannel.equals(NativeAuthConstants.ChallengeChannel.SMS, ignoreCase = true)
     }
 }
 
