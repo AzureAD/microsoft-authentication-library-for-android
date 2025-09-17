@@ -40,6 +40,7 @@ import kotlinx.coroutines.withContext
 abstract class BaseJITSubmitChallengeState(
     override val continuationToken: String,
     override val correlationId: String,
+    internal open val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
 ) : BaseState(continuationToken = continuationToken, correlationId = correlationId), State, Parcelable {
     suspend fun internalChallengeAuthMethod(parameters: NativeAuthChallengeAuthMethodParameters, tag: String): RegisterStrongAuthChallengeResult {
@@ -56,8 +57,8 @@ abstract class BaseJITSubmitChallengeState(
             )
         }
 
-        // if external developer does not provide a verification contact, we use the login hint
-        val verificationContact: String = parameters.verificationContact.takeIf { !it.isNullOrBlank() } ?: parameters.authMethod.loginHint
+        // if external developer does not provide a verification contact, we use the username
+        val verificationContact: String = parameters.verificationContact.takeIf { !it.isNullOrBlank() } ?: username
         val params =
             CommandParametersAdapter.createJITChallengeAuthMethodCommandParameters(
                 config,
@@ -130,6 +131,7 @@ abstract class BaseJITSubmitChallengeState(
                             nextState = RegisterStrongAuthVerificationRequiredState(
                                 continuationToken = result.continuationToken,
                                 correlationId = result.correlationId,
+                                username = username,
                                 config = config
                             ),
                             codeLength = result.codeLength,
@@ -159,8 +161,9 @@ abstract class BaseJITSubmitChallengeState(
 class RegisterStrongAuthState(
     override val continuationToken: String,
     override val correlationId: String,
+    override val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseJITSubmitChallengeState(continuationToken = continuationToken, correlationId = correlationId, config = config), State, Parcelable {
+) : BaseJITSubmitChallengeState(continuationToken = continuationToken, correlationId = correlationId, config = config, username = username), State, Parcelable {
     private val TAG: String = RegisterStrongAuthState::class.java.simpleName
 
     /**
@@ -213,6 +216,7 @@ class RegisterStrongAuthState(
 
     constructor(parcel: Parcel) : this(
         continuationToken = parcel.readString() ?: "",
+        username =  parcel.readString() ?: "",
         correlationId = parcel.readString() ?: "UNSET",
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
     )
@@ -241,8 +245,9 @@ class RegisterStrongAuthState(
 class RegisterStrongAuthVerificationRequiredState(
     override val continuationToken: String,
     override val correlationId: String,
+    override val username: String,
     private val config: NativeAuthPublicClientApplicationConfiguration
-) : BaseJITSubmitChallengeState(continuationToken = continuationToken, correlationId = correlationId, config = config) {
+) : BaseJITSubmitChallengeState(continuationToken = continuationToken, correlationId = correlationId, username = username, config = config) {
 
     private val TAG: String = RegisterStrongAuthVerificationRequiredState::class.java.simpleName
 
@@ -422,6 +427,7 @@ class RegisterStrongAuthVerificationRequiredState(
 
     constructor(parcel: Parcel) : this(
         continuationToken = parcel.readString() ?: "",
+        username =  parcel.readString() ?: "",
         correlationId = parcel.readString() ?: "UNSET",
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
     )

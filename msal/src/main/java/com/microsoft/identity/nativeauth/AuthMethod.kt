@@ -38,7 +38,7 @@ data class AuthMethod(
     val challengeType: String,
 
     // Auth method login hint (e.g. user@contoso.com)
-    val loginHint: String,
+    val loginHint: String?,
 
     // Auth method challenge channel (email, sms, etc.)
     val challengeChannel: String,

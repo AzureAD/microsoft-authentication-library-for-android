@@ -682,6 +682,7 @@ class NativeAuthPublicClientApplication(
                                 nextState = SignInCodeRequiredState(
                                     continuationToken = result.continuationToken,
                                     correlationId = result.correlationId,
+                                    username = username,
                                     scopes = scopes,
                                     config = nativeAuthConfig,
                                     claimsRequestJson = params.claimsRequestJson
@@ -719,6 +720,7 @@ class NativeAuthPublicClientApplication(
                                     nextState = SignInPasswordRequiredState(
                                         continuationToken = result.continuationToken,
                                         correlationId = result.correlationId,
+                                        username = username,
                                         scopes = scopes,
                                         config = nativeAuthConfig,
                                         claimsRequestJson = params.claimsRequestJson
@@ -778,6 +780,7 @@ class NativeAuthPublicClientApplication(
                                 nextState = RegisterStrongAuthState(
                                     continuationToken = result.continuationToken,
                                     correlationId = result.correlationId,
+                                    username = username,
                                     config = nativeAuthConfig
                                 ),
                                 authMethods = result.authMethods.toListOfAuthMethods()

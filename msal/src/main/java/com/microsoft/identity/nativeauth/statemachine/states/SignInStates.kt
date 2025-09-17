@@ -76,6 +76,7 @@ import kotlinx.coroutines.withContext
 class SignInCodeRequiredState internal constructor(
     override val continuationToken: String,
     override val correlationId: String,
+    private val username: String,
     private val scopes: List<String>?,
     private val claimsRequestJson: String?,
     private val config: NativeAuthPublicClientApplicationConfiguration
@@ -84,6 +85,7 @@ class SignInCodeRequiredState internal constructor(
 
     constructor(parcel: Parcel) : this(
         continuationToken = parcel.readString()  ?: "",
+        username = parcel.readString() ?: "",
         correlationId = parcel.readString() ?: "UNSET",
         scopes = parcel.createStringArrayList(),
         claimsRequestJson = parcel.readString(),
@@ -217,6 +219,7 @@ class SignInCodeRequiredState internal constructor(
                             nextState = RegisterStrongAuthState(
                                 continuationToken = result.continuationToken,
                                 correlationId = result.correlationId,
+                                username = username,
                                 config = config
                             ),
                             authMethods = result.authMethods.toListOfAuthMethods()
@@ -298,6 +301,7 @@ class SignInCodeRequiredState internal constructor(
                             nextState = SignInCodeRequiredState(
                                 continuationToken = result.continuationToken,
                                 correlationId = result.correlationId,
+                                username = username,
                                 scopes = scopes,
                                 config = config,
                                 claimsRequestJson = claimsRequestJson
@@ -379,6 +383,7 @@ class SignInCodeRequiredState internal constructor(
 class SignInPasswordRequiredState(
     override val continuationToken: String,
     override val correlationId: String,
+    private val username: String,
     private val scopes: List<String>?,
     private val claimsRequestJson: String?,
     private val config: NativeAuthPublicClientApplicationConfiguration
@@ -386,6 +391,7 @@ class SignInPasswordRequiredState(
     private val TAG: String = SignInPasswordRequiredState::class.java.simpleName
     constructor(parcel: Parcel) : this(
         continuationToken = parcel.readString()  ?: "",
+        username = parcel.readString() ?: "",
         correlationId = parcel.readString() ?: "UNSET",
         scopes = parcel.createStringArrayList(),
         claimsRequestJson = parcel.readString(),
@@ -482,6 +488,7 @@ class SignInPasswordRequiredState(
                                 nextState = RegisterStrongAuthState(
                                     continuationToken = result.continuationToken,
                                     correlationId = result.correlationId,
+                                    username = username,
                                     config = config
                                 ),
                                 authMethods = result.authMethods.toListOfAuthMethods()
@@ -736,6 +743,7 @@ class SignInContinuationState(
                             nextState = RegisterStrongAuthState(
                                 continuationToken = result.continuationToken,
                                 correlationId = result.correlationId,
+                                username = username,
                                 config = config
                             ),
                             authMethods = result.authMethods.toListOfAuthMethods()
