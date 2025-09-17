@@ -23,23 +23,14 @@
 
 package com.microsoft.identity.nativeauth.statemachine.errors
 
-import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccountResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResendCodeResult
-import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordResult
-import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordStartResult
 import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitCodeResult
-import com.microsoft.identity.nativeauth.statemachine.results.ResetPasswordSubmitPasswordResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResendCodeResult
-import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInSubmitCodeResult
-import com.microsoft.identity.nativeauth.statemachine.results.SignInSubmitPasswordResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignOutResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResendCodeResult
-import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
-import com.microsoft.identity.nativeauth.statemachine.results.SignUpSubmitAttributesResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpSubmitCodeResult
-import com.microsoft.identity.nativeauth.statemachine.results.SignUpSubmitPasswordResult
 
 /**
  * ErrorTypes class holds the possible error type values that are shared between the errors
@@ -88,6 +79,12 @@ internal class ErrorTypes {
          * The input needs be re-submitted.
          */
         const val INVALID_INPUT = "invalid_input"
+
+        /*
+         * The VERIFICATION_CONTACT_BLOCKED value indicates the verification contact provided has been blocked.
+         * Try using another email or phone number, or select an alternative authentication method.
+         */
+        const val VERIFICATION_CONTACT_BLOCKED = "verification_contact_blocked"
 
         /*
          * The INVALID_STATE value indicates a misconfigured or expired state, or an internal error

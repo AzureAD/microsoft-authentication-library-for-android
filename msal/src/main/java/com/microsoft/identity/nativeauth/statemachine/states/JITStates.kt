@@ -115,6 +115,15 @@ abstract class BaseJITSubmitChallengeState(
                         errorCodes = result.errorCodes
                     )
                 }
+                is JITCommandResult.BlockedVerificationContact -> {
+                    RegisterStrongAuthChallengeError(
+                        errorType = ErrorTypes.VERIFICATION_CONTACT_BLOCKED,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId,
+                        errorCodes = result.errorCodes
+                    )
+                }
                 is JITCommandResult.VerificationRequired -> {
                     RegisterStrongAuthChallengeResult.VerificationRequired(
                         result = NativeAuthRegisterStrongAuthVerificationRequiredResultParameter(

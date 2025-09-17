@@ -13,6 +13,12 @@ class RegisterStrongAuthChallengeError(
 ): BrowserRequiredError, RegisterStrongAuthChallengeResult, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception)
 {
     fun isInvalidInput(): Boolean = this.errorType == ErrorTypes.INVALID_INPUT
+
+    /*
+     * Returns true if the verification contact provided has been blocked.
+     * Try using another email or phone number, or select an alternative authentication method.
+     */
+    fun isVerificationContactBlocked(): Boolean = this.errorType == ErrorTypes.VERIFICATION_CONTACT_BLOCKED
 }
 
 class RegisterStrongAuthSubmitChallengeError(
