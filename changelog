@@ -3,6 +3,11 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 vNext
 ----------
 - [PATCH] Add null checks for guest account ids (#2361)
+- [MINOR] Fix for App Link Usage in DUNA / SSO scenarios (#2363)
+
+Version 7.0.3
+----------
+- [PATCH] Update common @22.0.3
 
 Version 7.0.1
 ----------
