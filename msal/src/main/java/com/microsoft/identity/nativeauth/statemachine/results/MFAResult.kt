@@ -23,7 +23,6 @@
 
 package com.microsoft.identity.nativeauth.statemachine.results
 
-import com.microsoft.identity.nativeauth.AuthMethod
 import com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState
 
 /**
@@ -46,25 +45,7 @@ interface MFARequiredResult: Result {
         val sentTo: String,
         val channel: String,
     ) : MFARequiredResult, Result.SuccessResult(nextState = nextState)
-
-    /**
-     * Selection required result, which indicates that a specific authentication method must be selected, which
-     * the server will send the challenge to (once sendChallenge() is called).
-     *
-     * @param nextState [com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState] the current state of the flow with follow-on methods.
-     * @param authMethods the authentication methods that can be used to complete the challenge flow.
-     */
-    class SelectionRequired(
-        override val nextState: MFARequiredState,
-        val authMethods: List<AuthMethod>
-    ) : MFARequiredResult, MFAGetAuthMethodsResult, Result.SuccessResult(nextState = nextState)
 }
-
-/**
- * Results related to get authentication methods operation, produced by
- * [com.microsoft.identity.nativeauth.statemachine.states.MFARequiredState.getAuthMethods]
- */
-interface MFAGetAuthMethodsResult : Result
 
 /**
  * Results related to MFA submit challenge operation, produced by

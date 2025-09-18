@@ -768,7 +768,8 @@ class NativeAuthPublicClientApplication(
                                     correlationId = result.correlationId,
                                     scopes = scopes,
                                     config = nativeAuthConfig
-                                )
+                                ),
+                                authMethods = result.authMethods.toListOfAuthMethods()
                             )
                         }
 
