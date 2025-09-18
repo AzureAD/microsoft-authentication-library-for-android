@@ -786,7 +786,7 @@ public class CommandParametersAdapter {
      * @return Command parameter object
      * @throws ClientException
      */
-    public static MFAChallengeAuthMethodCommandParameters createMFASelectedChallengeCommandParameters(
+    public static MFAChallengeAuthMethodCommandParameters createMFAChallengeAuthMethodCommandParameters(
             @NonNull final NativeAuthPublicClientApplicationConfiguration configuration,
             @NonNull final OAuth2TokenCache tokenCache,
             @NonNull final String continuationToken,
