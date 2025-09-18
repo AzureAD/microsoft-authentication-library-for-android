@@ -17,8 +17,12 @@
 #}
 
 ##---------------Begin: proguard configuration for MSAL  --------
--keep class !com.microsoft.identity.common.java.nativeauth.**, !com.microsoft.identity.common.nativeauth.**, !com.microsoft.identity.nativeauth.**, com.microsoft.identity.** { *; }
 -keep class com.microsoft.device.display.** { *; }
+
+# Keep things as they are used in TypeAdapter for deserialization/serialization
+-keep class com.microsoft.identity.client.Logger { *; }
+-keep class com.microsoft.identity.client.claims.ClaimsRequest { *; }
+-keep class com.microsoft.identity.client.claims.RequestedClaimAdditionalInformation { *; }
 
 ##---------------Begin: proguard configuration for Nimbus  ----------
 -keep class com.nimbusds.** { *; }
@@ -35,17 +39,16 @@
 -dontwarn sun.misc.**
 #-keep class com.google.gson.stream.** { *; }
 
-# Application classes that will be serialized/deserialized over Gson
--keep class com.google.gson.examples.android.model.** { <fields>; }
-
 # Prevent proguard from stripping interface information from TypeAdapter, TypeAdapterFactory,
 # JsonSerializer, JsonDeserializer instances (so they can be used in @JsonAdapter)
 -keep class * extends com.google.gson.TypeAdapter
 -keep class * implements com.google.gson.TypeAdapterFactory
 -keep class * implements com.google.gson.JsonSerializer
 -keep class * implements com.google.gson.JsonDeserializer
+-keep class com.google.gson.reflect.TypeToken { *; }
+-keep class * extends com.google.gson.reflect.TypeToken { *; }
 
 # Prevent R8 from leaving Data object members always null
--keepclassmembers,allowobfuscation class * {
+-keepclassmembers class * {
   @com.google.gson.annotations.SerializedName <fields>;
 }
