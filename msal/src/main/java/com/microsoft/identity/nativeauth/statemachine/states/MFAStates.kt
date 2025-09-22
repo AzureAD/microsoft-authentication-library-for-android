@@ -110,7 +110,7 @@ class AwaitingMFAState(
 
         return withContext(Dispatchers.IO) {
             try {
-                val params = CommandParametersAdapter.createMFASelectedChallengeCommandParameters(
+                val params = CommandParametersAdapter.createMFAChallengeAuthMethodCommandParameters(
                     config,
                     config.oAuth2TokenCache,
                     continuationToken,
@@ -262,7 +262,7 @@ class MFARequiredState(
 
         return withContext(Dispatchers.IO) {
             try {
-                val params = CommandParametersAdapter.createMFASelectedChallengeCommandParameters(
+                val params = CommandParametersAdapter.createMFAChallengeAuthMethodCommandParameters(
                     config,
                     config.oAuth2TokenCache,
                     continuationToken,
