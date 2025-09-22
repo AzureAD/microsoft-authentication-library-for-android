@@ -95,11 +95,7 @@ interface SignInResult : Result {
     class StrongAuthMethodRegistrationRequired(
         override val nextState: RegisterStrongAuthState,
         val authMethods: List<AuthMethod>
-<<<<<<< HEAD
     ) : Result.SuccessResult(nextState = nextState), SignInResult, SignInSubmitPasswordResult, SignInSubmitCodeResult
-=======
-    ) : Result.SuccessResult(nextState = nextState), SignInResult, SignInSubmitPasswordResult
->>>>>>> feature/email-otp-mfa
 }
 
 /**
