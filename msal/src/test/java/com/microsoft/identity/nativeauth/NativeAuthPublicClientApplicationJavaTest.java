@@ -272,7 +272,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         SignInSubmitCodeResult result = submitCodeResult.get(30, TimeUnit.SECONDS);
         assertTrue(result instanceof SubmitCodeError);
 
-        SubmitCodeError error = spy((SubmitCodeError)result);
+        SubmitCodeError error = (SubmitCodeError)result;
         assertTrue(error.isInvalidCode());
 
         // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
@@ -382,7 +382,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         SignInSubmitCodeResult result = submitCodeResult.get(30, TimeUnit.SECONDS);
         assertTrue(result instanceof SubmitCodeError);
 
-        SubmitCodeError error = spy((SubmitCodeError)result);
+        SubmitCodeError error = (SubmitCodeError)result;
         assertTrue(error.isInvalidCode());
 
         // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
