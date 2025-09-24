@@ -34,27 +34,16 @@ import com.microsoft.identity.nativeauth.parameters.NativeAuthGetAccessTokenPara
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInContinuationParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignInParameters
 import com.microsoft.identity.nativeauth.parameters.NativeAuthSignUpParameters
-import com.microsoft.identity.nativeauth.statemachine.errors.MFASubmitChallengeError
 import com.microsoft.identity.nativeauth.statemachine.errors.SignInError
 import com.microsoft.identity.nativeauth.statemachine.results.GetAccessTokenResult
-import com.microsoft.identity.nativeauth.statemachine.results.MFARequiredResult
 import com.microsoft.identity.nativeauth.statemachine.results.RegisterStrongAuthChallengeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignInResult
-import com.microsoft.identity.nativeauth.statemachine.results.SignUpResendCodeResult
 import com.microsoft.identity.nativeauth.statemachine.results.SignUpResult
-import com.microsoft.identity.nativeauth.statemachine.states.RegisterStrongAuthVerificationRequiredState
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
-import org.junit.Assert.fail
 import org.junit.Ignore
 import org.junit.Test
-import org.robolectric.RuntimeEnvironment.application
-import org.robolectric.shadows.ShadowPackageManager.resources
-import org.robolectric.versioning.AndroidVersions
-import java.util.Base64
 
 class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
 
@@ -108,10 +97,10 @@ class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
                 assertResult<SignInResult.StrongAuthMethodRegistrationRequired>(signInResult)
                 val authMethod = (signInResult as SignInResult.StrongAuthMethodRegistrationRequired).authMethods[0]
 
-                // Specify a different email as verification contact.
-                val authMethodParams = NativeAuthChallengeAuthMethodParameters(authMethod)
                 val contact = tempEmailApi.generateRandomEmailAddressLocally()
-                authMethodParams.verificationContact = contact
+
+                // Specify a different email as verification contact.
+                val authMethodParams = NativeAuthChallengeAuthMethodParameters(authMethod, contact)
 
                 // Complete JIT. Verification email should be sent to the second email.
                 val challengeResult = signInResult.nextState.challengeAuthMethod(authMethodParams)
@@ -121,63 +110,6 @@ class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
 
                 // Access token is received.
                 val accountState = (submitChallengeResult as SignInResult.Complete).resultValue
-                val accountParam = NativeAuthGetAccessTokenParameters()
-                val getAccessTokenResult = accountState.getAccessToken(accountParam)
-                assertResult<GetAccessTokenResult.Complete>(getAccessTokenResult)
-                val authResult = (getAccessTokenResult as GetAccessTokenResult.Complete).resultValue
-                assertNotNull(authResult)
-            }
-        }
-    }
-
-    /**
-     * Full flow: Ensure JIT is triggered in signIn after signUp (preverified)
-     * - SignUp a new user with username and password.
-     * - SignIn after signUp with authentication context as claims to trigger MFA. // TODO: tenant setting
-     * - Check that JIT flow is triggered.
-     * - Do not specify a verification contact.
-     * - SignIn should be completed without needs to send a code to the email.
-     * - Access token is received.
-     *
-     */
-    @Ignore("Retrieving OTP code failure.")
-    @Test
-    fun `test sign after sign up without specify verification contact`()  {
-        config = getConfig(defaultConfigType)
-        application = setupPCA(config, defaultChallengeTypes, defaultCapabilities)
-        resources = config.resources
-        val authenticationContextId = "c4"
-        val authenticationContextRequestClaimJson = "{\"access_token\":{\"acrs\":{\"essential\":true,\"value\":\"$authenticationContextId\"}}}"
-
-        retryOperation {
-            runBlocking {
-                // SignUp a new user with username and password.
-                val username = tempEmailApi.generateRandomEmailAddressLocally()
-                val signUpParams = NativeAuthSignUpParameters(username)
-                signUpParams.password = getSafePassword().toCharArray()
-                val signUpResult = application.signUp(signUpParams)
-                assertResult<SignUpResult.CodeRequired>(signUpResult)
-                val otp1 = tempEmailApi.retrieveCodeFromInbox(username)
-                val submitCodeResult = (signUpResult as SignUpResult.CodeRequired).nextState.submitCode(otp1)
-                assertResult<SignUpResult.Complete>(submitCodeResult)
-
-                // SignIn after signUp with authentication context as claims to trigger MFA.
-                val continuationParameters = NativeAuthSignInContinuationParameters()
-                continuationParameters.claimsRequest = ClaimsRequest.getClaimsRequestFromJsonString(authenticationContextRequestClaimJson)
-                val signWithContinuationResult = (submitCodeResult as SignUpResult.Complete).nextState.signIn(continuationParameters)
-
-                // Check that JIT flow is triggered.
-                assertResult<SignInResult.StrongAuthMethodRegistrationRequired>(signWithContinuationResult)
-                val authMethod = (signWithContinuationResult as SignInResult.StrongAuthMethodRegistrationRequired).authMethods[0]
-                // Do not specify a verification contact.
-                val authMethodParams = NativeAuthChallengeAuthMethodParameters(authMethod)
-
-                // SignIn should be completed without needs to send a code to the email.
-                val challengeResult = signWithContinuationResult.nextState.challengeAuthMethod(authMethodParams)
-                assertResult<SignInResult.Complete>(challengeResult)
-
-                // Access token is received.
-                val accountState = (challengeResult as SignInResult.Complete).resultValue
                 val accountParam = NativeAuthGetAccessTokenParameters()
                 val getAccessTokenResult = accountState.getAccessToken(accountParam)
                 assertResult<GetAccessTokenResult.Complete>(getAccessTokenResult)
@@ -226,10 +158,11 @@ class SignInJITTest : NativeAuthPublicClientApplicationAbstractTest() {
                 // Check that JIT flow is triggered.
                 assertResult<SignInResult.StrongAuthMethodRegistrationRequired>(signWithContinuationResult)
                 val authMethod = (signWithContinuationResult as SignInResult.StrongAuthMethodRegistrationRequired).authMethods[0]
-                // Specify a different email as verification contact.
-                val authMethodParams = NativeAuthChallengeAuthMethodParameters(authMethod)
+
                 val contact = tempEmailApi.generateRandomEmailAddressLocally()
-                authMethodParams.verificationContact = contact
+
+                // Specify a different email as verification contact.
+                val authMethodParams = NativeAuthChallengeAuthMethodParameters(authMethod, contact)
 
                 // Complete JIT. Verification email should be sent to the second email.
                 val challengeResult = signWithContinuationResult.nextState.challengeAuthMethod(authMethodParams)

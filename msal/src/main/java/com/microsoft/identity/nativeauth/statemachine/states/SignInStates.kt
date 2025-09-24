@@ -85,8 +85,8 @@ class SignInCodeRequiredState internal constructor(
 
     constructor(parcel: Parcel) : this(
         continuationToken = parcel.readString()  ?: "",
-        username = parcel.readString() ?: "",
         correlationId = parcel.readString() ?: "UNSET",
+        username = parcel.readString() ?: "",
         scopes = parcel.createStringArrayList(),
         claimsRequestJson = parcel.readString(),
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
@@ -219,7 +219,6 @@ class SignInCodeRequiredState internal constructor(
                             nextState = RegisterStrongAuthState(
                                 continuationToken = result.continuationToken,
                                 correlationId = result.correlationId,
-                                username = username,
                                 config = config
                             ),
                             authMethods = result.authMethods.toListOfAuthMethods()
@@ -391,8 +390,8 @@ class SignInPasswordRequiredState(
     private val TAG: String = SignInPasswordRequiredState::class.java.simpleName
     constructor(parcel: Parcel) : this(
         continuationToken = parcel.readString()  ?: "",
-        username = parcel.readString() ?: "",
         correlationId = parcel.readString() ?: "UNSET",
+        username = parcel.readString() ?: "",
         scopes = parcel.createStringArrayList(),
         claimsRequestJson = parcel.readString(),
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
@@ -488,7 +487,6 @@ class SignInPasswordRequiredState(
                                 nextState = RegisterStrongAuthState(
                                     continuationToken = result.continuationToken,
                                     correlationId = result.correlationId,
-                                    username = username,
                                     config = config
                                 ),
                                 authMethods = result.authMethods.toListOfAuthMethods()
@@ -743,7 +741,6 @@ class SignInContinuationState(
                             nextState = RegisterStrongAuthState(
                                 continuationToken = result.continuationToken,
                                 correlationId = result.correlationId,
-                                username = username,
                                 config = config
                             ),
                             authMethods = result.authMethods.toListOfAuthMethods()
