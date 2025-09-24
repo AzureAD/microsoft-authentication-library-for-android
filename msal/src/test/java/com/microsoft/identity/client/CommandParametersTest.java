@@ -422,6 +422,7 @@ public class CommandParametersTest {
         Assert.assertEquals(commandParameters.scopes, scopes);
         Assert.assertEquals(commandParameters.challengeType, challengeTypes);
         Assert.assertEquals(commandParameters.getCorrelationId(), correlationId);
+        Assert.assertFalse(commandParameters.isMFAGrantType);
     }
 
     @Test

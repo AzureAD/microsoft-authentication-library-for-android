@@ -675,6 +675,7 @@ public class CommandParametersAdapter {
                 .continuationToken(continuationToken)
                 .authenticationScheme(authenticationScheme)
                 .challengeType(configuration.getChallengeTypes())
+                .isMFAGrantType(false)
                 .code(code)
                 .scopes(scopes)
                 .correlationId(correlationId)
