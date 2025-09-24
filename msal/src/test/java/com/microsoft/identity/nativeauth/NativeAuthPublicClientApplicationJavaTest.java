@@ -384,9 +384,7 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
         SubmitCodeError error = (SubmitCodeError)result;
         assertTrue(error.isInvalidCode());
 
-        // correlation ID field in will be null, because the mock API doesn't return this. So, we mock
-        // it's value in order to make it consistent with the subsequent call to mock API.
-        mockCorrelationId(error, correlationId);
+        correlationId = UUID.randomUUID().toString();
 
         // 3. Submit (valid) code
         // 3a. Setup server response
@@ -410,8 +408,9 @@ public class NativeAuthPublicClientApplicationJavaTest extends PublicClientAppli
             }
         };
         nextState.submitCode(code, submitCodeCallback2);
+        SignInSubmitCodeResult submitCodeSuccessResult = submitCodeResult2.get(30, TimeUnit.SECONDS);
         // 3a. Server accepts code, returns tokens
-        assertTrue(submitCodeResult2.get(30, TimeUnit.SECONDS) instanceof SignInResult.Complete);
+        assertTrue(submitCodeSuccessResult instanceof SignInResult.Complete);
     }
 
     /**
