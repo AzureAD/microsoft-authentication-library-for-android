@@ -47,16 +47,20 @@ abstract class BaseJITSubmitChallengeState(
             tag,
             "Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications."
         )
-        // if external developer does not provide a verification contact, we use the login hint
-        val verificationContact: String = parameters.verificationContact.takeIf { !it.isNullOrBlank() } ?: parameters.authMethod.loginHint
-        // Currently, only email is supported for the challengeChannel. Continuation token grant type is used only for "preverified" flow.
-        val challengeChannel = NativeAuthConstants.ChallengeChannel.EMAIL
+        if (parameters.verificationContact.isBlank()) {
+            return RegisterStrongAuthChallengeError(
+                errorType = ErrorTypes.INVALID_INPUT,
+                errorMessage = "Invalid verification contact",
+                correlationId = correlationId
+            )
+        }
+
         val params =
             CommandParametersAdapter.createJITChallengeAuthMethodCommandParameters(
                 config,
                 config.oAuth2TokenCache,
-                verificationContact,
-                challengeChannel,
+                parameters.verificationContact,
+                parameters.authMethod.challengeChannel,
                 parameters.authMethod.challengeType,
                 correlationId,
                 continuationToken,
@@ -108,6 +112,15 @@ abstract class BaseJITSubmitChallengeState(
                         errorCodes = result.errorCodes
                     )
                 }
+                is JITCommandResult.BlockedVerificationContact -> {
+                    RegisterStrongAuthChallengeError(
+                        errorType = ErrorTypes.VERIFICATION_CONTACT_BLOCKED,
+                        error = result.error,
+                        errorMessage = result.errorDescription,
+                        correlationId = result.correlationId,
+                        errorCodes = result.errorCodes
+                    )
+                }
                 is JITCommandResult.VerificationRequired -> {
                     RegisterStrongAuthChallengeResult.VerificationRequired(
                         result = NativeAuthRegisterStrongAuthVerificationRequiredResultParameter(
@@ -133,6 +146,10 @@ abstract class BaseJITSubmitChallengeState(
                 }
             }
         }
+    }
+
+    private fun isChallengeChannelSMS(challengeChannel: String): Boolean {
+        return challengeChannel.equals(NativeAuthConstants.ChallengeChannel.SMS, ignoreCase = true)
     }
 }
 

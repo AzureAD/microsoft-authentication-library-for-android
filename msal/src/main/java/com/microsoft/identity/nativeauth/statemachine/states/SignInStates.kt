@@ -76,6 +76,7 @@ import kotlinx.coroutines.withContext
 class SignInCodeRequiredState internal constructor(
     override val continuationToken: String,
     override val correlationId: String,
+    private val username: String,
     private val scopes: List<String>?,
     private val claimsRequestJson: String?,
     private val config: NativeAuthPublicClientApplicationConfiguration
@@ -85,6 +86,7 @@ class SignInCodeRequiredState internal constructor(
     constructor(parcel: Parcel) : this(
         continuationToken = parcel.readString()  ?: "",
         correlationId = parcel.readString() ?: "UNSET",
+        username = parcel.readString() ?: "",
         scopes = parcel.createStringArrayList(),
         claimsRequestJson = parcel.readString(),
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
@@ -201,6 +203,27 @@ class SignInCodeRequiredState internal constructor(
                             exception = result.exception
                         )
                     }
+                    is SignInCommandResult.MFARequired -> {
+                        SignInResult.MFARequired(
+                            nextState = AwaitingMFAState(
+                                continuationToken = result.continuationToken,
+                                correlationId = result.correlationId,
+                                scopes = scopes,
+                                config = config
+                            ),
+                            authMethods = result.authMethods.toListOfAuthMethods()
+                        )
+                    }
+                    is SignInCommandResult.StrongAuthMethodRegistrationRequired -> {
+                        SignInResult.StrongAuthMethodRegistrationRequired(
+                            nextState = RegisterStrongAuthState(
+                                continuationToken = result.continuationToken,
+                                correlationId = result.correlationId,
+                                config = config
+                            ),
+                            authMethods = result.authMethods.toListOfAuthMethods()
+                        )
+                    }
                 }
             } catch (e: Exception) {
                 SubmitCodeError(
@@ -277,6 +300,7 @@ class SignInCodeRequiredState internal constructor(
                             nextState = SignInCodeRequiredState(
                                 continuationToken = result.continuationToken,
                                 correlationId = result.correlationId,
+                                username = username,
                                 scopes = scopes,
                                 config = config,
                                 claimsRequestJson = claimsRequestJson
@@ -358,6 +382,7 @@ class SignInCodeRequiredState internal constructor(
 class SignInPasswordRequiredState(
     override val continuationToken: String,
     override val correlationId: String,
+    private val username: String,
     private val scopes: List<String>?,
     private val claimsRequestJson: String?,
     private val config: NativeAuthPublicClientApplicationConfiguration
@@ -366,6 +391,7 @@ class SignInPasswordRequiredState(
     constructor(parcel: Parcel) : this(
         continuationToken = parcel.readString()  ?: "",
         correlationId = parcel.readString() ?: "UNSET",
+        username = parcel.readString() ?: "",
         scopes = parcel.createStringArrayList(),
         claimsRequestJson = parcel.readString(),
         config = parcel.serializable<NativeAuthPublicClientApplicationConfiguration>() as NativeAuthPublicClientApplicationConfiguration
@@ -715,6 +741,17 @@ class SignInContinuationState(
                             nextState = RegisterStrongAuthState(
                                 continuationToken = result.continuationToken,
                                 correlationId = result.correlationId,
+                                config = config
+                            ),
+                            authMethods = result.authMethods.toListOfAuthMethods()
+                        )
+                    }
+                    is SignInCommandResult.MFARequired -> {
+                        SignInResult.MFARequired(
+                            nextState = AwaitingMFAState(
+                                continuationToken = result.continuationToken,
+                                correlationId = result.correlationId,
+                                scopes = parameters.scopes,
                                 config = config
                             ),
                             authMethods = result.authMethods.toListOfAuthMethods()

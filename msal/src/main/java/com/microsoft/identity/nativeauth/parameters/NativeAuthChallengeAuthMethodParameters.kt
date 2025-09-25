@@ -32,11 +32,10 @@ class NativeAuthChallengeAuthMethodParameters(
     /**
      * authentication method to challenge
      */
-    val authMethod: AuthMethod
-) {
+    val authMethod: AuthMethod,
 
     /**
-     * email to contact to register a new strong authentication method
+     * email or phone number to contact to register a new strong authentication method
      */
-    var verificationContact: String? = null
-}
+    var verificationContact: String
+)
