@@ -87,6 +87,12 @@ internal class ErrorTypes {
         const val VERIFICATION_CONTACT_BLOCKED = "verification_contact_blocked"
 
         /*
+         * The AUTH_METHOD_BLOCKED value indicates that the server blocked the strong authentication method.
+         * Try contacting customer support to seek assistance.
+         */
+        const val AUTH_METHOD_BLOCKED = "auth_method_blocked"
+
+        /*
          * The INVALID_STATE value indicates a misconfigured or expired state, or an internal error
          * in state transitions. If this occurs, the flow should be restarted.
          */
