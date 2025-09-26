@@ -24,6 +24,9 @@ class MFARequestChallengeError(
     val subError: String? = null,
     override var exception: Exception? = null
 ): MFARequiredResult, BrowserRequiredError, Error(errorType = errorType, error = error, errorMessage= errorMessage, correlationId = correlationId, errorCodes = errorCodes, exception = exception)
+{
+    fun isAuthMethodBlocked(): Boolean = this.errorType == ErrorTypes.AUTH_METHOD_BLOCKED
+}
 
 /**
  * MFA submit challenge error. The user should use the utility methods of this class

@@ -94,7 +94,7 @@ class AwaitingMFAState(
     }
 
     /**
-     * Requests a challenge to be sent to the user's default authentication method; Kotlin coroutines variant.
+     * Requests a challenge to be sent to the authentication method; Kotlin coroutines variant.
      *
      * <strong><u>Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
      * @return The result of the request challenge action.
@@ -162,6 +162,14 @@ class AwaitingMFAState(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
                             error = result.error,
                             errorMessage = result.redirectReason,
+                            correlationId = result.correlationId
+                        )
+                    }
+                    is MFACommandResult.BlockedAuthMethod -> {
+                        MFARequestChallengeError(
+                            errorType = ErrorTypes.AUTH_METHOD_BLOCKED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
                             correlationId = result.correlationId
                         )
                     }
@@ -245,7 +253,7 @@ class MFARequiredState(
     }
 
     /**
-     * Requests a challenge to be sent to the user's default authentication method; Kotlin coroutines variant.
+     * Requests a challenge to be sent to authentication method; Kotlin coroutines variant.
      *
      * <strong><u>Warning: this API is experimental. It may be changed in the future without notice. Do not use in production applications.</u></strong>
      * @param authMethod [com.microsoft.identity.nativeauth.AuthMethod] the authentication method used for the challenge operation.
@@ -315,6 +323,14 @@ class MFARequiredState(
                             errorType = ErrorTypes.BROWSER_REQUIRED,
                             error = result.error,
                             errorMessage = result.redirectReason,
+                            correlationId = result.correlationId
+                        )
+                    }
+                    is MFACommandResult.BlockedAuthMethod -> {
+                        MFARequestChallengeError(
+                            errorType = ErrorTypes.AUTH_METHOD_BLOCKED,
+                            error = result.error,
+                            errorMessage = result.errorDescription,
                             correlationId = result.correlationId
                         )
                     }
