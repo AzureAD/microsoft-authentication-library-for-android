@@ -52,7 +52,6 @@ import java.util.List;
 // If Company Portal is installed after LTW, user should still get SSO
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2571361
 @LTWTests
-@RunOnAPI29Minus
 @RetryOnFailure
 @SupportedBrokers(brokers = {BrokerLTW.class})
 @RunWith(Parameterized.class)
