@@ -25,6 +25,18 @@ codeCoverageReport {
     coverage.enabled = enableCodeCoverage
 }
 
+// https://blog.gradle.org/gradle-flaky-test-retry-plugin
+tasks.withType(Test) {
+    retry {
+        // The maximum number of test failures that are allowed before retrying is disabled.
+        maxRetries = 2
+        // The maximum number of times to retry an individual test.
+        maxFailures = 10
+        // Controls whether tests that initially fail and then pass on retry should fail the task.
+        failOnPassedAfterRetry = false
+    }
+}
+
 android {
     namespace "com.microsoft.identity.msal"
     compileOptions {

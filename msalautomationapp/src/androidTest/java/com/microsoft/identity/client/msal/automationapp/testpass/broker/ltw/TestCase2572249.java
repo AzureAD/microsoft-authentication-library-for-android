@@ -51,7 +51,6 @@ import java.util.List;
 //  Updated LTW, Updated Auth app and uninstall LTW
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2572249
 @LTWTests
-@RunOnAPI29Minus
 @SupportedBrokers(brokers = {BrokerLTW.class})
 @RunWith(Parameterized.class)
 public class TestCase2572249 extends AbstractMsalBrokerTest {
