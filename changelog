@@ -2,6 +2,10 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 
 vNext
 ----------
+
+Version 8.0.0-RC1
+----------
+- [PATCH] Update common @23.0.0-RC1
 - [MAJOR] Update proguard rules (#2372)
 - [MINOR] SDK now handles SMS as strong authentication method (#2382)
 - [MINOR] Awaiting MFA Delegate now automatically returns the AuthMethods to be used when calling MFA Challenge (#2380)
