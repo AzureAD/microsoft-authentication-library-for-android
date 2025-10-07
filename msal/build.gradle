@@ -5,6 +5,9 @@ plugins {
     id 'checkstyle'
     id 'maven-publish'
     id 'kotlin-android'
+
+    // Test retries
+    id 'org.gradle.test-retry' version '1.5.6'
 }
 
 apply from: 'versioning/version_tasks.gradle'
