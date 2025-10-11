@@ -28,7 +28,6 @@ import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
 import com.microsoft.identity.client.ui.automation.annotations.RetryOnFailure;
-import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
 import com.microsoft.identity.client.ui.automation.app.OneAuthTestApp;
@@ -52,7 +51,6 @@ import java.util.List;
 // If Company Portal is installed after LTW, user should still get SSO
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2571361
 @LTWTests
-@RunOnAPI29Minus
 @RetryOnFailure
 @SupportedBrokers(brokers = {BrokerLTW.class})
 @RunWith(Parameterized.class)
