@@ -169,7 +169,4 @@ class ConcurrentAcquireTokenExecutor(
         }
     }
 
-    fun shutdown() {
-        stop()
-    }
 }
