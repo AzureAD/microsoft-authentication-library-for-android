@@ -28,7 +28,6 @@ import com.microsoft.identity.client.msal.automationapp.BuildConfig;
 import com.microsoft.identity.client.msal.automationapp.R;
 import com.microsoft.identity.client.msal.automationapp.testpass.broker.AbstractMsalBrokerTest;
 import com.microsoft.identity.client.ui.automation.annotations.LTWTests;
-import com.microsoft.identity.client.ui.automation.annotations.RunOnAPI29Minus;
 import com.microsoft.identity.client.ui.automation.annotations.SupportedBrokers;
 import com.microsoft.identity.client.ui.automation.app.MsalTestApp;
 import com.microsoft.identity.client.ui.automation.app.OneAuthTestApp;
@@ -51,7 +50,6 @@ import java.util.List;
 //  Updated LTW, Updated Auth app and uninstall LTW
 // https://identitydivision.visualstudio.com/Engineering/_workitems/edit/2572249
 @LTWTests
-@RunOnAPI29Minus
 @SupportedBrokers(brokers = {BrokerLTW.class})
 @RunWith(Parameterized.class)
 public class TestCase2572249 extends AbstractMsalBrokerTest {
