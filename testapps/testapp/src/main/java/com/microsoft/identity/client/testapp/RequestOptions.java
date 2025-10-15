@@ -35,7 +35,7 @@ import lombok.experimental.Accessors;
 @Getter
 @Accessors(prefix = "m")
 @AllArgsConstructor
-class RequestOptions {
+public class RequestOptions {
     private final Constants.ConfigFile mConfigFile;
     private final String mLoginHint;
     private final IAccount mAccount;
@@ -52,4 +52,8 @@ class RequestOptions {
     private final String mPopResourceUrl;
     private final String mPoPClientClaims;
     private final boolean mAllowSignInFromOtherDevice;
+
+    public Constants.ConfigFile getConfigFile(){
+        return mConfigFile;
+    }
 }
