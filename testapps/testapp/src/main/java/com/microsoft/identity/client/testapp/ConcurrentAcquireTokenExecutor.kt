@@ -58,11 +58,17 @@ class ConcurrentAcquireTokenExecutor(
             object : INotifyOperationResultCallback<MsalWrapper?> {
                 override fun onSuccess(result: MsalWrapper?) {
                     // Start the first iteration immediately (no initial sleep)
-                    executeAcquireTokenSilent(result!!,
-                        0,
-                        0,
-                        requestOptions,
-                        uiCallback)
+                    if (result != null) {
+                        executeAcquireTokenSilent(result,
+                            0,
+                            0,
+                            requestOptions,
+                            uiCallback)
+                    } else {
+                        // Handle the null case appropriately, e.g., notify UI or log error
+                        // For now, we'll notify the UI that the operation has stopped
+                        uiCallback.onStopped(threadId)
+                    }
                 }
 
                 override fun showMessage(message: String?) {
