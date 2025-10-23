@@ -177,8 +177,8 @@ abstract class MsalWrapper {
         final AuthorizationAgent authorizationAgent = getApp().getConfiguration().getAuthorizationAgent();
         if (getApp().getConfiguration().isWebauthnCapable()
                 && FidoConstants.PASSKEY_PROTOCOL_VERSION_1_1.equals(webauthnVersion)
-                && Environment.PreProduction == environment
-                && AuthorizationAgent.WEBVIEW == authorizationAgent) {
+                && Environment.PreProduction.equals(environment)
+                && AuthorizationAgent.WEBVIEW.equals(authorizationAgent)) {
             extraQP.add(new AbstractMap.SimpleEntry<>("msaoauth2", Boolean.toString(true)));
         }
 
