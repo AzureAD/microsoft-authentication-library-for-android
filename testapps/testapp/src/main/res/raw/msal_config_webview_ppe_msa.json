@@ -3,6 +3,7 @@
   "authorization_user_agent" : "WEBVIEW",
   "redirect_uri" : "msauth://com.msft.identity.client.sample.local/1wIqXSqBj7w%2Bh11ZifsnqwgyKrY%3D",
   "webauthn_capable" : true,
+  "webauthn_version" : "1.1",
   "environment" : "PreProduction",
   "authorities" : [
     {

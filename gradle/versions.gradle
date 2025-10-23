@@ -80,6 +80,7 @@ ext {
     AndroidCredentialsVersion="1.2.2"
     LegacyFidoApiVersion="20.1.0"
     GoogleIdVersion="1.1.0"
+    webkitVersion="1.14.0"
 
     // microsoft-diagnostics-uploader app versions
     powerliftVersion = "0.14.7"

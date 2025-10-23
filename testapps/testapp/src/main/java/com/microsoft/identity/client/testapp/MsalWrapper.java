@@ -26,8 +26,11 @@ import com.microsoft.identity.client.exception.MsalException;
 import com.microsoft.identity.client.exception.MsalServiceException;
 import com.microsoft.identity.client.exception.MsalUiRequiredException;
 import com.microsoft.identity.common.internal.ui.browser.AndroidBrowserSelector;
+import com.microsoft.identity.common.java.authorities.Environment;
 import com.microsoft.identity.common.java.browser.Browser;
+import com.microsoft.identity.common.java.constants.FidoConstants;
 import com.microsoft.identity.common.java.exception.BaseException;
+import com.microsoft.identity.common.java.ui.AuthorizationAgent;
 import com.microsoft.identity.common.java.ui.PreferredAuthMethod;
 import com.microsoft.identity.common.java.util.StringUtil;
 
@@ -167,6 +170,18 @@ abstract class MsalWrapper {
         if (requestOptions.isAllowSignInFromOtherDevice()) {
             extraQP.add(new AbstractMap.SimpleEntry<>("is_remote_login_allowed", Boolean.toString(true)));
         }
+
+        // Add "msaoauth2=true" to test WebAuthN on WebView PPE
+        final String webauthnVersion = getApp().getConfiguration().webauthnVersion();
+        final Environment environment = getApp().getConfiguration().getEnvironment();
+        final AuthorizationAgent authorizationAgent = getApp().getConfiguration().getAuthorizationAgent();
+        if (getApp().getConfiguration().isWebauthnCapable()
+                && FidoConstants.PASSKEY_PROTOCOL_VERSION_1_1.equals(webauthnVersion)
+                && Environment.PreProduction == environment
+                && AuthorizationAgent.WEBVIEW == authorizationAgent) {
+            extraQP.add(new AbstractMap.SimpleEntry<>("msaoauth2", Boolean.toString(true)));
+        }
+
         builder.withAuthorizationQueryStringParameters(extraQP);
 
         if (!StringUtil.isNullOrEmpty(requestOptions.getAuthority())) {
