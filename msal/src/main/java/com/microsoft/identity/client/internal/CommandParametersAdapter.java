@@ -1432,7 +1432,11 @@ public class CommandParametersAdapter {
             return false;
         }
 
-        return queryParameters.stream()
-                .anyMatch(entry -> queryParameter.equals(entry.getKey()));
+        for (Map.Entry<String, String> entry : queryParameters) {
+            if (queryParameter.equals(entry.getKey())) {
+                return true;
+            }
+        }
+        return false;
     }
 }
