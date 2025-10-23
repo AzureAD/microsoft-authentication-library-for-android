@@ -1395,7 +1395,7 @@ public class CommandParametersAdapter {
 
         // Skip if not using WebView authorization agent
         if (!AuthorizationAgent.WEBVIEW.equals(configuration.getAuthorizationAgent())) {
-            Logger.warn(methodTag, "Skipping passkey header: Authorization agent is not WebView.");
+            Logger.info(methodTag, "Skipping passkey header: Authorization agent is not WebView.");
             return headers;
         }
 
