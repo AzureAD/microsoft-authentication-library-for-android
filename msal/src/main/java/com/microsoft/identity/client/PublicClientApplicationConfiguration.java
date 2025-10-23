@@ -437,7 +437,7 @@ public class PublicClientApplicationConfiguration {
         return Boolean.TRUE.equals(webauthnCapable);
     }
 
-    public String webauthnVersion() {
+    public String getWebauthnVersion() {
         return webauthnVersion;
     }
 

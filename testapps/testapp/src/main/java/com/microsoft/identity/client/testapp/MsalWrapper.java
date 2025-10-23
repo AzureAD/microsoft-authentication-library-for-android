@@ -172,7 +172,7 @@ abstract class MsalWrapper {
         }
 
         // Add "msaoauth2=true" to test WebAuthN on WebView PPE
-        final String webauthnVersion = getApp().getConfiguration().webauthnVersion();
+        final String webauthnVersion = getApp().getConfiguration().getWebauthnVersion();
         final Environment environment = getApp().getConfiguration().getEnvironment();
         final AuthorizationAgent authorizationAgent = getApp().getConfiguration().getAuthorizationAgent();
         if (getApp().getConfiguration().isWebauthnCapable()
