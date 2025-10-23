@@ -1400,7 +1400,8 @@ public class CommandParametersAdapter {
             return headers;
         }
 
-        // Add header only if version is 1.1
+        // Add header only if version is 1.1,
+        // By default, version is 1.0 and no header is added.
         if (FidoConstants.PASSKEY_PROTOCOL_VERSION_1_1.equals(configuration.webauthnVersion())) {
             headers.put(FidoConstants.PASSKEY_PROTOCOL_HEADER_NAME, FidoConstants.PASSKEY_PROTOCOL_HEADER_AUTH_AND_REG);
             Logger.info(methodTag, "Passkey header added for WebAuthn version 1.1");
