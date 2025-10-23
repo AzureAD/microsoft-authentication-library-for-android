@@ -1389,13 +1389,11 @@ public class CommandParametersAdapter {
 
         // Passkey functionality requires Android 9 (Pie) or higher
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
-            Logger.warn(methodTag, "Passkey headers not added: requires Android 9 (Pie) or higher.");
             return headers;
         }
 
         // Skip if not using WebView authorization agent
         if (!AuthorizationAgent.WEBVIEW.equals(configuration.getAuthorizationAgent())) {
-            Logger.info(methodTag, "Skipping passkey header: Authorization agent is not WebView.");
             return headers;
         }
 
@@ -1403,7 +1401,6 @@ public class CommandParametersAdapter {
         // Skip if no webauthn query parameter and the configuration isn't webauthn-capable
         if (!containsQueryParameter(queryStringParameters, FidoConstants.WEBAUTHN_QUERY_PARAMETER_FIELD)
                 && !configuration.isWebauthnCapable()) {
-            Logger.info(methodTag, "Skipping passkey header: not WebAuthn-capable or missing query parameter.");
             return headers;
         }
 
@@ -1411,7 +1408,7 @@ public class CommandParametersAdapter {
         // By default, version is 1.0 and no header is added.
         if (FidoConstants.PASSKEY_PROTOCOL_VERSION_1_1.equals(configuration.getWebauthnVersion())) {
             headers.put(FidoConstants.PASSKEY_PROTOCOL_HEADER_NAME, FidoConstants.PASSKEY_PROTOCOL_HEADER_AUTH_AND_REG);
-            Logger.info(methodTag, "Passkey header added for WebAuthn version 1.1");
+            Logger.verbose(methodTag, "Passkey header added for WebAuthn version 1.1");
         }
 
         return headers;
