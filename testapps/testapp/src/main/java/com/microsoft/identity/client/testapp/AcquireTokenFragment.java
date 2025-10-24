@@ -725,6 +725,10 @@ public class AcquireTokenFragment extends Fragment {
         });
     }
 
+    /**
+     * Concurrent AcquireTokenSilent
+     * Note: In order for this to work, the build config shouldSkipSilentTokenCommandCacheForStressTest must be set to true.
+     */
     private void runConcurrentAcquireTokenSilent() {
         try {
             final int concurrency = Integer.parseInt(mConcurrentCount.getText().toString());
