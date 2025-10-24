@@ -1399,41 +1399,48 @@ public class CommandParametersAdapter {
 
 
         // Skip if no webauthn query parameter and the configuration isn't webauthn-capable
-        if (!containsQueryParameter(queryStringParameters, FidoConstants.WEBAUTHN_QUERY_PARAMETER_FIELD)
-                && !configuration.isWebauthnCapable()) {
+        if (!containsValidWebAuth(queryStringParameters) && !configuration.isWebauthnCapable()) {
             return headers;
         }
 
-        // Add header only if version is 1.1,
-        // By default, version is 1.0 and no header is added.
-        if (FidoConstants.PASSKEY_PROTOCOL_VERSION_1_1.equals(configuration.getWebauthnVersion())) {
-            headers.put(FidoConstants.PASSKEY_PROTOCOL_HEADER_NAME, FidoConstants.PASSKEY_PROTOCOL_HEADER_AUTH_AND_REG);
-            Logger.verbose(methodTag, "Passkey header added for WebAuthn version 1.1");
+        switch (configuration.getWebauthnVersion()) {
+            case FidoConstants.PASSKEY_PROTOCOL_VERSION_1_0:
+                headers.put(FidoConstants.PASSKEY_PROTOCOL_HEADER_NAME, FidoConstants.PASSKEY_PROTOCOL_HEADER_AUTH_AND_REG);
+                Logger.verbose(methodTag, "Passkey header added for WebAuthn version 1.0");
+                break;
+            case FidoConstants.PASSKEY_PROTOCOL_VERSION_1_1:
+                headers.put(FidoConstants.PASSKEY_PROTOCOL_HEADER_NAME, FidoConstants.PASSKEY_PROTOCOL_HEADER_AUTH_AND_REG);
+                Logger.verbose(methodTag, "Passkey header added for WebAuthn version 1.1");
+                break;
+            default:
+                Logger.verbose(methodTag, "No valid WebAuthn version specified; no passkey header added.");
+                break;
         }
 
         return headers;
     }
 
     /**
-     * Checks if a query parameter key exists in the list.
+     * Determines whether the given list of query parameters contains a valid WebAuthn entry.
      *
-     * @param queryParameters List of query parameters to search.
-     * @param queryParameter The parameter key to find.
-     * @return true if found, false otherwise.
+     * @param queryParameters the list of query parameters to inspect, may be null.
+     * @return {@code true} if a parameter with both the expected WebAuthn key and value is found; {@code false} otherwise.
      */
-    private static boolean containsQueryParameter(
-            @Nullable final List<Map.Entry<String, String>> queryParameters,
-            @NonNull final String queryParameter) {
+    private static boolean containsValidWebAuth(
+            @Nullable final List<Map.Entry<String, String>> queryParameters) {
 
         if (queryParameters == null || queryParameters.isEmpty()) {
             return false;
         }
 
         for (Map.Entry<String, String> entry : queryParameters) {
-            if (queryParameter.equals(entry.getKey())) {
+            if (FidoConstants.WEBAUTHN_QUERY_PARAMETER_FIELD.equals(entry.getKey())
+                    && FidoConstants.WEBAUTHN_QUERY_PARAMETER_VALUE.equals(entry.getValue())) {
                 return true;
             }
         }
+
         return false;
     }
+    
 }

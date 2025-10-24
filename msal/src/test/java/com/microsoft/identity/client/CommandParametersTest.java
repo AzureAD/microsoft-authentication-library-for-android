@@ -47,6 +47,7 @@ import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInS
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.SignInWithContinuationTokenCommandParameters;
 import com.microsoft.identity.common.java.providers.oauth2.OAuth2TokenCache;
 import com.microsoft.identity.common.java.exception.ClientException;
+import com.microsoft.identity.common.java.ui.AuthorizationAgent;
 import com.microsoft.identity.common.java.ui.PreferredAuthMethod;
 import com.microsoft.identity.msal.R;
 import com.microsoft.identity.nativeauth.NativeAuthPublicClientApplicationConfiguration;
@@ -364,6 +365,81 @@ public class CommandParametersTest {
         Assert.assertNotNull(combinedQueryParameters);
         Assert.assertEquals(combinedQueryParameters.size(), 1);
     }
+
+
+    @Test
+    @Config(sdk=28)
+    public void testPasskeyHeader_AddedWhenWebAuthnConfigurationEnabled() throws ClientException {
+        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter
+                .createInteractiveTokenCommandParameters(
+                        getConfiguration(WEBAUTHN_CAPABLE_CONFIG_FILE),
+                        getCache(),
+                        getAcquireTokenParametersWithClaims()
+                );
+        Assert.assertTrue(commandParameters
+                .getRequestHeaders()
+                .containsKey(FidoConstants.PASSKEY_PROTOCOL_HEADER_NAME)
+        );
+        Assert.assertEquals(
+                FidoConstants.PASSKEY_PROTOCOL_HEADER_AUTH_AND_REG,
+                commandParameters.getRequestHeaders().get(FidoConstants.PASSKEY_PROTOCOL_HEADER_NAME)
+        );
+    }
+
+    @Test
+    @Config(sdk=28)
+    public void testPasskeyHeader_NotAddedWhenAuthorizationAgentIsDefault() throws ClientException {
+        PublicClientApplicationConfiguration mockConfig = Mockito.spy(getConfiguration(WEBAUTHN_CAPABLE_CONFIG_FILE));
+        Mockito.when(mockConfig.getAuthorizationAgent()).thenReturn(AuthorizationAgent.DEFAULT);
+
+        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter
+                .createInteractiveTokenCommandParameters(
+                        mockConfig,
+                        getCache(),
+                        getAcquireTokenParametersWithClaims()
+                );
+        Assert.assertFalse(commandParameters
+                .getRequestHeaders()
+                .containsKey(FidoConstants.PASSKEY_PROTOCOL_HEADER_NAME)
+        );
+    }
+
+    @Test
+    @Config(sdk=28)
+    public void testPasskeyHeader_NotAddedWhenWebAuthnNotCapable() throws ClientException {
+        PublicClientApplicationConfiguration mockConfig = Mockito.spy(getConfiguration(WEBAUTHN_CAPABLE_CONFIG_FILE));
+        Mockito.when(mockConfig.isWebauthnCapable()).thenReturn(false);
+
+        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter
+                .createInteractiveTokenCommandParameters(
+                        mockConfig,
+                        getCache(),
+                        getAcquireTokenParametersWithClaims()
+                );
+        Assert.assertFalse(commandParameters
+                .getRequestHeaders()
+                .containsKey(FidoConstants.PASSKEY_PROTOCOL_HEADER_NAME)
+        );
+    }
+
+    @Test
+    @Config(sdk=28)
+    public void testPasskeyHeader_NotAddedWhenWebAuthnVersionUnsupported() throws ClientException {
+        PublicClientApplicationConfiguration mockConfig = Mockito.spy(getConfiguration(WEBAUTHN_CAPABLE_CONFIG_FILE));
+        Mockito.when(mockConfig.getWebauthnVersion()).thenReturn("3.0");
+
+        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter
+                .createInteractiveTokenCommandParameters(
+                        mockConfig,
+                        getCache(),
+                        getAcquireTokenParametersWithClaims()
+                );
+        Assert.assertFalse(commandParameters
+                .getRequestHeaders()
+                .containsKey(FidoConstants.PASSKEY_PROTOCOL_HEADER_NAME)
+        );
+    }
+
 
     @Test
     public void testCreateSignInStartCommandParameters_CommandParamsContainsExpectedParams() throws ClientException {
