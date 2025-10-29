@@ -192,6 +192,7 @@ public class CommandParametersAdapter {
                         parameters.getExtraQueryStringParameters(),
                         configuration))
                 .loginHint(getLoginHint(parameters))
+                .domainHint(getDomainHint(parameters))
                 .account(parameters.getAccountRecord())
                 .authenticationScheme(authenticationScheme)
                 .authorizationAgent(getAuthorizationAgent(configuration))
@@ -1282,6 +1283,10 @@ public class CommandParametersAdapter {
         } else {
             return parameters.getLoginHint();
         }
+    }
+
+    private static String getDomainHint(@NonNull final AcquireTokenParameters parameters) {
+        return parameters.getDomainHint();
     }
 
     private static AuthorizationAgent getAuthorizationAgent(@NonNull final PublicClientApplicationConfiguration configuration) {
