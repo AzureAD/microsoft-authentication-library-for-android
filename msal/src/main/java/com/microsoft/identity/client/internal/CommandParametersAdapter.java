@@ -1403,6 +1403,10 @@ public class CommandParametersAdapter {
             return headers;
         }
 
+        if (configuration.getWebauthnVersion() == null) {
+            return headers;
+        }
+
         switch (configuration.getWebauthnVersion()) {
             case FidoConstants.PASSKEY_PROTOCOL_VERSION_1_0:
                 headers.put(FidoConstants.PASSKEY_PROTOCOL_HEADER_NAME, FidoConstants.PASSKEY_PROTOCOL_HEADER_AUTH_AND_REG);
@@ -1413,7 +1417,7 @@ public class CommandParametersAdapter {
                 Logger.verbose(methodTag, "Passkey header added for WebAuthn version 1.1");
                 break;
             default:
-                Logger.verbose(methodTag, "No valid WebAuthn version specified; no passkey header added.");
+                Logger.verbose(methodTag, "Unsupported WebAuthn version: " + configuration.getWebauthnVersion());
                 break;
         }
 
