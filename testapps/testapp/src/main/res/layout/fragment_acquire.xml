@@ -661,8 +661,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:paddingTop="5dp"
-            android:paddingBottom="5dp"
-            android:weightSum="10">
+            android:paddingBottom="5dp">
 
             <Button
                 android:id="@+id/btn_acquiretokenWithDeviceCodeFlow"
@@ -746,5 +745,103 @@
                 android:text="@string/get_preferred_auth_method" />
         </LinearLayout>
 
+        <!-- Concurrent AcquireTokenSilent Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Concurrent AcquireTokenSilent"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:paddingTop="10dp"
+            android:paddingBottom="5dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Note: In order for this to work, the build config shouldSkipSilentTokenCommandCacheForStressTest must be set to true."
+            android:textSize="12sp"
+            android:textStyle="italic"
+            android:paddingBottom="5dp"
+            android:textColor="#666666" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:weightSum="10">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:text="Concurrency" />
+
+            <EditText
+                android:id="@+id/concurrent_count"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="7"
+                android:inputType="number"
+                android:text="5"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:weightSum="10">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:text="Total Count" />
+
+            <EditText
+                android:id="@+id/concurrent_total_count"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="7"
+                android:inputType="number"
+                android:text="10"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:weightSum="10">
+
+            <Button
+                android:id="@+id/btn_run_concurrent"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="5"
+                android:text="Run Concurrent" />
+
+            <Button
+                android:id="@+id/btn_stop_concurrent"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="5"
+                android:text="Stop Concurrent" />
+        </LinearLayout>
+
+        <!-- Per-thread progress container -->
+        <LinearLayout
+            android:id="@+id/concurrent_thread_progress_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp" />
     </LinearLayout>
 </ScrollView>
