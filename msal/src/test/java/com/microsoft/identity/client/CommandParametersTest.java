@@ -440,6 +440,28 @@ public class CommandParametersTest {
         );
     }
 
+    @Test
+    @Config(sdk=28)
+    public void testPasskeyHeader_NotAddedWhenWebAuthnVersion1_0() throws ClientException {
+        PublicClientApplicationConfiguration mockConfig = Mockito.spy(getConfiguration(WEBAUTHN_CAPABLE_CONFIG_FILE));
+        Mockito.when(mockConfig.getWebauthnVersion()).thenReturn("1.0");
+
+        InteractiveTokenCommandParameters commandParameters = CommandParametersAdapter
+                .createInteractiveTokenCommandParameters(
+                        mockConfig,
+                        getCache(),
+                        getAcquireTokenParametersWithClaims()
+                );
+        Assert.assertTrue(commandParameters
+                .getRequestHeaders()
+                .containsKey(FidoConstants.PASSKEY_PROTOCOL_HEADER_NAME)
+        );
+        Assert.assertEquals(
+                FidoConstants.PASSKEY_PROTOCOL_HEADER_AUTH_ONLY,
+                commandParameters.getRequestHeaders().get(FidoConstants.PASSKEY_PROTOCOL_HEADER_NAME)
+        );
+    }
+
 
     @Test
     public void testCreateSignInStartCommandParameters_CommandParamsContainsExpectedParams() throws ClientException {

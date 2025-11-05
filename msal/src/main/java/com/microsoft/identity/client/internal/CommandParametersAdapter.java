@@ -1414,7 +1414,7 @@ public class CommandParametersAdapter {
 
         switch (configuration.getWebauthnVersion()) {
             case FidoConstants.PASSKEY_PROTOCOL_VERSION_1_0:
-                headers.put(FidoConstants.PASSKEY_PROTOCOL_HEADER_NAME, FidoConstants.PASSKEY_PROTOCOL_HEADER_AUTH_AND_REG);
+                headers.put(FidoConstants.PASSKEY_PROTOCOL_HEADER_NAME, FidoConstants.PASSKEY_PROTOCOL_HEADER_AUTH_ONLY);
                 Logger.verbose(methodTag, "Passkey header added for WebAuthn version 1.0");
                 break;
             case FidoConstants.PASSKEY_PROTOCOL_VERSION_1_1:
