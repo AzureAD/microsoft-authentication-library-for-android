@@ -56,7 +56,9 @@ public class Constants {
         WEBVIEW_WITH_PPE,
 
         WEBVIEW_PPE_MSA,
-        ONEBOX
+        ONEBOX,
+
+        WEBVIEW_MSA_PASSKEY_REG
     }
 
     public static int getResourceIdFromConfigFile(ConfigFile configFile) {
@@ -124,6 +126,10 @@ public class Constants {
 
             case ONEBOX:
                 return R.raw.msal_config_onebox;
+
+            case WEBVIEW_MSA_PASSKEY_REG:
+                return R.raw.msal_config_webview_msa_passkey_reg;
+
         }
 
         return R.raw.msal_config_default;
