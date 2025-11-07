@@ -25,6 +25,7 @@ package com.microsoft.identity.client.internal;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.Build;
 
 import com.microsoft.identity.client.AcquireTokenParameters;
 import com.microsoft.identity.client.AcquireTokenSilentParameters;
@@ -33,6 +34,7 @@ import com.microsoft.identity.client.IAccount;
 import com.microsoft.identity.client.ITenantProfile;
 import com.microsoft.identity.client.MultiTenantAccount;
 import com.microsoft.identity.common.internal.platform.AndroidPlatformUtil;
+import com.microsoft.identity.common.java.constants.FidoConstants;
 import com.microsoft.identity.common.java.logging.DiagnosticContext;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.JITChallengeAuthMethodCommandParameters;
 import com.microsoft.identity.common.java.nativeauth.commands.parameters.JITContinueCommandParameters;
@@ -86,6 +88,7 @@ import com.microsoft.identity.common.logging.Logger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -204,6 +207,7 @@ public class CommandParametersAdapter {
                 .powerOptCheckEnabled(configuration.isPowerOptCheckForEnabled())
                 .correlationId(parameters.getCorrelationId())
                 .preferredAuthMethod(parameters.getPreferredAuthMethod())
+                .requestHeaders(addPasskeyHeader(parameters.getExtraQueryStringParameters(), configuration))
                 .build();
     }
 
@@ -1371,4 +1375,81 @@ public class CommandParametersAdapter {
         ArrayList<Map.Entry<String, String>> result = queryStringParameters != null ? new ArrayList<>(queryStringParameters) : new ArrayList<>();
         return AndroidPlatformUtil.updateWithOrDeleteWebAuthnParam(result, configuration.isWebauthnCapable());
     }
+
+
+    /**
+     * Adds passkey protocol headers if WebAuthn is enabled and supported (Android 9+, version 1.1).
+     *
+     * @param queryStringParameters Query parameters from the authentication request.
+     * @param configuration Application configuration with WebAuthn settings.
+     * @return HashMap with passkey headers if conditions are met, otherwise empty.
+     */
+    @NonNull
+    private static HashMap<String, String> addPasskeyHeader(
+            @Nullable final List<Map.Entry<String, String>> queryStringParameters,
+            @NonNull final PublicClientApplicationConfiguration configuration) {
+
+        final String methodTag = TAG + ":addPasskeyHeader";
+        final HashMap<String, String> headers = new HashMap<>();
+
+        // Passkey functionality requires Android 9 (Pie) or higher
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+            return headers;
+        }
+
+        // Skip if not using WebView authorization agent
+        if (!AuthorizationAgent.WEBVIEW.equals(configuration.getAuthorizationAgent())) {
+            return headers;
+        }
+
+
+        // Skip if no webauthn query parameter and the configuration isn't webauthn-capable
+        if (!containsValidWebAuth(queryStringParameters) && !configuration.isWebauthnCapable()) {
+            return headers;
+        }
+
+        if (configuration.getWebauthnVersion() == null) {
+            return headers;
+        }
+
+        switch (configuration.getWebauthnVersion()) {
+            case FidoConstants.PASSKEY_PROTOCOL_VERSION_1_0:
+                headers.put(FidoConstants.PASSKEY_PROTOCOL_HEADER_NAME, FidoConstants.PASSKEY_PROTOCOL_HEADER_AUTH_ONLY);
+                Logger.verbose(methodTag, "Passkey header added for WebAuthn version 1.0");
+                break;
+            case FidoConstants.PASSKEY_PROTOCOL_VERSION_1_1:
+                headers.put(FidoConstants.PASSKEY_PROTOCOL_HEADER_NAME, FidoConstants.PASSKEY_PROTOCOL_HEADER_AUTH_AND_REG);
+                Logger.verbose(methodTag, "Passkey header added for WebAuthn version 1.1");
+                break;
+            default:
+                Logger.verbose(methodTag, "Unsupported WebAuthn version: " + configuration.getWebauthnVersion());
+                break;
+        }
+
+        return headers;
+    }
+
+    /**
+     * Determines whether the given list of query parameters contains a valid WebAuthn entry.
+     *
+     * @param queryParameters the list of query parameters to inspect, may be null.
+     * @return {@code true} if a parameter with both the expected WebAuthn key and value is found; {@code false} otherwise.
+     */
+    private static boolean containsValidWebAuth(
+            @Nullable final List<Map.Entry<String, String>> queryParameters) {
+
+        if (queryParameters == null || queryParameters.isEmpty()) {
+            return false;
+        }
+
+        for (Map.Entry<String, String> entry : queryParameters) {
+            if (FidoConstants.WEBAUTHN_QUERY_PARAMETER_FIELD.equals(entry.getKey())
+                    && FidoConstants.WEBAUTHN_QUERY_PARAMETER_VALUE.equals(entry.getValue())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+    
 }
