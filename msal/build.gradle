@@ -138,6 +138,14 @@ android {
         }
     }
 
+    libraryVariants.all { variant ->
+        tasks.named("assemble${variant.name.capitalize()}").configure {
+            doFirst {
+                println("Assembling variant: ${variant.name} for ${project.name}")
+            }
+        }
+    }
+
     testOptions {
         unitTests.all {
             if (!project.hasProperty('labtest')) {
