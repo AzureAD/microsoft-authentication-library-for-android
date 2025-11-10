@@ -82,8 +82,9 @@ interface SignInResult : Result {
      * @param nextState [com.microsoft.identity.nativeauth.statemachine.states.AwaitingMFAState] the current state of the flow with follow-on methods.
      */
     class MFARequired(
-        override val nextState: AwaitingMFAState
-    ) : SignInResult, Result.SuccessResult(nextState = nextState), SignInSubmitPasswordResult
+        override val nextState: AwaitingMFAState,
+        val authMethods: List<AuthMethod>
+    ) : Result.SuccessResult(nextState = nextState), SignInResult, SignInSubmitPasswordResult, SignInSubmitCodeResult
 
     /**
      * StrongAuthMethodRegistration Result, which indicates that a registration of a strong authentication method is required to continue.
@@ -94,7 +95,7 @@ interface SignInResult : Result {
     class StrongAuthMethodRegistrationRequired(
         override val nextState: RegisterStrongAuthState,
         val authMethods: List<AuthMethod>
-    ) : SignInResult, SignInSubmitPasswordResult, Result.SuccessResult(nextState = nextState)
+    ) : Result.SuccessResult(nextState = nextState), SignInResult, SignInSubmitPasswordResult, SignInSubmitCodeResult
 }
 
 /**

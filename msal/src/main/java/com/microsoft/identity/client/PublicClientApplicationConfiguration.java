@@ -41,6 +41,7 @@ import static com.microsoft.identity.client.PublicClientApplicationConfiguration
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.TELEMETRY;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.USE_BROKER;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEBAUTHN_CAPABLE;
+import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEBAUTHN_VERSION;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEB_VIEW_ZOOM_CONTROLS_ENABLED;
 import static com.microsoft.identity.client.PublicClientApplicationConfiguration.SerializedNames.WEB_VIEW_ZOOM_ENABLED;
 import static com.microsoft.identity.client.exception.MsalClientException.APP_MANIFEST_VALIDATION_ERROR;
@@ -114,6 +115,8 @@ public class PublicClientApplicationConfiguration {
         static final String HANDLE_TASKS_WITH_NULL_TASKAFFINITY = "handle_null_taskaffinity";
         static final String AUTHORIZATION_IN_CURRENT_TASK = "authorization_in_current_task";
         static final String WEBAUTHN_CAPABLE = "webauthn_capable";
+        static final String WEBAUTHN_VERSION = "webauthn_version";
+
     }
 
     @SerializedName(CLIENT_ID)
@@ -186,6 +189,10 @@ public class PublicClientApplicationConfiguration {
      */
     @SerializedName(WEBAUTHN_CAPABLE)
     private Boolean webauthnCapable;
+
+
+    @SerializedName(WEBAUTHN_VERSION)
+    private String webauthnVersion;
 
     transient private OAuth2TokenCache mOAuth2TokenCache;
 
@@ -430,6 +437,10 @@ public class PublicClientApplicationConfiguration {
         return Boolean.TRUE.equals(webauthnCapable);
     }
 
+    public String getWebauthnVersion() {
+        return webauthnVersion;
+    }
+
     public Authority getDefaultAuthority() {
         if (mAuthorities != null) {
             if (mAuthorities.size() > 1) {
@@ -515,6 +526,8 @@ public class PublicClientApplicationConfiguration {
         this.handleNullTaskAffinity = config.handleNullTaskAffinity == null ? this.handleNullTaskAffinity : config.handleNullTaskAffinity;
         this.isAuthorizationInCurrentTask = config.isAuthorizationInCurrentTask == null ? this.isAuthorizationInCurrentTask : config.isAuthorizationInCurrentTask;
         this.webauthnCapable = config.webauthnCapable == null ? this.webauthnCapable : config.webauthnCapable;
+        this.webauthnVersion = config.webauthnVersion == null ? this.webauthnVersion : config.webauthnVersion;
+
     }
 
     public void validateConfiguration() {
