@@ -40,6 +40,7 @@ import com.microsoft.identity.labapi.utilities.client.LabQuery;
 import com.microsoft.identity.labapi.utilities.constants.TempUserType;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -50,6 +51,7 @@ import java.util.concurrent.TimeUnit;
 @RetryOnFailure
 @LongUIAutomationTest("Password reset test")
 @RunOnAPI29Minus
+@Ignore("Ignore until lab issue is resolved for Reset API")
 public class TestCase850457 extends AbstractMsalBrokerTest {
 
     @Test
