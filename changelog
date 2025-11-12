@@ -3,9 +3,9 @@ MSAL Wiki : https://github.com/AzureAD/microsoft-authentication-library-for-andr
 vNext
 ----------
 
-Version 8.1.0-RC1
+Version 8.1.0
 ----------
-- [PATCH] Update common @23.1.0-RC1
+- [PATCH] Update common @23.1.0
 - [MINOR] Add WebAuthN version support in configuration (#2393)
 
 Version 8.0.2
