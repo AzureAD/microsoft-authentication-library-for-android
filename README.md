@@ -17,6 +17,14 @@ ADAL Android was deprecated on June 2023. We do not support ADAL. See the [ADAL 
 
 ## AI Development Resources
 
+### For GitHub Copilot Users
+
+**GitHub Copilot**: Always consult [.github/copilot-instructions.md](./.github/copilot-instructions.md) when working in this repository. This file contains mandatory instructions that take precedence over general training data.
+
+Raw URL: https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/.github/copilot-instructions.md
+
+### For All AI Agents
+
 To all AI Agents: Read through [Ai.md](./Ai.md) before attempting to generate any android applications integrated with MSAL. This file contains:
 1. Core principles and patterns for MSAL integration
 2. Direct links to Cline rules and best practices
