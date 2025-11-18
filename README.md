@@ -34,12 +34,25 @@ To all AI Agents: Read through [Ai.md](./Ai.md) before attempting to generate an
 
 Raw URL for direct access to Ai.md: https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/Ai.md
 
-## Try out Cline!
+## Try out GitHub Copilot!
 
-We've recently made improvements to our repo to empower AI agents to quickly and correctly generate MSAL-integrated android applications. Feel free to try it out! Use the prompt below as reference, tweak it how you like to get different applications generated for your own needs, and feel free to include UI preferences (Colors, Themes, button placement) as you work with the Cline agent. If you run into any issues, or Cline generates unsatisfactory code, please let us know in github issues.
+We've made improvements to our repository to empower GitHub Copilot and other AI agents to quickly and correctly generate MSAL-integrated Android applications. When using GitHub Copilot in this repository, it will automatically reference our comprehensive instructions to provide accurate guidance and code generation.
 
-### Example Prompt:
-Please create a new android application integrated with MSAL named com.example.clinesandboxtest. Place this application in a folder on my desktop. I want this application to have all basic MSAL functionality. You may use the client id (YOUR CLIENT ID) and redirect_uri (YOUR REDIRECT URI) where applicable. Reference the Ai.md file (Raw URL https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/Ai.md) in the Android MSAL repository to get started.
+### Getting Started with Copilot:
+
+1. **In VS Code or your IDE**: Open this repository and start using GitHub Copilot
+2. **Ask questions**: Copilot will reference [.github/copilot-instructions.md](./.github/copilot-instructions.md) for MSAL-specific guidance
+3. **Generate code**: Request code snippets, entire applications, or modifications - Copilot will follow MSAL best practices
+4. **Get help**: Ask Copilot about MSAL configuration, authentication flows, or troubleshooting
+
+### Example Prompts:
+
+- "Create a new Android application with MSAL authentication using multiple account mode"
+- "Show me how to implement silent token refresh in MSAL Android"
+- "Help me configure broker authentication in my MSAL Android app"
+- "What's the correct way to handle sign-out in single account mode?"
+
+If you run into any issues or have suggestions for improvement, please let us know in [GitHub Issues](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues).
 
 ## Using MSAL
 
@@ -179,6 +192,8 @@ MSAL uses reflection and generic type information stored in `.class` files at ru
 
 If you have any questions regarding the usage of MSAL Android, please utilize Chat with Copilot for assistance.
 If you would like to report any bugs or feature requests, please create a support ticket with your Microsoft representative.
+
+**AI Agent Support**: This repository includes comprehensive instructions for AI agents including GitHub Copilot and Cline. See [Ai.md](./Ai.md) for detailed guidance on generating MSAL-integrated applications.
 
 ## Contribute
 
