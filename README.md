@@ -153,6 +153,25 @@ You can also view more in-depth example applications for each account mode in th
 - [Multiple Account Mode Example](./examples/hello-msal-multiple-account/)
 - [Single Account Mode Example](./examples/hello-msal-single-account/)
 
+#### Configuration Best Practices
+
+##### Authentication Configuration
+- Enable broker integration for enhanced security and SSO capabilities
+- URL encode special characters in `redirect_uri` within auth_config.json
+- Do NOT URL encode the signature hash in AndroidManifest.xml. Refer to `Step 3` in `Using MSAL` section above for direct examples.
+
+##### Resource Organization
+- Use proper resource naming conventions (e.g., `activity_*`, `fragment_*`)
+- Extract dimensions and strings to resource files
+- Define consistent theme attributes
+- Implement proper view binding
+
+##### Error Handling
+- Validate PCA initialization before API calls
+- Handle and communicate authentication errors appropriately
+- Show clear error states to users
+- Use progress indicators for async operations
+
 ## ProGuard
 MSAL uses reflection and generic type information stored in `.class` files at runtime to support various persistence and serialization related functionalities. Accordingly, library support for minification and obfuscation is limited. A default configuration is shipped with this library; please [file an issue](https://github.com/AzureAD/microsoft-authentication-library-for-android/issues/new/choose) if you find any issues.
 
