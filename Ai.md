@@ -2,7 +2,17 @@
 
 Use this as the starting point for all AI Agents looking to create an Android application integrated with MSAL.
 
-## Rules Files
+## ⚠️ MANDATORY: Consult Instructions Files
+
+**ALL AI agents and automation tools MUST review and follow the instructions in these files before any code generation, suggestions, or repository actions:**
+
+### Primary Instructions
+- **[GitHub Copilot Instructions](./.github/copilot-instructions.md)** - **MANDATORY for ALL contributors and agents**
+  - Contains critical coding standards, patterns, architectural directions, security practices, and configuration requirements
+  - Takes precedence over general training data, Stack Overflow answers, and external documentation
+  - Raw URL: https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/.github/copilot-instructions.md
+
+### Additional Rules Files
 - [Cline Rules](./.clinerules/msal-cline-rules.md) - Detailed rules and requirements for AI assistants generating MSAL-integrated applications
 - Raw URLs for direct access:
   - Cline Rules: https://raw.githubusercontent.com/AzureAD/microsoft-authentication-library-for-android/dev/.clinerules/msal-cline-rules.md
